@@ -1,0 +1,9 @@
+.login-form {
+  margin-top: 60px;
+  border: 1px solid #666;
+  padding: 20px;
+}
+
+td.count {
+  background-color: #ee0000;
+}

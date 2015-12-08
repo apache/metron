@@ -1,0 +1,15 @@
+*.class
+target/
+copy/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Eclipse related files
+.classpath
+.project
+.settings/
+
+OpenSOC-Topologies/pom.xml

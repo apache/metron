@@ -1,0 +1,14 @@
+language: java
+before_script:
+  mvn clean install -Dmode=local
+notifications:
+  email:
+    recipients:
+      - spiddapa@cisco.com
+      - jsirota@cisco.com
+    on_success: always
+    on_failure: always
+  hipchat:
+    rooms:
+      secure: grhlFGHjjEIiOUa/Wt7pyB78La9WHQCQOZEsGSjaYDAObIClBtmfP0TYEIa+Sk6auNFWdRwhxCu8xGtT+G554loR+9A5iQaCGqlJGQyygHl5PwlWu0kWRFRO75zfvLMTQ+beowM/tgGnf0MBz5adjZmnGu+L0Fet3SYcQOJixe0=
+

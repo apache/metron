@@ -1,0 +1,332 @@
+{
+  "title": " GoodBig Co.",
+  "services": {
+    "query": {
+      "list": {
+        "3": {
+          "id": 3,
+          "color": "#E5AC0E",
+          "alias": "Warning",
+          "pin": false,
+          "type": "lucene",
+          "enable": true,
+          "query": ""
+        }
+      },
+      "ids": [
+        3
+      ]
+    },
+    "filter": {
+      "list": {
+        "1": {
+          "type": "time",
+          "field": "message.timestamp",
+          "from": "now-12h",
+          "to": "now",
+          "mandate": "must",
+          "active": true,
+          "alias": "",
+          "id": 1
+        }
+      },
+      "ids": [
+        1
+      ]
+    }
+  },
+  "rows": [
+    {
+      "title": "Fixed Overview",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 4,
+          "editable": true,
+          "type": "terms",
+          "loadingEditor": false,
+          "field": "_type",
+          "exclude": [
+            "pcap"
+          ],
+          "missing": false,
+          "other": false,
+          "size": 10,
+          "order": "count",
+          "style": {
+            "font-size": "10pt"
+          },
+          "donut": false,
+          "tilt": false,
+          "labels": true,
+          "arrangement": "horizontal",
+          "chart": "pie",
+          "counter_pos": "above",
+          "spyable": true,
+          "queries": {
+            "mode": "all",
+            "ids": [
+              3
+            ]
+          },
+          "locked": false,
+          "tmode": "terms",
+          "tstat": "total",
+          "valuefield": "",
+          "title": "Alert Source"
+        }
+      ],
+      "notice": false
+    },
+    {
+      "title": "",
+      "height": "150px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 4,
+          "editable": true,
+          "type": "terms",
+          "loadingEditor": false,
+          "field": "message.protocol",
+          "exclude": [],
+          "missing": false,
+          "other": false,
+          "size": 10,
+          "order": "count",
+          "style": {
+            "font-size": "10pt"
+          },
+          "donut": false,
+          "tilt": false,
+          "labels": true,
+          "arrangement": "horizontal",
+          "chart": "table",
+          "counter_pos": "above",
+          "spyable": true,
+          "queries": {
+            "mode": "all",
+            "ids": [
+              3
+            ]
+          },
+          "locked": false,
+          "tmode": "terms",
+          "tstat": "total",
+          "valuefield": "",
+          "title": "Protocol"
+        }
+      ],
+      "notice": false
+    },
+    {
+      "title": "",
+      "height": "150px",
+      "editable": true,
+      "collapse": true,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "type": "table",
+          "loadingEditor": false,
+          "size": 100,
+          "pages": 5,
+          "offset": 0,
+          "sort": [
+            "alerts.triggered.priority",
+            "desc"
+          ],
+          "overflow": "min-height",
+          "fields": [
+            "_type",
+            "_index",
+            "alerts.triggered.priority"
+          ],
+          "highlight": [],
+          "sortable": true,
+          "header": true,
+          "paging": true,
+          "field_list": true,
+          "all_fields": false,
+          "trimFactor": 300,
+          "localTime": false,
+          "timeField": "@timestamp",
+          "spyable": true,
+          "queries": {
+            "mode": "all",
+            "ids": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "locked": false,
+          "style": {
+            "font-size": "9pt"
+          },
+          "normTimes": true,
+          "title": "all"
+        }
+      ],
+      "notice": false
+    },
+    {
+      "title": "",
+      "height": "150px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "type": "table",
+          "loadingEditor": false,
+          "size": 10,
+          "pages": 5000,
+          "offset": 0,
+          "sort": [
+            "_score",
+            "desc"
+          ],
+          "overflow": "min-height",
+          "fields": [
+            "alerts.triggered.type",
+            "alerts.triggered.priority",
+            "alerts.triggered.title",
+            "alerts.triggered.body",
+            "_type",
+            "message.ip_dst_port",
+            "message.ip_dst_addr",
+            "message.timestamp",
+            "message.protocol",
+            "message.ip_src_addr"
+          ],
+          "highlight": [],
+          "sortable": true,
+          "header": true,
+          "paging": true,
+          "field_list": true,
+          "all_fields": false,
+          "trimFactor": 300,
+          "localTime": false,
+          "timeField": "@timestamp",
+          "spyable": true,
+          "queries": {
+            "mode": "all",
+            "ids": [
+              3
+            ]
+          },
+          "locked": true,
+          "style": {
+            "font-size": "9pt"
+          },
+          "normTimes": true,
+          "title": "Alerts Table"
+        }
+      ],
+      "notice": false
+    }
+  ],
+  "editable": true,
+  "failover": false,
+  "index": {
+    "interval": "none",
+    "pattern": "[logstash-]YYYY.MM.DD",
+    "default": "_all",
+    "warm_fields": false
+  },
+  "style": "dark",
+  "realtime": true,
+  "panel_hints": true,
+  "pulldowns": [
+    {
+      "type": "query",
+      "collapse": false,
+      "notice": false,
+      "enable": true,
+      "query": "*",
+      "pinned": true,
+      "history": [
+        "",
+        "alerts.triggered.type:warning",
+        "alerts.triggered.type:error",
+        "alerts.triggered.type:alert",
+        "alerts.triggered.priority:3",
+        "alerts.triggered.priority:2",
+        "alerts.triggered.priority:1",
+        "*"
+      ],
+      "remember": 10
+    },
+    {
+      "type": "filtering",
+      "collapse": false,
+      "notice": true,
+      "enable": true
+    }
+  ],
+  "nav": [
+    {
+      "type": "timepicker",
+      "collapse": false,
+      "notice": false,
+      "enable": true,
+      "status": "Stable",
+      "time_options": [
+        "5m",
+        "15m",
+        "1h",
+        "6h",
+        "12h",
+        "24h",
+        "2d",
+        "7d",
+        "30d"
+      ],
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "timefield": "message.timestamp",
+      "now": true,
+      "filter_id": 1
+    }
+  ],
+  "loader": {
+    "save_gist": false,
+    "save_elasticsearch": true,
+    "save_local": true,
+    "save_default": true,
+    "save_temp": true,
+    "save_temp_ttl_enable": true,
+    "save_temp_ttl": "30d",
+    "load_gist": false,
+    "load_elasticsearch": true,
+    "load_elasticsearch_size": 20,
+    "load_local": false,
+    "hide": false
+  },
+  "refresh": false
+}
