@@ -15,28 +15,41 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.3BETA-SNAPSHOT</version>
+		<version>0.6BETA</version>
 	</parent>
 	<artifactId>OpenSOC-DataLoads</artifactId>
 	<properties>
-
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>	
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+			  	 <artifactId>servlet-api</artifactId>
+			   	 <groupId>javax.servlet</groupId>
+			  </exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
 			<version>${global_hbase_version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>
@@ -69,15 +82,18 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+						<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<excludes>
 									<exclude>classworlds:classworlds</exclude>
 									<exclude>junit:junit</exclude>
 									<exclude>jmock:*</exclude>
 									<exclude>*:xml-apis</exclude>
+									<exclude>*slf4j*</exclude>
 									<exclude>org.apache.maven:lib:tests</exclude>
 									<exclude>log4j:log4j:jar:</exclude>
 									<exclude>*:hbase:*</exclude>
+									<exclude>org.apache.hadoop.yarn.util.package-info*</exclude>
 								</excludes>
 							</artifactSet>
 						</configuration>

@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 import com.opensoc.dataservices.servlet.LoginServlet;
 import com.opensoc.dataservices.servlet.LogoutServlet;
 import com.opensoc.dataservices.websocket.KafkaMessageSenderServlet;

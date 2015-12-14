@@ -51,8 +51,8 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 	protected String _OutputFieldName;
 
 	protected String _enrichment_tag;
-	protected Long _MAX_CACHE_SIZE;
-	protected Long _MAX_TIME_RETAIN;
+	protected Long _MAX_CACHE_SIZE_OBJECTS_NUM;
+	protected Long _MAX_TIME_RETAIN_MINUTES;
 
 	// JSON Keys to be enriched
 	protected List<String> _jsonKeys;
@@ -86,10 +86,10 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 			throw new IllegalStateException("OutputFieldName must be specified");
 		if (this._enrichment_tag == null)
 			throw new IllegalStateException("enrichment_tag must be specified");
-		if (this._MAX_CACHE_SIZE == null)
-			throw new IllegalStateException("MAX_CACHE_SIZE must be specified");
-		if (this._MAX_TIME_RETAIN == null)
-			throw new IllegalStateException("MAX_TIME_RETAIN must be specified");
+		if (this._MAX_CACHE_SIZE_OBJECTS_NUM == null)
+			throw new IllegalStateException("MAX_CACHE_SIZE_OBJECTS_NUM must be specified");
+		if (this._MAX_TIME_RETAIN_MINUTES == null)
+			throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("Adapter must be specified");
 		if (this._jsonKeys == null)
@@ -102,8 +102,8 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 			}
 		};
 
-		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE_OBJECTS_NUM)
+				.expireAfterWrite(_MAX_TIME_RETAIN_MINUTES, TimeUnit.MINUTES)
 				.build(loader);
 
 		boolean success = _adapter.initializeAdapter();

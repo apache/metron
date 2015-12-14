@@ -19,8 +19,6 @@
 package com.opensoc.alerts.adapters;
 
 import java.io.Serializable;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -62,9 +60,9 @@ public abstract class AbstractAlertAdapter implements AlertsAdapter, Serializabl
 		return (ip1 + "-" + ip2 + "-" + alert_type);
 	}
 	
-	private void generateCache(int _MAX_CACHE_SIZE, int _MAX_TIME_RETAIN)
+	protected void generateCache(int _MAX_CACHE_SIZE_OBJECTS_NUM, int _MAX_TIME_RETAIN_MINUTES)
 	{
-		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE_OBJECTS_NUM)
+				.expireAfterWrite(_MAX_TIME_RETAIN_MINUTES, TimeUnit.MINUTES).build();
 	}
 }

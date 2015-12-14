@@ -17,29 +17,31 @@
 
 package com.opensoc.json.serialization;
 
+import static com.opensoc.json.serialization.JSONDecoderHelper.getObject;
+import static com.opensoc.json.serialization.JSONEncoderHelper.putBoolean;
+import static com.opensoc.json.serialization.JSONEncoderHelper.putNull;
+import static com.opensoc.json.serialization.JSONEncoderHelper.putNumber;
+import static com.opensoc.json.serialization.JSONEncoderHelper.putString;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import kafka.serializer.Decoder;
+import kafka.serializer.Encoder;
+import kafka.utils.VerifiableProperties;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import kafka.serializer.Decoder;
-import kafka.serializer.Encoder;
-import kafka.utils.VerifiableProperties;
-import static com.opensoc.json.serialization.JSONEncoderHelper.*;
-import static com.opensoc.json.serialization.JSONDecoderHelper.*;
 
 /**
  * JSON Serailization class for kafka. Implements kafka Encoder and Decoder

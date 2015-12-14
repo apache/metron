@@ -15,14 +15,18 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.3BETA-SNAPSHOT</version>
+		<version>0.6BETA</version>
 	</parent>
 	<artifactId>OpenSOC-MessageParsers</artifactId>
+    <properties>
+ 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>	
+    </properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
@@ -40,11 +44,7 @@
 			<artifactId>guava</artifactId>
 			<version>${global_guava_version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.github.fge</groupId>
-			<artifactId>json-schema-validator</artifactId>
-			<version>${global_json_schema_validator_version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>io.thekraken</groupId>
 			<artifactId>grok</artifactId>
@@ -74,13 +74,29 @@
 				<configuration>
 					<targetJdk>1.7</targetJdk>
 				</configuration>
+				
 			</plugin>
 		</plugins>
 	</reporting>
 	<build>
+	<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<inherited>true</inherited>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			</plugins>
 		<resources>
 		<resource>
 				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/resources/patterns</directory>
 			</resource>
 			<resource>
 				<directory>src/test/resources</directory>

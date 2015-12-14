@@ -30,11 +30,11 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * Uses an adapter to parse a telemetry message from its native format into a
@@ -125,6 +125,11 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			LOG.info("[OpenSOC] Metric reporter is not initialized");
 		}
 		this.registerCounters();
+		
+		if(_parser != null)
+		_parser.init();
+		
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -203,7 +208,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			JSONObject error = ErrorGenerator.generateErrorMessage(
 					"Parsing problem: " + new String(original_message),
-					e.toString());
+					e);
 			_collector.emit("error", new Values(error));
 		}
 	}

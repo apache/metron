@@ -18,6 +18,7 @@
  */
 package com.opensoc.enrichment.adapters.whois;
 
+import java.net.InetAddress;
 import java.util.Properties;
 
 import org.json.simple.JSONObject;
@@ -68,13 +69,39 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
         super.setUp();
         Properties prop = super.getTestProperties();
         assertNotNull(prop);   
+        
         if(skipTests(this.getMode())){
             return;//skip tests
-       }else{ 
+        }
+        
+        String[] zk = prop.get("kafka.zk.list").toString().split(",");
+        
+        for(String z : zk)
+        {
+        	InetAddress address = InetAddress.getByName(z);
+            boolean reachable = address.isReachable(100);
+
+            if(!reachable)
+            {
+            	this.setMode("local");
+            	break;
+            	//throw new Exception("Unable to reach zookeeper, skipping WHois adapter test");
+            }
+            
+            System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.list"));
+            System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.port"));   
+            System.out.println("kafka.zk.list ="+(String) prop.get("bolt.enrichment.cif.tablename")); 
+            
+        }
+        
+        if(skipTests(this.getMode())){
+            System.out.println("Local Mode Skipping tests !! ");
+        }else{
             whoisHbaseAdapter=new WhoisHBaseAdapter((String)prop.get("bolt.enrichment.whois.hbase.table.name"),(String)prop.get("kafka.zk.list"),(String)prop.get("kafka.zk.port"));
             connected =whoisHbaseAdapter.initializeAdapter();
             assertTrue(connected);
-       }
+        }
+       
     }
 
     /* 

@@ -16,16 +16,16 @@
  */
 package com.opensoc.parsing.test;
 
-import java.util.Iterator;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
-
-import junit.framework.TestCase;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.opensoc.parsing.parsers.BasicLancopeParser;
+import com.opensoc.test.AbstractSchemaTest;
 
  /**
  * <ul>
@@ -35,10 +35,18 @@ import com.opensoc.parsing.parsers.BasicLancopeParser;
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class BasicLancopeParserTest extends TestCase {
+public class BasicLancopeParserTest extends AbstractSchemaTest {
+    
+    /**
+     * The inputStrings.
+     */
+     private static String[] inputStrings;    
 
-    private  static String rawMessage = "";
-    private static BasicLancopeParser lancopeParser=null;   
+
+    /**
+     * The parser.
+     */
+    private static BasicLancopeParser parser=null;   
 
     /**
      * Constructs a new <code>BasicLancopeParserTest</code> instance.
@@ -53,8 +61,7 @@ public class BasicLancopeParserTest extends TestCase {
      
      * @throws java.lang.Exception
      */
-    protected static void setUpBeforeClass() throws Exception {
-        setRawMessage("{\"message\":\"<131>Jul 17 15:59:01 smc-01 StealthWatch[12365]: 2014-07-17T15:58:30Z 10.40.10.254 0.0.0.0 Minor High Concern Index The host's concern index has either exceeded the CI threshold or rapidly increased. Observed 36.55M points. Policy maximum allows up to 20M points.\",\"@version\":\"1\",\"@timestamp\":\"2014-07-17T15:56:05.992Z\",\"type\":\"syslog\",\"host\":\"10.122.196.201\"}");        
+    protected static void setUpBeforeClass() throws Exception {        
     }
 
     /**
@@ -70,10 +77,13 @@ public class BasicLancopeParserTest extends TestCase {
      */
 
     protected void setUp() throws Exception {
-        super.setUp();
-        setRawMessage("{\"message\":\"<131>Jul 17 15:59:01 smc-01 StealthWatch[12365]: 2014-07-17T15:58:30Z 10.40.10.254 0.0.0.0 Minor High Concern Index The host's concern index has either exceeded the CI threshold or rapidly increased. Observed 36.55M points. Policy maximum allows up to 20M points.\",\"@version\":\"1\",\"@timestamp\":\"2014-07-17T15:56:05.992Z\",\"type\":\"syslog\",\"host\":\"10.122.196.201\"}");        
-        assertNotNull(getRawMessage());
-        BasicLancopeParserTest.setLancopeParser(new BasicLancopeParser());        
+        super.setUp("com.opensoc.parsing.test.BasicLancopeParserTest");
+        setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
+        BasicLancopeParserTest.setParser(new BasicLancopeParser());   
+        
+        URL schema_url = getClass().getClassLoader().getResource(
+            "TestSchemas/LancopeSchema.json");
+        super.setSchemaJsonString(super.readSchemaFromFile(schema_url));      
     }
 
     /* 
@@ -87,70 +97,64 @@ public class BasicLancopeParserTest extends TestCase {
 
     /**
      * Test method for {@link com.opensoc.parsing.parsers.BasicLancopeParser#parse(byte[])}.
+     * @throws Exception 
+     * @throws IOException 
      */
-    public void testParse() {
-        byte messages[] = getRawMessage().getBytes();
-        assertNotNull(messages);        
-        JSONObject parsed = lancopeParser.parse(getRawMessage().getBytes());
-        assertNotNull(parsed);
+    public void testParse() throws IOException, Exception {
         
-        System.out.println(parsed);
-        JSONParser parser = new JSONParser();
+        for (String inputString : getInputStrings()) {
+            JSONObject parsed = parser.parse(inputString.getBytes());
+            assertNotNull(parsed);
         
-        Map json=null;
-        try {
-            json = (Map) parser.parse(parsed.toJSONString());
-        } catch (ParseException e) {
-            e.printStackTrace();
+            System.out.println(parsed);
+            JSONParser parser = new JSONParser();
+
+            Map<?, ?> json=null;
+            try {
+                json = (Map<?, ?>) parser.parse(parsed.toJSONString());
+                assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
-        Iterator iter = json.entrySet().iterator();
-            
-
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry) iter.next();
-            String key = (String) entry.getKey();
-            assertNotNull((String) json.get("original_string").toString());
-            
-            assertNotNull((String)json.get("ip_src_addr").toString());
-            assertNotNull((String)json.get("ip_dst_addr").toString());            
-        }        
-    }
-    
-    /**
-     * Returns the rawMessage.
-     * @return the rawMessage.
-     */
-    
-    public static String getRawMessage() {
-        return BasicLancopeParserTest.rawMessage;
     }
 
     /**
-     * Sets the rawMessage.
-     * @param rawMessage the rawMessage.
-     */
-    
-    public static void setRawMessage(String rawMessage) {
-    
-        BasicLancopeParserTest.rawMessage = rawMessage;
-    }
-    /**
-     * Returns the lancopeParser.
-     * @return the lancopeParser.
-     */
-    
-    public static BasicLancopeParser getLancopeParser() {
-        return lancopeParser;
-    }
+    * Returns the parser.
+    * @return the parser.
+    */
+   
+   public static BasicLancopeParser getParser() {
+       return parser;
+   }
 
-    /**
-     * Sets the lancopeParser.
-     * @param lancopeParser the lancopeParser.
-     */
-    
-    public static void setLancopeParser(BasicLancopeParser lancopeParser) {
-    
-        BasicLancopeParserTest.lancopeParser = lancopeParser;
-    }
+   /**
+    * Sets the parser.
+    * @param parser the parser.
+    */
+   
+   public static void setParser(BasicLancopeParser parser) {
+   
+       BasicLancopeParserTest.parser = parser;
+   }
+
+   /**
+    * Returns the inputStrings.
+    * @return the inputStrings.
+    */
+   
+   public static String[] getInputStrings() {
+       return inputStrings;
+   }
+
+   /**
+    * Sets the inputStrings.
+    * @param inputStrings the inputStrings.
+    */
+   
+   public static void setInputStrings(String[] inputStrings) {
+   
+       BasicLancopeParserTest.inputStrings = inputStrings;
+   }   
 }
 
