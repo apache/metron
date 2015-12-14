@@ -1,0 +1,21 @@
+---
+# tasks file for ambari_common
+- name: download HDP repo
+  get_url: url="{{ rhel_ambari_install_url }}" dest=/etc/yum.repos.d/
+
+- name: Install EPEL repo.
+  yum:
+    name: "{{ epel_repo_url }}"
+    state: present
+
+- name: clean yum
+  shell: yum clean all
+
+- name: install ntp
+  yum: name=ntp state=present
+
+- name: Ensure ntp is running and enabled
+  service: name=ntpd state=started enabled=yes
+
+- name: ensure iptables is stopped and is not running at boot time.
+  service: name=iptables state=stopped enabled=no
