@@ -1,7 +1,7 @@
-# Apache ORC html branch
+# Apache Metron html branch
 
 This branch contains the generated HTML for the
-[ORC website](https://orc.apache.org). 
+[Metron website](https://metron.apache.org).
 
-You are probably looking for the 
-[ORC master branch](https://github.com/apache/orc/tree/master).
+You are probably looking for the
+[Metron master branch](https://github.com/apache/incubator-metron/tree/master).

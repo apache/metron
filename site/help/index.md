@@ -8,16 +8,16 @@ Need help with Metron? Try these resources.
 ## Mailing Lists
 
 The best option is to send email to the user list
-[user@incubator-metron.apache.org](mailto:user@incubator-metron.apache.org), which is for user
+[user@metron.incubator.apache.org](mailto:user@metron.incubator.apache.org), which is for user
 discussions. All of the historic traffic is available in the
 [archive](http://mail-archives.apache.org/mod_mbox/incubator-metron-user/). To
 subscribe to the user list, please send email to
-[user-subscribe@incubator-metron.apache.org](mailto:user-subscribe@incubator-metron.apache.org).
+[user-subscribe@metron.incubator.apache.org](mailto:user-subscribe@incubator-metron.apache.org).
 
 ## Bug Reports
 
 Please file any issues you encounter or fixes you'd like on the
-[Apache Metron Jira](https://issues.apache.org/jira/browse/incubator-metron). We welcome
+[Apache Metron Jira](https://issues.apache.org/jira/browse/metron). We welcome
 patches!
 
 ## StackOverflow

@@ -16,18 +16,18 @@ Owen O'Malley         | omalley      | PMC
 
 ## Mailing Lists
 
-There are several development mailing lists for ORC:
+There are several development mailing lists for Metron
 
-* [dev@incubator-metron.apache.org](mailto:dev@incubator-metron.apache.org) - Development discussions
+* [dev@metron.incubator.apache.org](mailto:dev@metron.incubator.apache.org) - Development discussions
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-dev/)
-* [issues@orc.apache.org](mailto:issues@orc.apache.org) - Bug tracking
+* [issues@metron.incubator.apache.org](mailto:issues@metron.incubator.apache.org) - Bug tracking
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-issues/)
-* [commits@orc.apache.org](mailto:commits@incubator-metron.apache.org) - Git tracking
+* [commits@incubator-metron.apache.org](mailto:commits@metron.incubator.apache.org) - Git tracking
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-commits/)
 
 You can subscribe to the lists by sending email to
-*list*-subscribe@incubator-metron.apache.org and unsubscribe by sending email to
-*list*-unsubscribe@incubator-metron.apache.org.
+*list*-subscribe@metron.incubator.apache.org and unsubscribe by sending email to
+*list*-unsubscribe@metron.incubator.apache.org.
 
 ## Source code
 

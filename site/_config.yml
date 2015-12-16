@@ -3,8 +3,8 @@ highlighter: rouge
 permalink: /news/:year/:month/:day/:title/
 excerpt_separator: ""
 
-repository: https://github.com/apache/orc
-destination: target
+repository: https://github.com/apache/incubator-metron
+destination: asf_site
 exclude: [BUILD.md, Gemfile*]
 keep_files: [.git]
 highlight_color: "#199acf"
