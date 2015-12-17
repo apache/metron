@@ -1,0 +1,263 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <title>Developing</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="generator" content="Jekyll v2.4.0">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic,900">
+  <link rel="stylesheet" href="/css/screen.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <!--[if lt IE 9]>
+  <script src="/js/html5shiv.min.js"></script>
+  <script src="/js/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+
+<body class="wrap">
+  <header role="banner">
+  <nav class="mobile-nav show-on-mobiles">
+    <ul>
+  <li class="">
+    <a href="/">Home</a>
+  </li>
+  <li class="">
+    <a href="/docs/">Doc<span class="show-on-mobiles">s</span>
+                        <span class="hide-on-mobiles">umentation</span></a>
+  </li>
+  <li class="">
+    <a href="/talks/">Talks</a>
+  </li>
+  <li class="">
+    <a href="/news/">News</a>
+  </li>
+  <li class="">
+    <a href="/help/">Help</a>
+  </li>
+  <li class="current">
+    <a href="/develop/">Develop</a>
+  </li>
+</ul>
+
+  </nav>
+  <div class="grid">
+    <div class="unit one-third center-on-mobiles">
+      <h1>
+        <a href="/">
+          <span class="sr-only">Apache Metron</span>
+          <img src="/img/logo.png" width="289" alt="Metron Logo" class="logo">
+        </a>
+      </h1>
+    </div>
+    <nav class="main-nav unit two-thirds hide-on-mobiles">
+      <ul>
+  <li class="">
+    <a href="/">Home</a>
+  </li>
+  <li class="">
+    <a href="/docs/">Doc<span class="show-on-mobiles">s</span>
+                        <span class="hide-on-mobiles">umentation</span></a>
+  </li>
+  <li class="">
+    <a href="/talks/">Talks</a>
+  </li>
+  <li class="">
+    <a href="/news/">News</a>
+  </li>
+  <li class="">
+    <a href="/help/">Help</a>
+  </li>
+  <li class="current">
+    <a href="/develop/">Develop</a>
+  </li>
+</ul>
+
+    </nav>
+  </div>
+</header>
+
+
+  <section class="standalone">
+  <div class="grid">
+
+    <div class="unit whole">
+      <article>
+        <h1>Developing</h1>
+        <p>Information about the Metron project that is most important for
+developers working on the project. The project has created
+<a href="bylaws.html">bylaws</a> for itself.</p>
+
+<h2 id="project-members">Project Members</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Name</th>
+      <th style="text-align: left">Apache Id</th>
+      <th style="text-align: left">Role</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Owen O’Malley</td>
+      <td style="text-align: left">omalley</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Jim Baker</td>
+      <td style="text-align: left">jimbaker</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Mark Bittmann</td>
+      <td style="text-align: left">mbittmann</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sheetal Dolas</td>
+      <td style="text-align: left">sheetal_dolas</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">P. Taylor Goetz</td>
+      <td style="text-align: left">ptgoetz</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Brad Kolarov</td>
+      <td style="text-align: left">billie</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Dave Hirko</td>
+      <td style="text-align: left">dbhirko</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Larry McCay</td>
+      <td style="text-align: left">lmccay</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Charles Porter</td>
+      <td style="text-align: left">cporter</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">James Sirota</td>
+      <td style="text-align: left">jsirota</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Casey Stella</td>
+      <td style="text-align: left">cestella</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Vinod Kumar Vavilapalli</td>
+      <td style="text-align: left">vinodkv</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">George Vetticaden</td>
+      <td style="text-align: left">gvetticaden</td>
+      <td style="text-align: left">PMC</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="mailing-lists">Mailing Lists</h2>
+
+<p>There are several development mailing lists for Metron</p>
+
+<ul>
+  <li><a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#100;&#101;&#118;&#064;&#109;&#101;&#116;&#114;&#111;&#110;&#046;&#105;&#110;&#099;&#117;&#098;&#097;&#116;&#111;&#114;&#046;&#097;&#112;&#097;&#099;&#104;&#101;&#046;&#111;&#114;&#103;">&#100;&#101;&#118;&#064;&#109;&#101;&#116;&#114;&#111;&#110;&#046;&#105;&#110;&#099;&#117;&#098;&#097;&#116;&#111;&#114;&#046;&#097;&#112;&#097;&#099;&#104;&#101;&#046;&#111;&#114;&#103;</a> - Development discussions
+with archive <a href="https://mail-archives.apache.org/mod_mbox/incubator-metron-dev/">here</a></li>
+  <li><a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#105;&#115;&#115;&#117;&#101;&#115;&#064;&#109;&#101;&#116;&#114;&#111;&#110;&#046;&#105;&#110;&#099;&#117;&#098;&#097;&#116;&#111;&#114;&#046;&#097;&#112;&#097;&#099;&#104;&#101;&#046;&#111;&#114;&#103;">&#105;&#115;&#115;&#117;&#101;&#115;&#064;&#109;&#101;&#116;&#114;&#111;&#110;&#046;&#105;&#110;&#099;&#117;&#098;&#097;&#116;&#111;&#114;&#046;&#097;&#112;&#097;&#099;&#104;&#101;&#046;&#111;&#114;&#103;</a> - Bug tracking
+with archive <a href="https://mail-archives.apache.org/mod_mbox/incubator-metron-issues/">here</a></li>
+  <li><a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#105;&#116;&#115;&#064;&#109;&#101;&#116;&#114;&#111;&#110;&#046;&#105;&#110;&#099;&#117;&#098;&#097;&#116;&#111;&#114;&#046;&#097;&#112;&#097;&#099;&#104;&#101;&#046;&#111;&#114;&#103;">&#099;&#111;&#109;&#109;&#105;&#116;&#115;&#064;&#109;&#101;&#116;&#114;&#111;&#110;&#046;&#105;&#110;&#099;&#117;&#098;&#097;&#116;&#111;&#114;&#046;&#097;&#112;&#097;&#099;&#104;&#101;&#046;&#111;&#114;&#103;</a> - Git tracking
+with archive <a href="https://mail-archives.apache.org/mod_mbox/incubator-metron-commits/">here</a></li>
+</ul>
+
+<p>You can subscribe to the lists by sending email to
+<em>list</em>-subscribe@metron.incubator.apache.org and unsubscribe by sending email to
+<em>list</em>-unsubscribe@metron.incubator.apache.org.</p>
+
+<h2 id="source-code">Source code</h2>
+
+<p>Metron uses git for version control. Get the source code:</p>
+
+<p><code>% git clone https://git-wip-us.apache.org/repos/asf/incubator-metron.git</code></p>
+
+<p>The important branches are:</p>
+
+<ul>
+  <li><a href="https://github.com/apache/incubator-metron/tree/master">master</a> -
+The trunk for all developement</li>
+  <li><a href="https://github.com/apache/incubator-metron/tree/asf-site">asf-site</a> -
+The pages that are deployed to https://metron.apache.org/</li>
+</ul>
+
+<p>Please check our <a href="/develop/coding.html">coding guidelines</a>.</p>
+
+<h2 id="reviews">Reviews</h2>
+
+<p>All code must be +1’ed by a committer other than the author prior to its
+commit.</p>
+
+      </article>
+    </div>
+
+    <div class="clear"></div>
+
+  </div>
+</section>
+
+
+  <footer role="contentinfo">
+  <p>The contents of this website are &copy;&nbsp;2015
+     <a href="https://www.apache.org/">Apache Software Foundation</a>
+     under the terms of the <a
+      href="https://www.apache.org/licenses/LICENSE-2.0.html">
+      Apache&nbsp;License&nbsp;v2</a>. Apache Metron and its logo are trademarks
+      of the Apache Software Foundation.</p>
+</footer>
+
+  <script>
+  var anchorForId = function (id) {
+    var anchor = document.createElement("a");
+    anchor.className = "header-link";
+    anchor.href      = "#" + id;
+    anchor.innerHTML = "<span class=\"sr-only\">Permalink</span><i class=\"fa fa-link\"></i>";
+    anchor.title = "Permalink";
+    return anchor;
+  };
+
+  var linkifyAnchors = function (level, containingElement) {
+    var headers = containingElement.getElementsByTagName("h" + level);
+    for (var h = 0; h < headers.length; h++) {
+      var header = headers[h];
+
+      if (typeof header.id !== "undefined" && header.id !== "") {
+        header.appendChild(anchorForId(header.id));
+      }
+    }
+  };
+
+  document.onreadystatechange = function () {
+    if (this.readyState === "complete") {
+      var contentBlock = document.getElementsByClassName("docs")[0] || document.getElementsByClassName("news")[0];
+      if (!contentBlock) {
+        return;
+      }
+      for (var level = 1; level <= 6; level++) {
+        linkifyAnchors(level, contentBlock);
+      }
+    }
+  };
+</script>
+
+
+</body>
+</html>

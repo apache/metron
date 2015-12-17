@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title></title>
+    <description></description>
+    <link>/</link>
+    <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Thu, 17 Dec 2015 14:02:02 -0500</pubDate>
+    <lastBuildDate>Thu, 17 Dec 2015 14:02:02 -0500</lastBuildDate>
+    <generator>Jekyll v2.4.0</generator>
+    
+      <item>
+        <title>Metron adopts new logo</title>
+        <description>&lt;p&gt;The Metron project has adopted a new logo. We hope you like it.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/logo.png&quot; alt=&quot;metron logo&quot; title=&quot;metron logo&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Other great options included a big white hand on a black shield. &lt;em&gt;smile&lt;/em&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sat, 12 Dec 2015 07:00:00 -0500</pubDate>
+        <link>/news/2015/12/12/new-logo/</link>
+        <guid isPermaLink="true">/news/2015/12/12/new-logo/</guid>
+        
+        
+        <category>project</category>
+        
+      </item>
+    
+      <item>
+        <title>Metron adopts new logo</title>
+        <description>&lt;p&gt;Congratulations! Metron accepted into the Apache Incubator.&lt;/p&gt;
+</description>
+        <pubDate>Sat, 12 Dec 2015 07:00:00 -0500</pubDate>
+        <link>/news/2015/12/12/metron-incubator/</link>
+        <guid isPermaLink="true">/news/2015/12/12/metron-incubator/</guid>
+        
+        
+        <category>project</category>
+        
+      </item>
+    
+  </channel>
+</rss>
