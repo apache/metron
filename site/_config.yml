@@ -4,7 +4,7 @@ permalink: /news/:year/:month/:day/:title/
 excerpt_separator: ""
 
 repository: https://github.com/apache/incubator-metron
-destination: asf_site
+destination: target
 exclude: [BUILD.md, Gemfile*]
 keep_files: [.git]
 highlight_color: "#199acf"
