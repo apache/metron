@@ -22,7 +22,7 @@ There are several development mailing lists for Metron
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-dev/)
 * [issues@metron.incubator.apache.org](mailto:issues@metron.incubator.apache.org) - Bug tracking
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-issues/)
-* [commits@incubator-metron.apache.org](mailto:commits@metron.incubator.apache.org) - Git tracking
+* [commits@metron.incubator.apache.org](mailto:commits@metron.incubator.apache.org) - Git tracking
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-commits/)
 
 You can subscribe to the lists by sending email to
