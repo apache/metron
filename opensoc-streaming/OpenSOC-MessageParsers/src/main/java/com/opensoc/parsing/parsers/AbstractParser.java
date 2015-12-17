@@ -34,9 +34,15 @@ public abstract class AbstractParser implements MessageParser, Serializable {
 
 	public void initializeParser() {
 		_LOG.debug("Initializing adapter...");
+		
 
 	}
-
+	
+	public void init() {
+		
+	}
+	
+	
 	abstract public JSONObject parse(byte[] raw_message);
 
 }

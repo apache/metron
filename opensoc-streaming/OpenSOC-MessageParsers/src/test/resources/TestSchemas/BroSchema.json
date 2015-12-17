@@ -1,0 +1,28 @@
+{
+	"title": "Bro Schema",
+	"type": "object",
+	"properties": {
+		"status_code": {
+			"type": "integer"
+		},
+		"uid": {
+			"type": "string"
+		},
+		"protocol": {
+			"type": "string"
+		},
+		"ip_dst_addr": {
+			"type": "string"
+		},
+		"host": {
+			"type": "string"
+		},		
+		"request_body_len": {
+			"type": "integer"
+		},
+		"response_body_len": {
+			"type": "integer"
+		}	
+	},
+	"required": ["status_code", "uid", "protocol","ip_dst_addr","host","request_body_len","response_body_len"]
+}

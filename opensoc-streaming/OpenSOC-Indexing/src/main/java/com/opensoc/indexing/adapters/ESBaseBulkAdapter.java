@@ -1,12 +1,11 @@
 package com.opensoc.indexing.adapters;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.Map;
 
 import org.apache.commons.collections.Bag;
-import org.apache.commons.collections.HashBag;
+import org.apache.commons.collections.bag.HashBag;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -35,7 +34,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 	@Override
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size) throws Exception {
+			int bulk_size, String date_format) throws Exception {
 
 		bulk_set = new HashBag();
 
@@ -140,5 +139,10 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	public void setOptionalSettings(Map<String, String> settings) {
+		// TODO Auto-generated method stub
+		
 	}
 }

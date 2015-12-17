@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.json.simple.JSONObject;
 
+@SuppressWarnings("serial")
 public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	
 	Map<String, JSONObject> _known_hosts;
@@ -40,7 +41,8 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 			return false;
 	}
 
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public JSONObject enrich(String metadata) {
 		
 		

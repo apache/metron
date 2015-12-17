@@ -15,19 +15,21 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.3BETA-SNAPSHOT</version>
+		<version>0.6BETA</version>
 	</parent>
 	<artifactId>OpenSOC-Alerts</artifactId>
 	<name>OpenSOC-Alerts</name>
 	<description>Taggers for alerts</description>
 	<properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>		
 		<commons.validator.version>1.4.0</commons.validator.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
@@ -39,6 +41,12 @@
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>
+		    </exclusions>					
 		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
@@ -69,9 +77,56 @@
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>${commons.validator.version}</version>
+			<exclusions>
+				<exclusion>
+				
+				<groupId>commons-beanutils</groupId>
+				
+				<artifactId>commons-beanutils</artifactId>
+				
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18</version>
+				<configuration>
+					<systemProperties>
+						<property>
+							<name>mode</name>
+							<value>local</value>
+						</property>
+					</systemProperties>
+				</configuration>
+			</plugin>		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<targetJdk>1.7</targetJdk>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.0-alpha-3</version>
+				<inherited>true</inherited>
+			</plugin>			
+		</plugins>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>

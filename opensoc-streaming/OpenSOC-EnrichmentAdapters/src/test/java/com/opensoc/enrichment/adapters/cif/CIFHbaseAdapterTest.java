@@ -18,6 +18,7 @@
  */
 package com.opensoc.enrichment.adapters.cif;
 
+import java.net.InetAddress;
 import java.util.Properties;
 
 import com.opensoc.test.AbstractTestContext;
@@ -35,6 +36,7 @@ import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     private static CIFHbaseAdapter cifHbaseAdapter=null;
+
 
 
     /**
@@ -70,8 +72,33 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     protected void setUp() throws Exception {
         super.setUp();
+        
         Properties prop = super.getTestProperties();
         assertNotNull(prop);
+        
+        if(skipTests(this.getMode())){
+            return;//skip tests
+        }
+        
+        String[] zk = prop.get("kafka.zk.list").toString().split(",");
+        
+        for(String z : zk)
+        {
+        	InetAddress address = InetAddress.getByName(z);
+            boolean reachable = address.isReachable(100);
+
+            if(!reachable)
+            {
+            	this.setMode("local");
+            	//throw new Exception("Unable to reach zookeeper, skipping CIF adapter test");
+            	break;
+            }
+            
+        }
+        
+        if(skipTests(this.getMode()))
+            return;//skip tests
+            
         System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.list"));
         System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.port"));   
         System.out.println("kafka.zk.list ="+(String) prop.get("bolt.enrichment.cif.tablename"));   

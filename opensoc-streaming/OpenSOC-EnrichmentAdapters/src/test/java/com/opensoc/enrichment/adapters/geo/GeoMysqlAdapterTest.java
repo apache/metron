@@ -16,21 +16,22 @@
  */
 package com.opensoc.enrichment.adapters.geo;
 
+import java.net.URL;
 import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
-import com.opensoc.test.AbstractTestContext;
+import com.opensoc.test.AbstractSchemaTest;
 
  /**
  * <ul>
- * <li>Title: </li>
- * <li>Description: </li>
+ * <li>Title: GeoMySqlAdapterTest</li>
+ * <li>Description: Tests for GeoMySqlAdapter</li>
  * <li>Created: Aug 25, 2014</li>
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class GeoMysqlAdapterTest extends AbstractTestContext  {
+public class GeoMysqlAdapterTest extends AbstractSchemaTest {
 
     private static GeoMysqlAdapter geoMySqlAdapter=null;
     private static boolean connected=false;
@@ -72,9 +73,12 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
             System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
             return;//skip tests
        }else{
-        geoMySqlAdapter=new GeoMysqlAdapter((String)prop.get("mysql.ip"), (new Integer((String)prop.get("mysql.port"))).intValue(),(String)prop.get("mysql.username"),(String)prop.get("mysql.password"), (String)prop.get("bolt.enrichment.geo.adapter.table"));
-        connected =geoMySqlAdapter.initializeAdapter();
-        assertTrue(connected);
+           GeoMysqlAdapterTest.setGeoMySqlAdapter(new GeoMysqlAdapter((String)prop.get("mysql.ip"), (new Integer((String)prop.get("mysql.port"))).intValue(),(String)prop.get("mysql.username"),(String)prop.get("mysql.password"), (String)prop.get("bolt.enrichment.geo.adapter.table")));
+           connected =geoMySqlAdapter.initializeAdapter();
+           assertTrue(connected);
+           URL schema_url = getClass().getClassLoader().getResource(
+               "TestSchemas/GeoMySqlSchema.json");
+           super.setSchemaJsonString(super.readSchemaFromFile(schema_url));  
        }
     }
 
@@ -85,7 +89,7 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
 
     protected void tearDown() throws Exception {
         super.tearDown();
-        geoMySqlAdapter=null;
+        GeoMysqlAdapterTest.setGeoMySqlAdapter(null);
     }
 
     /**
@@ -95,16 +99,24 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
-        JSONObject json = geoMySqlAdapter.enrich("72.163.4.161");
+           
+         try {           
+                JSONObject json = geoMySqlAdapter.enrich("72.163.4.161");
+                
+                //assert Geo Response is not null
+                System.out.println("json ="+json);
+                assertNotNull(json);
         
-        //assert Geo Response is not null
-        assertNotNull(json);
-        
-        //assert LocId is not null
-        assertNotNull(json.get("locID"));
-        
-        //assert right LocId is being returned
-        assertEquals("4522",json.get("locID"));
+                assertEquals(true, super.validateJsonData(super.getSchemaJsonString(), json.toString()));
+                //assert LocId is not null
+                assertNotNull(json.get("locID"));
+                
+                //assert right LocId is being returned
+                assertEquals("4522",json.get("locID"));    
+         } catch (Exception e) {
+            e.printStackTrace();
+            fail("Json validation Failed");
+         }
        }
     }
 

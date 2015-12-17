@@ -24,6 +24,10 @@ import backtype.storm.generated.InvalidTopologyException;
 import com.opensoc.topology.runner.ISERunner;
 import com.opensoc.topology.runner.TopologyRunner;
 
+/**
+ * Topology for processing Ise messages
+ *
+ */
 public class Ise{
 	
 	public static void main(String[] args) throws ConfigurationException, Exception, InvalidTopologyException {

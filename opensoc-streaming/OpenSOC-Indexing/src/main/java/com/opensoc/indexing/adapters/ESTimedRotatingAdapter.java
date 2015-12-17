@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.collections.Bag;
 import org.apache.commons.collections.HashBag;
@@ -29,16 +30,23 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 	private int _port;
 	private String _ip;
 	public transient TransportClient client;
-	private DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH");
+	private DateFormat dateFormat;
+	
+	private Map<String, String> tuning_settings;
 
 	private Bag bulk_set;
 
 	private Settings settings;
+	
+	public void setOptionalSettings(Map<String, String> settings)
+	{
+		tuning_settings = settings;
+	}
 
 	@Override
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size) throws Exception {
+			int bulk_size, String date_format) throws Exception {
 
 		bulk_set = new HashBag();
 
@@ -51,11 +59,25 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 			_index_name = index_name;
 			_document_name = document_name;
 			_bulk_size = bulk_size;
+			
+
+			dateFormat = new SimpleDateFormat(date_format);
 
 			System.out.println("Bulk indexing is set to: " + _bulk_size);
 
-			settings = ImmutableSettings.settingsBuilder()
-					.put("cluster.name", _cluster_name).build();
+			ImmutableSettings.Builder builder = ImmutableSettings.settingsBuilder() ;	
+			
+			if(tuning_settings != null && tuning_settings.size() > 0)
+			{
+					builder.put(tuning_settings);
+			}
+			
+			builder.put("cluster.name", _cluster_name);
+			builder.put("client.transport.ping_timeout","500s");
+			
+			
+			settings = builder.build();
+					
 			client = new TransportClient(settings)
 					.addTransportAddress(new InetSocketTransportAddress(_ip,
 							_port));
@@ -83,7 +105,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 			bulk_set.add(raw_message);
 			set_size = bulk_set.size();
 			
-			System.out.println("Bulk size is now: " + bulk_set.size());
+			_LOG.trace("[OpenSOC] Incremented bulk size to: " + bulk_set.size());
 		}
 
 		try {
@@ -122,7 +144,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 				while (iterator.hasNext()) {
 					JSONObject setElement = iterator.next();
 					
-					System.out.println("Flushing to index: " + _index_name+ "_" + index_postfix);
+					_LOG.trace("[OpenSOC] Flushing to index: " + _index_name+ "_" + index_postfix);
 
 					IndexRequestBuilder a = client.prepareIndex(_index_name+ "_" + index_postfix,
 							_document_name);
@@ -131,22 +153,27 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 
 				}
 
-				System.out.println("Performing bulk load of size: "
+				_LOG.trace("[OpenSOC] Performing bulk load of size: "
 						+ bulkRequest.numberOfActions());
 
 				BulkResponse resp = bulkRequest.execute().actionGet();
 				
+				for(BulkItemResponse r: resp.getItems())
+				{
+					r.getResponse();
+					_LOG.trace("[OpenSOC] ES SUCCESS MESSAGE: " + r.getFailureMessage());
+				}
 				
-				System.out.println("[OpenSOC] Received bulk response: "
-						+ resp.buildFailureMessage());
 				bulk_set.clear();
 				
 				if (resp.hasFailures()) {
-				    
+					_LOG.error("[OpenSOC] Received bulk response error: "
+							+ resp.buildFailureMessage());
+					
 					for(BulkItemResponse r: resp.getItems())
 					{
 						r.getResponse();
-						System.out.println("FAILURE MESSAGE: " + r.getFailureMessage());
+						_LOG.error("[OpenSOC] ES FAILURE MESSAGE: " + r.getFailureMessage());
 					}
 				}
 				

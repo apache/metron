@@ -7,9 +7,9 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.parsing.parsers.PcapParser;
 import com.opensoc.pcap.PacketInfo;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 import backtype.storm.generated.Grouping;
 import backtype.storm.task.OutputCollector;
@@ -49,11 +49,9 @@ private Map conf;
   @SuppressWarnings("unused")
 private int numberOfCharsToUseForShuffleGrouping = 4;
 
-  /** The micro sec multiplier. */
-  private long microSecMultiplier = 1L;
+  /** The divisor to convert nanos to expected time precision. */
+  private long timePrecisionDivisor = 1L;
 
-  /** The sec multiplier. */
-  private long secMultiplier = 1000000L;
 
   // HBaseStreamPartitioner hBaseStreamPartitioner = null ;
 
@@ -64,6 +62,26 @@ private int numberOfCharsToUseForShuffleGrouping = 4;
 
   }
 
+  public PcapParserBolt withTsPrecision(String tsPrecision) {
+	if (tsPrecision.equalsIgnoreCase("MILLI")) {
+	  //Convert nanos to millis
+	  LOG.info("Configured for MILLI, setting timePrecisionDivisor to 1000000L" );
+	  timePrecisionDivisor = 1000000L;
+	} else if (tsPrecision.equalsIgnoreCase("MICRO")) {
+	  //Convert nanos to micro
+	  LOG.info("Configured for MICRO, setting timePrecisionDivisor to 1000L" );
+	  timePrecisionDivisor = 1000L;
+	} else if (tsPrecision.equalsIgnoreCase("NANO")) {
+	  //Keep nano as is.
+	  LOG.info("Configured for NANO, setting timePrecisionDivisor to 1L" );
+	  timePrecisionDivisor = 1L;
+	} else {
+	  LOG.info("bolt.parser.ts.precision not set. Default to NANO");
+	  timePrecisionDivisor = 1L;
+	}
+	return this;
+  }
+  
   /*
    * (non-Javadoc)
    * 
@@ -116,19 +134,7 @@ private int numberOfCharsToUseForShuffleGrouping = 4;
     
     Grouping._Fields a;
 
-    if (conf.containsKey("bolt.parser.ts.precision")) {
-      String timePrecision = conf.get("bolt.parser.ts.precision").toString();
-      if (timePrecision.equalsIgnoreCase("MILLI")) {
-        microSecMultiplier = 1L / 1000;
-        secMultiplier = 1000L;
-      } else if (timePrecision.equalsIgnoreCase("MICRO")) {
-        microSecMultiplier = 1L;
-        secMultiplier = 1000000L;
-      } else if (timePrecision.equalsIgnoreCase("NANO")) {
-        microSecMultiplier = 1000L;
-        secMultiplier = 1000000000L;
-      }
-    }
+
     // hBaseStreamPartitioner = new HBaseStreamPartitioner(
     // conf.get("bolt.hbase.table.name").toString(),
     // 0,
@@ -165,46 +171,13 @@ public void execute(Tuple input) {
 
         for (PacketInfo packetInfo : packetInfoList) {
         	
+        	
         	String string_pcap = packetInfo.getJsonIndexDoc();
         	Object obj=JSONValue.parse(string_pcap);
         	  JSONObject header=(JSONObject)obj;
         	
         	JSONObject message = new JSONObject();
         	//message.put("key", packetInfo.getKey());
-        	
-        	if(header.containsKey("src_addr"))
-        	{
-        		String tmp = header.get("src_addr").toString();
-        		header.remove("src_addr");
-        		header.put("ip_src_addr", tmp);
-        	}
-        	
-        	if(header.containsKey("dst_addr"))
-        	{
-        		String tmp = header.get("dst_addr").toString();
-        		header.remove("dst_addr");
-        		header.put("ip_dst_addr", tmp);
-        	}
-        	
-        	if(header.containsKey("src_port"))
-        	{
-        		String tmp = header.get("src_port").toString();
-        		header.remove("src_port");
-        		header.put("ip_src_port", tmp);
-        	}
-        	
-        	if(message.containsKey("dst_port"))
-        	{
-        		String tmp = header.get("dst_port").toString();
-        		header.remove("dst_port");
-        		header.put("ip_dst_port", tmp);
-        	}
-        	if(message.containsKey("ip_protocol"))
-        	{
-        		String tmp = header.get("ip_protocol").toString();
-        		header.remove("ip_protocol");
-        		header.put("protocol", tmp);
-        	}
         	
         	message.put("message", header);
         	
@@ -214,7 +187,7 @@ public void execute(Tuple input) {
         	
           collector.emit("pcap_header_stream", new Values(packetInfo.getJsonDoc(), packetInfo.getKey()));
           collector.emit("pcap_data_stream", new Values(packetInfo.getKey(),
-              (packetInfo.getPacketHeader().getTsSec() * secMultiplier + packetInfo.getPacketHeader().getTsUsec() * microSecMultiplier),
+             packetInfo.getPacketTimeInNanos() / timePrecisionDivisor,
               input.getBinary(0)));
 
           // collector.emit(new Values(packetInfo.getJsonDoc(), packetInfo
@@ -230,11 +203,9 @@ public void execute(Tuple input) {
       e.printStackTrace();
       LOG.error("Exception while processing tuple", e);
       
-      String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
-				.getStackTrace(e);
 
 		JSONObject error = ErrorGenerator.generateErrorMessage(
-				"Alerts problem: " + input.getBinary(0), error_as_string);
+				"Alerts problem: " + input.getBinary(0), e);
 		collector.emit("error", new Values(error));
 		
       return;

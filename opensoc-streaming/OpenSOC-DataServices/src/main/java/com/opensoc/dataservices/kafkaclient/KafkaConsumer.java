@@ -2,14 +2,12 @@ package com.opensoc.dataservices.kafkaclient;
 
 import java.io.IOException;
 
+import kafka.consumer.ConsumerIterator;
+import kafka.consumer.KafkaStream;
+
 import org.eclipse.jetty.websocket.api.RemoteEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.opensoc.dataservices.Main;
-
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
 
 public class KafkaConsumer implements Runnable 
 {

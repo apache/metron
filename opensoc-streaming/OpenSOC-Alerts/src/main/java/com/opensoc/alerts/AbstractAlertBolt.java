@@ -54,8 +54,8 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 	protected JSONObject _identifier;
 	protected MetricReporter _reporter;
 
-	protected int _MAX_CACHE_SIZE = -1;
-	protected int _MAX_TIME_RETAIN = -1;
+	protected int _MAX_CACHE_SIZE_OBJECTS_NUM = -1;
+	protected int _MAX_TIME_RETAIN_MINUTES = -1;
 
 	protected Counter ackCounter, emitCounter, failCounter;
 
@@ -82,10 +82,10 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 		if (this._identifier == null)
 			throw new IllegalStateException("Identifier must be specified");
 
-		if (this._MAX_CACHE_SIZE == -1)
-			throw new IllegalStateException("MAX_CACHE_SIZE must be specified");
-		if (this._MAX_TIME_RETAIN == -1)
-			throw new IllegalStateException("MAX_TIME_RETAIN must be specified");
+		if (this._MAX_CACHE_SIZE_OBJECTS_NUM == -1)
+			throw new IllegalStateException("MAX_CACHE_SIZE_OBJECTS_NUM must be specified");
+		if (this._MAX_TIME_RETAIN_MINUTES == -1)
+			throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
 
 		try {
 			doPrepare(conf, topologyContext, collector);
@@ -95,6 +95,7 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 		}
 
 		boolean success = _adapter.initialize();
+		
 		try {
 			if (!success)
 

@@ -280,6 +280,33 @@ public class PcapUtils {
     return sb.toString();
   }
 
+  /**
+   * Gets the short session key. (5-tuple only)
+   * 
+   * @param srcIp
+   *          the src ip
+   * @param dstIp
+   *          the dst ip
+   * @param protocol
+   *          the protocol
+   * @param srcPort
+   *          the src port
+   * @param dstPort
+   *          the dst port
+   * @return the session key
+   */
+  public static String getShortSessionKey(String srcIp, String dstIp, int protocol,
+      int srcPort, int dstPort) {
+    String keySeperator = "-";
+    StringBuffer sb = new StringBuffer(40);
+    sb.append(convertIpv4IpToHex(srcIp)).append(keySeperator)
+        .append(convertIpv4IpToHex(dstIp)).append(keySeperator)
+        .append(protocol).append(keySeperator).append(srcPort)
+        .append(keySeperator).append(dstPort);
+
+    return sb.toString();
+  }
+  
   // public static String convertPortToHex(String portNumber) {
   // return convertPortToHex(Integer.valueOf(portNumber));
   //

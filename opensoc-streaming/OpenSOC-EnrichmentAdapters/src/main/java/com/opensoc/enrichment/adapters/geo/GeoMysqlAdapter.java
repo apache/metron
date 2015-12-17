@@ -35,7 +35,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	private String _username;
 	private String _password;
 	private String _tablename;
-	InetAddressValidator ipvalidator = new InetAddressValidator();
+	private InetAddressValidator ipvalidator = new InetAddressValidator();
 
 	public GeoMysqlAdapter(String ip, int port, String username,
 			String password, String tablename) {
@@ -141,6 +141,8 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			jo.put("longitude", resultSet.getString("longitude"));
 			jo.put("dmaCode", resultSet.getString("dmaCode"));
 			jo.put("locID", resultSet.getString("locID"));
+			
+			jo.put("location_point", jo.get("longitude") + "," + jo.get("latitude"));
 
 			_LOG.debug("Returning enrichment: " + jo);
 
@@ -171,7 +173,6 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 				throw new Exception("Invalid connection string....");
 
 			_LOG.info("[OpenSOC] Set JDBC connection....");
-
 
 			return true;
 		} catch (Exception e) {

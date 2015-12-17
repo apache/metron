@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<configuration>
+	<header>
+		<result delimiterParsingDisabled="true" forceReloadCheck="true"></result>
+		<lookups>
+      		<lookup config-prefix="expr"
+              	config-class="org.apache.commons.configuration.interpol.ExprLookup">
+        		<variables>
+          			<variable name="System" value="Class:java.lang.System"/>
+          			<variable name="net" value="Class:java.net.InetAddress"/>
+          			<variable name="String" value="Class:org.apache.commons.lang.StringUtils"/>
+        		</variables>
+      		</lookup>
+    	</lookups>
+	</header>
+	<override>
+		<!-- 1. properties from 'hbae-config.properties' are loaded first; 
+				if a property is not present in this file, then it will search in the files in the order they are defined here.
+		     2. 'refreshDelay' indicates the minimum delay in milliseconds between checks to see if the underlying file is changed.
+		     3. 'config-optional' indicates this file is not required --> 
+		
+		<properties fileName="${expr:System.getProperty('configPath')+'/hbase-config.properties'}"  config-optional="true">
+			<reloadingStrategy refreshDelay="${expr:System.getProperty('configRefreshDelay')}"
+	      config-class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
+	     </properties>
+		
+		<properties fileName="hbase-config-default.properties" config-optional="true">
+<!-- 					<reloadingStrategy refreshDelay="${expr:System.getProperty('defaultConfigRefreshDelay')}"
+	      config-class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
+ -->	     </properties>
+		
+	</override>
+</configuration>

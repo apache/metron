@@ -8,13 +8,12 @@ package com.opensoc.parsing.test;
 import java.util.Iterator;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
+import com.opensoc.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -24,14 +23,28 @@ import com.opensoc.parsing.parsers.BasicSourcefireParser;
  * </ul>
  * @version $Revision: 1.0 $
  */
-public class BasicSourcefireParserTest extends TestCase
-	{
+public class BasicSourcefireParserTest extends AbstractConfigTest
+{
+     /**
+     * The sourceFireStrings.
+     */    
+    private static String[] sourceFireStrings;
+    
+     /**
+     * The sourceFireParser.
+     */
+    private BasicSourcefireParser sourceFireParser=null;
 
-	private  static String sourceFireString = "";
-	private BasicSourcefireParser sourceFireParser=null;
 
-
-
+    /**
+     * Constructs a new <code>BasicSourcefireParserTest</code> instance.
+     * @throws Exception
+     */
+     
+    public BasicSourcefireParserTest() throws Exception {
+        super();  
+    }
+    
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -42,15 +55,16 @@ public class BasicSourcefireParserTest extends TestCase
 	 * @throws java.lang.Exception
 	 */
 	public static void tearDownAfterClass() throws Exception {
-		setSourceFireString("");
+		setSourceFireStrings(null);
 	}
 
 	/**
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-		setSourceFireString("SFIMS: [Primary Detection Engine (a7213248-6423-11e3-8537-fac6a92b7d9d)][MTD Access Control] Connection Type: Start, User: Unknown, Client: Unknown, Application Protocol: Unknown, Web App: Unknown, Firewall Rule Name: MTD Access Control, Firewall Rule Action: Allow, Firewall Rule Reasons: Unknown, URL Category: Unknown, URL_Reputation: Risk unknown, URL: Unknown, Interface Ingress: s1p1, Interface Egress: N/A, Security Zone Ingress: Unknown, Security Zone Egress: N/A, Security Intelligence Matching IP: None, Security Intelligence Category: None, {TCP} 72.163.0.129:60517 -> 10.1.128.236:443");		assertNotNull(getSourceFireString());
-		sourceFireParser = new BasicSourcefireParser();		
+        super.setUp("com.opensoc.parsing.test.BasicSoureceFireParserTest");
+        setSourceFireStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
+        sourceFireParser = new BasicSourcefireParser();
 	}
 
 	/**
@@ -67,41 +81,62 @@ public class BasicSourcefireParserTest extends TestCase
 	 */
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
-		JSONObject parsed = sourceFireParser.parse(getSourceFireString().getBytes());
-		assertNotNull(parsed);
+		for (String sourceFireString : getSourceFireStrings()) {
+		    byte[] srcBytes = sourceFireString.getBytes();
+			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes());
+			assertNotNull(parsed);
 		
-		System.out.println(parsed);
-		JSONParser parser = new JSONParser();
+			System.out.println(parsed);
+			JSONParser parser = new JSONParser();
 
-		Map json=null;
-		try {
-			json = (Map) parser.parse(parsed.toJSONString());
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		Iterator iter = json.entrySet().iterator();
+			Map json=null;
+			try {
+				json = (Map) parser.parse(parsed.toJSONString());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			Iterator iter = json.entrySet().iterator();
 			
 
-		while (iter.hasNext()) {
-			Map.Entry entry = (Map.Entry) iter.next();
-			String key = (String) entry.getKey();
-            String value = (String) json.get("original_string").toString();
-			assertNotNull(value);
+			while (iter.hasNext()) {
+				Map.Entry entry = (Map.Entry) iter.next();
+				String key = (String) entry.getKey();
+				String value = (String) json.get("original_string").toString();
+				assertNotNull(value);
+			}
 		}
 	}
 
 	/**
 	 * Returns SourceFire Input String
 	 */
-	public static String getSourceFireString() {
-		return sourceFireString;
+	public static String[] getSourceFireStrings() {
+		return sourceFireStrings;
 	}
 
 		
 	/**
 	 * Sets SourceFire Input String
 	 */	
-	public static void setSourceFireString(String sourceFireString) {
-		BasicSourcefireParserTest.sourceFireString = sourceFireString;
+	public static void setSourceFireStrings(String[] strings) {
+		BasicSourcefireParserTest.sourceFireStrings = strings;
 	}
+    /**
+    * Returns the sourceFireParser.
+    * @return the sourceFireParser.
+    */
+   
+   public BasicSourcefireParser getSourceFireParser() {
+       return sourceFireParser;
+   }
+
+   /**
+    * Sets the sourceFireParser.
+    * @param sourceFireParser the sourceFireParser.
+    */
+   
+   public void setSourceFireParser(BasicSourcefireParser sourceFireParser) {
+   
+       this.sourceFireParser = sourceFireParser;
+   }	
 }
