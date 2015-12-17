@@ -9,10 +9,21 @@ developers working on the project. The project has created
 
 ## Project Members
 
-Name                  | Apache Id    | Role
-:-------------------- | :----------- | :---
-Owen O'Malley         | omalley      | PMC
-
+Name                    | Apache Id      | Role
+:---------------------- | :------------- | :---
+Owen O'Malley           | omalley        | PMC
+Jim Baker               | jimbaker       | PMC
+Mark Bittmann           | mbittmann      | PMC
+Sheetal Dolas           | sheetal_dolas  | PMC
+P. Taylor Goetz         | ptgoetz        | PMC
+Brad Kolarov            | billie         | PMC
+Dave Hirko              | dbhirko        | PMC
+Larry McCay             | lmccay         | PMC
+Charles Porter          | cporter        | PMC
+James Sirota            | jsirota        | PMC
+Casey Stella            | cestella       | PMC
+Vinod Kumar Vavilapalli | vinodkv        | PMC
+George Vetticaden       | gvetticaden    | PMC
 
 ## Mailing Lists
 
