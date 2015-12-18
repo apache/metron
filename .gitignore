@@ -7,3 +7,5 @@ opensoc-streaming/OpenSOC-Indexing/target/
 opensoc-streaming/OpenSOC-MessageParsers/target/
 opensoc-streaming/OpenSOC-Pcap_Service/target/
 opensoc-streaming/OpenSOC-Topologies/target/
+*~
+target
