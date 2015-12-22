@@ -6,10 +6,11 @@
 DOCUMENTATION = '''
 ---
 module: ambari_cluster_state
-version_added: "1.0"
+version_added: "2.0"
 author: Mark Bittmann (https://github.com/mbittmann)
 short_description: Create, delete, start or stop an ambari cluster
-  - Create, delete, start or stop an ambari cluster
+description:
+    - Create, delete, start or stop an ambari cluster
 options:
   host:
     description:
@@ -33,7 +34,7 @@ options:
       The desired state for the ambari cluster ['present', 'absent', 'started', 'stopped']. Setting the cluster
       state to absent will first stop the cluster.
     required: yes
-  blueprint_yml:
+  blueprint_var:
     description:
       The path to the file defining the cluster blueprint and host mapping. Required when state == 'present'
     required: no
@@ -45,6 +46,7 @@ options:
     description:
       Whether to wait for the request to complete before returning. Default is False.
     required: no
+  requirements: [ 'requests']
 '''
 
 EXAMPLES = '''
@@ -57,7 +59,7 @@ EXAMPLES = '''
       password: admin
       cluster_name: my_cluster
       cluster_state: present
-      blueprint_yml: roles/my_role/files/blueprint.yml
+      blueprint_var: roles/my_role/files/blueprint.yml
       blueprint_name: hadoop
       wait_for_complete: True
 - name: Start the ambari cluster
@@ -90,7 +92,6 @@ EXAMPLES = '''
 __author__ = 'mbittmann'
 from ansible.module_utils.basic import *
 import json
-import os
 try:
     import requests
 except ImportError:
@@ -98,12 +99,6 @@ except ImportError:
 else:
     REQUESTS_FOUND = True
 
-try:
-    import yaml
-except ImportError:
-    YAML_FOUND = False
-else:
-    YAML_FOUND = True
 
 def main():
 
@@ -127,10 +122,6 @@ def main():
     if not REQUESTS_FOUND:
         module.fail_json(
             msg='requests library is required for this module')
-
-    if not YAML_FOUND:
-        module.fail_json(
-            msg='pyYaml library is required for this module')
 
     p = module.params
 
@@ -199,33 +190,25 @@ def main():
             module.exit_json(changed=True, results=request.content,
                              created_blueprint=created_blueprint, status=request_status)
 
-
-    except requests.ConnectionError as e:
+    except requests.ConnectionError, e:
         module.fail_json(msg="Could not connect to Ambari client: " + str(e.message))
-    except AssertionError as e:
-        module.fail_json(msg=e.message)
-    except Exception as e:
+    except Exception, e:
         module.fail_json(msg="Ambari client exception occurred: " + str(e.message))
 
 
 def get_clusters(ambari_url, user, password):
     r = get(ambari_url, user, password, '/api/v1/clusters')
-    try:
-        assert r.status_code == 200
-    except AssertionError as e:
-        e.message = 'Coud not get cluster list: request code {0}, \
+    if r.status_code != 200:
+        msg = 'Coud not get cluster list: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
     clusters = json.loads(r.content)
     return clusters['items']
 
 
 def cluster_exists(ambari_url, user, password, cluster_name):
     clusters = get_clusters(ambari_url, user, password)
-    if cluster_name in [item['Clusters']['cluster_name'] for item in clusters]:
-        return True
-    else:
-        return False
+    return cluster_name in [item['Clusters']['cluster_name'] for item in clusters]
 
 
 def set_cluster_state(ambari_url, user, password, cluster_name, cluster_state):
@@ -234,12 +217,10 @@ def set_cluster_state(ambari_url, user, password, cluster_name, cluster_state):
                "Body": {"ServiceInfo": {"state": "{0}".format(cluster_state)}}}
     payload = json.dumps(request)
     r = put(ambari_url, user, password, path, payload)
-    try:
-        assert r.status_code == 202 or r.status_code == 200
-    except AssertionError as e:
-        e.message = 'Coud not set cluster state: request code {0}, \
+    if r.status_code not in [202, 200]:
+        msg = 'Coud not set cluster state: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
     return r
 
 
@@ -247,24 +228,20 @@ def create_cluster(ambari_url, user, password, cluster_name, blueprint_name, hos
     path = '/api/v1/clusters/{0}'.format(cluster_name)
     data = json.dumps({'blueprint': blueprint_name, 'host_groups': hosts_json})
     r = post(ambari_url, user, password, path, data)
-    try:
-        assert r.status_code == 202
-    except AssertionError as e:
-        e.message = 'Coud not create cluster: request code {0}, \
+    if r.status_code != 202:
+        msg = 'Coud not create cluster: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
     return r
 
 
 def get_request_status(ambari_url, user, password, cluster_name, request_id):
     path = '/api/v1/clusters/{0}/requests/{1}'.format(cluster_name, request_id)
     r = get(ambari_url, user, password, path)
-    try:
-        assert r.status_code == 200
-    except AssertionError as e:
-        e.message = 'Coud not get cluster request status: request code {0}, \
+    if r.status_code != 200:
+        msg = 'Coud not get cluster request status: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
     service = json.loads(r.content)
     return service['Requests']['request_status']
 
@@ -284,21 +261,17 @@ def can_delete_cluster(ambari_url, user, password, cluster_name):
     path = '/api/v1/clusters/{0}/services?ServiceInfo/state=STARTED'.format(cluster_name)
     r = get(ambari_url, user, password, path)
     items = json.loads(r.content)['items']
-    if len(items) > 0:
-        return False
-    else:
-        return True
+    return len(items) > 0
 
 
 def get_blueprints(ambari_url, user, password):
     path = '/api/v1/blueprints'
     r = get(ambari_url, user, password, path)
-    try:
-        assert r.status_code == 200
-    except AssertionError as e:
-        e.message = 'Coud not get blueprint list: request code {0}, \
+    if r.status_code != 200:
+        msg = 'Coud not get blueprint list: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
+
     services = json.loads(r.content)
     return services['items']
 
@@ -307,32 +280,25 @@ def create_blueprint(ambari_url, user, password, blueprint_name, blueprint_data)
     data = json.dumps(blueprint_data)
     path = "/api/v1/blueprints/" + blueprint_name
     r = post(ambari_url, user, password, path, data)
-    try:
-        assert r.status_code == 201
-    except AssertionError as e:
-        e.message = 'Coud not create blueprint: request code {0}, \
+    if r.status_code != 201:
+        msg = 'Coud not create blueprint: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
     return r
 
 
 def blueprint_exists(ambari_url, user, password, blueprint_name):
     blueprints = get_blueprints(ambari_url, user, password)
-    if blueprint_name in [item['Blueprints']['blueprint_name'] for item in blueprints]:
-        return True
-    else:
-        return False
+    return blueprint_name in [item['Blueprints']['blueprint_name'] for item in blueprints]
 
 
 def delete_cluster(ambari_url, user, password, cluster_name):
     path = '/api/v1/clusters/{0}'.format(cluster_name)
     r = delete(ambari_url, user, password, path)
-    try:
-        assert r.status_code == 200
-    except AssertionError as e:
-        e.message = 'Coud not delete cluster: request code {0}, \
+    if r.status_code != 200:
+        msg = 'Coud not delete cluster: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
-        raise
+        raise Exception(msg)
     return r
 
 
