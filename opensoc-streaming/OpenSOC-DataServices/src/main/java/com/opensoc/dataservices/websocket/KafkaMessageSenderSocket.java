@@ -13,9 +13,7 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
 import com.opensoc.dataservices.kafkaclient.KafkaClient;
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 
 @WebSocket(maxTextMessageSize = 64 * 1024)
 public class KafkaMessageSenderSocket 

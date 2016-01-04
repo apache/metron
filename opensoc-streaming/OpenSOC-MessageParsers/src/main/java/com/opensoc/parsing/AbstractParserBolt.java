@@ -18,9 +18,7 @@
 package com.opensoc.parsing;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
-import java.util.zip.Deflater;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -105,32 +103,15 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	public boolean checkForSchemaCorrectness(JSONObject message) {
 		int correct = 0;
 
-		if (message.containsKey("ip_src_addr")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_src_addr");
-		}
-		if (message.containsKey("ip_dst_addr")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_dst_addr");
-		}
-		if (message.containsKey("ip_src_port")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_src_port");
-		}
-		if (message.containsKey("ip_dst_port")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_dst_port");
-		}
-		if (message.containsKey("protocol")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains protocol");
-		}
-
-		if (correct == 0) {
-			LOG.trace("[OpenSOC] Message conforms to schema: " + message);
+		
+		if (!(message.containsKey("original_string"))) {
+			LOG.trace("[OpenSOC] Message does not have original_string: " + message);
+			return false;
+		} else if (!(message.containsKey("timestamp"))) { 
+			LOG.trace("[OpenSOC] Message does not have timestamp: " + message);
 			return false;
 		} else {
-			LOG.trace("[OpenSOC] Message does not conform to schema: "
+			LOG.trace("[OpenSOC] Message conforms to schema: "
 					+ message);
 			return true;
 		}

@@ -19,6 +19,7 @@ package com.opensoc.json.serialization;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
+
 import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONObject;
 
@@ -68,6 +69,7 @@ public class JSONEncoderHelper {
 
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static JSONObject getJSON(Configuration config) {
 
 		JSONObject output = new JSONObject();

@@ -8,15 +8,21 @@
 		"ip_dst_addr": {
 			"type": "string"
 		},
-		"ip_src_port": {
+		"original_string": {
 			"type": "string"
 		},
-		"ip_dst_port": {
+		"@version": {
 			"type": "string"
 		},
-		"protocol": {
+		"timestamp": {
+			"type": "integer"
+		},
+		"type": {
+			"type": "string"
+		},
+		"host": {
 			"type": "string"
 		}
 	},
-	"required": ["ip_src_addr", "ip_dst_addr", "ip_src_port", "ip_dst_port","protocol"]
+	"required": ["ip_src_addr", "ip_dst_addr", "original_string","@version", "timestamp", "type","host"]
 }

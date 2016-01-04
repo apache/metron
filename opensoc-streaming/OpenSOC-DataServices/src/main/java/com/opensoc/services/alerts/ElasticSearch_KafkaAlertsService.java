@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opensoc.dataservices.common.OpenSOCService;
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 
 @Singleton
 public class ElasticSearch_KafkaAlertsService implements OpenSOCService {

@@ -33,10 +33,10 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * 
@@ -59,6 +59,8 @@ import com.opensoc.topologyhelpers.ErrorGenerator;
 public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 	private JSONObject metricConfiguration;
+	private String _indexDateFormat;
+	
 	private Set<Tuple> tuple_queue = new HashSet<Tuple>();
 
 	/**
@@ -140,7 +142,18 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 		return this;
 	}
+	
+	/**
+	 * 
+	 * @param dateFormat
+	 *           timestamp to append to index names
+	 * @return instance of bolt
+	 */
+	public TelemetryIndexingBolt withIndexTimestamp(String indexTimestamp) {
+		_indexDateFormat = indexTimestamp;
 
+		return this;
+	}
 	/**
 	 * 
 	 * @param config
@@ -161,7 +174,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		try {
 			
 			_adapter.initializeConnection(_IndexIP, _IndexPort,
-					_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
+					_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber, _indexDateFormat);
 			
 			_reporter = new MetricReporter();
 			_reporter.initialize(metricConfiguration,
@@ -170,10 +183,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		} catch (Exception e) {
 			
 			e.printStackTrace();
-			
-			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
-			
-			JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), error_as_string);
+					
+			JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e);
 			_collector.emit("error", new Values(error));
 		}
 
@@ -222,9 +233,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 				_collector.fail(setElement);
 				failCounter.inc();
 				
-				String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
 				
-				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), error_as_string);
+				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e);
 				_collector.emit("error", new Values(error));
 			}
 			tuple_queue.clear();

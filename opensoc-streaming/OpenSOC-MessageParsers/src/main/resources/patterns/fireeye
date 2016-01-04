@@ -1,0 +1,9 @@
+GREEDYDATA .*
+POSINT \b(?:[1-9][0-9]*)\b
+UID [0-9.]+
+DATA .*?
+
+FIREEYE_BASE ^<%{POSINT:syslog_pri}>fenotify-%{UID:uid}.alert: %{GREEDYDATA:syslog}
+FIREEYE_MAIN <%{POSINT:syslog_pri}>fenotify-%{DATA:uid}.alert: %{DATA:meta}\|%{DATA:meta}\|%{DATA:meta}\|%{DATA:meta}\|%{DATA:meta}\|%{DATA:meta}\|%{DATA:meta}\|%{GREEDYDATA:fedata}
+#\|(.?)\|(.?)\|(.?)\|(.?)\|%{DATA:type}\|(.?)\|%{GREEDYDATA:fedata}
+FIREEYE_SUB ^<%{POSINT:syslog_pri}>fenotify-%{UID:uid}.alert: .?*\|.?*\|.?*\|.?*\|.?*\|%{DATA:type}\|.?*\|%{GREEDYDATA:fedata}

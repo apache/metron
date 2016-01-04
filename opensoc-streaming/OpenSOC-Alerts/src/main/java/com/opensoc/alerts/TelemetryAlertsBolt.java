@@ -31,12 +31,11 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 @SuppressWarnings("rawtypes")
 public class TelemetryAlertsBolt extends AbstractAlertBolt {
@@ -120,24 +119,24 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	}
 
 	/**
-	 * @param MAX_CACHE_SIZE
+	 * @param MAX_CACHE_SIZE_OBJECTS_NUM
 	 *            Maximum size of cache before flushing
 	 * @return Instance of this class
 	 */
 
-	public TelemetryAlertsBolt withMaxCacheSize(int MAX_CACHE_SIZE) {
-		_MAX_CACHE_SIZE = MAX_CACHE_SIZE;
+	public TelemetryAlertsBolt withMaxCacheSize(int MAX_CACHE_SIZE_OBJECTS_NUM) {
+		_MAX_CACHE_SIZE_OBJECTS_NUM = MAX_CACHE_SIZE_OBJECTS_NUM;
 		return this;
 	}
 
 	/**
-	 * @param MAX_TIME_RETAIN
+	 * @param MAX_TIME_RETAIN_MINUTES
 	 *            Maximum time to retain cached entry before expiring
 	 * @return Instance of this class
 	 */
 
-	public TelemetryAlertsBolt withMaxTimeRetain(int MAX_TIME_RETAIN) {
-		_MAX_TIME_RETAIN = MAX_TIME_RETAIN;
+	public TelemetryAlertsBolt withMaxTimeRetain(int MAX_TIME_RETAIN_MINUTES) {
+		_MAX_TIME_RETAIN_MINUTES = MAX_TIME_RETAIN_MINUTES;
 		return this;
 	}
 
@@ -145,8 +144,8 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE_OBJECTS_NUM)
+				.expireAfterWrite(_MAX_TIME_RETAIN_MINUTES, TimeUnit.MINUTES).build();
 
 		LOG.info("[OpenSOC] Preparing TelemetryAlert Bolt...");
 
@@ -185,10 +184,10 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			JSONArray uuid_list = new JSONArray();
 
 			if (alerts_list == null || alerts_list.isEmpty()) {
-				LOG.trace("[OpenSOC] No alerts detected in: "
+				System.out.println("[OpenSOC] No alerts detected in: "
 						+ original_message);
 				_collector.ack(tuple);
-				_collector.emit(new Values(original_message));
+				_collector.emit("message", new Values(key, original_message));
 			} else {
 				for (String alert : alerts_list.keySet()) {
 					uuid_list.add(alert);
@@ -196,11 +195,11 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 					LOG.trace("[OpenSOC] Checking alerts cache: " + alert);
 
 					if (cache.getIfPresent(alert) == null) {
-						LOG.trace("[OpenSOC]: Alert not found in cache: " + alert);
+						System.out.println("[OpenSOC]: Alert not found in cache: " + alert);
 
 						JSONObject global_alert = new JSONObject();
 						global_alert.putAll(_identifier);
-						global_alert.put("triggered", alerts_list.get(alert));
+						global_alert.putAll(alerts_list.get(alert));
 						global_alert.put("timestamp", System.currentTimeMillis());
 						_collector.emit("alert", new Values(global_alert));
 
@@ -244,11 +243,9 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			 * if (metricConfiguration != null) { failCounter.inc(); }
 			 */
 
-			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
-					.getStackTrace(e);
 
 			JSONObject error = ErrorGenerator.generateErrorMessage(
-					"Alerts problem: " + original_message, error_as_string);
+					"Alerts problem: " + original_message, e);
 			_collector.emit("error", new Values(error));
 		}
 	}

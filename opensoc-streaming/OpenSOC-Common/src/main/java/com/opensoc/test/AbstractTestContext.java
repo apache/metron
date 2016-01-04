@@ -52,7 +52,7 @@ public class AbstractTestContext  extends TestCase{
          * Any Object for mavenMode
          * @parameter
          *   expression="${mode}"
-         *   default-value="local"
+         *   default-value="global"
          */
          private Object mode="local";        
 

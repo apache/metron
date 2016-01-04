@@ -8,8 +8,6 @@ import javax.ws.rs.core.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
-
 public class RestServices extends Application 
 {
 	private static final Logger logger = LoggerFactory.getLogger( RestServices.class );

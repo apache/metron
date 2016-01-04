@@ -56,7 +56,9 @@ public class PcapRunner extends TopologyRunner{
 			
 			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
 			
-			builder.setBolt(name, new PcapParserBolt(),
+			PcapParserBolt pcapParser = new PcapParserBolt().withTsPrecision(config.getString("bolt.parser.ts.precision"));
+			
+			builder.setBolt(name, pcapParser,
 					config.getInt("bolt.parser.parallelism.hint"))
 					.setNumTasks(config.getInt("bolt.parser.num.tasks"))
 					.shuffleGrouping(messageUpstreamComponent);

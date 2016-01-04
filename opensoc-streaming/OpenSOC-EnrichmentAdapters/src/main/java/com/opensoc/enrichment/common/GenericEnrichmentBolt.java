@@ -34,9 +34,9 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
@@ -99,24 +99,24 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 	}
 
 	/**
-	 * @param MAX_CACHE_SIZE
+	 * @param MAX_CACHE_SIZE_OBJECTS_NUM
 	 *            Maximum size of cache before flushing
 	 * @return Instance of this class
 	 */
 
-	public GenericEnrichmentBolt withMaxCacheSize(long MAX_CACHE_SIZE) {
-		_MAX_CACHE_SIZE = MAX_CACHE_SIZE;
+	public GenericEnrichmentBolt withMaxCacheSize(long MAX_CACHE_SIZE_OBJECTS_NUM) {
+		_MAX_CACHE_SIZE_OBJECTS_NUM = MAX_CACHE_SIZE_OBJECTS_NUM;
 		return this;
 	}
 
 	/**
-	 * @param MAX_TIME_RETAIN
+	 * @param MAX_TIME_RETAIN_MINUTES
 	 *            Maximum time to retain cached entry before expiring
 	 * @return Instance of this class
 	 */
 
-	public GenericEnrichmentBolt withMaxTimeRetain(long MAX_TIME_RETAIN) {
-		_MAX_TIME_RETAIN = MAX_TIME_RETAIN;
+	public GenericEnrichmentBolt withMaxTimeRetain(long MAX_TIME_RETAIN_MINUTES) {
+		_MAX_TIME_RETAIN_MINUTES = MAX_TIME_RETAIN_MINUTES;
 		return this;
 	}
 
@@ -186,6 +186,11 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 							+ "not present in message " + message);
 					continue;
 				}
+				
+				// If the field is empty, no need to enrich
+				if ( jsonvalue.length() == 0) {
+					continue;
+				}
 
 				JSONObject enrichment = cache.getUnchecked(jsonvalue);
 				LOG.trace("[OpenSOC] Enriched: " + jsonkey + " -> "
@@ -239,7 +244,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 				failCounter.inc();
 			}
 			
-			JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + in_json, e.toString());
+			JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + in_json, e);
 			_collector.emit("error", new Values(error));
 		}
 		

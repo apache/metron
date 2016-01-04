@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Provides;
 import com.opensoc.dataservices.common.OpenSOCService;
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 import com.opensoc.services.alerts.ElasticSearch_KafkaAlertsService;
 import com.opensoc.services.alerts.Solr_KafkaAlertsService;
 

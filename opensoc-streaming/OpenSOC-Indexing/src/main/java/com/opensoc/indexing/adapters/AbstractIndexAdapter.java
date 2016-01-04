@@ -20,6 +20,6 @@ public abstract class AbstractIndexAdapter implements IndexAdapter, Serializable
 
 	abstract public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk) throws Exception;
+			int bulk, String date_format) throws Exception;
 
 }

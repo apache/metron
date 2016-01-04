@@ -18,9 +18,9 @@
 package com.opensoc.topology.runner;
 
 import com.opensoc.filters.GenericMessageFilter;
+import com.opensoc.parser.interfaces.MessageParser;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 public class BroRunner extends TopologyRunner{
@@ -36,8 +36,19 @@ public class BroRunner extends TopologyRunner{
 			
 			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
 			
+			String class_name = config.getString("bolt.parser.adapter");
+			
+			if(class_name == null)
+			{
+				System.out.println("[OpenSOC] Parser adapter not set.  Please set bolt.indexing.adapter in topology.conf");
+				throw new Exception("Parser adapter not set");
+			}
+			
+			Class loaded_class = Class.forName(class_name);
+			MessageParser parser = (MessageParser) loaded_class.newInstance();
+			
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-					.withMessageParser(new BasicBroParser())
+					.withMessageParser(parser)
 					.withOutputFieldName(topology_name)
 					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);
