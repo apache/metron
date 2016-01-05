@@ -2,11 +2,25 @@
 # -*- coding: utf-8 -*-
 #
 # Author: Mark Bittmann (https://github.com/mbittmann)
-# Documentation section
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
 DOCUMENTATION = '''
 ---
 module: ambari_cluster_state
-version_added: "2.0"
+version_added: "2.1"
 author: Mark Bittmann (https://github.com/mbittmann)
 short_description: Create, delete, start or stop an ambari cluster
 description:
@@ -89,8 +103,24 @@ EXAMPLES = '''
     cluster_name: my_cluster
     cluster_state: absent
 '''
+
+RETURN = '''
+results:
+    description: The content of the requests object returned from the RESTful call
+    returned: success
+    type: string
+created_blueprint:
+    description: Whether a blueprint was created
+    returned: success
+    type: boolean
+status:
+    description: The status of the blueprint creation process
+    returned: success
+    type: string
+'''
+
 __author__ = 'mbittmann'
-from ansible.module_utils.basic import *
+
 import json
 try:
     import requests
@@ -115,8 +145,11 @@ def main():
         wait_for_complete=dict(default=False, required=False, choices=BOOLEANS),
     )
 
+    required_together = ['blueprint_var', 'blueprint_name']
+
     module = AnsibleModule(
-        argument_spec=argument_spec
+        argument_spec=argument_spec,
+        required_together=required_together
     )
 
     if not REQUESTS_FOUND:
@@ -347,6 +380,6 @@ def blueprint_var_to_ambari_converter(blueprint_var):
 
     return blueprint, host_map
 
-
+from ansible.module_utils.basic import *
 if __name__ == '__main__':
     main()
