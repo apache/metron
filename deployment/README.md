@@ -18,14 +18,7 @@ host groups:
 This will install the Ambari server on one machine the ambari agent on 
 the hadoop master/slaves.
 
-To create a Metron cluster in Ambari, run this playbook with the command: 
-`ansible-playbook ambari_install.yml --tags "create_cluster"`
-
-To delete a Metron cluster in Ambari, run this playbook with the command: 
-`ansible-playbook ambari_install.yml --tags "delete_cluster"`  
-*NOTE: The bug reported in [AMBARI-13906](https://issues.apache.org/jira/browse/AMBARI-13906) 
-prevents cluster delete via the API. To remove the cluster, you must perform
-a hard reset of the ambari server to delete the cluster.*
+Run this playbook with: `ansible-playbook ambari_install.yml`
 
 Some of the code for installing/configuring Ambari comes from here: 
 https://github.com/seanorama/ansible-ambari
@@ -36,7 +29,14 @@ Metron components. This uses a custom ansible module for managing Ambari
 clusters using a yaml configuration. The cluster blueprint is defined in 
 this file: `roles/ambari_config/vars/main.yml`
 
-Run this playbook with: `ansible-playbook ambari_config.yml`
+To create a Metron cluster in Ambari, run this playbook with the command: 
+`ansible-playbook ambari_config.yml --tags "create_cluster"`
+
+To delete a Metron cluster in Ambari, run this playbook with the command: 
+`ansible-playbook ambari_config.yml --tags "delete_cluster"`  
+*NOTE: The bug reported in [AMBARI-13906](https://issues.apache.org/jira/browse/AMBARI-13906) 
+prevents cluster delete via the API. To remove the cluster, you must perform
+a hard reset of the ambari server to delete the cluster.*
 
 ## TODO
 - Automatically create and populate HBase tables from files
