@@ -55,13 +55,13 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 		_filename = filename;
 		return this;
 	}
-	public GenericInternalTestSpout withMilisecondDelay(int delay)
+	public GenericInternalTestSpout withMillisecondDelay(Integer delay)
 	{
 		_delay = delay;
 		return this;
 	}
 	
-	public GenericInternalTestSpout withRepeating(boolean repeating)
+	public GenericInternalTestSpout withRepeating(Boolean repeating)
 	{
 		_repeating = repeating;
 		return this;
