@@ -5,8 +5,8 @@
     <description></description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 17 Dec 2015 14:02:02 -0500</pubDate>
-    <lastBuildDate>Thu, 17 Dec 2015 14:02:02 -0500</lastBuildDate>
+    <pubDate>Fri, 08 Jan 2016 08:16:22 -0800</pubDate>
+    <lastBuildDate>Fri, 08 Jan 2016 08:16:22 -0800</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
@@ -17,7 +17,7 @@
 
 &lt;p&gt;Other great options included a big white hand on a black shield. &lt;em&gt;smile&lt;/em&gt;&lt;/p&gt;
 </description>
-        <pubDate>Sat, 12 Dec 2015 07:00:00 -0500</pubDate>
+        <pubDate>Sat, 12 Dec 2015 04:00:00 -0800</pubDate>
         <link>/news/2015/12/12/new-logo/</link>
         <guid isPermaLink="true">/news/2015/12/12/new-logo/</guid>
         
@@ -27,12 +27,12 @@
       </item>
     
       <item>
-        <title>Metron adopts new logo</title>
-        <description>&lt;p&gt;Congratulations! Metron accepted into the Apache Incubator.&lt;/p&gt;
+        <title>Metron accepted into Apache Incubator</title>
+        <description>&lt;p&gt;Congratulations! Metron accepted into the Apache Incubator. &lt;/p&gt;
 </description>
-        <pubDate>Sat, 12 Dec 2015 07:00:00 -0500</pubDate>
-        <link>/news/2015/12/12/metron-incubator/</link>
-        <guid isPermaLink="true">/news/2015/12/12/metron-incubator/</guid>
+        <pubDate>Sun, 06 Dec 2015 12:48:00 -0800</pubDate>
+        <link>/news/2015/12/06/metron-incubator/</link>
+        <guid isPermaLink="true">/news/2015/12/06/metron-incubator/</guid>
         
         
         <category>project</category>
