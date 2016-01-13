@@ -1,4 +1,4 @@
-package com.apache.metron.parsing.test;
+package org.apache.metron.parsing.test;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -7,8 +7,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.apache.metron.parsing.parsers.GrokAsaParser;
-import com.apache.metron.test.AbstractConfigTest;
+import org.apache.metron.parsing.parsers.GrokAsaParser;
+import org.apache.metron.test.AbstractConfigTest;
 
 
  /**
@@ -59,7 +59,7 @@ public class GrokAsaParserTest extends AbstractConfigTest{
      * @see junit.framework.TestCase#setUp()
      */
 	public void setUp() throws Exception {
-          super.setUp("com.apache.metron.parsing.test.GrokAsaParserTest");
+          super.setUp("org.apache.metron.parsing.test.GrokAsaParserTest");
           setGrokAsaStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
           grokAsaParser = new GrokAsaParser();		
 	}
@@ -74,7 +74,7 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		}
 
 		/**
-		 * Test method for {@link com.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
+		 * Test method for {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {

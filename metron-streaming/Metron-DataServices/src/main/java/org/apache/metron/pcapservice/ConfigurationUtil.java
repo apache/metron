@@ -1,10 +1,10 @@
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.springframework.util.Assert;
 
-import com.apache.metron.configuration.ConfigurationManager;
+import org.apache.metron.configuration.ConfigurationManager;
 
 
 

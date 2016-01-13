@@ -1,4 +1,4 @@
-package com.apache.metron.pcap;
+package org.apache.metron.pcap;
 
 import java.io.EOFException;
 import java.io.File;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.geo;
+package org.apache.metron.enrichment.adapters.geo;
 
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -24,8 +24,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.enrichment.common.GenericEnrichmentBolt;
-import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.common.GenericEnrichmentBolt;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
 @SuppressWarnings("serial")
 public abstract class AbstractGeoAdapter implements EnrichmentAdapter,

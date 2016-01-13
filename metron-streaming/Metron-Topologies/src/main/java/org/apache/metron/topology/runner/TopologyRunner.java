@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.topology.runner;
+package org.apache.metron.topology.runner;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -63,24 +63,24 @@ import com.esotericsoftware.kryo.serializers.MapSerializer;
 
 
 
-import com.apache.metron.alerts.TelemetryAlertsBolt;
-import com.apache.metron.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
-import com.apache.metron.alerts.interfaces.AlertsAdapter;
-import com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter;
-import com.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter;
-import com.apache.metron.enrichment.adapters.host.HostFromPropertiesFileAdapter;
-import com.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter;
-import com.apache.metron.enrichment.adapters.threat.ThreatHbaseAdapter;
-import com.apache.metron.enrichment.common.GenericEnrichmentBolt;
-import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import com.apache.metron.hbase.HBaseBolt;
-import com.apache.metron.hbase.HBaseStreamPartitioner;
-import com.apache.metron.hbase.TupleTableConfig;
-import com.apache.metron.helpers.topology.Cli;
-import com.apache.metron.helpers.topology.SettingsLoader;
-import com.apache.metron.index.interfaces.IndexAdapter;
-import com.apache.metron.indexing.TelemetryIndexingBolt;
-import com.apache.metron.json.serialization.JSONKryoSerializer;
+import org.apache.metron.alerts.TelemetryAlertsBolt;
+import org.apache.metron.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
+import org.apache.metron.alerts.interfaces.AlertsAdapter;
+import org.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter;
+import org.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter;
+import org.apache.metron.enrichment.adapters.host.HostFromPropertiesFileAdapter;
+import org.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter;
+import org.apache.metron.enrichment.adapters.threat.ThreatHbaseAdapter;
+import org.apache.metron.enrichment.common.GenericEnrichmentBolt;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.hbase.HBaseBolt;
+import org.apache.metron.hbase.HBaseStreamPartitioner;
+import org.apache.metron.hbase.TupleTableConfig;
+import org.apache.metron.helpers.topology.Cli;
+import org.apache.metron.helpers.topology.SettingsLoader;
+import org.apache.metron.index.interfaces.IndexAdapter;
+import org.apache.metron.indexing.TelemetryIndexingBolt;
+import org.apache.metron.json.serialization.JSONKryoSerializer;
 
 public abstract class TopologyRunner {
 
@@ -774,7 +774,7 @@ public abstract class TopologyRunner {
 					config.getString("kafka.br"));
 
 			kafka_broker_properties.put("serializer.class",
-					"com.apache.metron.json.serialization.JSONKafkaSerializer");
+					"org.apache.metron.json.serialization.JSONKafkaSerializer");
 
 			kafka_broker_properties.put("key.serializer.class",
 					"kafka.serializer.StringEncoder");

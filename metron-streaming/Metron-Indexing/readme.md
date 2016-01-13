@@ -25,10 +25,10 @@ config.getString("bolt.error.indexing.documentname"))
 
 ###IndexAdapters
 
-*com.apache.metron.indexing.adapters.ESBaseBulkAdapter - bulk ingest messages into Elastic Search
-*com.apache.metron.indexing.adapters.ESBaseBulkRotatingAdapter - does everything adapter above does, but is able to rotate the index names based on size
-*com.apache.metron.indexing.adapters.ESTimedBulkRotatingAdapter - does everything adapter above does, but is able to rotate the index names based on size and time
-*com.apache.metron.indexing.adapters.SolrAdapter - currently under development
+*org.apache.metron.indexing.adapters.ESBaseBulkAdapter - bulk ingest messages into Elastic Search
+*org.apache.metron.indexing.adapters.ESBaseBulkRotatingAdapter - does everything adapter above does, but is able to rotate the index names based on size
+*org.apache.metron.indexing.adapters.ESTimedBulkRotatingAdapter - does everything adapter above does, but is able to rotate the index names based on size and time
+*org.apache.metron.indexing.adapters.SolrAdapter - currently under development
 
 /etc/ directory contains all environment-related configs
 

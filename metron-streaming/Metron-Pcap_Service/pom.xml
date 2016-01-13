@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.apache.metron</groupId>
+		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
@@ -47,7 +47,7 @@
 			<version>3.0.4.Final</version>
 		</dependency>
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-Common</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
@@ -245,7 +245,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.apache.metron.pcapservice.rest.PcapService</mainClass>
+							<mainClass>org.apache.metron.pcapservice.rest.PcapService</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

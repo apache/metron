@@ -1,4 +1,4 @@
-package com.apache.metron.hbase;
+package org.apache.metron.hbase;
 
 
 
@@ -16,7 +16,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.helpers.topology.ErrorGenerator;
 
 /**
  * A Storm bolt for putting data into HBase.

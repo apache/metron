@@ -1,4 +1,4 @@
-package com.apache.metron.filters;
+package org.apache.metron.filters;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONObject;
 
-import com.apache.metron.parser.interfaces.MessageFilter;
+import org.apache.metron.parser.interfaces.MessageFilter;
 
 public class BroMessageFilter implements MessageFilter,Serializable {
 

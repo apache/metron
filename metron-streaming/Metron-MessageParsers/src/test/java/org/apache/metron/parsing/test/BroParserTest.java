@@ -1,4 +1,4 @@
-package com.apache.metron.parsing.test;
+package org.apache.metron.parsing.test;
 
 
 import java.util.HashMap;
@@ -11,8 +11,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.apache.metron.parsing.parsers.BasicBroParser;
-import com.apache.metron.test.AbstractConfigTest;
+import org.apache.metron.parsing.parsers.BasicBroParser;
+import org.apache.metron.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -70,7 +70,7 @@ public class BroParserTest extends AbstractConfigTest {
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-        super.setUp("com.apache.metron.parsing.test.BroParserTest");
+        super.setUp("org.apache.metron.parsing.test.BroParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
         parser = new BasicBroParser();  
 	}

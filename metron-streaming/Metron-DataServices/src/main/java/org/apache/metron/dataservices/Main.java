@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices;
+package org.apache.metron.dataservices;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,10 +46,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
-import com.apache.metron.alerts.server.AlertsProcessingServer;
-import com.apache.metron.dataservices.modules.guice.AlertsServerModule;
-import com.apache.metron.dataservices.modules.guice.DefaultServletModule;
-import com.apache.metron.dataservices.modules.guice.DefaultShiroWebModule;
+import org.apache.metron.alerts.server.AlertsProcessingServer;
+import org.apache.metron.dataservices.modules.guice.AlertsServerModule;
+import org.apache.metron.dataservices.modules.guice.DefaultServletModule;
+import org.apache.metron.dataservices.modules.guice.DefaultShiroWebModule;
 
 public class Main {
 	
@@ -270,7 +270,7 @@ public class Main {
 
         context.setResourceBase(baseUri.toASCIIString());
         
-        context.setInitParameter("resteasy.guice.modules", "com.apache.metron.dataservices.modules.guice.RestEasyModule");
+        context.setInitParameter("resteasy.guice.modules", "org.apache.metron.dataservices.modules.guice.RestEasyModule");
         context.setInitParameter("resteasy.servlet.mapping.prefix", "/rest");
         
         context.addEventListener(injector.getInstance(GuiceResteasyBootstrapServletContextListener.class));

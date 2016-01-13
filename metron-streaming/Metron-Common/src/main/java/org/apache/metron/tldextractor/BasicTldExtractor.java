@@ -1,4 +1,4 @@
-package com.apache.metron.tldextractor;
+package org.apache.metron.tldextractor;
 
 import java.io.BufferedReader;
 import java.io.IOException;

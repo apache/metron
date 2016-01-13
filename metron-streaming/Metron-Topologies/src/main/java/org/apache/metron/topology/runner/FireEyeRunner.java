@@ -1,10 +1,10 @@
-package com.apache.metron.topology.runner;
+package org.apache.metron.topology.runner;
 
-import com.apache.metron.filters.GenericMessageFilter;
-import com.apache.metron.parser.interfaces.MessageParser;
-import com.apache.metron.parsing.AbstractParserBolt;
-import com.apache.metron.parsing.TelemetryParserBolt;
-import com.apache.metron.test.spouts.GenericInternalTestSpout;
+import org.apache.metron.filters.GenericMessageFilter;
+import org.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.parsing.AbstractParserBolt;
+import org.apache.metron.parsing.TelemetryParserBolt;
+import org.apache.metron.test.spouts.GenericInternalTestSpout;
 
 public class FireEyeRunner extends TopologyRunner{
 	

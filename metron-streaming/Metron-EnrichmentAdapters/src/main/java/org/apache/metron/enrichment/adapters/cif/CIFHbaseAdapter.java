@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.cif;
+package org.apache.metron.enrichment.adapters.cif;
 
 import java.io.IOException;
 import java.util.HashMap;

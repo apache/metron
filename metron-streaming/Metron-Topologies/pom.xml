@@ -13,7 +13,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.apache.metron</groupId>
+		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
@@ -33,27 +33,27 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-Common</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-Alerts</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-EnrichmentAdapters</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-MessageParsers</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-Indexing</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>

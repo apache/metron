@@ -1,4 +1,4 @@
-package com.apache.metron.pcap;
+package org.apache.metron.pcap;
 
 import java.util.HashMap;
 import java.util.Map;

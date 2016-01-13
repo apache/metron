@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.interfaces;
+package org.apache.metron.enrichment.interfaces;
 
 import org.json.simple.JSONObject;
 

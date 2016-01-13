@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.apache.metron.parsing.test;
+package org.apache.metron.parsing.test;
 
 
 
@@ -12,8 +12,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.apache.metron.parsing.parsers.BasicFireEyeParser;
-import com.apache.metron.test.AbstractConfigTest;
+import org.apache.metron.parsing.parsers.BasicFireEyeParser;
+import org.apache.metron.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -61,7 +61,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-        super.setUp("com.apache.metron.parsing.test.BasicFireEyeParserTest");
+        super.setUp("org.apache.metron.parsing.test.BasicFireEyeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
         parser = new BasicFireEyeParser();  
 	}
@@ -77,7 +77,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 * Test method for {@link com.apache.metron.parsing.parsers.BasicFireEyeParser#parse(java.lang.String)}.
+	 * Test method for {@link org.apache.metron.parsing.parsers.BasicFireEyeParser#parse(java.lang.String)}.
 	 */
 	@SuppressWarnings({ "rawtypes"})
 	public void testParse() {

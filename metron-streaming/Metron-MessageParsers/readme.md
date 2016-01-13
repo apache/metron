@@ -67,15 +67,15 @@ Parser adapters are loaded dynamically in each Metron topology.  They are define
 ###Java Parser Adapters
 Java parser adapters are indended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:
 
-* com.apache.metron.parsing.parsers.BasicIseParser : Parse ISE messages
-* com.apache.metron.parsing.parsers.BasicBroParser : Parse Bro messages
-* com.apache.metron.parsing.parsers.BasicSourcefireParser : Parse Sourcefire messages
-* com.apache.metron.parsing.parsers.BasicLancopeParser : Parse Lancope messages
+* org.apache.metron.parsing.parsers.BasicIseParser : Parse ISE messages
+* org.apache.metron.parsing.parsers.BasicBroParser : Parse Bro messages
+* org.apache.metron.parsing.parsers.BasicSourcefireParser : Parse Sourcefire messages
+* org.apache.metron.parsing.parsers.BasicLancopeParser : Parse Lancope messages
 
 ###Grok Parser Adapters
 Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
 
-* com.apache.metron.parsing.parsers.GrokSourcefireParser
+* org.apache.metron.parsing.parsers.GrokSourcefireParser
 
 For more information on the Grok project please refer to the following link:
 

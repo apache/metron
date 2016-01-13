@@ -1,4 +1,4 @@
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 
 import org.json.simple.JSONObject;
@@ -6,7 +6,7 @@ import org.json.simple.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.parser.interfaces.MessageParser;
 
 public class BasicPaloAltoFirewallParser extends AbstractParser implements MessageParser{
 

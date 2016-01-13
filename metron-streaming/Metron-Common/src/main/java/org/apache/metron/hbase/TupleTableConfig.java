@@ -1,4 +1,4 @@
-package com.apache.metron.hbase;
+package org.apache.metron.hbase;
 
 import java.io.Serializable;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package com.apache.metron.metrics;
+package org.apache.metron.metrics;
 
 public class NullReporter extends MetricReporter {
 	

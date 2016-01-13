@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.test.bolts;
+package org.apache.metron.test.bolts;
 
 import java.util.Map;
 

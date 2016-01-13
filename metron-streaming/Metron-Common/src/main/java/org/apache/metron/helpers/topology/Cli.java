@@ -1,4 +1,4 @@
-package com.apache.metron.helpers.topology;
+package org.apache.metron.helpers.topology;
 
 import java.io.File;
 
@@ -179,7 +179,7 @@ public class Cli {
 		formater.printHelp("Topology Options:", options);
 
 		System.out
-				.println("[Metron] Example usage: \n storm jar Metron-Topologies-0.3BETA-SNAPSHOT.jar com.apache.metron.topology.Bro -local_mode true -config_path Metron_Configs/ -generator_spout true");
+				.println("[Metron] Example usage: \n storm jar Metron-Topologies-0.3BETA-SNAPSHOT.jar org.apache.metron.topology.Bro -local_mode true -config_path Metron_Configs/ -generator_spout true");
 
 		System.exit(0);
 	}

@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.servlet;
+package org.apache.metron.dataservices.servlet;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.apache.metron.dataservices.auth.AuthToken;
+import org.apache.metron.dataservices.auth.AuthToken;
 
 public class LoginServlet extends HttpServlet 
 {

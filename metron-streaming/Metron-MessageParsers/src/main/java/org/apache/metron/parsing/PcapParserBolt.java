@@ -1,4 +1,4 @@
-package com.apache.metron.parsing;
+package org.apache.metron.parsing;
 
 import java.util.List;
 import java.util.Map;
@@ -7,9 +7,9 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import com.apache.metron.helpers.topology.ErrorGenerator;
-import com.apache.metron.parsing.parsers.PcapParser;
-import com.apache.metron.pcap.PacketInfo;
+import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.parsing.parsers.PcapParser;
+import org.apache.metron.pcap.PacketInfo;
 
 import backtype.storm.generated.Grouping;
 import backtype.storm.task.OutputCollector;

@@ -1,4 +1,4 @@
-package com.apache.metron.alerts.interfaces;
+package org.apache.metron.alerts.interfaces;
 
 import java.util.Map;
 

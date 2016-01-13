@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.host;
+package org.apache.metron.enrichment.adapters.host;
 
 import java.util.Map;
 

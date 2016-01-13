@@ -1,4 +1,4 @@
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +19,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.util.Assert;
 
-import com.apache.metron.pcapservice.PcapGetterHBaseImpl;
-import com.apache.metron.pcapservice.PcapsResponse;
+import org.apache.metron.pcapservice.PcapGetterHBaseImpl;
+import org.apache.metron.pcapservice.PcapsResponse;
 
 /**
  * The Class PcapGetterHBaseImplTest.

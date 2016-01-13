@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.alerts.adapters;
+package org.apache.metron.alerts.adapters;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.apache.metron.alerts.interfaces.AlertsAdapter;
+import org.apache.metron.alerts.interfaces.AlertsAdapter;
 
 @SuppressWarnings("serial")
 public abstract class AbstractAlertAdapter implements AlertsAdapter, Serializable{

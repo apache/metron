@@ -1,4 +1,4 @@
-package com.apache.metron.tagging.adapters;
+package org.apache.metron.tagging.adapters;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

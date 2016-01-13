@@ -1,4 +1,4 @@
-package com.apache.metron.alerts.adapters;
+package org.apache.metron.alerts.adapters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import com.apache.metron.alerts.interfaces.AlertsAdapter;
+import org.apache.metron.alerts.interfaces.AlertsAdapter;
 
 public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 

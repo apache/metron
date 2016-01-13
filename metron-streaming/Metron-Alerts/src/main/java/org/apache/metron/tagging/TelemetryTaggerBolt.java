@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.tagging;
+package org.apache.metron.tagging;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,9 +32,9 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.apache.metron.alerts.interfaces.TaggerAdapter;
-import com.apache.metron.json.serialization.JSONEncoderHelper;
-import com.apache.metron.metrics.MetricReporter;
+import org.apache.metron.alerts.interfaces.TaggerAdapter;
+import org.apache.metron.json.serialization.JSONEncoderHelper;
+import org.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public class TelemetryTaggerBolt extends AbstractTaggerBolt {
@@ -42,7 +42,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	/**
 	 * Use an adapter to tag existing telemetry messages with alerts. The list
 	 * of available tagger adapters is located under
-	 * com.apache.metron.tagging.adapters. At the time of the release the following
+	 * org.apache.metron.tagging.adapters. At the time of the release the following
 	 * adapters are available:
 	 * 
 	 * <p>
@@ -111,7 +111,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 
 	public TelemetryTaggerBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.apache.metron.metrics"));
+				.subset("org.apache.metron.metrics"));
 		return this;
 	}
 

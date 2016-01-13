@@ -1,11 +1,11 @@
-package com.apache.metron.services.alerts;
+package org.apache.metron.services.alerts;
 
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.dataservices.common.MetronService;
+import org.apache.metron.dataservices.common.MetronService;
 
 @Singleton
 public class ElasticSearch_KafkaAlertsService implements MetronService {
