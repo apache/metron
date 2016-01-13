@@ -12,15 +12,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.opensoc</groupId>
-	<artifactId>OpenSOC-Streaming</artifactId>
+	<groupId>com.apache.metron</groupId>
+	<artifactId>Metron-Streaming</artifactId>
 	<version>0.6BETA</version>
 	<packaging>pom</packaging>
-	<name>OpenSOC-Streaming</name>
-	<description>Stream analytics for OpenSOC</description>
-	<url>www.getopensoc.com</url>
+	<name>Metron-Streaming</name>
+	<description>Stream analytics for Metron</description>
+	<url>https://metron.incubator.apache.org/</url>
 	<properties>
-		<twitter>@ProjectOpenSOC</twitter>
+		<twitter>@ApacheMetron</twitter>
 		<global_storm_version>0.9.2-incubating</global_storm_version>
 		<global_kafka_version>0.8.0</global_kafka_version>
 		<global_hadoop_version>2.2.0</global_hadoop_version>
@@ -53,14 +53,14 @@
 
 
 	<modules>
-		<module>OpenSOC-Common</module>
-		<module>OpenSOC-EnrichmentAdapters</module>
-		<module>OpenSOC-MessageParsers</module>
-		<module>OpenSOC-Indexing</module>
-		<module>OpenSOC-Alerts</module>
-		<module>OpenSOC-DataLoads</module>
-		<module>OpenSOC-Topologies</module>
-		<module>OpenSOC-Pcap_Service</module>
+		<module>Metron-Common</module>
+		<module>Metron-EnrichmentAdapters</module>
+		<module>Metron-MessageParsers</module>
+		<module>Metron-Indexing</module>
+		<module>Metron-Alerts</module>
+		<module>Metron-DataLoads</module>
+		<module>Metron-Topologies</module>
+		<module>Metron-Pcap_Service</module>
 	</modules>
 	<dependencies>
 		<dependency>

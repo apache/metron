@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.parsing;
+package com.apache.metron.parsing;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,16 +30,16 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.opensoc.helpers.topology.ErrorGenerator;
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
-import com.opensoc.parser.interfaces.MessageFilter;
-import com.opensoc.parser.interfaces.MessageParser;
+import com.apache.metron.helpers.topology.ErrorGenerator;
+import com.apache.metron.json.serialization.JSONEncoderHelper;
+import com.apache.metron.metrics.MetricReporter;
+import com.apache.metron.parser.interfaces.MessageFilter;
+import com.apache.metron.parser.interfaces.MessageParser;
 
 /**
  * Uses an adapter to parse a telemetry message from its native format into a
  * standard JSON. For a list of available adapter please check
- * com.opensoc.parser.parsers. The input is a raw byte array and the output is a
+ * com.apache.metron.parser.parsers. The input is a raw byte array and the output is a
  * JSONObject
  * <p>
  * The parsing conventions are as follows:
@@ -106,7 +106,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 	public TelemetryParserBolt withMetricConfig(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.opensoc.metrics"));
+				.subset("com.apache.metron.metrics"));
 		return this;
 	}
 
@@ -114,15 +114,15 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		LOG.info("[OpenSOC] Preparing TelemetryParser Bolt...");
+		LOG.info("[Metron] Preparing TelemetryParser Bolt...");
 
 		if (metricConfiguration != null) {
 			_reporter = new MetricReporter();
 			_reporter
 					.initialize(metricConfiguration, TelemetryParserBolt.class);
-			LOG.info("[OpenSOC] Metric reporter is initialized");
+			LOG.info("[Metron] Metric reporter is initialized");
 		} else {
-			LOG.info("[OpenSOC] Metric reporter is not initialized");
+			LOG.info("[Metron] Metric reporter is not initialized");
 		}
 		this.registerCounters();
 		
@@ -135,7 +135,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
-		LOG.trace("[OpenSOC] Starting to process a new incoming tuple");
+		LOG.trace("[Metron] Starting to process a new incoming tuple");
 
 		byte[] original_message = null;
 
@@ -143,22 +143,22 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			original_message = tuple.getBinary(0);
 
-			LOG.trace("[OpenSOC] Starting the parsing process");
+			LOG.trace("[Metron] Starting the parsing process");
 
 			if (original_message == null || original_message.length == 0) {
 				LOG.error("Incomming tuple is null");
 				throw new Exception("Invalid message length");
 			}
 
-			LOG.trace("[OpenSOC] Attempting to transofrm binary message to JSON");
+			LOG.trace("[Metron] Attempting to transofrm binary message to JSON");
 			JSONObject transformed_message = _parser.parse(original_message);
-			LOG.debug("[OpenSOC] Transformed Telemetry message: "
+			LOG.debug("[Metron] Transformed Telemetry message: "
 					+ transformed_message);
 
 			if (transformed_message == null || transformed_message.isEmpty())
 				throw new Exception("Unable to turn binary message into a JSON");
 
-			LOG.trace("[OpenSOC] Checking if the transformed JSON conforms to the right schema");
+			LOG.trace("[Metron] Checking if the transformed JSON conforms to the right schema");
 
 			if (!checkForSchemaCorrectness(transformed_message)) {
 				throw new Exception("Incorrect formatting on message: "
@@ -166,7 +166,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			}
 
 			else {
-				LOG.trace("[OpenSOC] JSON message has the right schema");
+				LOG.trace("[Metron] JSON message has the right schema");
 				boolean filtered = false;
 
 				if (_filter != null) {

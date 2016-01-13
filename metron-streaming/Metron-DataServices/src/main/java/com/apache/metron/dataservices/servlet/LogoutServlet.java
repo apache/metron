@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.servlet;
+package com.apache.metron.dataservices.servlet;
 
 import java.io.IOException;
 

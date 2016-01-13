@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.rest;
+package com.apache.metron.dataservices.rest;
 
 import java.util.List;
 import java.util.Properties;
@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.opensoc.dataservices.auth.AuthTokenFilter;
-import com.opensoc.dataservices.kafkaclient.poll.PollingKafkaClient;
+import com.apache.metron.dataservices.auth.AuthTokenFilter;
+import com.apache.metron.dataservices.kafkaclient.poll.PollingKafkaClient;
 
 @Path("/")
 public class Index 

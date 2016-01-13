@@ -1,4 +1,4 @@
-package com.opensoc.parsing.test;
+package com.apache.metron.parsing.test;
 
 import java.util.Map;
 
@@ -9,7 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.opensoc.parsing.parsers.BasicBroParser;
+import com.apache.metron.parsing.parsers.BasicBroParser;
 
 public class BasicBroParserTest extends TestCase {
 

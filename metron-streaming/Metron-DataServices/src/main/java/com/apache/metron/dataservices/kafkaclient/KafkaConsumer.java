@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.kafkaclient;
+package com.apache.metron.dataservices.kafkaclient;
 
 import java.io.IOException;
 

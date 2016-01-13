@@ -1,1 +1,1 @@
-module.exports = require('./lib/opensoc-ui');
+module.exports = require('./lib/metron-ui');

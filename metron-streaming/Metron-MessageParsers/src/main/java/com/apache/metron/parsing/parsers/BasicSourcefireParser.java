@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
-import com.opensoc.parser.interfaces.MessageParser;
+import com.apache.metron.parser.interfaces.MessageParser;
 
 @SuppressWarnings("serial")
 public class BasicSourcefireParser extends AbstractParser implements MessageParser{

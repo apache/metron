@@ -1,4 +1,4 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 /**
  * HBase configuration properties.

@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.websocket;
+package com.apache.metron.dataservices.websocket;
 
 import javax.servlet.annotation.WebServlet;
 

@@ -1,4 +1,4 @@
-package com.opensoc.helpers.topology;
+package com.apache.metron.helpers.topology;
 
 import java.io.File;
 
@@ -98,15 +98,15 @@ public class Cli {
 					local_mode = false;
 				else {
 					System.out
-							.println("[OpenSOC] ERROR: Invalid value for local mode");
+							.println("[Metron] ERROR: Invalid value for local mode");
 					System.out
-							.println("[OpenSOC] ERROR: Using cli argument -local_mode="
+							.println("[Metron] ERROR: Using cli argument -local_mode="
 									+ cmd.getOptionValue("local_mode"));
 					help();
 				}
 			} else {
 				System.out
-						.println("[OpenSOC] ERROR: Invalid value for local mode");
+						.println("[Metron] ERROR: Invalid value for local mode");
 				help();
 			}
 			if (cmd.hasOption("generator_spout")) {
@@ -121,15 +121,15 @@ public class Cli {
 					generator_spout = false;
 				else {
 					System.out
-							.println("[OpenSOC] ERROR: Invalid value for local generator_spout");
+							.println("[Metron] ERROR: Invalid value for local generator_spout");
 					System.out
-							.println("[OpenSOC] ERROR: Using cli argument -generator_spout="
+							.println("[Metron] ERROR: Using cli argument -generator_spout="
 									+ cmd.getOptionValue("generator_spout"));
 					help();
 				}
 			} else {
 				System.out
-						.println("[OpenSOC] ERROR: Invalid value for generator_spout");
+						.println("[Metron] ERROR: Invalid value for generator_spout");
 				help();
 			}
 			if (cmd.hasOption("config_path")) {
@@ -140,9 +140,9 @@ public class Cli {
 
 				if (!file.isDirectory() || !file.exists()) {
 					System.out
-							.println("[OpenSOC] ERROR: Invalid settings directory name given");
+							.println("[Metron] ERROR: Invalid settings directory name given");
 					System.out
-							.println("[OpenSOC] ERROR: Using cli argument -config_path="
+							.println("[Metron] ERROR: Using cli argument -config_path="
 									+ cmd.getOptionValue("config_path"));
 					help();
 				}
@@ -157,9 +157,9 @@ public class Cli {
 					debug = false;
 				else {
 					System.out
-							.println("[OpenSOC] ERROR: Invalid value for debug_value");
+							.println("[Metron] ERROR: Invalid value for debug_value");
 					System.out
-							.println("[OpenSOC] ERROR: Using cli argument -debug_value="
+							.println("[Metron] ERROR: Using cli argument -debug_value="
 									+ cmd.getOptionValue("debug_value"));
 					help();
 				}
@@ -167,7 +167,7 @@ public class Cli {
 
 		} catch (ParseException e) {
 			System.out
-					.println("[OpenSOC] ERROR: Failed to parse command line arguments");
+					.println("[Metron] ERROR: Failed to parse command line arguments");
 			help();
 		}
 	}
@@ -179,7 +179,7 @@ public class Cli {
 		formater.printHelp("Topology Options:", options);
 
 		System.out
-				.println("[OpenSOC] Example usage: \n storm jar OpenSOC-Topologies-0.3BETA-SNAPSHOT.jar com.opensoc.topology.Bro -local_mode true -config_path OpenSOC_Configs/ -generator_spout true");
+				.println("[Metron] Example usage: \n storm jar Metron-Topologies-0.3BETA-SNAPSHOT.jar com.apache.metron.topology.Bro -local_mode true -config_path Metron_Configs/ -generator_spout true");
 
 		System.exit(0);
 	}

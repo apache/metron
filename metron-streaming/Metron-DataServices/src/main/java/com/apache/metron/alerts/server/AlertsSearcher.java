@@ -1,4 +1,4 @@
-package com.opensoc.alerts.server;
+package com.apache.metron.alerts.server;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,7 +38,7 @@ public class AlertsSearcher implements Runnable {
 	private Properties configProps;
 	
 	// TODO: inject Searcher module for either ElasticSearch or Solr...
-	// TODO: inject OpenSocServiceFactory here
+	// TODO: inject MetronServiceFactory here
 	
 	public final Map<String, AlertsFilterCacheEntry> alertsFilterCache = new HashMap<String, AlertsFilterCacheEntry>();
 	MessageDigest md;

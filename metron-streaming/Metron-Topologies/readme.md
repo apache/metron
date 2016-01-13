@@ -1,18 +1,18 @@
-#OpenSOC-Topologies
+#Metron-Topologies
 
 #Module Description
 
-This module provides example topologies that show how to drive OpenSOC modules and components.  The sample topologies provided are to process PCAP, Ise, Lancope, and Bro telemetries
+This module provides example topologies that show how to drive Metron modules and components.  The sample topologies provided are to process PCAP, Ise, Lancope, and Bro telemetries
 
 ##Launching Topologies
 
 
 ```
 
-storm jar OpenSOC-Topologies-0.6BETA.jar com.opensoc.topology.Pcap
-storm jar OpenSOC-Topologies-0.6BETA.jar com.opensoc.topology.Sourcefire
-storm jar OpenSOC-Topologies-0.6BETA.jar com.opensoc.topology.Lancope
-storm jar OpenSOC-Topologies-0.6BETA.jar com.opensoc.topology.Ise
+storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Pcap
+storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Sourcefire
+storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Lancope
+storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Ise
 
 Topology Options:
 -config_path <arg>       OPTIONAL ARGUMENT [/path/to/configs] Path to
@@ -38,7 +38,7 @@ will be deployed to Storm nimbus
 The sample topologies provided use a specific directory structure.  The example directory structure was checked in here:
 
 ```
-https://github.com/OpenSOC/opensoc-streaming/tree/master/OpenSOC-Topologies/src/main/resources/OpenSOC_Configs
+https://github.com/apache/incubator-metron-streaming/tree/master/Metron-Topologies/src/main/resources/Metron_Configs
 ```
 
 topology.conf - settings specific to each topology

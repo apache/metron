@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.topology.runner;
+package com.apache.metron.topology.runner;
 
-import com.opensoc.parsing.PcapParserBolt;
-import com.opensoc.test.spouts.GenericInternalTestSpout;
+import com.apache.metron.parsing.PcapParserBolt;
+import com.apache.metron.test.spouts.GenericInternalTestSpout;
 
 public class PcapRunner extends TopologyRunner{
 	
@@ -30,7 +30,7 @@ public class PcapRunner extends TopologyRunner{
 		try {
 
 			
-			System.out.println("[OpenSOC] Initializing Test Spout");
+			System.out.println("[Metron] Initializing Test Spout");
 			
 
 			GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
@@ -54,7 +54,7 @@ public class PcapRunner extends TopologyRunner{
 
 			String messageUpstreamComponent = messageComponents.get(messageComponents.size()-1);
 			
-			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
+			System.out.println("[Metron] ------" +  name + " is initializing from " + messageUpstreamComponent);
 			
 			PcapParserBolt pcapParser = new PcapParserBolt().withTsPrecision(config.getString("bolt.parser.ts.precision"));
 			

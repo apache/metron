@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.adapters.geo;
+package com.apache.metron.enrichment.adapters.geo;
 
 import java.net.InetAddress;
 import java.sql.Connection;
@@ -67,20 +67,20 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 		try {
 
-			_LOG.trace("[OpenSOC] Received metadata: " + metadata);
+			_LOG.trace("[Metron] Received metadata: " + metadata);
 
 			InetAddress addr = InetAddress.getByName(metadata);
 
 			if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
 					|| addr.isSiteLocalAddress() || addr.isMulticastAddress()
 					|| !ipvalidator.isValidInet4Address(metadata)) {
-				_LOG.trace("[OpenSOC] Not a remote IP: " + metadata);
-				_LOG.trace("[OpenSOC] Returning enrichment: " + "{}");
+				_LOG.trace("[Metron] Not a remote IP: " + metadata);
+				_LOG.trace("[Metron] Returning enrichment: " + "{}");
 
 				return new JSONObject();
 			}
 
-			_LOG.trace("[OpenSOC] Is a valid remote IP: " + metadata);
+			_LOG.trace("[Metron] Is a valid remote IP: " + metadata);
 
 			statement = connection.createStatement(
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -158,7 +158,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	@Override
 	public boolean initializeAdapter() {
 
-		_LOG.info("[OpenSOC] Initializing MysqlAdapter....");
+		_LOG.info("[Metron] Initializing MysqlAdapter....");
 
 		try {
 
@@ -172,12 +172,12 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			if (!connection.isValid(0))
 				throw new Exception("Invalid connection string....");
 
-			_LOG.info("[OpenSOC] Set JDBC connection....");
+			_LOG.info("[Metron] Set JDBC connection....");
 
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
-			_LOG.error("[OpenSOC] JDBC connection failed....");
+			_LOG.error("[Metron] JDBC connection failed....");
 
 			return false;
 		}

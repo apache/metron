@@ -1,4 +1,4 @@
-package com.opensoc.indexing.adapters;
+package com.apache.metron.indexing.adapters;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

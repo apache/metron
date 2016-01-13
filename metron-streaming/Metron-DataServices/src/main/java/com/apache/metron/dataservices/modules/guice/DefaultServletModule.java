@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.modules.guice;
+package com.apache.metron.dataservices.modules.guice;
 
 import java.util.Properties;
 
@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
-import com.opensoc.dataservices.servlet.LoginServlet;
-import com.opensoc.dataservices.servlet.LogoutServlet;
-import com.opensoc.dataservices.websocket.KafkaMessageSenderServlet;
-import com.opensoc.dataservices.websocket.KafkaWebSocketCreator;
+import com.apache.metron.dataservices.servlet.LoginServlet;
+import com.apache.metron.dataservices.servlet.LogoutServlet;
+import com.apache.metron.dataservices.websocket.KafkaMessageSenderServlet;
+import com.apache.metron.dataservices.websocket.KafkaWebSocketCreator;
 
 public class DefaultServletModule extends ServletModule {
     

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.parsing.test;
+package com.apache.metron.parsing.test;
 
 import java.io.IOException;
 import java.net.URL;
@@ -24,8 +24,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.opensoc.parsing.parsers.BasicLancopeParser;
-import com.opensoc.test.AbstractSchemaTest;
+import com.apache.metron.parsing.parsers.BasicLancopeParser;
+import com.apache.metron.test.AbstractSchemaTest;
 
  /**
  * <ul>
@@ -77,7 +77,7 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
      */
 
     protected void setUp() throws Exception {
-        super.setUp("com.opensoc.parsing.test.BasicLancopeParserTest");
+        super.setUp("com.apache.metron.parsing.test.BasicLancopeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
         BasicLancopeParserTest.setParser(new BasicLancopeParser());   
         
@@ -96,7 +96,7 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link com.opensoc.parsing.parsers.BasicLancopeParser#parse(byte[])}.
+     * Test method for {@link com.apache.metron.parsing.parsers.BasicLancopeParser#parse(byte[])}.
      * @throws Exception 
      * @throws IOException 
      */

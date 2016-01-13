@@ -1,4 +1,4 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,8 +18,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.opensoc.dataservices.auth.AuthTokenFilter;
-import com.opensoc.pcap.PcapUtils;
+import com.apache.metron.dataservices.auth.AuthTokenFilter;
+import com.apache.metron.pcap.PcapUtils;
 
 @Path("/pcap/")
 public class PcapReceiverImplRestEasy {

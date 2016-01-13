@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.rest;
+package com.apache.metron.dataservices.rest;
 
 import java.util.HashSet;
 import java.util.Set;

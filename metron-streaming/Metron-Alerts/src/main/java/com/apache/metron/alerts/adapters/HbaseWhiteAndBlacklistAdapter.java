@@ -1,4 +1,4 @@
-package com.opensoc.alerts.adapters;
+package com.apache.metron.alerts.adapters;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.opensoc.alerts.interfaces.AlertsAdapter;
+import com.apache.metron.alerts.interfaces.AlertsAdapter;
 
 public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		Serializable {
@@ -102,20 +102,20 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		//conf.set("hbase.zookeeper.quorum", _quorum);
 		//conf.set("hbase.zookeeper.property.clientPort", _port);
 
-		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
-		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
-		LOG.trace("[OpenSOC] Whitelist table name: " + _blacklist_table_name);
-		LOG.trace("[OpenSOC] ZK Client/port: "
+		LOG.trace("[Metron] Connecting to hbase with conf:" + conf);
+		LOG.trace("[Metron] Whitelist table name: " + _whitelist_table_name);
+		LOG.trace("[Metron] Whitelist table name: " + _blacklist_table_name);
+		LOG.trace("[Metron] ZK Client/port: "
 				+ conf.get("hbase.zookeeper.quorum") + " -> "
 				+ conf.get("hbase.zookeeper.property.clientPort"));
 
 		try {
 
-			LOG.trace("[OpenSOC] Attempting to connect to hbase");
+			LOG.trace("[Metron] Attempting to connect to hbase");
 
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
+			LOG.trace("[Metron] CONNECTED TO HBASE");
 
 			HBaseAdmin hba = new HBaseAdmin(conf);
 
@@ -127,9 +127,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			whitelist_table = new HTable(conf, _whitelist_table_name);
 
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _whitelist_table_name);
+			LOG.trace("[Metron] CONNECTED TO TABLE: " + _whitelist_table_name);
 			blacklist_table = new HTable(conf, _blacklist_table_name);
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _blacklist_table_name);
+			LOG.trace("[Metron] CONNECTED TO TABLE: " + _blacklist_table_name);
 
 			if (connection == null || whitelist_table == null
 					|| blacklist_table == null)
@@ -143,7 +143,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 					loaded_whitelist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
+				LOG.trace("[Metron] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
@@ -151,7 +151,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			}
 			whitelist_table.close();
 
-			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[Metron] READ IN WHITELIST: " + loaded_whitelist.size());
 
 			scan = new Scan();
 
@@ -161,7 +161,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 					loaded_blacklist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
+				LOG.trace("[Metron] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
@@ -169,7 +169,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			}
 			blacklist_table.close();
 
-			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[Metron] READ IN WHITELIST: " + loaded_whitelist.size());
 
 			rs.close(); // always close the ResultScanner!
 			hba.close();
@@ -245,7 +245,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			if (enrichment != null)
 				alert.put("enrichment", enrichment);
 
-			LOG.trace("[OpenSOC] Returning alert: " + alerts);
+			LOG.trace("[Metron] Returning alert: " + alerts);
 
 			return alerts;
 
@@ -278,7 +278,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			if (enrichment != null)
 				alert.put("enrichment", enrichment);
 
-			LOG.trace("[OpenSOC] Returning alert: " + alerts);
+			LOG.trace("[Metron] Returning alert: " + alerts);
 
 			return alerts;
 
@@ -308,7 +308,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			if (enrichment != null)
 				alert.put("enrichment", enrichment);
 
-			LOG.trace("[OpenSOC] Returning alert: " + alerts);
+			LOG.trace("[Metron] Returning alert: " + alerts);
 
 			return alerts;
 
@@ -344,7 +344,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			if (enrichment != null)
 				alert.put("enrichment", enrichment);
 
-			LOG.trace("[OpenSOC] Returning alert: " + alerts);
+			LOG.trace("[Metron] Returning alert: " + alerts);
 
 			return alerts;
 

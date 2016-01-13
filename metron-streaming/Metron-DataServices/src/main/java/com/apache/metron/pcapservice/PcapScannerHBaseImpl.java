@@ -1,4 +1,4 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import org.springframework.util.Assert;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.opensoc.pcap.PcapMerger;
+import com.apache.metron.pcap.PcapMerger;
 
 /**
  * Singleton class which integrates with HBase table and returns sorted pcaps

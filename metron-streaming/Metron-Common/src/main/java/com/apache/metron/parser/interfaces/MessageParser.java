@@ -1,4 +1,4 @@
-package com.opensoc.parser.interfaces;
+package com.apache.metron.parser.interfaces;
 
 import org.json.simple.JSONObject;
 

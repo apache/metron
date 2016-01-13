@@ -1,4 +1,4 @@
-package com.opensoc.alerts.adapters;
+package com.apache.metron.alerts.adapters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import com.opensoc.alerts.interfaces.AlertsAdapter;
+import com.apache.metron.alerts.interfaces.AlertsAdapter;
 
 public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 
@@ -111,20 +111,20 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 		//conf.set("hbase.zookeeper.quorum", _quorum);
 		//conf.set("hbase.zookeeper.property.clientPort", _port);
 
-		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
-		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
-		LOG.trace("[OpenSOC] Whitelist table name: " + _blacklist_table_name);
-		LOG.trace("[OpenSOC] ZK Client/port: "
+		LOG.trace("[Metron] Connecting to hbase with conf:" + conf);
+		LOG.trace("[Metron] Whitelist table name: " + _whitelist_table_name);
+		LOG.trace("[Metron] Whitelist table name: " + _blacklist_table_name);
+		LOG.trace("[Metron] ZK Client/port: "
 				+ conf.get("hbase.zookeeper.quorum") + " -> "
 				+ conf.get("hbase.zookeeper.property.clientPort"));
 
 		try {
 
-			LOG.trace("[OpenSOC] Attempting to connect to hbase");
+			LOG.trace("[Metron] Attempting to connect to hbase");
 
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
+			LOG.trace("[Metron] CONNECTED TO HBASE");
 
 			HBaseAdmin hba = new HBaseAdmin(conf);
 
@@ -136,9 +136,9 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 
 			whitelist_table = new HTable(conf, _whitelist_table_name);
 
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _whitelist_table_name);
+			LOG.trace("[Metron] CONNECTED TO TABLE: " + _whitelist_table_name);
 			blacklist_table = new HTable(conf, _blacklist_table_name);
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _blacklist_table_name);
+			LOG.trace("[Metron] CONNECTED TO TABLE: " + _blacklist_table_name);
 
 			if (connection == null || whitelist_table == null
 					|| blacklist_table == null)
@@ -152,7 +152,7 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 					loaded_whitelist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
+				LOG.trace("[Metron] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
@@ -160,7 +160,7 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 			}
 			whitelist_table.close();
 
-			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[Metron] READ IN WHITELIST: " + loaded_whitelist.size());
 			
 			System.out.println("LOADED WHITELIST IS: ");
 			
@@ -175,7 +175,7 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 					loaded_blacklist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
+				LOG.trace("[Metron] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
@@ -183,7 +183,7 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 			}
 			blacklist_table.close();
 
-			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[Metron] READ IN WHITELIST: " + loaded_whitelist.size());
 
 			rs.close(); // always close the ResultScanner!
 			hba.close();
@@ -225,12 +225,12 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 				//check it doesn't have an "exception" keyword in it
 				for (String exception : keywordExceptionList) {
 					if (content.toString().contains(exception)) {
-						LOG.info("[OpenSOC] KeywordAlertsAdapter: Omitting alert due to exclusion: " + exception);
+						LOG.info("[Metron] KeywordAlertsAdapter: Omitting alert due to exclusion: " + exception);
 						return null;
 					}
 				}
 				
-				LOG.info("[OpenSOC] KeywordAlertsAdapter: Found match for " + keyword);
+				LOG.info("[Metron] KeywordAlertsAdapter: Found match for " + keyword);
 				JSONObject alert = new JSONObject();
 
 				String source = "unknown";

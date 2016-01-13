@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.websocket;
+package com.apache.metron.dataservices.websocket;
 
 
 import java.io.IOException;
@@ -13,7 +13,7 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.dataservices.kafkaclient.KafkaClient;
+import com.apache.metron.dataservices.kafkaclient.KafkaClient;
 
 @WebSocket(maxTextMessageSize = 64 * 1024)
 public class KafkaMessageSenderSocket 

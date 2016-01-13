@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.test.filereaders;
+package com.apache.metron.test.filereaders;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;

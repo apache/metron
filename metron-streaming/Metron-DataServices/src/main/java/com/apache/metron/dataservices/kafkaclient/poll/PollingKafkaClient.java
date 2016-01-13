@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.kafkaclient.poll;
+package com.apache.metron.dataservices.kafkaclient.poll;
 
 import java.util.ArrayList;
 import java.util.HashMap;

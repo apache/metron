@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.topology.runner;
+package com.apache.metron.topology.runner;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -63,24 +63,24 @@ import com.esotericsoftware.kryo.serializers.MapSerializer;
 
 
 
-import com.opensoc.alerts.TelemetryAlertsBolt;
-import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
-import com.opensoc.alerts.interfaces.AlertsAdapter;
-import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
-import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
-import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
-import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
-import com.opensoc.enrichment.adapters.threat.ThreatHbaseAdapter;
-import com.opensoc.enrichment.common.GenericEnrichmentBolt;
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-import com.opensoc.hbase.HBaseBolt;
-import com.opensoc.hbase.HBaseStreamPartitioner;
-import com.opensoc.hbase.TupleTableConfig;
-import com.opensoc.helpers.topology.Cli;
-import com.opensoc.helpers.topology.SettingsLoader;
-import com.opensoc.index.interfaces.IndexAdapter;
-import com.opensoc.indexing.TelemetryIndexingBolt;
-import com.opensoc.json.serialization.JSONKryoSerializer;
+import com.apache.metron.alerts.TelemetryAlertsBolt;
+import com.apache.metron.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
+import com.apache.metron.alerts.interfaces.AlertsAdapter;
+import com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter;
+import com.apache.metron.enrichment.adapters.host.HostFromPropertiesFileAdapter;
+import com.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter;
+import com.apache.metron.enrichment.adapters.threat.ThreatHbaseAdapter;
+import com.apache.metron.enrichment.common.GenericEnrichmentBolt;
+import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import com.apache.metron.hbase.HBaseBolt;
+import com.apache.metron.hbase.HBaseStreamPartitioner;
+import com.apache.metron.hbase.TupleTableConfig;
+import com.apache.metron.helpers.topology.Cli;
+import com.apache.metron.helpers.topology.SettingsLoader;
+import com.apache.metron.index.interfaces.IndexAdapter;
+import com.apache.metron.indexing.TelemetryIndexingBolt;
+import com.apache.metron.json.serialization.JSONKryoSerializer;
 
 public abstract class TopologyRunner {
 
@@ -90,7 +90,7 @@ public abstract class TopologyRunner {
 	protected boolean local_mode = true;
 	protected boolean debug = true;
 	protected String config_path = null;
-	protected String default_config_path = "OpenSOC_Configs";
+	protected String default_config_path = "Metron_Configs";
 	protected boolean success = false;
 	protected Stack<String> messageComponents = new Stack<String>();
 	protected Stack<String> errorComponents = new Stack<String>();
@@ -103,23 +103,23 @@ public abstract class TopologyRunner {
 		Cli command_line = new Cli(args);
 		command_line.parse();
 
-		System.out.println("[OpenSOC] Starting topology deployment...");
+		System.out.println("[Metron] Starting topology deployment...");
 
 		debug = command_line.isDebug();
-		System.out.println("[OpenSOC] Debug mode set to: " + debug);
+		System.out.println("[Metron] Debug mode set to: " + debug);
 
 		local_mode = command_line.isLocal_mode();
-		System.out.println("[OpenSOC] Local mode set to: " + local_mode);
+		System.out.println("[Metron] Local mode set to: " + local_mode);
 
 		if (command_line.getPath() != null) {
 			config_path = command_line.getPath();
 			System.out
-					.println("[OpenSOC] Setting config path to external config path: "
+					.println("[Metron] Setting config path to external config path: "
 							+ config_path);
 		} else {
 			config_path = default_config_path;
 			System.out
-					.println("[OpenSOC] Initializing from default internal config path: "
+					.println("[Metron] Initializing from default internal config path: "
 							+ config_path);
 		}
 
@@ -131,11 +131,11 @@ public abstract class TopologyRunner {
 		String topology_identifier_path = config_path + "/topologies/" + subdir
 				+ "/topology_identifier.conf";
 
-		System.out.println("[OpenSOC] Looking for environment identifier: "
+		System.out.println("[Metron] Looking for environment identifier: "
 				+ environment_identifier_path);
-		System.out.println("[OpenSOC] Looking for topology identifier: "
+		System.out.println("[Metron] Looking for topology identifier: "
 				+ topology_identifier_path);
-		System.out.println("[OpenSOC] Looking for topology config: "
+		System.out.println("[Metron] Looking for topology config: "
 				+ topology_conf_path);
 
 		config = new PropertiesConfiguration(topology_conf_path);
@@ -148,7 +148,7 @@ public abstract class TopologyRunner {
 		String topology_name = SettingsLoader.generateTopologyName(
 				environment_identifier, topology_identifier);
 
-		System.out.println("[OpenSOC] Initializing Topology: " + topology_name);
+		System.out.println("[Metron] Initializing Topology: " + topology_name);
 
 		builder = new TopologyBuilder();
 
@@ -156,7 +156,7 @@ public abstract class TopologyRunner {
 		conf.registerSerialization(JSONObject.class, MapSerializer.class);
 		conf.setDebug(debug);
 
-		System.out.println("[OpenSOC] Initializing Spout: " + topology_name);
+		System.out.println("[Metron] Initializing Spout: " + topology_name);
 
 		if (command_line.isGenerator_spout()) {
 			String component_name = config.getString("spout.test.name",
@@ -164,7 +164,7 @@ public abstract class TopologyRunner {
 			success = initializeTestingSpout(component_name);
 			messageComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -178,7 +178,7 @@ public abstract class TopologyRunner {
 			success = initializeKafkaSpout(component_name);
 			messageComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -195,7 +195,7 @@ public abstract class TopologyRunner {
 
 			dataComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -210,7 +210,7 @@ public abstract class TopologyRunner {
 			messageComponents.add(component_name);
 			errorComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -224,11 +224,11 @@ public abstract class TopologyRunner {
 					"bolt.enrichment.host.name", "DefaultHostEnrichmentBolt");
 
 			success = initializeHostsEnrichment(topology_name, component_name,
-					"OpenSOC_Configs/etc/whitelists/known_hosts.conf");
+					"Metron_Configs/etc/whitelists/known_hosts.conf");
 			messageComponents.add(component_name);
 			errorComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -243,7 +243,7 @@ public abstract class TopologyRunner {
 			messageComponents.add(component_name);
 			errorComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -258,7 +258,7 @@ public abstract class TopologyRunner {
 			messageComponents.add(component_name);
 			errorComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -273,7 +273,7 @@ public abstract class TopologyRunner {
 			messageComponents.add(component_name);
 			errorComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -292,7 +292,7 @@ public abstract class TopologyRunner {
 			errorComponents.add(component_name);
 			alertComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -307,7 +307,7 @@ public abstract class TopologyRunner {
 			success = initializeAlertIndexing(component_name);
 			terminalComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -321,10 +321,10 @@ public abstract class TopologyRunner {
 			success = initializeKafkaBolt(component_name);
 			terminalComponents.add(component_name);
 
-			System.out.println("[OpenSOC] Component " + component_name
+			System.out.println("[Metron] Component " + component_name
 					+ " initialized");
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -339,7 +339,7 @@ public abstract class TopologyRunner {
 			errorComponents.add(component_name);
 			terminalComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -353,7 +353,7 @@ public abstract class TopologyRunner {
 			success = initializeHDFSBolt(topology_name, component_name);
 			terminalComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -367,7 +367,7 @@ public abstract class TopologyRunner {
 			success = initializeErrorIndexBolt(component_name);
 			terminalComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
@@ -384,23 +384,23 @@ public abstract class TopologyRunner {
 			success = initializeHbaseBolt(component_name, shuffleType);
 			terminalComponents.add(component_name);
 
-			System.out.println("[OpenSOC] ------Component " + component_name
+			System.out.println("[Metron] ------Component " + component_name
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.hbase");
 		}
 
-		System.out.println("[OpenSOC] Topology Summary: ");
-		System.out.println("[OpenSOC] Message Stream: "
+		System.out.println("[Metron] Topology Summary: ");
+		System.out.println("[Metron] Message Stream: "
 				+ printComponentStream(messageComponents));
-		System.out.println("[OpenSOC] Alerts Stream: "
+		System.out.println("[Metron] Alerts Stream: "
 				+ printComponentStream(alertComponents));
-		System.out.println("[OpenSOC] Error Stream: "
+		System.out.println("[Metron] Error Stream: "
 				+ printComponentStream(errorComponents));
-		System.out.println("[OpenSOC] Data Stream: "
+		System.out.println("[Metron] Data Stream: "
 				+ printComponentStream(dataComponents));
-		System.out.println("[OpenSOC] Terminal Components: "
+		System.out.println("[Metron] Terminal Components: "
 				+ printComponentStream(terminalComponents));
 
 		if (local_mode) {
@@ -438,7 +438,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = dataComponents.get(dataComponents
 					.size()-1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			String tableName = config.getString("bolt.hbase.table.name")
@@ -580,7 +580,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			
@@ -626,7 +626,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			List<String> hosts_keys = new ArrayList<String>();
@@ -686,7 +686,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			JSONObject alerts_identifier = SettingsLoader
@@ -720,7 +720,7 @@ public abstract class TopologyRunner {
 		String messageUpstreamComponent = alertComponents.get(alertComponents
 				.size() - 1);
 
-		System.out.println("[OpenSOC] ------" + name + " is initializing from "
+		System.out.println("[Metron] ------" + name + " is initializing from "
 				+ messageUpstreamComponent);
 		
 		Class loaded_class = Class.forName(config.getString("bolt.alerts.indexing.adapter"));
@@ -764,7 +764,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			Map<String, String> kafka_broker_properties = new HashMap<String, String>();
@@ -774,7 +774,7 @@ public abstract class TopologyRunner {
 					config.getString("kafka.br"));
 
 			kafka_broker_properties.put("serializer.class",
-					"com.opensoc.json.serialization.JSONKafkaSerializer");
+					"com.apache.metron.json.serialization.JSONKafkaSerializer");
 
 			kafka_broker_properties.put("key.serializer.class",
 					"kafka.serializer.StringEncoder");
@@ -801,7 +801,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			String[] keys_from_settings = config.getString("bolt.enrichment.whois.fields").split(",");
@@ -844,7 +844,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 			
 			Class loaded_class = Class.forName(config.getString("bolt.indexing.adapter"));
@@ -855,7 +855,7 @@ public abstract class TopologyRunner {
 			if(settings != null && settings.size() > 0)
 			{
 				adapter.setOptionalSettings(settings);
-				System.out.println("[OpenSOC] Index Bolt picket up optional settings:");
+				System.out.println("[Metron] Index Bolt picket up optional settings:");
 				SettingsLoader.printOptionalSettings(settings);			
 			}
 
@@ -897,7 +897,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			String[] fields = config.getStringArray("bolt.enrichment.threat.fields");
@@ -940,7 +940,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			List<String> cif_keys = new ArrayList<String>();
@@ -990,7 +990,7 @@ public abstract class TopologyRunner {
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
 
-			System.out.println("[OpenSOC] ------" + name
+			System.out.println("[Metron] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
 			RecordFormat format = new DelimitedRecordFormat()

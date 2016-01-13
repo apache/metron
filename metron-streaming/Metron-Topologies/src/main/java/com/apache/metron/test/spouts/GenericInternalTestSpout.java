@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package com.opensoc.test.spouts;
+package com.apache.metron.test.spouts;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.opensoc.test.filereaders.FileReader;
+import com.apache.metron.test.filereaders.FileReader;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;

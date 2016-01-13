@@ -1,4 +1,4 @@
-package com.opensoc.indexing.adapters;
+package com.apache.metron.indexing.adapters;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -50,7 +50,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 
 		bulk_set = new HashBag();
 
-		_LOG.trace("[OpenSOC] Initializing ESBulkAdapter...");
+		_LOG.trace("[Metron] Initializing ESBulkAdapter...");
 
 		try {
 			_ip = ip;
@@ -105,7 +105,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 			bulk_set.add(raw_message);
 			set_size = bulk_set.size();
 			
-			_LOG.trace("[OpenSOC] Incremented bulk size to: " + bulk_set.size());
+			_LOG.trace("[Metron] Incremented bulk size to: " + bulk_set.size());
 		}
 
 		try {
@@ -144,7 +144,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 				while (iterator.hasNext()) {
 					JSONObject setElement = iterator.next();
 					
-					_LOG.trace("[OpenSOC] Flushing to index: " + _index_name+ "_" + index_postfix);
+					_LOG.trace("[Metron] Flushing to index: " + _index_name+ "_" + index_postfix);
 
 					IndexRequestBuilder a = client.prepareIndex(_index_name+ "_" + index_postfix,
 							_document_name);
@@ -153,7 +153,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 
 				}
 
-				_LOG.trace("[OpenSOC] Performing bulk load of size: "
+				_LOG.trace("[Metron] Performing bulk load of size: "
 						+ bulkRequest.numberOfActions());
 
 				BulkResponse resp = bulkRequest.execute().actionGet();
@@ -161,19 +161,19 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 				for(BulkItemResponse r: resp.getItems())
 				{
 					r.getResponse();
-					_LOG.trace("[OpenSOC] ES SUCCESS MESSAGE: " + r.getFailureMessage());
+					_LOG.trace("[Metron] ES SUCCESS MESSAGE: " + r.getFailureMessage());
 				}
 				
 				bulk_set.clear();
 				
 				if (resp.hasFailures()) {
-					_LOG.error("[OpenSOC] Received bulk response error: "
+					_LOG.error("[Metron] Received bulk response error: "
 							+ resp.buildFailureMessage());
 					
 					for(BulkItemResponse r: resp.getItems())
 					{
 						r.getResponse();
-						_LOG.error("[OpenSOC] ES FAILURE MESSAGE: " + r.getFailureMessage());
+						_LOG.error("[Metron] ES FAILURE MESSAGE: " + r.getFailureMessage());
 					}
 				}
 				

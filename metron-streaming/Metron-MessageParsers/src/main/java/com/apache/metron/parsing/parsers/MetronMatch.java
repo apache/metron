@@ -1,4 +1,4 @@
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -10,13 +10,13 @@ import com.google.code.regexp.Matcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class OpenSOCMatch implements Serializable {
+public class MetronMatch implements Serializable {
 
 	private static final long serialVersionUID = -1129245286587945311L;
 	private String subject; // texte
 	  private Map<String, Object> capture;
-	  private OpenSOCGarbage garbage;
-	  private OpenSOCGrok grok;
+	  private MetronGarbage garbage;
+	  private MetronGrok grok;
 	  private Matcher match;
 	  private int start;
 	  private int end;
@@ -24,22 +24,22 @@ public class OpenSOCMatch implements Serializable {
 	  /**
 	   * For thread safety
 	   */
-	  private static ThreadLocal<OpenSOCMatch> matchHolder = new ThreadLocal<OpenSOCMatch>() {
+	  private static ThreadLocal<MetronMatch> matchHolder = new ThreadLocal<MetronMatch>() {
 		  @Override
-		  protected OpenSOCMatch initialValue() {
-			  return new OpenSOCMatch();
+		  protected MetronMatch initialValue() {
+			  return new MetronMatch();
 		  }
 	  };
 
 	  /**
 	   *Create a new {@code Match} object.
 	   */
-	  public OpenSOCMatch() {
+	  public MetronMatch() {
 	    subject = "Nothing";
 	    grok = null;
 	    match = null;
 	    capture = new TreeMap<String, Object>();
-	    garbage = new OpenSOCGarbage();
+	    garbage = new MetronGarbage();
 	    start = 0;
 	    end = 0;
 	  }
@@ -47,9 +47,9 @@ public class OpenSOCMatch implements Serializable {
 	  /**
 	   * Create Empty grok matcher
 	   */
-	  public static final OpenSOCMatch EMPTY = new OpenSOCMatch();
+	  public static final MetronMatch EMPTY = new MetronMatch();
 
-	  public void setGrok(OpenSOCGrok grok){
+	  public void setGrok(MetronGrok grok){
 	    if (grok != null) {
 	      this.grok = grok;
 	    }
@@ -84,7 +84,7 @@ public class OpenSOCMatch implements Serializable {
 	   *
 	   * @return instance of Match
 	   */
-	  public static OpenSOCMatch getInstance() {
+	  public static MetronMatch getInstance() {
 		 return matchHolder.get();
 	  }
 
@@ -141,7 +141,7 @@ public class OpenSOCMatch implements Serializable {
 	      if (pairs.getValue() != null) {
 	        value = pairs.getValue().toString();
 	        
-	        KeyValue keyValue = OpenSOCConverter.convert(key, value);
+	        KeyValue keyValue = MetronConverter.convert(key, value);
 	        
 	        //get validated key
 	        key = keyValue.getKey();

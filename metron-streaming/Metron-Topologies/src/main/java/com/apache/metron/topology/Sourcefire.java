@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.topology;
+package com.apache.metron.topology;
 
 import org.apache.commons.configuration.ConfigurationException;
 
-import com.opensoc.topology.runner.SourcefireRunner;
-import com.opensoc.topology.runner.TopologyRunner;
+import com.apache.metron.topology.runner.SourcefireRunner;
+import com.apache.metron.topology.runner.TopologyRunner;
 
 import backtype.storm.generated.InvalidTopologyException;
 

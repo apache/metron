@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.tagging;
+package com.apache.metron.tagging;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,9 +32,9 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.opensoc.alerts.interfaces.TaggerAdapter;
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.alerts.interfaces.TaggerAdapter;
+import com.apache.metron.json.serialization.JSONEncoderHelper;
+import com.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public class TelemetryTaggerBolt extends AbstractTaggerBolt {
@@ -42,7 +42,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	/**
 	 * Use an adapter to tag existing telemetry messages with alerts. The list
 	 * of available tagger adapters is located under
-	 * com.opensoc.tagging.adapters. At the time of the release the following
+	 * com.apache.metron.tagging.adapters. At the time of the release the following
 	 * adapters are available:
 	 * 
 	 * <p>
@@ -111,7 +111,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 
 	public TelemetryTaggerBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.opensoc.metrics"));
+				.subset("com.apache.metron.metrics"));
 		return this;
 	}
 
@@ -119,21 +119,21 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		LOG.info("[OpenSOC] Preparing TelemetryParser Bolt...");
+		LOG.info("[Metron] Preparing TelemetryParser Bolt...");
 
 		try {
 			_reporter = new MetricReporter();
 			_reporter.initialize(metricProperties, TelemetryTaggerBolt.class);
-			LOG.info("[OpenSOC] Initialized metrics");
+			LOG.info("[Metron] Initialized metrics");
 		} catch (Exception e) {
-			LOG.info("[OpenSOC] Could not initialize metrics");
+			LOG.info("[Metron] Could not initialize metrics");
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
-		LOG.trace("[OpenSOC] Starting to process message for alerts");
+		LOG.trace("[Metron] Starting to process message for alerts");
 		JSONObject original_message = null;
 
 		try {
@@ -143,12 +143,12 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 			if (original_message == null || original_message.isEmpty())
 				throw new Exception("Could not parse message from byte stream");
 
-			LOG.trace("[OpenSOC] Received tuple: " + original_message);
+			LOG.trace("[Metron] Received tuple: " + original_message);
 
 			JSONObject alerts_tag = new JSONObject();
 			JSONArray alerts_list = _adapter.tag(original_message);
 
-			LOG.trace("[OpenSOC] Tagged message: " + alerts_list);
+			LOG.trace("[Metron] Tagged message: " + alerts_list);
 
 			if (alerts_list.size() != 0) {
 				if (original_message.containsKey("alerts")) {
@@ -157,18 +157,18 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 					JSONArray already_triggered = (JSONArray) tag
 							.get("triggered");
 					alerts_list.addAll(already_triggered);
-					LOG.trace("[OpenSOC] Created a new string of alerts");
+					LOG.trace("[Metron] Created a new string of alerts");
 				}
 
 				alerts_tag.put("identifier", _identifier);
 				alerts_tag.put("triggered", alerts_list);
 				original_message.put("alerts", alerts_tag);
 				
-				LOG.debug("[OpenSOC] Detected alerts: " + alerts_tag);
+				LOG.debug("[Metron] Detected alerts: " + alerts_tag);
 			}
 			else
 			{
-				LOG.debug("[OpenSOC] The following messages did not contain alerts: " + original_message);
+				LOG.debug("[Metron] The following messages did not contain alerts: " + original_message);
 			}
 
 			_collector.ack(tuple);

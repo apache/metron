@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.parsing;
+package com.apache.metron.parsing;
 
 import java.io.IOException;
 import java.util.Map;
@@ -29,9 +29,9 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.base.BaseRichBolt;
 
 import com.codahale.metrics.Counter;
-import com.opensoc.metrics.MetricReporter;
-import com.opensoc.parser.interfaces.MessageFilter;
-import com.opensoc.parser.interfaces.MessageParser;
+import com.apache.metron.metrics.MetricReporter;
+import com.apache.metron.parser.interfaces.MessageFilter;
+import com.apache.metron.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractParserBolt extends BaseRichBolt {
@@ -105,13 +105,13 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 
 		
 		if (!(message.containsKey("original_string"))) {
-			LOG.trace("[OpenSOC] Message does not have original_string: " + message);
+			LOG.trace("[Metron] Message does not have original_string: " + message);
 			return false;
 		} else if (!(message.containsKey("timestamp"))) { 
-			LOG.trace("[OpenSOC] Message does not have timestamp: " + message);
+			LOG.trace("[Metron] Message does not have timestamp: " + message);
 			return false;
 		} else {
-			LOG.trace("[OpenSOC] Message conforms to schema: "
+			LOG.trace("[Metron] Message conforms to schema: "
 					+ message);
 			return true;
 		}

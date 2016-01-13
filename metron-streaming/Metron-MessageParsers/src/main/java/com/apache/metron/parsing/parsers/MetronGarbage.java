@@ -1,4 +1,4 @@
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class OpenSOCGarbage implements Serializable {
+public class MetronGarbage implements Serializable {
 
 	private static final long serialVersionUID = -7158895945268018603L;
 	private List<String> toRemove;
@@ -16,7 +16,7 @@ public class OpenSOCGarbage implements Serializable {
 	  /**
 	   * Create a new {@code Garbage} object.
 	   */
-	  public OpenSOCGarbage() {
+	  public MetronGarbage() {
 
 	    toRemove = new ArrayList<String>();
 	    toRename = new TreeMap<String, Object>();

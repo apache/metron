@@ -1,4 +1,4 @@
-package com.opensoc.hbase;
+package com.apache.metron.hbase;
 
 import java.io.IOException;
 import java.util.Arrays;

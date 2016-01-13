@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package com.opensoc.json.serialization;
+package com.apache.metron.json.serialization;
 
-import static com.opensoc.json.serialization.JSONDecoderHelper.getObject;
-import static com.opensoc.json.serialization.JSONEncoderHelper.putBoolean;
-import static com.opensoc.json.serialization.JSONEncoderHelper.putNull;
-import static com.opensoc.json.serialization.JSONEncoderHelper.putNumber;
-import static com.opensoc.json.serialization.JSONEncoderHelper.putString;
+import static com.apache.metron.json.serialization.JSONDecoderHelper.getObject;
+import static com.apache.metron.json.serialization.JSONEncoderHelper.putBoolean;
+import static com.apache.metron.json.serialization.JSONEncoderHelper.putNull;
+import static com.apache.metron.json.serialization.JSONEncoderHelper.putNumber;
+import static com.apache.metron.json.serialization.JSONEncoderHelper.putString;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -76,7 +76,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 	 */
 	public static void main(String args[]) throws IOException {
 
-		//String Input = "/home/kiran/git/opensoc-streaming/OpenSOC-Common/BroExampleOutput";
+		//String Input = "/home/kiran/git/metron-streaming/Metron-Common/BroExampleOutput";
 		String Input = "/tmp/test";
 
 		BufferedReader reader = new BufferedReader(new FileReader(Input));

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.enrichment.common;
+package com.apache.metron.enrichment.common;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,8 +34,8 @@ import com.codahale.metrics.Counter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import com.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
@@ -109,14 +109,14 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 		boolean success = _adapter.initializeAdapter();
 
 		if (!success) {
-			LOG.error("[OpenSOC] EnrichmentBolt could not initialize adapter");
+			LOG.error("[Metron] EnrichmentBolt could not initialize adapter");
 			throw new IllegalStateException("Could not initialize adapter...");
 		}
 
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {
-			LOG.error("[OpenSOC] Counld not initialize...");
+			LOG.error("[Metron] Counld not initialize...");
 			e.printStackTrace();
 		}
 

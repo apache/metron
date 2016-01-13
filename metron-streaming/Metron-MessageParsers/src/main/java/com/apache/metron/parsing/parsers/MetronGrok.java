@@ -1,4 +1,4 @@
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,10 +19,10 @@ import org.slf4j.LoggerFactory;
 import com.google.code.regexp.Matcher;
 import com.google.code.regexp.Pattern;
 
-public class OpenSOCGrok implements Serializable {
+public class MetronGrok implements Serializable {
 
 	private static final long serialVersionUID = 2002441320075020721L;
-	private static final Logger LOG = LoggerFactory.getLogger(OpenSOCGrok.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MetronGrok.class);
 	  /**
 	   * Named regex of the originalGrokPattern.
 	   */
@@ -51,12 +51,12 @@ public class OpenSOCGrok implements Serializable {
 	  /**
 	   * Create Empty {@code Grok}.
 	   */
-	  public static final OpenSOCGrok EMPTY = new OpenSOCGrok();
+	  public static final MetronGrok EMPTY = new MetronGrok();
 
 	  /**
 	   * Create a new <i>empty</i>{@code Grok} object.
 	   */
-	  public OpenSOCGrok() {
+	  public MetronGrok() {
 	    originalGrokPattern = StringUtils.EMPTY;
 	    namedRegex = StringUtils.EMPTY;
 	    compiledNamedRegex = null;
@@ -82,12 +82,12 @@ public class OpenSOCGrok implements Serializable {
 	   * @return {@code Grok} instance
 	   * @throws Exception
 	   */
-	  public static OpenSOCGrok create(String grokPatternPath, String grokExpression)
+	  public static MetronGrok create(String grokPatternPath, String grokExpression)
 	      throws Exception {
 	    if (StringUtils.isBlank(grokPatternPath)) {
 	      throw new Exception("{grokPatternPath} should not be empty or null");
 	    }
-	    OpenSOCGrok g = new OpenSOCGrok();
+	    MetronGrok g = new MetronGrok();
 	    g.addPatternFromFile(grokPatternPath);
 	    if (StringUtils.isNotBlank(grokExpression)) {
 	      g.compile(grokExpression);
@@ -102,7 +102,7 @@ public class OpenSOCGrok implements Serializable {
 	   * @return Grok
 	   * @throws Exception
 	   */
-	  public static OpenSOCGrok create(String grokPatternPath) throws Exception {
+	  public static MetronGrok create(String grokPatternPath) throws Exception {
 	    return create(grokPatternPath, null);
 	  }
 
@@ -232,7 +232,7 @@ public class OpenSOCGrok implements Serializable {
 	   * @return json representation og the log
 	   */
 	  public String capture(String log){
-		  OpenSOCMatch match = match(log);
+		  MetronMatch match = match(log);
 	    match.captures();
 	    return match.toJson();
 	  }
@@ -247,7 +247,7 @@ public class OpenSOCGrok implements Serializable {
 	  public List<String> captures(List<String> logs){
 	    List<String> matched = new ArrayList<String>();
 	    for (String log : logs) {
-	    	OpenSOCMatch match = match(log);
+	    	MetronMatch match = match(log);
 	      match.captures();
 	      matched.add(match.toJson());
 	    }
@@ -261,13 +261,13 @@ public class OpenSOCGrok implements Serializable {
 	   * @param text : Single line of log
 	   * @return Grok Match
 	   */
-	  public OpenSOCMatch match(String text) {
+	  public MetronMatch match(String text) {
 	    if (compiledNamedRegex == null || StringUtils.isBlank(text)) {
-	      return OpenSOCMatch.EMPTY;
+	      return MetronMatch.EMPTY;
 	    }
 
 	    Matcher m = compiledNamedRegex.matcher(text);
-	    OpenSOCMatch match = new OpenSOCMatch();
+	    MetronMatch match = new MetronMatch();
 	    if (m.find()) {
 	      match.setSubject(text);
 	      match.setGrok(this);

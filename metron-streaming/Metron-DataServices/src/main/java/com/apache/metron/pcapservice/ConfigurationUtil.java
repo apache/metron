@@ -1,10 +1,10 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.springframework.util.Assert;
 
-import com.opensoc.configuration.ConfigurationManager;
+import com.apache.metron.configuration.ConfigurationManager;
 
 
 

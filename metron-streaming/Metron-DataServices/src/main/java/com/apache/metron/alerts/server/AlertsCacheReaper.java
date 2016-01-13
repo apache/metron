@@ -1,4 +1,4 @@
-package com.opensoc.alerts.server;
+package com.apache.metron.alerts.server;
 
 import java.util.ArrayList;
 import java.util.List;
