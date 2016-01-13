@@ -1,13 +1,13 @@
-# OpenSOC
+# Metron
 
-OpenSOC integrates a variety of open source big data technologies in order
-to offer a centralized tool for security monitoring and analysis. OpenSOC
+Metron integrates a variety of open source big data technologies in order
+to offer a centralized tool for security monitoring and analysis. Metron
 provides capabilities for log aggregation, full packet capture indexing,
 storage, advanced behavioral analytics and data enrichment, while applying
 the most current threat intelligence information to security telemetry
 within a single platform.
 
-OpenSOC can be divided into 4 areas:
+Metron can be divided into 4 areas:
 
 1. **A mechanism to capture, store, and normalize any type of security
 telemetry at extremely high rates.**  Because security telemetry is constantly
@@ -33,28 +33,28 @@ models on the information.  Incoming data can then be scored against these
 stored models for advanced anomaly detection.  
 
 4. **An interface that gives a security investigator a centralized view of data 
-and alerts passed through the system.**  OpenSOC’s interface presents alert 
+and alerts passed through the system.**  Metron’s interface presents alert 
 summaries with threat intelligence and enrichment data specific to that alert 
 on one single page.  Furthermore, advanced search capabilities and full packet 
 extraction tools are presented to the analyst for investigation without the 
 need to pivot into additional tools.   
 
-Big data is a natural fit for powerful security analytics. The OpenSOC
+Big data is a natural fit for powerful security analytics. The Metron
 framework integrates a number of elements from the Hadoop ecosystem to provide
 a scalable platform for security analytics, incorporating such functionality as
 full-packet capture, stream processing, batch processing, real-time search, and
-telemetry aggregation.  With OpenSOC, our goal is to tie big data into security
+telemetry aggregation.  With Metron, our goal is to tie big data into security
 analytics and drive towards an extensible centralized platform to effectively
 enable rapid detection and rapid response for advanced security threats.  
 
-# Obtaining OpenSOC
+# Obtaining Metron
 
 This repository is a collection of submodules for convenience which is regularly
 updated to point to the latest versions. Github provides multiple ways to obtain
-OpenSOC's code:
+Metron's code:
 
-1. git clone --recursive https://github.com/OpenSOC/opensoc
-2. [Download ZIP](https://github.com/OpenSOC/opensoc/archive/master.zip)
+1. git clone --recursive https://github.com/apache/incubator-metron
+2. [Download ZIP](https://github.com/apache/incubator-metron/archive/master.zip)
 3. Clone or download each repository individually
 
 Option 3 is more likely to have the latest code.

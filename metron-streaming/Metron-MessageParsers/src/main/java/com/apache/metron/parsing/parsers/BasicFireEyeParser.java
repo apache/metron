@@ -1,4 +1,4 @@
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 	
 	
 	Pattern tsPattern = Pattern.compile(tsRegex);
-	// private transient static OpenSOCGrok grok;
+	// private transient static MetronGrok grok;
 	// private transient static InputStream pattern_url;
 
 	public BasicFireEyeParser() throws Exception {
@@ -43,7 +43,7 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 		// "patterns/fireeye");
 		//
 		// File file = ParserUtils.stream2file(pattern_url);
-		// grok = OpenSOCGrok.create(file.getPath());
+		// grok = MetronGrok.create(file.getPath());
 		//
 		// grok.compile("%{FIREEYE_BASE}");
 	}
@@ -146,7 +146,7 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 		// System.out.println("Received message: " + toParse);
 
-		// OpenSOCMatch gm = grok.match(toParse);
+		// MetronMatch gm = grok.match(toParse);
 		// gm.captures();
 
 		JSONObject toReturn = new JSONObject();

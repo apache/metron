@@ -1,10 +1,10 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import org.eclipse.jdt.internal.core.Assert;
 import org.junit.Test;
 
-import com.opensoc.pcapservice.ConfigurationUtil;
-import com.opensoc.pcapservice.ConfigurationUtil.SizeUnit;
+import com.apache.metron.pcapservice.ConfigurationUtil;
+import com.apache.metron.pcapservice.ConfigurationUtil.SizeUnit;
 
 /**
  * The Class ConfigurationUtilTest.

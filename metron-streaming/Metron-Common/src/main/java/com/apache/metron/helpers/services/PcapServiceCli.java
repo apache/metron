@@ -1,4 +1,4 @@
-package com.opensoc.helpers.services;
+package com.apache.metron.helpers.services;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -69,7 +69,7 @@ public class PcapServiceCli {
 				port = Integer.parseInt(cmd.getOptionValue("port").trim());
 			} catch (Exception e) {
 
-				System.out.println("[OpenSOC] Invalid value for port entered");
+				System.out.println("[Metron] Invalid value for port entered");
 				help();
 			}
 		}
@@ -89,7 +89,7 @@ public class PcapServiceCli {
 					uri = uri.substring(0, uri.length() - 1);
 
 			} catch (Exception e) {
-				System.out.println("[OpenSOC] Invalid URI entered");
+				System.out.println("[Metron] Invalid URI entered");
 				help();
 			}
 		}
@@ -103,7 +103,7 @@ public class PcapServiceCli {
 		formater.printHelp("Topology Options:", options);
 
 		// System.out
-		// .println("[OpenSOC] Example usage: \n storm jar OpenSOC-Topologies-0.3BETA-SNAPSHOT.jar com.opensoc.topology.Bro -local_mode true -config_path OpenSOC_Configs/ -generator_spout true");
+		// .println("[Metron] Example usage: \n storm jar Metron-Topologies-0.3BETA-SNAPSHOT.jar com.apache.metron.topology.Bro -local_mode true -config_path Metron_Configs/ -generator_spout true");
 
 		System.exit(0);
 	}

@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.enrichment.adapters.geo;
+package com.apache.metron.enrichment.adapters.geo;
 
 import java.net.URL;
 import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
-import com.opensoc.test.AbstractSchemaTest;
+import com.apache.metron.test.AbstractSchemaTest;
 
  /**
  * <ul>
@@ -93,7 +93,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#enrich(java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
         if(skipTests(this.getMode())){
@@ -121,7 +121,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#initializeAdapter()}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){
@@ -133,7 +133,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
  
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#GeoMysqlAdapter(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter#GeoMysqlAdapter(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String)}.
      */
     public void testGeoMysqlAdapter() {
         if(skipTests(this.getMode())){

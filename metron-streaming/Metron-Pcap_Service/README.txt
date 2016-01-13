@@ -1,4 +1,4 @@
-'hbase' module of 'opensoc' project contains the code to communicate with HBase. This module has several APIs ( refer IPcapGetter.java, IPcapScanner.java files ) 
+'hbase' module of 'metron' project contains the code to communicate with HBase. This module has several APIs ( refer IPcapGetter.java, IPcapScanner.java files ) 
 to fetch pcaps from HBase. Following APIs have been created under this module implementation.
 
 APIs ( in IPcapGetter.java) to get pcaps using keys :

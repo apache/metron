@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.alerts;
+package com.apache.metron.alerts;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,8 +32,8 @@ import backtype.storm.tuple.Fields;
 
 import com.codahale.metrics.Counter;
 import com.google.common.cache.Cache;
-import com.opensoc.alerts.interfaces.AlertsAdapter;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.alerts.interfaces.AlertsAdapter;
+import com.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractAlertBolt extends BaseRichBolt {

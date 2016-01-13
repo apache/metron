@@ -1,4 +1,4 @@
-package com.opensoc.pcap;
+package com.apache.metron.pcap;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

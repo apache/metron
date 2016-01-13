@@ -3,7 +3,7 @@
 if (!process.env.IN_TRAVIS) {
   var assert = require('chai').assert
     , request = require('supertest')
-    , app = require('../lib/opensoc-ui').app;
+    , app = require('../lib/metron-ui').app;
 
   describe('sessions', function () {
     describe('log in / log out', function () {
@@ -22,7 +22,7 @@ if (!process.env.IN_TRAVIS) {
       it('logs in', function (done) {
         session.
           post('/login').
-          send({ email: 'joesmith@opensoc.dev', password: 'opensoc' }).
+          send({ email: 'joesmith@metron.dev', password: 'metron' }).
           end(function (err, res) {
             // redirects to home
             assert.equal(res.header['location'], '/');
@@ -50,7 +50,7 @@ if (!process.env.IN_TRAVIS) {
       it('fails log in', function (done) {
         session.
           post('/login').
-          send({ email: 'joesmith@opensoc.dev', password: 'foobar' }).
+          send({ email: 'joesmith@metron.dev', password: 'foobar' }).
           end(function (err, res) {
             assert.equal(res.header['location'], '/login');
             assert.notMatch(res.header['set-cookie'], /joesmith/);

@@ -1,9 +1,7 @@
-![Build Status](https://magnum.travis-ci.com/OpenSOC/opensoc-ui.svg?token=jo4ZVAV7CXvqp5459Gzo&branch=master)
-
-opensoc-ui
+metron-ui
 ==========
 
-User interface for OpenSOC
+User interface for Metron
 
 ## Deployment
 
@@ -36,14 +34,14 @@ npm install --production
     },
     "ldap": {
       "url": "ldap://127.0.0.1:389",
-      "searchBase": "dc=opensoc,dc=dev",
+      "searchBase": "dc=metron,dc=dev",
       "searchFilter": "(mail={{username}})",
       "searchAttributes": ["cn", "uid", "mail", "givenName", "sn", "memberOf"],
-      "adminDn": "cn=admin,dc=opensoc,dc=dev",
-      "adminPassword": "opensoc"
+      "adminDn": "cn=admin,dc=metron,dc=dev",
+      "adminPassword": "metron"
     },
     "permissions": {
-      "pcap": "cn=investigators,ou=groups,dc=opensoc,dc=dev"
+      "pcap": "cn=investigators,ou=groups,dc=metron,dc=dev"
     }
   }
 ```
@@ -51,7 +49,7 @@ npm install --production
 * Run the server:
 
 ```bash
-pm2 start index.js -i max --name "opensoc"
+pm2 start index.js -i max --name "metron"
 ```
 
 
@@ -67,8 +65,8 @@ Download the latest package for your platform here:
 ### Step 2: Clone repo
 
 ```bash
-git clone git@github.com:OpenSOC/opensoc-ui.git
-cd opensoc-ui
+git clone git@github.com:apache/incubator-metron.git
+cd incubator-metron/metron-ui
 ```
 
 ### Step 3: Download and provision the development environment
@@ -89,7 +87,7 @@ cd vagrant
 
 ###  Step 5: Seed the development VM
 
-To generate seed data for use with the opensoc-ui, use the following command.
+To generate seed data for use with the metron-ui, use the following command.
 
 ```bash
 script/es_gen.js
@@ -132,4 +130,4 @@ npm install -g nodemon
 nodemon
 ```
 
-You can then access the OpenSOC ui at ```http://localhost:5000```.
+You can then access the Metron ui at ```http://localhost:5000```.

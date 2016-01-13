@@ -1,4 +1,4 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import java.io.File;
 import java.io.IOException;

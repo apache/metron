@@ -1,4 +1,4 @@
-package com.opensoc.dataloads;
+package com.apache.metron.dataloads;
 
 
 import java.io.File;
@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
-import com.opensoc.dataloads.interfaces.ThreatIntelSource;
+import com.apache.metron.dataloads.interfaces.ThreatIntelSource;
 
 public class ThreatIntelLoader {
 

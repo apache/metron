@@ -13,12 +13,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.opensoc</groupId>
-		<artifactId>OpenSOC-Streaming</artifactId>
+		<groupId>com.apache.metron</groupId>
+		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
-	<artifactId>OpenSOC-Common</artifactId>
-	<name>OpenSOC-Common</name>
+	<artifactId>Metron-Common</artifactId>
+	<name>Metron-Common</name>
 	<description>Components common to all enrichments</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,8 +29,8 @@
 	</properties>
 	<repositories>
 		<repository>
-			<id>OpenSOC-Kraken-Repo</id>
-			<name>OpenSOC Kraken Repository</name>
+			<id>Metron-Kraken-Repo</id>
+			<name>Metron Kraken Repository</name>
 			<url>https://raw.github.com/opensoc/kraken/mvn-repo</url>
 		</repository>
 	</repositories>

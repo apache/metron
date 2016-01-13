@@ -1,12 +1,12 @@
 
-slapd	slapd/password1	password	opensoc
-slapd	slapd/password2	password	opensoc
+slapd	slapd/password1	password	metron
+slapd	slapd/password2	password	metron
 slapd	slapd/purge_database	boolean	false
 slapd	slapd/allow_ldap_v2	boolean	false
 slapd	slapd/invalid_config	boolean	true
-slapd	shared/organization	string	OpenSOC
+slapd	shared/organization	string	Metron
 slapd	slapd/dump_database	select	when needed
-slapd	slapd/domain	string	opensoc.dev
+slapd	slapd/domain	string	metron.dev
 slapd	slapd/backend	select	HDB
 slapd	slapd/no_configuration	boolean	false
 slapd	slapd/dump_database_destdir	string	/var/backups/slapd-VERSION

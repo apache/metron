@@ -1,4 +1,4 @@
-package com.opensoc.tldextractor;
+package com.apache.metron.tldextractor;
 
 import java.io.BufferedReader;
 import java.io.IOException;

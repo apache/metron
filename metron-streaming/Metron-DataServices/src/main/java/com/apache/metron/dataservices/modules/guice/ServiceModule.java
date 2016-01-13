@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.modules.guice;
+package com.apache.metron.dataservices.modules.guice;
 
 import javax.inject.Singleton;
 
@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Provides;
-import com.opensoc.dataservices.common.OpenSOCService;
-import com.opensoc.services.alerts.ElasticSearch_KafkaAlertsService;
-import com.opensoc.services.alerts.Solr_KafkaAlertsService;
+import com.apache.metron.dataservices.common.MetronService;
+import com.apache.metron.services.alerts.ElasticSearch_KafkaAlertsService;
+import com.apache.metron.services.alerts.Solr_KafkaAlertsService;
 
 public class ServiceModule extends RequestScopeModule {
 
@@ -23,7 +23,7 @@ public class ServiceModule extends RequestScopeModule {
 
     @Provides
     @Singleton
-    public OpenSOCService socservice() {
+    public MetronService socservice() {
         if (args.length > 0 && args[0].equals("ElasticSearch_KafkaAlertsService")) {
             return new ElasticSearch_KafkaAlertsService();
         } else {

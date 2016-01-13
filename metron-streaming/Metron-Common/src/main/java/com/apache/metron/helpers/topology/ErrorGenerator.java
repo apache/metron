@@ -1,4 +1,4 @@
-package com.opensoc.helpers.topology;
+package com.apache.metron.helpers.topology;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

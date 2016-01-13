@@ -1,4 +1,4 @@
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OpenSOCConverter implements Serializable {
+public class MetronConverter implements Serializable {
 	
 	private static final long serialVersionUID = 4319897815285922962L;
 	public static Map<String, IConverter<?>> _converters = new HashMap<String, IConverter<?>>();

@@ -1,4 +1,4 @@
-#OpenSOC-Alerts
+#Metron-Alerts
 
 ##Module Description
 
@@ -51,7 +51,7 @@ The alert will be fired on the "alerts" stream and can be customized to have any
 * description: A human friendly string representation of the alert
 * alert_id: The UUID generated for the alert. This uniquely identifies an alert
 
-There are other standard but not mandatory fields that can be leveraged by opensoc-ui and other alert consumers:
+There are other standard but not mandatory fields that can be leveraged by metron-ui and other alert consumers:
 
 * designated_host: The IP address that corresponds to an asset. Ex. The IP address of the company device associated with the alert.
 * enrichment: A copy of the enrichment data from the message that triggered the alert
@@ -91,13 +91,13 @@ AlertsAdapter - pick the appropriate adapter for generating the alerts
 
 Java adapters are designed for high volume topologies, but are not easily extensible.  The adapters provided are:
 
-* com.opensoc.alerts.adapters.AllAlertsAdapter - will tag every single message with the static alert (appropriate for topologies like Sourcefire, etc, where every single message is an alert)
-* com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter - will read white and blacklists from HBase and fire alerts if source or dest IP are not on the whitelist or if any IP is on the blacklist
-* com.opensoc.alerts.adapters.CIFAlertsAdapter - will alert on messages that have results in enrichment.cif.
-* com.opensoc.alerts.adpaters.KeywordsAlertAdapter - will alert on messages that contain any of a list of keywords
+* com.apache.metron.alerts.adapters.AllAlertsAdapter - will tag every single message with the static alert (appropriate for topologies like Sourcefire, etc, where every single message is an alert)
+* com.apache.metron.alerts.adapters.HbaseWhiteAndBlacklistAdapter - will read white and blacklists from HBase and fire alerts if source or dest IP are not on the whitelist or if any IP is on the blacklist
+* com.apache.metron.alerts.adapters.CIFAlertsAdapter - will alert on messages that have results in enrichment.cif.
+* com.apache.metron.alerts.adpaters.KeywordsAlertAdapter - will alert on messages that contain any of a list of keywords
 ###Grok Adapters
 
-Grok alerts adapters for OpenSOC are still under devleopment
+Grok alerts adapters for Metron are still under devleopment
 
 ###Stacking Alert Adapters
 

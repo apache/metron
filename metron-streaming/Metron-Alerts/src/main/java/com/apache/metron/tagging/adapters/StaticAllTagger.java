@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.tagging.adapters;
+package com.apache.metron.tagging.adapters;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

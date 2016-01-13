@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.indexing;
+package com.apache.metron.indexing;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -33,15 +33,15 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.opensoc.helpers.topology.ErrorGenerator;
-import com.opensoc.index.interfaces.IndexAdapter;
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.helpers.topology.ErrorGenerator;
+import com.apache.metron.index.interfaces.IndexAdapter;
+import com.apache.metron.json.serialization.JSONEncoderHelper;
+import com.apache.metron.metrics.MetricReporter;
 
 /**
  * 
  * Bolt for indexing telemetry messages into Elastic Search, Solr, Druid, etc...
- * For a list of all adapters provided please see com.opensoc.indexing.adapters
+ * For a list of all adapters provided please see com.apache.metron.indexing.adapters
  * 
  * As of release of this code the following adapters for indexing are provided:
  * <p>
@@ -162,7 +162,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	 */
 	public TelemetryIndexingBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.opensoc.metrics"));
+				.subset("com.apache.metron.metrics"));
 		return this;
 	}
 
@@ -195,7 +195,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		JSONObject message = null;
 
 		try {
-			LOG.trace("[OpenSOC] Indexing bolt gets:  " + message);
+			LOG.trace("[Metron] Indexing bolt gets:  " + message);
 
 			message = (JSONObject) tuple.getValueByField("message");
 

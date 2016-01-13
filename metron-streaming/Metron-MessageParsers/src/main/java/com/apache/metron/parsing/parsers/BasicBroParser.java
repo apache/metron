@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.tldextractor.BasicTldExtractor;
+import com.apache.metron.tldextractor.BasicTldExtractor;
 
 @SuppressWarnings("serial")
 public class BasicBroParser extends AbstractParser {
@@ -35,17 +35,17 @@ public class BasicBroParser extends AbstractParser {
 	@SuppressWarnings("unchecked")
 	public JSONObject parse(byte[] msg) {
 
-		_LOG.trace("[OpenSOC] Starting to parse incoming message");
+		_LOG.trace("[Metron] Starting to parse incoming message");
 
 		String raw_message = null;
 
 		try {
 
 			raw_message = new String(msg, "UTF-8");
-			_LOG.trace("[OpenSOC] Received message: " + raw_message);
+			_LOG.trace("[Metron] Received message: " + raw_message);
 
 			JSONObject cleaned_message = cleaner.Clean(raw_message);
-			_LOG.debug("[OpenSOC] Cleaned message: " + raw_message);
+			_LOG.debug("[Metron] Cleaned message: " + raw_message);
 
 			if (cleaned_message == null || cleaned_message.isEmpty())
 				throw new Exception("Unable to clean message: " + raw_message);
@@ -73,42 +73,42 @@ public class BasicBroParser extends AbstractParser {
 			if (payload.containsKey("ts")) {
 				String ts = payload.remove("ts").toString();
 				payload.put("timestamp", ts);
-				_LOG.trace("[OpenSOC] Added ts to: " + payload);
+				_LOG.trace("[Metron] Added ts to: " + payload);
 			}
 
 			if (payload.containsKey("id.orig_h")) {
 				String source_ip = payload.remove("id.orig_h").toString();
 				payload.put("ip_src_addr", source_ip);
-				_LOG.trace("[OpenSOC] Added ip_src_addr to: " + payload);
+				_LOG.trace("[Metron] Added ip_src_addr to: " + payload);
 			} else if (payload.containsKey("tx_hosts")) {
 				JSONArray txHosts = (JSONArray) payload.remove("tx_hosts");
 				if (txHosts != null && !txHosts.isEmpty()) {
 					payload.put("ip_src_addr", txHosts.get(0));
-					_LOG.trace("[OpenSOC] Added ip_src_addr to: " + payload);
+					_LOG.trace("[Metron] Added ip_src_addr to: " + payload);
 				}
 			}
 			
 			if (payload.containsKey("id.resp_h")) {
 				String source_ip = payload.remove("id.resp_h").toString();
 				payload.put("ip_dst_addr", source_ip);
-				_LOG.trace("[OpenSOC] Added ip_dst_addr to: " + payload);
+				_LOG.trace("[Metron] Added ip_dst_addr to: " + payload);
 			} else if (payload.containsKey("rx_hosts")) {
 				JSONArray rxHosts = (JSONArray) payload.remove("rx_hosts");
 				if (rxHosts != null && !rxHosts.isEmpty()) {
 					payload.put("ip_dst_addr", rxHosts.get(0));
-					_LOG.trace("[OpenSOC] Added ip_dst_addr to: " + payload);
+					_LOG.trace("[Metron] Added ip_dst_addr to: " + payload);
 				}
 			}
 			
 			if (payload.containsKey("id.orig_p")) {
 				String source_port = payload.remove("id.orig_p").toString();
 				payload.put("ip_src_port", source_port);
-				_LOG.trace("[OpenSOC] Added ip_src_port to: " + payload);
+				_LOG.trace("[Metron] Added ip_src_port to: " + payload);
 			}
 			if (payload.containsKey("id.resp_p")) {
 				String dest_port = payload.remove("id.resp_p").toString();
 				payload.put("ip_dst_port", dest_port);
-				_LOG.trace("[OpenSOC] Added ip_dst_port to: " + payload);
+				_LOG.trace("[Metron] Added ip_dst_port to: " + payload);
 			}
 			
 //			if (payload.containsKey("host")) {
@@ -117,7 +117,7 @@ public class BasicBroParser extends AbstractParser {
 //				String tld = tldex.extractTLD(host);
 //
 //				payload.put("tld", tld);
-//				_LOG.trace("[OpenSOC] Added tld to: " + payload);
+//				_LOG.trace("[Metron] Added tld to: " + payload);
 //
 //			}
 //			if (payload.containsKey("query")) {
@@ -127,14 +127,14 @@ public class BasicBroParser extends AbstractParser {
 //				if (length >= 2) {
 //					payload.put("tld", parts[length - 2] + "."
 //							+ parts[length - 1]);
-//					_LOG.trace("[OpenSOC] Added tld to: " + payload);
+//					_LOG.trace("[Metron] Added tld to: " + payload);
 //				}
 //			}
 
-			_LOG.trace("[OpenSOC] Inner message: " + payload);
+			_LOG.trace("[Metron] Inner message: " + payload);
 
 			payload.put("protocol", key);
-			_LOG.debug("[OpenSOC] Returning parsed message: " + payload);
+			_LOG.debug("[Metron] Returning parsed message: " + payload);
 
 			return payload;
 

@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package com.opensoc.tagging.adapters;
+package com.apache.metron.tagging.adapters;
 
 import java.io.Serializable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.alerts.interfaces.TaggerAdapter;
+import com.apache.metron.alerts.interfaces.TaggerAdapter;
 
 @SuppressWarnings("serial")
 public abstract class AbstractTaggerAdapter implements TaggerAdapter, Serializable{

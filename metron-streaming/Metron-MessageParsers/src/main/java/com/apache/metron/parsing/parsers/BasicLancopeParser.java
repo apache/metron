@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

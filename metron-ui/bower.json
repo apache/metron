@@ -1,12 +1,12 @@
 {
-  "name": "opensoc-ui",
+  "name": "metron-ui",
   "main": "index.js",
   "version": "0.0.0",
-  "homepage": "http://opensoc.github.io/opensoc-ui/",
+  "homepage": "http://metron.incubator.apache.org/",
   "authors": [
     "Jamil Bou Kheir <jamil@elbii.com>"
   ],
-  "description": "OpenSOC Portal",
+  "description": "Metron Portal",
   "moduleType": [
     "node"
   ],

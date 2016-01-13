@@ -1,4 +1,4 @@
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.EOFException;
 import java.io.File;
@@ -19,10 +19,10 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 
-import com.opensoc.pcap.Constants;
-import com.opensoc.pcap.OpenSocEthernetDecoder;
-import com.opensoc.pcap.PacketInfo;
-import com.opensoc.pcap.PcapByteInputStream;
+import com.apache.metron.pcap.Constants;
+import com.apache.metron.pcap.MetronEthernetDecoder;
+import com.apache.metron.pcap.PacketInfo;
+import com.apache.metron.pcap.PcapByteInputStream;
 
 /**
  * The Class PcapParser.
@@ -36,7 +36,7 @@ public final class PcapParser {
   private static final Logger LOG = Logger.getLogger(PcapParser.class);
 
   /** The ETHERNET_DECODER. */
-  private static final EthernetDecoder ETHERNET_DECODER = new OpenSocEthernetDecoder();
+  private static final EthernetDecoder ETHERNET_DECODER = new MetronEthernetDecoder();
 
   /** The ip decoder. */
   private static final IpDecoder IP_DECODER = new IpDecoder();

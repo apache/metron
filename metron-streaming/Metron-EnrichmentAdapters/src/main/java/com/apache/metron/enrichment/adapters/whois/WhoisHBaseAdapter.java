@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.adapters.whois;
+package com.apache.metron.enrichment.adapters.whois;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,7 +31,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
 
 import com.google.common.base.Joiner;
-import com.opensoc.tldextractor.BasicTldExtractor;
+import com.apache.metron.tldextractor.BasicTldExtractor;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
@@ -63,15 +63,15 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 		try {
 
-			LOG.trace("[OpenSOC] Connecting to HBase");
-			LOG.trace("[OpenSOC] ZOOKEEPER = "
+			LOG.trace("[Metron] Connecting to HBase");
+			LOG.trace("[Metron] ZOOKEEPER = "
 					+ conf.get("hbase.zookeeper.quorum"));
 
-			LOG.trace("[OpenSOC] CONNECTING TO HBASE WITH: " + conf);
+			LOG.trace("[Metron] CONNECTING TO HBASE WITH: " + conf);
 
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
+			LOG.trace("[Metron] CONNECTED TO HBASE");
 
 			table = connection.getTable(_table_name);
 
@@ -97,7 +97,7 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 		
 		String metadata = tldex.extract2LD(metadataIn);
 
-		LOG.trace("[OpenSOC] Pinging HBase For:" + metadata);
+		LOG.trace("[Metron] Pinging HBase For:" + metadata);
 
         
 		JSONObject output = new JSONObject();

@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.enrichment.adapters.cif;
+package com.apache.metron.enrichment.adapters.cif;
 
 import java.net.InetAddress;
 import java.util.Properties;
 
-import com.opensoc.test.AbstractTestContext;
-import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.apache.metron.test.AbstractTestContext;
+import com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter;
 
 
  /**
@@ -120,7 +120,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#initializeAdapter()}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){
@@ -131,7 +131,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByIP(java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#enrichByIP(java.lang.String)}.
      */
     public void testEnrichByIP() {
         if(skipTests(this.getMode())){
@@ -142,7 +142,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByDomain(java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#enrichByDomain(java.lang.String)}.
      */
     public void testEnrichByDomain() {
         if(skipTests(this.getMode())){
@@ -153,7 +153,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByEmail(java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#enrichByEmail(java.lang.String)}.
      */
     public void testEnrichByEmail() {
         if(skipTests(this.getMode())){
@@ -164,7 +164,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#CIFHbaseAdapter(java.lang.String, java.lang.String, java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#CIFHbaseAdapter(java.lang.String, java.lang.String, java.lang.String)}.
      */
     public void testCIFHbaseAdapter() {
         if(skipTests(this.getMode())){
@@ -175,7 +175,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrich(java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
         if(skipTests(this.getMode())){
@@ -191,7 +191,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     
 
     /**
-     * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#getCIFObject(java.lang.String)}.
+     * Test method for {@link com.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#getCIFObject(java.lang.String)}.
      */
     public void testGetCIFObject() {
         if(skipTests(this.getMode())){

@@ -2,7 +2,7 @@
 
 var assert = require('chai').assert
   , request = require('supertest')
-	, app = require('../lib/opensoc-ui').app;
+	, app = require('../lib/metron-ui').app;
 
 describe('index', function () {
   it('responds with success', function (done) {

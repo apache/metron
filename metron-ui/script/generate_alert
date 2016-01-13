@@ -8,7 +8,7 @@ var kafka = require('../lib/modules/kafka')
 
   // Number of randomly-generated messages per second
   , mps = 5
-  , topic = 'opensoc'
+  , topic = 'metron'
   , dashboardCount = 10;
 
 var dashboards = [];
