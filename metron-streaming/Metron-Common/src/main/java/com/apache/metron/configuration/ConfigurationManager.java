@@ -1,4 +1,4 @@
-package com.opensoc.configuration;
+package com.apache.metron.configuration;
 
 
 

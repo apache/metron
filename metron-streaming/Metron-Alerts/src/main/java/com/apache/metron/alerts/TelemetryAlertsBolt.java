@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.alerts;
+package com.apache.metron.alerts;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,10 +32,10 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
 import com.google.common.cache.CacheBuilder;
-import com.opensoc.alerts.interfaces.AlertsAdapter;
-import com.opensoc.helpers.topology.ErrorGenerator;
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.alerts.interfaces.AlertsAdapter;
+import com.apache.metron.helpers.topology.ErrorGenerator;
+import com.apache.metron.json.serialization.JSONEncoderHelper;
+import com.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public class TelemetryAlertsBolt extends AbstractAlertBolt {
@@ -43,7 +43,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	/**
 	 * Use an adapter to tag existing telemetry messages with alerts. The list
 	 * of available tagger adapters is located under
-	 * com.opensoc.tagging.adapters. At the time of the release the following
+	 * com.apache.metron.tagging.adapters. At the time of the release the following
 	 * adapters are available:
 	 * 
 	 * <p>
@@ -114,7 +114,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 
 	public TelemetryAlertsBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.opensoc.metrics"));
+				.subset("com.apache.metron.metrics"));
 		return this;
 	}
 
@@ -147,21 +147,21 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE_OBJECTS_NUM)
 				.expireAfterWrite(_MAX_TIME_RETAIN_MINUTES, TimeUnit.MINUTES).build();
 
-		LOG.info("[OpenSOC] Preparing TelemetryAlert Bolt...");
+		LOG.info("[Metron] Preparing TelemetryAlert Bolt...");
 
 		try {
 			_reporter = new MetricReporter();
 			_reporter.initialize(metricProperties, TelemetryAlertsBolt.class);
-			LOG.info("[OpenSOC] Initialized metrics");
+			LOG.info("[Metron] Initialized metrics");
 		} catch (Exception e) {
-			LOG.info("[OpenSOC] Could not initialize metrics");
+			LOG.info("[Metron] Could not initialize metrics");
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
-		LOG.trace("[OpenSOC] Starting to process message for alerts");
+		LOG.trace("[Metron] Starting to process message for alerts");
 		JSONObject original_message = null;
 		String key = null;
 
@@ -176,7 +176,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			if(key == null)
 				throw new Exception("Key is not valid");
 			
-			LOG.trace("[OpenSOC] Received tuple: " + original_message);
+			LOG.trace("[Metron] Received tuple: " + original_message);
 
 			JSONObject alerts_tag = new JSONObject();
 			Map<String, JSONObject> alerts_list = _adapter
@@ -184,7 +184,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			JSONArray uuid_list = new JSONArray();
 
 			if (alerts_list == null || alerts_list.isEmpty()) {
-				System.out.println("[OpenSOC] No alerts detected in: "
+				System.out.println("[Metron] No alerts detected in: "
 						+ original_message);
 				_collector.ack(tuple);
 				_collector.emit("message", new Values(key, original_message));
@@ -192,10 +192,10 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 				for (String alert : alerts_list.keySet()) {
 					uuid_list.add(alert);
 
-					LOG.trace("[OpenSOC] Checking alerts cache: " + alert);
+					LOG.trace("[Metron] Checking alerts cache: " + alert);
 
 					if (cache.getIfPresent(alert) == null) {
-						System.out.println("[OpenSOC]: Alert not found in cache: " + alert);
+						System.out.println("[Metron]: Alert not found in cache: " + alert);
 
 						JSONObject global_alert = new JSONObject();
 						global_alert.putAll(_identifier);
@@ -208,19 +208,19 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 					} else
 						LOG.trace("Alert located in cache: " + alert);
 
-					LOG.debug("[OpenSOC] Alerts are: " + alerts_list);
+					LOG.debug("[Metron] Alerts are: " + alerts_list);
 
 					if (original_message.containsKey("alerts")) {
 						JSONArray already_triggered = (JSONArray) original_message
 								.get("alerts");
 
 						uuid_list.addAll(already_triggered);
-						LOG.trace("[OpenSOC] Messages already had alerts...tagging more");
+						LOG.trace("[Metron] Messages already had alerts...tagging more");
 					}
 
 					original_message.put("alerts", uuid_list);
 
-					LOG.debug("[OpenSOC] Detected alerts: " + alerts_tag);
+					LOG.debug("[Metron] Detected alerts: " + alerts_tag);
 
 					_collector.ack(tuple);
 					_collector.emit("message", new Values(key, original_message));

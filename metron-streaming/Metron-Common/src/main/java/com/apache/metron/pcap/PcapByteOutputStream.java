@@ -1,5 +1,5 @@
 // $codepro.audit.disable explicitThisUsage, lossOfPrecisionInCast
-package com.opensoc.pcap;
+package com.apache.metron.pcap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.opensoc.dataloads.interfaces;
+package com.apache.metron.dataloads.interfaces;
 
 import java.util.Iterator;
 import org.apache.commons.configuration.Configuration;

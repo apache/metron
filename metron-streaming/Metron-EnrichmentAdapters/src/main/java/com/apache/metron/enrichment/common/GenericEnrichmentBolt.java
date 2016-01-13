@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.common;
+package com.apache.metron.enrichment.common;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,15 +33,15 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-import com.opensoc.helpers.topology.ErrorGenerator;
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import com.apache.metron.helpers.topology.ErrorGenerator;
+import com.apache.metron.json.serialization.JSONEncoderHelper;
+import com.apache.metron.metrics.MetricReporter;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
  * entries. For a list of available enrichment adapters see
- * com.opensoc.enrichment.adapters.
+ * com.apache.metron.enrichment.adapters.
  * <p>
  * At the moment of release the following enrichment adapters are available:
  * <p>
@@ -140,14 +140,14 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 	public GenericEnrichmentBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.opensoc.metrics"));
+				.subset("com.apache.metron.metrics"));
 		return this;
 	}
 
 	@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
-		LOG.trace("[OpenSOC] Starting enrichment");
+		LOG.trace("[Metron] Starting enrichment");
 
 		JSONObject in_json = null;
 		String key = null;
@@ -163,7 +163,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 			if(key == null)
 				throw new Exception("Key is not valid");
 
-			LOG.trace("[OpenSOC] Received tuple: " + in_json);
+			LOG.trace("[Metron] Received tuple: " + in_json);
 
 			JSONObject message = (JSONObject) in_json.get("message");
 
@@ -171,18 +171,18 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 				throw new Exception("Could not extract message from JSON: "
 						+ in_json);
 
-			LOG.trace("[OpenSOC] Extracted message: " + message);
+			LOG.trace("[Metron] Extracted message: " + message);
 
 			for (String jsonkey : _jsonKeys) {
-				LOG.trace("[OpenSOC] Processing:" + jsonkey + " within:"
+				LOG.trace("[Metron] Processing:" + jsonkey + " within:"
 						+ message);
 
 				String jsonvalue = (String) message.get(jsonkey);
-				LOG.trace("[OpenSOC] Processing: " + jsonkey + " -> "
+				LOG.trace("[Metron] Processing: " + jsonkey + " -> "
 						+ jsonvalue);
 
 				if (null == jsonvalue) {
-					LOG.trace("[OpenSOC] Key " + jsonkey
+					LOG.trace("[Metron] Key " + jsonkey
 							+ "not present in message " + message);
 					continue;
 				}
@@ -193,16 +193,16 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 				}
 
 				JSONObject enrichment = cache.getUnchecked(jsonvalue);
-				LOG.trace("[OpenSOC] Enriched: " + jsonkey + " -> "
+				LOG.trace("[Metron] Enriched: " + jsonkey + " -> "
 						+ enrichment);
 
 				if (enrichment == null)
-					throw new Exception("[OpenSOC] Could not enrich string: "
+					throw new Exception("[Metron] Could not enrich string: "
 							+ jsonvalue);
 
 				if (!in_json.containsKey("enrichment")) {
 					in_json.put("enrichment", new JSONObject());
-					LOG.trace("[OpenSOC] Starting a string of enrichments");
+					LOG.trace("[Metron] Starting a string of enrichments");
 				}
 
 				JSONObject enr1 = (JSONObject) in_json.get("enrichment");
@@ -212,21 +212,21 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 				if (!enr1.containsKey(_enrichment_tag)) {
 					enr1.put(_enrichment_tag, new JSONObject());
-					LOG.trace("[OpenSOC] Starting a new enrichment");
+					LOG.trace("[Metron] Starting a new enrichment");
 				}
 
-				LOG.trace("[OpenSOC] ENR1 is: " + enr1);
+				LOG.trace("[Metron] ENR1 is: " + enr1);
 
 				JSONObject enr2 = (JSONObject) enr1.get(_enrichment_tag);
 				enr2.put(jsonkey, enrichment);
 
-				LOG.trace("[OpenSOC] ENR2 is: " + enr2);
+				LOG.trace("[Metron] ENR2 is: " + enr2);
 
 				enr1.put(_enrichment_tag, enr2);
 				in_json.put("enrichment", enr1);
 			}
 
-			LOG.debug("[OpenSOC] Generated combined enrichment: " + in_json);
+			LOG.debug("[Metron] Generated combined enrichment: " + in_json);
 
 			_collector.emit("message", new Values(key, in_json));
 			_collector.ack(tuple);
@@ -237,7 +237,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 			}
 		} catch (Exception e) {
 			
-			LOG.error("[OpenSOC] Unable to enrich message: " + in_json);
+			LOG.error("[Metron] Unable to enrich message: " + in_json);
 			_collector.fail(tuple);
 
 			if (_reporter != null) {
@@ -260,7 +260,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
-		LOG.info("[OpenSOC] Preparing Enrichment Bolt...");
+		LOG.info("[Metron] Preparing Enrichment Bolt...");
 
 		_collector = collector;
 
@@ -270,10 +270,10 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 					GenericEnrichmentBolt.class);
 			this.registerCounters();
 		} catch (Exception e) {
-			LOG.info("[OpenSOC] Unable to initialize metrics reporting");
+			LOG.info("[Metron] Unable to initialize metrics reporting");
 		}
 
-		LOG.info("[OpenSOC] Enrichment bolt initialized...");
+		LOG.info("[Metron] Enrichment bolt initialized...");
 	}
 
 }

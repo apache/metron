@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.kafkaclient;
+package com.apache.metron.dataservices.kafkaclient;
 
 import java.util.HashMap;
 import java.util.List;

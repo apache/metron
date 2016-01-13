@@ -1,4 +1,4 @@
-package com.opensoc.indexing.adapters;
+package com.apache.metron.indexing.adapters;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -38,7 +38,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 
 		bulk_set = new HashBag();
 
-		_LOG.trace("[OpenSOC] Initializing ESBulkAdapter...");
+		_LOG.trace("[Metron] Initializing ESBulkAdapter...");
 
 		try {
 			_ip = ip;
@@ -48,7 +48,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			_document_name = document_name;
 			_bulk_size = bulk_size;
 
-			_LOG.trace("[OpenSOC] Bulk indexing is set to: " + _bulk_size);
+			_LOG.trace("[Metron] Bulk indexing is set to: " + _bulk_size);
 
 			settings = ImmutableSettings.settingsBuilder()
 					.put("cluster.name", _cluster_name).build();
@@ -79,7 +79,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			bulk_set.add(raw_message);
 			set_size = bulk_set.size();
 			
-			_LOG.trace("[OpenSOC] Bulk size is now: " + bulk_set.size());
+			_LOG.trace("[Metron] Bulk size is now: " + bulk_set.size());
 		}
 
 		try {
@@ -123,11 +123,11 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 
 				}
 
-				_LOG.trace("[OpenSOC] Performing bulk load of size: "
+				_LOG.trace("[Metron] Performing bulk load of size: "
 						+ bulkRequest.numberOfActions());
 
 				BulkResponse resp = bulkRequest.execute().actionGet();
-				_LOG.trace("[OpenSOC] Received bulk response: "
+				_LOG.trace("[Metron] Received bulk response: "
 						+ resp.toString());
 				bulk_set.clear();
 			}

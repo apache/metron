@@ -1,7 +1,7 @@
 {
-  "name": "opensoc-ui",
+  "name": "metron-ui",
   "version": "0.0.0",
-  "description": "OpenSOC Portal",
+  "description": "Metron Portal",
   "main": "index.js",
   "private": true,
   "scripts": {
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/OpenSOC/opensoc-ui.git"
+    "url": "git://github.com/apache/incubator-metron.git"
   },
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/OpenSOC/opensoc-ui/issues"
+    "url": "https://issues.apache.org/jira/browse/METRON"
   },
-  "homepage": "https://github.com/OpenSOC/opensoc-ui",
+  "homepage": "http://metron.incubator.apache.org",
   "dependencies": {
     "async": "^0.9.0",
     "bcrypt": "^0.7.8",

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import java.io.IOException;
 import java.util.List;

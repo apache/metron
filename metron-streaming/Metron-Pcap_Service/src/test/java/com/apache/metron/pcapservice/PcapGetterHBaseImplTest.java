@@ -1,4 +1,4 @@
-package com.opensoc.pcapservice;
+package com.apache.metron.pcapservice;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +19,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.util.Assert;
 
-import com.opensoc.pcapservice.PcapGetterHBaseImpl;
-import com.opensoc.pcapservice.PcapsResponse;
+import com.apache.metron.pcapservice.PcapGetterHBaseImpl;
+import com.apache.metron.pcapservice.PcapsResponse;
 
 /**
  * The Class PcapGetterHBaseImplTest.

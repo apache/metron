@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.auth;
+package com.apache.metron.dataservices.auth;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
@@ -56,7 +56,7 @@ public class AuthToken {
 		
 		Cipher cipher = Cipher.getInstance("AES");
 		cipher.init(Cipher.ENCRYPT_MODE, key);		
-		String tokenString = "OpenSOC_AuthToken:" + System.currentTimeMillis();
+		String tokenString = "Metron_AuthToken:" + System.currentTimeMillis();
 		
 		byte[] encryptedData = cipher.doFinal(tokenString.getBytes());	
 		
@@ -104,7 +104,7 @@ public class AuthToken {
 		System.out.println( "clearTextToken: " + clearTextToken );
 		String[] tokenParts = clearTextToken.split( ":" );
 		
-		if( tokenParts[0].equals( "OpenSOC_AuthToken" ))
+		if( tokenParts[0].equals( "Metron_AuthToken" ))
 		{
 			long now = System.currentTimeMillis();
 			long tokenTime = Long.parseLong(tokenParts[1]);

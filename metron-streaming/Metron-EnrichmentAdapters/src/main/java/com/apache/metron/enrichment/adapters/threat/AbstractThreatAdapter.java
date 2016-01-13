@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.adapters.threat;
+package com.apache.metron.enrichment.adapters.threat;
 
 import java.io.Serializable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
+import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
 public abstract class AbstractThreatAdapter implements EnrichmentAdapter,Serializable{
 

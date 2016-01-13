@@ -13,11 +13,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.opensoc</groupId>
-		<artifactId>OpenSOC-Streaming</artifactId>
+		<groupId>com.apache.metron</groupId>
+		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
-	<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
+	<artifactId>Metron-EnrichmentAdapters</artifactId>
 
 	<properties>
        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,8 +30,8 @@
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-Common</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-Common</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>

@@ -16,10 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.tldextractor.test;
+package com.apache.metron.tldextractor.test;
 
-import com.opensoc.test.AbstractConfigTest;
-import com.opensoc.tldextractor.BasicTldExtractor;
+import com.apache.metron.test.AbstractConfigTest;
+import com.apache.metron.tldextractor.BasicTldExtractor;
 
 
  /**
@@ -67,7 +67,7 @@ public class BasicTldExtractorTest extends AbstractConfigTest {
      */
 
     protected void setUp() throws Exception {
-        super.setUp("com.opensoc.tldextractor.test.BasicTldExtractorTest");
+        super.setUp("com.apache.metron.tldextractor.test.BasicTldExtractorTest");
         this.tldExtractor=new BasicTldExtractor(this.getConfig().getString("logFile"));
     } 
 
@@ -81,21 +81,21 @@ public class BasicTldExtractorTest extends AbstractConfigTest {
     }
 
     /**
-     * Test method for {@link com.opensoc.tldextractor.BasicTldExtractor#BasicTldExtractor()}.
+     * Test method for {@link com.apache.metron.tldextractor.BasicTldExtractor#BasicTldExtractor()}.
      */
     public void testBasicTldExtractor() {
         assertNotNull(this.tldExtractor);
     }
 
     /**
-     * Test method for {@link com.opensoc.tldextractor.BasicTldExtractor#extract2LD(java.lang.String)}.
+     * Test method for {@link com.apache.metron.tldextractor.BasicTldExtractor#extract2LD(java.lang.String)}.
      */
     public void testExtract2LD() {
         //fail("Not yet implemented");
     }
 
     /**
-     * Test method for {@link com.opensoc.tldextractor.BasicTldExtractor#extractTLD(java.lang.String)}.
+     * Test method for {@link com.apache.metron.tldextractor.BasicTldExtractor#extractTLD(java.lang.String)}.
      */
     public void testExtractTLD() 
     {

@@ -1,11 +1,11 @@
-package com.opensoc.pcapservice.rest;
+package com.apache.metron.pcapservice.rest;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
-import com.opensoc.pcapservice.PcapReceiverImplRestEasy;
+import com.apache.metron.pcapservice.PcapReceiverImplRestEasy;
 
 public class JettyServiceRunner extends Application  {
 	

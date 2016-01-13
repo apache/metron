@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.opensoc.parsing.test;
+package com.apache.metron.parsing.test;
 
 
 
@@ -12,8 +12,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.test.AbstractConfigTest;
+import com.apache.metron.parsing.parsers.BasicSourcefireParser;
+import com.apache.metron.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -62,7 +62,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-        super.setUp("com.opensoc.parsing.test.BasicSoureceFireParserTest");
+        super.setUp("com.apache.metron.parsing.test.BasicSoureceFireParserTest");
         setSourceFireStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
         sourceFireParser = new BasicSourcefireParser();
 	}
@@ -77,7 +77,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 * Test method for {@link com.opensoc.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
+	 * Test method for {@link com.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
 	 */
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {

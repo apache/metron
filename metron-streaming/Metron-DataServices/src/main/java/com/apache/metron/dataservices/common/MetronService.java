@@ -1,6 +1,6 @@
-package com.opensoc.dataservices.common;
+package com.apache.metron.dataservices.common;
 
-public interface OpenSOCService {
+public interface MetronService {
 
 	//secure service that front elastic search or solr
 	//and the message broker

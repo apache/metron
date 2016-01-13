@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.json.serialization;
+package com.apache.metron.json.serialization;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

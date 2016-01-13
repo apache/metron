@@ -1,4 +1,4 @@
 Documentation
 =============
 
-## Welcome to OpenSOC!
+## Welcome to Metron!

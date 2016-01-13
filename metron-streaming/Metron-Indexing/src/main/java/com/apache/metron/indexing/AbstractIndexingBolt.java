@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.indexing;
+package com.apache.metron.indexing;
 
 import java.io.IOException;
 import java.util.Map;
@@ -29,8 +29,8 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 
 import com.codahale.metrics.Counter;
-import com.opensoc.index.interfaces.IndexAdapter;
-import com.opensoc.metrics.MetricReporter;
+import com.apache.metron.index.interfaces.IndexAdapter;
+import com.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractIndexingBolt extends BaseRichBolt {

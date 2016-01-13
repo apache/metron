@@ -1,4 +1,4 @@
-package com.opensoc.index.interfaces;
+package com.apache.metron.index.interfaces;
 
 import java.util.Map;
 

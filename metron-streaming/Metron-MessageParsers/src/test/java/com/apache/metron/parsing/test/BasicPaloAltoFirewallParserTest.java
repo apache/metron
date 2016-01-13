@@ -1,4 +1,4 @@
-package com.opensoc.parsing.test;
+package com.apache.metron.parsing.test;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -7,8 +7,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.opensoc.parsing.parsers.BasicPaloAltoFirewallParser;
-import com.opensoc.test.AbstractConfigTest;
+import com.apache.metron.parsing.parsers.BasicPaloAltoFirewallParser;
+import com.apache.metron.test.AbstractConfigTest;
 
 public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
     /**
@@ -56,7 +56,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		 * @throws java.lang.Exception
 		 */
 		public void setUp() throws Exception {
-	          super.setUp("com.opensoc.parsing.test.BasicPaloAltoFirewallParserTest");
+	          super.setUp("com.apache.metron.parsing.test.BasicPaloAltoFirewallParserTest");
 	          setPAStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
 	          paParser = new BasicPaloAltoFirewallParser();           
 		}
@@ -71,7 +71,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		}
 
 		/**
-		 * Test method for {@link com.opensoc.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
+		 * Test method for {@link com.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {

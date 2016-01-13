@@ -1,10 +1,10 @@
-package com.opensoc.topology.runner;
+package com.apache.metron.topology.runner;
 
-import com.opensoc.filters.GenericMessageFilter;
-import com.opensoc.parser.interfaces.MessageParser;
-import com.opensoc.parsing.AbstractParserBolt;
-import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.test.spouts.GenericInternalTestSpout;
+import com.apache.metron.filters.GenericMessageFilter;
+import com.apache.metron.parser.interfaces.MessageParser;
+import com.apache.metron.parsing.AbstractParserBolt;
+import com.apache.metron.parsing.TelemetryParserBolt;
+import com.apache.metron.test.spouts.GenericInternalTestSpout;
 
 public class FireEyeRunner extends TopologyRunner{
 	
@@ -17,14 +17,14 @@ public class FireEyeRunner extends TopologyRunner{
 			
 			String messageUpstreamComponent = messageComponents.get(messageComponents.size()-1);
 			
-			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
+			System.out.println("[Metron] ------" +  name + " is initializing from " + messageUpstreamComponent);
 
 			
 			String class_name = config.getString("bolt.parser.adapter");
 			
 			if(class_name == null)
 			{
-				System.out.println("[OpenSOC] Parser adapter not set.  Please set bolt.indexing.adapter in topology.conf");
+				System.out.println("[Metron] Parser adapter not set.  Please set bolt.indexing.adapter in topology.conf");
 				throw new Exception("Parser adapter not set");
 			}
 			
@@ -55,7 +55,7 @@ public class FireEyeRunner extends TopologyRunner{
 	public  boolean initializeTestingSpout(String name) {
 		try {
 
-			System.out.println("[OpenSOC] Initializing Test Spout");
+			System.out.println("[Metron] Initializing Test Spout");
 
 			GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
 					.withFilename(test_file_path).withRepeating(

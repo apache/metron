@@ -1,4 +1,4 @@
-package com.opensoc.dataloads.cif;
+package com.apache.metron.dataloads.cif;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -161,7 +161,7 @@ public class HBaseTableLoad {
 
 	private void printUsage() {
 		System.out
-				.println("Usage: java -cp JarFile com.opensoc.dataloads.cif.HBaseTableLoad -d <directory> -t <tablename> -f <optional file-list>");
+				.println("Usage: java -cp JarFile com.apache.metron.dataloads.cif.HBaseTableLoad -d <directory> -t <tablename> -f <optional file-list>");
 	}
 
 	private void parse(String[] args) {

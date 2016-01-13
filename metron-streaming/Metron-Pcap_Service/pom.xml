@@ -2,12 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.opensoc</groupId>
-		<artifactId>OpenSOC-Streaming</artifactId>
+		<groupId>com.apache.metron</groupId>
+		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
-	<artifactId>OpenSOC-Pcap_Service</artifactId>
-	<description>OpenSOC Pcap_Service</description>
+	<artifactId>Metron-Pcap_Service</artifactId>
+	<description>Metron Pcap_Service</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flume.version>1.4.0.2.0.6.0-76</flume.version>
@@ -47,8 +47,8 @@
 			<version>3.0.4.Final</version>
 		</dependency>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-Common</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-Common</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 
@@ -245,7 +245,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.opensoc.pcapservice.rest.PcapService</mainClass>
+							<mainClass>com.apache.metron.pcapservice.rest.PcapService</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

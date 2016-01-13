@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.parsing.parsers;
+package com.apache.metron.parsing.parsers;
 
 import java.io.StringReader;
 
@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.minlog.Log;
-import com.opensoc.ise.parser.ISEParser;
+import com.apache.metron.ise.parser.ISEParser;
 
 @SuppressWarnings("serial")
 public class BasicIseParser extends AbstractParser {
@@ -56,7 +56,7 @@ public class BasicIseParser extends AbstractParser {
 			String ip_dst_port = (String) payload.get("DestinationPort");
 			
 			/*
-			 * Standard Fields for OpenSoc.
+			 * Standard Fields for Metron.
 			 */
 
 			if(ip_src_addr != null)

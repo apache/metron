@@ -1,4 +1,4 @@
-package com.opensoc.helpers.topology;
+package com.apache.metron.helpers.topology;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -113,7 +113,7 @@ public class SettingsLoader {
 			if(key.contains(path_fragment))
 			{
 				
-				System.out.println("[OpenSOC] Key: " + key + " -> " + config.getString(key));
+				System.out.println("[Metron] Key: " + key + " -> " + config.getString(key));
 			}
 		}
 
@@ -123,7 +123,7 @@ public class SettingsLoader {
 	{
 		for(String setting: settings.keySet())
 		{
-			System.out.println("[OpenSOC] Optional Setting: " + setting + " -> " +settings.get(setting));
+			System.out.println("[Metron] Optional Setting: " + setting + " -> " +settings.get(setting));
 		}
 
 	}

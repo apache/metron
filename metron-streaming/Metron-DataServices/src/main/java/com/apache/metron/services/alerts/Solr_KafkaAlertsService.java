@@ -1,14 +1,14 @@
-package com.opensoc.services.alerts;
+package com.apache.metron.services.alerts;
 
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.dataservices.common.OpenSOCService;
+import com.apache.metron.dataservices.common.MetronService;
 
 @Singleton
-public class Solr_KafkaAlertsService implements OpenSOCService {
+public class Solr_KafkaAlertsService implements MetronService {
 
 	private static final Logger logger = LoggerFactory.getLogger( Solr_KafkaAlertsService.class );	
 	

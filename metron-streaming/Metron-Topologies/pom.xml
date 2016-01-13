@@ -13,12 +13,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.opensoc</groupId>
-		<artifactId>OpenSOC-Streaming</artifactId>
+		<groupId>com.apache.metron</groupId>
+		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
-	<artifactId>OpenSOC-Topologies</artifactId>
-	<description>OpenSOC Topologies</description>
+	<artifactId>Metron-Topologies</artifactId>
+	<description>Metron Topologies</description>
 
 	<properties>
 		<storm.hdfs.version>0.9.1.2.1.1.0-385</storm.hdfs.version>
@@ -33,28 +33,28 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-Common</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-Common</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-Alerts</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-Alerts</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-EnrichmentAdapters</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-MessageParsers</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-MessageParsers</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-Indexing</artifactId>
+			<groupId>com.apache.metron</groupId>
+			<artifactId>Metron-Indexing</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 

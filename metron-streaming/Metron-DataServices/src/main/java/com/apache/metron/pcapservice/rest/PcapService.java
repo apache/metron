@@ -1,4 +1,4 @@
-package com.opensoc.pcapservice.rest;
+package com.apache.metron.pcapservice.rest;
 
 import java.io.IOException;
 
@@ -7,7 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
-import com.opensoc.helpers.services.PcapServiceCli;
+import com.apache.metron.helpers.services.PcapServiceCli;
 
 
 public class PcapService {
@@ -21,7 +21,7 @@ public class PcapService {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("/");
 		ServletHolder h = new ServletHolder(new HttpServletDispatcher());
-		h.setInitParameter("javax.ws.rs.Application", "com.opensoc.pcapservice.rest.JettyServiceRunner");
+		h.setInitParameter("javax.ws.rs.Application", "com.apache.metron.pcapservice.rest.JettyServiceRunner");
 		context.addServlet(h, "/*");
 		server.setHandler(context);
 		try {

@@ -1,4 +1,4 @@
-package com.opensoc.metrics;
+package com.apache.metron.metrics;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.JmxReporter;

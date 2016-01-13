@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.auth;
+package com.apache.metron.dataservices.auth;
 
 import javax.naming.NamingException;
 

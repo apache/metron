@@ -15,7 +15,7 @@ curl -s 'http://www.snaketrap.co.uk/pcaps/hbot.pcap' -o /vagrant/seed/hbot.pcap
 
 ### BEGIN OPENLDAP ###
 # slapd doesn't seem to work right unless you configure it via debconf
-# The password for all users is opensoc
+# The password for all users is metron
 debconf-set-selections /vagrant/seed/slapd.seed
 apt-get update
 apt-get -y install slapd ldap-utils
@@ -23,8 +23,8 @@ apt-get -y install slapd ldap-utils
 cd /vagrant/seed/ldap
 ldapmodify -Y EXTERNAL -H ldapi:/// -f logging.ldif
 ldapmodify -Y EXTERNAL -H ldapi:/// -f config.ldif
-ldapadd -D cn=admin,cn=config -w "opensoc" -H ldapi:/// -f memberof_add.ldif
-ldapadd -D cn=admin,cn=config -w "opensoc" -H ldapi:/// -f memberof_config.ldif
+ldapadd -D cn=admin,cn=config -w "metron" -H ldapi:/// -f memberof_add.ldif
+ldapadd -D cn=admin,cn=config -w "metron" -H ldapi:/// -f memberof_config.ldif
 cd -
 ### END OPENLDAP ###
 

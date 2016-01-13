@@ -1,4 +1,4 @@
-package com.opensoc.pcap;
+package com.apache.metron.pcap;
 
 import java.util.BitSet;
 import java.util.HashSet;
@@ -14,12 +14,12 @@ import org.krakenapps.pcap.decoder.ethernet.MacAddress;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 
-public class OpenSocEthernetDecoder extends EthernetDecoder {
+public class MetronEthernetDecoder extends EthernetDecoder {
 
   private Set<EthernetProcessor> callbacks;
   private Map<Integer, Set<EthernetProcessor>> typeCallbacks;
 
-  public OpenSocEthernetDecoder() {
+  public MetronEthernetDecoder() {
     callbacks = new CopyOnWriteArraySet<EthernetProcessor>();
     typeCallbacks = new ConcurrentHashMap<Integer, Set<EthernetProcessor>>();
   }

@@ -1,4 +1,4 @@
-package com.opensoc.pcap;
+package com.apache.metron.pcap;
 
 import java.text.MessageFormat;
 import org.apache.log4j.Logger;
@@ -10,8 +10,8 @@ import org.krakenapps.pcap.file.GlobalHeader;
 import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 
-import com.opensoc.pcap.Constants;
-import com.opensoc.pcap.PcapUtils;
+import com.apache.metron.pcap.Constants;
+import com.apache.metron.pcap.PcapUtils;
 
 /**
  * The Class PacketInfo.

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.adapters.threat;
+package com.apache.metron.enrichment.adapters.threat;
 
 import java.io.IOException;
 import java.util.ArrayList;

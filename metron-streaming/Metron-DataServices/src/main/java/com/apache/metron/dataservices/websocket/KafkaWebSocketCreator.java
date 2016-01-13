@@ -1,4 +1,4 @@
-package com.opensoc.dataservices.websocket;
+package com.apache.metron.dataservices.websocket;
 
 import java.net.HttpCookie;
 import java.util.List;
@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.opensoc.dataservices.auth.AuthToken;
+import com.apache.metron.dataservices.auth.AuthToken;
 
 public class KafkaWebSocketCreator implements WebSocketCreator
 {
