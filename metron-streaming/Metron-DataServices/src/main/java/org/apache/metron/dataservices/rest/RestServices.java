@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.rest;
+package org.apache.metron.dataservices.rest;
 
 import java.util.HashSet;
 import java.util.Set;

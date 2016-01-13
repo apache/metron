@@ -1,4 +1,4 @@
-package com.apache.metron.pcap;
+package org.apache.metron.pcap;
 
 public class IEEE_802_1Q {
 

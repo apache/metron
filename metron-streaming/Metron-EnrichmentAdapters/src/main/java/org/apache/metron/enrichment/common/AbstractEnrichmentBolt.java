@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.enrichment.common;
+package org.apache.metron.enrichment.common;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,8 +34,8 @@ import com.codahale.metrics.Counter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import com.apache.metron.metrics.MetricReporter;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractEnrichmentBolt extends BaseRichBolt {

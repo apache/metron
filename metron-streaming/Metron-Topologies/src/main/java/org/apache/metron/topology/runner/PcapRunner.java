@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.topology.runner;
+package org.apache.metron.topology.runner;
 
-import com.apache.metron.parsing.PcapParserBolt;
-import com.apache.metron.test.spouts.GenericInternalTestSpout;
+import org.apache.metron.parsing.PcapParserBolt;
+import org.apache.metron.test.spouts.GenericInternalTestSpout;
 
 public class PcapRunner extends TopologyRunner{
 	

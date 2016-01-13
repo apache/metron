@@ -1,9 +1,9 @@
-package com.apache.metron.filters;
+package org.apache.metron.filters;
 import java.io.Serializable;
 
 import org.json.simple.JSONObject;
 
-import com.apache.metron.parser.interfaces.MessageFilter;
+import org.apache.metron.parser.interfaces.MessageFilter;
 
 public class GenericMessageFilter implements MessageFilter,Serializable {
 

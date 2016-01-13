@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +15,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.apache.metron.pcapservice.PcapHelper;
-import com.apache.metron.pcapservice.PcapHelper.TimeUnit;
+import org.apache.metron.pcapservice.PcapHelper;
+import org.apache.metron.pcapservice.PcapHelper.TimeUnit;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package com.apache.metron.json.serialization;
+package org.apache.metron.json.serialization;
 
-import static com.apache.metron.json.serialization.JSONDecoderHelper.getObject;
-import static com.apache.metron.json.serialization.JSONEncoderHelper.putBoolean;
-import static com.apache.metron.json.serialization.JSONEncoderHelper.putNull;
-import static com.apache.metron.json.serialization.JSONEncoderHelper.putNumber;
-import static com.apache.metron.json.serialization.JSONEncoderHelper.putString;
+import static org.apache.metron.json.serialization.JSONDecoderHelper.getObject;
+import static org.apache.metron.json.serialization.JSONEncoderHelper.putBoolean;
+import static org.apache.metron.json.serialization.JSONEncoderHelper.putNull;
+import static org.apache.metron.json.serialization.JSONEncoderHelper.putNumber;
+import static org.apache.metron.json.serialization.JSONEncoderHelper.putString;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

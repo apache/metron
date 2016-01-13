@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.common;
+package org.apache.metron.dataservices.common;
 
 public interface MetronService {
 

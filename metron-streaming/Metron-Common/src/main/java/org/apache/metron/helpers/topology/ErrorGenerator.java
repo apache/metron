@@ -1,4 +1,4 @@
-package com.apache.metron.helpers.topology;
+package org.apache.metron.helpers.topology;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

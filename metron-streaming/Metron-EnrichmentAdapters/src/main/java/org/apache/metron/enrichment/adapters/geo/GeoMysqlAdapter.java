@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.geo;
+package org.apache.metron.enrichment.adapters.geo;
 
 import java.net.InetAddress;
 import java.sql.Connection;

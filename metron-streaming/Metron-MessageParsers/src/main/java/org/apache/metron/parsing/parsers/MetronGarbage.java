@@ -1,4 +1,4 @@
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.parsing;
+package org.apache.metron.parsing;
 
 import java.io.IOException;
 import java.util.Map;
@@ -29,9 +29,9 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.base.BaseRichBolt;
 
 import com.codahale.metrics.Counter;
-import com.apache.metron.metrics.MetricReporter;
-import com.apache.metron.parser.interfaces.MessageFilter;
-import com.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.metrics.MetricReporter;
+import org.apache.metron.parser.interfaces.MessageFilter;
+import org.apache.metron.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractParserBolt extends BaseRichBolt {

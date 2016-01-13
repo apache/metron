@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 import java.io.StringReader;
 
@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.minlog.Log;
-import com.apache.metron.ise.parser.ISEParser;
+import org.apache.metron.ise.parser.ISEParser;
 
 @SuppressWarnings("serial")
 public class BasicIseParser extends AbstractParser {

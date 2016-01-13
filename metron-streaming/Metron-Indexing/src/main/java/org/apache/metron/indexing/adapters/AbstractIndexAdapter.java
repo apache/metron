@@ -1,4 +1,4 @@
-package com.apache.metron.indexing.adapters;
+package org.apache.metron.indexing.adapters;
 
 import java.io.Serializable;
 
@@ -6,8 +6,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.index.interfaces.IndexAdapter;
-import com.apache.metron.indexing.AbstractIndexingBolt;
+import org.apache.metron.index.interfaces.IndexAdapter;
+import org.apache.metron.indexing.AbstractIndexingBolt;
 
 @SuppressWarnings("serial")
 public abstract class AbstractIndexAdapter implements IndexAdapter, Serializable{

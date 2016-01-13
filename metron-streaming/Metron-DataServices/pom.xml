@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<parent>
-		<groupId>com.apache.metron</groupId>
+		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron-Streaming</artifactId>
 		<version>0.6BETA</version>
 	</parent>
@@ -42,7 +42,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.apache.metron</groupId>
+			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-Common</artifactId>
 			<version>${parent.version}</version>
 		</dependency>
@@ -461,7 +461,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>com.apache.metron.dataservices.Main</mainClass>
+							<mainClass>org.apache.metron.dataservices.Main</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -472,7 +472,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.apache.metron.dataservices.Main</mainClass>
+							<mainClass>org.apache.metron.dataservices.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -494,7 +494,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.2.1</version>
 				<configuration>
-					<mainClass>com.apache.metron.dataservices.Main</mainClass>
+					<mainClass>org.apache.metron.dataservices.Main</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

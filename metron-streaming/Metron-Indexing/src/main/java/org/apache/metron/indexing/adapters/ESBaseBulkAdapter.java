@@ -1,4 +1,4 @@
-package com.apache.metron.indexing.adapters;
+package org.apache.metron.indexing.adapters;
 
 import java.io.Serializable;
 import java.util.Iterator;

@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
-import com.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.parser.interfaces.MessageParser;
 
 @SuppressWarnings("serial")
 public class BasicSourcefireParser extends AbstractParser implements MessageParser{

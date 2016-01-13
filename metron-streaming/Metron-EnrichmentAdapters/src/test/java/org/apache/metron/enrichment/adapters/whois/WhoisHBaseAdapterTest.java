@@ -16,14 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.enrichment.adapters.whois;
+package org.apache.metron.enrichment.adapters.whois;
 
 import java.net.InetAddress;
 import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
-import com.apache.metron.test.AbstractTestContext;
+import org.apache.metron.test.AbstractTestContext;
 
  /**
  * <ul>
@@ -114,7 +114,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#initializeAdapter()}.
+     * Test method for {@link org.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){
@@ -125,7 +125,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link com.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#enrich(java.lang.String)}.
+     * Test method for {@link org.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
         if(skipTests(this.getMode())){

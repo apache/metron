@@ -1,14 +1,14 @@
 /**
  * 
  */
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.apache.metron.pcap.PcapMerger;
+import org.apache.metron.pcap.PcapMerger;
 
 
 

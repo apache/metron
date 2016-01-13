@@ -1,4 +1,4 @@
-package com.apache.metron.alerts.interfaces;
+package org.apache.metron.alerts.interfaces;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

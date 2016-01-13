@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.tldextractor.BasicTldExtractor;
+import org.apache.metron.tldextractor.BasicTldExtractor;
 
 @SuppressWarnings("serial")
 public class BasicBroParser extends AbstractParser {

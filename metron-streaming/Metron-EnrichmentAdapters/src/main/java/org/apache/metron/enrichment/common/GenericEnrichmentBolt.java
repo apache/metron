@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.common;
+package org.apache.metron.enrichment.common;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,15 +33,15 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import com.apache.metron.helpers.topology.ErrorGenerator;
-import com.apache.metron.json.serialization.JSONEncoderHelper;
-import com.apache.metron.metrics.MetricReporter;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.json.serialization.JSONEncoderHelper;
+import org.apache.metron.metrics.MetricReporter;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
  * entries. For a list of available enrichment adapters see
- * com.apache.metron.enrichment.adapters.
+ * org.apache.metron.enrichment.adapters.
  * <p>
  * At the moment of release the following enrichment adapters are available:
  * <p>
@@ -140,7 +140,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 	public GenericEnrichmentBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.apache.metron.metrics"));
+				.subset("org.apache.metron.metrics"));
 		return this;
 	}
 

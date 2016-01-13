@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.modules.guice;
+package org.apache.metron.dataservices.modules.guice;
 
 import javax.inject.Singleton;
 
@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Provides;
-import com.apache.metron.dataservices.common.MetronService;
-import com.apache.metron.services.alerts.ElasticSearch_KafkaAlertsService;
-import com.apache.metron.services.alerts.Solr_KafkaAlertsService;
+import org.apache.metron.dataservices.common.MetronService;
+import org.apache.metron.services.alerts.ElasticSearch_KafkaAlertsService;
+import org.apache.metron.services.alerts.Solr_KafkaAlertsService;
 
 public class ServiceModule extends RequestScopeModule {
 

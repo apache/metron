@@ -1,4 +1,4 @@
-package com.apache.metron.helpers.services;
+package org.apache.metron.helpers.services;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -103,7 +103,7 @@ public class PcapServiceCli {
 		formater.printHelp("Topology Options:", options);
 
 		// System.out
-		// .println("[Metron] Example usage: \n storm jar Metron-Topologies-0.3BETA-SNAPSHOT.jar com.apache.metron.topology.Bro -local_mode true -config_path Metron_Configs/ -generator_spout true");
+		// .println("[Metron] Example usage: \n storm jar Metron-Topologies-0.3BETA-SNAPSHOT.jar org.apache.metron.topology.Bro -local_mode true -config_path Metron_Configs/ -generator_spout true");
 
 		System.exit(0);
 	}
