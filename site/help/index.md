@@ -12,7 +12,7 @@ The best option is to send email to the user list
 discussions. All of the historic traffic is available in the
 [archive](http://mail-archives.apache.org/mod_mbox/incubator-metron-user/). To
 subscribe to the user list, please send email to
-[user-subscribe@metron.incubator.apache.org](mailto:user-subscribe@incubator-metron.apache.org).
+[user-subscribe@metron.incubator.apache.org](mailto:user-subscribe@metron.incubator.apache.org).
 
 ## Bug Reports
 
