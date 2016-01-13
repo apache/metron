@@ -1,4 +1,4 @@
-package com.apache.metron.alerts.server;
+package org.apache.metron.alerts.server;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 

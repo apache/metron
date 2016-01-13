@@ -1,4 +1,4 @@
-package com.apache.metron.metrics;
+package org.apache.metron.metrics;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;

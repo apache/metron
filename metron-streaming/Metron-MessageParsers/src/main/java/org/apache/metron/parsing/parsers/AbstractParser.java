@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 import java.io.Serializable;
 
@@ -23,8 +23,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.parser.interfaces.MessageParser;
-import com.apache.metron.parsing.AbstractParserBolt;
+import org.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.parsing.AbstractParserBolt;
 
 @SuppressWarnings("serial")
 public abstract class AbstractParser implements MessageParser, Serializable {

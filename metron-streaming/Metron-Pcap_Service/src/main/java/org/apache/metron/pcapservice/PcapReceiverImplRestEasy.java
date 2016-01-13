@@ -1,4 +1,4 @@
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.apache.metron.pcap.PcapUtils;
+import org.apache.metron.pcap.PcapUtils;
 
 @Path("/")
 public class PcapReceiverImplRestEasy {

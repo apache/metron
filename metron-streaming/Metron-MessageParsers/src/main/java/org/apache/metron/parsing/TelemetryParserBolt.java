@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.parsing;
+package org.apache.metron.parsing;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,16 +30,16 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.apache.metron.helpers.topology.ErrorGenerator;
-import com.apache.metron.json.serialization.JSONEncoderHelper;
-import com.apache.metron.metrics.MetricReporter;
-import com.apache.metron.parser.interfaces.MessageFilter;
-import com.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.json.serialization.JSONEncoderHelper;
+import org.apache.metron.metrics.MetricReporter;
+import org.apache.metron.parser.interfaces.MessageFilter;
+import org.apache.metron.parser.interfaces.MessageParser;
 
 /**
  * Uses an adapter to parse a telemetry message from its native format into a
  * standard JSON. For a list of available adapter please check
- * com.apache.metron.parser.parsers. The input is a raw byte array and the output is a
+ * org.apache.metron.parser.parsers. The input is a raw byte array and the output is a
  * JSONObject
  * <p>
  * The parsing conventions are as follows:
@@ -106,7 +106,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 	public TelemetryParserBolt withMetricConfig(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.apache.metron.metrics"));
+				.subset("org.apache.metron.metrics"));
 		return this;
 	}
 

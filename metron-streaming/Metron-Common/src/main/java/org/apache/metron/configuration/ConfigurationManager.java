@@ -1,4 +1,4 @@
-package com.apache.metron.configuration;
+package org.apache.metron.configuration;
 
 
 

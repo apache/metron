@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.tagging.adapters;
+package org.apache.metron.tagging.adapters;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.modules.guice;
+package org.apache.metron.dataservices.modules.guice;
 
 import java.util.Properties;
 
@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.apache.metron.alerts.server.AlertsCacheReaper;
-import com.apache.metron.alerts.server.AlertsProcessingServer;
-import com.apache.metron.alerts.server.AlertsSearcher;
+import org.apache.metron.alerts.server.AlertsCacheReaper;
+import org.apache.metron.alerts.server.AlertsProcessingServer;
+import org.apache.metron.alerts.server.AlertsSearcher;
 
 public class AlertsServerModule extends AbstractModule {
 	

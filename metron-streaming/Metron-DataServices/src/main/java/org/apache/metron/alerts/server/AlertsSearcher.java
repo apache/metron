@@ -1,4 +1,4 @@
-package com.apache.metron.alerts.server;
+package org.apache.metron.alerts.server;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.auth;
+package org.apache.metron.dataservices.auth;
 
 import java.io.IOException;
 import java.util.Map;

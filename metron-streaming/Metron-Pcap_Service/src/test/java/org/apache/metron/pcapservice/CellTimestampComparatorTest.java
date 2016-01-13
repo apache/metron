@@ -1,4 +1,4 @@
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import junit.framework.Assert;
 
@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.apache.metron.pcapservice.CellTimestampComparator;
+import org.apache.metron.pcapservice.CellTimestampComparator;
 
 /**
  * The Class CellTimestampComparatorTest.

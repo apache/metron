@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.tagging;
+package org.apache.metron.tagging;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,8 +31,8 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
 import com.codahale.metrics.Counter;
-import com.apache.metron.alerts.interfaces.TaggerAdapter;
-import com.apache.metron.metrics.MetricReporter;
+import org.apache.metron.alerts.interfaces.TaggerAdapter;
+import org.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractTaggerBolt extends BaseRichBolt {

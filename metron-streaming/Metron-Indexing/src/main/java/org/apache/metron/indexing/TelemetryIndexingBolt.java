@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.indexing;
+package org.apache.metron.indexing;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -33,15 +33,15 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.apache.metron.helpers.topology.ErrorGenerator;
-import com.apache.metron.index.interfaces.IndexAdapter;
-import com.apache.metron.json.serialization.JSONEncoderHelper;
-import com.apache.metron.metrics.MetricReporter;
+import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.index.interfaces.IndexAdapter;
+import org.apache.metron.json.serialization.JSONEncoderHelper;
+import org.apache.metron.metrics.MetricReporter;
 
 /**
  * 
  * Bolt for indexing telemetry messages into Elastic Search, Solr, Druid, etc...
- * For a list of all adapters provided please see com.apache.metron.indexing.adapters
+ * For a list of all adapters provided please see org.apache.metron.indexing.adapters
  * 
  * As of release of this code the following adapters for indexing are provided:
  * <p>
@@ -162,7 +162,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	 */
 	public TelemetryIndexingBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
-				.subset("com.apache.metron.metrics"));
+				.subset("org.apache.metron.metrics"));
 		return this;
 	}
 

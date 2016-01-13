@@ -9,10 +9,10 @@ This module provides example topologies that show how to drive Metron modules an
 
 ```
 
-storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Pcap
-storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Sourcefire
-storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Lancope
-storm jar Metron-Topologies-0.6BETA.jar com.apache.metron.topology.Ise
+storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Pcap
+storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Sourcefire
+storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Lancope
+storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Ise
 
 Topology Options:
 -config_path <arg>       OPTIONAL ARGUMENT [/path/to/configs] Path to

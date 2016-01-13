@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.cif;
+package org.apache.metron.enrichment.adapters.cif;
 
 import java.io.Serializable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
 public abstract class AbstractCIFAdapter implements EnrichmentAdapter,Serializable{
 

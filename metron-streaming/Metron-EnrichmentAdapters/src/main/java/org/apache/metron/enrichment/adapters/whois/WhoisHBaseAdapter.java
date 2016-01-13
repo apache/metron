@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.whois;
+package org.apache.metron.enrichment.adapters.whois;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,7 +31,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
 
 import com.google.common.base.Joiner;
-import com.apache.metron.tldextractor.BasicTldExtractor;
+import org.apache.metron.tldextractor.BasicTldExtractor;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 

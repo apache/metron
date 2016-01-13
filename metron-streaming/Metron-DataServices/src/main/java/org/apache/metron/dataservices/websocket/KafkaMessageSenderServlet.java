@@ -1,4 +1,4 @@
-package com.apache.metron.dataservices.websocket;
+package org.apache.metron.dataservices.websocket;
 
 import javax.servlet.annotation.WebServlet;
 

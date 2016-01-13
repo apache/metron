@@ -1,12 +1,12 @@
-package com.apache.metron.dataservices.modules.guice;
+package org.apache.metron.dataservices.modules.guice;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
-import com.apache.metron.dataservices.auth.RestSecurityInterceptor;
-import com.apache.metron.dataservices.rest.Index;
-import com.apache.metron.pcapservice.PcapReceiverImplRestEasy;
+import org.apache.metron.dataservices.auth.RestSecurityInterceptor;
+import org.apache.metron.dataservices.rest.Index;
+import org.apache.metron.pcapservice.PcapReceiverImplRestEasy;
 
 public class RestEasyModule extends AbstractModule {
 	

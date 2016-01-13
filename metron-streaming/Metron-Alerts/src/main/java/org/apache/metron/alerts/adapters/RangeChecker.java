@@ -1,4 +1,4 @@
-package com.apache.metron.alerts.adapters;
+package org.apache.metron.alerts.adapters;
 
 import java.util.Set;
 

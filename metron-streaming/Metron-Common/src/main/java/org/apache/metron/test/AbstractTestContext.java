@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.test;
+package org.apache.metron.test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

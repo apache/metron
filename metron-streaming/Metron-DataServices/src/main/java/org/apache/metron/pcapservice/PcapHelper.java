@@ -1,4 +1,4 @@
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import java.util.ArrayList;
 import java.util.List;

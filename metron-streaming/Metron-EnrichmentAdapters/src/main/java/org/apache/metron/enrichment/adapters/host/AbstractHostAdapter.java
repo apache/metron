@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.apache.metron.enrichment.adapters.host;
+package org.apache.metron.enrichment.adapters.host;
 
 import java.io.Serializable;
 
@@ -23,7 +23,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
 public abstract class AbstractHostAdapter implements EnrichmentAdapter,Serializable{
 

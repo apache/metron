@@ -1,4 +1,4 @@
-package com.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.parsers;
 
 import java.io.EOFException;
 import java.io.File;
@@ -19,10 +19,10 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 
-import com.apache.metron.pcap.Constants;
-import com.apache.metron.pcap.MetronEthernetDecoder;
-import com.apache.metron.pcap.PacketInfo;
-import com.apache.metron.pcap.PcapByteInputStream;
+import org.apache.metron.pcap.Constants;
+import org.apache.metron.pcap.MetronEthernetDecoder;
+import org.apache.metron.pcap.PacketInfo;
+import org.apache.metron.pcap.PcapByteInputStream;
 
 /**
  * The Class PcapParser.

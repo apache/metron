@@ -1,4 +1,4 @@
-package com.apache.metron.pcapservice;
+package org.apache.metron.pcapservice;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
-import com.apache.metron.pcapservice.HBaseConfigurationUtil;
+import org.apache.metron.pcapservice.HBaseConfigurationUtil;
 
 /**
  * The Class HBaseConfigurationUtilTest.

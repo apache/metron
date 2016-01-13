@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.apache.metron.alerts.adapters;
+package org.apache.metron.alerts.adapters;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Properties;
 
-import com.apache.metron.test.AbstractConfigTest;
-import com.apache.metron.alerts.adapters.AllAlertAdapter;
+import org.apache.metron.test.AbstractConfigTest;
+import org.apache.metron.alerts.adapters.AllAlertAdapter;
 
  /**
  * <ul>
@@ -70,7 +70,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
 
     @SuppressWarnings("unchecked")
     protected void setUp() throws Exception {
-          super.setUp("com.apache.metron.alerts.adapters.AllAlertAdapter");
+          super.setUp("org.apache.metron.alerts.adapters.AllAlertAdapter");
           Properties prop = super.getTestProperties();
           assertNotNull(prop);   
        // this.setMode("global");
@@ -80,7 +80,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
        }else{      
            Map<String, String> settings = super.getSettings();
            @SuppressWarnings("rawtypes")
-        Class loaded_class = Class.forName("com.apache.metron.alerts.adapters.AllAlertAdapter");
+        Class loaded_class = Class.forName("org.apache.metron.alerts.adapters.AllAlertAdapter");
            @SuppressWarnings("rawtypes")
         Constructor constructor = loaded_class.getConstructor(new Class[] { Map.class});
            
@@ -100,7 +100,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
 
 
     /**
-     * Test method for {@link com.apache.metron.alerts.adapters.AlllterAdapter#initialize()}.
+     * Test method for {@link org.apache.metron.alerts.adapters.AlllterAdapter#initialize()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){
@@ -113,7 +113,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
     }
     
     /**
-     * Test method for containsAlertId(@link  com.apache.metron.alerts.adapters.AlllterAdapter#containsAlertId()}.
+     * Test method for containsAlertId(@link  org.apache.metron.alerts.adapters.AlllterAdapter#containsAlertId()}.
      */
     public void testContainsAlertId(){
         if(skipTests(this.getMode())){

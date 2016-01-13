@@ -91,10 +91,10 @@ AlertsAdapter - pick the appropriate adapter for generating the alerts
 
 Java adapters are designed for high volume topologies, but are not easily extensible.  The adapters provided are:
 
-* com.apache.metron.alerts.adapters.AllAlertsAdapter - will tag every single message with the static alert (appropriate for topologies like Sourcefire, etc, where every single message is an alert)
-* com.apache.metron.alerts.adapters.HbaseWhiteAndBlacklistAdapter - will read white and blacklists from HBase and fire alerts if source or dest IP are not on the whitelist or if any IP is on the blacklist
-* com.apache.metron.alerts.adapters.CIFAlertsAdapter - will alert on messages that have results in enrichment.cif.
-* com.apache.metron.alerts.adpaters.KeywordsAlertAdapter - will alert on messages that contain any of a list of keywords
+* org.apache.metron.alerts.adapters.AllAlertsAdapter - will tag every single message with the static alert (appropriate for topologies like Sourcefire, etc, where every single message is an alert)
+* org.apache.metron.alerts.adapters.HbaseWhiteAndBlacklistAdapter - will read white and blacklists from HBase and fire alerts if source or dest IP are not on the whitelist or if any IP is on the blacklist
+* org.apache.metron.alerts.adapters.CIFAlertsAdapter - will alert on messages that have results in enrichment.cif.
+* org.apache.metron.alerts.adpaters.KeywordsAlertAdapter - will alert on messages that contain any of a list of keywords
 ###Grok Adapters
 
 Grok alerts adapters for Metron are still under devleopment
