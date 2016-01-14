@@ -1,4 +1,0 @@
-Documentation
-=============
-
-## Welcome to OpenSOC!
