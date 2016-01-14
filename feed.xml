@@ -5,9 +5,30 @@
     <description></description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 08 Jan 2016 08:16:22 -0800</pubDate>
-    <lastBuildDate>Fri, 08 Jan 2016 08:16:22 -0800</lastBuildDate>
+    <pubDate>Thu, 14 Jan 2016 09:36:37 -0800</pubDate>
+    <lastBuildDate>Thu, 14 Jan 2016 09:36:37 -0800</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
+    
+      <item>
+        <title>Debo Dutta joins PPMC</title>
+        <description>&lt;p&gt;I am very pleased to announce that the Podling Project Management
+Committee (PPMC) of Apache Metron has asked Debo Dutta to become an
+Apache Metron committer, and he has already accepted.&lt;/p&gt;
+
+&lt;p&gt;Debo has already made many contributions to Metron community, working
+on getting a software grant from Cisco and creating a first version of
+the Metron website.&lt;/p&gt;
+
+&lt;p&gt;Please join me to welcome Debo.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 08 Jan 2016 08:23:00 -0800</pubDate>
+        <link>/news/2016/01/08/debo-committer/</link>
+        <guid isPermaLink="true">/news/2016/01/08/debo-committer/</guid>
+        
+        
+        <category>team</category>
+        
+      </item>
     
       <item>
         <title>Metron adopts new logo</title>
@@ -15,7 +36,6 @@
 
 &lt;p&gt;&lt;img src=&quot;/img/logo.png&quot; alt=&quot;metron logo&quot; title=&quot;metron logo&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Other great options included a big white hand on a black shield. &lt;em&gt;smile&lt;/em&gt;&lt;/p&gt;
 </description>
         <pubDate>Sat, 12 Dec 2015 04:00:00 -0800</pubDate>
         <link>/news/2015/12/12/new-logo/</link>
