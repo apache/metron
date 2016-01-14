@@ -9,3 +9,4 @@ opensoc-streaming/OpenSOC-Pcap_Service/target/
 opensoc-streaming/OpenSOC-Topologies/target/
 *~
 target
+*dependency-reduced-pom.xml
