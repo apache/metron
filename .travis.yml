@@ -1,0 +1,17 @@
+sudo: false
+cache:
+  directories:
+    - $HOME/.m2
+language: java
+jdk:
+  - oraclejdk8
+install:
+  - |
+    cd metron-streaming
+    mvn install -DskipTests=true
+script:
+  - |
+    cd metron-streaming
+    mvn test
+notifications:
+  email: false
