@@ -4,6 +4,7 @@ cache:
     - $HOME/.m2
 language: java
 jdk:
+  - oraclejdk7
   - oraclejdk8
 install:
   - |
