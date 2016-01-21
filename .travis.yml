@@ -10,9 +10,13 @@ install:
   - |
     cd metron-streaming
     mvn install -DskipTests=true
+before_script:
+  - pip install --user codecov
 script:
   - |
     cd metron-streaming
     mvn test
+after_success:
+  - codecov
 notifications:
   email: false
