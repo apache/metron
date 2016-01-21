@@ -82,7 +82,7 @@ public class BasicBroParser extends AbstractParser {
                     long timestamp = Long.parseLong(payload.get("timestamp").toString());
                     payload.put("timestamp", timestamp);
                 } catch (NumberFormatException nfe) {
-                    _LOG.error(String.format("[Metron] tiemstamp is invalid: %s", payload.get("timestamp")));
+                    _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
                     payload.put("timestamp", 0);
                 }
             }

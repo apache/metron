@@ -29,7 +29,7 @@ public class BasicBroParserTest extends TestCase {
 		jsonParser = new JSONParser();		
 	}
 
-    public void testUnwrappedBroMessage() throws Exception {
+    public void testUnwrappedBroMessage() throws ParseException {
         String rawMessage = "{\"timestamp\":\"1449511228474\",\"uid\":\"CFgSLp4HgsGqXnNjZi\",\"source_ip\":\"104.130.172.191\",\"source_port\":33893,\"dest_ip\":\"69.20.0.164\",\"dest_port\":53,\"proto\":\"udp\",\"trans_id\":3514,\"rcode\":3,\"rcode_name\":\"NXDOMAIN\",\"AA\":false,\"TC\":false,\"RD\":false,\"RA\":false,\"Z\":0,\"rejected\":false,\"sensor\":\"cloudbro\",\"type\":\"dns\"}";
 
         JSONObject rawJson = (JSONObject)jsonParser.parse(rawMessage);
