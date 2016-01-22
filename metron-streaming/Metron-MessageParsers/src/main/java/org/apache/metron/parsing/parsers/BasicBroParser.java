@@ -22,130 +22,122 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.metron.tldextractor.BasicTldExtractor;
-
 @SuppressWarnings("serial")
 public class BasicBroParser extends AbstractParser {
 
-	protected static final Logger _LOG = LoggerFactory
-			.getLogger(BasicBroParser.class);
-	private JSONCleaner cleaner = new JSONCleaner();
-	private BasicTldExtractor tldex = new BasicTldExtractor();
+    protected static final Logger _LOG = LoggerFactory
+            .getLogger(BasicBroParser.class);
+    private JSONCleaner cleaner = new JSONCleaner();
 
-	@SuppressWarnings("unchecked")
-	public JSONObject parse(byte[] msg) {
+    @SuppressWarnings("unchecked")
+    public JSONObject parse(byte[] msg) {
 
-		_LOG.trace("[Metron] Starting to parse incoming message");
+        _LOG.trace("[Metron] Starting to parse incoming message");
 
-		String raw_message = null;
+        String rawMessage = null;
 
-		try {
+        try {
+            rawMessage = new String(msg, "UTF-8");
+            _LOG.trace("[Metron] Received message: " + rawMessage);
 
-			raw_message = new String(msg, "UTF-8");
-			_LOG.trace("[Metron] Received message: " + raw_message);
+            JSONObject cleanedMessage = cleaner.Clean(rawMessage);
+            _LOG.debug("[Metron] Cleaned message: " + cleanedMessage);
 
-			JSONObject cleaned_message = cleaner.Clean(raw_message);
-			_LOG.debug("[Metron] Cleaned message: " + raw_message);
+            if (cleanedMessage == null || cleanedMessage.isEmpty()) {
+                throw new Exception("Unable to clean message: " + rawMessage);
+            }
 
-			if (cleaned_message == null || cleaned_message.isEmpty())
-				throw new Exception("Unable to clean message: " + raw_message);
+            String key;
+            JSONObject payload;
+            if (cleanedMessage.containsKey("type")) {
+                key = cleanedMessage.get("type").toString();
+                payload = cleanedMessage;
+            } else {
+                key = cleanedMessage.keySet().iterator().next().toString();
 
-			String key = cleaned_message.keySet().iterator().next().toString();
+                if (key == null) {
+                    throw new Exception("Unable to retrieve key for message: "
+                            + rawMessage);
+                }
 
-			if (key == null)
-				throw new Exception("Unable to retrieve key for message: "
-						+ raw_message);
+                payload = (JSONObject) cleanedMessage.get(key);
+            }
 
-			JSONObject payload = (JSONObject) cleaned_message.get(key);
+            if (payload == null) {
+                throw new Exception("Unable to retrieve payload for message: "
+                    + rawMessage);
+            }
 
-			String originalString = " |";
-			for (Object k : payload.keySet()) {
-				originalString = originalString + " " + k.toString() + ":"
-						+ payload.get(k).toString();
-			}
-			originalString = key.toUpperCase() + originalString;
-			payload.put("original_string", originalString);
+            String originalString = key.toUpperCase() + " |";
+            for (Object k : payload.keySet()) {
+                String value = payload.get(k).toString();
+                originalString += " " + k.toString() + ":" + value;
+            }
+            payload.put("original_string", originalString);
 
-			if (payload == null)
-				throw new Exception("Unable to retrieve payload for message: "
-						+ raw_message);
+            replaceKey(payload, "timestamp", new String[]{ "ts" });
 
-			if (payload.containsKey("ts")) {
-				String ts = payload.remove("ts").toString();
-				payload.put("timestamp", ts);
-				_LOG.trace("[Metron] Added ts to: " + payload);
-			}
+            if (payload.containsKey("timestamp")) {
+                try {
+                    long timestamp = Long.parseLong(payload.get("timestamp").toString());
+                    payload.put("timestamp", timestamp);
+                } catch (NumberFormatException nfe) {
+                    _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
+                    payload.put("timestamp", 0);
+                }
+            }
 
-			if (payload.containsKey("id.orig_h")) {
-				String source_ip = payload.remove("id.orig_h").toString();
-				payload.put("ip_src_addr", source_ip);
-				_LOG.trace("[Metron] Added ip_src_addr to: " + payload);
-			} else if (payload.containsKey("tx_hosts")) {
-				JSONArray txHosts = (JSONArray) payload.remove("tx_hosts");
-				if (txHosts != null && !txHosts.isEmpty()) {
-					payload.put("ip_src_addr", txHosts.get(0));
-					_LOG.trace("[Metron] Added ip_src_addr to: " + payload);
-				}
-			}
-			
-			if (payload.containsKey("id.resp_h")) {
-				String source_ip = payload.remove("id.resp_h").toString();
-				payload.put("ip_dst_addr", source_ip);
-				_LOG.trace("[Metron] Added ip_dst_addr to: " + payload);
-			} else if (payload.containsKey("rx_hosts")) {
-				JSONArray rxHosts = (JSONArray) payload.remove("rx_hosts");
-				if (rxHosts != null && !rxHosts.isEmpty()) {
-					payload.put("ip_dst_addr", rxHosts.get(0));
-					_LOG.trace("[Metron] Added ip_dst_addr to: " + payload);
-				}
-			}
-			
-			if (payload.containsKey("id.orig_p")) {
-				String source_port = payload.remove("id.orig_p").toString();
-				payload.put("ip_src_port", source_port);
-				_LOG.trace("[Metron] Added ip_src_port to: " + payload);
-			}
-			if (payload.containsKey("id.resp_p")) {
-				String dest_port = payload.remove("id.resp_p").toString();
-				payload.put("ip_dst_port", dest_port);
-				_LOG.trace("[Metron] Added ip_dst_port to: " + payload);
-			}
-			
-//			if (payload.containsKey("host")) {
-//
-//				String host = payload.get("host").toString().trim();
-//				String tld = tldex.extractTLD(host);
-//
-//				payload.put("tld", tld);
-//				_LOG.trace("[Metron] Added tld to: " + payload);
-//
-//			}
-//			if (payload.containsKey("query")) {
-//				String host = payload.get("query").toString();
-//				String[] parts = host.split("\\.");
-//				int length = parts.length;
-//				if (length >= 2) {
-//					payload.put("tld", parts[length - 2] + "."
-//							+ parts[length - 1]);
-//					_LOG.trace("[Metron] Added tld to: " + payload);
-//				}
-//			}
+            boolean ipSrcReplaced = replaceKey(payload, "ip_src_addr", new String[]{"source_ip", "id.orig_h"});
+            if (!ipSrcReplaced) {
+                replaceKeyArray(payload, "ip_src_addr", new String[]{ "tx_hosts" });
+            }
 
-			_LOG.trace("[Metron] Inner message: " + payload);
+            boolean ipDstReplaced = replaceKey(payload, "ip_dst_addr", new String[]{"dest_ip", "id.resp_h"});
+            if (!ipDstReplaced) {
+                replaceKeyArray(payload, "ip_dst_addr", new String[]{ "rx_hosts" });
+            }
 
-			payload.put("protocol", key);
-			_LOG.debug("[Metron] Returning parsed message: " + payload);
+            replaceKey(payload, "ip_src_port", new String[]{"source_port", "id.orig_p"});
+            replaceKey(payload, "ip_dst_port", new String[]{"dest_port", "id.resp_p"});
 
-			return payload;
+            payload.put("protocol", key);
+            _LOG.debug("[Metron] Returning parsed message: " + payload);
 
-		} catch (Exception e) {
+            return payload;
 
-			_LOG.error("Unable to Parse Message: " + raw_message);
-			e.printStackTrace();
-			return null;
-		}
+        } catch (Exception e) {
 
-	}
+            _LOG.error("Unable to Parse Message: " + rawMessage);
+            e.printStackTrace();
+            return null;
+        }
 
-	
+    }
+
+    private boolean replaceKey(JSONObject payload, String toKey, String[] fromKeys) {
+        for (String fromKey : fromKeys) {
+            if (payload.containsKey(fromKey)) {
+                Object value = payload.remove(fromKey);
+                payload.put(toKey, value);
+                _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean replaceKeyArray(JSONObject payload, String toKey, String[] fromKeys) {
+        for (String fromKey : fromKeys) {
+            if (payload.containsKey(fromKey)) {
+                JSONArray value = (JSONArray) payload.remove(fromKey);
+                if (value != null && !value.isEmpty()) {
+                    payload.put(toKey, value.get(0));
+                    _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }
