@@ -1,0 +1,46 @@
+---
+# tasks file for metron_ui
+- name: Install Metron UI dependencies
+  yum: pkg={{ item.package }} state=installed
+  with_items:
+      - { package: 'libpcap-devel'}
+      - { package: 'wireshark'}
+      - { package: 'nodejs'}
+      - { package: 'npm'}
+
+- name: Download nvm installer
+  get_url: url=https://raw.githubusercontent.com/creationix/nvm/v0.30.1/install.sh dest=/tmp/nvm-install.sh
+
+- name: Change nvm installer permissions
+  file: path=/tmp/nvm-install.sh mode=0755
+
+- name: Install nvm
+  shell: /tmp/nvm-install.sh creates=~/.nvm/nvm.sh
+
+- name: Install Metron UI
+  shell: source ~/.bashrc && nvm install 0.10.35 && nvm use 0.10.35 && nvm alias default 0.10.35 && npm install -g opensoc-ui creates=/root/.nvm/v0.10.35/lib/node_modules/opensoc-ui/package.json
+
+- name: Add Metron UI config
+  copy:
+    src: opensoc-ui
+    dest: ~/.opensoc-ui
+    mode: 0644
+
+- name: Configure opensoc-ui
+  lineinfile: >
+    dest=~/.opensoc-ui
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: '"elasticsearch":', line: '"  elasticsearch": { "url": "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}" },' }
+
+- name: Fix pcap_all error
+  replace:
+    dest: /root/.nvm/v0.10.35/lib/node_modules/opensoc-ui/lib/static_dist/app/panels/pcap/module.js
+    regexp: "pcap_all"
+    replace: "pcap_*"
+    backup: yes
+
+- name: Start Metron UI service
+  shell: source ~/.bashrc && opensoc-ui start

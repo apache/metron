@@ -1,0 +1,145 @@
+---
+# tasks file for ambari_gather_facts
+- name: Install pip
+  yum:
+    name: python-pip
+    state: latest
+
+- name: Install python httplib2 dependency
+  pip:
+    name: httplib2
+
+- name: Ambari rest get cluster name
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: cluster_name_response
+
+- set_fact:
+    cluster_name: "{{ (cluster_name_response.content | from_json)['items'][0].Clusters.cluster_name }}"
+
+- name: Ambari rest get namenode hosts
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/HDFS/components/NAMENODE"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: namenode_hosts_response
+
+- set_fact:
+    namenode_host: "{{ (namenode_hosts_response.content | from_json).host_components[0].HostRoles.host_name }}"
+
+- name: Ambari rest get namenode core-site tag
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ namenode_host }}/host_components/NAMENODE"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: core_site_tag_response
+
+- set_fact:
+    core_site_tag: "{{ (core_site_tag_response.content | from_json).HostRoles.actual_configs['core-site'].default }}"
+
+- name: Ambari rest get namenode core-site properties
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=core-site&tag={{ core_site_tag }}"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: core_site_response
+
+- set_fact:
+    hdfs_url: "{{ (core_site_response.content | from_json)['items'][0].properties['fs.defaultFS'] }}"
+
+- name: Ambari rest get kafka broker hosts
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KAFKA/components/KAFKA_BROKER"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: kafka_broker_hosts_response
+
+- set_fact:
+    kafka_broker_hosts: "{{ (kafka_broker_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
+
+- name: Ambari rest get kafka kafka-broker tag
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: kafka_broker_tag_response
+
+- set_fact:
+    kafka_broker_tag: "{{ (kafka_broker_tag_response.content | from_json).HostRoles.actual_configs['kafka-broker'].default }}"
+
+- name: Ambari rest get kafka kafka-broker properties
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: kafka_broker_properties_response
+
+- set_fact:
+    kafka_broker_port: "{{ (kafka_broker_properties_response.content | from_json)['items'][0].properties['listeners'] | replace('PLAINTEXT://localhost:', '')}}"
+
+- set_fact:
+    kafka_broker_url: "{% for host in kafka_broker_hosts %}{% if loop.index != 1 %},{% endif %}{{ host }}:{{ kafka_broker_port }}{% endfor %}"
+
+- name: Ambari rest get zookeeper hosts
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/ZOOKEEPER/components/ZOOKEEPER_SERVER"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: zookeeper_hosts_response
+
+- set_fact:
+    zookeeper_hosts: "{{ (zookeeper_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
+
+- name: Ambari rest get zookeeper zoo.cfg tag
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ zookeeper_hosts[0] }}/host_components/ZOOKEEPER_SERVER"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: zookeeper_tag_response
+
+- set_fact:
+    zookeeper_tag: "{{ (zookeeper_tag_response.content | from_json).HostRoles.actual_configs['zoo.cfg'].default }}"
+
+- name: Ambari rest get kafka kafka-broker properties
+  uri:
+    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=zoo.cfg&tag={{ zookeeper_tag }}"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: zookeeper_properties_response
+
+- set_fact:
+    zookeeper_port: "{{ (zookeeper_properties_response.content | from_json)['items'][0].properties['clientPort'] }}"
+
+- set_fact:
+    zookeeper_url: "{% for host in zookeeper_hosts %}{% if loop.index != 1 %},{% endif %}{{ host }}:{{ zookeeper_port }}{% endfor %}"
+
+- name: debug
+  debug:
+    msg: "zookeeper_port = {{ zookeeper_port }},
+          zookeeper_hosts = {{ zookeeper_hosts }},
+          zookeeper_url = {{ zookeeper_url }},
+          kafka_broker_port = {{ kafka_broker_port }},
+          kafka_broker_hosts = {{ kafka_broker_hosts }},
+          kafka_broker_url = {{ kafka_broker_url }}"

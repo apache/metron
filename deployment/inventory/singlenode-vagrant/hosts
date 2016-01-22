@@ -1,0 +1,17 @@
+[ambari_master]
+node1
+
+[ambari_slave]
+node1
+
+[enrichment]
+node1
+
+[search]
+node1
+
+[web]
+node1
+
+[sensors]
+node1

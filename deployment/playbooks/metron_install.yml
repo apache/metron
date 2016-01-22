@@ -1,0 +1,36 @@
+---
+- hosts: search
+  sudo: yes
+  roles:
+    - role: elasticsearch
+  tags:
+    - elasticsearch
+
+- hosts: sensors
+  sudo: yes
+  roles:
+    - role: ambari_gather_facts
+    - role: flume
+    - role: pycapa
+    - role: bro
+    - role: snort
+    - role: yaf
+  tags:
+      - sensors
+
+- hosts: enrichment
+  sudo: yes
+  roles:
+    - role: ambari_gather_facts
+    - role: metron_streaming
+  tags:
+    - enrichment
+
+- hosts: web
+  sudo: yes
+  roles:
+    - role: ambari_gather_facts
+    - role: metron_ui
+    - role: metron_pcapservice
+  tags:
+    - web
