@@ -1,0 +1,165 @@
+name: "paloalto-local"
+config:
+    topology.workers: 1
+
+components:
+    -   id: "paloAltoParser"
+        className: "org.apache.metron.parsing.parsers.BasicPaloAltoFirewallParser"
+    -   id: "genericMessageFilter"
+        className: "org.apache.metron.filters.GenericMessageFilter"
+    -   id: "filenameFormat"
+        className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
+        configMethods:
+            -   name: "withPath"
+                args:
+                    - "${bolt.hdfs.wip.file.path}"
+    -   id: "messageField"
+        className: "backtype.storm.tuple.Fields"
+        constructorArgs:
+            - ["message"]
+    -   id: "recordFormat"
+        className: "org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat"
+        configMethods:
+            -   name: "withFieldDelimiter"
+                args:
+                    - "${bolt.hdfs.field.delimiter}"
+            -   name: "withFields"
+                args:
+                    - ref: "messageField"
+    -   id: "rotationPolicy"
+        className: "org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy"
+        constructorArgs:
+            - ${bolt.hdfs.file.rotation.size.in.mb}
+            - MB
+    -   id: "syncPolicy"
+        className: "org.apache.storm.hdfs.bolt.sync.CountSyncPolicy"
+        constructorArgs:
+            - ${bolt.hdfs.batch.size}
+    -   id: "moveFileAction"
+        className: "org.apache.storm.hdfs.common.rotation.MoveFileAction"
+        configMethods:
+            -   name: "toDestination"
+                args:
+                    - "${bolt.hdfs.finished.file.path}"
+    -   id: "metricConfig"
+        className: "org.apache.commons.configuration.BaseConfiguration"
+        configMethods:
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.reporter.graphite"
+                    - "${org.apache.metron.metrics.reporter.graphite}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.reporter.console"
+                    - "${org.apache.metron.metrics.reporter.console}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.reporter.jmx"
+                    - "${org.apache.metron.metrics.reporter.jmx}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.graphite.address"
+                    - "${org.apache.metron.metrics.graphite.address}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.graphite.port"
+                    - "${org.apache.metron.metrics.graphite.port}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryParserBolt.acks"
+                    - "${org.apache.metron.metrics.TelemetryParserBolt.acks}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryParserBolt.emits"
+                    - "${org.apache.metron.metrics.TelemetryParserBolt.emits}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryParserBolt.fails"
+                    - "${org.apache.metron.metrics.TelemetryParserBolt.fails}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.GenericEnrichmentBolt.acks"
+                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.acks}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.GenericEnrichmentBolt.emits"
+                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.emits}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.GenericEnrichmentBolt.fails"
+                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.fails}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryIndexingBolt.acks"
+                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.acks}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryIndexingBolt.emits"
+                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.emits}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryIndexingBolt.fails"
+                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.fails}"
+
+spouts:
+    -   id: "testingSpout"
+        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
+        parallelism: 1
+        configMethods:
+            -   name: "withFilename"
+                args:
+                    - "SampleInput/PaloaltoOutput"
+            -   name: "withRepeating"
+                args:
+                    - true
+
+bolts:
+    -   id: "parserBolt"
+        className: "org.apache.metron.parsing.TelemetryParserBolt"
+        configMethods:
+            -   name: "withMessageParser"
+                args:
+                    - ref: "paloAltoParser"
+            -   name: "withOutputFieldName"
+                args:
+                    - "paloalto"
+            -   name: "withMessageFilter"
+                args:
+                    - ref: "genericMessageFilter"
+            -   name: "withMetricConfig"
+                args:
+                    - ref: "metricConfig"
+    -   id: "hdfsBolt"
+        className: "org.apache.storm.hdfs.bolt.HdfsBolt"
+        configMethods:
+            -   name: "withFsUrl"
+                args:
+                    - "${bolt.hdfs.file.system.url}"
+            -   name: "withFileNameFormat"
+                args:
+                    - ref: "filenameFormat"
+            -   name: "withRecordFormat"
+                args:
+                    - ref: "recordFormat"
+            -   name: "withRotationPolicy"
+                args:
+                    - ref: "rotationPolicy"
+            -   name: "withSyncPolicy"
+                args:
+                    - ref: "syncPolicy"
+            -   name: "addRotationAction"
+                args:
+                    - ref: "moveFileAction"
+
+streams:
+    -   name: "spout -> parser"
+        from: "testingSpout"
+        to: "parserBolt"
+        grouping:
+            type: SHUFFLE
+    -   name: "parser -> hdfs"
+        from: "parserBolt"
+        to: "hdfsBolt"
+        grouping:
+            streamId: "message"
+            type: SHUFFLE

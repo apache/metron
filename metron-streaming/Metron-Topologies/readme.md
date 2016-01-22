@@ -6,42 +6,34 @@ This module provides example topologies that show how to drive Metron modules an
 
 ##Launching Topologies
 
+We use Storm Flux to launch topologies, which are each described in a YAML file.
 
 ```
+storm jar target/Metron-Topologies-0.6BETA.jar org.apache.storm.flux.Flux --local src/main/resources/Metron_Configs/topologies/bro/local.yaml --filter src/main/resources/Metron_Configs/etc/env/config.properties
 
-storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Pcap
-storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Sourcefire
-storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Lancope
-storm jar Metron-Topologies-0.6BETA.jar org.apache.metron.topology.Ise
-
-Topology Options:
--config_path <arg>       OPTIONAL ARGUMENT [/path/to/configs] Path to
-configuration folder. If not provided topology
-will initialize with default configs
--debug <arg>             OPTIONAL ARGUMENT [true|false] Storm debugging
-enabled.  Default value is true
--generator_spout <arg>   REQUIRED ARGUMENT [true|false] Turn on test
-generator spout.  Default is set to false.  If
-test generator spout is turned on then kafka
-spout is turned off.  Instead the generator
-spout will read telemetry from file and ingest
-it into a topology
--h                       Display help menue
--local_mode <arg>        REQUIRED ARGUMENT [true|false] Local mode or
-cluster mode.  If set to true the topology will
-run in local mode.  If set to false the topology
-will be deployed to Storm nimbus
+storm jar target/Metron-Topologies-0.6BETA.jar org.apache.storm.flux.Flux --remote src/main/resources/Metron_Configs/topologies/bro/remote.yaml --filter src/main/resources/Metron_Configs/etc/env/config.properties
 ```
+
+Note that if you use `--local` it will run the topology in local mode, using test data. If you use `--remote` it will attempt to connect to and deploy to Storm Nimbus.
+
+Each topology's YAML files are responsible for either connecting to a real spout or enabling their own testing spout. This is the primary reason different `local.yaml` and `remote.yaml` files are provided for each topology.
 
 ##Topology Configs
 
 The sample topologies provided use a specific directory structure.  The example directory structure was checked in here:
 
 ```
-https://github.com/apache/incubator-metron-streaming/tree/master/Metron-Topologies/src/main/resources/Metron_Configs
+https://github.com/apache/incubator-metron/tree/master/metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs
 ```
 
-topology.conf - settings specific to each topology
-features_enabled.conf - turn on and off features for each topology and control parallelism
-metrics.conf - export definitions for metrics to Graphite 
-topology_dentifier.conf - customer-specific tag (since we deploy to multiple data centers we need to identify where the alerts are coming from and what topologies we are looking at when we need to debug)
+Each topology has a `local.yaml` and a `remote.yaml` file to support local mode and remote mode, respectively.
+
+These topology configurations have variables that can be replaced by the `--filter` option to Flux. These variables are in `src/main/resources/OpenSOC_Configs/etc/env/config.properties`, and apply to:
+
+- Kafka
+- Elasticsearch
+- MySQL
+- Metrics
+- Bolt acks/emits/fails
+- Host enrichment
+- HDFS

@@ -21,7 +21,8 @@
 	<url>https://metron.incubator.apache.org/</url>
 	<properties>
 		<twitter>@ApacheMetron</twitter>
-		<global_storm_version>0.9.2-incubating</global_storm_version>
+		<global_storm_version>0.10.0</global_storm_version>
+		<global_flux_version>0.10.0</global_flux_version>
 		<global_kafka_version>0.8.0</global_kafka_version>
 		<global_hadoop_version>2.2.0</global_hadoop_version>
 		<global_hbase_version>0.98.0-hadoop2</global_hbase_version>
