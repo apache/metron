@@ -130,11 +130,11 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "${spout.kafka.topic}"
+            - "${spout.kafka.topic.asa}"
             # zk root
             - ""
             # id
-            - "${spout.kafka.topic}"
+            - "${spout.kafka.topic.asa}"
         properties:
             -   name: "forceFromStart"
                 value: true
