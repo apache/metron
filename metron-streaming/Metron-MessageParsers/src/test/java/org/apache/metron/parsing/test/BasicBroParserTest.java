@@ -29,6 +29,27 @@ public class BasicBroParserTest extends TestCase {
 		jsonParser = new JSONParser();		
 	}
 
+    public void testUnwrappedBroMessage() throws ParseException {
+        String rawMessage = "{\"timestamp\":\"1449511228474\",\"uid\":\"CFgSLp4HgsGqXnNjZi\",\"source_ip\":\"104.130.172.191\",\"source_port\":33893,\"dest_ip\":\"69.20.0.164\",\"dest_port\":53,\"proto\":\"udp\",\"trans_id\":3514,\"rcode\":3,\"rcode_name\":\"NXDOMAIN\",\"AA\":false,\"TC\":false,\"RD\":false,\"RA\":false,\"Z\":0,\"rejected\":false,\"sensor\":\"cloudbro\",\"type\":\"dns\"}";
+
+        JSONObject rawJson = (JSONObject)jsonParser.parse(rawMessage);
+
+        JSONObject broJson = broParser.parse(rawMessage.getBytes());
+
+        assertEquals(broJson.get("timestamp"), Long.parseLong(rawJson.get("timestamp").toString()));
+        assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("source_ip").toString());
+        assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("dest_ip").toString());
+        assertEquals(broJson.get("ip_src_port"), rawJson.get("source_port"));
+        assertEquals(broJson.get("ip_dst_port"), rawJson.get("dest_port"));
+        assertEquals(broJson.get("uid").toString(), rawJson.get("uid").toString());
+        assertEquals(broJson.get("trans_id").toString(), rawJson.get("trans_id").toString());
+        assertEquals(broJson.get("sensor").toString(), rawJson.get("sensor").toString());
+        assertEquals(broJson.get("protocol").toString(), rawJson.get("type").toString());
+        assertEquals(broJson.get("rcode").toString(), rawJson.get("rcode").toString());
+        assertEquals(broJson.get("rcode_name").toString(), rawJson.get("rcode_name").toString());
+        assertTrue(broJson.get("original_string").toString().startsWith("DNS"));
+    }
+
 	@SuppressWarnings("rawtypes")
 	public void testHttpBroMessage() throws ParseException {
 		String rawMessage = "{\"http\":{\"ts\":1402307733473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
