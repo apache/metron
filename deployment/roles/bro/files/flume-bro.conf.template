@@ -1,0 +1,28 @@
+
+bro-conn.sources = exec-source
+bro-conn.channels = memory-channel
+bro-conn.sinks = kafka-sink logger-sink
+
+# bro data is logged to a set of files
+bro-conn.sources.exec-source.type = exec
+bro-conn.sources.exec-source.command = tail -F /usr/local/bro/logs/current/conn.log
+bro-conn.sources.exec-source.restart = true
+bro-conn.sources.exec-source.logStdErr = true
+
+# bro alerts are sent to kafka
+bro-conn.sinks.kafka-sink.type = org.apache.flume.sink.kafka.KafkaSink
+bro-conn.sinks.kafka-sink.brokerList = localhost:9092
+bro-conn.sinks.kafka-sink.topic = bro-conn
+
+# also log events
+bro-conn.sinks.logger-sink.type = logger
+
+# buffer events in memory
+bro-conn.channels.memory-channel.type = memory
+bro-conn.channels.memory-channel.capacity = 1000
+bro-conn.channels.memory-channel.transactionCapacity = 100
+
+# bind the source and sink to the channel
+bro-conn.sources.exec-source.channels = memory-channel
+bro-conn.sinks.kafka-sink.channel = memory-channel
+bro-conn.sinks.logger-sink.channel = memory-channel

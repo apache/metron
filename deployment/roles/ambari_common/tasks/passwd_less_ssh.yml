@@ -1,0 +1,22 @@
+---
+- name: Generate ssh key pair for "{{ ambari_user }}"
+  user: name={{ ambari_user }} generate_ssh_key=yes
+
+- name: Fetch the generated public key from "{{ ansible_hostname }}"
+  fetch: src=~{{ ambari_user }}/.ssh/id_rsa.pub dest=/tmp/keys/{{ ansible_hostname }}.pub flat=yes
+
+- name: Set ownership/permissions on 'authorized_keys' file
+  file:
+    path: "~{{ ambari_user }}/.ssh/authorized_keys"
+    owner: "{{ ambari_user }}"
+    group: "{{ ambari_user }}"
+    mode: 0644
+    state: touch
+
+- name: Assemble each host's public key into an 'authorized_keys' file
+  assemble:
+    remote_src: false
+    src: /tmp/keys
+    dest: "~{{ ambari_user }}/.ssh/authorized_keys"
+    owner: "{{ ambari_user }}"
+    mode: 0644

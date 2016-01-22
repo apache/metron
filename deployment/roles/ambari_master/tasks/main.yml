@@ -1,0 +1,15 @@
+---
+# tasks file for ambari_master
+- name: Install ambari repo
+  yum: name=ambari-server state=present
+
+- name: Setup ambari server
+  shell: ambari-server setup -s; touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
+  register: ambari_server_setup
+  failed_when: ambari_server_setup.stderr
+
+- name: start ambari server
+  service: name=ambari-server state=restarted
+
+- name : check if ambari-server is up
+  wait_for : host=127.0.0.1 port=8080 delay=10

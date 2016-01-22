@@ -1,0 +1,32 @@
+---
+
+# tasks file for elasticsearch
+- name: alternatives link for "java"
+  alternatives: name=java link=/usr/bin/java  path=/usr/jdk64/jdk1.8.0_40/bin/java
+
+- name: Add Elasticsearch GPG key.
+  rpm_key:
+    key: https://packages.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Add Elasticsearch repository.
+  copy:
+    src: elasticsearch.repo
+    dest: /etc/yum.repos.d/elasticsearch.repo
+    mode: 0644
+
+- name: Install Elasticsearch.
+  yum: pkg=elasticsearch state=installed
+
+- name: Configure Elasticsearch.
+  lineinfile: >
+    dest=/etc/elasticsearch/elasticsearch.yml
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: '#cluster\.name', line: 'cluster.name: metron' }
+  notify: restart elasticsearch
+
+- name: Start Elasticsearch.
+  service: name=elasticsearch state=started enabled=yes
