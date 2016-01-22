@@ -1,0 +1,185 @@
+name: "bro-local"
+config:
+    topology.workers: 1
+
+components:
+    -   id: "broParser"
+        className: "org.apache.metron.parsing.parsers.BasicBroParser"
+    -   id: "genericMessageFilter"
+        className: "org.apache.metron.filters.GenericMessageFilter"
+    -   id: "indexAdapter"
+        className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
+    -   id: "metricConfig"
+        className: "org.apache.commons.configuration.BaseConfiguration"
+        configMethods:
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.reporter.graphite"
+                    - "${org.apache.metron.metrics.reporter.graphite}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.reporter.console"
+                    - "${org.apache.metron.metrics.reporter.console}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.reporter.jmx"
+                    - "${org.apache.metron.metrics.reporter.jmx}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.graphite.address"
+                    - "${org.apache.metron.metrics.graphite.address}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.graphite.port"
+                    - "${org.apache.metron.metrics.graphite.port}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryParserBolt.acks"
+                    - "${org.apache.metron.metrics.TelemetryParserBolt.acks}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryParserBolt.emits"
+                    - "${org.apache.metron.metrics.TelemetryParserBolt.emits}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryParserBolt.fails"
+                    - "${org.apache.metron.metrics.TelemetryParserBolt.fails}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.GenericEnrichmentBolt.acks"
+                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.acks}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.GenericEnrichmentBolt.emits"
+                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.emits}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.GenericEnrichmentBolt.fails"
+                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.fails}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryIndexingBolt.acks"
+                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.acks}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryIndexingBolt.emits"
+                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.emits}"
+            -   name: "setProperty"
+                args:
+                    - "org.apache.metron.metrics.TelemetryIndexingBolt.fails"
+                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.fails}"
+
+spouts:
+    -   id: "testingSpout"
+        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
+        parallelism: 1
+        configMethods:
+            -   name: "withFilename"
+                args:
+                    - "SampleInput/BroExampleOutput"
+            -   name: "withRepeating"
+                args:
+                    - true
+
+bolts:
+    -   id: "parserBolt"
+        className: "org.apache.metron.parsing.TelemetryParserBolt"
+        configMethods:
+            -   name: "withMessageParser"
+                args:
+                    - ref: "broParser"
+            -   name: "withOutputFieldName"
+                args:
+                    - "bro"
+            -   name: "withMessageFilter"
+                args:
+                    - ref: "genericMessageFilter"
+            -   name: "withMetricConfig"
+                args:
+                    - ref: "metricConfig"
+    -   id: "indexingBolt"
+        className: "org.apache.metron.indexing.TelemetryIndexingBolt"
+        configMethods:
+            -   name: "withIndexIP"
+                args:
+                    - "${es.ip}"
+            -   name: "withIndexPort"
+                args:
+                    - ${es.port}
+            -   name: "withClusterName"
+                args:
+                    - "${es.clustername}"
+            -   name: "withIndexName"
+                args:
+                    - "bro_index"
+            -   name: "withIndexTimestamp"
+                args:
+                    - "yyyy.MM.dd.hh"
+            -   name: "withDocumentName"
+                args:
+                    - "bro_doc"
+            -   name: "withBulk"
+                args:
+                    - 1
+            -   name: "withIndexAdapter"
+                args:
+                    - ref: "indexAdapter"
+            -   name: "withMetricConfiguration"
+                args:
+                    - ref: "metricConfig"
+    -   id: "errorIndexingBolt"
+        className: "org.apache.metron.indexing.TelemetryIndexingBolt"
+        configMethods:
+            -   name: "withIndexIP"
+                args:
+                    - "${es.ip}"
+            -   name: "withIndexPort"
+                args:
+                    - ${es.port}
+            -   name: "withClusterName"
+                args:
+                    - "${es.clustername}"
+            -   name: "withIndexName"
+                args:
+                    - "error"
+            -   name: "withIndexTimestamp"
+                args:
+                    - "yyyy.MM"
+            -   name: "withDocumentName"
+                args:
+                    - "bro_error"
+            -   name: "withBulk"
+                args:
+                    - 1
+            -   name: "withIndexAdapter"
+                args:
+                    - ref: "indexAdapter"
+            -   name: "withMetricConfiguration"
+                args:
+                    - ref: "metricConfig"
+
+streams:
+    -   name: "spout -> parser"
+        from: "testingSpout"
+        to: "parserBolt"
+        grouping:
+            type: SHUFFLE
+    -   name: "parser -> indexing"
+        from: "parserBolt"
+        to: "indexingBolt"
+        grouping:
+            streamId: "message"
+            type: FIELDS
+            args: ["key"]
+    -   name: "parser -> errors"
+        from: "parserBolt"
+        to: "errorIndexingBolt"
+        grouping:
+            streamId: "error"
+            type: SHUFFLE
+    -   name: "indexing -> errors"
+        from: "indexingBolt"
+        to: "errorIndexingBolt"
+        grouping:
+            streamId: "error"
+            type: SHUFFLE
