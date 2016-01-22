@@ -1,0 +1,14 @@
+---
+- include: bro.yml
+
+- include: flume.yml
+
+- name: Start flume to consume bro data
+  service: name=flume-agent state=started args={{ item }}
+  with_items:
+    - bro-conn
+    - bro-dns
+    - bro-software
+
+- name: Start bro
+  shell: /usr/local/bro/bin/broctl deploy

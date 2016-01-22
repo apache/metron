@@ -1,0 +1,6 @@
+---
+# vars file for metron_pcapservice
+metron_version: 0.6BETA
+metron_directory: /usr/metron/{{ metron_version }}
+pcapservice_jar_name: Metron-Pcap_Service-{{ metron_version }}-jar-with-dependencies.jar
+pcapservice_jar_url: http://{{ pcapservice_host }}:8080/repository/internal/com/opensoc/OpenSOC-Pcap_Service/{{ metron_version }}/{{ pcapservice_jar_name }}

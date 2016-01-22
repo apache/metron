@@ -1,0 +1,38 @@
+---
+# tasks file for metron_pcapservice
+
+- set_fact:
+    pcapservice_jar_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Pcap_Service/target/{{ pcapservice_jar_name }}"
+
+- name: Create Metron streaming directories
+  file: path={{ metron_directory }}/{{ item.name }}  state=directory mode=0755
+  with_items:
+      - { name: 'lib'}
+      - { name: 'config'}
+
+#- name: Dowloand Metron topology code
+#  get_url: url={{ pcapservice_jar_url }} dest={{ metron_directory }}/lib/
+
+- name: Copy Metron pcapservice jar
+  copy:
+    src: "{{ pcapservice_jar_path }}"
+    dest: "{{ metron_directory }}/lib/"
+
+- name: alternatives link for "java"
+  alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
+  with_items:
+    - { name: java, link: /usr/bin/java, path: /usr/jdk64/jdk1.8.0_40/bin/java}
+    - { name: jar, link: /usr/bin/jar, path: /usr/jdk64/jdk1.8.0_40/bin/jar}
+
+- name: Add hbase-site.xml to pcapservice jar
+  shell: cd /etc/hbase/conf/ && jar -uf {{ metron_directory }}/lib/{{ pcapservice_jar_name }} hbase-site.xml
+
+- name: Install prerequisites
+  yum: name=daemonize state=latest
+
+- name: Start pcap_service
+  shell: "daemonize -c {{ metron_directory }} -e /var/log/metron_pcapservice.log -o /var/log/metron_pcapservice.log -l /var/lock/subsys/metron_pcapservice /usr/bin/java -cp {{ metron_directory }}/lib/{{ pcapservice_jar_name }} com.opensoc.pcapservice.rest.PcapService"
+  args:
+    creates: /var/lock/subsys/metron_pcapservice
+
+

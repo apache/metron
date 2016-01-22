@@ -1,0 +1,10 @@
+---
+- include: yaf.yml
+
+- include: flume.yml
+
+- name: Start flume service to consume ipfix
+  service: name=flume-agent state=restarted args=ipfix
+
+- name: Start yaf service to produce ipfix
+  service: name=yaf state=restarted
