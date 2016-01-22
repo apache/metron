@@ -1,0 +1,29 @@
+#Ambari variables
+ambari_host: "metron01.cloud.hortonworks.com"
+ambari_port: 8080
+ambari_user: "admin"
+ambari_password: "admin"
+
+#Metron variables
+elasticsearch_ip: "metron07.cloud.hortonworks.com"
+elasticsearch_web_port: 9200
+elasticsearch_transport_port: 9300
+elasticsearch_cluster_name: "metron"
+pcapservice_host: "metron07.cloud.hortonworks.com"
+
+#Default values
+hdp_repo_def: "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.2.0/hdp.repo"
+bro_version: "2.4.1"
+fixbuf_version: "1.7.1"
+yaf_version: "2.8.0"
+snort_version: "2.9.8.0-1"
+daq_version: "2.0.6-1"
+iface: "eth0"
+yaf_topic: "ipfix"
+snort_topic: "snort"
+bro_conn_topic: "bro-conn"
+bro_dns_topic: "bro-dns"
+bro_software_topic: "bro-software"
+pycapa_repo: "https://github.com/OpenSOC/pycapa.git"
+pycapa_home: "/opt/pycapa"
+pycapa_topic: "pcap"

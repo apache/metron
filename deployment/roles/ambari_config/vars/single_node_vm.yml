@@ -1,0 +1,43 @@
+---
+# vars file for single_node_vm blueprint
+
+hadoop_master: [NAMENODE, SECONDARY_NAMENODE, RESOURCEMANAGER, HISTORYSERVER]
+hadoop_slave: [APP_TIMELINE_SERVER, DATANODE, HDFS_CLIENT, NODEMANAGER, YARN_CLIENT, MAPREDUCE2_CLIENT]
+spark_master: [SPARK_JOBHISTORYSERVER]
+spark_slave: [SPARK_CLIENT]
+storm_master: [NIMBUS, STORM_UI_SERVER, DRPC_SERVER]
+storm_slave: [SUPERVISOR]
+kafka_broker: [KAFKA_BROKER]
+zookeeper_master: [ZOOKEEPER_SERVER]
+zookeeper_slave: [ZOOKEEPER_CLIENT]
+ganglia_master: [GANGLIA_SERVER]
+hbase_master: [HBASE_MASTER, HBASE_CLIENT]
+hbase_slave: [HBASE_REGIONSERVER]
+
+metron_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(spark_master) | union(ganglia_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) | union(storm_slave) | union(spark_slave) | union(kafka_broker) | union(hbase_slave) }}"
+
+blueprint_name: "metron_blueprint"
+
+configurations:
+  - hadoop-env:
+      namenode_heapsize: 1024
+      dtnode_heapsize: 1024
+  - hbase-env:
+      hbase_regionserver_heapsize: 1024
+      hbase_master_heapsize: 1024
+  - yarn-env:
+      nodemanager_heapsize: 1024
+      yarn_heapsize: 1024
+  - yarn-site:
+      yarn.nodemanager.resource.memory-mb: 1024
+      yarn.scheduler.maximum-allocation-mb: 1024
+
+blueprint:
+  stack_name: HDP
+  stack_version: 2.3
+  groups:
+    - name : host_group_1
+      cardinality: 1
+      configurations: []
+      components: "{{ metron_components }}"
+      hosts: "{{ hdp_host_group }}"

@@ -1,0 +1,3 @@
+---
+- include: ambari_install.yml
+- include: metron_install.yml
