@@ -4,6 +4,9 @@ node1
 [ambari_slave]
 node1
 
+[hadoop_client]
+node1
+
 [enrichment]
 node1
 

@@ -1,15 +1,4 @@
 ---
-- set_fact:
-    metron_jar_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_jar_name }}"
-
-# - name: Build Metron streaming
-#   shell: "{{ item }}"
-#   args:
-#     chdir: "{{ playbook_dir }}../../../opensoc-streaming"
-#     creates: "{{ metron_jar_path }}"
-#   with_items:
-#     - mvn package
-
 - name: Create Metron streaming directories
   file: path="{{ metron_directory }}/{{ item.name }}"  state=directory mode=0755
   with_items:
@@ -24,53 +13,41 @@
 - name: Alternatives link for "java"
   alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
   with_items:
-    - { name: java, link: /usr/bin/java, path: /usr/jdk64/jdk1.8.0_40/bin/java}
-    - { name: jar, link: /usr/bin/jar, path: /usr/jdk64/jdk1.8.0_40/bin/jar}
+    - { name: java, link: /usr/bin/java, path: "{{ java_home }}/bin/java" }
+    - { name: jar, link: /usr/bin/jar, path: "{{ java_home }}/bin/jar" }
 
 - name: Add hbase-site.xml to topology jar
-  shell: cd /etc/hbase/conf/ && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hbase-site.xml
+  shell: cd {{ hbase_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hbase-site.xml
 
 - name: Add elasticsearch.ym to topology jar
-  shell: cd /etc/elasticsearch && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} elasticsearch.yml
+  shell: cd {{ elasticsearch_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} elasticsearch.yml
 
-- name: Download Metron topology config templates
-  get_url: url={{ metron_source_url }} dest=/tmp/metron_source.zip
-
-- name: Unpack Metron source
-  unarchive: src=/tmp/metron_source.zip dest=/tmp copy=no
-
-- name: Copy unpacked environment configs to config directory
-  command: cp -r /tmp/incubator-metron-{{ metron_branch }}/metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs/etc {{ metron_directory }}/config
-
-- name: Copy unpacked topology configs to config directory
-  command: cp -r /tmp/incubator-metron-{{ metron_branch }}/metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs/topologies {{ metron_directory }}/config
-
-- name: Cleanup unpacked topology configs
-  file:
-    path: "{{ item }}"
-    state: absent
+- name: Copy Metron topology config files
+  copy:
+    src: "{{ metron_src_config_path }}/{{ item }}"
+    dest: "{{ metron_directory }}/config/"
   with_items:
-    - "/tmp/metron_source.zip"
-    - "/tmp/incubator-metron-{{ metron_branch }}"
+    - "etc"
+    - "topologies"
 
 - name: Configure config.properties
   lineinfile: >
-    dest={{ metron_directory }}/config/etc/env/config.properties
+    dest={{ metron_properties_config_path }}
     regexp="{{ item.regexp }}"
     line="{{ item.line }}"
     state=present
   with_items:
     - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
-    - { regexp: "es.ip=", line: "es.ip={{ elasticsearch_ip }}" }
+    - { regexp: "spout.kafka.topic=", line: "spout.kafka.topic={{ pycapa_topic }}" }
+    - { regexp: "es.ip=", line: "es.ip={{ groups.search[0] }}" }
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
 
 - name: Create HBase tables
-  shell: echo "create 'pcap_test','t'" | hbase shell -n
+  shell: echo "create '{{ pcap_hbase_table }}','t'" | hbase shell -n
   ignore_errors: yes
 
 - name: Submit Pcap topology
-  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ metron_directory }}/config/topologies/pcap/remote.yaml --filter {{ metron_directory }}/config/etc/env/config.properties
+  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ metron_pcap_topology_config_path }} --filter {{ metron_properties_config_path }}
   ignore_errors: yes
