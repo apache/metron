@@ -1,14 +1,54 @@
 ---
-- include: bro.yml
+- name: Install EPEL repository
+  yum: name=epel-release
 
-- include: flume.yml
-
-- name: Start flume to consume bro data
-  service: name=flume-agent state=started args={{ item }}
+- name: Install prerequisites
+  yum: name={{ item }}
   with_items:
-    - bro-conn
-    - bro-dns
-    - bro-software
+    - libselinux-python
+    - libpcap
+    - libpcap-devel
+
+- name: Install geoip data
+  yum: name={{ item }}
+  with_items:
+    - GeoIP
+    - GeoIP-devel
+    - GeoIP-data
+
+- name: Copy over RPM dependencies
+  copy: src={{ item }} dest=/tmp
+  with_items: rpms
+
+- name: Install Bro and dependencies
+  shell: rpm -i /tmp/{{ item }}
+  with_items: rpms
+
+- name: Configure bro outputs
+  lineinfile:
+    dest: /opt/bro/share/bro/site/local.bro
+    line: "{{ item }}"
+  with_items:
+    - "@load policy/tuning/json-logs"
+    - "@load policy/tuning/logs-to-kafka"
+
+- name: Configure kafka broker
+  lineinfile:
+    dest: /opt/bro/share/bro/base/frameworks/logging/writers/kafka.bro
+    regexp: '^.*server_list.*$'
+    line: '\tconst server_list = "{{ kafka_broker_url }}" &redef;'
+
+- name: Configure kafka topic
+  lineinfile:
+    dest: /opt/bro/share/bro/base/frameworks/logging/writers/kafka.bro
+    regexp: '^.*topic_name.*$'
+    line: '\tconst topic_name = "{{ bro_topic }}" &redef;'
+
+- name: Remove funky broctl plugins
+  shell: rm -rf /opt/bro/lib/broctl/plugins/._*
+
+- name: Install updated bro configuration
+  shell: /opt/bro/bin/broctl install
 
 - name: Start bro
-  shell: /usr/local/bro/bin/broctl deploy
+  shell: /opt/bro/bin/broctl start
