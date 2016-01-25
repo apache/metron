@@ -1,2 +1,5 @@
 ---
-bro_version: 2.4.1
+rpms:
+  - librdkafka1-0.9.1-10.el6.x86_64.rpm
+  - librdkafka-devel-0.9.1-10.el6.x86_64.rpm
+  - Bro-2.2-344-Linux-x86_64.rpm
