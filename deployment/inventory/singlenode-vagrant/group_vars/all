@@ -3,19 +3,22 @@ ambari_host: "node1"
 ambari_port: 8080
 ambari_user: "admin"
 ambari_password: "admin"
-cluster_name: "metron_cluster"
 cluster_type: "single_node_vm"
 hdp_host_group: ["node1"]
 
 #Metron variables
-elasticsearch_ip: "192.168.66.121"
-elasticsearch_web_port: 9200
-elasticsearch_transport_port: 9300
-elasticsearch_cluster_name: "metron"
-pcapservice_host: "node1"
+metron_version: 0.6BETA
+java_home: "/usr/jdk64/jdk1.8.0_40"
 
 #Default values
 hdp_repo_def: "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.2.0/hdp.repo"
+hbase_config_path: "/etc/hbase/conf"
+kafka_home: "/usr/hdp/current/kafka-broker/"
+elasticsearch_config_path: "/etc/elasticsearch"
+elasticsearch_cluster_name: "metron"
+elasticsearch_web_port: 9200
+elasticsearch_transport_port: 9300
+pcapservice_port: 8081
 bro_version: "2.4.1"
 fixbuf_version: "1.7.1"
 yaf_version: "2.8.0"
@@ -27,6 +30,7 @@ snort_topic: "snort"
 bro_conn_topic: "bro-conn"
 bro_dns_topic: "bro-dns"
 bro_software_topic: "bro-software"
+pcap_hbase_table: "pcap_test"
 pycapa_repo: "https://github.com/OpenSOC/pycapa.git"
 pycapa_home: "/opt/pycapa"
-pycapa_topic: "pcap"
+pycapa_topic: "pcaptest"

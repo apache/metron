@@ -1,4 +1,10 @@
 ---
+- hosts: hadoop_client
+  sudo: yes
+  roles:
+    - role: ambari_gather_facts
+    - role: hadoop_setup
+
 - hosts: search
   sudo: yes
   roles:
