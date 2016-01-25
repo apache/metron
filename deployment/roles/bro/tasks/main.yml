@@ -16,13 +16,23 @@
     - GeoIP-devel
     - GeoIP-data
 
-- name: Copy over RPM dependencies
-  copy: src={{ item }} dest=/tmp
-  with_items: rpms
+- name: Distribute librdkafka
+  copy: src=librdkafka1-0.9.1-10.el6.x86_64.rpm dest=/tmp
 
-- name: Install Bro and dependencies
-  shell: rpm -i /tmp/{{ item }}
-  with_items: rpms
+- name: Install librdkafka
+  yum: name=/tmp/librdkafka1-0.9.1-10.el6.x86_64.rpm
+
+- name: Distribute librdkafka-devel
+  copy: src=librdkafka-devel-0.9.1-10.el6.x86_64.rpm dest=/tmp
+
+- name: Install librdkafka
+  yum: name=/tmp/librdkafka-devel-0.9.1-10.el6.x86_64.rpm
+
+- name: Distribute bro
+  copy: src=Bro-2.2-344-Linux-x86_64.rpm dest=/tmp
+
+- name: Install bro
+  yum: name=/tmp/Bro-2.2-344-Linux-x86_64.rpm
 
 - name: Configure bro outputs
   lineinfile:
@@ -52,3 +62,4 @@
 
 - name: Start bro
   shell: /opt/bro/bin/broctl start
+
