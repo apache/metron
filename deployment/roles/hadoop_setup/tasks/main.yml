@@ -1,0 +1,10 @@
+---
+- name: Create HBase tables
+  shell: echo "create '{{ pcap_hbase_table }}','t'" | hbase shell -n
+  ignore_errors: yes
+
+- name: Create Kafka topics
+  shell: "{{ kafka_home }}/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --create --topic {{ item }} --partitions 1 --replication-factor 1"
+  ignore_errors: yes
+  with_items:
+    - "{{ pycapa_topic }}"
