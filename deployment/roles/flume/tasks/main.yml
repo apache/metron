@@ -6,7 +6,7 @@
     mode: 0644
 
 - name: Install flume
-  yum: name={{item}} state=latest update_cache=yes
+  yum: name={{item}}
   with_items:
     - flume
     - flume-agent

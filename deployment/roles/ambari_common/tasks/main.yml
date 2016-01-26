@@ -5,7 +5,7 @@
 
 - include: passwd_less_ssh.yml
 
-# 
+#
 # ambari uses socket.getfqdn() to find the hostname. with 'localhost.localdomain'
 # in '/etc/hosts' this function will report the hostname as 'localhost.localdomain'
 # rather than 'node1' as would be expected.  other functions like socket.gethostname()
@@ -22,7 +22,7 @@
   lineinfile: dest=/etc/hosts line="127.0.0.1   localhost"
 
 - name: Download HDP repo
-  get_url: url="{{ rhel_ambari_install_url }}" dest=/etc/yum.repos.d/
+  get_url: url="{{ rhel_ambari_install_url }}" dest=/etc/yum.repos.d/ambari.repo
 
 - name: Install EPEL repo.
   yum:
