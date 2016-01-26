@@ -1,4 +1,7 @@
 ---
+- name: Install libselinux-python
+  yum: name=libselinux-python
+
 - include: snort.yml
 
 - include: flume.yml

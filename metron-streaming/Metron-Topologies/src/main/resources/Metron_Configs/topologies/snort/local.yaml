@@ -1,8 +1,12 @@
-name: "pcap"
+name: "snort-local"
 config:
     topology.workers: 1
 
 components:
+    -   id: "snortParser"
+        className: "org.apache.metron.parsing.parsers.BasicSnortParser"
+    -   id: "genericMessageFilter"
+        className: "org.apache.metron.filters.GenericMessageFilter"
     -   id: "indexAdapter"
         className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
     -   id: "metricConfig"
@@ -64,39 +68,36 @@ components:
                 args:
                     - "org.apache.metron.metrics.TelemetryIndexingBolt.fails"
                     - "${org.apache.metron.metrics.TelemetryIndexingBolt.fails}"
-    -   id: "zkHosts"
-        className: "storm.kafka.ZkHosts"
-        constructorArgs:
-            - "${kafka.zk}"
-    -   id: "kafkaConfig"
-        className: "storm.kafka.SpoutConfig"
-        constructorArgs:
-            # zookeeper hosts
-            - ref: "zkHosts"
-            # topic name
-            - "${spout.kafka.topic.pcap}"
-            # zk root
-            - ""
-            # id
-            - "${spout.kafka.topic.pcap}"
-        properties:
-            -   name: "forceFromStart"
-                value: true
-            -   name: "startOffsetTime"
-                value: -1
+
 
 spouts:
-    -   id: "kafkaSpout"
-        className: "storm.kafka.KafkaSpout"
-        constructorArgs:
-            - ref: "kafkaConfig"
+    -   id: "testingSpout"
+        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
+        parallelism: 1
+        configMethods:
+            -   name: "withFilename"
+                args:
+                    - "SampleInput/SourcefireExampleOutput"
+            -   name: "withRepeating"
+                args:
+                    - true
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.parsing.PcapParserBolt"
+        className: "org.apache.metron.parsing.TelemetryParserBolt"
         configMethods:
-            -   name: "withTsPrecision"
-                args: ["MICRO"]
+            -   name: "withMessageParser"
+                args:
+                    - ref: "snortParser"
+            -   name: "withOutputFieldName"
+                args:
+                    - "snort"
+            -   name: "withMessageFilter"
+                args:
+                    - ref: "genericMessageFilter"
+            -   name: "withMetricConfig"
+                args:
+                    - ref: "metricConfig"
     -   id: "indexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
         configMethods:
@@ -111,13 +112,13 @@ bolts:
                     - "${es.clustername}"
             -   name: "withIndexName"
                 args:
-                    - "pcap_index"
+                    - "snort_index"
             -   name: "withIndexTimestamp"
                 args:
                     - "yyyy.MM.dd.hh"
             -   name: "withDocumentName"
                 args:
-                    - "pcap_doc"
+                    - "snort_doc"
             -   name: "withBulk"
                 args:
                     - 1
@@ -147,7 +148,7 @@ bolts:
                     - "yyyy.MM"
             -   name: "withDocumentName"
                 args:
-                    - "pcap_error"
+                    - "snort_error"
             -   name: "withBulk"
                 args:
                     - 1
@@ -183,3 +184,5 @@ streams:
         grouping:
             streamId: "error"
             type: SHUFFLE
+
+

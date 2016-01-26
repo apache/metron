@@ -1,8 +1,12 @@
-name: "pcap"
+name: "snort"
 config:
     topology.workers: 1
 
 components:
+    -   id: "snortParser"
+        className: "org.apache.metron.parsing.parsers.BasicSnortParser"
+    -   id: "genericMessageFilter"
+        className: "org.apache.metron.filters.GenericMessageFilter"
     -   id: "indexAdapter"
         className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
     -   id: "metricConfig"
@@ -74,11 +78,11 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "${spout.kafka.topic.pcap}"
+            - "${spout.kafka.topic.snort}"
             # zk root
             - ""
             # id
-            - "${spout.kafka.topic.pcap}"
+            - "${spout.kafka.topic.snort}"
         properties:
             -   name: "forceFromStart"
                 value: true
@@ -93,10 +97,20 @@ spouts:
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.parsing.PcapParserBolt"
+        className: "org.apache.metron.parsing.TelemetryParserBolt"
         configMethods:
-            -   name: "withTsPrecision"
-                args: ["MICRO"]
+            -   name: "withMessageParser"
+                args:
+                    - ref: "snortParser"
+            -   name: "withOutputFieldName"
+                args:
+                    - "snort"
+            -   name: "withMessageFilter"
+                args:
+                    - ref: "genericMessageFilter"
+            -   name: "withMetricConfig"
+                args:
+                    - ref: "metricConfig"
     -   id: "indexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
         configMethods:
@@ -111,13 +125,13 @@ bolts:
                     - "${es.clustername}"
             -   name: "withIndexName"
                 args:
-                    - "pcap_index"
+                    - "snort_index"
             -   name: "withIndexTimestamp"
                 args:
                     - "yyyy.MM.dd.hh"
             -   name: "withDocumentName"
                 args:
-                    - "pcap_doc"
+                    - "snort_doc"
             -   name: "withBulk"
                 args:
                     - 1
@@ -147,7 +161,7 @@ bolts:
                     - "yyyy.MM"
             -   name: "withDocumentName"
                 args:
-                    - "pcap_error"
+                    - "snort_error"
             -   name: "withBulk"
                 args:
                     - 1
@@ -183,3 +197,5 @@ streams:
         grouping:
             streamId: "error"
             type: SHUFFLE
+
+
