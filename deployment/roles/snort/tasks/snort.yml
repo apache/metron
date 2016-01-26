@@ -11,6 +11,7 @@
     - libpcap-devel
     - pcre
     - pcre-devel
+    - zlib-devel
 
 - name: Download daq
   get_url: url="https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm" dest=/tmp
