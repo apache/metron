@@ -3,7 +3,7 @@
   yum: name="@Development tools" state=present
 
 - name: Install prerequisites
-  yum: name={{item}} state=latest update_cache=yes
+  yum: name={{ item }}
   with_items:
     - libpcap
     - libpcap-devel
@@ -16,7 +16,7 @@
 - name: Download fixbuf
   get_url:
     url: "http://tools.netsa.cert.org/releases/libfixbuf-{{fixbuf_version}}.tar.gz"
-    dest: /tmp
+    dest: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
 
 - name: Extract fixbuf tarball
   unarchive:
@@ -37,7 +37,7 @@
 - name: Download yaf
   get_url:
     url: "http://tools.netsa.cert.org/releases/yaf-{{yaf_version}}.tar.gz"
-    dest: /tmp
+    dest: "/tmp/yaf-{{yaf_version}}.tar.gz"
 
 - name: Extract yaf tarball
   unarchive:

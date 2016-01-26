@@ -1,6 +1,6 @@
 ---
 - name: Install python and tcpdump
-  yum: name={{item}} state=latest update_cache=no
+  yum: name={{item}}
   with_items:
     - python
     - python-pip
@@ -20,7 +20,7 @@
     - python setup.py install
 
 - name: Install prerequisites
-  yum: name=daemonize state=latest
+  yum: name=daemonize
 
 - name: Start pycapa
   shell: "daemonize -c {{ pycapa_home }} -e /var/log/pycapa.log -o /var/log/pycapa.log -l /var/lock/subsys/pycapa /usr/bin/python /opt/pycapa/pycapa/pycapa_cli.py  -z {{ zookeeper_url }} -t {{ pycapa_topic }} -i {{ iface }}"
