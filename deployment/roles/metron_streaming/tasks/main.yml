@@ -50,6 +50,9 @@
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
 
-- name: Submit Pcap topology
-  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ metron_pcap_topology_config_path }} --filter {{ metron_properties_config_path }}
+- name: Submit Metron streaming topologies
+  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ item }} --filter {{ metron_properties_config_path }}
   ignore_errors: yes
+  with_items:
+    - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
