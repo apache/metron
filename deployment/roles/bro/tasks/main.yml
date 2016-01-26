@@ -46,13 +46,13 @@
   lineinfile:
     dest: /opt/bro/share/bro/base/frameworks/logging/writers/kafka.bro
     regexp: '^.*server_list.*$'
-    line: '\tconst server_list = "{{ kafka_broker_url }}" &redef;'
+    line: 'const server_list = "{{ kafka_broker_url }}" &redef;'
 
 - name: Configure kafka topic
   lineinfile:
     dest: /opt/bro/share/bro/base/frameworks/logging/writers/kafka.bro
     regexp: '^.*topic_name.*$'
-    line: '\tconst topic_name = "{{ bro_topic }}" &redef;'
+    line: 'const topic_name = "{{ bro_topic }}" &redef;'
 
 - name: Remove funky broctl plugins
   shell: rm -rf /opt/bro/lib/broctl/plugins/._*
