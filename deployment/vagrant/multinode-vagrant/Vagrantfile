@@ -1,0 +1,45 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+hosts = [
+  { hostname: "node1", ip: "192.168.66.101", memory: "2048", cpus: 2 },
+  { hostname: "node2", ip: "192.168.66.102", memory: "2048", cpus: 2 },
+  { hostname: "node3", ip: "192.168.66.103", memory: "2048", cpus: 2 },
+  { hostname: "node4", ip: "192.168.66.104", memory: "2048", cpus: 2 }
+]
+
+Vagrant.configure(2) do |config|
+
+  # all hosts built on centos 6
+  config.vm.box = "bento/centos-6.7"
+  config.ssh.insert_key = "true"
+
+  # enable the hostmanager plugin
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+
+  # define each host
+  hosts.each_with_index do |hosts, index|
+    config.vm.define hosts[:hostname] do |node|
+
+      # host settings
+      node.vm.hostname = hosts[:hostname]
+      node.vm.network "private_network", ip: hosts[:ip]
+
+      # vm settings
+      node.vm.provider "virtualbox" do |vb|
+        vb.memory = hosts[:memory]
+        vb.cpus = hosts[:cpus]
+      end
+
+      # provisioning; only after all hosts created
+      if index == hosts.size - 1
+        node.vm.provision :ansible do |ansible|
+          ansible.playbook = "../../playbooks/metron_full_install.yml"
+          ansible.sudo = true
+          ansible.inventory_path = "../../inventory/singlenode-vagrant"
+        end
+      end
+    end
+  end
+end

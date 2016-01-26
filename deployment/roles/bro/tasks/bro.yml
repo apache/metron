@@ -1,0 +1,51 @@
+---
+- name: Install Bro dependencies
+  yum: name={{item}} state=latest update_cache=no
+  with_items:
+    - cmake
+    - make
+    - gcc
+    - gcc-c++
+    - flex
+    - bison
+    - libpcap-devel
+    - openssl-devel
+    - python-devel
+    - swig
+    - zlib-devel
+
+- name: Install geoip data
+  yum: name={{item}} state=latest update_cache=yes
+  with_items:
+    - epel-release
+    - GeoIP
+    - GeoIP-devel
+    - GeoIP-data
+
+- name: Download bro
+  get_url:
+    url: "https://www.bro.org/downloads/release/bro-{{bro_version}}.tar.gz"
+    dest: "/tmp/bro-{{bro_version}}.tar.gz"
+
+- name: Extract tarball
+  unarchive:
+    src: "/tmp/bro-{{bro_version}}.tar.gz"
+    dest: /tmp
+    copy: no
+    creates: "/tmp/bro-{{bro_version}}"
+
+- name: Build and install bro
+  shell: "{{item}}"
+  args:
+    chdir: "/tmp/bro-{{bro_version}}"
+    creates: /usr/local/bro/bin/broctl
+  with_items:
+    - ./configure
+    - make
+    - make install
+
+- name: Configure json logging
+  lineinfile: dest=/usr/local/bro/share/bro/site/local.bro line="@load policy/tuning/json-logs"
+
+- name: Install updated bro configuration
+  shell: /usr/local/bro/bin/broctl install

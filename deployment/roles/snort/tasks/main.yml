@@ -1,0 +1,10 @@
+---
+- include: snort.yml
+
+- include: flume.yml
+
+- name: Start snort
+  service: name=snortd state=restarted
+
+- name: Start flume service to consume snort alerts
+  service: name=flume-agent state=restarted args=snort

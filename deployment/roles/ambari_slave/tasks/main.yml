@@ -1,0 +1,17 @@
+---
+# tasks file for ambari_slave
+- name: Install ambari-agent
+  yum: name=ambari-agent state=latest
+
+- name: Configure ambari-server hostname in ambari-agent configuration
+  lineinfile:
+    dest: /etc/ambari-agent/conf/ambari-agent.ini
+    regexp: ^.*hostname=.*$
+    line: hostname={{ ansible_hostname }}
+    backup: yes
+
+- name: Ensure ambari-agent is running
+  service: name=ambari-agent state=restarted
+
+- name : Wait for agent to register
+  command : sleep 10

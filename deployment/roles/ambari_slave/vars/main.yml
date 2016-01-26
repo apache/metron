@@ -1,0 +1,11 @@
+---
+# vars file for ambari_slave
+
+#
+# TODO: duplicates from ambari-common.  need all of these moved to group_vars
+#
+epel_repo_url: "http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm"
+rhel_ambari_install_url: "http://public-repo-1.hortonworks.com/ambari/centos6/2.x/updates/2.1.2.1/ambari.repo"
+ambari_user: "root"
+local_tmp_keygen_file: "/tmp/id_rsa.tmp"
+dest_tmp_keygen_file: "/tmp/id_rsa.tmp"

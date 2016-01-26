@@ -1,0 +1,63 @@
+---
+- name: Install development tools
+  yum: name="@Development tools" state=present
+
+- name: Install snort prerequisites
+  yum: name={{ item }} state=latest update_cache=yes
+  with_items:
+    - libdnet-devel
+    - rpm-build
+    - libpcap
+    - libpcap-devel
+    - pcre
+    - pcre-devel
+
+- name: Download daq
+  get_url: url="https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm" dest=/tmp
+
+- name: Build daq
+  shell: rpmbuild --rebuild "daq-{{ daq_version }}.src.rpm" chdir=/tmp
+
+- name: Install daq
+  yum: name=/root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm state=present
+
+- name: Download snort
+  get_url: url="https://snort.org/downloads/snort/snort-{{ snort_version }}.src.rpm" dest=/tmp
+
+- name: Build snort
+  shell: rpmbuild --rebuild "snort-{{ snort_version }}.src.rpm" chdir=/tmp
+
+- name: Install snort
+  yum: name=/root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm state=present
+
+#
+# TODO download latest rules from snort website - requires credentials
+#
+- name: Download snort rules
+  unarchive: src=snortrules-snapshot-2962.tar.gz dest=/tmp
+
+- name: Install snort rules
+  shell: "{{ item }}"
+  args:
+    chdir: /tmp
+  with_items:
+    - cp -r etc/* /etc/snort/
+    - cp -r rules /etc/snort/
+    - cp -r so_rules /etc/snort/
+    - cp -r preproc_rules /etc/snort/
+    - touch /etc/snort/rules/white_list.rules
+    - touch /etc/snort/rules/black_list.rules
+    - touch /var/log/snort/alerts
+    - chown -R snort:snort /etc/snort
+
+- name: Download snort configuration
+  copy: src=snort.conf dest=/etc/snort/snort.conf
+
+- name: Configure snort
+  lineinfile: >
+    dest=/etc/snort/snort.conf
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: "^ipvar HOME_NET.*$", line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}" }

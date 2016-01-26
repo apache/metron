@@ -1,0 +1,32 @@
+---
+- name: Retrieve HDP repository definition
+  get_url:
+    url: "{{ hdp_repo_def }}"
+    dest: /etc/yum.repos.d/hdp.repo
+    mode: 0644
+
+- name: Install flume
+  yum: name={{item}} state=latest update_cache=yes
+  with_items:
+    - flume
+    - flume-agent
+
+- name: Create flume-env.sh
+  shell: cp /etc/flume/conf/flume-env.sh.template /etc/flume/conf/flume-env.sh
+
+- name: Configure flume-env.sh
+  lineinfile: >
+    dest=/etc/flume/conf/flume-env.sh
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: '^.*export JAVA_HOME=.*$', line: 'export JAVA_HOME=/usr/jdk64/jdk1.8.0_40/' }
+
+- name: Create flume service
+  shell: "{{item}}"
+  with_items:
+    - cp /usr/hdp/current/flume-server/etc/rc.d/init.d/flume-agent /etc/init.d/
+
+- name: Remove default flume configuration
+  shell: rm -f /etc/flume/conf/flume.conf

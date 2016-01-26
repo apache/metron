@@ -1,0 +1,19 @@
+---
+- hosts: ambari_*
+  sudo: yes
+  roles:
+    - role: ambari_common
+
+- hosts: ambari_master
+  sudo: yes
+  roles:
+    - role: ambari_master
+
+- hosts: ambari_slave
+  sudo: yes
+  roles:
+    - role: ambari_slave
+
+- hosts: ambari_master
+  roles:
+    - role: ambari_config

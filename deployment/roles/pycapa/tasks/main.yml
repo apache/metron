@@ -1,0 +1,28 @@
+---
+- name: Install python and tcpdump
+  yum: name={{item}} state=latest update_cache=no
+  with_items:
+    - python
+    - python-pip
+    - tcpdump
+    - git
+
+- name: Clone pycapa repo
+  git: repo={{ pycapa_repo }} dest={{ pycapa_home }}
+
+- name: Build pycapa
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ pycapa_home }}"
+  with_items:
+    - pip install -r requirements.txt
+    - pip install argparse
+    - python setup.py install
+
+- name: Install prerequisites
+  yum: name=daemonize state=latest
+
+- name: Start pycapa
+  shell: "daemonize -c {{ pycapa_home }} -e /var/log/pycapa.log -o /var/log/pycapa.log -l /var/lock/subsys/pycapa /usr/bin/python /opt/pycapa/pycapa/pycapa_cli.py  -z {{ zookeeper_url }} -t {{ pycapa_topic }} -i {{ iface }}"
+  args:
+    creates: /var/lock/subsys/pycapa
