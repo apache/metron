@@ -1,11 +1,20 @@
+[ambari_master]
+host
+
+[ambari_slave]
+host
+
+[hadoop_client]
+host
+
 [enrichment]
-metron07.cloud.hortonworks.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/cluster_key.txt ansible_ssh_user=root
+host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
 
 [search]
-metron07.cloud.hortonworks.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/cluster_key.txt ansible_ssh_pass=vagrant ansible_ssh_user=root
+host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
 
 [web]
-metron07.cloud.hortonworks.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/cluster_key.txt ansible_ssh_pass=vagrant ansible_ssh_user=root
+host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
 
 [sensors]
-metron07.cloud.hortonworks.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/cluster_key.txt ansible_ssh_pass=vagrant ansible_ssh_user=root
+host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
