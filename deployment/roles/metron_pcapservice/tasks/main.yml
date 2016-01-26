@@ -21,11 +21,9 @@
   shell: cd /etc/hbase/conf/ && jar -uf {{ metron_directory }}/lib/{{ pcapservice_jar_name }} hbase-site.xml
 
 - name: Install prerequisites
-  yum: name=daemonize state=latest
+  yum: name=daemonize
 
 - name: Start pcap_service
   shell: "daemonize -c {{ metron_directory }} -e /var/log/metron_pcapservice.log -o /var/log/metron_pcapservice.log -l /var/lock/subsys/metron_pcapservice /usr/bin/java -cp {{ metron_directory }}/lib/{{ pcapservice_jar_name }} com.opensoc.pcapservice.rest.PcapService -p {{ pcapservice_port }}"
   args:
     creates: /var/lock/subsys/metron_pcapservice
-
-
