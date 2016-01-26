@@ -5,6 +5,12 @@
       - { name: 'lib'}
       - { name: 'config'}
 
+- stat: path={{ metron_jar_path }}
+  register: metron_jars
+
+- fail: msg="Unable to locate staged Metron jars at {{ metron_jar_path }}.  Did you run 'mvn package'?"
+  when: metron_jars.stat.exists == True
+
 - name: Copy Metron streaming jars
   copy:
     src: "{{ metron_jar_path }}"
