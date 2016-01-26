@@ -1,7 +1,7 @@
 ---
 # tasks file for ambari_slave
 - name: Install ambari-agent
-  yum: name=ambari-agent state=latest
+  yum: name=ambari-agent
 
 - name: Configure ambari-server hostname in ambari-agent configuration
   lineinfile:

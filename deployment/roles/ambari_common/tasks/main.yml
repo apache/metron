@@ -1,7 +1,7 @@
 ---
 # tasks file for ambari_common
 - name: Install libselinux-python
-  yum: name=libselinux-python state=latest
+  yum: name=libselinux-python
 
 - include: passwd_less_ssh.yml
 
