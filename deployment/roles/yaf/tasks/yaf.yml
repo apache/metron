@@ -56,22 +56,19 @@
     - make
     - make install
 
-- name: Create yaf service
-  shell: "{{item}}"
-  args:
-    creates: /usr/local/etc/yaf.conf
-  with_items:
-    - cp /tmp/yaf-{{yaf_version}}/etc/init.d/yaf /etc/init.d/yaf
-    - chmod +x /etc/init.d/yaf
-    - cp /tmp/yaf-{{yaf_version}}/etc/yaf.conf /usr/local/etc/yaf.conf
+- name: Create Yaf home directory
+  file:
+    path: "{{ yaf_home }}"
+    state: directory
+    mode: 0755
 
-- name: Configure yaf
-  lineinfile: >
-    dest=/usr/local/etc/yaf.conf
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-    state=present
-  with_items:
-    - { regexp: '^ENABLED=.*$', line: 'ENABLED=1' }
-    - { regexp: '^YAF_EXTRAFLAGS=.*$', line: 'YAF_EXTRAFLAGS='}
-    - { regexp: '^YAF_CAP_IF=.*$', line: 'YAF_CAP_IF={{ iface }}'}
+- name: Add Yaf startup script
+  copy:
+    src: start-yaf.sh
+    dest: "{{ yaf_home }}/start-yaf.sh"
+    mode: 0755
+
+- name: Start yaf
+  shell: "daemonize -c {{ yaf_home }} -e /var/log/yaf.log -o /var/log/yaf.log -l /var/lock/subsys/yaf {{yaf_home}}/start-yaf.sh {{ kafka_broker_url }}"
+  args:
+    creates: /var/lock/subsys/yaf

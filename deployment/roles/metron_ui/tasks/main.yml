@@ -43,5 +43,11 @@
     replace: "pcap_*"
     backup: yes
 
+- name: Configure default dashboard
+  copy:
+    src: default.json
+    dest: /root/.nvm/v0.10.35/lib/node_modules/opensoc-ui/lib/static_dist/app/dashboards/
+    mode: 0644
+
 - name: Start Metron UI service
   shell: source ~/.bashrc && opensoc-ui start

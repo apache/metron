@@ -13,3 +13,6 @@ target
 .idea
 *.iml
 .DS_Store
+*.project
+*.classpath
+*.settings

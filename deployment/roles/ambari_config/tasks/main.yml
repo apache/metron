@@ -4,7 +4,7 @@
 - include_vars: "{{ cluster_type }}.yml"
 
 - name: Install python-requests
-  yum: name=python-requests state=latest
+  yum: name=python-requests
 
 - name: Create the ambari cluster
   ambari_cluster_state:

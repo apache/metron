@@ -36,20 +36,36 @@
     - "etc"
     - "topologies"
 
-- name: Configure config.properties
+- name: Configure Metron topologies
   lineinfile: >
     dest={{ metron_properties_config_path }}
     regexp="{{ item.regexp }}"
     line="{{ item.line }}"
-    state=present
   with_items:
     - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "spout.kafka.topic=", line: "spout.kafka.topic={{ pycapa_topic }}" }
     - { regexp: "es.ip=", line: "es.ip={{ groups.search[0] }}" }
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
+    - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
+    - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
 
-- name: Submit Pcap topology
-  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ metron_pcap_topology_config_path }} --filter {{ metron_properties_config_path }}
+- name: Add Elasticsearch templates for topologies
+  uri:
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_yaf"
+    method: POST
+    body: "{{ lookup('file','yaf_index.template') }}"
+    status_code: 200
+    body_format: json
+
+- name: Submit Metron topologies
+  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ item }} --filter {{ metron_properties_config_path }}
   ignore_errors: yes
+  with_items:
+    - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
+
+
+
