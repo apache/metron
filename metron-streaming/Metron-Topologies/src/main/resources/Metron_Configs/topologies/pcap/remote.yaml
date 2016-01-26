@@ -74,11 +74,11 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "${spout.kafka.topic.pcap}"
+            - "${spout.kafka.topic}"
             # zk root
             - ""
             # id
-            - "${spout.kafka.topic.pcap}"
+            - "${spout.kafka.topic}"
         properties:
             -   name: "forceFromStart"
                 value: true
