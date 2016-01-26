@@ -1,9 +1,7 @@
 ---
 # tasks file for ambari_gather_facts
 - name: Install pip
-  yum:
-    name: python-pip
-    state: latest
+  yum: name=python-pip
 
 - name: Install python httplib2 dependency
   pip:
