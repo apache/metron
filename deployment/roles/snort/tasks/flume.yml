@@ -4,24 +4,12 @@
   with_items:
     - { src: flume-snort.conf, dest: /etc/flume/conf/flume-snort.conf }
 
-- name: Set kafka broker in flume
-  lineinfile: >
-    dest="{{ item.dest }}"
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-    state=present
+- name: Configure destination for snort alerts
+  lineinfile: dest=/etc/flume/conf/flume-snort.conf regexp={{ item.regexp }} line={{ item.line }}
   with_items:
-    - { dest: /etc/flume/conf/flume-snort.conf,
-        regexp: '^snort\.sinks\.kafka-sink\.brokerList.*$',
+    - { regexp: '^snort\.sinks\.kafka-sink\.brokerList.*$',
         line: 'snort.sinks.kafka-sink.brokerList = {{ kafka_broker_url }}' }
-
-- name: Set kafka topics in flume
-  lineinfile: >
-    dest="{{ item.dest }}"
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-    state=present
-  with_items:
-    - { dest: /etc/flume/conf/flume-snort.conf,
-        regexp: '^snort\.sinks\.kafka-sink\.topic.*$',
+    - { regexp: '^snort\.sinks\.kafka-sink\.topic.*$',
         line: 'snort.sinks.kafka-sink.topic = {{ snort_topic }}'}
+    - { regexp: '^snort.sources.exec-source.command.*$',
+        line: 'snort.sources.exec-source.command = tail -F {{ snort_alert_csv_path }}' }
