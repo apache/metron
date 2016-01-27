@@ -1,4 +1,4 @@
-l---
+---
 - name: Retrieve HDP repository definition
   get_url:
     url: "{{ hdp_repo_def }}"
