@@ -1,4 +1,4 @@
-name: "sourcefire"
+name: "snort"
 config:
     topology.workers: 1
 
@@ -67,7 +67,7 @@ components:
             -   name: "put"
                 args: ["environment", "local"]
             -   name: "put"
-                args: ["topology", "sourcefire"]
+                args: ["topology", "snort"]
     -   id: "metricConfig"
         className: "org.apache.commons.configuration.BaseConfiguration"
         configMethods:
@@ -163,7 +163,7 @@ bolts:
                     - ref: "snortParser"
             -   name: "withOutputFieldName"
                 args:
-                    - "sourcefire"
+                    - "snort"
             -   name: "withMessageFilter"
                 args:
                     - ref: "genericMessageFilter"
@@ -183,7 +183,7 @@ bolts:
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withOutputFieldName"
-                args: ["sourcefire"]
+                args: ["snort"]
             -   name: "withKeys"
                 args:
                     - ref: "geoKeys"
@@ -203,7 +203,7 @@ bolts:
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withOutputFieldName"
-                args: ["sourcefire"]
+                args: ["snort"]
             -   name: "withKeys"
                 args:
                     - ref: "hostsKeys"
@@ -224,13 +224,13 @@ bolts:
                     - "${es.clustername}"
             -   name: "withIndexName"
                 args:
-                    - "sourcefire_index"
+                    - "snort_index"
             -   name: "withIndexTimestamp"
                 args:
                     - "yyyy.MM.dd.hh"
             -   name: "withDocumentName"
                 args:
-                    - "sourcefire_doc"
+                    - "snort_doc"
             -   name: "withBulk"
                 args:
                     - 1
@@ -278,7 +278,7 @@ bolts:
                     - "yyyy.MM.ww"
             -   name: "withDocumentName"
                 args:
-                    - "sourcefire_alert"
+                    - "snort_alert"
             -   name: "withBulk"
                 args:
                     - 1
@@ -308,7 +308,7 @@ bolts:
                     - "yyyy.MM"
             -   name: "withDocumentName"
                 args:
-                    - "sourcefire_error"
+                    - "snort_error"
             -   name: "withBulk"
                 args:
                     - 1
