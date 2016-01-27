@@ -21,7 +21,7 @@
     line="{{ item.line }}"
     state=present
   with_items:
-    - { regexp: '^.*export JAVA_HOME=.*$', line: 'export JAVA_HOME=/usr/jdk64/jdk1.8.0_40/' }
+    - { regexp: '^.*export JAVA_HOME=.*$', line: 'export JAVA_HOME={{ java_home }}' }
 
 - name: Create flume service
   shell: "{{item}}"
