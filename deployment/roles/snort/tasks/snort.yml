@@ -84,3 +84,4 @@
   lineinfile: dest=/etc/sysconfig/snort regexp="{{ item.regexp }}" line="{{ item.line }}"
   with_items:
     - { regexp: "^ALERTMODE=.*$", line: "ALERTMODE=" }
+    - { regexp: "^NO_PACKET_LOG=.*$", line: "NO_PACKET_LOG=1" }
