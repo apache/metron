@@ -70,12 +70,15 @@ spouts:
         className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
         parallelism: 1
         configMethods:
+            -   name: "withBinaryConverter"
+                args:
+                    - "${pcap.binary.converter}"
             -   name: "withFilename"
                 args:
-                    - "SampleInput/PCAPExampleOutput"
+                    - "${input.path}SampleInput/PCAPExampleOutput"
             -   name: "withRepeating"
                 args:
-                    - true
+                    - ${testing.repeating}
 
 bolts:
     -   id: "parserBolt"
