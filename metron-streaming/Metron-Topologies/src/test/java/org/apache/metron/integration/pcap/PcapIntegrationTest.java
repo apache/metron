@@ -4,7 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.UnitTestHelper;
@@ -44,7 +46,7 @@ public class PcapIntegrationTest {
         }
         Assert.assertNotNull(topologiesDir);
         Assert.assertNotNull(targetDir);
-        final Set<String> expectedPcapIds= getExpectedPcap(new File(topologiesDir + "/../../SampleInput/PCAPExampleOutput"));
+        final List<String> expectedPcapIds= getExpectedPcap(new File(topologiesDir + "/../../SampleInput/PCAPExampleOutput"));
         Assert.assertTrue("Expected non-zero number of PCAP Ids from the sample data", expectedPcapIds.size() > 0);
         System.out.println("Using topologies directory: " + topologiesDir);
 
@@ -110,7 +112,7 @@ public class PcapIntegrationTest {
                     } catch (IOException e) {
                         throw new IllegalStateException("Unable to retrieve indexed documents.", e);
                     }
-                    if(docs.size() < expectedPcapIds.size()) {
+                    if(docs.size() < expectedPcapIds.size() && MockHBaseConnector.getPuts().size() < expectedPcapIds.size()) {
                         return ReadinessState.NOT_READY;
                     }
                     else {
@@ -126,17 +128,19 @@ public class PcapIntegrationTest {
                 return docs;
             }
         });
-        for(Put p : MockHBaseConnector.getPuts()) {
-            System.out.println(p);
-        }
+
+        Assert.assertEquals(expectedPcapIds.size(), MockHBaseConnector.getPuts().size());
         UnitTestHelper.assertSetEqual("PCap IDs from Index"
-                                     , expectedPcapIds
+                                     , new HashSet<String>(expectedPcapIds)
                                      , convertToSet(Iterables.transform(docs, DOC_TO_PCAP_ID))
                                      );
         UnitTestHelper.assertSetEqual("PCap IDs from HBase"
-                                     , expectedPcapIds
+                                     , new HashSet<String>(expectedPcapIds)
                                      , convertToSet(Iterables.transform(MockHBaseConnector.getPuts(), RK_TO_PCAP_ID))
                                      );
+        Iterable<PacketInfo> packetsFromHBase = Iterables.transform(MockHBaseConnector.getPuts(), PUT_TO_PCAP);
+        Assert.assertEquals(expectedPcapIds.size(), Iterables.size(packetsFromHBase));
+        MockHBaseConnector.clear();
         runner.stop();
     }
 
@@ -161,10 +165,21 @@ public class PcapIntegrationTest {
         }
     };
 
+    public static final Function<Put, PacketInfo> PUT_TO_PCAP = new Function<Put, PacketInfo>() {
+        @Nullable
+        public PacketInfo apply(@Nullable Put put) {
+            try {
+                return putToPcap(put);
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to convert put to PCAP: " + put);
+            }
+        }
+    };
 
 
-    private static Set<String> getExpectedPcap(File rawFile) throws IOException {
-        Set<String> ret = new HashSet<String>();
+
+    private static List<String> getExpectedPcap(File rawFile) throws IOException {
+        List<String> ret = new ArrayList<String>();
         BufferedReader br = new BufferedReader(new FileReader(rawFile));
         for(String line = null; (line = br.readLine()) != null;) {
             byte[] pcapBytes = new HexStringConverter().convert(line);
@@ -179,11 +194,18 @@ public class PcapIntegrationTest {
         return ret;
     }
 
-
     private static String getIndex() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.hh");
         Date d = new Date();
         return "pcap_index_" + sdf.format(d);
+    }
+
+    private static PacketInfo putToPcap(Put p) throws IOException {
+        List<Cell> cells = p.get(Bytes.toBytes("t"), Bytes.toBytes("pcap"));
+        Assert.assertEquals(1, cells.size());
+        List<PacketInfo> l = PcapParser.parse(cells.get(0).getValueArray());
+        Assert.assertEquals(1, l.size());
+        return l.get(0);
     }
 
 }
