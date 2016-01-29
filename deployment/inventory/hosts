@@ -1,9 +1,0 @@
-[ambari_master]
-host0     ansible_ssh_private_key_file=keys/some-key.pem ansible_ssh_user=ec2-user
-
-[hadoop_master]
-host1   ansible_ssh_private_key_file=keys/some-key.pem ansible_ssh_user=ec2-user
-
-[hadoop_slaves]
-host2  ansible_ssh_private_key_file=keys/some-key.pem ansible_ssh_user=ec2-user
-host3  ansible_ssh_private_key_file=keys/some-key.pem ansible_ssh_user=ec2-user

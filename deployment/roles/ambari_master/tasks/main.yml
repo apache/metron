@@ -7,7 +7,7 @@
   shell: ambari-server setup -s; touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
   register: ambari_server_setup
   failed_when: ambari_server_setup.stderr
-  
+
 - name: start ambari server
   service: name=ambari-server state=restarted
 

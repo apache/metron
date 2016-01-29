@@ -1,0 +1,4 @@
+---
+pycapa_repo: https://github.com/OpenSOC/pycapa.git
+pycapa_home: /opt/pycapa
+pycapa_topic: pcap

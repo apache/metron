@@ -1,0 +1,27 @@
+---
+- name: Install flume configurations
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: flume-ipfix.conf, dest: /etc/flume/conf/flume-ipfix.conf }
+
+- name: Set kafka broker in flume
+  lineinfile: >
+    dest="{{ item.dest }}"
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { dest: /etc/flume/conf/flume-ipfix.conf,
+        regexp: '^ipfix\.sinks\.kafka-sink\.brokerList.*$',
+        line: 'ipfix.sinks.kafka-sink.brokerList = {{ kafka_broker_url }}' }
+
+- name: Set kafka topics in flume
+  lineinfile: >
+    dest="{{ item.dest }}"
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { dest: /etc/flume/conf/flume-ipfix.conf,
+        regexp: '^ipfix\.sinks\.kafka-sink\.topic.*$',
+        line: 'ipfix.sinks.kafka-sink.topic = {{ yaf_topic }}'}

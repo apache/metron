@@ -1,16 +1,17 @@
 ---
 # tasks file for ambari_slave
-- include_vars: roles/ambari_common/vars/main.yml
-- include: pwdless-ssh.yml
-
-- name: install ambari-agent
-  yum: name=ambari-agent state=latest
+- name: Install ambari-agent
+  yum: name=ambari-agent
 
 - name: Configure ambari-server hostname in ambari-agent configuration
-  lineinfile: dest=/etc/ambari-agent/conf/ambari-agent.ini regexp=^.*hostname=.*$ line=hostname="{{groups.ambari_master[0]}}" backup=yes
+  lineinfile:
+    dest: /etc/ambari-agent/conf/ambari-agent.ini
+    regexp: ^.*hostname=.*$
+    line: hostname={{ ansible_hostname }}
+    backup: yes
 
 - name: Ensure ambari-agent is running
   service: name=ambari-agent state=restarted
 
-- name : wait for agent to register
+- name : Wait for agent to register
   command : sleep 10

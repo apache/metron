@@ -1,3 +1,0 @@
----
-- name: Generating RSA key for user
-  user: name={{ keygen_user }} generate_ssh_key=yes

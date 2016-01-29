@@ -10,3 +10,9 @@ opensoc-streaming/OpenSOC-Topologies/target/
 *~
 target
 *dependency-reduced-pom.xml
+.idea
+*.iml
+.DS_Store
+*.project
+*.classpath
+*.settings
