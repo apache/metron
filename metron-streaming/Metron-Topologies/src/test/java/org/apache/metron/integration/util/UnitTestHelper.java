@@ -4,8 +4,10 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.junit.Assert;
 
 import java.io.File;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -34,6 +36,23 @@ public class UnitTestHelper {
             }
         }
         return null;
+    }
+
+    public static <T> void assertSetEqual(String type, Set<T> expectedPcapIds, Set<T> found) {
+        boolean mismatch = false;
+        for(T f : found) {
+            if(!expectedPcapIds.contains(f)) {
+                mismatch = true;
+                System.out.println("Found " + type + " that I did not expect: " + f);
+            }
+        }
+        for(T expectedId : expectedPcapIds) {
+            if(!found.contains(expectedId)) {
+                mismatch = true;
+                System.out.println("Expected " + type + " that I did not index: " + expectedId);
+            }
+        }
+        Assert.assertFalse(mismatch);
     }
 
     public static void verboseLogging() {

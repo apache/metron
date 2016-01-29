@@ -1,11 +1,17 @@
 package org.apache.metron.integration.pcap;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
+import org.apache.metron.integration.util.mock.MockHBaseConnector;
 import org.apache.metron.parsing.parsers.PcapParser;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.test.converters.HexStringConverter;
@@ -14,6 +20,7 @@ import org.json.simple.JSONValue;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -65,19 +72,33 @@ public class PcapIntegrationTest {
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.acks", "true");
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.emits","true");
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.fails","true");
+            setProperty("kafka.zk.list", "localhost");
+            setProperty("kafka.zk.port", "2000");
+            setProperty("bolt.hbase.table.name", "pcap_test");
+            setProperty("bolt.hbase.table.fields", "t:pcap");
+            setProperty("bolt.hbase.table.key.tuple.field.name", "pcap_id");
+            setProperty("bolt.hbase.table.timestamp.tuple.field.name", "timestamp");
+            setProperty("bolt.hbase.enable.batching", "false");
+            setProperty("bolt.hbase.write.buffer.size.in.bytes", "2000000");
+            setProperty("bolt.hbase.durability", "SKIP_WAL");
+            setProperty("bolt.hbase.partitioner.region.info.refresh.interval.mins","60");
+            setProperty("hbase.connector.impl","org.apache.metron.integration.util.mock.MockHBaseConnector");
         }};
         FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
                                                                        .withTopologyLocation(new File(topologiesDir + "/pcap/local.yaml"))
                                                                        .withTopologyName("pcap")
                                                                        .withTopologyProperties(topologyProperties)
                                                                        .build();
+
         ComponentRunner runner = new ComponentRunner.Builder()
                                                     .withComponent("elasticsearch", esComponent)
                                                     .withComponent("storm", fluxComponent)
                                                     .build();
 
         final String index = getIndex();
+        System.out.println("Index of the run: " + index);
         runner.start();
+        fluxComponent.submitTopology();
         List<Map<String, Object>> docs =
         runner.process(new Processor<List<Map<String, Object>>> () {
             List<Map<String, Object>> docs = null;
@@ -105,30 +126,42 @@ public class PcapIntegrationTest {
                 return docs;
             }
         });
-        checkDocuments(expectedPcapIds, docs);
+        for(Put p : MockHBaseConnector.getPuts()) {
+            System.out.println(p);
+        }
+        UnitTestHelper.assertSetEqual("PCap IDs from Index"
+                                     , expectedPcapIds
+                                     , convertToSet(Iterables.transform(docs, DOC_TO_PCAP_ID))
+                                     );
+        UnitTestHelper.assertSetEqual("PCap IDs from HBase"
+                                     , expectedPcapIds
+                                     , convertToSet(Iterables.transform(MockHBaseConnector.getPuts(), RK_TO_PCAP_ID))
+                                     );
         runner.stop();
     }
 
-    private static void checkDocuments(Set<String> expectedPcapIds, List<Map<String, Object>> documents) {
-
-        boolean mismatch = false;
-        Set<String> indexedPcapIds = new HashSet<String>();
-        for(Map<String, Object> doc : documents) {
-            String indexedId = (String)doc.get("pcap_id");
-            indexedPcapIds.add(indexedId);
-            if(!expectedPcapIds.contains(indexedId)) {
-                mismatch = true;
-                System.out.println("Indexed PCAP ID that I did not expect: " + indexedId);
-            }
-        }
-        for(String expectedId : expectedPcapIds) {
-            if(!indexedPcapIds.contains(expectedId)) {
-                mismatch = true;
-                System.out.println("Expected PCAP ID that I did not index: " + expectedId);
-            }
-        }
-        Assert.assertFalse(mismatch);
+    public static Set<String> convertToSet(Iterable<String> strings) {
+        Set<String> ret = new HashSet<String>();
+        Iterables.addAll(ret, strings);
+        return ret;
     }
+    public static final Function<Put, String> RK_TO_PCAP_ID = new Function<Put, String>() {
+        @Nullable
+        public String apply(@Nullable Put put) {
+            String rk =new String(put.getRow());
+            return Joiner.on("-").join(Iterables.limit(Splitter.on('-').split(rk), 5));
+        }
+    };
+
+    public static final Function<Map<String, Object>, String> DOC_TO_PCAP_ID = new Function<Map<String, Object>, String>() {
+
+        @Nullable
+        public String apply(@Nullable Map<String, Object> doc) {
+            return (String)doc.get("pcap_id");
+        }
+    };
+
+
 
     private static Set<String> getExpectedPcap(File rawFile) throws IOException {
         Set<String> ret = new HashSet<String>();

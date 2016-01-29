@@ -73,7 +73,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
 
     public void start() throws UnableToStartException{
         try {
-            startTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
+            stormCluster = new LocalCluster();
         } catch (Exception e) {
             throw new UnableToStartException("Unable to start flux topology: " + getTopologyLocation(), e);
         }
@@ -82,6 +82,10 @@ public class FluxTopologyComponent implements InMemoryComponent {
     public void stop() {
         stormCluster.shutdown();
     }
+
+    public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
+        startTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
+    }
     private void startTopology(String topologyName, File topologyLoc, Properties properties) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, TException {
         TopologyDef topologyDef = loadYaml(topologyName, topologyLoc, properties);
         Config conf = FluxBuilder.buildConfig(topologyDef);
@@ -89,12 +93,12 @@ public class FluxTopologyComponent implements InMemoryComponent {
         StormTopology topology = FluxBuilder.buildTopology(context);
         Assert.assertNotNull(topology);
         topology.validate();
-        stormCluster = new LocalCluster();
         stormCluster.submitTopology(topologyName, conf, topology);
     }
 
     private static TopologyDef loadYaml(String topologyName, File yamlFile, Properties properties) throws IOException {
         File tmpFile = File.createTempFile(topologyName, "props");
+        tmpFile.deleteOnExit();
         FileWriter propWriter = null;
         try {
             propWriter = new FileWriter(tmpFile);

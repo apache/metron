@@ -132,7 +132,6 @@ public class ElasticSearchComponent implements InMemoryComponent {
     }
 
     public List<Map<String, Object>> getAllIndexedDocs(String index) throws IOException {
-        System.out.println(index);
         getClient().admin().indices().refresh(new RefreshRequest());
         SearchResponse response = getClient().prepareSearch(index)
                 .setTypes("pcap_doc")
