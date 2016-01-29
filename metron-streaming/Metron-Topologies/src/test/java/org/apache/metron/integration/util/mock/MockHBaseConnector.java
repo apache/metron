@@ -29,7 +29,9 @@ public class MockHBaseConnector extends Connector {
     public void close() {
 
     }
-
+    public static void clear() {
+        puts.clear();
+    }
     public static List<Put> getPuts() {
         return puts;
     }
