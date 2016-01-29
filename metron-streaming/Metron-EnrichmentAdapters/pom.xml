@@ -26,7 +26,7 @@
 		<slf4j.version>1.7.7</slf4j.version>
 		<hbase.client.version>0.96.1-hadoop2</hbase.client.version>
 		<storm.hdfs.version>0.1.2</storm.hdfs.version>
-		<guava.version>17.0</guava.version>
+    <guava.version>${global_guava_version}</guava.version>
 	</properties>
 	<dependencies>
 		<dependency>

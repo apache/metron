@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.metron.test.converters.BinaryConverters;
 import org.apache.metron.test.converters.IConverter;
 import org.apache.metron.test.filereaders.FileReader;
@@ -56,6 +58,9 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 	
 	public GenericInternalTestSpout withFilename(String filename)
 	{
+		if(filename != null && filename.length() > 0 && filename.charAt(0) == '$') {
+			filename = Iterables.getLast(Splitter.on("}").split(filename));
+		}
 		_filename = filename;
 		return this;
 	}
