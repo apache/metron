@@ -70,17 +70,18 @@
 - name: Download snort configuration
   copy: src=snort.conf dest=/etc/snort/snort.conf
 
-- name: Configure snort
+- name: Configure network
   lineinfile: dest=/etc/snort/snort.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
   with_items:
     - { regexp: "^ipvar HOME_NET.*$", line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}" }
 
-- name: Configure snort to generate csv alerts
+- name: Configure alerting
   lineinfile:
     dest: /etc/snort/snort.conf
     line: "output alert_csv: {{ snort_alert_csv_path }} default"
 
-- name: Configure snort to generate csv alerts
+- name: Configure sysconfig
   lineinfile: dest=/etc/sysconfig/snort regexp="{{ item.regexp }}" line="{{ item.line }}"
   with_items:
-    - { regexp: "^ALERTMODE=.*$", line: "ALERTMODE=csv: {{ snort_alert_csv_path }}" }
+    - { regexp: "^ALERTMODE=.*$", line: "ALERTMODE=" }
+    - { regexp: "^NO_PACKET_LOG=.*$", line: "NO_PACKET_LOG=1" }
