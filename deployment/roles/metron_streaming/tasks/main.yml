@@ -50,6 +50,14 @@
     - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
     - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
 
+- name: Add Elasticsearch templates for topologies
+  uri:
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_yaf"
+    method: POST
+    body: "{{ lookup('file','yaf_index.template') }}"
+    status_code: 200
+    body_format: json
+
 - name: Submit Metron topologies
   command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ item }} --filter {{ metron_properties_config_path }}
   ignore_errors: yes
@@ -57,3 +65,4 @@
     - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
     - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
     - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"

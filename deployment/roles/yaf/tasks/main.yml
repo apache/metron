@@ -1,10 +1,74 @@
 ---
-- include: yaf.yml
+- name: Install development tools
+  yum: name="@Development tools" state=present
 
-- include: flume.yml
+- name: Install prerequisites
+  yum: name={{ item }}
+  with_items:
+    - libpcap
+    - libpcap-devel
+    - pcre
+    - pcre-devel
+    - glib2-devel
+    - zlib
+    - zlib-devel
 
-- name: Start flume service to consume ipfix
-  service: name=flume-agent state=restarted args=ipfix
+- name: Download fixbuf
+  get_url:
+    url: "http://tools.netsa.cert.org/releases/libfixbuf-{{fixbuf_version}}.tar.gz"
+    dest: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
 
-- name: Start yaf service to produce ipfix
-  service: name=yaf state=restarted
+- name: Extract fixbuf tarball
+  unarchive:
+    src: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
+    dest: /tmp
+    copy: no
+    creates: "/tmp/libfixbuf-{{fixbuf_version}}"
+
+- name: Compile and Install fixbuf
+  shell: "{{item}}"
+  args:
+    chdir: "/tmp/libfixbuf-{{fixbuf_version}}"
+  with_items:
+    - ./configure
+    - make
+    - make install
+
+- name: Download yaf
+  get_url:
+    url: "http://tools.netsa.cert.org/releases/yaf-{{yaf_version}}.tar.gz"
+    dest: "/tmp/yaf-{{yaf_version}}.tar.gz"
+
+- name: Extract yaf tarball
+  unarchive:
+    src: "/tmp/yaf-{{yaf_version}}.tar.gz"
+    dest: /tmp
+    copy: no
+    creates: /usr/local/bin/yaf
+
+- name: Compile and install yaf
+  shell: "{{item}}"
+  args:
+    chdir: "/tmp/yaf-{{yaf_version}}"
+    creates: /usr/local/bin/yaf
+  with_items:
+    - ./configure --enable-applabel --enable-plugins
+    - make
+    - make install
+
+- name: Create Yaf home directory
+  file:
+    path: "{{ yaf_home }}"
+    state: directory
+    mode: 0755
+
+- name: Add Yaf startup script
+  copy:
+    src: start-yaf.sh
+    dest: "{{ yaf_home }}/start-yaf.sh"
+    mode: 0755
+
+- name: Start yaf
+  shell: "daemonize -c {{ yaf_home }} -e /var/log/yaf.log -o /var/log/yaf.log -l /var/lock/subsys/yaf {{yaf_home}}/start-yaf.sh {{ kafka_broker_url }}"
+  args:
+    creates: /var/lock/subsys/yaf
