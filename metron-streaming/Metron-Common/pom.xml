@@ -23,7 +23,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<kafka.version>0.8.0</kafka.version>
 		<commons.config.version>1.10</commons.config.version>
 		<hbase.version>0.98.5-hadoop2</hbase.version>
 	</properties>
@@ -58,7 +57,7 @@
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka_2.9.2</artifactId>
-			<version>0.8.0</version>
+			<version>${global_kafka_version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -93,7 +92,7 @@
 		<dependency>
 			<groupId>org.krakenapps</groupId>
 			<artifactId>kraken-pcap</artifactId>
-			<version>1.7.1</version>
+			<version>${global_pcap_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

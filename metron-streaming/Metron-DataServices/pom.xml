@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>org.krakenapps</groupId>
 			<artifactId>kraken-pcap</artifactId>
-			<version>1.5.0</version>
+			<version>${global_pcap_version}</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
@@ -47,12 +47,7 @@
 			<version>${parent.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>
@@ -246,7 +241,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
+			<version>${global_junit_version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -395,8 +390,13 @@
 		<!-- Kafka -->
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>${global_kafka_version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka_2.9.2</artifactId>
-			<version>0.8.1.1</version>
+			<version>${global_kafka_version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>javax.jms</groupId>

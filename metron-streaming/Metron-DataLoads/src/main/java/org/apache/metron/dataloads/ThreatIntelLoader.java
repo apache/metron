@@ -96,7 +96,11 @@ public class ThreatIntelLoader {
 				LOG.error("Problem communicationg with HBase");
 				LOG.error(e);
 				System.exit(-1);
-			} 
+			} catch (IOException e) {
+				LOG.error("Problem communicationg with HBase");
+				LOG.error(e);
+				System.exit(-1);
+			}
 		}
 		
 	}

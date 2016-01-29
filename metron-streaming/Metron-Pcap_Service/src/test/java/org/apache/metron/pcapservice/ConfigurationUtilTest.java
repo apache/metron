@@ -1,10 +1,10 @@
 package org.apache.metron.pcapservice;
 
-import org.eclipse.jdt.internal.core.Assert;
 import org.junit.Test;
 
 import org.apache.metron.pcapservice.ConfigurationUtil;
 import org.apache.metron.pcapservice.ConfigurationUtil.SizeUnit;
+import org.springframework.util.Assert;
 
 /**
  * The Class ConfigurationUtilTest.

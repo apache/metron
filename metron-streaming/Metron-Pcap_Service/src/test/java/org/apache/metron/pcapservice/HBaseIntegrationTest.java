@@ -46,7 +46,7 @@ public class HBaseIntegrationTest {
    *           Signals that an I/O exception has occurred.
    */
   private void createTable() throws IOException {
-    testTable = testUtil.createTable("test_pcaps_local", "cf");
+    testTable = testUtil.createTable(Bytes.toBytes("test_pcaps_local"), Bytes.toBytes("cf"));
     System.out.println("after 'test_pcaps_local' table creation ");
     // create put
     Put put = new Put(Bytes.toBytes("1111")); // row key =1111

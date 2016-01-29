@@ -56,7 +56,7 @@ public class HBaseBolt implements IRichBolt {
 
   public Connector createConnector() throws IOException{
     initialize();
-    if(connectorImpl == null) {
+    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
       return new HTableConnector(conf, _quorum, _port);
     }
     else {
