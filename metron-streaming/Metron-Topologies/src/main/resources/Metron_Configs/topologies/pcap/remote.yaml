@@ -113,8 +113,7 @@ bolts:
         className: "org.apache.metron.hbase.HBaseBolt"
         constructorArgs:
             - ref: "hbaseConfig"
-            - "${kafka.zk.list}"
-            - "${kafka.zk.port}"
+            - "${kafka.zk}"
     -   id: "parserBolt"
         className: "org.apache.metron.parsing.PcapParserBolt"
         configMethods:

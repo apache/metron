@@ -104,8 +104,7 @@ bolts:
         className: "org.apache.metron.hbase.HBaseBolt"
         constructorArgs:
             - ref: "hbaseConfig"
-            - "${kafka.zk.list}"
-            - "${kafka.zk.port}"
+            - "${kafka.zk}"
         configMethods:
             -   name: "withConnector"
                 args:

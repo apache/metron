@@ -74,8 +74,7 @@ public class PcapIntegrationTest {
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.acks", "true");
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.emits","true");
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.fails","true");
-            setProperty("kafka.zk.list", "localhost");
-            setProperty("kafka.zk.port", "2000");
+            setProperty("kafka.zk", "localhost:2000,localhost:2000");
             setProperty("bolt.hbase.table.name", "pcap_test");
             setProperty("bolt.hbase.table.fields", "t:pcap");
             setProperty("bolt.hbase.table.key.tuple.field.name", "pcap_id");

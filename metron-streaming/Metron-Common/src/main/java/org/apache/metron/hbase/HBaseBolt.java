@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -34,6 +38,7 @@ import org.apache.metron.helpers.topology.ErrorGenerator;
 @SuppressWarnings("serial")
 public class HBaseBolt implements IRichBolt {
   private static final Logger LOG = Logger.getLogger(HBaseBolt.class);
+  private static final String DEFAULT_ZK_PORT = "2181";
 
   protected OutputCollector collector;
   protected TupleTableConfig conf;
@@ -48,7 +53,23 @@ public class HBaseBolt implements IRichBolt {
     _quorum = quorum;
     _port = port;
   }
+  public HBaseBolt(final TupleTableConfig conf, String zkConnectString) throws IOException {
+    this(conf, zkConnectStringToHosts(zkConnectString), zkConnectStringToPort(zkConnectString));
+  }
+  public static String zkConnectStringToHosts(String connString) {
+    Iterable<String> hostPortPairs = Splitter.on(',').split(connString);
+    return Joiner.on(',').join(Iterables.transform(hostPortPairs, new Function<String, String>() {
 
+      @Override
+      public String apply(String hostPortPair) {
+        return Iterables.getFirst(Splitter.on(':').split(hostPortPair), "");
+      }
+    }));
+  }
+  public static String zkConnectStringToPort(String connString) {
+    String hostPortPair = Iterables.getFirst(Splitter.on(",").split(connString), "");
+    return Iterables.getLast(Splitter.on(":").split(hostPortPair),DEFAULT_ZK_PORT);
+  }
   public HBaseBolt withConnector(String connectorImpl) {
     this.connectorImpl = connectorImpl;
     return this;

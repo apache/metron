@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.Serializable;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTable;
@@ -14,6 +18,8 @@ import org.apache.log4j.Logger;
 
 import backtype.storm.generated.Bolt;
 
+import javax.annotation.Nullable;
+
 /**
  * HTable connector for Storm {@link Bolt}
  * <p>
@@ -23,10 +29,12 @@ import backtype.storm.generated.Bolt;
 @SuppressWarnings("serial")
 public class HTableConnector extends Connector implements Serializable{
   private static final Logger LOG = Logger.getLogger(HTableConnector.class);
-
   private Configuration conf;
   protected HTable table;
   private String tableName;
+
+
+
 
   /**
    * Initialize HTable connection
