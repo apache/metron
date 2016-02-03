@@ -32,6 +32,7 @@
 		<global_guava_version>18.0</global_guava_version>
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
+		<global_opencsv_version>3.7</global_opencsv_version>
 	</properties>
 	<licenses>
 		<license>
