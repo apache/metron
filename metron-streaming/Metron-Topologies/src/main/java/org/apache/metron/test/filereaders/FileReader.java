@@ -17,11 +17,7 @@
 
 package org.apache.metron.test.filereaders;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,9 +29,14 @@ public class FileReader {
 
 		List<String> lines = new LinkedList<String>();
 
-		InputStream stream = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream(filename);
-
+		InputStream stream = null;
+		if(new File(filename).exists()) {
+			stream = new FileInputStream(filename);
+		}
+		else {
+			stream = Thread.currentThread().getContextClassLoader()
+					.getResourceAsStream(filename);
+		}
 		DataInputStream in = new DataInputStream(stream);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String strLine;

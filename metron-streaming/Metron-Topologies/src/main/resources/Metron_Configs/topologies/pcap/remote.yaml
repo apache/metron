@@ -84,7 +84,24 @@ components:
                 value: true
             -   name: "startOffsetTime"
                 value: -1
-
+    -   id: "hbaseConfig"
+        className: "org.apache.metron.hbase.TupleTableConfig"
+        configMethods:
+            -   name: "withFields"
+                args:
+                    - "${bolt.hbase.table.fields}"
+            -   name: "withTable"
+                args:
+                    - "${bolt.hbase.table.name}"
+            -   name: "withRowKeyField"
+                args:
+                    - "${bolt.hbase.table.key.tuple.field.name}"
+            -   name: "withTimestampField"
+                args:
+                    - "${bolt.hbase.table.timestamp.tuple.field.name}"
+            -   name: "withBatch"
+                args:
+                    - ${bolt.hbase.enable.batching}
 spouts:
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
@@ -92,6 +109,11 @@ spouts:
             - ref: "kafkaConfig"
 
 bolts:
+    -   id: "hbaseBolt"
+        className: "org.apache.metron.hbase.HBaseBolt"
+        constructorArgs:
+            - ref: "hbaseConfig"
+            - "${kafka.zk}"
     -   id: "parserBolt"
         className: "org.apache.metron.parsing.PcapParserBolt"
         configMethods:
@@ -164,6 +186,13 @@ streams:
         to: "parserBolt"
         grouping:
             type: SHUFFLE
+    -   name: "parser -> hbase"
+        from: "parserBolt"
+        to: "hbaseBolt"
+        grouping:
+            streamId: "pcap_data_stream"
+            type: FIELDS
+            args: ["pcap_id"]
     -   name: "parser -> indexing"
         from: "parserBolt"
         to: "indexingBolt"

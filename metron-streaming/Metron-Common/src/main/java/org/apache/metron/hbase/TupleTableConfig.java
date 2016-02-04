@@ -30,7 +30,8 @@ public class TupleTableConfig implements Serializable {
   private boolean batch = true;
   protected Durability durability = Durability.USE_DEFAULT;
   private long writeBufferSize = 0L;
-  
+  private String fields;
+
   /**
    * Initialize configuration
    * 
@@ -62,7 +63,42 @@ public class TupleTableConfig implements Serializable {
     this.tupleTimestampField = timestampField;
     this.columnFamilies = new HashMap<String, Set<String>>();
   }
-  
+
+  public TupleTableConfig() {
+    this.columnFamilies = new HashMap<String, Set<String>>();
+  }
+
+  public TupleTableConfig withTable(String table) {
+    this.tableName = table;
+    return this;
+  }
+
+  public TupleTableConfig withRowKeyField(String rowKeyField) {
+    this.tupleRowKeyField = rowKeyField;
+    return this;
+  }
+
+  public TupleTableConfig withTimestampField(String timestampField) {
+    this.tupleTimestampField = timestampField;
+    return this;
+  }
+
+  public TupleTableConfig withFields(String fields) {
+    this.fields = fields;
+    return this;
+  }
+
+  public TupleTableConfig withBatch(Boolean isBatch) {
+    this.batch = isBatch;
+    return this;
+  }
+
+  public String getFields() {
+    return fields;
+  }
+
+
+
   /**
    * Add column family and column qualifier to be extracted from tuple
    * 
@@ -221,7 +257,7 @@ public class TupleTableConfig implements Serializable {
   }
   
   /**
-   * @param setDurability
+   * @param durability
    *          Sets whether to write to HBase's edit log.
    *          <p>
    *          Setting to false will mean fewer operations to perform when

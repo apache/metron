@@ -6,7 +6,6 @@ package org.apache.metron.pcapservice;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.jdt.internal.core.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.apache.metron.pcapservice.PcapHelper;
 import org.apache.metron.pcapservice.PcapHelper.TimeUnit;
+import org.springframework.util.Assert;
 
 // TODO: Auto-generated Javadoc
 /**

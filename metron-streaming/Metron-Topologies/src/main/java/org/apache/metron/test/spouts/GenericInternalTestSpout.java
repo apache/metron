@@ -17,10 +17,15 @@
 
 package org.apache.metron.test.spouts;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import org.apache.metron.test.converters.BinaryConverters;
+import org.apache.metron.test.converters.IConverter;
 import org.apache.metron.test.filereaders.FileReader;
 
 import backtype.storm.spout.SpoutOutputCollector;
@@ -47,11 +52,15 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 	private boolean _repeating = true;
 	
 	private SpoutOutputCollector _collector;
+	private IConverter _converter;
 	private FileReader Reader;
 	private int cnt = 0;
 	
 	public GenericInternalTestSpout withFilename(String filename)
 	{
+		if(filename != null && filename.length() > 0 && filename.charAt(0) == '$') {
+			filename = Iterables.getLast(Splitter.on("}").split(filename));
+		}
 		_filename = filename;
 		return this;
 	}
@@ -67,6 +76,16 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 		return this;
 	}
 
+	public GenericInternalTestSpout withBinaryConverter(String converter) {
+		if(converter == null) {
+			_converter = BinaryConverters.DEFAULT;
+		}
+		else {
+			_converter = BinaryConverters.valueOf(converter);
+		}
+		return this;
+	}
+
 
 	@SuppressWarnings("rawtypes") 
 	public void open(Map conf, TopologyContext context,
@@ -77,8 +96,7 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 			Reader =  new FileReader();
 			jsons = Reader.readFromFile(_filename);
 
-			
-		} catch (IOException e) 
+		} catch (Throwable e)
 		{
 			System.out.println("Could not read sample JSONs");
 			e.printStackTrace();
@@ -91,7 +109,7 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 		
 		if(cnt < jsons.size())
 		{
-			_collector.emit(new Values(jsons.get(cnt).getBytes()));
+			_collector.emit(new Values(_converter.convert(jsons.get(cnt))));
 		}
 		cnt ++;
 		
