@@ -23,13 +23,16 @@
 		<twitter>@ApacheMetron</twitter>
 		<global_storm_version>0.10.0</global_storm_version>
 		<global_flux_version>0.10.0</global_flux_version>
-		<global_kafka_version>0.8.0</global_kafka_version>
-		<global_hadoop_version>2.2.0</global_hadoop_version>
-		<global_hbase_version>0.98.0-hadoop2</global_hbase_version>
+		<global_pcap_version>1.7.1</global_pcap_version>
+		<global_kafka_version>0.8.2.2</global_kafka_version>
+		<global_hadoop_version>2.7.1</global_hadoop_version>
+		<global_hbase_version>1.1.1</global_hbase_version>
+		<global_flume_version>1.5.2</global_flume_version>
+		<global_elasticsearch_version>1.7.4</global_elasticsearch_version>
 		<global_json_simple_version>1.1.1</global_json_simple_version>
 		<global_metrics_version>3.0.2</global_metrics_version>
 		<global_junit_version>4.4</global_junit_version>
-		<global_guava_version>18.0</global_guava_version>
+		<global_guava_version>17.0</global_guava_version>
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 	</properties>

@@ -64,20 +64,51 @@ components:
                 args:
                     - "org.apache.metron.metrics.TelemetryIndexingBolt.fails"
                     - "${org.apache.metron.metrics.TelemetryIndexingBolt.fails}"
+    -   id: "hbaseConfig"
+        className: "org.apache.metron.hbase.TupleTableConfig"
+        configMethods:
+            -   name: "withFields"
+                args:
+                    - "${bolt.hbase.table.fields}"
+            -   name: "withTable"
+                args:
+                    - "${bolt.hbase.table.name}"
+            -   name: "withRowKeyField"
+                args:
+                    - "${bolt.hbase.table.key.tuple.field.name}"
+            -   name: "withTimestampField"
+                args:
+                    - "${bolt.hbase.table.timestamp.tuple.field.name}"
+            -   name: "withBatch"
+                args:
+                    - ${bolt.hbase.enable.batching}
+
 
 spouts:
     -   id: "testingSpout"
         className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
         parallelism: 1
         configMethods:
+            -   name: "withBinaryConverter"
+                args:
+                    - "${pcap.binary.converter}"
             -   name: "withFilename"
                 args:
-                    - "SampleInput/PCAPExampleOutput"
+                    - "${input.path}SampleInput/PCAPExampleOutput"
             -   name: "withRepeating"
                 args:
-                    - true
+                    - ${testing.repeating}
 
 bolts:
+    -   id: "hbaseBolt"
+        className: "org.apache.metron.hbase.HBaseBolt"
+        constructorArgs:
+            - ref: "hbaseConfig"
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withConnector"
+                args:
+                    - "${hbase.connector.impl}"
     -   id: "parserBolt"
         className: "org.apache.metron.parsing.PcapParserBolt"
         configMethods:
@@ -150,6 +181,13 @@ streams:
         to: "parserBolt"
         grouping:
             type: SHUFFLE
+    -   name: "parser -> hbase"
+        from: "parserBolt"
+        to: "hbaseBolt"
+        grouping:
+            streamId: "pcap_data_stream"
+            type: FIELDS
+            args: ["pcap_id"]
     -   name: "parser -> indexing"
         from: "parserBolt"
         to: "indexingBolt"
