@@ -101,7 +101,8 @@ public class ThreatIntelBulkLoader  {
         Option option;
         String shortCode;
         BulkLoadOptions(String shortCode, OptionHandler optionHandler) {
-            option = optionHandler.apply(shortCode);
+            this.shortCode = shortCode;
+            this.option = optionHandler.apply(shortCode);
         }
 
         public boolean has(CommandLine cli) {
@@ -123,6 +124,7 @@ public class ThreatIntelBulkLoader  {
             } catch (ParseException e) {
                 System.err.println("Unable to parse args: " + Joiner.on(' ').join(args));
                 e.printStackTrace(System.err);
+                printHelp();
                 System.exit(-1);
                 return null;
             }
@@ -170,9 +172,11 @@ public class ThreatIntelBulkLoader  {
         String cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
         Job job = new Job(conf);
         job.setJobName("ThreatIntelBulkLoader: " + input + " => " +  table + ":" + cf);
+        System.out.println("Configuring " + job.getJobName());
         job.setJarByClass(ThreatIntelBulkLoader.class);
         job.setMapperClass(org.apache.metron.dataloads.hbase.mr.BulkLoadMapper.class);
         job.setOutputFormatClass(TableOutputFormat.class);
+        //job.getConfiguration().set("zookeeper.znode.parent", "/hbase-unsecure");
         job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, table);
         job.getConfiguration().set(BulkLoadMapper.COLUMN_FAMILY_KEY, cf);
         job.getConfiguration().set(BulkLoadMapper.CONFIG_KEY, readExtractorConfig(new File(BulkLoadOptions.EXTRACTOR_CONFIG.get(cli))));
@@ -181,6 +185,7 @@ public class ThreatIntelBulkLoader  {
         job.setOutputValueClass(Put.class);
         job.setNumReduceTasks(0);
         FileInputFormat.addInputPath(job, new Path(input));
+        System.out.println(conf);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
