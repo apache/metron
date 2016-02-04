@@ -1,0 +1,23 @@
+---
+- name: Distribute bro plugin
+  copy: src=../../../bro-plugin-kafka dest=/tmp mode=0755
+
+- name: Compile and install the plugin
+  shell: "{{ item }}"
+  args:
+    chdir: "/tmp/bro-plugin-kafka"
+    creates: /usr/local/bro/lib/bro/plugins/METRON_KAFKA
+  with_items:
+    - "./configure --bro-dist=/tmp/bro-{{ bro_version }}"
+    - make
+    - make install
+
+- name: Configure bro plugin
+  lineinfile:
+    dest: /usr/local/bro/share/bro/site/local.bro
+    line: "{{ item }}"
+  with_items:
+    - "@load Metron/Kafka/logs-to-kafka.bro"
+    - "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);"
+    - "redef Kafka::kafka_broker_list = \"{{ kafka_broker_url }}\";"
+    - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
