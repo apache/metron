@@ -161,6 +161,25 @@ public class ThreatIntelBulkLoader  {
     private static String readExtractorConfig(File configFile) throws IOException {
         return Joiner.on("\n").join(Files.readLines(configFile, Charset.defaultCharset()));
     }
+
+    public static Job createJob(Configuration conf, String input, String table, String cf, String extractorConfigContents, long ts) throws IOException {
+        Job job = new Job(conf);
+        job.setJobName("ThreatIntelBulkLoader: " + input + " => " +  table + ":" + cf);
+        System.out.println("Configuring " + job.getJobName());
+        job.setJarByClass(ThreatIntelBulkLoader.class);
+        job.setMapperClass(org.apache.metron.dataloads.hbase.mr.BulkLoadMapper.class);
+        job.setOutputFormatClass(TableOutputFormat.class);
+        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, table);
+        job.getConfiguration().set(BulkLoadMapper.COLUMN_FAMILY_KEY, cf);
+        job.getConfiguration().set(BulkLoadMapper.CONFIG_KEY, extractorConfigContents);
+        job.getConfiguration().set(BulkLoadMapper.LAST_SEEN_KEY, "" + ts);
+        job.setOutputKeyClass(ImmutableBytesWritable.class);
+        job.setOutputValueClass(Put.class);
+        job.setNumReduceTasks(0);
+        FileInputFormat.addInputPath(job, new Path(input));
+        return job;
+    }
+
     public static void main(String... argv) throws IOException, java.text.ParseException, ClassNotFoundException, InterruptedException {
         Configuration conf = HBaseConfiguration.create();
         String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
@@ -170,21 +189,8 @@ public class ThreatIntelBulkLoader  {
         String input = BulkLoadOptions.INPUT_DATA.get(cli);
         String table = BulkLoadOptions.TABLE.get(cli);
         String cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
-        Job job = new Job(conf);
-        job.setJobName("ThreatIntelBulkLoader: " + input + " => " +  table + ":" + cf);
-        System.out.println("Configuring " + job.getJobName());
-        job.setJarByClass(ThreatIntelBulkLoader.class);
-        job.setMapperClass(org.apache.metron.dataloads.hbase.mr.BulkLoadMapper.class);
-        job.setOutputFormatClass(TableOutputFormat.class);
-        //job.getConfiguration().set("zookeeper.znode.parent", "/hbase-unsecure");
-        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, table);
-        job.getConfiguration().set(BulkLoadMapper.COLUMN_FAMILY_KEY, cf);
-        job.getConfiguration().set(BulkLoadMapper.CONFIG_KEY, readExtractorConfig(new File(BulkLoadOptions.EXTRACTOR_CONFIG.get(cli))));
-        job.getConfiguration().set(BulkLoadMapper.LAST_SEEN_KEY, "" + ts);
-        job.setOutputKeyClass(ImmutableBytesWritable.class);
-        job.setOutputValueClass(Put.class);
-        job.setNumReduceTasks(0);
-        FileInputFormat.addInputPath(job, new Path(input));
+        String extractorConfigContents = readExtractorConfig(new File(BulkLoadOptions.EXTRACTOR_CONFIG.get(cli)));
+        Job job = createJob(conf, input, table, cf, extractorConfigContents, ts);
         System.out.println(conf);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

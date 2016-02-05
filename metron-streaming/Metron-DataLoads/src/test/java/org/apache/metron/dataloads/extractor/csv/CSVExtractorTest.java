@@ -1,7 +1,7 @@
 package org.apache.metron.dataloads.extractor.csv;
 
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.extractor.ExtractorResults;
+import org.apache.metron.threatintel.ThreatIntelResults;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -87,14 +87,14 @@ public class CSVExtractorTest {
 
     public void validate(ExtractorHandler handler) throws IOException {
         {
-            ExtractorResults results = handler.getExtractor().extract("google.com,1.0,foo");
+            ThreatIntelResults results = handler.getExtractor().extract("google.com,1.0,foo");
             Assert.assertEquals("google.com", results.getKey().indicator);
             Assert.assertEquals("google.com", results.getValue().get("host"));
             Assert.assertEquals("foo", results.getValue().get("meta"));
             Assert.assertEquals(2, results.getValue().size());
         }
         {
-            ExtractorResults results = handler.getExtractor().extract("#google.com,1.0,foo");
+            ThreatIntelResults results = handler.getExtractor().extract("#google.com,1.0,foo");
             Assert.assertNull(results);
         }
     }

@@ -51,13 +51,20 @@
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
-				
 				   <artifactId>servlet-api</artifactId>
-				
 				   <groupId>javax.servlet</groupId>
-				
-				  </exclusion>
+				</exclusion>
+				<exclusion>
+				   <artifactId>log4j-over-slf4j</artifactId>
+				   <groupId>org.slf4j</groupId>
+				</exclusion>
 			</exclusions>			
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<version>${global_slf4j_version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
@@ -98,6 +105,16 @@
 			<groupId>org.krakenapps</groupId>
 			<artifactId>kraken-pcap</artifactId>
 			<version>${global_pcap_version}</version>
+			<exclusions>
+				<exclusion>
+				   <artifactId>slf4j-api</artifactId>
+				   <groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+				   <artifactId>slf4j-simple</artifactId>
+				   <groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

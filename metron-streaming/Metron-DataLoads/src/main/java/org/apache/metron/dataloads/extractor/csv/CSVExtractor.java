@@ -5,8 +5,7 @@ import com.google.common.collect.Iterables;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import org.apache.metron.dataloads.extractor.Extractor;
-import org.apache.metron.dataloads.extractor.ExtractorResults;
-import org.apache.metron.dataloads.hbase.ThreatIntelKey;
+import org.apache.metron.threatintel.ThreatIntelResults;
 
 import java.io.IOException;
 import java.util.*;
@@ -24,12 +23,12 @@ public class CSVExtractor implements Extractor {
     private CSVParser parser;
 
     @Override
-    public ExtractorResults extract(String line) throws IOException {
+    public ThreatIntelResults extract(String line) throws IOException {
         if(line.trim().startsWith("#")) {
             //comment
             return null;
         }
-        ExtractorResults ret = new ExtractorResults();
+        ThreatIntelResults ret = new ThreatIntelResults();
         String[] tokens = parser.parseLine(line);
         ret.getKey().indicator = tokens[indicatorColumn];
         for(Map.Entry<String, Integer> kv : columnMap.entrySet()) {

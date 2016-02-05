@@ -4,17 +4,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.metron.dataloads.extractor.ExtractorResults;
-import org.apache.metron.dataloads.hbase.Converter;
-import org.apache.metron.dataloads.hbase.ThreatIntelKey;
+import org.apache.metron.threatintel.ThreatIntelResults;
+import org.apache.metron.threatintel.hbase.Converter;
+import org.apache.metron.threatintel.ThreatIntelKey;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,9 +64,9 @@ public class TestBulkLoadMapper {
             ThreatIntelKey expectedKey = new ThreatIntelKey() {{
                 indicator = "google.com";
             }};
-            Put put = puts.get(new ImmutableBytesWritable(expectedKey.toRowKey()));
+            Put put = puts.get(new ImmutableBytesWritable(expectedKey.toBytes()));
             Assert.assertNotNull(puts);
-            Map.Entry<ExtractorResults, Long> results = Converter.INSTANCE.fromPut(put, "cf");
+            Map.Entry<ThreatIntelResults, Long> results = Converter.INSTANCE.fromPut(put, "cf");
             Assert.assertEquals(0L, (long)results.getValue());
             Assert.assertEquals(results.getKey().getKey().indicator, "google.com");
             Assert.assertEquals(results.getKey().getValue().size(), 2);

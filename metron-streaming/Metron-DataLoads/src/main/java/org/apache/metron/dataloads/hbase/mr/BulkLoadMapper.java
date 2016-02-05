@@ -7,8 +7,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.extractor.ExtractorResults;
-import org.apache.metron.dataloads.hbase.Converter;
+import org.apache.metron.threatintel.ThreatIntelResults;
+import org.apache.metron.threatintel.hbase.Converter;
 
 import java.io.IOException;
 
@@ -31,10 +31,10 @@ public class BulkLoadMapper extends Mapper<Object, Text, ImmutableBytesWritable,
 
     @Override
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-        ExtractorResults results = extractor.extract(value.toString());
+        ThreatIntelResults results = extractor.extract(value.toString());
         if(results != null) {
             Put put = Converter.INSTANCE.toPut(columnFamily, results.getKey(), results.getValue(), lastSeen);
-            write(new ImmutableBytesWritable(results.getKey().toRowKey()), put, context);
+            write(new ImmutableBytesWritable(results.getKey().toBytes()), put, context);
         }
     }
 

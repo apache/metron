@@ -27,8 +27,14 @@
 			<groupId>org.apache.metron</groupId>
 			<artifactId>Metron-Common</artifactId>
 			<version>${project.parent.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.storm</groupId>
+					<artifactId>storm-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		<dependency>
+		<!--dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
@@ -38,8 +44,12 @@
 			  	 <artifactId>servlet-api</artifactId>
 			   	 <groupId>javax.servlet</groupId>
 			  </exclusion>
+				<exclusion>
+				   <artifactId>log4j-over-slf4j</artifactId>
+				   <groupId>org.slf4j</groupId>
+				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency-->
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
@@ -58,9 +68,35 @@
 			<version>${global_hbase_version}</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-testing-util</artifactId>
+			<version>${global_hbase_version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<version>${global_slf4j_version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!--dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.5</version>
+			<scope>test</scope>
+		</dependency-->
+
 	</dependencies>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
+		<!--sourceDirectory>src</sourceDirectory-->
 		<resources>
 			<resource>
 				<directory>src</directory>
