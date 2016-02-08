@@ -60,10 +60,10 @@ public class PersistentAccessTracker implements AccessTracker {
         synchronized(sync) {
             if(force || (System.currentTimeMillis() - timestamp) >= maxMillisecondsBetweenPersists) {
                 //persist
-                Path savePath = new Path(basePath, getName() + "_" + timestamp);
+                Path savePath = AccessTrackerUtil.INSTANCE.getSavePath(basePath, underlyingTracker, timestamp);
                 //persist
                 try {
-                    Util.INSTANCE.persistTracker(fs, savePath, underlyingTracker);
+                    AccessTrackerUtil.INSTANCE.persistTracker(fs, savePath, underlyingTracker);
                     timestamp = System.currentTimeMillis();
                     reset();
                 } catch (IOException e) {

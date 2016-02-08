@@ -6,10 +6,9 @@ import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
-import org.apache.hadoop.io.Writable;
 import org.apache.metron.reference.lookup.LookupKey;
 import org.apache.metron.reference.lookup.accesstracker.AccessTracker;
-import org.apache.metron.reference.lookup.accesstracker.Util;
+import org.apache.metron.reference.lookup.accesstracker.AccessTrackerUtil;
 
 import java.io.IOException;
 
@@ -38,6 +37,9 @@ public class PrunerMapper extends TableMapper<ImmutableBytesWritable, Delete> {
 
     @Override
     public void map(ImmutableBytesWritable key, Result value, Context context) throws IOException, InterruptedException {
+        if(tracker == null || key == null) {
+            throw new RuntimeException("Tracker = " + tracker + " key = " + key);
+        }
         if(!tracker.hasSeen(toLookupKey(key.get()))) {
             Delete d = new Delete(key.get());
             context.write(key, d);
@@ -54,6 +56,6 @@ public class PrunerMapper extends TableMapper<ImmutableBytesWritable, Delete> {
     }
 
     protected AccessTracker loadAccessTracker(FileSystem fs, Path basePath, long timestamp) throws IOException, ClassNotFoundException {
-        return Util.INSTANCE.loadAll(fs, basePath, timestamp);
+        return AccessTrackerUtil.INSTANCE.loadAll(fs, basePath, timestamp);
     }
 }

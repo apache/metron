@@ -16,7 +16,7 @@ import java.io.ObjectOutputStream;
 /**
  * Created by cstella on 2/5/16.
  */
-public enum Util {
+public enum AccessTrackerUtil {
     INSTANCE;
     public static class PathFilter implements org.apache.hadoop.fs.PathFilter {
         Predicate<Path> predicate;
@@ -58,7 +58,6 @@ public enum Util {
         ObjectInputStream ois  = null;
         try {
             ois = new ObjectInputStream(fs.open(path));
-
             return (AccessTracker) (ois.readObject());
         }
         finally {
@@ -68,6 +67,9 @@ public enum Util {
         }
     }
 
+    public Path getSavePath(Path basePath, AccessTracker tracker, long timestamp) {
+        return new Path(basePath, tracker.getName() + "_" + timestamp);
+    }
     public void persistTracker(FileSystem fs, Path path, AccessTracker tracker) throws IOException {
         ObjectOutputStream oos = null;
         try {

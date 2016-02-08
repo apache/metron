@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Created by cstella on 2/3/16.
  */
-public class TestBulkLoadMapper {
+public class BulkLoadMapperTest {
     @Test
     public void testMapper() throws IOException, InterruptedException {
         /**

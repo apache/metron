@@ -160,6 +160,18 @@ public class LeastRecentlyUsedPruner {
                 job);
     }
 
+    public static Job createJob(Configuration conf, String table, String cf, String basePath, Long ts) throws IOException {
+        Job job = new Job(conf);
+        job.setJobName("LeastRecentlyUsedPruner: Pruning " +  table + ":" + cf + " since " + new SimpleDateFormat().format(new Date(ts)));
+        System.out.println("Configuring " + job.getJobName());
+        job.setJarByClass(LeastRecentlyUsedPruner.class);
+        job.getConfiguration().setLong(PrunerMapper.TIMESTAMP_CONF, ts);
+        job.getConfiguration().set(PrunerMapper.ACCESS_TRACKER_DIR_CONF, basePath);
+        setupHBaseJob(job, table, cf);
+        job.setNumReduceTasks(0);
+        return job;
+    }
+
     public static void main(String... argv) throws IOException, java.text.ParseException, ClassNotFoundException, InterruptedException {
         Configuration conf = HBaseConfiguration.create();
         String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
@@ -172,14 +184,7 @@ public class LeastRecentlyUsedPruner {
             cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
         }
         String basePath  = BulkLoadOptions.ACCESS_TRACKER_DATA.get(cli);
-        Job job = new Job(conf);
-        job.setJobName("LeastRecentlyUsedPruner: Pruning " +  table + ":" + cf + " since " + new SimpleDateFormat().format(new Date(ts)));
-        System.out.println("Configuring " + job.getJobName());
-        job.setJarByClass(LeastRecentlyUsedPruner.class);
-        job.getConfiguration().setLong(PrunerMapper.TIMESTAMP_CONF, ts);
-        job.getConfiguration().set(PrunerMapper.ACCESS_TRACKER_DIR_CONF, basePath);
-        setupHBaseJob(job, table, cf);
-        job.setNumReduceTasks(0);
+        Job job = createJob(conf, table, cf, basePath, ts);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

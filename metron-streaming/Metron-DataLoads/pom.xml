@@ -29,12 +29,12 @@
 			<version>${project.parent.version}</version>
 			<exclusions>
 				<exclusion>
-					<groupId>org.apache.storm</groupId>
-					<artifactId>storm-core</artifactId>
+					<groupId>com.googlecode.disruptor</groupId>
+					<artifactId>disruptor</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!--dependency>
+		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
@@ -48,8 +48,12 @@
 				   <artifactId>log4j-over-slf4j</artifactId>
 				   <groupId>org.slf4j</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.googlecode.disruptor</groupId>
+					<artifactId>disruptor</artifactId>
+				</exclusion>
 			</exclusions>
-		</dependency-->
+		</dependency>
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>

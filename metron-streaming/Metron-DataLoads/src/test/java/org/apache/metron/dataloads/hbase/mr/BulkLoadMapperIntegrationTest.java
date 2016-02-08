@@ -1,14 +1,9 @@
 package org.apache.metron.dataloads.hbase.mr;
 
-import com.google.common.base.Joiner;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
@@ -17,6 +12,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.metron.dataloads.ThreatIntelBulkLoader;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.apache.metron.threatintel.hbase.Converter;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +25,7 @@ import java.util.Map;
 /**
  * Created by cstella on 2/5/16.
  */
-public class IntegrationTestBulkLoadMapper {
+public class BulkLoadMapperIntegrationTest {
   /** The test util. */
   private HBaseTestingUtility testUtil;
 
@@ -40,32 +36,15 @@ public class IntegrationTestBulkLoadMapper {
   Configuration config = null;
   @Before
   public void setup() throws Exception {
-    config = HBaseConfiguration.create();
-    config.set("hbase.master.hostname", "localhost");
-    config.set("hbase.regionserver.hostname", "localhost");
-    testUtil = new HBaseTestingUtility(config);
-
-    testUtil.startMiniCluster(1);
-    testUtil.startMiniMapReduceCluster();
+    Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
+    config = kv.getValue();
+    testUtil = kv.getKey();
     testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
   }
 
-  public void writeFile(String contents, Path filename, FileSystem fs) throws IOException {
-    FSDataOutputStream os = fs.create(filename, true);
-    PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
-    pw.print(contents);
-    pw.flush();
-    os.close();
-  }
-
-  public String readFile(FileSystem fs, Path filename) throws IOException {
-    FSDataInputStream in = fs.open(filename);
-    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-    List<String> contents = new ArrayList<>();
-    for(String line = null;(line = br.readLine()) != null;) {
-      contents.add(line);
-    }
-    return Joiner.on('\n').join(contents);
+  @After
+  public void teardown() throws Exception {
+    HBaseUtil.INSTANCE.teardown(testUtil);
   }
 
   @Test
@@ -94,7 +73,7 @@ public class IntegrationTestBulkLoadMapper {
     Assert.assertNotNull(testTable);
     FileSystem fs = FileSystem.get(config);
     String contents = "google.com,1,foo";
-    writeFile(contents, new Path("input.csv"), fs);
+    HBaseUtil.INSTANCE.writeFile(contents, new Path("input.csv"), fs);
     Job job = ThreatIntelBulkLoader.createJob(config, "input.csv", tableName, cf, extractorConfig, 0L);
     Assert.assertTrue(job.waitForCompletion(true));
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
