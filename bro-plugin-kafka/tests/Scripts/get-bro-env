@@ -1,0 +1,21 @@
+#! /bin/sh
+#
+# BTest helper for getting values for Bro-related environment variables.
+
+base=`dirname $0`
+bro=`cat ${base}/../../build/CMakeCache.txt | grep BRO_DIST | cut -d = -f 2`
+
+if [ "$1" = "brobase" ]; then
+    echo ${bro}
+elif [ "$1" = "bropath" ]; then
+    ${bro}/build/bro-path-dev
+elif [ "$1" = "bro_plugin_path" ]; then
+    ( cd ${base}/../.. && pwd )
+elif [ "$1" = "bro_seed_file" ]; then
+    echo ${bro}/testing/btest/random.seed
+elif [ "$1" = "path" ]; then
+    echo ${bro}/build/src:${bro}/aux/btest:${base}/:${bro}/aux/bro-cut:$PATH
+else
+    echo "usage: `basename $0` <var>" >&2
+    exit 1
+fi

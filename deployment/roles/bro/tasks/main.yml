@@ -1,65 +1,29 @@
 ---
-- name: Install EPEL repository
-  yum: name=epel-release
-
 - name: Install prerequisites
   yum: name={{ item }}
   with_items:
     - libselinux-python
+    - cmake
+    - make
+    - gcc
+    - gcc-c++
+    - flex
+    - bison
     - libpcap
     - libpcap-devel
+    - openssl-devel
+    - python-devel
+    - swig
+    - zlib-devel
 
-- name: Install geoip data
-  yum: name={{ item }}
-  with_items:
-    - GeoIP
-    - GeoIP-devel
-    - GeoIP-data
+- include: librdkafka.yml
 
-- name: Distribute librdkafka
-  copy: src=librdkafka1-0.9.1-10.el6.x86_64.rpm dest=/tmp
+- include: bro.yml
 
-- name: Install librdkafka
-  yum: name=/tmp/librdkafka1-0.9.1-10.el6.x86_64.rpm
+- include: bro-plugin-kafka.yml
 
-- name: Distribute librdkafka-devel
-  copy: src=librdkafka-devel-0.9.1-10.el6.x86_64.rpm dest=/tmp
-
-- name: Install librdkafka
-  yum: name=/tmp/librdkafka-devel-0.9.1-10.el6.x86_64.rpm
-
-- name: Distribute bro
-  copy: src=Bro-2.2-344-Linux-x86_64.rpm dest=/tmp
-
-- name: Install bro
-  yum: name=/tmp/Bro-2.2-344-Linux-x86_64.rpm
-
-- name: Configure bro outputs
-  lineinfile:
-    dest: /opt/bro/share/bro/site/local.bro
-    line: "{{ item }}"
-  with_items:
-    - "@load policy/tuning/json-logs"
-    - "@load policy/tuning/logs-to-kafka"
-
-- name: Configure kafka broker
-  lineinfile:
-    dest: /opt/bro/share/bro/base/frameworks/logging/writers/kafka.bro
-    regexp: '^.*server_list.*$'
-    line: 'const server_list = "{{ kafka_broker_url }}" &redef;'
-
-- name: Configure kafka topic
-  lineinfile:
-    dest: /opt/bro/share/bro/base/frameworks/logging/writers/kafka.bro
-    regexp: '^.*topic_name.*$'
-    line: 'const topic_name = "{{ bro_topic }}" &redef;'
-
-- name: Remove funky broctl plugins
-  shell: rm -rf /opt/bro/lib/broctl/plugins/._*
-
-- name: Install updated bro configuration
-  shell: /opt/bro/bin/broctl install
+- name: Update bro configuration
+  shell: /usr/local/bro/bin/broctl install
 
 - name: Start bro
-  shell: /opt/bro/bin/broctl start
-
+  shell: /usr/local/bro/bin/broctl start
