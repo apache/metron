@@ -1,0 +1,5 @@
+module Kafka;
+
+const kafka_broker_list: string;
+const topic_name: string;
+const max_wait_on_delivery: count;

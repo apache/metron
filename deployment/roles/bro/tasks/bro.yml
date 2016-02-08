@@ -1,0 +1,22 @@
+---
+- name: Download bro
+  get_url:
+    url: "https://www.bro.org/downloads/release/bro-{{ bro_version }}.tar.gz"
+    dest: "/tmp/bro-{{ bro_version }}.tar.gz"
+
+- name: Extract bro tarball
+  unarchive:
+    src: "/tmp/bro-{{ bro_version }}.tar.gz"
+    dest: /tmp
+    copy: no
+    creates: "/tmp/bro-{{ bro_version }}"
+
+- name: Compile and Install bro
+  shell: "{{ item }}"
+  args:
+    chdir: "/tmp/bro-{{ bro_version }}"
+    creates: /usr/local/bro/bin/bro
+  with_items:
+    - ./configure
+    - make
+    - make install

@@ -1,0 +1,114 @@
+#!/bin/sh
+#
+# Wrapper for viewing/setting options that the plugin's CMake
+# scripts will recognize.
+#
+# Don't edit this. Edit configure.plugin to add plugin-specific options.
+#
+
+set -e
+command="$0 $*"
+
+if [ -e `dirname $0`/configure.plugin ]; then
+    # Include custom additions.
+    . `dirname $0`/configure.plugin
+fi
+
+# Check for `cmake` command.
+type cmake > /dev/null 2>&1 || {
+    echo "\
+This package requires CMake, please install it first, then you may
+use this configure script to access CMake equivalent functionality.\
+" >&2;
+    exit 1;
+}
+
+usage() {
+
+cat 1>&2 <<EOF
+Usage: $0 [OPTIONS]
+
+  Plugin Options:
+    --bro-dist=DIR             Path to Bro source tree
+    --install-root=DIR         Path where to install plugin into
+EOF
+
+if type plugin_usage >/dev/null 2>&1; then
+    plugin_usage 1>&2
+fi
+
+echo
+
+exit 1
+}
+
+# Function to append a CMake cache entry definition to the
+# CMakeCacheEntries variable
+#   $1 is the cache entry variable name
+#   $2 is the cache entry variable type
+#   $3 is the cache entry variable value
+append_cache_entry () {
+    CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
+}
+
+# set defaults
+builddir=build
+brodist=`cd ../../.. && pwd`
+installroot="default"
+CMakeCacheEntries=""
+
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+        *) optarg= ;;
+    esac
+
+    case "$1" in
+        --help|-h)
+            usage
+            ;;
+
+        --bro-dist=*)
+            brodist=`cd $optarg && pwd`
+            ;;
+
+        --install-root=*)
+            installroot=$optarg
+            ;;
+
+        *)
+            if type plugin_option >/dev/null 2>&1; then
+                plugin_option $1 && shift && continue;
+            fi
+
+            echo "Invalid option '$1'.  Try $0 --help to see available options."
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ ! -e "$brodist/bro-path-dev.in" ]; then
+    echo "Cannot determine Bro source directory, use --bro-dist=DIR."
+    exit 1
+fi
+
+append_cache_entry BRO_DIST PATH $brodist
+append_cache_entry CMAKE_MODULE_PATH PATH $brodist/cmake
+
+if [ "$installroot" != "default" ]; then
+    mkdir -p $installroot
+    append_cache_entry BRO_PLUGIN_INSTALL_ROOT PATH $installroot
+fi
+
+echo "Build Directory        : $builddir"
+echo "Bro Source Directory   : $brodist"
+
+mkdir -p $builddir
+cd $builddir
+
+cmake $CMakeCacheEntries ..
+
+echo "# This is the command used to configure this build" > config.status
+echo $command >> config.status
+chmod u+x config.status
