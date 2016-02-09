@@ -31,10 +31,11 @@ public class BulkLoadMapper extends Mapper<Object, Text, ImmutableBytesWritable,
 
     @Override
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-        ThreatIntelResults results = extractor.extract(value.toString());
-        if(results != null) {
-            Put put = Converter.INSTANCE.toPut(columnFamily, results.getKey(), results.getValue(), lastSeen);
-            write(new ImmutableBytesWritable(results.getKey().toBytes()), put, context);
+        for(ThreatIntelResults results : extractor.extract(value.toString())) {
+            if (results != null) {
+                Put put = Converter.INSTANCE.toPut(columnFamily, results.getKey(), results.getValue(), lastSeen);
+                write(new ImmutableBytesWritable(results.getKey().toBytes()), put, context);
+            }
         }
     }
 

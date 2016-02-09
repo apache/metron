@@ -1,6 +1,7 @@
 package org.apache.metron.dataloads.extractor;
 
 import org.apache.metron.dataloads.extractor.csv.CSVExtractor;
+import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 
 import java.util.Map;
 
@@ -13,6 +14,12 @@ public enum Extractors implements ExtractorCreator {
         @Override
         public Extractor create() {
             return new CSVExtractor();
+        }
+    })
+    ,STIX(new ExtractorCreator() {
+        @Override
+        public Extractor create() {
+            return new StixExtractor();
         }
     })
     ;

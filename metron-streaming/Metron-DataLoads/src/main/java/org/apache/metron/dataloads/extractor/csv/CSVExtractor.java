@@ -23,10 +23,10 @@ public class CSVExtractor implements Extractor {
     private CSVParser parser;
 
     @Override
-    public ThreatIntelResults extract(String line) throws IOException {
+    public Iterable<ThreatIntelResults> extract(String line) throws IOException {
         if(line.trim().startsWith("#")) {
             //comment
-            return null;
+            return Collections.emptyList();
         }
         ThreatIntelResults ret = new ThreatIntelResults();
         String[] tokens = parser.parseLine(line);
@@ -34,7 +34,7 @@ public class CSVExtractor implements Extractor {
         for(Map.Entry<String, Integer> kv : columnMap.entrySet()) {
             ret.getValue().put(kv.getKey(), tokens[kv.getValue()]);
         }
-        return ret;
+        return Arrays.asList(ret);
     }
 
     private static Map.Entry<String, Integer> getColumnMapEntry(String column, int i) {

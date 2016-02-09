@@ -1,5 +1,7 @@
 package org.apache.metron.dataloads.extractor;
 
+import org.apache.metron.dataloads.extractor.inputformat.Formats;
+import org.apache.metron.dataloads.extractor.inputformat.InputFormatHandler;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
@@ -16,6 +18,7 @@ public class ExtractorHandler {
     final static ObjectMapper _mapper = new ObjectMapper();
     private Map<String, Object> config;
     private Extractor extractor;
+    private InputFormatHandler inputFormatHandler = Formats.BY_LINE;
 
     public Map<String, Object> getConfig() {
         return config;
@@ -25,10 +28,25 @@ public class ExtractorHandler {
         this.config = config;
     }
 
+    public InputFormatHandler getInputFormatHandler() {
+        return inputFormatHandler;
+    }
+
+    public void setInputFormatHandler(String handler) {
+        try {
+            this.inputFormatHandler= Formats.create(handler);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Unable to create an inputformathandler", e);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Unable to create an inputformathandler", e);
+        } catch (InstantiationException e) {
+            throw new IllegalStateException("Unable to create an inputformathandler", e);
+        }
+    }
+
     public Extractor getExtractor() {
         return extractor;
     }
-
     public void setExtractor(String extractor) {
         try {
             this.extractor = Extractors.create(extractor);

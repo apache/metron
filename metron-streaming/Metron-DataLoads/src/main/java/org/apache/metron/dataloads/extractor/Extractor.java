@@ -9,6 +9,6 @@ import java.util.Map;
  * Created by cstella on 2/2/16.
  */
 public interface Extractor {
-    ThreatIntelResults extract(String line) throws IOException;
+    Iterable<ThreatIntelResults> extract(String line) throws IOException;
     void initialize(Map<String, Object> config);
 }

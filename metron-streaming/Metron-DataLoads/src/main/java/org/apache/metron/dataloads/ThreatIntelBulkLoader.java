@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.hbase.mr.BulkLoadMapper;
 
 import javax.annotation.Nullable;
@@ -176,7 +177,8 @@ public class ThreatIntelBulkLoader  {
         job.setOutputKeyClass(ImmutableBytesWritable.class);
         job.setOutputValueClass(Put.class);
         job.setNumReduceTasks(0);
-        FileInputFormat.addInputPath(job, new Path(input));
+        ExtractorHandler handler = ExtractorHandler.load(extractorConfigContents);
+        handler.getInputFormatHandler().set(job, new Path(input), handler.getConfig());
         return job;
     }
 

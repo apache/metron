@@ -187,7 +187,8 @@ public class PcapIntegrationTest {
                 String string_pcap = pi.getJsonIndexDoc();
         	    Object obj= JSONValue.parse(string_pcap);
         	    JSONObject header=(JSONObject)obj;
-                ret.add((String)header.get("pcap_id"));
+                String pcapId = (String)header.get("pcap_id");
+                ret.add(pcapId);
             }
         }
         return ret;
