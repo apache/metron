@@ -114,7 +114,15 @@
 				</excludes>
 			</resource>
 		</resources>
-		<plugins>
+    <plugins>
+      <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18</version>
+        <configuration>
+          <argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
+        </configuration>
+      </plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>

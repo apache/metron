@@ -1,22 +1,12 @@
 package org.apache.metron.reference.lookup.accesstracker;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
 /**
  * Created by cstella on 2/5/16.
@@ -31,12 +21,12 @@ public enum AccessTrackerUtil {
         return (AccessTracker) ois.readObject();
     }
     public byte[] serializeTracker(AccessTracker tracker) throws IOException {
-        ByteOutputStream bos = new ByteOutputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
         oos.writeObject(tracker);
         oos.flush();
         oos.close();
-        return bos.getBytes();
+        return bos.toByteArray();
     }
 
 
