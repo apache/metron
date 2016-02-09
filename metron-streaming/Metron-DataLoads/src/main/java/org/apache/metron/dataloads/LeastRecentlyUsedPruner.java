@@ -49,15 +49,6 @@ public class LeastRecentlyUsedPruner {
                 o.setArgName("CF_NAME");
                 return o;
             }
-        }), ACCESS_TRACKER_DATA("a", new OptionHandler() {
-            @Nullable
-            @Override
-            public Option apply(@Nullable String s) {
-                Option o = new Option(s, "access_tracker_data", true, "The path to the persisted access trackers");
-                o.setRequired(true);
-                o.setArgName("DIR");
-                return o;
-            }
         })
         ,AS_OF_TIME("a", new OptionHandler() {
             @Nullable
@@ -77,6 +68,25 @@ public class LeastRecentlyUsedPruner {
                 Option o = new Option(s, "as_of_format", true, "The format of the as_of time (only used in conjunction with the as_of option) (Default is: " + defaultFormat + ")");
                 o.setArgName("format");
                 o.setRequired(false);
+                return o;
+            }
+        })
+        ,ACCESS_TABLE("u", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "access_table", true, "HBase table containing the access trackers.");
+                o.setRequired(true);
+                o.setArgName("HBASE_TABLE");
+                return o;
+            }
+        }), ACCESS_COLUMN_FAMILY("z", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "access_column_family", true, "Column family of the HBase table containing the access trackers");
+                o.setRequired(true);
+                o.setArgName("CF_NAME");
                 return o;
             }
         });
@@ -160,13 +170,22 @@ public class LeastRecentlyUsedPruner {
                 job);
     }
 
-    public static Job createJob(Configuration conf, String table, String cf, String basePath, Long ts) throws IOException {
+    public static Job createJob( Configuration conf
+                               , String table
+                               , String cf
+                               , String accessTrackerTable
+                               , String accessTrackerColumnFamily
+                               , Long ts
+                               ) throws IOException
+    {
         Job job = new Job(conf);
         job.setJobName("LeastRecentlyUsedPruner: Pruning " +  table + ":" + cf + " since " + new SimpleDateFormat().format(new Date(ts)));
         System.out.println("Configuring " + job.getJobName());
         job.setJarByClass(LeastRecentlyUsedPruner.class);
         job.getConfiguration().setLong(PrunerMapper.TIMESTAMP_CONF, ts);
-        job.getConfiguration().set(PrunerMapper.ACCESS_TRACKER_DIR_CONF, basePath);
+        job.getConfiguration().set(PrunerMapper.ACCESS_TRACKER_NAME_CONF, table);
+        job.getConfiguration().set(PrunerMapper.ACCESS_TRACKER_CF_CONF, accessTrackerColumnFamily);
+        job.getConfiguration().set(PrunerMapper.ACCESS_TRACKER_TABLE_CONF, accessTrackerTable);
         setupHBaseJob(job, table, cf);
         job.setNumReduceTasks(0);
         return job;
@@ -179,12 +198,10 @@ public class LeastRecentlyUsedPruner {
         CommandLine cli = BulkLoadOptions.parse(new PosixParser(), otherArgs);
         Long ts = BulkLoadOptions.getTimestamp(cli);
         String table = BulkLoadOptions.TABLE.get(cli);
-        String cf = null;
-        if(BulkLoadOptions.COLUMN_FAMILY.has(cli)) {
-            cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
-        }
-        String basePath  = BulkLoadOptions.ACCESS_TRACKER_DATA.get(cli);
-        Job job = createJob(conf, table, cf, basePath, ts);
+        String cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
+        String accessTrackerTable = BulkLoadOptions.ACCESS_TABLE.get(cli);
+        String accessTrackerCF = BulkLoadOptions.ACCESS_COLUMN_FAMILY.get(cli);
+        Job job = createJob(conf, table, cf, accessTrackerTable, accessTrackerCF, ts);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

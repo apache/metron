@@ -1,5 +1,6 @@
 package org.apache.metron.dataloads.hbase.mr;
 
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -11,6 +12,7 @@ import org.apache.metron.dataloads.LeastRecentlyUsedPruner;
 import org.apache.metron.reference.lookup.LookupKey;
 import org.apache.metron.reference.lookup.accesstracker.AccessTrackerUtil;
 import org.apache.metron.reference.lookup.accesstracker.BloomAccessTracker;
+import org.apache.metron.reference.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.threatintel.ThreatIntelKey;
 import org.apache.metron.threatintel.hbase.Converter;
 import org.apache.metron.threatintel.hbase.ThreatIntelLookup;
@@ -33,8 +35,11 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
 
     /** The test table. */
     private HTable testTable;
+    private HTable atTable;
     String tableName = "malicious_domains";
     String cf = "cf";
+    String atTableName = "access_trackers";
+    String atCF= "cf";
     Configuration config = null;
     @Before
     public void setup() throws Exception {
@@ -42,6 +47,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         config = kv.getValue();
         testUtil = kv.getKey();
         testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
+        atTable = testUtil.createTable(Bytes.toBytes(atTableName), Bytes.toBytes(atCF));
     }
     @After
     public void teardown() throws Exception {
@@ -56,10 +62,15 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     }
     @Test
     public void test() throws Exception {
-        ThreatIntelLookup lookup = new ThreatIntelLookup(testTable, cf, new BloomAccessTracker("tracker1", 100, 0.03));
-        List<LookupKey> goodKeys = getKeys(0, 10);
+        long ts = System.currentTimeMillis();
+        BloomAccessTracker bat = new BloomAccessTracker("tracker1", 100, 0.03);
+        PersistentAccessTracker pat = new PersistentAccessTracker(tableName, "0", atTable, atCF, bat, 0L);
+        ThreatIntelLookup lookup = new ThreatIntelLookup(testTable, cf, pat);
+        List<LookupKey> goodKeysHalf = getKeys(0, 5);
+        List<LookupKey> goodKeysOtherHalf = getKeys(5, 10);
+        Iterable<LookupKey> goodKeys = Iterables.concat(goodKeysHalf, goodKeysOtherHalf);
         List<LookupKey> badKey = getKeys(10, 11);
-        for(LookupKey k : goodKeys) {
+        for(LookupKey k : goodKeysHalf) {
             testTable.put(Converter.INSTANCE.toPut(cf, (ThreatIntelKey) k
                                                   , new HashMap<String, String>() {{
                                                     put("k", "dummy");
@@ -69,6 +80,23 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
                          );
             Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable));
         }
+        pat.persist(true);
+        for(LookupKey k : goodKeysOtherHalf) {
+            testTable.put(Converter.INSTANCE.toPut(cf, (ThreatIntelKey) k
+                                                  , new HashMap<String, String>() {{
+                                                    put("k", "dummy");
+                                                    }}
+                                                  , 1L
+                                                  )
+                         );
+            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable));
+        }
+        testUtil.flush();
+        Assert.assertFalse(lookup.getAccessTracker().hasSeen(goodKeysHalf.get(0)));
+        for(LookupKey k : goodKeysOtherHalf) {
+            Assert.assertTrue(lookup.getAccessTracker().hasSeen(k));
+        }
+        pat.persist(true);
         {
             testTable.put(Converter.INSTANCE.toPut(cf, (ThreatIntelKey) badKey.get(0)
                     , new HashMap<String, String>() {{
@@ -80,15 +108,9 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         }
         testUtil.flush();
         Assert.assertFalse(lookup.getAccessTracker().hasSeen(badKey.get(0)));
-        for(LookupKey k : goodKeys) {
-            Assert.assertTrue(lookup.getAccessTracker().hasSeen(k));
-        }
-        FileSystem fs = FileSystem.get(config);
-        Path basePath = new Path("/tmp/trackers");
-        fs.mkdirs(basePath);
-        AccessTrackerUtil.INSTANCE.persistTracker(fs, AccessTrackerUtil.INSTANCE.getSavePath(basePath, lookup.getAccessTracker(), 1), lookup.getAccessTracker());
 
-        Job job = LeastRecentlyUsedPruner.createJob(config, tableName, cf, basePath.toString(), 0L);
+
+        Job job = LeastRecentlyUsedPruner.createJob(config, tableName, cf, atTableName, atCF, ts);
         Assert.assertTrue(job.waitForCompletion(true));
         for(LookupKey k : goodKeys) {
             Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable));

@@ -6,6 +6,7 @@ import org.apache.storm.shade.com.google.common.hash.Funnel;
 import org.apache.storm.shade.com.google.common.hash.PrimitiveSink;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,12 +18,22 @@ public class BloomAccessTracker implements AccessTracker {
     public static final String FALSE_POSITIVE_RATE_KEY = "false_positive_rate";
     public static final String NAME_KEY = "name";
 
-    private static Funnel<LookupKey> LOOKUPKEY_FUNNEL = new Funnel<LookupKey>() {
+    private static class LookupKeyFunnel implements Funnel<LookupKey> {
+
         @Override
         public void funnel(LookupKey lookupKey, PrimitiveSink primitiveSink) {
             primitiveSink.putBytes(lookupKey.toBytes());
         }
-    };
+
+
+        @Override
+        public boolean equals(Object obj) {
+            return this.getClass().equals(obj.getClass());
+        }
+    }
+
+    private static Funnel<LookupKey> LOOKUPKEY_FUNNEL = new LookupKeyFunnel();
+
     BloomFilter<LookupKey> filter;
     String name;
     int expectedInsertions;

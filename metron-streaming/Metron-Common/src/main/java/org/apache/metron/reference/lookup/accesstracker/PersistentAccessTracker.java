@@ -1,11 +1,10 @@
 package org.apache.metron.reference.lookup.accesstracker;
 
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.log4j.Logger;
 import org.apache.metron.reference.lookup.LookupKey;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -16,6 +15,58 @@ import java.util.TimerTask;
 public class PersistentAccessTracker implements AccessTracker {
     private static final Logger LOG = Logger.getLogger(PersistentAccessTracker.class);
     private static final long serialVersionUID = 1L;
+
+    public static class AccessTrackerKey {
+        String name;
+        String containerName;
+        long timestamp;
+        public AccessTrackerKey(String name, String containerName, long timestamp) {
+            this.name = name;
+            this.containerName = containerName;
+            this.timestamp = timestamp;
+        }
+
+        public byte[] toRowKey() {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(os);
+            try {
+                dos.writeUTF(name);
+                dos.writeLong(timestamp);
+                dos.writeUTF(containerName);
+                dos.flush();
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to write rowkey: " + this, e);
+            }
+
+            return os.toByteArray();
+        }
+
+        public static byte[] getTimestampScanKey(String name, long timestamp) {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(os);
+            try {
+                dos.writeUTF(name);
+                dos.writeLong(timestamp);
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to create scan key " , e);
+            }
+
+            return os.toByteArray();
+        }
+
+        public static AccessTrackerKey fromRowKey(byte[] rowKey) {
+            ByteArrayInputStream is = new ByteArrayInputStream(rowKey);
+            DataInputStream dis = new DataInputStream(is);
+            try {
+                String name = dis.readUTF();
+                long timestamp = dis.readLong();
+                String containerName = dis.readUTF();
+                return new AccessTrackerKey(name, containerName, timestamp);
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to read rowkey: ", e);
+            }
+        }
+    }
 
     private static class Persister extends TimerTask {
         PersistentAccessTracker tracker;
@@ -32,38 +83,41 @@ public class PersistentAccessTracker implements AccessTracker {
     }
 
     Object sync = new Object();
-    FileSystem fs;
-    Path basePath;
+    HTable accessTrackerTable;
+    String accessTrackerColumnFamily;
     AccessTracker underlyingTracker;
     long timestamp = System.currentTimeMillis();
     String name;
+    String containerName;
     private Timer timer;
     long maxMillisecondsBetweenPersists;
 
-    public PersistentAccessTracker(String name
-                                  , FileSystem fs
-                                  , Path basePath
+    public PersistentAccessTracker( String name
+                                  , String containerName
+                                  , HTable accessTrackerTable
+                                  , String columnFamily
                                   , AccessTracker underlyingTracker
                                   , long maxMillisecondsBetweenPersists
                                   )
     {
-        this.fs = fs;
+        this.containerName = containerName;
+        this.accessTrackerTable = accessTrackerTable;
         this.name = name;
-        this.basePath = basePath;
+        this.accessTrackerColumnFamily = columnFamily;
         this.underlyingTracker = underlyingTracker;
         this.maxMillisecondsBetweenPersists = maxMillisecondsBetweenPersists;
         timer = new Timer();
-        timer.scheduleAtFixedRate(new Persister(this), maxMillisecondsBetweenPersists, maxMillisecondsBetweenPersists);
+        if(maxMillisecondsBetweenPersists > 0) {
+            timer.scheduleAtFixedRate(new Persister(this), maxMillisecondsBetweenPersists, maxMillisecondsBetweenPersists);
+        }
     }
 
     public void persist(boolean force) {
         synchronized(sync) {
             if(force || (System.currentTimeMillis() - timestamp) >= maxMillisecondsBetweenPersists) {
                 //persist
-                Path savePath = AccessTrackerUtil.INSTANCE.getSavePath(basePath, underlyingTracker, timestamp);
-                //persist
                 try {
-                    AccessTrackerUtil.INSTANCE.persistTracker(fs, savePath, underlyingTracker);
+                    AccessTrackerUtil.INSTANCE.persistTracker(accessTrackerTable, accessTrackerColumnFamily, new AccessTrackerKey(name, containerName, timestamp), underlyingTracker);
                     timestamp = System.currentTimeMillis();
                     reset();
                 } catch (IOException e) {

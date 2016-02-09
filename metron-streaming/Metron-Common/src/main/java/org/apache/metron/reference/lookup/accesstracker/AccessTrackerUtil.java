@@ -1,14 +1,19 @@
 package org.apache.metron.reference.lookup.accesstracker;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -18,79 +23,55 @@ import java.io.ObjectOutputStream;
  */
 public enum AccessTrackerUtil {
     INSTANCE;
-    public static class PathFilter implements org.apache.hadoop.fs.PathFilter {
-        Predicate<Path> predicate;
-        public PathFilter(long earliest) {
-            predicate = new PathPredicate(earliest);
-        }
-        public PathFilter(Predicate<Path> predicate) {
-            this.predicate = predicate;
-        }
-        /**
-         * Tests whether or not the specified abstract pathname should be
-         * included in a pathname list.
-         *
-         * @param path The abstract pathname to be tested
-         * @return <code>true</code> if and only if <code>pathname</code>
-         * should be included
-         */
-        @Override
-        public boolean accept(Path path) {
-            return predicate.apply(path);
-        }
+
+    public static byte[] COLUMN = Bytes.toBytes("v");
+
+    public AccessTracker deserializeTracker(byte[] bytes) throws IOException, ClassNotFoundException {
+        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+        return (AccessTracker) ois.readObject();
     }
-    public static class PathPredicate implements Predicate<Path> {
-        long earliestTs;
-        public PathPredicate(long earliest) {
-            earliestTs = earliest;
-        }
-        @Override
-        public boolean apply(@Nullable Path path) {
-            String nameSansSuffix = Iterables.getFirst(Splitter.on('.').split(path.getName()), null);
-            String timestampStr = Iterables.getLast(Splitter.on('_').split(nameSansSuffix));
-            return (Long.parseLong(timestampStr) > earliestTs);
-        }
+    public byte[] serializeTracker(AccessTracker tracker) throws IOException {
+        ByteOutputStream bos = new ByteOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(tracker);
+        oos.flush();
+        oos.close();
+        return bos.getBytes();
     }
 
 
+    public void persistTracker(HTable accessTrackerTable, String columnFamily, PersistentAccessTracker.AccessTrackerKey key, AccessTracker underlyingTracker) throws IOException {
+        Put put = new Put(key.toRowKey());
+        put.add(Bytes.toBytes(columnFamily), COLUMN, serializeTracker(underlyingTracker));
+        accessTrackerTable.put(put);
+    }
 
-    public AccessTracker loadTracker(FileSystem fs, Path path) throws IOException, ClassNotFoundException {
-        ObjectInputStream ois  = null;
-        try {
-            ois = new ObjectInputStream(fs.open(path));
-            return (AccessTracker) (ois.readObject());
-        }
-        finally {
-            if(ois != null) {
-                ois.close();
+    public Iterable<AccessTracker> loadAll(HTable accessTrackerTable, final String columnFamily, final String name, final long earliest) throws IOException {
+        Scan scan = new Scan(PersistentAccessTracker.AccessTrackerKey.getTimestampScanKey(name, earliest));
+        ResultScanner scanner = accessTrackerTable.getScanner(scan);
+        return Iterables.transform(scanner, new Function<Result, AccessTracker>() {
+
+            @Nullable
+            @Override
+            public AccessTracker apply(@Nullable Result result) {
+                try {
+                    return deserializeTracker(result.getValue(Bytes.toBytes(columnFamily), COLUMN));
+                } catch (Exception e) {
+                    throw new RuntimeException("Unable to deserialize " + name + " @ " + earliest);
+                }
             }
-        }
+        });
     }
 
-    public Path getSavePath(Path basePath, AccessTracker tracker, long timestamp) {
-        return new Path(basePath, tracker.getName() + "_" + timestamp);
-    }
-    public void persistTracker(FileSystem fs, Path path, AccessTracker tracker) throws IOException {
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(fs.create(path, true));
-            oos.writeObject(tracker);
-        }
-        finally{
-            if(oos != null) {
-                oos.close();
-            }
-        }
-    }
 
-    public AccessTracker loadAll(FileSystem fs, Path trackerPath, long earliest) throws IOException, ClassNotFoundException {
+    public AccessTracker loadAll(Iterable<AccessTracker> trackers) throws IOException, ClassNotFoundException {
         AccessTracker tracker = null;
-        for(FileStatus status : fs.listStatus(trackerPath, new PathFilter(earliest)) ) {
+        for(AccessTracker t : trackers) {
             if(tracker == null) {
-                tracker = loadTracker(fs, status.getPath());
+                tracker = t;
             }
             else {
-                tracker = tracker.union(loadTracker(fs, status.getPath()));
+                tracker = tracker.union(t);
             }
         }
         return tracker;
