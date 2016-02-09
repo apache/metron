@@ -9,16 +9,12 @@ import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandlers;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.*;
 import org.mitre.cybox.cybox_2.ObjectType;
-import org.mitre.cybox.objects.CategoryTypeEnum;
 import org.mitre.stix.common_1.IndicatorBaseType;
-import org.mitre.stix.examples.XML2Object;
 import org.mitre.stix.indicator_2.Indicator;
 import org.mitre.stix.stix_1.STIXPackage;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
