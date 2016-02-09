@@ -16,58 +16,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.test;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.net.URL;
+package org.apache.metron;
+import org.junit.After;
+import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jackson.JsonLoader;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.github.fge.jsonschema.main.JsonValidator;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
  /**
  * <ul>
  * <li>Title: </li>
- * <li>Description: The class <code>AbstractSchemaTest</code> is
+ * <li>Description: The class <code>AbstractTestContext</code> is
  * an abstract base class for implementing JUnit tests that need to load a
- * Json Schema. The <code>setup</code> method will attempt to
+ * test properties. The <code>setup</code> method will attempt to
  * load a properties from a file, located in src/test/resources,
  * with the same name as the class.</li>
  * <li>Created: Aug 7, 2014</li>
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class AbstractSchemaTest  extends AbstractConfigTest{
-        
-        
+public class AbstractTestContext {
          /**
-         * The schemaJsonString.
+         * The testProps.
          */
-        private String schemaJsonString = null;
+        protected File testPropFile=null;
+
+        /**
+         * The properties loaded for test.
+         */
+        protected Properties testProperties=new Properties();
+        
         /**
          * Any Object for mavenMode
          * @parameter
          *   expression="${mode}"
-         *   default-value="local"
+         *   default-value="global"
          */
          private Object mode="local";        
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
-         * @throws Exception 
          */
-        public AbstractSchemaTest() throws Exception {
-            super.setUp();
+        public AbstractTestContext() {
+            super();
         }
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
          * @param name the name of the test case.
          */
-        public AbstractSchemaTest(String name) {
-            super(name);
+        public AbstractTestContext(String name) {
             try{
                 if(System.getProperty("mode")!=null){
                     setMode(System.getProperty("mode") );                
@@ -84,9 +85,25 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
          * (non-Javadoc)
          * @see junit.framework.TestCase#setUp()
          */
-        @Override
         protected void setUp() throws Exception {
-            super.setUp();
+            InputStream input=null;
+            File directory = new File("src/test/resources");
+            if (!directory.isDirectory()) {
+                return;
+            }
+            File file = new File(directory, getClass().getSimpleName() + ".properties");
+            if (!file.canRead()) {
+                return;
+            }
+            setTestPropFile(file);
+            try{
+                input=new FileInputStream(file);
+                testProperties.load(input);
+            }catch(IOException ex){
+                ex.printStackTrace();
+                throw new Exception("failed to load properties");
+            }
+            
             
         }
 
@@ -94,55 +111,48 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
          * (non-Javadoc)
          * @see junit.framework.TestCase#tearDown()
          */
-        @Override
+        @After
         protected void tearDown() throws Exception {
 
         }
 
-        
-         /**
-         * validateJsonData
-         * @param jsonSchema
-         * @param jsonData
-         * @return
-         * @throws Exception
+        /**
+         * Returns the testProperties.
+         * @return the testProperties.
          */
-         
-        protected boolean validateJsonData(final String jsonSchema, final String jsonData)
-            throws Exception {
-    
-            final JsonNode d = JsonLoader.fromString(jsonData);
-            final JsonNode s = JsonLoader.fromString(jsonSchema);
-    
-            final JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-            JsonValidator v = factory.getValidator();
-    
-            ProcessingReport report = v.validate(s, d);
-            System.out.println(report);
-            
-            return report.toString().contains("success");
+        
+        public Properties getTestProperties() {
+            return testProperties;
         }
+
+        /**
+         * Sets the testProperties.
+         * @param testProperties the testProperties.
+         */
         
-        protected String readSchemaFromFile(URL schema_url) throws Exception {
-            BufferedReader br = new BufferedReader(new FileReader(
-                    schema_url.getFile()));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                sb.append(line);
-            }
-            br.close();
-
-            String schema_string = sb.toString().replaceAll("\n", "");
-            schema_string = schema_string.replaceAll(" ", "");
-
-            System.out.println("Read in schema: " + schema_string);
-
-            return schema_string;
-
-        }        
+        public void setTestProperties(Properties testProperties) {
         
+            this.testProperties = testProperties;
+        }    
+        /**
+        * Returns the testPropFile.
+        * @return the testPropFile.
+        */
+       
+       public File getTestPropFile() {
+           return testPropFile;
+       }
+
+       /**
+        * Sets the testPropFile.
+        * @param testPropFile the testPropFile.
+        */
+       
+       public void setTestPropFile(File testPropFile) {
+       
+           this.testPropFile = testPropFile;
+       }     
+       
        /**
         * Skip Tests
         */
@@ -173,28 +183,9 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
            this.mode = mode;
        }
 
-    
-     /**
+       protected void assertNotNull() {}
+       protected void assertNotNull(Object o) {}
      
-     * @param readSchemaFromFile
-     */
-     
-    public void setSchemaJsonString(String schemaJsonString) {
-        this.schemaJsonString=schemaJsonString;
     }
-
-    
-     /**
-     
-     * @return
-     */
-     
-    public String getSchemaJsonString() {
-       return this.schemaJsonString;
-    }
-
-     protected void assertNotNull(Object o) throws Exception {}
-     
-}
 
 

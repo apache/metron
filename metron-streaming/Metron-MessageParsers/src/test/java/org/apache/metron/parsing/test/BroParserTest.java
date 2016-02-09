@@ -13,6 +13,7 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.BasicBroParser;
 import org.apache.metron.test.AbstractConfigTest;
+import org.junit.Assert;
 
 /**
  * <ul>
@@ -85,7 +86,7 @@ public class BroParserTest extends AbstractConfigTest {
 
 		for (String inputString : getInputStrings()) {
 			JSONObject cleanJson = parser.parse(inputString.getBytes());
-			assertNotNull(cleanJson);
+			Assert.assertNotNull(cleanJson);
 			System.out.println(cleanJson);
 
 			Pattern p = Pattern.compile("[^\\._a-z0-9 ]",
@@ -104,7 +105,7 @@ public class BroParserTest extends AbstractConfigTest {
 				Matcher m = p.matcher(key);
 				boolean b = m.find();
 				// Test False
-				assertFalse(b);
+				Assert.assertFalse(b);
 			}
 		}
 

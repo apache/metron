@@ -9,9 +9,10 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.GrokAsaParser;
 import org.apache.metron.test.AbstractConfigTest;
+import org.junit.Assert;
 
 
- /**
+/**
  * <ul>
  * <li>Title: </li>
  * <li>Description: </li>
@@ -81,7 +82,7 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		    
 			for (String grokAsaString : getGrokAsaStrings()) {
 				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes());
-				assertNotNull(parsed);
+				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);
 				JSONParser parser = new JSONParser();
@@ -93,20 +94,20 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 					e.printStackTrace();
 				}
 				//Ensure JSON returned is not null/empty
-				assertNotNull(json);
+				Assert.assertNotNull(json);
 				
 				Iterator iter = json.entrySet().iterator();
 				
 
 				while (iter.hasNext()) {
 					Map.Entry entry = (Map.Entry) iter.next();
-					assertNotNull(entry);
+					Assert.assertNotNull(entry);
 					
 					String key = (String) entry.getKey();
-					assertNotNull(key);
+					Assert.assertNotNull(key);
 					
 					String value = (String) json.get("CISCO_TAGGED_SYSLOG").toString();
-					assertNotNull(value);
+					Assert.assertNotNull(value);
 				}
 			}
 		}

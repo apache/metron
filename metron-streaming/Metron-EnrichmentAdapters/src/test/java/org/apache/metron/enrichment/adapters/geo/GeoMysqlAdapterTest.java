@@ -1,4 +1,4 @@
- /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -22,8 +22,10 @@ import java.util.Properties;
 import org.json.simple.JSONObject;
 
 import org.apache.metron.test.AbstractSchemaTest;
+import org.junit.Assert;
 
- /**
+
+/**
  * <ul>
  * <li>Title: GeoMySqlAdapterTest</li>
  * <li>Description: Tests for GeoMySqlAdapter</li>
@@ -75,7 +77,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
        }else{
            GeoMysqlAdapterTest.setGeoMySqlAdapter(new GeoMysqlAdapter((String)prop.get("mysql.ip"), (new Integer((String)prop.get("mysql.port"))).intValue(),(String)prop.get("mysql.username"),(String)prop.get("mysql.password"), (String)prop.get("bolt.enrichment.geo.adapter.table")));
            connected =geoMySqlAdapter.initializeAdapter();
-           assertTrue(connected);
+           Assert.assertTrue(connected);
            URL schema_url = getClass().getClassLoader().getResource(
                "TestSchemas/GeoMySqlSchema.json");
            super.setSchemaJsonString(super.readSchemaFromFile(schema_url));  
@@ -107,15 +109,15 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
                 System.out.println("json ="+json);
                 assertNotNull(json);
         
-                assertEquals(true, super.validateJsonData(super.getSchemaJsonString(), json.toString()));
+                Assert.assertEquals(true, super.validateJsonData(super.getSchemaJsonString(), json.toString()));
                 //assert LocId is not null
                 assertNotNull(json.get("locID"));
                 
                 //assert right LocId is being returned
-                assertEquals("4522",json.get("locID"));    
+                Assert.assertEquals("4522",json.get("locID"));
          } catch (Exception e) {
             e.printStackTrace();
-            fail("Json validation Failed");
+            Assert.assertTrue(false);
          }
        }
     }
@@ -128,7 +130,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
             return;//skip tests
        }else{        
         boolean connected =geoMySqlAdapter.initializeAdapter();
-        assertTrue(connected);
+        Assert.assertTrue(connected);
        }
     }
  
@@ -139,7 +141,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{       
-           assertTrue(connected);
+           Assert.assertTrue(connected);
        }
     }
 

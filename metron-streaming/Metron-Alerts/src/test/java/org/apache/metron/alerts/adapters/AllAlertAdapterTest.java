@@ -22,6 +22,7 @@ import java.util.Properties;
 
 import org.apache.metron.test.AbstractConfigTest;
 import org.apache.metron.alerts.adapters.AllAlertAdapter;
+import org.junit.Assert;
 
  /**
  * <ul>
@@ -72,7 +73,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
     protected void setUp() throws Exception {
           super.setUp("org.apache.metron.alerts.adapters.AllAlertAdapter");
           Properties prop = super.getTestProperties();
-          assertNotNull(prop);   
+          Assert.assertNotNull(prop);
        // this.setMode("global");
         if(skipTests(this.getMode())){
             System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
@@ -108,7 +109,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
        }else{        
            
         boolean initialized =AllAlertAdapterTest.getAllAlertAdapter().initialize();
-        assertTrue(initialized);
+        Assert.assertTrue(initialized);
        }
     }
     
@@ -120,7 +121,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
             return;//skip tests
        }else{          
             boolean containsAlert =AllAlertAdapterTest.getAllAlertAdapter().containsAlertId("test");
-            assertFalse(containsAlert);
+            Assert.assertFalse(containsAlert);
        }
     }
  

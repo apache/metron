@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.BasicPaloAltoFirewallParser;
 import org.apache.metron.test.AbstractConfigTest;
+import org.junit.Assert;
 
 public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
     /**
@@ -77,7 +78,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		public void testParse() {
 			for (String inputString : getInputStrings()) {
 				JSONObject parsed = paParser.parse(inputString.getBytes());
-				assertNotNull(parsed);
+				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);
 				JSONParser parser = new JSONParser();
@@ -95,7 +96,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 					Map.Entry entry = (Map.Entry) iter.next();
 					String key = (String) entry.getKey();
 					String value = (String) json.get(key).toString();
-					assertNotNull(value);
+					Assert.assertNotNull(value);
 				}
 			}
 		}
