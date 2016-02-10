@@ -110,7 +110,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 	 */
 	public void testParse() throws ParseException, IOException, Exception {
         for (String inputString : getInputStrings()) {
-            JSONObject parsed = parser.parse(inputString.getBytes());
+            JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
             assertNotNull(parsed);
         
             System.out.println(parsed);
@@ -139,7 +139,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 	/**
 	 * Sets the iseParser.
 	 * 
-	 * @param iseParser
+	 * @param parser
 	 */
 
 

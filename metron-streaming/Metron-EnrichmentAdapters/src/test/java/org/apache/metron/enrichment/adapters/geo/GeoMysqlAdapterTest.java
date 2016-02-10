@@ -19,6 +19,9 @@ package org.apache.metron.enrichment.adapters.geo;
 import java.net.URL;
 import java.util.Properties;
 
+import org.apache.metron.enrichment.adapters.jdbc.JdbcAdapter;
+import org.apache.metron.enrichment.adapters.jdbc.JdbcConfig;
+import org.apache.metron.enrichment.adapters.jdbc.MySqlConfig;
 import org.json.simple.JSONObject;
 
 import org.apache.metron.test.AbstractSchemaTest;
@@ -35,7 +38,7 @@ import org.junit.Assert;
  */
 public class GeoMysqlAdapterTest extends AbstractSchemaTest {
 
-    private static GeoMysqlAdapter geoMySqlAdapter=null;
+    private static JdbcAdapter geoMySqlAdapter=null;
     private static boolean connected=false;
 
     /**
@@ -75,7 +78,14 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
             System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
             return;//skip tests
        }else{
-           GeoMysqlAdapterTest.setGeoMySqlAdapter(new GeoMysqlAdapter((String)prop.get("mysql.ip"), (new Integer((String)prop.get("mysql.port"))).intValue(),(String)prop.get("mysql.username"),(String)prop.get("mysql.password"), (String)prop.get("bolt.enrichment.geo.adapter.table")));
+          MySqlConfig mySqlConfig = new MySqlConfig();
+          mySqlConfig.setHost((String)prop.get("mysql.ip"));
+          mySqlConfig.setPort(new Integer((String) prop.get("mysql.port")));
+          mySqlConfig.setUsername((String)prop.get("mysql.username"));
+          mySqlConfig.setPassword((String)prop.get("mysql.password"));
+          mySqlConfig.setTable((String)prop.get("bolt.enrichment.geo.adapter.table"));
+          JdbcAdapter geoAdapter = new GeoAdapter().withJdbcConfig(mySqlConfig);
+           GeoMysqlAdapterTest.setGeoMySqlAdapter(geoAdapter);
            connected =geoMySqlAdapter.initializeAdapter();
            Assert.assertTrue(connected);
            URL schema_url = getClass().getClassLoader().getResource(
@@ -95,7 +105,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter#enrich(java.lang.String)}.
+     * Test method for {@link org.apache.metron.enrichment.adapters.geo.GeoAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
         if(skipTests(this.getMode())){
@@ -123,7 +133,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter#initializeAdapter()}.
+     * Test method for {@link org.apache.metron.enrichment.adapters.geo.GeoAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){
@@ -135,7 +145,13 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
  
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter#GeoMysqlAdapter(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String)}.
+     * Test method for
+     *
+     *
+     *
+     *
+     *
+     * {@link org.apache.metron.enrichment.adapters.geo.GeoAdapter}.
      */
     public void testGeoMysqlAdapter() {
         if(skipTests(this.getMode())){
@@ -150,7 +166,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
      * @return the geoMySqlAdapter.
      */
     
-    public static GeoMysqlAdapter getGeoMySqlAdapter() {
+    public static JdbcAdapter getGeoMySqlAdapter() {
         return geoMySqlAdapter;
     }
 
@@ -159,7 +175,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
      * @param geoMySqlAdapter the geoMySqlAdapter.
      */
     
-    public static void setGeoMySqlAdapter(GeoMysqlAdapter geoMySqlAdapter) {
+    public static void setGeoMySqlAdapter(JdbcAdapter geoMySqlAdapter) {
     
         GeoMysqlAdapterTest.geoMySqlAdapter = geoMySqlAdapter;
     }

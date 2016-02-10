@@ -37,4 +37,8 @@ public abstract class AbstractWhoisAdapter implements EnrichmentAdapter,Serializ
 	abstract public boolean initializeAdapter();
 	abstract public JSONObject enrich(String metadata);
 
+	@Override
+	public void cleanup() {
+
+	}
 }

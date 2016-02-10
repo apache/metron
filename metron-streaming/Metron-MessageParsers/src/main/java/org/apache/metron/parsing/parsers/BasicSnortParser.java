@@ -1,16 +1,21 @@
 package org.apache.metron.parsing.parsers;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import org.apache.metron.parser.interfaces.MessageParser;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 @SuppressWarnings("serial")
-public class BasicSnortParser extends AbstractParser implements MessageParser {
+public class BasicSnortParser extends BasicParser {
+
+	private static final Logger _LOG = LoggerFactory
+					.getLogger(BasicSnortParser.class);
 
 	/**
 	 * The default field names for Snort Alerts.
@@ -51,9 +56,15 @@ public class BasicSnortParser extends AbstractParser implements MessageParser {
 	private String recordDelimiter = ",";
 
 	@Override
-	public JSONObject parse(byte[] rawMessage) {
+	public void init() {
+
+	}
+
+	@Override
+	public List<JSONObject> parse(byte[] rawMessage) {
 
 		JSONObject jsonMessage = new JSONObject();
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 			// snort alerts expected as csv records
 			String csvMessage = new String(rawMessage, "UTF-8");
@@ -63,7 +74,7 @@ public class BasicSnortParser extends AbstractParser implements MessageParser {
 			if (records.length != fieldNames.length) {
 				throw new IllegalArgumentException("Unexpected number of fields, expected: " + fieldNames.length + " got: " + records.length);
 			}
-
+			long timestamp = 0L;
 			// build the json record from each field
 			for (int i=0; i<records.length; i++) {
 			
@@ -73,7 +84,8 @@ public class BasicSnortParser extends AbstractParser implements MessageParser {
 				if("timestamp".equals(field)) {
 
 					// convert the timestamp to epoch
-					jsonMessage.put("timestamp", toEpoch(record));
+					timestamp = toEpoch(record);
+					jsonMessage.put("timestamp", timestamp);
 					
 				} else {
 					jsonMessage.put(field, record);
@@ -82,7 +94,7 @@ public class BasicSnortParser extends AbstractParser implements MessageParser {
 
 			// add original msg; required by 'checkForSchemaCorrectness'
 			jsonMessage.put("original_string", csvMessage);
-
+			messages.add(jsonMessage);
 		} catch (Exception e) {
 
             _LOG.error("unable to parse message: " + rawMessage);
@@ -90,13 +102,13 @@ public class BasicSnortParser extends AbstractParser implements MessageParser {
             return null;
         }
 
-		return jsonMessage;
+		return messages;
 	}
 
 	/**
 	 * Parses Snort's default date-time representation and
 	 * converts to epoch.
-	 * @param datetime Snort's default date-time as String '01/27-16:01:04.877970'
+	 * @param snortDatetime Snort's default date-time as String '01/27-16:01:04.877970'
 	 * @return epoch time
 	 * @throws java.text.ParseException 
 	 */

@@ -37,4 +37,8 @@ public abstract class AbstractHostAdapter implements EnrichmentAdapter,Serializa
 	abstract public boolean initializeAdapter();
 	abstract public JSONObject enrich(String metadata);
 
+	@Override
+	public void cleanup() {
+
+	}
 }

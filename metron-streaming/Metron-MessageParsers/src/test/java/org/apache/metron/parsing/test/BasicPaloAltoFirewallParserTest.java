@@ -72,12 +72,13 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		}
 
 		/**
-		 * Test method for {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
+		 * Test method for
+		 * {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(byte[])}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {
 			for (String inputString : getInputStrings()) {
-				JSONObject parsed = paParser.parse(inputString.getBytes());
+				JSONObject parsed = paParser.parse(inputString.getBytes()).get(0);
 				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);

@@ -29,6 +29,11 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.metron</groupId>
+			<artifactId>Metron-EnrichmentAdapters</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>

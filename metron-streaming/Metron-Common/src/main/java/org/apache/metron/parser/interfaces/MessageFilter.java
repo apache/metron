@@ -1,10 +1,7 @@
 package org.apache.metron.parser.interfaces;
 
-import org.json.simple.JSONObject;
+public interface MessageFilter<T> {
 
-
-public interface MessageFilter {
-
-	public boolean emitTuple(JSONObject message);
+	boolean emitTuple(T message);
 
 }

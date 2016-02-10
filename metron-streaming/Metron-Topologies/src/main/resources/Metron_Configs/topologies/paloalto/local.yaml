@@ -115,20 +115,11 @@ spouts:
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.parsing.TelemetryParserBolt"
+        className: "org.apache.metron.bolt.TelemetryParserBolt"
         configMethods:
             -   name: "withMessageParser"
                 args:
                     - ref: "paloAltoParser"
-            -   name: "withOutputFieldName"
-                args:
-                    - "paloalto"
-            -   name: "withMessageFilter"
-                args:
-                    - ref: "genericMessageFilter"
-            -   name: "withMetricConfig"
-                args:
-                    - ref: "metricConfig"
     -   id: "hdfsBolt"
         className: "org.apache.storm.hdfs.bolt.HdfsBolt"
         configMethods:

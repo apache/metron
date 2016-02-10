@@ -23,4 +23,5 @@ public interface EnrichmentAdapter
 {
 	JSONObject enrich(String metadata);
 	boolean initializeAdapter();
+	void cleanup();
 }

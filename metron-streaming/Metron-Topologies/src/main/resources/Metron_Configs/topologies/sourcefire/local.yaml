@@ -3,36 +3,58 @@ config:
     topology.workers: 1
 
 components:
-    -   id: "sourceFireParser"
+    -   id: "parser"
         className: "org.apache.metron.parsing.parsers.BasicSourcefireParser"
-    -   id: "genericMessageFilter"
-        className: "org.apache.metron.filters.GenericMessageFilter"
-    -   id: "geoKeys"
-        className: "java.util.ArrayList"
-        configMethods:
-            -   name: "add"
-                args: ["ip_src_addr"]
-            -   name: "add"
-                args: ["ip_dst_addr"]
+    -   id: "jdbcConfig"
+        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
+        properties:
+            -   name: "host"
+                value: "${mysql.ip}"
+            -   name: "port"
+                value: ${mysql.port}
+            -   name: "username"
+                value: "${mysql.username}"
+            -   name: "password"
+                value: "${mysql.password}"
+            -   name: "table"
+                value: "GEO"
     -   id: "geoEnrichmentAdapter"
-        className: "org.apache.metron.enrichment.adapters.geo.GeoMysqlAdapter"
-        constructorArgs:
-            - "${mysql.ip}"
-            - ${mysql.port}
-            - "${mysql.username}"
-            - "${mysql.password}"
-            - "GEO"
-    -   id: "hostsKeys"
-        className: "java.util.ArrayList"
+        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
         configMethods:
-            -   name: "add"
-                args: ["ip_src_addr"]
-            -   name: "add"
-                args: ["ip_dst_addr"]
+            -   name: "withJdbcConfig"
+                args:
+                    - ref: "jdbcConfig"
+    -   id: "geoEnrichment"
+        className: "org.apache.metron.domain.Enrichment"
+        properties:
+            -   name: "name"
+                value:  "geo"
+            -   name: "fields"
+                value: ["ip_src_addr", "ip_dst_addr"]
+            -   name: "adapter"
+                ref: "geoEnrichmentAdapter"
     -   id: "hostEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
         constructorArgs:
             - '${org.apache.metron.enrichment.host.known_hosts}'
+    -   id: "hostEnrichment"
+        className: "org.apache.metron.domain.Enrichment"
+        properties:
+            -   name: "name"
+                value:  "host"
+            -   name: "fields"
+                value: ["ip_src_addr", "ip_dst_addr"]
+            -   name: "adapter"
+                ref: "hostEnrichmentAdapter"
+    -   id: "enrichments"
+        className: "java.util.ArrayList"
+        configMethods:
+            -   name: "add"
+                args:
+                    - ref: "geoEnrichment"
+            -   name: "add"
+                args:
+                    - ref: "hostEnrichment"
     -   id: "indexAdapter"
         className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
     -   id: "alertsConfig"
@@ -135,60 +157,14 @@ spouts:
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.parsing.TelemetryParserBolt"
+        className: "org.apache.metron.bolt.TelemetryParserBolt"
         configMethods:
             -   name: "withMessageParser"
                 args:
-                    - ref: "sourceFireParser"
-            -   name: "withOutputFieldName"
+                    - ref: "parser"
+            -   name: "withEnrichments"
                 args:
-                    - "sourcefire"
-            -   name: "withMessageFilter"
-                args:
-                    - ref: "genericMessageFilter"
-            -   name: "withMetricConfig"
-                args:
-                    - ref: "metricConfig"
-    -   id: "geoEnrichmentBolt"
-        className: "org.apache.metron.enrichment.common.GenericEnrichmentBolt"
-        configMethods:
-            -   name: "withEnrichmentTag"
-                args: ["geo"]
-            -   name: "withAdapter"
-                args:
-                    - ref: "geoEnrichmentAdapter"
-            -   name: "withMaxTimeRetain"
-                args: [10]
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withOutputFieldName"
-                args: ["sourcefire"]
-            -   name: "withKeys"
-                args:
-                    - ref: "geoKeys"
-            -   name: "withMetricConfiguration"
-                args:
-                    - ref: "metricConfig"
-    -   id: "hostEnrichmentBolt"
-        className: "org.apache.metron.enrichment.common.GenericEnrichmentBolt"
-        configMethods:
-            -   name: "withEnrichmentTag"
-                args: ["host"]
-            -   name: "withAdapter"
-                args:
-                    - ref: "hostEnrichmentAdapter"
-            -   name: "withMaxTimeRetain"
-                args: [10]
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withOutputFieldName"
-                args: ["sourcefire"]
-            -   name: "withKeys"
-                args:
-                    - ref: "hostsKeys"
-            -   name: "withMetricConfiguration"
-                args:
-                    - ref: "metricConfig"
+                    - ref: "enrichments"
     -   id: "indexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
         configMethods:
@@ -297,6 +273,36 @@ bolts:
             -   name: "withMetricConfiguration"
                 args:
                     - ref: "metricConfig"
+    -   id: "geoEnrichmentBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "geoEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
+    -   id: "hostEnrichmentBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "hostEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
+    -   id: "joinBolt"
+        className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
+        configMethods:
+        -   name: "withEnrichments"
+            args:
+                - ref: "enrichments"
+        -   name: "withMaxCacheSize"
+            args: [10000]
+        -   name: "withMaxTimeRetain"
+            args: [10]
 
 streams:
     -   name: "spout -> parser"
@@ -304,22 +310,43 @@ streams:
         to: "parserBolt"
         grouping:
             type: SHUFFLE
+    -   name: "parser -> host"
+        from: "parserBolt"
+        to: "hostEnrichmentBolt"
+        grouping:
+            streamId: "host"
+            type: FIELDS
+            args: ["key"]
     -   name: "parser -> geo"
         from: "parserBolt"
         to: "geoEnrichmentBolt"
         grouping:
+            streamId: "geo"
             type: FIELDS
-            streamId: "message"
             args: ["key"]
-    -   name: "geo -> host"
-        from: "geoEnrichmentBolt"
-        to: "hostEnrichmentBolt"
+    -   name: "parser -> join"
+        from: "parserBolt"
+        to: "joinBolt"
         grouping:
-            type: FIELDS
             streamId: "message"
+            type: FIELDS
             args: ["key"]
-    -   name: "host -> alerts"
+    -   name: "geo -> join"
+        from: "geoEnrichmentBolt"
+        to: "joinBolt"
+        grouping:
+            streamId: "geo"
+            type: FIELDS
+            args: ["key"]
+    -   name: "host -> join"
         from: "hostEnrichmentBolt"
+        to: "joinBolt"
+        grouping:
+            streamId: "host"
+            type: FIELDS
+            args: ["key"]
+    -   name: "join -> alerts"
+        from: "joinBolt"
         to: "alertsBolt"
         grouping:
             streamId: "message"
@@ -331,8 +358,8 @@ streams:
         grouping:
             streamId: "message"
             type: SHUFFLE
-    -   name: "alerts -> indexing"
-        from: "alertsBolt"
+    -   name: "join -> indexing"
+        from: "joinBolt"
         to: "indexingBolt"
         grouping:
             streamId: "message"

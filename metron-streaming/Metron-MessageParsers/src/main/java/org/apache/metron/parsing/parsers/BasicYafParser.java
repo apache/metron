@@ -14,14 +14,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by rmerriman on 1/27/16.
  */
-public class BasicYafParser extends AbstractParser {
+public class BasicYafParser extends BasicParser {
 
 
   /**
@@ -104,17 +105,17 @@ public class BasicYafParser extends AbstractParser {
   }
 
   @SuppressWarnings("unchecked")
-  public JSONObject parse(byte[] msg) {
+  public List<JSONObject> parse(byte[] msg) {
     //return parseManual(msg);
     return parseWithGrok(msg);
   }
 
-  private JSONObject parseWithGrok(byte[] msg) {
+  private List<JSONObject> parseWithGrok(byte[] msg) {
     _LOG.trace("[Metron] Starting to parse incoming message with grok");
     JSONObject jsonMessage = new JSONObject();
+    List<JSONObject> messages = new ArrayList<>();
     try {
       String rawMessage = new String(msg, "UTF-8");
-      System.out.println("Received message: " + rawMessage);
 
       Match gm = grok.match(rawMessage);
       gm.captures();
@@ -123,8 +124,10 @@ public class BasicYafParser extends AbstractParser {
 
       jsonMessage.put("original_string", rawMessage);
       String startTime = (String) grokMap.get("start_time");
+      long timestamp = 0L;
       if (startTime != null) {
-        jsonMessage.put("timestamp", toEpoch(startTime));
+        timestamp = toEpoch(startTime);
+        jsonMessage.put("timestamp", timestamp);
       } else {
         jsonMessage.put("timestamp", "0");
       }
@@ -136,11 +139,12 @@ public class BasicYafParser extends AbstractParser {
       }
       jsonMessage.remove("YAF_DELIMITED");
       jsonMessage.remove("start_time");
+      messages.add(jsonMessage);
     } catch (Exception e) {
       e.printStackTrace();
       return null;
     }
-    return jsonMessage;
+    return messages;
   }
 
   private JSONObject parseManual(byte[] msg) {

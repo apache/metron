@@ -1,17 +1,22 @@
 package org.apache.metron.parsing.parsers;
 
-import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
-public class BasicLogstashParser extends AbstractParser {
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BasicLogstashParser extends BasicParser {
 
 	@Override
-	public JSONObject parse(byte[] raw_message) {
-		
+	public void init() {
+
+	}
+
+	@Override
+	public List<JSONObject> parse(byte[] raw_message) {
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 			
 			/*
@@ -38,9 +43,10 @@ public class BasicLogstashParser extends AbstractParser {
 			rawJson = mutate(rawJson, "src_ip", "ip_src_addr");
 			
 			// convert timestamp to milli since epoch
-			rawJson.put("timestamp", LogstashToEpoch((String) rawJson.remove("@timestamp")));
-
-			return rawJson;
+			long timestamp = LogstashToEpoch((String) rawJson.remove("@timestamp"));
+			rawJson.put("timestamp", timestamp);
+			messages.add(rawJson);
+			return messages;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

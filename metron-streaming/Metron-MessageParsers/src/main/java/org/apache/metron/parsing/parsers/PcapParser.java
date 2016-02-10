@@ -3,11 +3,17 @@ package org.apache.metron.parsing.parsers;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.Values;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.apache.metron.parser.interfaces.MessageParser;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.krakenapps.pcap.decoder.ethernet.EthernetDecoder;
 import org.krakenapps.pcap.decoder.ethernet.EthernetType;
 import org.krakenapps.pcap.decoder.ip.IpDecoder;
@@ -24,42 +30,59 @@ import org.apache.metron.pcap.MetronEthernetDecoder;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapByteInputStream;
 
-/**
- * The Class PcapParser.
- * 
- * @author sheetal
- * @version $Revision: 1.0 $
- */
-public final class PcapParser {
+public class PcapParser implements MessageParser<JSONObject>, Serializable {
 
-  /** The Constant LOG. */
   private static final Logger LOG = Logger.getLogger(PcapParser.class);
 
-  /** The ETHERNET_DECODER. */
-  private static final EthernetDecoder ETHERNET_DECODER = new MetronEthernetDecoder();
+  private EthernetDecoder ethernetDecoder;
+  private long timePrecisionDivisor = 1L;
 
-  /** The ip decoder. */
-  private static final IpDecoder IP_DECODER = new IpDecoder();
-
-  // /** The tcp decoder. */
-  // private static final TcpDecoder TCP_DECODER = new TcpDecoder(new
-  // TcpPortProtocolMapper());
-  //
-  // /** The udp decoder. */
-  // private static final UdpDecoder UDP_DECODER = new UdpDecoder(new
-  // UdpPortProtocolMapper());
-
-  static {
-    // IP_DECODER.register(InternetProtocol.TCP, TCP_DECODER);
-    // IP_DECODER.register(InternetProtocol.UDP, UDP_DECODER);
-    ETHERNET_DECODER.register(EthernetType.IPV4, IP_DECODER);
+  public PcapParser withTsPrecision(String tsPrecision) {
+    if (tsPrecision.equalsIgnoreCase("MILLI")) {
+      //Convert nanos to millis
+      LOG.info("Configured for MILLI, setting timePrecisionDivisor to 1000000L" );
+      timePrecisionDivisor = 1000000L;
+    } else if (tsPrecision.equalsIgnoreCase("MICRO")) {
+      //Convert nanos to micro
+      LOG.info("Configured for MICRO, setting timePrecisionDivisor to 1000L" );
+      timePrecisionDivisor = 1000L;
+    } else if (tsPrecision.equalsIgnoreCase("NANO")) {
+      //Keep nano as is.
+      LOG.info("Configured for NANO, setting timePrecisionDivisor to 1L" );
+      timePrecisionDivisor = 1L;
+    } else {
+      LOG.info("bolt.parser.ts.precision not set. Default to NANO");
+      timePrecisionDivisor = 1L;
+    }
+    return this;
   }
 
-  /**
-   * Instantiates a new pcap parser.
-   */
-  private PcapParser() { // $codepro.audit.disable emptyMethod
+  @Override
+  public void init() {
+    ethernetDecoder = new MetronEthernetDecoder();
+    IpDecoder ipDecoder = new IpDecoder();
+    ethernetDecoder.register(EthernetType.IPV4, ipDecoder);
+  }
 
+  @Override
+  public List<JSONObject> parse(byte[] pcap) {
+    List<JSONObject> messages = new ArrayList<>();
+    List<PacketInfo> packetInfoList = new ArrayList<>();
+    try {
+      packetInfoList = getPacketInfo(pcap);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    for (PacketInfo packetInfo : packetInfoList) {
+      JSONObject message = (JSONObject) JSONValue.parse(packetInfo.getJsonIndexDoc());
+      messages.add(message);
+    }
+    return messages;
+  }
+
+  @Override
+  public boolean validate(JSONObject message) {
+    return true;
   }
 
   /**
@@ -73,7 +96,7 @@ public final class PcapParser {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public static List<PacketInfo> parse(byte[] pcap) throws IOException {
+  public List<PacketInfo> getPacketInfo(byte[] pcap) throws IOException {
     List<PacketInfo> packetInfoList = new ArrayList<PacketInfo>();
 
     PcapByteInputStream pcapByteInputStream = new PcapByteInputStream(pcap);
@@ -96,7 +119,7 @@ public final class PcapParser {
         // LOG.trace("Got packet # " + ++packetCounter);
 
         // LOG.trace(packet.getPacketData());
-        ETHERNET_DECODER.decode(packet);
+        ethernetDecoder.decode(packet);
 
         PacketHeader packetHeader = packet.getPacketHeader();
         Ipv4Packet ipv4Packet = Ipv4Packet.parse(packet.getPacketData());
@@ -148,13 +171,13 @@ public final class PcapParser {
     double totalIterations = 1000000;
     double parallelism = 64;
     double targetEvents = 1000000;
-
+    PcapParser pcapParser = new PcapParser();
     File fin = new File("/Users/sheetal/Downloads/bad_packets/bad_packet_1405988125427.pcap");
     File fout = new File(fin.getAbsolutePath() + ".parsed");
     byte[] pcapBytes = FileUtils.readFileToByteArray(fin);
     long startTime = System.currentTimeMillis();
     for (int i = 0; i < totalIterations; i++) {
-      List<PacketInfo> list = parse(pcapBytes);
+      List<PacketInfo> list = pcapParser.getPacketInfo(pcapBytes);
 
       for (PacketInfo packetInfo : list) {
         System.out.println(packetInfo.getJsonIndexDoc());
