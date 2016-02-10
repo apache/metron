@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.metron.test.AbstractTestContext;
 import org.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter;
+import org.junit.Assert;
 
 
  /**
@@ -74,7 +75,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         super.setUp();
         
         Properties prop = super.getTestProperties();
-        assertNotNull(prop);
+        Assert.assertNotNull(prop);
         
         if(skipTests(this.getMode())){
             return;//skip tests
@@ -126,7 +127,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
-            assertTrue(cifHbaseAdapter.initializeAdapter());
+            Assert.assertTrue(cifHbaseAdapter.initializeAdapter());
         }
     }
 
@@ -137,7 +138,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         if(skipTests(this.getMode())){
              return;//skip tests
         }else{      
-           assertNull(cifHbaseAdapter.enrichByIP("11.1.1"));
+           Assert.assertNull(cifHbaseAdapter.enrichByIP("11.1.1"));
        }
     }
 
@@ -148,7 +149,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{       
-           assertNull(cifHbaseAdapter.enrichByIP("invaliddomain"));
+           Assert.assertNull(cifHbaseAdapter.enrichByIP("invaliddomain"));
        }
     }
 
@@ -159,7 +160,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
-           assertNull(cifHbaseAdapter.enrichByIP("sample@invalid.com"));
+           Assert.assertNull(cifHbaseAdapter.enrichByIP("sample@invalid.com"));
        }
     }
 
@@ -170,7 +171,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
-           assertNotNull(cifHbaseAdapter);
+           Assert.assertNotNull(cifHbaseAdapter);
        }
     }
 
@@ -182,10 +183,10 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
             return;//skip tests
        }else{
             cifHbaseAdapter.initializeAdapter();
-            assertNotNull(cifHbaseAdapter.enrich("testinvalid.metadata"));
+            Assert.assertNotNull(cifHbaseAdapter.enrich("testinvalid.metadata"));
             
-            assertNotNull(cifHbaseAdapter.enrich("ivalid.ip"));
-            assertNotNull(cifHbaseAdapter.enrich("1.1.1.10"));
+            Assert.assertNotNull(cifHbaseAdapter.enrich("ivalid.ip"));
+            Assert.assertNotNull(cifHbaseAdapter.enrich("1.1.1.10"));
        }
     }
     
@@ -198,7 +199,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
             return;//skip tests
        }else{        
            cifHbaseAdapter.initializeAdapter();
-           assertNotNull(cifHbaseAdapter.getCIFObject("testkey"));
+           Assert.assertNotNull(cifHbaseAdapter.getCIFObject("testkey"));
        }
     }
     /**

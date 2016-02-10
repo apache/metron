@@ -26,8 +26,9 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.BasicLancopeParser;
 import org.apache.metron.test.AbstractSchemaTest;
+import org.junit.Assert;
 
- /**
+  /**
  * <ul>
  * <li>Title: Junit for LancopeParserTest</li>
  * <li>Description: </li>
@@ -112,7 +113,7 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
             Map<?, ?> json=null;
             try {
                 json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-                assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
+                Assert.assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }

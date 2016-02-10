@@ -14,6 +14,7 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.BasicFireEyeParser;
 import org.apache.metron.test.AbstractConfigTest;
+import org.junit.Assert;
 
 /**
  * <ul>
@@ -83,7 +84,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	public void testParse() {
 		for (String inputString : getInputStrings()) {
 			JSONObject parsed = parser.parse(inputString.getBytes());
-			assertNotNull(parsed);
+			Assert.assertNotNull(parsed);
 		
 			JSONParser parser = new JSONParser();
 
@@ -95,15 +96,15 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 			}
 			Iterator iter = json.entrySet().iterator();
 			
-			assertNotNull(json);
-			assertFalse(json.isEmpty());
+			Assert.assertNotNull(json);
+			Assert.assertFalse(json.isEmpty());
 			
 
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry) iter.next();
 				String key = (String) entry.getKey();
 				String value = (String) json.get(key).toString();
-				assertNotNull(value);
+				Assert.assertNotNull(value);
 			}
 		}
 	}

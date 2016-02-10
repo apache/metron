@@ -24,6 +24,7 @@ import java.util.Properties;
 import org.json.simple.JSONObject;
 
 import org.apache.metron.test.AbstractTestContext;
+import org.junit.Assert;
 
  /**
  * <ul>
@@ -68,7 +69,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
     protected void setUp() throws Exception {
         super.setUp();
         Properties prop = super.getTestProperties();
-        assertNotNull(prop);   
+        Assert.assertNotNull(prop);   
         
         if(skipTests(this.getMode())){
             return;//skip tests
@@ -99,7 +100,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
         }else{
             whoisHbaseAdapter=new WhoisHBaseAdapter((String)prop.get("bolt.enrichment.whois.hbase.table.name"),(String)prop.get("kafka.zk.list"),(String)prop.get("kafka.zk.port"));
             connected =whoisHbaseAdapter.initializeAdapter();
-            assertTrue(connected);
+            Assert.assertTrue(connected);
         }
        
     }
@@ -120,7 +121,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
-           assertTrue(connected);
+           Assert.assertTrue(connected);
        }
     }
 
@@ -134,10 +135,10 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
             JSONObject json = whoisHbaseAdapter.enrich("72.163.4.161");
             
             //assert Geo Response is not null
-            assertNotNull(json);
+            Assert.assertNotNull(json);
             
             //assert LocId is not null
-            assertNotNull(json.get("cisco.com"));
+            Assert.assertNotNull(json.get("cisco.com"));
        }
     }
 

@@ -14,6 +14,7 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.BasicSourcefireParser;
 import org.apache.metron.test.AbstractConfigTest;
+import org.junit.Assert;
 
 /**
  * <ul>
@@ -84,7 +85,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 		for (String sourceFireString : getSourceFireStrings()) {
 		    byte[] srcBytes = sourceFireString.getBytes();
 			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes());
-			assertNotNull(parsed);
+			Assert.assertNotNull(parsed);
 		
 			System.out.println(parsed);
 			JSONParser parser = new JSONParser();
@@ -102,7 +103,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 				Map.Entry entry = (Map.Entry) iter.next();
 				String key = (String) entry.getKey();
 				String value = (String) json.get("original_string").toString();
-				assertNotNull(value);
+				Assert.assertNotNull(value);
 			}
 		}
 	}
