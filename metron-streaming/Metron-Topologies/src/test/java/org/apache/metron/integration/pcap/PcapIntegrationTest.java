@@ -99,7 +99,7 @@ public class PcapIntegrationTest {
                                                                        .withTopologyName("pcap")
                                                                        .withTopologyProperties(topologyProperties)
                                                                        .build();
-
+        //UnitTestHelper.verboseLogging();
         ComponentRunner runner = new ComponentRunner.Builder()
                                                     .withComponent("elasticsearch", esComponent)
                                                     .withComponent("storm", fluxComponent)

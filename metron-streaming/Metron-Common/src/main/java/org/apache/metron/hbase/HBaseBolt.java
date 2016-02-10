@@ -121,7 +121,7 @@ public class HBaseBolt implements IRichBolt {
     this.collector = collector;
 
     try {
-      if(connector != null) {
+      if(connector == null) {
         this.connector = createConnector();
       }
 		
