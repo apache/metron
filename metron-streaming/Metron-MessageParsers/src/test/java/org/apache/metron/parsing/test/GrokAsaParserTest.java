@@ -75,13 +75,13 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		}
 
 		/**
-		 * Test method for {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
+		 * Test method for {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(byte[])}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {
 		    
 			for (String grokAsaString : getGrokAsaStrings()) {
-				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes());
+				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes()).get(0);
 				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);

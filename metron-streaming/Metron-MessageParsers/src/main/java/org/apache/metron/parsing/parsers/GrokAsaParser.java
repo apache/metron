@@ -1,27 +1,20 @@
 package org.apache.metron.parsing.parsers;
 
+import oi.thekraken.grok.api.Grok;
+import oi.thekraken.grok.api.Match;
+import oi.thekraken.grok.api.exception.GrokException;
+import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.Match;
-import oi.thekraken.grok.api.exception.GrokException;
-
-import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONObject;
-
-public class GrokAsaParser extends AbstractParser implements Serializable {
+public class GrokAsaParser extends BasicParser {
 
 	private static final long serialVersionUID = 945353287115350798L;
 	private transient  Grok  grok;
@@ -214,11 +207,11 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	}
 
 	@Override
-	public JSONObject parse(byte[] raw_message) {
+	public List<JSONObject> parse(byte[] raw_message) {
 
 		String toParse = "";
 		JSONObject toReturn;
-
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 
 			toParse = new String(raw_message, "UTF-8");
@@ -240,11 +233,11 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 			toReturn.putAll(response);
 
 			//System.out.println("*******I MAPPED: " + toReturn);
-
-			toReturn.put("timestamp", convertToEpoch(toReturn.get("MONTH").toString(), toReturn
-					.get("MONTHDAY").toString(), 
-					toReturn.get("TIME").toString(),
-					true));
+			long timestamp = convertToEpoch(toReturn.get("MONTH").toString(), toReturn
+											.get("MONTHDAY").toString(),
+							toReturn.get("TIME").toString(),
+							true);
+			toReturn.put("timestamp", timestamp);
 			
 			toReturn.remove("MONTHDAY");
 			toReturn.remove("TIME");
@@ -255,8 +248,8 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 			
 			toReturn.put("ip_src_addr", toReturn.remove("IPORHOST"));
 			toReturn.put("original_string", toParse);
-
-			return toReturn;
+			messages.add(toReturn);
+			return messages;
 
 		} catch (Exception e) {
 			e.printStackTrace();

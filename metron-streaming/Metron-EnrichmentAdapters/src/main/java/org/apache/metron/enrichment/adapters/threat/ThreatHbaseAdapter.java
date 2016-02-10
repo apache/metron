@@ -18,11 +18,13 @@
 package org.apache.metron.enrichment.adapters.threat;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -36,10 +38,14 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unchecked")
-public class ThreatHbaseAdapter extends AbstractThreatAdapter {
+public class ThreatHbaseAdapter implements EnrichmentAdapter<String>,
+				Serializable {
 
+	protected static final org.slf4j.Logger LOG = LoggerFactory
+					.getLogger(ThreatHbaseAdapter.class);
 	private static final long serialVersionUID = 1L;
 	private String _tableName;
 	private HTableInterface table;
@@ -124,6 +130,8 @@ public class ThreatHbaseAdapter extends AbstractThreatAdapter {
 		return false;
 	}
 
-	
+	@Override
+	public void cleanup() {
 
+	}
 }

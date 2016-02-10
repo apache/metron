@@ -85,7 +85,7 @@ public class BroParserTest extends AbstractConfigTest {
 	public void testParse() throws ParseException {
 
 		for (String inputString : getInputStrings()) {
-			JSONObject cleanJson = parser.parse(inputString.getBytes());
+			JSONObject cleanJson = parser.parse(inputString.getBytes()).get(0);
 			Assert.assertNotNull(cleanJson);
 			System.out.println(cleanJson);
 

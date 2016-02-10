@@ -33,4 +33,8 @@ public abstract class AbstractThreatAdapter implements EnrichmentAdapter,Seriali
 	
 	abstract public boolean initializeAdapter();
 
+	@Override
+	public void cleanup() {
+
+	}
 }

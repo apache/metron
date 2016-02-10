@@ -109,7 +109,13 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 		
 		if(cnt < jsons.size())
 		{
-			_collector.emit(new Values(_converter.convert(jsons.get(cnt))));
+			byte[] value;
+			if (_converter != null) {
+			  value = _converter.convert(jsons.get(cnt));
+			} else {
+				value = jsons.get(cnt).getBytes();
+			}
+			_collector.emit(new Values(value));
 		}
 		cnt ++;
 		

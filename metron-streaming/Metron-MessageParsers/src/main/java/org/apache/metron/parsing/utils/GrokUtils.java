@@ -1,4 +1,4 @@
-package org.apache.metron.parsing.parsers;
+package org.apache.metron.parsing.utils;
 import java.io.Serializable;
 
 import com.google.code.regexp.Pattern;

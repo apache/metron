@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.adapters.whois;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
@@ -28,16 +29,19 @@ import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
 import com.google.common.base.Joiner;
 import org.apache.metron.tldextractor.BasicTldExtractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
+public class WhoisHBaseAdapter implements EnrichmentAdapter<String>,
+				Serializable {
 
-	/**
-	 * 
-	 */
+	protected static final Logger LOG = LoggerFactory
+					.getLogger(WhoisHBaseAdapter.class);
 	private static final long serialVersionUID = 3371873619030870389L;
 	private HTableInterface table;
 	private String _table_name;
@@ -123,8 +127,13 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 		return output;
 
 	}
-	
-//	private String format(String input) {
+
+	@Override
+	public void cleanup() {
+
+	}
+
+	//	private String format(String input) {
 //		String output = input;
 //		String[] tokens = input.split("\\.");
 //		if(tokens.length > 2) {

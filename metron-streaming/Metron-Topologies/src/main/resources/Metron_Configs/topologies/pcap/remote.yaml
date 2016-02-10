@@ -3,6 +3,61 @@ config:
     topology.workers: 1
 
 components:
+    -   id: "parser"
+        className: "org.apache.metron.parsing.parsers.PcapParser"
+        configMethods:
+            -   name: "withTsPrecision"
+                args: ["MICRO"]
+    -   id: "jdbcConfig"
+        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
+        properties:
+            -   name: "host"
+                value: "${mysql.ip}"
+            -   name: "port"
+                value: ${mysql.port}
+            -   name: "username"
+                value: "${mysql.username}"
+            -   name: "password"
+                value: "${mysql.password}"
+            -   name: "table"
+                value: "GEO"
+    -   id: "geoEnrichmentAdapter"
+        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
+        configMethods:
+            -   name: "withJdbcConfig"
+                args:
+                    - ref: "jdbcConfig"
+    -   id: "geoEnrichment"
+        className: "org.apache.metron.domain.Enrichment"
+        properties:
+            -   name: "name"
+                value:  "geo"
+            -   name: "fields"
+                value: ["ip_src_addr", "ip_dst_addr"]
+            -   name: "adapter"
+                ref: "geoEnrichmentAdapter"
+    -   id: "hostEnrichmentAdapter"
+        className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
+        constructorArgs:
+            - '${org.apache.metron.enrichment.host.known_hosts}'
+    -   id: "hostEnrichment"
+        className: "org.apache.metron.domain.Enrichment"
+        properties:
+            -   name: "name"
+                value:  "host"
+            -   name: "fields"
+                value: ["ip_src_addr", "ip_dst_addr"]
+            -   name: "adapter"
+                ref: "hostEnrichmentAdapter"
+    -   id: "enrichments"
+        className: "java.util.ArrayList"
+        configMethods:
+            -   name: "add"
+                args:
+                    - ref: "geoEnrichment"
+            -   name: "add"
+                args:
+                    - ref: "hostEnrichment"
     -   id: "indexAdapter"
         className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
     -   id: "metricConfig"
@@ -115,10 +170,14 @@ bolts:
             - ref: "hbaseConfig"
             - "${kafka.zk}"
     -   id: "parserBolt"
-        className: "org.apache.metron.parsing.PcapParserBolt"
+        className: "org.apache.metron.bolt.PcapParserBolt"
         configMethods:
-            -   name: "withTsPrecision"
-                args: ["MICRO"]
+            -   name: "withMessageParser"
+                args:
+                    - ref: "parser"
+            -   name: "withEnrichments"
+                args:
+                    - ref: "enrichments"
     -   id: "indexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
         configMethods:
@@ -179,6 +238,36 @@ bolts:
             -   name: "withMetricConfiguration"
                 args:
                     - ref: "metricConfig"
+    -   id: "geoEnrichmentBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "geoEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
+    -   id: "hostEnrichmentBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "hostEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
+    -   id: "joinBolt"
+        className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
+        configMethods:
+        -   name: "withEnrichments"
+            args:
+                - ref: "enrichments"
+        -   name: "withMaxCacheSize"
+            args: [10000]
+        -   name: "withMaxTimeRetain"
+            args: [10]
 
 streams:
     -   name: "spout -> parser"
@@ -190,11 +279,46 @@ streams:
         from: "parserBolt"
         to: "hbaseBolt"
         grouping:
-            streamId: "pcap_data_stream"
+            streamId: "raw"
             type: FIELDS
-            args: ["pcap_id"]
-    -   name: "parser -> indexing"
+            args: ["key"]
+    -   name: "parser -> host"
         from: "parserBolt"
+        to: "hostEnrichmentBolt"
+        grouping:
+            streamId: "host"
+            type: FIELDS
+            args: ["key"]
+    -   name: "parser -> geo"
+        from: "parserBolt"
+        to: "geoEnrichmentBolt"
+        grouping:
+            streamId: "geo"
+            type: FIELDS
+            args: ["key"]
+    -   name: "parser -> join"
+        from: "parserBolt"
+        to: "joinBolt"
+        grouping:
+            streamId: "message"
+            type: FIELDS
+            args: ["key"]
+    -   name: "geo -> join"
+        from: "geoEnrichmentBolt"
+        to: "joinBolt"
+        grouping:
+            streamId: "geo"
+            type: FIELDS
+            args: ["key"]
+    -   name: "host -> join"
+        from: "hostEnrichmentBolt"
+        to: "joinBolt"
+        grouping:
+            streamId: "host"
+            type: FIELDS
+            args: ["key"]
+    -   name: "join -> indexing"
+        from: "joinBolt"
         to: "indexingBolt"
         grouping:
             streamId: "message"

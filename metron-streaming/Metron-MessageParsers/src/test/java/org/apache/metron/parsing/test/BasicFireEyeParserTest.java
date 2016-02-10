@@ -78,12 +78,18 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 * Test method for {@link org.apache.metron.parsing.parsers.BasicFireEyeParser#parse(java.lang.String)}.
+	 * Test method for
+	 *
+	 *
+	 *
+	 *
+	 *
+	 * {@link org.apache.metron.parsing.parsers.BasicFireEyeParser#parse(byte[])}.
 	 */
 	@SuppressWarnings({ "rawtypes"})
 	public void testParse() {
 		for (String inputString : getInputStrings()) {
-			JSONObject parsed = parser.parse(inputString.getBytes());
+			JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
 			Assert.assertNotNull(parsed);
 		
 			JSONParser parser = new JSONParser();

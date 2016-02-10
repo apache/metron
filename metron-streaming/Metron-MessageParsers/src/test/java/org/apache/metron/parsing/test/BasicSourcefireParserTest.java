@@ -78,13 +78,13 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 * Test method for {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
+	 * Test method for {@link org.apache.metron.parsing.parsers.BasicSourcefireParser#parse(byte[])}.
 	 */
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
 		for (String sourceFireString : getSourceFireStrings()) {
 		    byte[] srcBytes = sourceFireString.getBytes();
-			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes());
+			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes()).get(0);
 			Assert.assertNotNull(parsed);
 		
 			System.out.println(parsed);

@@ -7,23 +7,24 @@ import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.integration.util.integration.Processor;
-import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.UnitTestHelper;
+import org.apache.metron.integration.util.integration.ComponentRunner;
+import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.util.mock.MockHBaseConnector;
 import org.apache.metron.parsing.parsers.PcapParser;
-import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.test.converters.HexStringConverter;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -50,7 +51,6 @@ public class PcapIntegrationTest {
         Assert.assertTrue("Expected non-zero number of PCAP Ids from the sample data", expectedPcapIds.size() > 0);
         System.out.println("Using topologies directory: " + topologiesDir);
 
-
         ElasticSearchComponent esComponent = new ElasticSearchComponent.Builder()
                                                                        .withHttpPort(9211)
                                                                        .withIndexDir(new File(targetDir + "/elasticsearch"))
@@ -60,6 +60,10 @@ public class PcapIntegrationTest {
             setProperty("es.port", "9300");
             setProperty("es.ip", "localhost");
             setProperty("es.clustername", "metron");
+            setProperty("mysql.ip", "node1");
+            setProperty("mysql.port", "3306");
+            setProperty("mysql.username", "root");
+            setProperty("mysql.password", "P@ssw0rd");
             setProperty("pcap.binary.converter", "FROM_HEX_STRING");
             setProperty("testing.repeating", "false");
             setProperty("org.apache.metron.metrics.reporter.graphite", "false");
@@ -76,14 +80,19 @@ public class PcapIntegrationTest {
             setProperty("org.apache.metron.metrics.TelemetryIndexingBolt.fails","true");
             setProperty("kafka.zk", "localhost:2000,localhost:2000");
             setProperty("bolt.hbase.table.name", "pcap_test");
-            setProperty("bolt.hbase.table.fields", "t:pcap");
-            setProperty("bolt.hbase.table.key.tuple.field.name", "pcap_id");
+            setProperty("bolt.hbase.table.fields", "t:value");
+            setProperty("bolt.hbase.table.key.tuple.field.name", "key");
             setProperty("bolt.hbase.table.timestamp.tuple.field.name", "timestamp");
             setProperty("bolt.hbase.enable.batching", "false");
             setProperty("bolt.hbase.write.buffer.size.in.bytes", "2000000");
             setProperty("bolt.hbase.durability", "SKIP_WAL");
             setProperty("bolt.hbase.partitioner.region.info.refresh.interval.mins","60");
             setProperty("hbase.connector.impl","org.apache.metron.integration.util.mock.MockHBaseConnector");
+            setProperty("org.apache.metron.enrichment.host.known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +
+                    "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
+                    "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
+                    "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", " +
+                    "\"type\":\"printer\", \"asset_value\" : \"important\"}]");
         }};
         FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
                                                                        .withTopologyLocation(new File(topologiesDir + "/pcap/local.yaml"))
@@ -137,7 +146,8 @@ public class PcapIntegrationTest {
                                      , new HashSet<String>(expectedPcapIds)
                                      , convertToSet(Iterables.transform(MockHBaseConnector.getPuts(), RK_TO_PCAP_ID))
                                      );
-        Iterable<PacketInfo> packetsFromHBase = Iterables.transform(MockHBaseConnector.getPuts(), PUT_TO_PCAP);
+        Iterable<JSONObject> packetsFromHBase = Iterables.transform
+                (MockHBaseConnector.getPuts(), PUT_TO_PCAP);
         Assert.assertEquals(expectedPcapIds.size(), Iterables.size(packetsFromHBase));
         MockHBaseConnector.clear();
         runner.stop();
@@ -164,9 +174,10 @@ public class PcapIntegrationTest {
         }
     };
 
-    public static final Function<Put, PacketInfo> PUT_TO_PCAP = new Function<Put, PacketInfo>() {
+    public static final Function<Put, JSONObject> PUT_TO_PCAP = new
+            Function<Put, JSONObject>() {
         @Nullable
-        public PacketInfo apply(@Nullable Put put) {
+        public JSONObject apply(@Nullable Put put) {
             try {
                 return putToPcap(put);
             } catch (IOException e) {
@@ -179,15 +190,15 @@ public class PcapIntegrationTest {
 
     private static List<String> getExpectedPcap(File rawFile) throws IOException {
         List<String> ret = new ArrayList<String>();
+        PcapParser parser = new PcapParser();
+        parser.withTsPrecision("MICRO");
+        parser.init();
         BufferedReader br = new BufferedReader(new FileReader(rawFile));
         for(String line = null; (line = br.readLine()) != null;) {
             byte[] pcapBytes = new HexStringConverter().convert(line);
-            List<PacketInfo> list = PcapParser.parse(pcapBytes);
-            for(PacketInfo pi : list) {
-                String string_pcap = pi.getJsonIndexDoc();
-        	    Object obj= JSONValue.parse(string_pcap);
-        	    JSONObject header=(JSONObject)obj;
-                ret.add((String)header.get("pcap_id"));
+            List<JSONObject> list = parser.parse(pcapBytes);
+            for(JSONObject message : list) {
+                ret.add((String) message.get("pcap_id"));
             }
         }
         return ret;
@@ -199,12 +210,14 @@ public class PcapIntegrationTest {
         return "pcap_index_" + sdf.format(d);
     }
 
-    private static PacketInfo putToPcap(Put p) throws IOException {
-        List<Cell> cells = p.get(Bytes.toBytes("t"), Bytes.toBytes("pcap"));
+    private static JSONObject putToPcap(Put p) throws IOException {
+        PcapParser parser = new PcapParser();
+        parser.init();
+        List<Cell> cells = p.get(Bytes.toBytes("t"), Bytes.toBytes("value"));
         Assert.assertEquals(1, cells.size());
-        List<PacketInfo> l = PcapParser.parse(cells.get(0).getValueArray());
-        Assert.assertEquals(1, l.size());
-        return l.get(0);
+        List<JSONObject> messages = parser.parse(cells.get(0).getValueArray());
+        Assert.assertEquals(1, messages.size());
+        return messages.get(0);
     }
 
 }

@@ -97,20 +97,11 @@ spouts:
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.parsing.TelemetryParserBolt"
+        className: "org.apache.metron.bolt.TelemetryParserBolt"
         configMethods:
             -   name: "withMessageParser"
                 args:
                     - ref: "iseParser"
-            -   name: "withOutputFieldName"
-                args:
-                    - "ise"
-            -   name: "withMessageFilter"
-                args:
-                    - ref: "genericMessageFilter"
-            -   name: "withMetricConfig"
-                args:
-                    - ref: "metricConfig"
     -   id: "indexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
         configMethods:
