@@ -192,6 +192,8 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
     public String getSchemaJsonString() {
        return this.schemaJsonString;
     }
+
+     protected void assertNotNull(Object o) throws Exception {}
      
 }
 

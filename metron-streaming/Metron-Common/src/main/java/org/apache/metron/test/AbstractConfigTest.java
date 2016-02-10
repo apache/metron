@@ -1,6 +1,4 @@
-
- 
- /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -110,9 +108,9 @@ public class AbstractConfigTest  extends AbstractTestContext{
                 this.setSettings(SettingsLoader.getConfigOptions((PropertiesConfiguration)this.config, configName + "."));
                 this.getSettings().put(configName, (String) configOptions.get(configName));
             } catch (ConfigurationException e) {
-                fail("Config not found !!"+e);
                 e.printStackTrace();
-            }               
+                throw new Exception("Config not found !!"+e);
+            }
         }
 
         /*

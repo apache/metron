@@ -19,8 +19,9 @@ package org.apache.metron.enrichment.interfaces;
 
 import org.json.simple.JSONObject;
 
-public interface EnrichmentAdapter
+public interface EnrichmentAdapter<T>
 {
-	JSONObject enrich(String metadata);
+	JSONObject enrich(T value);
 	boolean initializeAdapter();
+	void cleanup();
 }

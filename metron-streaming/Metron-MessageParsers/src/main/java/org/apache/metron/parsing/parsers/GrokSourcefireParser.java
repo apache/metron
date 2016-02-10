@@ -1,15 +1,16 @@
 package org.apache.metron.parsing.parsers;
 
-import java.net.URL;
-
-import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.Grok;
+import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
-
 import org.json.simple.JSONObject;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GrokSourcefireParser extends AbstractParser{
+
+public class GrokSourcefireParser extends BasicParser {
 	
 	/**
 	 * 
@@ -38,14 +39,19 @@ public class GrokSourcefireParser extends AbstractParser{
 		grok = Grok.create(filepath);
 		grok.compile("%{"+pattern+"}");
 	}
-	
+
 	@Override
-	public JSONObject parse(byte[] raw_message) {
+	public void init() {
+
+	}
+
+	@Override
+	public List<JSONObject> parse(byte[] raw_message) {
 		JSONObject payload = new JSONObject();
 		String toParse = "";
 		JSONObject toReturn;
-		
 
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 
 			toParse = new String(raw_message, "UTF-8");
@@ -60,7 +66,8 @@ public class GrokSourcefireParser extends AbstractParser{
 			proto = proto.replace("{", "");
 			proto = proto.replace("}", "");
 			toReturn.put("protocol", proto);
-			return toReturn;
+			messages.add(toReturn);
+			return messages;
 			
 		}
 		catch(Exception e)
