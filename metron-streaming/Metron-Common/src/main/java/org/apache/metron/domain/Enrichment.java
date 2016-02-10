@@ -1,9 +1,11 @@
 package org.apache.metron.domain;
 
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+
 import java.io.Serializable;
 import java.util.List;
 
-public class Enrichment<T> implements Serializable {
+public class Enrichment<T extends EnrichmentAdapter> implements Serializable {
 
   private String name;
   private List<String> fields;

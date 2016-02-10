@@ -13,16 +13,16 @@ public class GeoAdapter extends JdbcAdapter {
 
   @SuppressWarnings("unchecked")
   @Override
-  public JSONObject enrich(String metadata) {
+  public JSONObject enrich(String value) {
     JSONObject enriched = new JSONObject();
     try {
-      InetAddress addr = InetAddress.getByName(metadata);
+      InetAddress addr = InetAddress.getByName(value);
       if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
               || addr.isSiteLocalAddress() || addr.isMulticastAddress()
-              || !ipvalidator.isValidInet4Address(metadata)) {
+              || !ipvalidator.isValidInet4Address(value)) {
         return new JSONObject();
       }
-      String locidQuery = "select IPTOLOCID(\"" + metadata
+      String locidQuery = "select IPTOLOCID(\"" + value
               + "\") as ANS";
       ResultSet resultSet = statement.executeQuery(locidQuery);
       String locid = null;

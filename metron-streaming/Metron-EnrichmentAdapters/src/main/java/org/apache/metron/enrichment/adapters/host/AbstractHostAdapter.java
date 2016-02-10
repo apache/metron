@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
-public abstract class AbstractHostAdapter implements EnrichmentAdapter,Serializable{
+public abstract class AbstractHostAdapter implements EnrichmentAdapter<String>,
+				Serializable{
 
 	/**
 	 * Adapter to attach reputation information to the telemetry message

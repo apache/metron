@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.sql.*;
 
-public abstract class JdbcAdapter implements EnrichmentAdapter,
+public abstract class JdbcAdapter implements EnrichmentAdapter<String>,
         Serializable {
 
   protected static final Logger _LOG = LoggerFactory

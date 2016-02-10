@@ -18,9 +18,11 @@
 package org.apache.metron.enrichment.adapters.cif;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -33,7 +35,7 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.log4j.Logger;
 
 @SuppressWarnings("unchecked")
-public class CIFHbaseAdapter extends AbstractCIFAdapter {
+public class CIFHbaseAdapter implements EnrichmentAdapter<String>,Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private String _tableName;
@@ -107,19 +109,23 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 		return false;
 	}
 
-	@Override
+
 	public String enrichByIP(String metadata) {
 		return null;
 	}
 
-	@Override
+
 	public String enrichByDomain(String metadata) {
 		return null;
 	}
 
-	@Override
+
 	public String enrichByEmail(String metadata) {
 		return null;
 	}
 
+	@Override
+	public void cleanup() {
+
+	}
 }

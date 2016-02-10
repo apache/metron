@@ -65,6 +65,11 @@ public class TelemetryParserBolt extends
   }
 
   @Override
+  public String getKey(Tuple tuple, JSONObject message) {
+    return UUID.randomUUID().toString();
+  }
+
+  @Override
   public Set<String> getStreamIds() {
     Set<String> streamIds = new HashSet<>();
     for(Enrichment enrichment: enrichments) {
@@ -75,13 +80,11 @@ public class TelemetryParserBolt extends
 
   @Override
   public List<JSONObject> generateMessages(Tuple tuple) {
-    LOG.trace("[Metron] Starting to process a new incoming tuple");
     List<JSONObject> filteredMessages = new ArrayList<>();
     byte[] originalMessage = tuple.getBinary(0);
     try {
       originalMessage = tuple.getBinary(0);
       if (originalMessage == null || originalMessage.length == 0) {
-        LOG.error("Incomming tuple is null");
         throw new Exception("Invalid message length");
       }
       List<JSONObject> messages = parser.parse(originalMessage);

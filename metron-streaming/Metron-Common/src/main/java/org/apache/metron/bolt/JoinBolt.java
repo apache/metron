@@ -72,11 +72,13 @@ public abstract class JoinBolt<V> extends BaseRichBolt {
     try {
       Map<String, V> streamValueMap = cache.get(key);
       if (streamValueMap.containsKey(streamId)) {
-        throw new RuntimeException(String.format("Received key %s twice for " +
+        LOG.warn(String.format("Received key %s twice for " +
                 "stream %s", key, streamId));
       }
       streamValueMap.put(streamId, value);
-      if (Sets.symmetricDifference(streamValueMap.keySet(), streamIds)
+      Set<String> streamValueKeys = streamValueMap.keySet();
+      if (streamValueKeys.size() == streamIds.size() && Sets.symmetricDifference
+              (streamValueKeys, streamIds)
               .isEmpty()) {
         collector.emit("message", tuple, new Values(key, joinValues
                 (streamValueMap)));
@@ -86,7 +88,7 @@ public abstract class JoinBolt<V> extends BaseRichBolt {
         cache.put(key, streamValueMap);
       }
     } catch (ExecutionException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage(), e);
     }
   }
 

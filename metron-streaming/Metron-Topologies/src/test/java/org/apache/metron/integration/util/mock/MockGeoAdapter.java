@@ -5,7 +5,7 @@ import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 
-public class MockGeoAdapter implements EnrichmentAdapter,
+public class MockGeoAdapter implements EnrichmentAdapter<String>,
         Serializable {
 
   public JSONObject enrich(String metadata) {

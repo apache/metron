@@ -45,26 +45,31 @@ public abstract class SplitBolt<T> extends
 
   public void emit(Tuple tuple, List<T> messages) {
     for(T message: messages) {
-      String key = UUID.randomUUID().toString();
+      String key = getKey(tuple, message);
       collector.emit("message", tuple, new Values(key, message));
       Map<String, T> streamValueMap = splitMessage(message);
       for (String streamId : streamIds) {
         T streamValue = streamValueMap.get(streamId);
         if (streamValue == null) {
-          throw new IllegalArgumentException("Could not find a message for" +
-                  " stream: " + streamId);
-        } else {
-          collector.emit(streamId, new Values(key, streamValue));
+          streamValue = getDefaultValue(streamId);
         }
+        collector.emit(streamId, new Values(key, streamValue));
       }
       collector.ack(tuple);
     }
     emitOther(tuple, messages);
   }
 
+  protected T getDefaultValue(String streamId) {
+    throw new IllegalArgumentException("Could not find a message for" +
+            " stream: " + streamId);
+  }
+
   public abstract void prepare(Map map, TopologyContext topologyContext);
 
   public abstract Set<String> getStreamIds();
+
+  public abstract String getKey(Tuple tuple, T message);
 
   public abstract List<T> generateMessages(Tuple tuple);
 

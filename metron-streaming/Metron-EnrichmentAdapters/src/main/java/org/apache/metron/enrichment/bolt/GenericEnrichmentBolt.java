@@ -147,10 +147,10 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+    String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
     JSONObject enrichedMessage = new JSONObject();
     try {
-      String key = tuple.getStringByField("key");
       if (rawMessage == null || rawMessage.isEmpty())
         throw new Exception("Could not parse binary stream to JSON");
       if (key == null)
@@ -172,6 +172,9 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
     } catch (Exception e) {
       LOG.error("[Metron] Unable to enrich message: " + rawMessage);
       JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + rawMessage, e);
+      if (key != null) {
+        collector.emit(streamId, new Values(key, enrichedMessage));
+      }
       collector.emit("error", new Values(error));
     }
   }
