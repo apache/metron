@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.test;
+package org.apache.metron;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.URL;
@@ -192,8 +192,6 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
     public String getSchemaJsonString() {
        return this.schemaJsonString;
     }
-
-     protected void assertNotNull(Object o) throws Exception {}
      
 }
 

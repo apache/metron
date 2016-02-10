@@ -1,6 +1,4 @@
-
- 
- /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -23,8 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
  /**
  * <ul>
  * <li>Title: </li>
@@ -37,7 +33,7 @@ import junit.framework.TestCase;
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class AbstractTestContext  extends TestCase{
+public class AbstractTestContext {
          /**
          * The testProps.
          */
@@ -68,7 +64,6 @@ public class AbstractTestContext  extends TestCase{
          * @param name the name of the test case.
          */
         public AbstractTestContext(String name) {
-            super(name);
             try{
                 if(System.getProperty("mode")!=null){
                     setMode(System.getProperty("mode") );                
@@ -85,7 +80,6 @@ public class AbstractTestContext  extends TestCase{
          * (non-Javadoc)
          * @see junit.framework.TestCase#setUp()
          */
-        @Override
         protected void setUp() throws Exception {
             InputStream input=null;
             File directory = new File("src/test/resources");
@@ -102,7 +96,7 @@ public class AbstractTestContext  extends TestCase{
                 testProperties.load(input);
             }catch(IOException ex){
                 ex.printStackTrace();
-                fail("failed to load properties");
+                throw new Exception("failed to load properties");
             }
             
             
@@ -112,7 +106,6 @@ public class AbstractTestContext  extends TestCase{
          * (non-Javadoc)
          * @see junit.framework.TestCase#tearDown()
          */
-        @Override
         protected void tearDown() throws Exception {
 
         }

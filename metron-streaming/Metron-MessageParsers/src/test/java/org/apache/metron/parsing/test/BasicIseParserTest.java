@@ -26,6 +26,7 @@ import org.json.simple.parser.ParseException;
 
 import org.apache.metron.parsing.parsers.BasicIseParser;
 import org.apache.metron.test.AbstractSchemaTest;
+import org.junit.Assert;
 
 
 /**
@@ -118,7 +119,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
             Map<?, ?> json=null;
             try {
                 json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-                assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
+                Assert.assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
