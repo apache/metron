@@ -22,25 +22,33 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @SuppressWarnings("serial")
-public class BasicBroParser extends AbstractParser {
+public class BasicBroParser extends BasicParser {
 
     protected static final Logger _LOG = LoggerFactory
             .getLogger(BasicBroParser.class);
     private JSONCleaner cleaner = new JSONCleaner();
 
+    @Override
+    public void init() {
+
+    }
+
     @SuppressWarnings("unchecked")
-    public JSONObject parse(byte[] msg) {
+    public List<JSONObject> parse(byte[] msg) {
 
         _LOG.trace("[Metron] Starting to parse incoming message");
 
         String rawMessage = null;
-
+        List<JSONObject> messages = new ArrayList<>();
         try {
             rawMessage = new String(msg, "UTF-8");
             _LOG.trace("[Metron] Received message: " + rawMessage);
 
-            JSONObject cleanedMessage = cleaner.Clean(rawMessage);
+            JSONObject cleanedMessage = cleaner.clean(rawMessage);
             _LOG.debug("[Metron] Cleaned message: " + cleanedMessage);
 
             if (cleanedMessage == null || cleanedMessage.isEmpty()) {
@@ -77,9 +85,10 @@ public class BasicBroParser extends AbstractParser {
 
             replaceKey(payload, "timestamp", new String[]{ "ts" });
 
+            long timestamp = 0L;
             if (payload.containsKey("timestamp")) {
                 try {
-                    long timestamp = Long.parseLong(payload.get("timestamp").toString());
+                    timestamp = Long.parseLong(payload.get("timestamp").toString());
                     payload.put("timestamp", timestamp);
                 } catch (NumberFormatException nfe) {
                     _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
@@ -102,8 +111,8 @@ public class BasicBroParser extends AbstractParser {
 
             payload.put("protocol", key);
             _LOG.debug("[Metron] Returning parsed message: " + payload);
-
-            return payload;
+            messages.add(payload);
+            return messages;
 
         } catch (Exception e) {
 

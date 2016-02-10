@@ -1,11 +1,11 @@
 package org.apache.metron.parser.interfaces;
 
-import org.json.simple.JSONObject;
+import java.util.List;
 
-public interface MessageParser {
-	
-	void initializeParser();
+public interface MessageParser<T> {
+
 	void init();
-	JSONObject parse(byte[] raw_message);
+	List<T> parse(byte[] rawMessage);
+	boolean validate(T message);
 
 }

@@ -38,4 +38,8 @@ public abstract class AbstractCIFAdapter implements EnrichmentAdapter,Serializab
 	abstract public String enrichByDomain(String metadata);
 	abstract public String enrichByEmail(String metadata);
 
+	@Override
+	public void cleanup() {
+
+	}
 }

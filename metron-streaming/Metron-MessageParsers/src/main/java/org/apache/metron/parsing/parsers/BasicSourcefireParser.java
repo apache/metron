@@ -17,15 +17,20 @@
 
 package org.apache.metron.parsing.parsers;
 
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.simple.JSONObject;
-
-import org.apache.metron.parser.interfaces.MessageParser;
-
 @SuppressWarnings("serial")
-public class BasicSourcefireParser extends AbstractParser implements MessageParser{
+public class BasicSourcefireParser extends BasicParser {
+
+	private static final Logger _LOG = LoggerFactory
+					.getLogger(BasicSourcefireParser.class);
 
 	public static final String hostkey = "host";
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
@@ -34,12 +39,17 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 	Pattern sidPattern = Pattern.compile(sidRegex);	
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
+	@Override
+	public void init() {
+
+	}
+
 	@SuppressWarnings({ "unchecked", "unused" })
-	public JSONObject parse(byte[] msg) {
+	public List<JSONObject> parse(byte[] msg) {
 
 		JSONObject payload = new JSONObject();
 		String toParse = "";
-
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 
 			toParse = new String(msg, "UTF-8");
@@ -80,8 +90,8 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 				payload.put("ip_dst_addr", dest);
 				dest_ip = dest;
 			}
-
-			payload.put("timestamp", System.currentTimeMillis());
+			long timestamp = System.currentTimeMillis();
+			payload.put("timestamp", timestamp);
 			
 			Matcher sidMatcher = sidPattern.matcher(toParse);
 			String originalString = null;
@@ -95,8 +105,8 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 			}
 			payload.put("original_string", originalString);
 			payload.put("signature_id", signatureId);
-
-			return payload;
+			messages.add(payload);
+			return messages;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);

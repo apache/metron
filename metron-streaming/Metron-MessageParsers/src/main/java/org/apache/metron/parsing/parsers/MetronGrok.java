@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.parsing.utils.GrokUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

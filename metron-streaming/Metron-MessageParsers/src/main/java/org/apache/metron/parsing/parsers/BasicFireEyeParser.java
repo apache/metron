@@ -1,36 +1,28 @@
 package org.apache.metron.parsing.parsers;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONObject;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.parsing.utils.ParserUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.Match;
-import oi.thekraken.grok.api.exception.GrokException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class BasicFireEyeParser extends AbstractParser implements Serializable {
+public class BasicFireEyeParser extends BasicParser {
 
 	private static final long serialVersionUID = 6328907550159134550L;
-	//String tsRegex = "(.*)([a-z][A-Z]+)\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)(.*)$";
+	protected static final Logger LOG = LoggerFactory
+					.getLogger(BasicFireEyeParser.class);
+
+
 	String tsRegex ="([a-zA-Z]{3})\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)";
 	
 	
@@ -49,9 +41,14 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 	}
 
 	@Override
-	public JSONObject parse(byte[] raw_message) {
-		String toParse = "";
+	public void init() {
 
+	}
+
+	@Override
+	public List<JSONObject> parse(byte[] raw_message) {
+		String toParse = "";
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 
 			toParse = new String(raw_message, "UTF-8");
@@ -80,45 +77,14 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 			JSONObject toReturn = parseMessage(toParse);
 
 			toReturn.put("timestamp", getTimeStamp(toParse,delimiter));
-
-			return toReturn;
+			messages.add(toReturn);
+			return messages;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 
-	}
-
-	public static Long convertToEpoch(String m, String d, String ts,
-			boolean adjust_timezone) throws ParseException {
-		d = d.trim();
-
-		if (d.length() <= 2)
-			d = "0" + d;
-
-		Date date = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(m);
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(date);
-		String month = String.valueOf(cal.get(Calendar.MONTH));
-		int year = Calendar.getInstance().get(Calendar.YEAR);
-
-		if (month.length() <= 2)
-			month = "0" + month;
-
-		String coglomerated_ts = year + "-" + month + "-" + d + " " + ts;
-
-		System.out.println(coglomerated_ts);
-
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-		if (adjust_timezone)
-			sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-		date = sdf.parse(coglomerated_ts);
-		long timeInMillisSinceEpoch = date.getTime();
-
-		return timeInMillisSinceEpoch;
 	}
 
 	private long getTimeStamp(String toParse,String delimiter) throws ParseException {
@@ -134,8 +100,8 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 			time = tsMatcher.group(3);
 	
 				} else {
-			_LOG.warn("Unable to find timestamp in message: " + toParse);
-			ts = convertToEpoch(month, day, time, true);
+			LOG.warn("Unable to find timestamp in message: " + toParse);
+			ts = ParserUtils.convertToEpoch(month, day, time, true);
 		}
 
 			return ts;

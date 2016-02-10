@@ -28,7 +28,7 @@ public class JSONCleaner implements Serializable {
 	 * Takes a json String as input and removes any Special Chars (^ a-z A-Z 0-9) in the keys
 	 */
 	@SuppressWarnings({"unchecked","rawtypes"})
-	public JSONObject Clean(String jsonString) throws ParseException
+	public JSONObject clean(String jsonString) throws ParseException
 	{
 		JSONParser parser = new JSONParser();
 		
@@ -54,7 +54,7 @@ public class JSONCleaner implements Serializable {
 		String jsonText = "{\"first_1\": 123, \"second\": [4, 5, 6], \"third\": 789}";
 		JSONCleaner cleaner = new JSONCleaner();
 		try {
-			//cleaner.Clean(jsonText);
+			//cleaner.clean(jsonText);
 			Map obj=new HashMap();
 			  obj.put("name","foo");
 			  obj.put("num",new Integer(100));

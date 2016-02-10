@@ -17,34 +17,41 @@
 
 package org.apache.metron.parsing.parsers;
 
-import java.io.StringReader;
-
+import com.esotericsoftware.minlog.Log;
+import org.apache.metron.ise.parser.ISEParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.minlog.Log;
-import org.apache.metron.ise.parser.ISEParser;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("serial")
-public class BasicIseParser extends AbstractParser {
+public class BasicIseParser extends BasicParser {
 
-	protected static final Logger _LOG = LoggerFactory
+	private static final Logger _LOG = LoggerFactory
 			.getLogger(BasicIseParser.class);
 	static final transient ISEParser _parser = new ISEParser("header=");
 
+	@Override
+	public void init() {
+
+	}
+
 	@SuppressWarnings("unchecked")
-	public JSONObject parse(byte[] msg) {
+	@Override
+	public List<JSONObject> parse(byte[] msg) {
 	
 		String raw_message = "";
-
+		List<JSONObject> messages = new ArrayList<>();
 		try {
 
 			raw_message = new String(msg, "UTF-8");
 			_LOG.debug("Received message: " + raw_message);
-			
+
 			/*
-			 * Reinitialize Parser. It has the effect of calling the constructor again. 
+			 * Reinitialize Parser. It has the effect of calling the constructor again.
 			 */
 			_parser.ReInit(new StringReader("header=" + raw_message.trim()));
 
@@ -54,7 +61,7 @@ public class BasicIseParser extends AbstractParser {
 			String ip_src_port = (String) payload.get("Device Port");
 			String ip_dst_addr = (String) payload.get("DestinationIPAddress");
 			String ip_dst_port = (String) payload.get("DestinationPort");
-			
+
 			/*
 			 * Standard Fields for Metron.
 			 */
@@ -67,17 +74,19 @@ public class BasicIseParser extends AbstractParser {
 				payload.put("ip_dst_addr", ip_dst_addr);
 			if(ip_dst_port != null)
 				payload.put("ip_dst_port", ip_dst_port);
-
-			JSONObject message = new JSONObject();
-			//message.put("message", payload);
-
-			return payload;
+			messages.add(payload);
+			return messages;
 
 		} catch (Exception e) {
 			Log.error(e.toString());
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public boolean validate(JSONObject message) {
+		return true;
 	}
 
 	
