@@ -1,4 +1,4 @@
- /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -16,152 +16,49 @@
  */
 package org.apache.metron.alerts.adapters;
 
-import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.metron.test.AbstractConfigTest;
-import org.apache.metron.alerts.adapters.AllAlertAdapter;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
- /**
- * <ul>
- * <li>Title: AllAlertAdapterTest</li>
- * <li>Description: Tests for AllAlertAdapter</li>
- * <li>Created: Oct 8, 2014</li>
- * </ul>
- * @version $Revision: 1.1 $
- */
 public class AllAlertAdapterTest extends AbstractConfigTest {
 
      /**
      * The allAlertAdapter.
      */
-    private static AllAlertAdapter allAlertAdapter=null;
-    
-     /**
-     * The connected.
-     */
-    private static boolean connected=false;
+    private AllAlertAdapter allAlertAdapter=null;
 
-    /**
-     * Constructs a new <code>AllAlertAdapterTest</code> instance.
-     * @param name
-     */
-    public AllAlertAdapterTest(String name) {
-        super(name);
+    public AllAlertAdapterTest() throws Exception {
+        super.setUp("org.apache.metron.alerts.adapters.AllAlertAdapter");
+        Properties prop = super.getTestProperties();
+        Assert.assertNotNull(prop);
+
+        Map<String, String> settings = super.getSettings();
+
+        allAlertAdapter = new AllAlertAdapter(settings);
     }
 
     /**
-     * @throws java.lang.Exception
+     * Test method for {@link org.apache.metron.alerts.adapters.AllAlertAdapter#initialize()}.
      */
-    protected static void setUpBeforeClass() throws Exception {
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
-    protected static void tearDownAfterClass() throws Exception {
-    }
-
-    /* 
-     * (non-Javadoc)
-     * @see junit.framework.TestCase#setUp()
-     */
-
-    @SuppressWarnings("unchecked")
-    protected void setUp() throws Exception {
-          super.setUp("org.apache.metron.alerts.adapters.AllAlertAdapter");
-          Properties prop = super.getTestProperties();
-          Assert.assertNotNull(prop);
-       // this.setMode("global");
-        if(skipTests(this.getMode())){
-            System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
-            return;//skip tests
-       }else{      
-           Map<String, String> settings = super.getSettings();
-           @SuppressWarnings("rawtypes")
-        Class loaded_class = Class.forName("org.apache.metron.alerts.adapters.AllAlertAdapter");
-           @SuppressWarnings("rawtypes")
-        Constructor constructor = loaded_class.getConstructor(new Class[] { Map.class});
-           
-           AllAlertAdapterTest.allAlertAdapter = (AllAlertAdapter) constructor.newInstance(settings);
-            // AllAlertAdapterTest.allAlertAdapter = new AllAlertAdapter(settings)
-      }
-    }
-
-    /* 
-     * (non-Javadoc)
-     * @see junit.framework.TestCase#tearDown()
-     */
-
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-
-    /**
-     * Test method for {@link org.apache.metron.alerts.adapters.AlllterAdapter#initialize()}.
-     */
+    @Ignore //FIXME - This is really an integration test, e.g. requires a running ZK cluster
+    @Test
     public void testInitializeAdapter() {
-        if(skipTests(this.getMode())){
-            return;//skip tests
-       }else{        
-           
-        boolean initialized =AllAlertAdapterTest.getAllAlertAdapter().initialize();
+        boolean initialized = this.allAlertAdapter.initialize();
         Assert.assertTrue(initialized);
-       }
     }
     
     /**
      * Test method for containsAlertId(@link  org.apache.metron.alerts.adapters.AlllterAdapter#containsAlertId()}.
      */
-    public void testContainsAlertId(){
-        if(skipTests(this.getMode())){
-            return;//skip tests
-       }else{          
-            boolean containsAlert =AllAlertAdapterTest.getAllAlertAdapter().containsAlertId("test");
-            Assert.assertFalse(containsAlert);
-       }
+    @Test
+    public void testContainsAlertId() {
+        boolean containsAlert = this.allAlertAdapter.containsAlertId("test");
+        Assert.assertFalse(containsAlert);
     }
- 
-   
-
-    /**
-     * Returns the allAlertAdapter.
-     * @return the allAlertAdapter.
-     */
-    
-    public static AllAlertAdapter getAllAlertAdapter() {
-        return allAlertAdapter;
-    }
-
-    /**
-     * Sets the allAlertAdapter.
-     * @param allAlertAdapter the allAlertAdapter.
-     */
-    
-    public static void setAllAlertAdapter(AllAlertAdapter allAlertAdapter) {
-    
-        AllAlertAdapterTest.allAlertAdapter = allAlertAdapter;
-    }
-    /**
-     * Returns the connected.
-     * @return the connected.
-     */
-    
-    public static boolean isConnected() {
-        return connected;
-    }
-
-    /**
-     * Sets the connected.
-     * @param connected the connected.
-     */
-    
-    public static void setConnected(boolean connected) {
-    
-        AllAlertAdapterTest.connected = connected;
-    }    
 }
 
