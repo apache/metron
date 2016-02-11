@@ -79,8 +79,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
    * @return Instance of this class
    */
 
-  public GenericEnrichmentBolt withEnrichment
-  (Enrichment<EnrichmentAdapter> enrichment) {
+  public GenericEnrichmentBolt withEnrichment(Enrichment<EnrichmentAdapter> enrichment) {
     this.streamId = enrichment.getName();
     this.enrichment = enrichment;
     this.adapter = this.enrichment.getAdapter();
@@ -132,7 +131,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
             .build(loader);
     boolean success = adapter.initializeAdapter();
     if (!success) {
-      LOG.error("[Metron] EnrichmentBolt could not initialize adapter");
+      LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
   }
@@ -142,7 +141,6 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
     declearer.declareStream(streamId, new Fields("key", "message"));
     declearer.declareStream("error", new Fields("message"));
   }
-
 
   @SuppressWarnings("unchecked")
   @Override
@@ -159,6 +157,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
         JSONObject enrichedField = new JSONObject();
         String value = (String) rawMessage.get(field);
         if (value != null && value.length() != 0) {
+          adapter.logAccess(value);
           enrichedField = cache.getUnchecked(value);
           if (enrichedField == null)
             throw new Exception("[Metron] Could not enrich string: "

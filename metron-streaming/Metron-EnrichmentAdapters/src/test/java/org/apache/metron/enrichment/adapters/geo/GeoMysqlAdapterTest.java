@@ -20,8 +20,8 @@ import java.net.URL;
 import java.util.Properties;
 
 import org.apache.metron.enrichment.adapters.jdbc.JdbcAdapter;
-import org.apache.metron.enrichment.adapters.jdbc.JdbcConfig;
 import org.apache.metron.enrichment.adapters.jdbc.MySqlConfig;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
 import org.apache.metron.test.AbstractSchemaTest;
@@ -133,7 +133,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.geo.GeoAdapter#initializeAdapter()}.
+     * Test method for {@link EnrichmentAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){

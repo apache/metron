@@ -21,6 +21,7 @@ package org.apache.metron.enrichment.adapters.whois;
 import java.net.InetAddress;
 import java.util.Properties;
 
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
 import org.apache.metron.test.AbstractTestContext;
@@ -115,7 +116,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#initializeAdapter()}.
+     * Test method for {@link EnrichmentAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){

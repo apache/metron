@@ -174,4 +174,18 @@ public class PersistentAccessTracker implements AccessTracker {
             return underlyingTracker.isFull();
         }
     }
+
+    @Override
+    public void cleanup() throws IOException {
+        synchronized(sync) {
+            try {
+                persist(true);
+            }
+            catch(Throwable t) {
+                LOG.error("Unable to persist underlying tracker", t);
+            }
+            underlyingTracker.cleanup();
+            accessTrackerTable.close();
+        }
+    }
 }

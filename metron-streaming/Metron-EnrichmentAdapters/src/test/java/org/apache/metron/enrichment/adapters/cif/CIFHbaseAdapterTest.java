@@ -21,8 +21,8 @@ package org.apache.metron.enrichment.adapters.cif;
 import java.net.InetAddress;
 import java.util.Properties;
 
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.test.AbstractTestContext;
-import org.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter;
 import org.junit.Assert;
 
 
@@ -121,7 +121,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#initializeAdapter()}.
+     * Test method for {@link EnrichmentAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
         if(skipTests(this.getMode())){

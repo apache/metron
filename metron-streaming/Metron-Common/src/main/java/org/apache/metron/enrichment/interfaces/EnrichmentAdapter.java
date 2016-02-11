@@ -21,6 +21,7 @@ import org.json.simple.JSONObject;
 
 public interface EnrichmentAdapter<T>
 {
+	void logAccess(T value);
 	JSONObject enrich(T value);
 	boolean initializeAdapter();
 	void cleanup();

@@ -125,4 +125,9 @@ public class BloomAccessTracker implements AccessTracker {
     public boolean isFull() {
         return numInsertions >= expectedInsertions;
     }
+
+    @Override
+    public void cleanup() throws IOException {
+
+    }
 }

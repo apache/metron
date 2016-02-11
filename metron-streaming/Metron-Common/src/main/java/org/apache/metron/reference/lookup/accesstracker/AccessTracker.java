@@ -19,4 +19,5 @@ public interface AccessTracker extends Serializable{
     AccessTracker union(AccessTracker tracker);
     void reset();
     boolean isFull();
+    void cleanup() throws IOException;
 }

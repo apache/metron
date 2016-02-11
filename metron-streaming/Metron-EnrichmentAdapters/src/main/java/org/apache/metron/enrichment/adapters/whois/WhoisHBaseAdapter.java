@@ -19,7 +19,6 @@ package org.apache.metron.enrichment.adapters.whois;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -32,7 +31,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
-import com.google.common.base.Joiner;
 import org.apache.metron.tldextractor.BasicTldExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +91,11 @@ public class WhoisHBaseAdapter implements EnrichmentAdapter<String>,
 		}
 
 		return false;
+
+	}
+
+	@Override
+	public void logAccess(String value) {
 
 	}
 
