@@ -44,7 +44,6 @@ public class HBaseBolt implements IRichBolt {
   protected TupleTableConfig conf;
   protected boolean autoAck = true;
   protected Connector connector;
-  private String connectorImpl;
   private String _quorum;
   private String _port;
 
@@ -70,32 +69,11 @@ public class HBaseBolt implements IRichBolt {
     String hostPortPair = Iterables.getFirst(Splitter.on(",").split(connString), "");
     return Iterables.getLast(Splitter.on(":").split(hostPortPair),DEFAULT_ZK_PORT);
   }
-  public HBaseBolt withConnector(String connectorImpl) {
-    this.connectorImpl = connectorImpl;
-    return this;
-  }
+
 
   public Connector createConnector() throws IOException{
     initialize();
-    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
-      return new HTableConnector(conf, _quorum, _port);
-    }
-    else {
-      try {
-        Class<? extends Connector> clazz = (Class<? extends Connector>) Class.forName(connectorImpl);
-        return clazz.getConstructor(TupleTableConfig.class, String.class, String.class).newInstance(conf, _quorum, _port);
-      } catch (InstantiationException e) {
-        throw new IOException("Unable to instantiate connector.", e);
-      } catch (IllegalAccessException e) {
-        throw new IOException("Unable to instantiate connector: illegal access", e);
-      } catch (InvocationTargetException e) {
-        throw new IOException("Unable to instantiate connector", e);
-      } catch (NoSuchMethodException e) {
-        throw new IOException("Unable to instantiate connector: no such method", e);
-      } catch (ClassNotFoundException e) {
-        throw new IOException("Unable to instantiate connector: class not found", e);
-      }
-    }
+    return new HTableConnector(conf, _quorum, _port);
   }
 
   public void initialize() {

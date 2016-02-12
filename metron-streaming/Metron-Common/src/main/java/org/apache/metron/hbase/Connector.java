@@ -11,15 +11,15 @@ import java.io.Serializable;
  * Created by cstella on 1/29/16.
  */
 public abstract class Connector {
-  protected TupleTableConfig tableConf;
+  protected TableConfig tableConf;
   protected String _quorum;
   protected String _port;
 
-  public Connector(final TupleTableConfig conf, String _quorum, String _port) throws IOException {
+  public Connector(final TableConfig conf, String _quorum, String _port) throws IOException {
     this.tableConf = conf;
     this._quorum = _quorum;
     this._port = _port;
   }
-  public abstract void put(Put put) throws InterruptedIOException, RetriesExhaustedWithDetailsException;
+  public abstract void put(Put put) throws IOException;
   public abstract void close();
 }

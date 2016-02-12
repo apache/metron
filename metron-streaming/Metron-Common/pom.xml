@@ -24,7 +24,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<commons.config.version>1.10</commons.config.version>
-		<hbase.version>0.98.5-hadoop2</hbase.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -125,7 +124,7 @@
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
-			<version>${hbase.version}</version>
+			<version>${global_hbase_version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

@@ -5,6 +5,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.bolt.SplitBolt;
 import org.apache.metron.domain.Enrichment;
+import org.apache.storm.shade.com.google.common.base.Splitter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     public String getKey(Tuple tuple, JSONObject message) {
         String key = null;
         try {
-            tuple.getStringByField("key");
+            key = tuple.getStringByField("key");
         }
         catch(Throwable t) {
             //swallowing this just in case.
@@ -67,18 +68,36 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, JSONObject> splitMessage(JSONObject message) {
+
         Map<String, JSONObject> streamMessageMap = new HashMap<>();
         for (Enrichment enrichment : enrichments) {
             List<String> fields = enrichment.getFields();
             if (fields != null && fields.size() > 0) {
                 JSONObject enrichmentObject = new JSONObject();
                 for (String field : fields) {
-                    enrichmentObject.put(field, message.get(field));
+                    enrichmentObject.put(field, getField(message,field));
                 }
                 streamMessageMap.put(enrichment.getName(), enrichmentObject);
             }
         }
+        /*if(message != null && enrichments.size() != 1) {
+            throw new RuntimeException("JSON: " + message.toJSONString() + " => " + streamMessageMap);
+        }*/
         return streamMessageMap;
+    }
+
+    public Object getField(JSONObject object, String path) {
+        Map ret = object;
+        for(String node: Splitter.on('/').split(path))  {
+            Object o = ret.get(node);
+            if(o instanceof Map) {
+                ret = (Map) o;
+            }
+            else {
+                return o;
+            }
+        }
+        return ret;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.apache.metron.reference.lookup.accesstracker;
 
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.log4j.Logger;
 import org.apache.metron.reference.lookup.LookupKey;
 
@@ -83,7 +84,7 @@ public class PersistentAccessTracker implements AccessTracker {
     }
 
     Object sync = new Object();
-    HTable accessTrackerTable;
+    HTableInterface accessTrackerTable;
     String accessTrackerColumnFamily;
     AccessTracker underlyingTracker;
     long timestamp = System.currentTimeMillis();
@@ -94,7 +95,7 @@ public class PersistentAccessTracker implements AccessTracker {
 
     public PersistentAccessTracker( String name
                                   , String containerName
-                                  , HTable accessTrackerTable
+                                  , HTableInterface accessTrackerTable
                                   , String columnFamily
                                   , AccessTracker underlyingTracker
                                   , long maxMillisecondsBetweenPersists

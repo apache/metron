@@ -52,7 +52,12 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   @Override
   public JSONObject joinValues(Map<String, JSONObject> streamValueMap) {
     JSONObject message = new JSONObject();
-    message.put("message", streamValueMap.get("message"));
+    if(streamValueMap.get("message").containsKey("message")) {
+      message =  streamValueMap.get("message");
+    }
+    else {
+      message.put("message", streamValueMap.get("message"));
+    }
     JSONObject enrichment = new JSONObject();
     for(String streamId: getStreamIds()) {
       enrichment.put(streamId, streamValueMap.get(streamId));

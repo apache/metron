@@ -8,6 +8,11 @@ import java.io.Serializable;
 public class MockGeoAdapter implements EnrichmentAdapter<String>,
         Serializable {
 
+  @Override
+  public void logAccess(String value) {
+
+  }
+
   public JSONObject enrich(String metadata) {
     JSONObject enriched = new JSONObject();
     enriched.put("locID", "1");

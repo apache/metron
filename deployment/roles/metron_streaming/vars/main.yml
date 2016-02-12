@@ -2,6 +2,8 @@
 # vars file for elasticsearch
 metron_directory: /usr/metron/{{ metron_version }}
 metron_jar_name: Metron-Topologies-{{ metron_version }}.jar
+metron_dataloads_name: Metron-DataLoads-{{ metron_version }}-archive.tar.gz
 metron_jar_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_jar_name }}"
+metron_dataloads_path: "{{ playbook_dir }}/../../metron-streaming/Metron-DataLoads/target/{{ metron_dataloads_name }}"
 metron_src_config_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs"
 metron_properties_config_path: "{{ metron_directory }}/config/etc/env/config.properties"

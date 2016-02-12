@@ -78,7 +78,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
                                                   , 1L
                                                   )
                          );
-            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable));
+            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
         }
         pat.persist(true);
         for(LookupKey k : goodKeysOtherHalf) {
@@ -89,7 +89,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
                                                   , 1L
                                                   )
                          );
-            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable));
+            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
         }
         testUtil.flush();
         Assert.assertFalse(lookup.getAccessTracker().hasSeen(goodKeysHalf.get(0)));
@@ -113,10 +113,10 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         Job job = LeastRecentlyUsedPruner.createJob(config, tableName, cf, atTableName, atCF, ts);
         Assert.assertTrue(job.waitForCompletion(true));
         for(LookupKey k : goodKeys) {
-            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable));
+            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
         }
         for(LookupKey k : badKey) {
-            Assert.assertFalse(lookup.exists((ThreatIntelKey)k, testTable));
+            Assert.assertFalse(lookup.exists((ThreatIntelKey)k, testTable, true));
         }
 
     }

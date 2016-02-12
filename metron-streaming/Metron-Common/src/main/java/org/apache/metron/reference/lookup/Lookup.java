@@ -38,14 +38,24 @@ public class Lookup<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> implements Han
     }
 
     @Override
-    public boolean exists(KEY_T key, CONTEXT_T context) throws IOException {
-        accessTracker.logAccess(key);
-        return lookupHandler.exists(key, context);
+    public boolean exists(KEY_T key, CONTEXT_T context, boolean logAccess) throws IOException {
+        if(logAccess) {
+            accessTracker.logAccess(key);
+        }
+        return lookupHandler.exists(key, context, logAccess);
     }
 
     @Override
-    public RESULT_T get(KEY_T key, CONTEXT_T context) throws IOException {
-        accessTracker.logAccess(key);
-        return lookupHandler.get(key, context);
+    public RESULT_T get(KEY_T key, CONTEXT_T context, boolean logAccess) throws IOException {
+        if(logAccess) {
+            accessTracker.logAccess(key);
+        }
+        return lookupHandler.get(key, context, logAccess);
+    }
+
+    @Override
+    public void close() throws Exception {
+        accessTracker.cleanup();
+        lookupHandler.close();
     }
 }

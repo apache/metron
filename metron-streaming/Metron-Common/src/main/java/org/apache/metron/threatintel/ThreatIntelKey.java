@@ -31,7 +31,7 @@ public class ThreatIntelKey implements LookupKey{
     public byte[] toBytes() {
         byte[] indicatorBytes = Bytes.toBytes(indicator);
         Hasher hasher = hFunction.get().newHasher();
-        hasher.putString(indicator);
+        hasher.putBytes(Bytes.toBytes(indicator));
         byte[] prefix = hasher.hash().asBytes();
         byte[] val = new byte[indicatorBytes.length + prefix.length];
         int pos = 0;

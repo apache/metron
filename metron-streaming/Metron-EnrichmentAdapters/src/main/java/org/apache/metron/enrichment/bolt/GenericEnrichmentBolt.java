@@ -26,6 +26,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.metron.domain.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.storm.shade.com.google.common.base.Splitter;
+import org.apache.storm.shade.com.google.common.collect.Iterables;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,9 +139,9 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
   }
 
   @Override
-  public void declareOutputFields(OutputFieldsDeclarer declearer) {
-    declearer.declareStream(streamId, new Fields("key", "message"));
-    declearer.declareStream("error", new Fields("message"));
+  public void declareOutputFields(OutputFieldsDeclarer declarer) {
+    declarer.declareStream(streamId, new Fields("key", "message"));
+    declarer.declareStream("error", new Fields("message"));
   }
 
   @SuppressWarnings("unchecked")
@@ -163,7 +165,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
             throw new Exception("[Metron] Could not enrich string: "
                     + value);
         }
-        enrichedMessage.put(field, enrichedField);
+        enrichedMessage.put(Iterables.getLast(Splitter.on('/').split(field)), enrichedField);
       }
       if (!enrichedMessage.isEmpty()) {
         collector.emit(streamId, new Values(key, enrichedMessage));
