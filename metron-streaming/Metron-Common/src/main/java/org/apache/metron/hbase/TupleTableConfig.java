@@ -1,5 +1,6 @@
 package org.apache.metron.hbase;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,18 +9,21 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.common.base.Joiner;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import backtype.storm.tuple.Tuple;
+import org.apache.log4j.Logger;
 
 /**
  * Configuration for Storm {@link Tuple} to HBase serialization.
  */
 @SuppressWarnings("serial")
 public class TupleTableConfig extends TableConfig implements Serializable {
+  private static final Logger LOG = Logger.getLogger(TupleTableConfig.class);
   static final long serialVersionUID = -1L;
   public static final long DEFAULT_INCREMENT = 1L;
   
@@ -116,8 +120,14 @@ public class TupleTableConfig extends TableConfig implements Serializable {
    *          The {@link Tuple}
    * @return {@link Put}
    */
-  public Put getPutFromTuple(final Tuple tuple) {
-    byte[] rowKey = Bytes.toBytes(tuple.getStringByField(tupleRowKeyField));
+  public Put getPutFromTuple(final Tuple tuple) throws IOException{
+    byte[] rowKey = null;
+    try {
+      rowKey = Bytes.toBytes(tuple.getStringByField(tupleRowKeyField));
+    }
+    catch(IllegalArgumentException iae) {
+      throw new IOException("Unable to retrieve " + tupleRowKeyField + " from " + tuple + " [ " + Joiner.on(',').join(tuple.getFields()) + " ]", iae);
+    }
     
     long ts = 0;
     if (!tupleTimestampField.equals("")) {

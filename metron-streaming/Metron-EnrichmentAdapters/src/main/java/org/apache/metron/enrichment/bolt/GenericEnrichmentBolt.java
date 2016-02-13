@@ -21,13 +21,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import backtype.storm.topology.base.BaseRichBolt;
+import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Iterables;
 import org.apache.metron.domain.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.apache.storm.shade.com.google.common.base.Splitter;
-import org.apache.storm.shade.com.google.common.collect.Iterables;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +171,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
         collector.emit(streamId, new Values(key, enrichedMessage));
       }
     } catch (Exception e) {
-      LOG.error("[Metron] Unable to enrich message: " + rawMessage);
+      LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
       JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + rawMessage, e);
       if (key != null) {
         collector.emit(streamId, new Values(key, enrichedMessage));

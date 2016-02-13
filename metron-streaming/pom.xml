@@ -34,6 +34,7 @@
 		<global_metrics_version>3.0.2</global_metrics_version>
 		<global_junit_version>4.4</global_junit_version>
 		<global_guava_version>17.0</global_guava_version>
+		<global_hbase_guava_version>12.0</global_hbase_guava_version>
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>

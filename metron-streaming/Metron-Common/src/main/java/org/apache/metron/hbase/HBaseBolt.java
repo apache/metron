@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -114,11 +115,12 @@ public class HBaseBolt implements IRichBolt {
   
   public void execute(Tuple input) {
     try {
-      this.connector.put(conf.getPutFromTuple(input));
+      Put p = conf.getPutFromTuple(input);
+      this.connector.put(p);
     } catch (IOException ex) {
 
   		JSONObject error = ErrorGenerator.generateErrorMessage(
-  				"Alerts problem: " + input.getBinary(0), ex);
+  				"Alerts problem: " + input.toString(), ex);
   		collector.emit("error", new Values(error));
   		
       throw new RuntimeException(ex);
