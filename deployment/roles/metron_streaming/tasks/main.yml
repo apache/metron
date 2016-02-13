@@ -60,7 +60,7 @@
     - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
     - { regexp: "bolt.hbase.table.name=", line: "bolt.hbase.table.name={{ pcap_hbase_table }}" }
     - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
-    - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.table=t" }
+    - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
     - { regexp: "threat.intel.ip.table=", line: "threat.intel.ip.table={{ threatintel_ip_hbase_table }}" }
     - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
     - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.search[0] }}" }
