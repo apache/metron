@@ -180,7 +180,6 @@ public class PcapIntegrationTest {
             }
         }
         Assert.assertTrue(hasThreat);
-
         MockHTable.Provider.clear();
         runner.stop();
     }

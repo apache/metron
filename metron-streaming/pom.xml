@@ -21,6 +21,7 @@
 	<url>https://metron.incubator.apache.org/</url>
 	<properties>
 		<twitter>@ApacheMetron</twitter>
+		<global_opencsv_version>3.7</global_opencsv_version>
 		<global_storm_version>0.10.0</global_storm_version>
 		<global_flux_version>0.10.0</global_flux_version>
 		<global_pcap_version>1.7.1</global_pcap_version>

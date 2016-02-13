@@ -63,6 +63,7 @@
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.table=t" }
     - { regexp: "threat.intel.ip.table=", line: "threat.intel.ip.table={{ threatintel_ip_hbase_table }}" }
     - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
+    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.search[0] }}" }
 
 - name: Add Elasticsearch templates for topologies
   uri:

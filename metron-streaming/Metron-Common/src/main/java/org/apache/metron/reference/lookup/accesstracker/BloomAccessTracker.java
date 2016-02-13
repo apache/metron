@@ -1,9 +1,9 @@
 package org.apache.metron.reference.lookup.accesstracker;
 
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.PrimitiveSink;
 import org.apache.metron.reference.lookup.LookupKey;
-import org.apache.storm.shade.com.google.common.hash.BloomFilter;
-import org.apache.storm.shade.com.google.common.hash.Funnel;
-import org.apache.storm.shade.com.google.common.hash.PrimitiveSink;
 
 import java.io.*;
 import java.util.HashMap;
@@ -19,7 +19,6 @@ public class BloomAccessTracker implements AccessTracker {
     public static final String NAME_KEY = "name";
 
     private static class LookupKeyFunnel implements Funnel<LookupKey> {
-
         @Override
         public void funnel(LookupKey lookupKey, PrimitiveSink primitiveSink) {
             primitiveSink.putBytes(lookupKey.toBytes());

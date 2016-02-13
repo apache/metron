@@ -57,7 +57,17 @@
 			<artifactId>Metron-Indexing</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-
+		<dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${global_hbase_version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
@@ -230,6 +240,12 @@
 									<exclude>*slf4j*</exclude>
 								</excludes>
 							</artifactSet>
+							<!--relocations>
+								<relocation>
+									<pattern>com.google.common</pattern>
+									<shadedPattern>org.apache.metron.guava.common</shadedPattern>
+								</relocation>
+							</relocations-->
 
 							<transformers>
 								<transformer
