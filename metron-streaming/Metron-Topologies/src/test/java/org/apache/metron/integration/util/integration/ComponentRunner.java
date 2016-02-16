@@ -84,7 +84,7 @@ public class ComponentRunner {
     }
 
     public <T> T process(Processor<T> successState) {
-        return process(successState, 3, 30000, 120000);
+        return process(successState, 5, 30000, 120000);
     }
 
     public <T> T process(Processor<T> successState, int numRetries, long timeBetweenAttempts, long maxTimeMs) {
