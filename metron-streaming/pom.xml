@@ -89,6 +89,18 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<check />
+					<formats>
+						<format>html</format>
+					</formats>
+					<aggregate>true</aggregate>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
