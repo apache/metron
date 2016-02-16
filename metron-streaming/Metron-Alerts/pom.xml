@@ -26,6 +26,12 @@
         <commons.validator.version>1.4.0</commons.validator.version>
     </properties>
     <dependencies>
+       <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${global_hbase_guava_version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>Metron-Common</artifactId>
