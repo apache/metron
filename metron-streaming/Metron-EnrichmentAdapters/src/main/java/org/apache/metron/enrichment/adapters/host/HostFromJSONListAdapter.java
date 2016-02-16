@@ -35,6 +35,11 @@ public class HostFromJSONListAdapter extends AbstractHostAdapter {
       return false;
   }
 
+  @Override
+  public void logAccess(String value) {
+
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public JSONObject enrich(String metadata) {

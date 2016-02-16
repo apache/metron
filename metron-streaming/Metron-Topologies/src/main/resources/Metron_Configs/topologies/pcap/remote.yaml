@@ -8,34 +8,73 @@ components:
         configMethods:
             -   name: "withTsPrecision"
                 args: ["MICRO"]
-    -   id: "jdbcConfig"
-        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
-        properties:
-            -   name: "host"
-                value: "${mysql.ip}"
-            -   name: "port"
-                value: ${mysql.port}
-            -   name: "username"
-                value: "${mysql.username}"
-            -   name: "password"
-                value: "${mysql.password}"
-            -   name: "table"
-                value: "GEO"
-    -   id: "geoEnrichmentAdapter"
-        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
+
+# Threat Intel
+    -   id: "ipThreatIntelConfig"
+        className: "org.apache.metron.threatintel.ThreatIntelConfig"
         configMethods:
-            -   name: "withJdbcConfig"
+            -   name: "withTrackerHBaseTable"
                 args:
-                    - ref: "jdbcConfig"
-    -   id: "geoEnrichment"
+                    - "${threat.intel.tracker.table}"
+            -   name: "withTrackerHBaseCF"
+                args:
+                    - "${threat.intel.tracker.cf}"
+            -   name: "withHBaseTable"
+                args:
+                    - "${threat.intel.ip.table}"
+            -   name: "withHBaseCF"
+                args:
+                    - "${threat.intel.ip.cf}"
+    -   id: "ipThreatIntelAdapter"
+        className: "org.apache.metron.threatintel.ThreatIntelAdapter"
+        configMethods:
+           -    name: "withConfig"
+                args:
+                    - ref: "ipThreatIntelConfig"
+    -   id: "ipThreatIntelEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         properties:
-            -   name: "name"
-                value:  "geo"
-            -   name: "fields"
-                value: ["ip_src_addr", "ip_dst_addr"]
-            -   name: "adapter"
-                ref: "geoEnrichmentAdapter"
+           - name: "name"
+             value: "ip"
+           - name: "fields"
+             value: ["message/ip_src_addr", "message/ip_dst_addr"]
+           - name: "adapter"
+             ref: "ipThreatIntelAdapter"
+    -   id: "threatIntels"
+        className: "java.util.ArrayList"
+        configMethods:
+            -   name: "add"
+                args:
+                    - ref: "ipThreatIntelEnrichment"
+#Enrichment
+#    -   id: "jdbcConfig"
+#        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
+#        properties:
+#            -   name: "host"
+#                value: "${mysql.ip}"
+#            -   name: "port"
+#                value: ${mysql.port}
+#            -   name: "username"
+#                value: "${mysql.username}"
+#            -   name: "password"
+#                value: "${mysql.password}"
+#            -   name: "table"
+#                value: "GEO"
+#    -   id: "geoEnrichmentAdapter"
+#        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
+#        configMethods:
+#            -   name: "withJdbcConfig"
+#                args:
+#                    - ref: "jdbcConfig"
+#    -   id: "geoEnrichment"
+#        className: "org.apache.metron.domain.Enrichment"
+#        properties:
+#            -   name: "name"
+#                value:  "geo"
+#            -   name: "fields"
+#                value: ["ip_src_addr", "ip_dst_addr"]
+#            -   name: "adapter"
+#                ref: "geoEnrichmentAdapter"
     -   id: "hostEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
         constructorArgs:
@@ -52,9 +91,9 @@ components:
     -   id: "enrichments"
         className: "java.util.ArrayList"
         configMethods:
-            -   name: "add"
-                args:
-                    - ref: "geoEnrichment"
+#            -   name: "add"
+#                args:
+#                    - ref: "geoEnrichment"
             -   name: "add"
                 args:
                     - ref: "hostEnrichment"
@@ -238,16 +277,46 @@ bolts:
             -   name: "withMetricConfiguration"
                 args:
                     - ref: "metricConfig"
-    -   id: "geoEnrichmentBolt"
+    # Threat Intel Bolts
+    -   id: "threatIntelSplitBolt"
+        className: "org.apache.metron.enrichment.EnrichmentSplitterBolt"
+        configMethods:
+            -   name: "withEnrichments"
+                args:
+                    - ref: "threatIntels"
+    -   id: "ipThreatIntelBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         configMethods:
             -   name: "withEnrichment"
                 args:
-                    - ref: "geoEnrichment"
+                    - ref: "ipThreatIntelEnrichment"
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+    -   id: "threatIntelJoinBolt"
+        className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
+        configMethods:
+            -   name: "withEnrichments"
+                args:
+                    - ref: "threatIntels"
+            -   name: "withType"
+                args:
+                    - "alerts"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
+#    -   id: "geoEnrichmentBolt"
+#        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+#        configMethods:
+#            -   name: "withEnrichment"
+#                args:
+#                    - ref: "geoEnrichment"
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
     -   id: "hostEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         configMethods:
@@ -289,13 +358,13 @@ streams:
             streamId: "host"
             type: FIELDS
             args: ["key"]
-    -   name: "parser -> geo"
-        from: "parserBolt"
-        to: "geoEnrichmentBolt"
-        grouping:
-            streamId: "geo"
-            type: FIELDS
-            args: ["key"]
+#    -   name: "parser -> geo"
+#        from: "parserBolt"
+#        to: "geoEnrichmentBolt"
+#        grouping:
+#            streamId: "geo"
+#            type: FIELDS
+#            args: ["key"]
     -   name: "parser -> join"
         from: "parserBolt"
         to: "joinBolt"
@@ -303,13 +372,13 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-    -   name: "geo -> join"
-        from: "geoEnrichmentBolt"
-        to: "joinBolt"
-        grouping:
-            streamId: "geo"
-            type: FIELDS
-            args: ["key"]
+#    -   name: "geo -> join"
+#        from: "geoEnrichmentBolt"
+#        to: "joinBolt"
+#        grouping:
+#            streamId: "geo"
+#            type: FIELDS
+#            args: ["key"]
     -   name: "host -> join"
         from: "hostEnrichmentBolt"
         to: "joinBolt"
@@ -317,13 +386,46 @@ streams:
             streamId: "host"
             type: FIELDS
             args: ["key"]
-    -   name: "join -> indexing"
+#threat intel
+    -   name: "enrichmentJoin -> threatSplit"
         from: "joinBolt"
+        to: "threatIntelSplitBolt"
+        grouping:
+            streamId: "message"
+            type: FIELDS
+            args: ["key"]
+
+    -   name: "threatSplit -> ip"
+        from: "threatIntelSplitBolt"
+        to: "ipThreatIntelBolt"
+        grouping:
+            streamId: "ip"
+            type: FIELDS
+            args: ["key"]
+
+    -   name: "ip -> join"
+        from: "ipThreatIntelBolt"
+        to: "threatIntelJoinBolt"
+        grouping:
+            streamId: "ip"
+            type: FIELDS
+            args: ["key"]
+    -   name: "threatIntelSplit -> threatIntelJoin"
+        from: "threatIntelSplitBolt"
+        to: "threatIntelJoinBolt"
+        grouping:
+            streamId: "message"
+            type: FIELDS
+            args: ["key"]
+#indexing
+    -   name: "threatIntelJoin -> indexing"
+        from: "threatIntelJoinBolt"
         to: "indexingBolt"
         grouping:
             streamId: "message"
             type: FIELDS
             args: ["key"]
+#errors
     -   name: "parser -> errors"
         from: "parserBolt"
         to: "errorIndexingBolt"

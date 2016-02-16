@@ -21,9 +21,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import backtype.storm.topology.base.BaseRichBolt;
+import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Iterables;
 import org.apache.metron.domain.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
@@ -79,8 +81,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
    * @return Instance of this class
    */
 
-  public GenericEnrichmentBolt withEnrichment
-  (Enrichment<EnrichmentAdapter> enrichment) {
+  public GenericEnrichmentBolt withEnrichment(Enrichment<EnrichmentAdapter> enrichment) {
     this.streamId = enrichment.getName();
     this.enrichment = enrichment;
     this.adapter = this.enrichment.getAdapter();
@@ -132,17 +133,16 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
             .build(loader);
     boolean success = adapter.initializeAdapter();
     if (!success) {
-      LOG.error("[Metron] EnrichmentBolt could not initialize adapter");
+      LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
   }
 
   @Override
-  public void declareOutputFields(OutputFieldsDeclarer declearer) {
-    declearer.declareStream(streamId, new Fields("key", "message"));
-    declearer.declareStream("error", new Fields("message"));
+  public void declareOutputFields(OutputFieldsDeclarer declarer) {
+    declarer.declareStream(streamId, new Fields("key", "message"));
+    declarer.declareStream("error", new Fields("message"));
   }
-
 
   @SuppressWarnings("unchecked")
   @Override
@@ -159,18 +159,19 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
         JSONObject enrichedField = new JSONObject();
         String value = (String) rawMessage.get(field);
         if (value != null && value.length() != 0) {
+          adapter.logAccess(value);
           enrichedField = cache.getUnchecked(value);
           if (enrichedField == null)
             throw new Exception("[Metron] Could not enrich string: "
                     + value);
         }
-        enrichedMessage.put(field, enrichedField);
+        enrichedMessage.put(Iterables.getLast(Splitter.on('/').split(field)), enrichedField);
       }
       if (!enrichedMessage.isEmpty()) {
         collector.emit(streamId, new Values(key, enrichedMessage));
       }
     } catch (Exception e) {
-      LOG.error("[Metron] Unable to enrich message: " + rawMessage);
+      LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
       JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + rawMessage, e);
       if (key != null) {
         collector.emit(streamId, new Values(key, enrichedMessage));

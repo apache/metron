@@ -19,9 +19,7 @@ package org.apache.metron.enrichment.adapters.threat;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -36,7 +34,6 @@ import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.KeyValue;
 import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +58,11 @@ public class ThreatHbaseAdapter implements EnrichmentAdapter<String>,
 	/** The LOGGER. */
 	private static final Logger LOGGER = Logger
 			.getLogger(ThreatHbaseAdapter.class);
+
+	@Override
+	public void logAccess(String value) {
+
+	}
 
 	public JSONObject enrich(String metadata) {
 

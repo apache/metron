@@ -3,6 +3,7 @@
   file: path="{{ metron_directory }}/{{ item.name }}"  state=directory mode=0755
   with_items:
       - { name: 'lib'}
+      - { name: 'bin'}
       - { name: 'config'}
 
 - stat: path={{ metron_jar_path }}
@@ -15,6 +16,14 @@
   copy:
     src: "{{ metron_jar_path }}"
     dest: "{{ metron_directory }}/lib/"
+
+- name: Copy Metron DataLoads bundle
+  copy:
+    src: "{{ metron_dataloads_path }}"
+    dest: "{{ metron_directory }}"
+
+- name: Unbundle Metron DataLoads bundle
+  shell: cd {{ metron_directory }} && tar xzvf *.tar.gz
 
 - name: Alternatives link for "java"
   alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
@@ -50,6 +59,11 @@
     - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
     - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
     - { regexp: "bolt.hbase.table.name=", line: "bolt.hbase.table.name={{ pcap_hbase_table }}" }
+    - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
+    - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
+    - { regexp: "threat.intel.ip.table=", line: "threat.intel.ip.table={{ threatintel_ip_hbase_table }}" }
+    - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
+    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.search[0] }}" }
 
 - name: Add Elasticsearch templates for topologies
   uri:

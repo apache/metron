@@ -32,13 +32,18 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	}
 
 	@Override
-	public boolean initializeAdapter() 
+	public boolean initializeAdapter()
 	{
 		
 		if(_known_hosts.size() > 0)
 			return true;
 		else
 			return false;
+	}
+
+	@Override
+	public void logAccess(String value) {
+
 	}
 
 	@SuppressWarnings("unchecked")

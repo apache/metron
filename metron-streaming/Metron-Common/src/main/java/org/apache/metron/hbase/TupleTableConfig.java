@@ -1,5 +1,6 @@
 package org.apache.metron.hbase;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,28 +9,27 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.common.base.Joiner;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import backtype.storm.tuple.Tuple;
+import org.apache.log4j.Logger;
 
 /**
  * Configuration for Storm {@link Tuple} to HBase serialization.
  */
 @SuppressWarnings("serial")
-public class TupleTableConfig implements Serializable {
-  
+public class TupleTableConfig extends TableConfig implements Serializable {
+  private static final Logger LOG = Logger.getLogger(TupleTableConfig.class);
+  static final long serialVersionUID = -1L;
   public static final long DEFAULT_INCREMENT = 1L;
   
-  private String tableName;
   protected String tupleRowKeyField;
   protected String tupleTimestampField;
-  protected Map<String, Set<String>> columnFamilies;
-  private boolean batch = true;
   protected Durability durability = Durability.USE_DEFAULT;
-  private long writeBufferSize = 0L;
   private String fields;
 
   /**
@@ -41,7 +41,7 @@ public class TupleTableConfig implements Serializable {
    *          The {@link Tuple} field used to set the rowKey
    */
   public TupleTableConfig(final String table, final String rowKeyField) {
-    this.tableName = table;
+    super(table);
     this.tupleRowKeyField = rowKeyField;
     this.tupleTimestampField = "";
     this.columnFamilies = new HashMap<String, Set<String>>();
@@ -58,20 +58,18 @@ public class TupleTableConfig implements Serializable {
    *          The {@link Tuple} field used to set the timestamp
    */
   public TupleTableConfig(final String table, final String rowKeyField, final String timestampField) {
-    this.tableName = table;
+    super(table);
     this.tupleRowKeyField = rowKeyField;
     this.tupleTimestampField = timestampField;
     this.columnFamilies = new HashMap<String, Set<String>>();
   }
 
   public TupleTableConfig() {
+    super(null);
     this.columnFamilies = new HashMap<String, Set<String>>();
   }
 
-  public TupleTableConfig withTable(String table) {
-    this.tableName = table;
-    return this;
-  }
+
 
   public TupleTableConfig withRowKeyField(String rowKeyField) {
     this.tupleRowKeyField = rowKeyField;
@@ -88,10 +86,7 @@ public class TupleTableConfig implements Serializable {
     return this;
   }
 
-  public TupleTableConfig withBatch(Boolean isBatch) {
-    this.batch = isBatch;
-    return this;
-  }
+
 
   public String getFields() {
     return fields;
@@ -125,8 +120,14 @@ public class TupleTableConfig implements Serializable {
    *          The {@link Tuple}
    * @return {@link Put}
    */
-  public Put getPutFromTuple(final Tuple tuple) {
-    byte[] rowKey = Bytes.toBytes(tuple.getStringByField(tupleRowKeyField));
+  public Put getPutFromTuple(final Tuple tuple) throws IOException{
+    byte[] rowKey = null;
+    try {
+      rowKey = Bytes.toBytes(tuple.getStringByField(tupleRowKeyField));
+    }
+    catch(IllegalArgumentException iae) {
+      throw new IOException("Unable to retrieve " + tupleRowKeyField + " from " + tuple + " [ " + Joiner.on(',').join(tuple.getFields()) + " ]", iae);
+    }
     
     long ts = 0;
     if (!tupleTimestampField.equals("")) {
@@ -225,37 +226,8 @@ public class TupleTableConfig implements Serializable {
     inc.getFamilyMapOfLongs().put(family, set);
   }
   
-  /**
-   * @return the tableName
-   */
-  public String getTableName() {
-    return tableName;
-  }
-  
-  /**
-   * @return Whether batch mode is enabled
-   */
-  public boolean isBatch() {
-    return batch;
-  }
-  
-  /**
-   * @param batch
-   *          Whether to enable HBase's client-side write buffer.
-   *          <p>
-   *          When enabled your bolt will store put operations locally until the
-   *          write buffer is full, so they can be sent to HBase in a single RPC
-   *          call. When disabled each put operation is effectively an RPC and
-   *          is sent straight to HBase. As your bolt can process thousands of
-   *          values per second it is recommended that the write buffer is
-   *          enabled.
-   *          <p>
-   *          Enabled by default
-   */
-  public void setBatch(boolean batch) {
-    this.batch = batch;
-  }
-  
+
+
   /**
    * @param durability
    *          Sets whether to write to HBase's edit log.
@@ -276,36 +248,8 @@ public class TupleTableConfig implements Serializable {
     return  durability;
   }
   
-  /**
-   * @param writeBufferSize
-   *          Overrides the client-side write buffer size.
-   *          <p>
-   *          By default the write buffer size is 2 MB (2097152 bytes). If you
-   *          are storing larger data, you may want to consider increasing this
-   *          value to allow your bolt to efficiently group together a larger
-   *          number of records per RPC
-   *          <p>
-   *          Overrides the write buffer size you have set in your
-   *          hbase-site.xml e.g. <code>hbase.client.write.buffer</code>
-   */
-  public void setWriteBufferSize(long writeBufferSize) {
-    this.writeBufferSize = writeBufferSize;
-  }
-  
-  /**
-   * @return the writeBufferSize
-   */
-  public long getWriteBufferSize() {
-    return writeBufferSize;
-  }
-  
-  /**
-   * @return A Set of configured column families
-   */
-  public Set<String> getColumnFamilies() {
-    return this.columnFamilies.keySet();
-  }
-  
+
+
   /**
    * @return the tupleRowKeyField
    */

@@ -32,8 +32,8 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<String>,
       if (!InetAddress.getByName(host).isReachable(500)) {
         throw new Exception("Unable to reach host " + host);
       }
-      Class.forName(config.getClassName());
-      connection = DriverManager.getConnection(config.getJdbcUrl());
+      Class.forName(this.config.getClassName());
+      connection = DriverManager.getConnection(this.config.getJdbcUrl());
       connection.setReadOnly(true);
       if (!connection.isValid(0))
         throw new Exception("Invalid connection string....");
