@@ -1,7 +1,11 @@
 ---
 - name: Create HBase tables
-  shell: echo "create '{{ pcap_hbase_table }}','t'" | hbase shell -n
+  shell: echo "create '{{ item }}','t'" | hbase shell -n
   ignore_errors: yes
+  with_items:
+    - "{{ pcap_hbase_table }}"
+    - "{{ tracker_hbase_table }}"
+    - "{{ threatintel_ip_hbase_table }}"
 
 - name: Create Kafka topics
   shell: "{{ kafka_home }}/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --create --topic {{ item }} --partitions 1 --replication-factor 1"

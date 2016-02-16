@@ -53,6 +53,11 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<String>,Serializable {
 	private static final Logger LOGGER = Logger
 			.getLogger(CIFHbaseAdapter.class);
 
+	@Override
+	public void logAccess(String value) {
+
+	}
+
 	public JSONObject enrich(String metadata) {
 
 		JSONObject output = new JSONObject();

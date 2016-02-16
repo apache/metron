@@ -16,4 +16,4 @@ target
 *.project
 *.classpath
 *.settings
-
+*hbase-site.xml

@@ -19,12 +19,18 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
 
   protected List<Enrichment> enrichments;
 
+  protected String type = "enrichment";
   /**
    * @param enrichments A class for sending tuples to enrichment bolt
    * @return Instance of this class
    */
   public EnrichmentJoinBolt withEnrichments(List<Enrichment> enrichments) {
     this.enrichments = enrichments;
+    return this;
+  }
+
+  public EnrichmentJoinBolt withType(String type) {
+    this.type = type;
     return this;
   }
 
@@ -46,12 +52,17 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   @Override
   public JSONObject joinValues(Map<String, JSONObject> streamValueMap) {
     JSONObject message = new JSONObject();
-    message.put("message", streamValueMap.get("message"));
+    if(streamValueMap.get("message").containsKey("message")) {
+      message =  streamValueMap.get("message");
+    }
+    else {
+      message.put("message", streamValueMap.get("message"));
+    }
     JSONObject enrichment = new JSONObject();
     for(String streamId: getStreamIds()) {
       enrichment.put(streamId, streamValueMap.get(streamId));
     }
-    message.put("enrichment", enrichment);
+    message.put(type, enrichment);
     return message;
   }
 }

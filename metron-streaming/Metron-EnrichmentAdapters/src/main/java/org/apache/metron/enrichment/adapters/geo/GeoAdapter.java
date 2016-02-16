@@ -11,6 +11,11 @@ public class GeoAdapter extends JdbcAdapter {
 
   private InetAddressValidator ipvalidator = new InetAddressValidator();
 
+  @Override
+  public void logAccess(String value) {
+
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public JSONObject enrich(String value) {

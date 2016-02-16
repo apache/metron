@@ -3,6 +3,7 @@ package org.apache.metron.hbase;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -11,6 +12,7 @@ import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.RetriesExhaustedWithDetailsException;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -30,10 +32,9 @@ import javax.annotation.Nullable;
 public class HTableConnector extends Connector implements Serializable{
   private static final Logger LOG = Logger.getLogger(HTableConnector.class);
   private Configuration conf;
-  protected HTable table;
+  protected HTableInterface table;
   private String tableName;
-
-
+  private String connectorImpl;
 
 
   /**
@@ -41,8 +42,9 @@ public class HTableConnector extends Connector implements Serializable{
    * @param conf The {@link TupleTableConfig}
    * @throws IOException
    */
-  public HTableConnector(final TupleTableConfig conf, String _quorum, String _port) throws IOException {
+  public HTableConnector(final TableConfig conf, String _quorum, String _port) throws IOException {
     super(conf, _quorum, _port);
+    this.connectorImpl = conf.getConnectorImpl();
     this.tableName = conf.getTableName();
     this.conf = HBaseConfiguration.create();
     
@@ -56,7 +58,7 @@ public class HTableConnector extends Connector implements Serializable{
       this.conf.get("hbase.rootdir")));
 
     try {
-      this.table = new HTable(this.conf, this.tableName);
+      this.table = getTableProvider().getTable(this.conf, this.tableName);
     } catch (IOException ex) {
       throw new IOException("Unable to establish connection to HBase table " + this.tableName, ex);
     }
@@ -88,6 +90,28 @@ public class HTableConnector extends Connector implements Serializable{
     }
   }
 
+  protected TableProvider getTableProvider() throws IOException {
+    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
+      return new HTableProvider();
+    }
+    else {
+      try {
+        Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(connectorImpl);
+        return clazz.getConstructor().newInstance();
+      } catch (InstantiationException e) {
+        throw new IOException("Unable to instantiate connector.", e);
+      } catch (IllegalAccessException e) {
+        throw new IOException("Unable to instantiate connector: illegal access", e);
+      } catch (InvocationTargetException e) {
+        throw new IOException("Unable to instantiate connector", e);
+      } catch (NoSuchMethodException e) {
+        throw new IOException("Unable to instantiate connector: no such method", e);
+      } catch (ClassNotFoundException e) {
+        throw new IOException("Unable to instantiate connector: class not found", e);
+      }
+    }
+  }
+
   /**
    * Checks to see if table contains the given column family
    * @param columnFamily The column family name
@@ -101,12 +125,12 @@ public class HTableConnector extends Connector implements Serializable{
   /**
    * @return the table
    */
-  public HTable getTable() {
+  public HTableInterface getTable() {
     return table;
   }
 
   @Override
-  public void put(Put put) throws InterruptedIOException, RetriesExhaustedWithDetailsException {
+  public void put(Put put) throws IOException {
       table.put(put);
   }
 

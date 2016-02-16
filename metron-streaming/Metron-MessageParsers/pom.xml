@@ -38,6 +38,16 @@
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				</exclusion>
+				<exclusion>
+				   <artifactId>log4j-over-slf4j</artifactId>
+				   <groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

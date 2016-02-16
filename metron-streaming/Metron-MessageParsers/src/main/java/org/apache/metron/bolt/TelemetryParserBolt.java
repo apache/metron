@@ -1,10 +1,9 @@
 package org.apache.metron.bolt;
 
 import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import org.apache.metron.domain.Enrichment;
+import org.apache.metron.enrichment.EnrichmentSplitterBolt;
 import org.apache.metron.filters.GenericMessageFilter;
 import org.apache.metron.helpers.topology.ErrorGenerator;
 import org.apache.metron.parser.interfaces.MessageFilter;
@@ -15,15 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class TelemetryParserBolt extends
-        SplitBolt<JSONObject> {
+public class TelemetryParserBolt extends EnrichmentSplitterBolt {
 
   protected static final Logger LOG = LoggerFactory
           .getLogger(TelemetryParserBolt.class);
 
   protected MessageParser<JSONObject> parser;
   protected MessageFilter<JSONObject> filter = new GenericMessageFilter();
-  protected List<Enrichment> enrichments = new ArrayList<>();
 
   /**
    * @param parser The parser class for parsing the incoming raw message byte
@@ -46,17 +43,11 @@ public class TelemetryParserBolt extends
     return this;
   }
 
-  /**
-   * @param enrichments A class for sending tuples to enrichment bolt
-   * @return Instance of this class
-   */
-  public TelemetryParserBolt withEnrichments(List<Enrichment> enrichments) {
-    this.enrichments = enrichments;
-    return this;
-  }
+
 
   @Override
   public void prepare(Map map, TopologyContext topologyContext) {
+    super.prepare(map, topologyContext);
     LOG.info("[Metron] Preparing TelemetryParser Bolt...");
     if (this.parser == null) {
       throw new IllegalStateException("MessageParser must be specified");
@@ -64,19 +55,7 @@ public class TelemetryParserBolt extends
     parser.init();
   }
 
-  @Override
-  public String getKey(Tuple tuple, JSONObject message) {
-    return UUID.randomUUID().toString();
-  }
 
-  @Override
-  public Set<String> getStreamIds() {
-    Set<String> streamIds = new HashSet<>();
-    for(Enrichment enrichment: enrichments) {
-      streamIds.add(enrichment.getName());
-    }
-    return streamIds;
-  }
 
   @Override
   public List<JSONObject> generateMessages(Tuple tuple) {
@@ -108,30 +87,5 @@ public class TelemetryParserBolt extends
     return filteredMessages;
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public Map<String, JSONObject> splitMessage(JSONObject message) {
-    Map<String, JSONObject> streamMessageMap = new HashMap<>();
-    for (Enrichment enrichment : enrichments) {
-      List<String> fields = enrichment.getFields();
-      if (fields != null && fields.size() > 0) {
-        JSONObject enrichmentObject = new JSONObject();
-        for (String field : fields) {
-          enrichmentObject.put(field, message.get(field));
-        }
-        streamMessageMap.put(enrichment.getName(), enrichmentObject);
-      }
-    }
-    return streamMessageMap;
-  }
 
-  @Override
-  public void declareOther(OutputFieldsDeclarer declarer) {
-
-  }
-
-  @Override
-  public void emitOther(Tuple tuple, List<JSONObject> messages) {
-
-  }
 }

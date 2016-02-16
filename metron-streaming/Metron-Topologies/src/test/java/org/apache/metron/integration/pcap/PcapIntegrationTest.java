@@ -13,9 +13,12 @@ import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
-import org.apache.metron.integration.util.mock.MockHBaseConnector;
+import org.apache.metron.integration.util.mock.MockHTable;
+import org.apache.metron.integration.util.threatintel.ThreatIntelHelper;
 import org.apache.metron.parsing.parsers.PcapParser;
 import org.apache.metron.test.converters.HexStringConverter;
+import org.apache.metron.threatintel.ThreatIntelKey;
+import org.apache.metron.threatintel.ThreatIntelResults;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,6 +58,9 @@ public class PcapIntegrationTest {
                                                                        .withHttpPort(9211)
                                                                        .withIndexDir(new File(targetDir + "/elasticsearch"))
                                                                        .build();
+        final String cf = "cf";
+        final String trackerHBaseTable = "tracker";
+        final String ipThreatIntelTable = "ip_threat_intel";
         Properties topologyProperties = new Properties() {{
             setProperty("input.path", "src/main/resources/");
             setProperty("es.port", "9300");
@@ -87,19 +93,30 @@ public class PcapIntegrationTest {
             setProperty("bolt.hbase.write.buffer.size.in.bytes", "2000000");
             setProperty("bolt.hbase.durability", "SKIP_WAL");
             setProperty("bolt.hbase.partitioner.region.info.refresh.interval.mins","60");
-            setProperty("hbase.connector.impl","org.apache.metron.integration.util.mock.MockHBaseConnector");
+            setProperty("hbase.provider.impl","" + MockHTable.Provider.class.getName());
+            setProperty("threat.intel.tracker.table", trackerHBaseTable);
+            setProperty("threat.intel.tracker.cf", cf);
+            setProperty("threat.intel.ip.table", ipThreatIntelTable);
+            setProperty("threat.intel.ip.cf", cf);
             setProperty("org.apache.metron.enrichment.host.known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +
                     "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
                     "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
                     "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", " +
                     "\"type\":\"printer\", \"asset_value\" : \"important\"}]");
         }};
+        //create MockHBaseTables
+        final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTable, cf);
+        final MockHTable ipTable = (MockHTable)MockHTable.Provider.addToCache(ipThreatIntelTable, cf);
+        ThreatIntelHelper.INSTANCE.load(ipTable, cf, new ArrayList<ThreatIntelResults>(){{
+            add(new ThreatIntelResults(new ThreatIntelKey("10.0.2.3"), new HashMap<String, String>()));
+        }}, 0L);
+        final MockHTable pcapTable = (MockHTable) MockHTable.Provider.addToCache("pcap_test", "t");
         FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
                                                                        .withTopologyLocation(new File(topologiesDir + "/pcap/local.yaml"))
                                                                        .withTopologyName("pcap")
                                                                        .withTopologyProperties(topologyProperties)
                                                                        .build();
-
+        //UnitTestHelper.verboseLogging();
         ComponentRunner runner = new ComponentRunner.Builder()
                                                     .withComponent("elasticsearch", esComponent)
                                                     .withComponent("storm", fluxComponent)
@@ -120,7 +137,7 @@ public class PcapIntegrationTest {
                     } catch (IOException e) {
                         throw new IllegalStateException("Unable to retrieve indexed documents.", e);
                     }
-                    if(docs.size() < expectedPcapIds.size() && MockHBaseConnector.getPuts().size() < expectedPcapIds.size()) {
+                    if(docs.size() < expectedPcapIds.size() && pcapTable.getPutLog().size() < expectedPcapIds.size()) {
                         return ReadinessState.NOT_READY;
                     }
                     else {
@@ -137,19 +154,33 @@ public class PcapIntegrationTest {
             }
         });
 
-        Assert.assertEquals(expectedPcapIds.size(), MockHBaseConnector.getPuts().size());
+        Assert.assertEquals(expectedPcapIds.size(), pcapTable.getPutLog().size());
         UnitTestHelper.assertSetEqual("PCap IDs from Index"
-                                     , new HashSet<String>(expectedPcapIds)
+                                     , new HashSet<>(expectedPcapIds)
                                      , convertToSet(Iterables.transform(docs, DOC_TO_PCAP_ID))
                                      );
         UnitTestHelper.assertSetEqual("PCap IDs from HBase"
-                                     , new HashSet<String>(expectedPcapIds)
-                                     , convertToSet(Iterables.transform(MockHBaseConnector.getPuts(), RK_TO_PCAP_ID))
+                                     , new HashSet<>(expectedPcapIds)
+                                     , convertToSet(Iterables.transform(pcapTable.getPutLog(), RK_TO_PCAP_ID))
                                      );
-        Iterable<JSONObject> packetsFromHBase = Iterables.transform
-                (MockHBaseConnector.getPuts(), PUT_TO_PCAP);
+        Iterable<JSONObject> packetsFromHBase = Iterables.transform(pcapTable.getPutLog(), PUT_TO_PCAP);
         Assert.assertEquals(expectedPcapIds.size(), Iterables.size(packetsFromHBase));
-        MockHBaseConnector.clear();
+
+        List<Map<String, Object>> allDocs= runner.getComponent("elasticsearch", ElasticSearchComponent.class).getAllIndexedDocs(index, null);
+        boolean hasThreat = false;
+        for(Map<String, Object> d : allDocs) {
+            Map<String, Object> message = (Map<String, Object>) d.get("message");
+            Set<String> ips = new HashSet<>(Arrays.asList((String)message.get("ip_dst_addr"), (String)message.get("ip_src_addr")));
+            if(ips.contains("10.0.2.3")) {
+                hasThreat = true;
+                Map<String, Object> alerts = (Map<String, Object>) ((Map<String, Object>) d.get("alerts")).get("ip");
+                Assert.assertTrue(  ((Map<String,Object>)alerts.get("ip_dst_addr")).size() > 0
+                                 || ((Map<String,Object>)alerts.get("ip_src_addr")).size() > 0
+                                 );
+            }
+        }
+        Assert.assertTrue(hasThreat);
+        MockHTable.Provider.clear();
         runner.stop();
     }
 
