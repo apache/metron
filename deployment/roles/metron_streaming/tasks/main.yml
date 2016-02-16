@@ -50,9 +50,6 @@
 - name: Add hbase-site.xml to topology jar
   shell: cd {{ hbase_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hbase-site.xml
 
-- name: Add elasticsearch.ym to topology jar
-  shell: cd {{ elasticsearch_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} elasticsearch.yml
-
 - name: Copy Metron topology config files
   copy:
     src: "{{ metron_src_config_path }}/{{ item }}"

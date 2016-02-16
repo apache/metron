@@ -55,4 +55,5 @@
   service: name=ntpd state=started enabled=yes
 
 - name: Ensure iptables is stopped and is not running at boot time.
+  ignore_errors: yes
   service: name=iptables state=stopped enabled=no

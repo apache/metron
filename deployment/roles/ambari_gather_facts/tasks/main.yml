@@ -19,7 +19,8 @@
   yum: name=epel-release
 
 - name: Install pip
-  yum: name=python-pip
+  easy_install: name=pip state=latest
+#  yum: name=python-pip
 
 - name: Install python httplib2 dependency
   pip:

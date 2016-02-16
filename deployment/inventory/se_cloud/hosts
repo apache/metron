@@ -1,0 +1,36 @@
+[ambari_master]
+ec2-52-36-217-213.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[ambari_slave]
+ec2-52-10-52-192.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-11-89-34.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-24-39-84.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-26-54-61.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-32-2-33.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-33-55-115.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-34-100-94.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-34-174-89.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-36-54-154.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[hadoop_client]
+ec2-52-10-52-192.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[enrichment]
+ec2-52-11-89-34.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[search]
+ec2-52-36-169-114.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-36-175-140.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+ec2-52-36-180-169.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[web]
+ec2-52-36-217-103.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[sensors]
+ec2-52-36-217-213.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[mysql]
+ec2-52-36-217-103.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root
+
+[test]
+ec2-52-10-52-192.us-west-2.compute.amazonaws.com  ansible_ssh_private_key_file=/Users/rmerriman/Projects/Metron/AWS/secloud/metron-george.pem.cer ansible_ssh_user=root

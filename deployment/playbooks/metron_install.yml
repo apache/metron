@@ -28,6 +28,13 @@
   tags:
     - elasticsearch
 
+- hosts: mysql
+  sudo: yes
+  roles:
+    - role: mysql
+  tags:
+    - mysql
+
 - hosts: sensors
   sudo: yes
   roles:
@@ -57,3 +64,10 @@
     - role: metron_pcapservice
   tags:
     - web
+
+- hosts: mysql
+  sudo: yes
+  roles:
+    - role: mysql
+  tags:
+    - mysql

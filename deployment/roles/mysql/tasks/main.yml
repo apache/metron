@@ -1,0 +1,69 @@
+---
+- name: Create temporary directories
+  file:
+    path: "/tmp/{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "geoip"
+
+- name: Distribute Mysql
+  copy:
+    src: "{{ mysql_rpm_version }}.rpm"
+    dest: /tmp
+
+- name: Install Msyql Yum Repository
+  yum:
+    name: "/tmp/{{ mysql_rpm_version }}.rpm"
+
+- name: Install MySQL
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "mysql-community-server"
+    - "MySQL-python"
+
+- name: Start MySQL
+  service:
+    name: mysqld
+    state: started
+    enabled: yes
+
+- name: Retrieve temporary root password
+  shell: "grep 'temporary password' /var/log/mysqld.log | sed 's/.*root@localhost: //'"
+  args:
+    creates: ~/.my.cnf
+  register: temp_root_password
+
+- name: Update mysql root password
+  command: "mysqladmin --user=root --password='{{ temp_root_password.stdout }}' password '{{ mysql_root_password }}'"
+  ignore_errors: yes
+  args:
+    creates: ~/.my.cnf
+
+- name: Copy mylogin.cnf
+  copy:
+    src:  mylogin.cnf
+    dest: ~/.my.cnf
+
+- name: Download GeoIP databases
+  unarchive:
+    src:  http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
+    dest: /tmp/geoip
+    copy: no
+    creates: /tmp/geopip/*/GeoLiteCity-Blocks.csv
+
+- name: Copy to MySQL import directory
+  shell: "cp /tmp/geoip/*/*.csv /var/lib/mysql-files/"
+
+- name: Copy DDL
+  copy:
+    src: geoip_ddl.sql
+    dest: /tmp/geoip_ddl.sql
+
+- name: Import GeoIP DDL
+  mysql_db:
+    name: all
+    state: import
+    target: /tmp/geoip_ddl.sql

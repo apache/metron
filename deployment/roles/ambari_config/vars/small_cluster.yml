@@ -26,25 +26,34 @@ storm_slave: [SUPERVISOR]
 kafka_broker: [KAFKA_BROKER]
 zookeeper_master: [ZOOKEEPER_SERVER]
 zookeeper_slave: [ZOOKEEPER_CLIENT]
-ganglia_master: [GANGLIA_SERVER]
 hbase_master: [HBASE_MASTER, HBASE_CLIENT]
 hbase_slave: [HBASE_REGIONSERVER]
 
-master_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(spark_master) | union(ganglia_master) | union(hbase_master) }}"
+master_1_components: "{{ hadoop_master }}"
+master_2_components: "{{ zookeeper_master | union(storm_master) | union(spark_master) | union(hbase_master) }}"
 slave_components: "{{ hadoop_slave | union(zookeeper_slave) | union(storm_slave) | union(spark_slave) | union(kafka_broker) | union(hbase_slave) }}"
 
-cluster_name: "metron_cluster"
+cluster_name: "metron"
 blueprint_name: "metron_blueprint"
+
+configurations:
+  - storm-site:
+      supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
 
 blueprint:
   stack_name: HDP
   stack_version: 2.3
   groups:
-    - name : master
+    - name : master_1
       cardinality: 1
       configuration: []  # configuration not yet implemented
-      components: "{{ master_components }}"
-      hosts: "{{masters_group}}"
+      components: "{{ master_1_components }}"
+      hosts: "{{masters_group_1}}"
+    - name : master_2
+      cardinality: 1
+      configuration: []  # configuration not yet implemented
+      components: "{{ master_2_components }}"
+      hosts: "{{masters_group_2}}"
     - name: slaves
       cardinality: 1+
       configuration: []  # configuration not yet implemented

@@ -1,0 +1,5 @@
+---
+# vars file for mysql
+mysql_rpm_version: mysql57-community-release-el7-7.noarch
+mysql_root_password: P@ssw0rd
+

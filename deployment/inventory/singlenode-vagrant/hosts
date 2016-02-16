@@ -35,3 +35,6 @@ node1
 
 [sensors]
 node1
+
+[mysql]
+node1

@@ -33,6 +33,9 @@
   assemble:
     remote_src: false
     src: /tmp/keys
-    dest: "~{{ ambari_user }}/.ssh/authorized_keys"
+    dest: "~{{ ambari_user }}/temp_authorized_keys"
     owner: "{{ ambari_user }}"
     mode: 0644
+
+- name: Add key pairs to existing authorized_keys
+  shell:  "cat ~{{ ambari_user }}/temp_authorized_keys >> ~{{ ambari_user }}/.ssh/authorized_keys && rm ~{{ ambari_user }}/temp_authorized_keys"

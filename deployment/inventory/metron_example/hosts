@@ -36,3 +36,6 @@ host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
 
 [sensors]
 host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
+
+[mysql]
+host  ansible_ssh_private_key_file=path_to_key_file ansible_ssh_user=user
