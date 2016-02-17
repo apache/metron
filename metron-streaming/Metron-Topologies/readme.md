@@ -9,9 +9,9 @@ This module provides example topologies that show how to drive Metron modules an
 We use Storm Flux to launch topologies, which are each described in a YAML file.
 
 ```
-storm jar target/Metron-Topologies-0.6BETA.jar org.apache.storm.flux.Flux --local src/main/resources/Metron_Configs/topologies/bro/local.yaml --filter src/main/resources/Metron_Configs/etc/env/config.properties
+storm jar target/Metron-Topologies-0.1BETA.jar org.apache.storm.flux.Flux --local src/main/resources/Metron_Configs/topologies/bro/local.yaml --filter src/main/resources/Metron_Configs/etc/env/config.properties
 
-storm jar target/Metron-Topologies-0.6BETA.jar org.apache.storm.flux.Flux --remote src/main/resources/Metron_Configs/topologies/bro/remote.yaml --filter src/main/resources/Metron_Configs/etc/env/config.properties
+storm jar target/Metron-Topologies-0.1BETA.jar org.apache.storm.flux.Flux --remote src/main/resources/Metron_Configs/topologies/bro/remote.yaml --filter src/main/resources/Metron_Configs/etc/env/config.properties
 ```
 
 Note that if you use `--local` it will run the topology in local mode, using test data. If you use `--remote` it will attempt to connect to and deploy to Storm Nimbus.

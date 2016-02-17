@@ -1,6 +1,6 @@
 ---
 # vars file for elasticsearch
-metron_version: 0.6BETA
+metron_version: 0.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
 metron_jar_url: http://192.168.1.174:8080/repository/internal/com/opensoc/OpenSOC-Topologies/{{ metron_version }}/OpenSOC-Topologies-{{ metron_version }}.jar
 metron_source_url: https://github.com/merrimanr/incubator-metron/archive/master.zip

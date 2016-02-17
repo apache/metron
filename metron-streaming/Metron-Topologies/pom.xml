@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>Metron-Streaming</artifactId>
-        <version>0.6BETA</version>
+        <version>0.1BETA</version>
     </parent>
     <artifactId>Metron-Topologies</artifactId>
     <description>Metron Topologies</description>
