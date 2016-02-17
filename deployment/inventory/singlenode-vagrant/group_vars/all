@@ -7,7 +7,7 @@ cluster_type: "single_node_vm"
 hdp_host_group: ["node1"]
 
 #Metron variables
-metron_version: 0.6BETA
+metron_version: 0.1BETA
 java_home: "/usr/jdk64/jdk1.8.0_40"
 
 #Default values

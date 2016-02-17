@@ -14,7 +14,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.apache.metron</groupId>
 	<artifactId>Metron-Streaming</artifactId>
-	<version>0.6BETA</version>
+	<version>0.1BETA</version>
 	<packaging>pom</packaging>
 	<name>Metron-Streaming</name>
 	<description>Stream analytics for Metron</description>

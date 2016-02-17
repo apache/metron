@@ -5,7 +5,7 @@ ambari_user: "admin"
 ambari_password: "admin"
 
 #Metron variables
-metron_version: 0.6BETA
+metron_version: 0.1BETA
 java_home: "/usr/jdk64/jdk1.8.0_40"
 
 #Default values
