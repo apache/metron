@@ -2,14 +2,14 @@ CREATE DATABASE IF NOT EXISTS GEO;
 
 USE GEO;
 
-DROP TABLE IF EXISTS `blocks`; 
-CREATE TABLE  `blocks` ( `startIPNum` int(10) unsigned NOT NULL,`endIPNum` int(10) unsigned NOT NULL,`locID` 
-int(10) unsigned NOT NULL, PRIMARY KEY  (`startIPNum`,`endIPNum`) ) 
+DROP TABLE IF EXISTS `blocks`;
+CREATE TABLE  `blocks` ( `startIPNum` int(10) unsigned NOT NULL,`endIPNum` int(10) unsigned NOT NULL,`locID`
+int(10) unsigned NOT NULL, PRIMARY KEY  (`startIPNum`,`endIPNum`) )
 ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1 DELAY_KEY_WRITE=1;
 
-DROP TABLE IF EXISTS `location`; 
+DROP TABLE IF EXISTS `location`;
 CREATE TABLE  `location` (`locID` int(10) unsigned NOT NULL,`country` char(2) default NULL,`region` char(2)
- default NULL,`city` varchar(45) default NULL,`postalCode` char(7) default NULL,`latitude` double default 
+ default NULL,`city` varchar(45) default NULL,`postalCode` char(7) default NULL,`latitude` double default
 NULL,`longitude` double default NULL,`dmaCode` char(3) default NULL,`areaCode` char(3) default NULL,PRIMARY KEY
   (`locID`),KEY `Index_Country` (`country`) ) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
 

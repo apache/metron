@@ -39,8 +39,25 @@ cluster_name: "metron"
 blueprint_name: "metron_blueprint"
 
 configurations:
+  - hadoop-env:
+      namenode_heapsize: 1024
+      dtnode_heapsize: 1024
+  - hbase-env:
+      hbase_regionserver_heapsize: 1024
+      hbase_master_heapsize: 1024
+  - yarn-env:
+      nodemanager_heapsize: 512
+      yarn_heapsize: 512
+      apptimelineserver_heapsize : 512
+  - mapred-env:
+      jobhistory_heapsize: 256
+  - yarn-site:
+      yarn.nodemanager.resource.memory-mb: 1024
+      yarn.scheduler.maximum-allocation-mb: 1024
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
+  - kafka-env:
+      content: "{% raw %}\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport KAFKA_HEAP_OPTS=\"-Xms256M -Xmx256M\"\nexport KAFKA_JVM_PERFORMANCE_OPTS=\"-server -XX:+UseG1GC -XX:+DisableExplicitGC -Djava.awt.headless=true\"\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin\nexport PID_DIR={{kafka_pid_dir}}\nexport LOG_DIR={{kafka_log_dir}}\nexport KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}\n# Add kafka sink to classpath and related depenencies\nif [ -e \"/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\" ]; then\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*\nfi\nif [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then\n   . /etc/kafka/conf/kafka-ranger-env.sh\nfi{% endraw %}"
 
 blueprint:
   stack_name: HDP
