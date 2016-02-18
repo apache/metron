@@ -11,7 +11,7 @@
     src: "{{ pcapservice_jar_path }}"
     dest: "{{ metron_directory }}/lib/"
 
-- name: alternatives link for "java"
+- name: Alternatives link for "java"
   alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
   with_items:
     - { name: java, link: /usr/bin/java, path: /usr/jdk64/jdk1.8.0_40/bin/java}

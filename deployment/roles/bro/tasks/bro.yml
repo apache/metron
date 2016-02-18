@@ -20,3 +20,9 @@
     - ./configure
     - make
     - make install
+
+- name: Configure bro
+  lineinfile:
+    dest: /usr/local/bro/etc/node.cfg
+    regexp: '^interface=.*$'
+    line: 'interface={{ sniff_interface }}'

@@ -22,6 +22,9 @@
 
 - include: bro-plugin-kafka.yml
 
+- name: Turn on promiscuous mode for {{ sniff_interface }}
+  shell: "ip link set {{ sniff_interface }} promisc on"
+
 - name: Update bro configuration
   shell: /usr/local/bro/bin/broctl install
 

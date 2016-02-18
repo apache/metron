@@ -1,0 +1,14 @@
+---
+- name: Download daq
+  get_url:
+    url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
+    dest: "/tmp/daq-{{ daq_version }}.src.rpm"
+
+- name: Build daq
+  shell: "rpmbuild --rebuild daq-{{ daq_version }}.src.rpm"
+  args:
+    chdir: /tmp
+    creates: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
+
+- name: Install daq
+  yum: name=/root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm

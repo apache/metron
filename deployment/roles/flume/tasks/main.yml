@@ -8,6 +8,7 @@
 - name: Install flume
   yum: name={{item}}
   with_items:
+    - libselinux-python
     - flume
     - flume-agent
 
@@ -29,4 +30,4 @@
     - cp /usr/hdp/current/flume-server/etc/rc.d/init.d/flume-agent /etc/init.d/
 
 - name: Remove default flume configuration
-  shell: rm -f /etc/flume/conf/flume.conf
+  file: path=/etc/flume/conf/flume.conf state=absent

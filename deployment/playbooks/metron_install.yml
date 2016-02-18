@@ -21,6 +21,7 @@
     - role: bro
     - role: snort
     - role: yaf
+    - role: pcap_replay
   tags:
       - sensors
 

@@ -1,10 +1,28 @@
 ---
-- name: Install libselinux-python
-  yum: name=libselinux-python
+- name: Install EPEL repository
+  yum: name=epel-release
+
+- name: Install snort prerequisites
+  yum: name={{ item }}
+  with_items:
+    - "@Development tools"
+    - libdnet-devel
+    - rpm-build
+    - libpcap
+    - libpcap-devel
+    - pcre
+    - pcre-devel
+    - zlib-devel
+    - libselinux-python
+  
+- include: daq.yml
 
 - include: snort.yml
 
 - include: flume.yml
+
+- name: Turn on promiscuous mode for {{ sniff_interface }}
+  shell: "ip link set {{ sniff_interface }} promisc on"
 
 - name: Start snort
   service: name=snortd state=restarted

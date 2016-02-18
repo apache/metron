@@ -1,5 +1,7 @@
 ---
-# tasks file for ambari_gather_facts
+- name: Install EPEL repository
+  yum: name=epel-release
+
 - name: Install pip
   yum: name=python-pip
 

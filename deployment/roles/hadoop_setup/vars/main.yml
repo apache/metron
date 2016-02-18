@@ -1,2 +1,2 @@
 ---
-# vars file for hadoop_setup
+kafka_home: /usr/hdp/current/kafka-broker/

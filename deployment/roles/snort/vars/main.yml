@@ -1,3 +1,5 @@
 ---
 snort_version: 2.9.8.0-1
 daq_version: 2.0.6-1
+snort_topic: snort
+snort_alert_csv_path: /var/log/snort/alert.csv

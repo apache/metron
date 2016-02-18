@@ -12,3 +12,6 @@
   ignore_errors: yes
   with_items:
     - "{{ pycapa_topic }}"
+    - "{{ bro_topic }}"
+    - "{{ yaf_topic }}"
+    - "{{ snort_topic }}"

@@ -12,4 +12,4 @@
   service: name=ambari-server state=restarted
 
 - name : check if ambari-server is up
-  wait_for : host=127.0.0.1 port=8080 delay=10
+  wait_for : host={{ ambari_host }} port={{ ambari_port }} delay=10
