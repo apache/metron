@@ -1,5 +1,7 @@
 package org.apache.metron.threatintel;
 
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+
 import java.util.HashMap;
 import java.util.Map;
 

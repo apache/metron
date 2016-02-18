@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandler;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandlers;
+import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.*;
 import org.mitre.cybox.cybox_2.ObjectType;
@@ -25,9 +26,9 @@ import java.util.Map;
 public class StixExtractor implements Extractor {
     Map<String, Object> config;
     @Override
-    public Iterable<ThreatIntelResults> extract(String line) throws IOException {
+    public Iterable<LookupKV> extract(String line) throws IOException {
         STIXPackage stixPackage = STIXPackage.fromXMLString(line);
-        List<ThreatIntelResults> ret = new ArrayList<>();
+        List<LookupKV> ret = new ArrayList<>();
         if (stixPackage.getIndicators() != null) {
             if (stixPackage.getIndicators().getIndicators() != null) {
                 List<IndicatorBaseType> indicators = stixPackage.getIndicators().getIndicators();
@@ -88,7 +89,7 @@ public class StixExtractor implements Extractor {
 
         String line = FileUtils.readFileToString(file);
         StixExtractor extractor = new StixExtractor();
-        for(ThreatIntelResults results : extractor.extract(line)) {
+        for(LookupKV results : extractor.extract(line)) {
             System.out.println(results);
         }
 

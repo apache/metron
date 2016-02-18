@@ -7,6 +7,7 @@ import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.integration.Processor;
@@ -16,8 +17,9 @@ import org.apache.metron.integration.util.integration.components.FluxTopologyCom
 import org.apache.metron.integration.util.mock.MockHTable;
 import org.apache.metron.integration.util.threatintel.ThreatIntelHelper;
 import org.apache.metron.parsing.parsers.PcapParser;
+import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.test.converters.HexStringConverter;
-import org.apache.metron.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -107,9 +109,9 @@ public class PcapIntegrationTest {
         //create MockHBaseTables
         final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTable, cf);
         final MockHTable ipTable = (MockHTable)MockHTable.Provider.addToCache(ipThreatIntelTable, cf);
-        ThreatIntelHelper.INSTANCE.load(ipTable, cf, new ArrayList<ThreatIntelResults>(){{
-            add(new ThreatIntelResults(new ThreatIntelKey("10.0.2.3"), new HashMap<String, String>()));
-        }}, 0L);
+        ThreatIntelHelper.INSTANCE.load(ipTable, cf, new ArrayList<LookupKV<ThreatIntelKey, ThreatIntelValue>>(){{
+            add(new LookupKV<>(new ThreatIntelKey("10.0.2.3"), new ThreatIntelValue(new HashMap<String, String>())));
+        }});
         final MockHTable pcapTable = (MockHTable) MockHTable.Provider.addToCache("pcap_test", "t");
         FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
                                                                        .withTopologyLocation(new File(topologiesDir + "/pcap/local.yaml"))
