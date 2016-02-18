@@ -27,7 +27,7 @@ public class CSVExtractor implements Extractor {
     private int indicatorColumn;
     private Map<String, Integer> columnMap = new HashMap<>();
     private CSVParser parser;
-    private LookupConverter converter = new ThreatIntelLookupConverter();
+    private LookupConverter converter = LookupConverters.THREAT_INTEL.getConverter();
 
     @Override
     public Iterable<LookupKV> extract(String line) throws IOException {
@@ -103,15 +103,7 @@ public class CSVExtractor implements Extractor {
                                            .build();
         }
         if(config.containsKey(LOOKUP_CONVERTER)) {
-            try {
-                converter = (LookupConverter) Class.forName((String) config.get(LOOKUP_CONVERTER)).newInstance();
-            } catch (InstantiationException e) {
-                throw new IllegalStateException("Unable to parse " + config.get(LOOKUP_CONVERTER), e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Unable to parse " + config.get(LOOKUP_CONVERTER), e);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException("Unable to parse " + config.get(LOOKUP_CONVERTER), e);
-            }
+           converter = LookupConverters.getConverter((String) config.get(LOOKUP_CONVERTER));
         }
     }
 }
