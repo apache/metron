@@ -15,35 +15,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.test.bolts;
-
-import java.util.Map;
-
-import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseRichBolt;
-import backtype.storm.tuple.Tuple;
-
-@SuppressWarnings("serial")
-public class PrintingBolt extends BaseRichBolt {
-
-	@SuppressWarnings("rawtypes")
-	public void prepare(Map stormConf, TopologyContext context,
-			OutputCollector collector) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void execute(Tuple input) {
-		System.out.println("---------[RECEIVED] " + input);
-		
-	}
-
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-}

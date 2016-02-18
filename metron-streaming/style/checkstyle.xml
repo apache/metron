@@ -22,6 +22,12 @@
 
   <!-- Verify that EVERY source file has the appropriate license -->
   <module name="Header">
-    <property name="headerFile" value="${checkstyle.header.file}"/>
+    <property name="headerFile" value="style/LICENSE.java"/>
+    <property name="fileExtensions" value="java"/>
   </module>
+  <module name="Header">
+    <property name="headerFile" value="style/LICENSE.config"/>
+    <property name="fileExtensions" value="properties, yaml"/>
+  </module>
+
 </module>
