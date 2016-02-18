@@ -1,0 +1,71 @@
+This file contains the GPG keys of various developers, to allow verification
+of the release.
+
+Users: pgp < KEYS
+       gpg --import KEYS
+
+Developers:
+       Using PGP:
+       pgp -kxa <your name> and append it to this file
+       (pgpk -ll <your name> && pgpk -xa <your name>) >> this file
+       Using GPG:
+       (gpg --list-sigs <your name> && gpg --armor --export <your name>) >> this file
+
+pub   4096R/C3E26E8D 2016-02-17 [expires: 2016-10-18]
+uid       [ultimate] James Sirota (Default Apache Key) <jsirota@apache.org>
+sig 3        C3E26E8D 2016-02-17  James Sirota (Default Apache Key) <jsirota@apache.org>
+sub   4096R/D11F8084 2016-02-17 [expires: 2016-10-18]
+sig          C3E26E8D 2016-02-17  James Sirota (Default Apache Key) <jsirota@apache.org>
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Comment: GPGTools - https://gpgtools.org
+
+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
+=1pMs
+-----END PGP PUBLIC KEY BLOCK-----
