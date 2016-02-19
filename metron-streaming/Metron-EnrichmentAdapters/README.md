@@ -10,12 +10,12 @@ Enrichment bolts are designed to go after the parser bolts.  Parser bolts will p
 
 ```json
 {
-"message": 
-{"ip_src_addr": xxxx, 
-"ip_dst_addr": xxxx, 
-"ip_src_port": xxxx, 
-"ip_dst_port": xxxx, 
-"protocol": xxxx, 
+"message":
+{"ip_src_addr": xxxx,
+"ip_dst_addr": xxxx,
+"ip_src_port": xxxx,
+"ip_dst_port": xxxx,
+"protocol": xxxx,
 "additional-field 1": xxx,
 }
 
@@ -26,12 +26,12 @@ A single enrichment bolt would enrich the message and produce a JSON enrichment 
 
 ```json
 {
-"message": 
-{"ip_src_addr": xxxx, 
-"ip_dst_addr": xxxx, 
-"ip_src_port": xxxx, 
-"ip_dst_port": xxxx, 
-"protocol": xxxx, 
+"message":
+{"ip_src_addr": xxxx,
+"ip_dst_addr": xxxx,
+"ip_src_port": xxxx,
+"ip_dst_port": xxxx,
+"protocol": xxxx,
 "additional-field 1": xxxx,
 },
 "enrichment" : {"geo": xxxx, "whois": xxxx, "hosts": xxxxx, "CIF": "xxxxx"}
