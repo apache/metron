@@ -15,34 +15,16 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name={{ item }}
-  with_items:
-    - libselinux-python
-    - cmake
-    - make
-    - gcc
-    - gcc-c++
-    - flex
-    - bison
-    - libpcap
-    - libpcap-devel
-    - openssl-devel
-    - python-devel
-    - swig
-    - zlib-devel
+- name: Download daq
+  get_url:
+    url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
+    dest: "/tmp/daq-{{ daq_version }}.src.rpm"
 
-- include: librdkafka.yml
+- name: Build daq
+  shell: "rpmbuild --rebuild daq-{{ daq_version }}.src.rpm"
+  args:
+    chdir: /tmp
+    creates: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
 
-- include: bro.yml
-
-- include: bro-plugin-kafka.yml
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Update bro configuration
-  shell: /usr/local/bro/bin/broctl install
-
-- name: Start bro
-  shell: /usr/local/bro/bin/broctl start
+- name: Install daq
+  yum: name=/root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm

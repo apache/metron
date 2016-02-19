@@ -18,31 +18,28 @@
 - name: Install prerequisites
   yum: name={{ item }}
   with_items:
-    - libselinux-python
-    - cmake
-    - make
-    - gcc
-    - gcc-c++
-    - flex
-    - bison
+    - "@Development tools"
     - libpcap
     - libpcap-devel
-    - openssl-devel
-    - python-devel
-    - swig
-    - zlib-devel
 
-- include: librdkafka.yml
+- name: Download tcpreplay
+  get_url:
+    url: "https://github.com/appneta/tcpreplay/releases/download/v{{ tcpreplay_version }}/tcpreplay-{{ tcpreplay_version }}.tar.gz"
+    dest: "/tmp/tcpreplay-{{ tcpreplay_version }}.tar.gz"
 
-- include: bro.yml
+- name: Extract tcpreplay tarball
+  unarchive:
+    src: "/tmp/tcpreplay-{{ tcpreplay_version }}.tar.gz"
+    dest: /opt
+    copy: no
+    creates: "/opt/tcpreplay-{{ tcpreplay_version }}"
 
-- include: bro-plugin-kafka.yml
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Update bro configuration
-  shell: /usr/local/bro/bin/broctl install
-
-- name: Start bro
-  shell: /usr/local/bro/bin/broctl start
+- name: Compile and install tcpreplay
+  shell: "{{ item }}"
+  args:
+    chdir: "/opt/tcpreplay-{{ tcpreplay_version }}"
+    creates: /usr/local/bin/tcpreplay
+  with_items:
+    - ./configure
+    - make
+    - make install

@@ -15,34 +15,23 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name={{ item }}
+- name: Download fixbuf
+  get_url:
+    url: "http://tools.netsa.cert.org/releases/libfixbuf-{{fixbuf_version}}.tar.gz"
+    dest: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
+
+- name: Extract fixbuf tarball
+  unarchive:
+    src: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
+    dest: /tmp
+    copy: no
+    creates: "/tmp/libfixbuf-{{fixbuf_version}}"
+
+- name: Compile and Install fixbuf
+  shell: "{{item}}"
+  args:
+    chdir: "/tmp/libfixbuf-{{fixbuf_version}}"
   with_items:
-    - libselinux-python
-    - cmake
+    - ./configure
     - make
-    - gcc
-    - gcc-c++
-    - flex
-    - bison
-    - libpcap
-    - libpcap-devel
-    - openssl-devel
-    - python-devel
-    - swig
-    - zlib-devel
-
-- include: librdkafka.yml
-
-- include: bro.yml
-
-- include: bro-plugin-kafka.yml
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Update bro configuration
-  shell: /usr/local/bro/bin/broctl install
-
-- name: Start bro
-  shell: /usr/local/bro/bin/broctl start
+    - make install

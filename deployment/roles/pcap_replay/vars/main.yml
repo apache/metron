@@ -15,34 +15,5 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name={{ item }}
-  with_items:
-    - libselinux-python
-    - cmake
-    - make
-    - gcc
-    - gcc-c++
-    - flex
-    - bison
-    - libpcap
-    - libpcap-devel
-    - openssl-devel
-    - python-devel
-    - swig
-    - zlib-devel
-
-- include: librdkafka.yml
-
-- include: bro.yml
-
-- include: bro-plugin-kafka.yml
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Update bro configuration
-  shell: /usr/local/bro/bin/broctl install
-
-- name: Start bro
-  shell: /usr/local/bro/bin/broctl start
+tcpreplay_version: 4.1.1
+pcap_replay_path: /opt/pcap-replay

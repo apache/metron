@@ -1,10 +1,44 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 ---
-- name: Install libselinux-python
-  yum: name=libselinux-python
+- name: Install EPEL repository
+  yum: name=epel-release
+
+- name: Install snort prerequisites
+  yum: name={{ item }}
+  with_items:
+    - "@Development tools"
+    - libdnet-devel
+    - rpm-build
+    - libpcap
+    - libpcap-devel
+    - pcre
+    - pcre-devel
+    - zlib-devel
+    - libselinux-python
+
+- include: daq.yml
 
 - include: snort.yml
 
 - include: flume.yml
+
+- name: Turn on promiscuous mode for {{ sniff_interface }}
+  shell: "ip link set {{ sniff_interface }} promisc on"
 
 - name: Start snort
   service: name=snortd state=restarted
