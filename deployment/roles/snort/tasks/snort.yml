@@ -1,0 +1,73 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Download snort
+  get_url:
+    url: "https://snort.org/downloads/snort/snort-{{ snort_version }}.src.rpm"
+    dest: "/tmp/snort-{{ snort_version }}.src.rpm"
+
+- name: Build snort
+  shell: "rpmbuild --rebuild snort-{{ snort_version }}.src.rpm"
+  args:
+    chdir: /tmp
+    creates: /root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm
+
+- name: Install snort
+  yum: name=/root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm
+
+#
+# TODO download latest rules from snort website - requires credentials
+#
+- name: Download snort rules
+  unarchive:
+    src: snortrules-snapshot-2962.tar.gz
+    dest: /tmp
+    creates: /tmp/snortrules-snapshot-2962.tar.gz
+
+- name: Install snort rules
+  shell: "{{ item }}"
+  args:
+    chdir: /tmp
+  with_items:
+    - cp -r etc/* /etc/snort/
+    - cp -r rules /etc/snort/
+    - cp -r so_rules /etc/snort/
+    - cp -r preproc_rules /etc/snort/
+    - touch /etc/snort/rules/white_list.rules
+    - touch /etc/snort/rules/black_list.rules
+    - touch /var/log/snort/alerts
+    - chown -R snort:snort /etc/snort
+
+- name: Download snort configuration
+  copy: src=snort.conf dest=/etc/snort/snort.conf
+
+- name: Configure network
+  lineinfile: dest=/etc/snort/snort.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
+  with_items:
+    - { regexp: "^ipvar HOME_NET.*$", line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}" }
+
+- name: Configure alerting
+  lineinfile:
+    dest: /etc/snort/snort.conf
+    line: "output alert_csv: {{ snort_alert_csv_path }} default"
+
+- name: Configure sysconfig
+  lineinfile: dest=/etc/sysconfig/snort regexp="{{ item.regexp }}" line="{{ item.line }}"
+  with_items:
+    - { regexp: "^ALERTMODE=.*$",     line: "ALERTMODE=" }
+    - { regexp: "^NO_PACKET_LOG=.*$", line: "NO_PACKET_LOG=1" }
+    - { regexp: "^INTERFACE=.*$",     line: "INTERFACE={{ sniff_interface }}" }

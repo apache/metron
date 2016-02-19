@@ -1,0 +1,27 @@
+# metron variables
+metron_version: 0.1BETA
+java_home: /usr/jdk64/jdk1.8.0_40
+
+# ambari
+ambari_host: node1
+ambari_port: 8080
+ambari_user: admin
+ambari_password: admin
+cluster_type: single_node_vm
+hdp_host_group: ["node1"]
+
+# hbase
+pcap_hbase_table: pcap
+tracker_hbase_table: access_tracker
+threatintel_ip_hbase_table: malicious_ip
+
+# kafka
+pycapa_topic: pcap
+bro_topic: bro
+yaf_topic: ipfix
+snort_topic: snort
+
+# other values
+elasticsearch_web_port: 9200
+pcapservice_port: 8081
+sniff_interface: eth1

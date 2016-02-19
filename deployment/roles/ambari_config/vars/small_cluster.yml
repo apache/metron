@@ -1,0 +1,52 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+# vars file for small_cluster blueprint
+
+hadoop_master: [NAMENODE, SECONDARY_NAMENODE, RESOURCEMANAGER, HISTORYSERVER]
+hadoop_slave: [APP_TIMELINE_SERVER, DATANODE, HDFS_CLIENT, NODEMANAGER, YARN_CLIENT, MAPREDUCE2_CLIENT]
+spark_master: [SPARK_JOBHISTORYSERVER]
+spark_slave: [SPARK_CLIENT]
+storm_master: [NIMBUS, STORM_UI_SERVER, DRPC_SERVER]
+storm_slave: [SUPERVISOR]
+kafka_broker: [KAFKA_BROKER]
+zookeeper_master: [ZOOKEEPER_SERVER]
+zookeeper_slave: [ZOOKEEPER_CLIENT]
+ganglia_master: [GANGLIA_SERVER]
+hbase_master: [HBASE_MASTER, HBASE_CLIENT]
+hbase_slave: [HBASE_REGIONSERVER]
+
+master_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(spark_master) | union(ganglia_master) | union(hbase_master) }}"
+slave_components: "{{ hadoop_slave | union(zookeeper_slave) | union(storm_slave) | union(spark_slave) | union(kafka_broker) | union(hbase_slave) }}"
+
+cluster_name: "metron_cluster"
+blueprint_name: "metron_blueprint"
+
+blueprint:
+  stack_name: HDP
+  stack_version: 2.3
+  groups:
+    - name : master
+      cardinality: 1
+      configuration: []  # configuration not yet implemented
+      components: "{{ master_components }}"
+      hosts: "{{masters_group}}"
+    - name: slaves
+      cardinality: 1+
+      configuration: []  # configuration not yet implemented
+      components: "{{ slave_components }}"
+      hosts: "{{slaves_group}}"
