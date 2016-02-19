@@ -1,4 +1,23 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 ---
+- name: Install EPEL repository
+  yum: name=epel-release
+
 - name: Install python and tcpdump
   yum: name={{item}}
   with_items:
@@ -19,10 +38,18 @@
     - pip install argparse
     - python setup.py install
 
+- name: Turn on promiscuous mode for {{ sniff_interface }}
+  shell: "ip link set {{ sniff_interface }} promisc on"
+
 - name: Install prerequisites
   yum: name=daemonize
 
+- set_fact:
+    pycapa: /opt/pycapa/pycapa/pycapa_cli.py
+    pycapa_log: /var/log/pycapa.log
+    pycapa_lock: /var/lock/subsys/pycapa
+
 - name: Start pycapa
-  shell: "daemonize -c {{ pycapa_home }} -e /var/log/pycapa.log -o /var/log/pycapa.log -l /var/lock/subsys/pycapa /usr/bin/python /opt/pycapa/pycapa/pycapa_cli.py  -z {{ zookeeper_url }} -t {{ pycapa_topic }} -i {{ iface }}"
+  shell: "daemonize -c {{ pycapa_home }} -e {{ pycapa_log }} -o {{ pycapa_log }} -l {{ pycapa_lock }} /usr/bin/python {{ pycapa }}  -z {{ zookeeper_url }} -t {{ pycapa_topic }} -i {{ sniff_interface }}"
   args:
-    creates: /var/lock/subsys/pycapa
+    creates: "{{ pycapa_lock }}"

@@ -15,34 +15,14 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name={{ item }}
-  with_items:
-    - libselinux-python
-    - cmake
-    - make
-    - gcc
-    - gcc-c++
-    - flex
-    - bison
-    - libpcap
-    - libpcap-devel
-    - openssl-devel
-    - python-devel
-    - swig
-    - zlib-devel
+- name: Create pcap directory
+  file: path={{ pcap_replay_path }} state=directory mode=0755
 
-- include: librdkafka.yml
+- name: Install init.d service script
+  copy: src=pcap-replay dest=/etc/init.d/pcap-replay
 
-- include: bro.yml
+- name: Set permissions on service script
+  file: path=/etc/init.d/pcap-replay mode=0755
 
-- include: bro-plugin-kafka.yml
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Update bro configuration
-  shell: /usr/local/bro/bin/broctl install
-
-- name: Start bro
-  shell: /usr/local/bro/bin/broctl start
+- name: Install example pcap file
+  copy: src=example.pcap dest={{ pcap_replay_path }}/

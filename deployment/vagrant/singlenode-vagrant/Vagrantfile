@@ -1,9 +1,27 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 
-hosts = [
-  { hostname: "node1", ip: "192.168.66.121", memory: "8192", cpus: 2 }
-]
+hosts = [{
+    hostname: "node1",
+    ip: "192.168.66.121",
+    memory: "8192",
+    cpus: 4,
+    promisc: 2  # enables promisc on the 'Nth' network interface
+}]
 
 Vagrant.configure(2) do |config|
 
@@ -16,17 +34,22 @@ Vagrant.configure(2) do |config|
   config.hostmanager.manage_host = true
 
   # host definition
-  hosts.each_with_index do |hosts, index|
-    config.vm.define hosts[:hostname] do |node|
+  hosts.each_with_index do |host, index|
+    config.vm.define host[:hostname] do |node|
 
       # host settings
-      node.vm.hostname = hosts[:hostname]
-      node.vm.network "private_network", ip: hosts[:ip]
+      node.vm.hostname = host[:hostname]
+      node.vm.network "private_network", ip: host[:ip]
 
       # vm settings
       node.vm.provider "virtualbox" do |vb|
-        vb.memory = hosts[:memory]
-        vb.cpus = hosts[:cpus]
+        vb.memory = host[:memory]
+        vb.cpus = host[:cpus]
+
+        # enable promisc mode on the network interface
+        if host.has_key?(:promisc)
+          vb.customize ["modifyvm", :id, "--nicpromisc#{host[:promisc]}", "allow-all"]
+        end
       end
     end
   end

@@ -1,39 +1,20 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 ---
-- name: Install development tools
-  yum: name="@Development tools" state=present
-
-- name: Install prerequisites
-  yum: name={{ item }}
-  with_items:
-    - libpcap
-    - libpcap-devel
-    - pcre
-    - pcre-devel
-    - glib2-devel
-    - zlib
-    - zlib-devel
-
-- name: Download fixbuf
-  get_url:
-    url: "http://tools.netsa.cert.org/releases/libfixbuf-{{fixbuf_version}}.tar.gz"
-    dest: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
-
-- name: Extract fixbuf tarball
-  unarchive:
-    src: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
-    dest: /tmp
-    copy: no
-    creates: "/tmp/libfixbuf-{{fixbuf_version}}"
-
-- name: Compile and Install fixbuf
-  shell: "{{item}}"
-  args:
-    chdir: "/tmp/libfixbuf-{{fixbuf_version}}"
-  with_items:
-    - ./configure
-    - make
-    - make install
-
 - name: Download yaf
   get_url:
     url: "http://tools.netsa.cert.org/releases/yaf-{{yaf_version}}.tar.gz"
@@ -61,14 +42,3 @@
     path: "{{ yaf_home }}"
     state: directory
     mode: 0755
-
-- name: Add Yaf startup script
-  copy:
-    src: start-yaf.sh
-    dest: "{{ yaf_home }}/start-yaf.sh"
-    mode: 0755
-
-- name: Start yaf
-  shell: "daemonize -c {{ yaf_home }} -e /var/log/yaf.log -o /var/log/yaf.log -l /var/lock/subsys/yaf {{yaf_home}}/start-yaf.sh {{ kafka_broker_url }}"
-  args:
-    creates: /var/lock/subsys/yaf
