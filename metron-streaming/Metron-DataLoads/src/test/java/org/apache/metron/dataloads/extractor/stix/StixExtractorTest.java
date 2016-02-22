@@ -18,17 +18,12 @@
 package org.apache.metron.dataloads.extractor.stix;
 
 import com.google.common.collect.Iterables;
-import org.apache.metron.dataloads.ThreatIntelBulkLoader;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.List;
 
 public class StixExtractorTest {
     @Test

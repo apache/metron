@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads;
+package org.apache.metron.dataloads.bulk;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;

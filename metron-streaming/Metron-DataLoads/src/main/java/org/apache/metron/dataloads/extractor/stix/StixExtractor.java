@@ -27,6 +27,8 @@ import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.*;
 import org.mitre.cybox.cybox_2.ObjectType;
+import org.mitre.cybox.cybox_2.Observable;
+import org.mitre.cybox.cybox_2.Observables;
 import org.mitre.stix.common_1.IndicatorBaseType;
 import org.mitre.stix.indicator_2.Indicator;
 import org.mitre.stix.stix_1.STIXPackage;
@@ -41,8 +43,34 @@ public class StixExtractor implements Extractor {
     Map<String, Object> config;
     @Override
     public Iterable<LookupKV> extract(String line) throws IOException {
-        STIXPackage stixPackage = STIXPackage.fromXMLString(line);
+        STIXPackage stixPackage = STIXPackage.fromXMLString(line.replaceAll("\"Equal\"", "\"Equals\""));
         List<LookupKV> ret = new ArrayList<>();
+        for(Observable o : getObservables(stixPackage)) {
+            ObjectType obj = o.getObject();
+            if(obj != null) {
+                ObjectPropertiesType props = obj.getProperties();
+                if(props != null) {
+                    ObjectTypeHandler handler = ObjectTypeHandlers.getHandlerByInstance(props);
+                    if (handler != null) {
+                        Iterable<LookupKV> extractions = handler.extract(props, config);
+                        for(LookupKV extraction : extractions) {
+                            ret.add(extraction);
+                        }
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    public List<Observable> getObservables(STIXPackage stixPackage) {
+        List<Observable> ret = new ArrayList<>();
+        Observables observables = stixPackage.getObservables();
+        if(observables != null) {
+            for (Observable o : observables.getObservables()) {
+                ret.add(o);
+            }
+        }
         if (stixPackage.getIndicators() != null) {
             if (stixPackage.getIndicators().getIndicators() != null) {
                 List<IndicatorBaseType> indicators = stixPackage.getIndicators().getIndicators();
@@ -50,12 +78,7 @@ public class StixExtractor implements Extractor {
                 for (int i = 0; i < indicatorCount; i++) {
                     Indicator indicator = (Indicator) indicators.get(i);
                     if (indicator.getObservable() != null) {
-                        ObjectType obj = indicator.getObservable().getObject();
-                        ObjectPropertiesType props = obj.getProperties();
-                        ObjectTypeHandler handler = ObjectTypeHandlers.getHandlerByInstance(props);
-                        if(handler != null) {
-                            Iterables.addAll(ret, handler.extract(props, config));
-                        }
+                        ret.add(indicator.getObservable());
                     }
                 }
             }

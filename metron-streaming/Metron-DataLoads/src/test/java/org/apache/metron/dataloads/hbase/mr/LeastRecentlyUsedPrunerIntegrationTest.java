@@ -23,7 +23,7 @@ import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.metron.dataloads.LeastRecentlyUsedPruner;
+import org.apache.metron.dataloads.bulk.LeastRecentlyUsedPruner;
 import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.reference.lookup.LookupKey;
 import org.apache.metron.reference.lookup.accesstracker.BloomAccessTracker;

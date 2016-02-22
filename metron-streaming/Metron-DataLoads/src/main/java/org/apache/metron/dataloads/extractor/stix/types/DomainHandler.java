@@ -39,14 +39,14 @@ public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
     public Iterable<LookupKV> extract(final DomainName type, Map<String, Object> config) throws IOException {
         List<LookupKV> ret = new ArrayList<>();
         final DomainNameTypeEnum domainType = type.getType();
-        if(SUPPORTED_TYPES.contains(domainType)) {
+        if(domainType == null || SUPPORTED_TYPES.contains(domainType)) {
             StringObjectPropertyType value = type.getValue();
             for (String token : StixExtractor.split(value)) {
                 LookupKV results = new LookupKV(new ThreatIntelKey(token)
                                                , new ThreatIntelValue(
                                                     new HashMap<String, String>() {{
                                                         put("source-type", "STIX");
-                                                        put("indicator-type", "DomainName");
+                                                        put("indicator-type", type.getClass().getSimpleName() + ":" + DomainNameTypeEnum.FQDN);
                                                         put("source", type.toXMLString());
                                                     }}
                                                                     )

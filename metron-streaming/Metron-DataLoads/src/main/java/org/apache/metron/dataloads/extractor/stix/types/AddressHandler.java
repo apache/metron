@@ -65,7 +65,7 @@ public class AddressHandler extends AbstractObjectTypeHandler<Address> {
                                            , new ThreatIntelValue(
                                                                     new HashMap<String, String>() {{
                                                                         put("source-type", "STIX");
-                                                                        put("indicator-type", "Address");
+                                                                        put("indicator-type", type.getClass().getSimpleName() + ":" + category);
                                                                         put("source", type.toXMLString());
                                                                     }}
                                                                  )

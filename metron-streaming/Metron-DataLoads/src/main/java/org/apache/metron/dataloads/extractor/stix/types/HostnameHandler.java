@@ -45,7 +45,7 @@ public class HostnameHandler  extends AbstractObjectTypeHandler<Hostname>{
             LookupKV results = new LookupKV(new ThreatIntelKey(token)
                                            , new ThreatIntelValue(new HashMap<String, String>() {{
                                                                         put("source-type", "STIX");
-                                                                        put("indicator-type", "Hostname");
+                                                                        put("indicator-type", type.getClass().getSimpleName());
                                                                         put("source", type.toXMLString());
                                                                     }}
                                                                  )
