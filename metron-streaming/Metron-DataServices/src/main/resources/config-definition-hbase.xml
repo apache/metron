@@ -1,3 +1,19 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <configuration>
@@ -15,20 +31,20 @@
     	</lookups>
 	</header>
 	<override>
-		<!-- 1. properties from 'hbae-config.properties' are loaded first; 
+		<!-- 1. properties from 'hbae-config.properties' are loaded first;
 				if a property is not present in this file, then it will search in the files in the order they are defined here.
 		     2. 'refreshDelay' indicates the minimum delay in milliseconds between checks to see if the underlying file is changed.
-		     3. 'config-optional' indicates this file is not required --> 
-		
+		     3. 'config-optional' indicates this file is not required -->
+
 		<properties fileName="${expr:System.getProperty('configPath')+'/hbase-config.properties'}"  config-optional="true">
 			<reloadingStrategy refreshDelay="${expr:System.getProperty('configRefreshDelay')}"
 	      config-class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
 	     </properties>
-		
+
 		<properties fileName="hbase-config-default.properties" config-optional="true">
 <!-- 					<reloadingStrategy refreshDelay="${expr:System.getProperty('defaultConfigRefreshDelay')}"
 	      config-class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"/>
  -->	     </properties>
-		
+
 	</override>
 </configuration>
