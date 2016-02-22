@@ -1,10 +1,24 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 ---
-- name: Install development tools
-  yum: name="@Development tools" state=present
-
 - name: Install prerequisites
   yum: name={{ item }}
   with_items:
+    - "@Development tools"
     - libpcap
     - libpcap-devel
     - pcre
@@ -13,62 +27,21 @@
     - zlib
     - zlib-devel
 
-- name: Download fixbuf
-  get_url:
-    url: "http://tools.netsa.cert.org/releases/libfixbuf-{{fixbuf_version}}.tar.gz"
-    dest: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
+- include: fixbuf.yml
 
-- name: Extract fixbuf tarball
-  unarchive:
-    src: "/tmp/libfixbuf-{{fixbuf_version}}.tar.gz"
-    dest: /tmp
-    copy: no
-    creates: "/tmp/libfixbuf-{{fixbuf_version}}"
+- include: yaf.yml
 
-- name: Compile and Install fixbuf
-  shell: "{{item}}"
-  args:
-    chdir: "/tmp/libfixbuf-{{fixbuf_version}}"
-  with_items:
-    - ./configure
-    - make
-    - make install
+- name: Turn on promiscuous mode for {{ sniff_interface }}
+  shell: "ip link set {{ sniff_interface }} promisc on"
 
-- name: Download yaf
-  get_url:
-    url: "http://tools.netsa.cert.org/releases/yaf-{{yaf_version}}.tar.gz"
-    dest: "/tmp/yaf-{{yaf_version}}.tar.gz"
-
-- name: Extract yaf tarball
-  unarchive:
-    src: "/tmp/yaf-{{yaf_version}}.tar.gz"
-    dest: /tmp
-    copy: no
-    creates: /usr/local/bin/yaf
-
-- name: Compile and install yaf
-  shell: "{{item}}"
-  args:
-    chdir: "/tmp/yaf-{{yaf_version}}"
-    creates: /usr/local/bin/yaf
-  with_items:
-    - ./configure --enable-applabel --enable-plugins
-    - make
-    - make install
-
-- name: Create Yaf home directory
-  file:
-    path: "{{ yaf_home }}"
-    state: directory
-    mode: 0755
-
-- name: Add Yaf startup script
-  copy:
-    src: start-yaf.sh
-    dest: "{{ yaf_home }}/start-yaf.sh"
-    mode: 0755
+- set_fact:
+    yaf: /usr/local/bin/yaf
+    yafscii: /usr/local/bin/yafscii
+    yaf_log: /var/log/yaf.log
+    yaf_lock: /var/lock/subsys/yaf
+    kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh
 
 - name: Start yaf
-  shell: "daemonize -c {{ yaf_home }} -e /var/log/yaf.log -o /var/log/yaf.log -l /var/lock/subsys/yaf {{yaf_home}}/start-yaf.sh {{ kafka_broker_url }}"
+  shell: "daemonize -c {{ yaf_home }} -e {{ yaf_log }} -o {{ yaf_log }} -l {{ yaf_lock }} {{ yaf }} --in {{ sniff_interface }} --live pcap | {{ yafscii }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}"
   args:
-    creates: /var/lock/subsys/yaf
+    creates: "{{ yaf_lock }}"
