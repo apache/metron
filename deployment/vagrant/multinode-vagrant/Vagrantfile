@@ -46,6 +46,11 @@ Vagrant.configure(2) do |config|
         vb.cpus = host[:cpus]
       end
 
+      # enable promisc mode on the network interface
+      if host.has_key?(:promisc)
+        vb.customize ["modifyvm", :id, "--nicpromisc#{host[:promisc]}", "allow-all"]
+      end
+
       # provisioning; only after all hosts created
       if index == hosts.size - 1
         node.vm.provision :ansible do |ansible|

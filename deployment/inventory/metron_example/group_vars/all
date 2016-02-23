@@ -44,8 +44,6 @@ elasticsearch_web_port: 9200
 
 # metron variables
 metron_version: 0.1BETA
-metron_jar_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_jar_name }}"
-metron_jar_name: Metron-Topologies-{{ metron_version }}.jar
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
 sniff_interface: eth0
