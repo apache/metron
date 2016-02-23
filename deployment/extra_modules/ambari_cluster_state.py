@@ -141,7 +141,10 @@ def main():
                            choices=['present', 'absent', 'started', 'stopped']),
         blueprint_var=dict(type='dict', required=False),
         blueprint_name=dict(type='str', default=None, required=False),
+<<<<<<< HEAD
+=======
         configurations=dict(type='list', default=None, required=False),
+>>>>>>> apache/master
         wait_for_complete=dict(default=False, required=False, choices=BOOLEANS),
     )
 
@@ -213,8 +216,12 @@ def main():
                 module.exit_json(changed=False, msg='Cluster {0} already exists'.format(cluster_name),
                                  created_blueprint=created_blueprint)
 
+<<<<<<< HEAD
+            request = create_cluster(ambari_url, username, password, cluster_name, blueprint_name, host_map)
+=======
             configurations = p.get('configurations')
             request = create_cluster(ambari_url, username, password, cluster_name, blueprint_name, configurations, host_map)
+>>>>>>> apache/master
             request_id = json.loads(request.content)['Requests']['id']
             if wait_for_complete:
                 status = wait_for_request_complete(ambari_url, username, password, cluster_name, request_id, 2)
@@ -258,12 +265,18 @@ def set_cluster_state(ambari_url, user, password, cluster_name, cluster_state):
     return r
 
 
+<<<<<<< HEAD
+def create_cluster(ambari_url, user, password, cluster_name, blueprint_name, hosts_json):
+    path = '/api/v1/clusters/{0}'.format(cluster_name)
+    data = json.dumps({'blueprint': blueprint_name, 'host_groups': hosts_json})
+=======
 def create_cluster(ambari_url, user, password, cluster_name, blueprint_name, configurations, hosts_json):
     path = '/api/v1/clusters/{0}'.format(cluster_name)
     data = json.dumps({'blueprint': blueprint_name, 'configurations': configurations, 'host_groups': hosts_json})
     f = open('cluster.log', 'w')
     f.write(data)
     f.close()
+>>>>>>> apache/master
     r = post(ambari_url, user, password, path, data)
     if r.status_code != 202:
         msg = 'Coud not create cluster: request code {0}, \
@@ -315,9 +328,12 @@ def get_blueprints(ambari_url, user, password):
 
 def create_blueprint(ambari_url, user, password, blueprint_name, blueprint_data):
     data = json.dumps(blueprint_data)
+<<<<<<< HEAD
+=======
     f = open('blueprint.log', 'w')
     f.write(data)
     f.close()
+>>>>>>> apache/master
     path = "/api/v1/blueprints/" + blueprint_name
     r = post(ambari_url, user, password, path, data)
     if r.status_code != 201:

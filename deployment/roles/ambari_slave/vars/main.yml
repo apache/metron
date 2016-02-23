@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+---
+# vars file for ambari_slave
+=======
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -23,3 +27,4 @@ rhel_ambari_install_url: "http://public-repo-1.hortonworks.com/ambari/centos6/2.
 ambari_user: "root"
 local_tmp_keygen_file: "/tmp/id_rsa.tmp"
 dest_tmp_keygen_file: "/tmp/id_rsa.tmp"
+>>>>>>> apache/master

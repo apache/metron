@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,10 +16,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+>>>>>>> apache/master
 ---
 # vars file for ambari_common
 epel_repo_url: "http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm"
 rhel_ambari_install_url: "http://public-repo-1.hortonworks.com/ambari/centos6/2.x/updates/2.1.2.1/ambari.repo"
+<<<<<<< HEAD
+
 ambari_user: "root"
+
+=======
+ambari_user: "root"
+>>>>>>> apache/master
 local_tmp_keygen_file: "/tmp/id_rsa.tmp"
 dest_tmp_keygen_file: "/tmp/id_rsa.tmp"

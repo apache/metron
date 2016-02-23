@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,6 +16,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+>>>>>>> apache/master
 ---
 # tasks file for ambari_master
 - name: Install ambari repo
@@ -23,9 +26,17 @@
   shell: ambari-server setup -s; touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
   register: ambari_server_setup
   failed_when: ambari_server_setup.stderr
+<<<<<<< HEAD
+  
+=======
 
+>>>>>>> apache/master
 - name: start ambari server
   service: name=ambari-server state=restarted
 
 - name : check if ambari-server is up
+<<<<<<< HEAD
+  wait_for : host=127.0.0.1 port=8080 delay=10
+=======
   wait_for : host={{ ambari_host }} port={{ ambari_port }} delay=10
+>>>>>>> apache/master

@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+---
+# tasks file for ambari_config
+- include: set_group_vars.yml 
+  tags: 
+    - create_cluster
+    
+=======
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -20,6 +28,7 @@
 - name: Install python-requests
   yum: name=python-requests
 
+>>>>>>> apache/master
 - name: Create the ambari cluster
   ambari_cluster_state:
     host: "{{ ambari_host }}"
@@ -29,6 +38,24 @@
     cluster_name: "{{ cluster_name }}"
     cluster_state: present
     blueprint_name: "{{ blueprint_name }}"
+<<<<<<< HEAD
+    wait_for_complete: True
+    blueprint_var: "{{ blueprint }}"
+  tags: 
+    - create_cluster
+
+- name: Delete the ambari cluster
+  ambari_cluster_state:
+    host: "{{ ambari_host }}"
+    port: "{{ ambari_port }}"
+    username: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    cluster_name: "{{ cluster_name }}"
+    cluster_state: absent
+  tags: 
+    - delete_cluster
+=======
     configurations: "{{ configurations }}"
     wait_for_complete: True
     blueprint_var: "{{ blueprint }}"
+>>>>>>> apache/master
