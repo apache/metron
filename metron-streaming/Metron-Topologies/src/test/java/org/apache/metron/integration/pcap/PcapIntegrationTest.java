@@ -21,9 +21,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
@@ -43,10 +47,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -55,6 +56,14 @@ public class PcapIntegrationTest {
     private String topologiesDir = "src/main/resources/Metron_Configs/topologies";
     private String targetDir = "target";
 
+    public static class Provider implements TableProvider, Serializable{
+
+        MockHTable.Provider  provider = new MockHTable.Provider();
+        @Override
+        public HTableInterface getTable(Configuration config, String tableName) throws IOException {
+            return provider.getTable(config, tableName);
+        }
+    }
 
     @Test
     public void testTopology() throws Exception {
@@ -109,7 +118,7 @@ public class PcapIntegrationTest {
             setProperty("bolt.hbase.write.buffer.size.in.bytes", "2000000");
             setProperty("bolt.hbase.durability", "SKIP_WAL");
             setProperty("bolt.hbase.partitioner.region.info.refresh.interval.mins","60");
-            setProperty("hbase.provider.impl","" + MockHTable.Provider.class.getName());
+            setProperty("hbase.provider.impl","" + Provider.class.getName());
             setProperty("threat.intel.tracker.table", trackerHBaseTable);
             setProperty("threat.intel.tracker.cf", cf);
             setProperty("threat.intel.ip.table", ipThreatIntelTable);

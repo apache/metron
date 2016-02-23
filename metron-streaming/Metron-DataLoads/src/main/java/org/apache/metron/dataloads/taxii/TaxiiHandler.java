@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.metron.dataloads.taxii;
 
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
@@ -43,8 +61,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -99,7 +116,8 @@ public class TaxiiHandler extends TimerTask {
         }
         return ret;
     }
-    protected HTableInterface createHTable(TableInfo tableInfo) throws IOException {
+
+    protected synchronized HTableInterface createHTable(TableInfo tableInfo) throws IOException {
         return new HTable(config, tableInfo.getTableName());
     }
     /**
@@ -190,7 +208,7 @@ public class TaxiiHandler extends TimerTask {
         }
         URL endpoint = config.getEndpoint();
         if(config.getType() == ConnectionType.DISCOVER) {
-            endpoint = discoverPollingClient(config.getProxy(), endpoint, config.getUsername(), config.getPassword(), context).pollEndpoint;
+            endpoint = discoverPollingClient(config.getProxy(), endpoint, config.getUsername(), config.getPassword(), context, collection).pollEndpoint;
             this.endpoint = endpoint;
         }
         taxiiClient = buildClient(config.getProxy(), config.getUsername(), config.getPassword());
@@ -201,7 +219,7 @@ public class TaxiiHandler extends TimerTask {
         URL collectionManagementEndpoint;
         List<String> collections = new ArrayList<>();
     }
-    private static DiscoveryResults discoverPollingClient(URL proxy, URL endpoint, String username, String password, HttpClientContext context) throws Exception {
+    private static DiscoveryResults discoverPollingClient(URL proxy, URL endpoint, String username, String password, HttpClientContext context, String defaultCollection) throws Exception {
 
         DiscoveryResults results = new DiscoveryResults();
         {
@@ -223,6 +241,7 @@ public class TaxiiHandler extends TimerTask {
                 throw new RuntimeException("Unable to discover a poll TAXII feed");
             }
         }
+        if(defaultCollection == null)
         //get collections
         {
             HttpClient discoverClient = buildClient(proxy, username, password);
@@ -230,9 +249,12 @@ public class TaxiiHandler extends TimerTask {
             CollectionInformationRequest request = messageFactory.get().createCollectionInformationRequest()
                                                                  .withMessageId(sessionID);
             CollectionInformationResponse response = call(discoverClient, results.collectionManagementEndpoint.toURI(), request, context, CollectionInformationResponse.class);
+            System.out.println("Unable to find the default collection; available collections are:");
             for(CollectionRecordType c : response.getCollections()) {
+                System.out.println(c.getCollectionName());
                 results.collections.add(c.getCollectionName());
             }
+            System.exit(0);
         }
         return results;
     }
@@ -269,12 +291,11 @@ public class TaxiiHandler extends TimerTask {
             , HttpClientContext context
             , Class<RESPONSE_T> responseClazz
     ) throws JAXBException, IOException {
-        TaxiiXml taxiiXml = xmlFactory.get().createTaxiiXml();
+        //TaxiiXml taxiiXml = xmlFactory.get().createTaxiiXml();
         //String req = taxiiXml.marshalToString(request, true);
         // Call the service
         Object responseObj =  taxiiClient.callTaxiiService(endpoint, request, context);
         //String resp = taxiiXml.marshalToString(responseObj, true);
-        //System.out.println(resp);
         return responseClazz.cast(responseObj);
     }
     private static HttpClient buildClient(URL proxy, String username, String password) throws Exception
