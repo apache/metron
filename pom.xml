@@ -51,7 +51,8 @@
 						<exclude>**/src/main/resources/patterns/**</exclude>
 						<exclude>**/src/main/resources/SampleInput/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
-					  <exclude>**/files/opensoc-ui</exclude>
+					        <exclude>**/files/opensoc-ui</exclude>
+					        <exclude>**/*.iml</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
