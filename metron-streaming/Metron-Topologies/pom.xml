@@ -154,9 +154,9 @@
         <!-- dependency> <groupId>com.github.ptgoetz</groupId> <artifactId>storm-hdfs</artifactId>
             <version>0.1.2</version> </dependency -->
         <dependency>
-            <groupId>com.github.sheetaldolas</groupId>
+            <groupId>org.apache.storm</groupId>
             <artifactId>storm-hdfs</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>${global_storm_version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.storm</groupId>
