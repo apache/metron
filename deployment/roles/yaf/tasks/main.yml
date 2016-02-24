@@ -34,12 +34,39 @@
 - name: Turn on promiscuous mode for {{ sniff_interface }}
   shell: "ip link set {{ sniff_interface }} promisc on"
 
+- name: Retrieve HDP repository definition
+  get_url:
+    url: "{{ hdp_repo_def }}"
+    dest: /etc/yum.repos.d/hdp.repo
+    mode: 0644
+
+- name: Install kafka
+  yum: name=kafka
+
 - set_fact:
     yaf: /usr/local/bin/yaf
     yafscii: /usr/local/bin/yafscii
     yaf_log: /var/log/yaf.log
     yaf_lock: /var/lock/subsys/yaf
     kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh
+
+- name: Check for Java at "{{ java_home }}"
+  stat: path="{{ java_home }}"
+  register: jdk_dir
+
+- name: alternatives link for "java"
+  alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
+  with_items:
+    - { name: java, link: /usr/bin/java, path: "{{ java_home }}/bin/java" }
+    - { name: jar, link: /usr/bin/jar, path: "{{ java_home }}/bin/jar" }
+  when: jdk_dir.stat.exists
+
+- name: install OpenJdk
+  yum: name={{item}}
+  with_items:
+    - java-1.8.0-openjdk
+    - java-1.8.0-openjdk-devel
+  when: not jdk_dir.stat.exists
 
 - name: Start yaf
   shell: "daemonize -c {{ yaf_home }} -e {{ yaf_log }} -o {{ yaf_log }} -l {{ yaf_lock }} {{ yaf }} --in {{ sniff_interface }} --live pcap | {{ yafscii }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}"

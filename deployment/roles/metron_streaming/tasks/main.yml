@@ -22,12 +22,6 @@
       - { name: 'bin'}
       - { name: 'config'}
 
-- stat: path={{ metron_jar_path }}
-  register: metron_jars
-
-- fail: msg="Unable to locate staged Metron jars at {{ metron_jar_path }}.  Did you run 'mvn package'?"
-  when: metron_jars.stat.exists == True
-
 - name: Copy Metron streaming jars
   copy:
     src: "{{ metron_jar_path }}"
@@ -49,9 +43,6 @@
 
 - name: Add hbase-site.xml to topology jar
   shell: cd {{ hbase_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hbase-site.xml
-
-- name: Add elasticsearch.ym to topology jar
-  shell: cd {{ elasticsearch_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} elasticsearch.yml
 
 - name: Copy Metron topology config files
   copy:

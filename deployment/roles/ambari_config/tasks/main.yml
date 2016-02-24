@@ -22,7 +22,7 @@
 
 - name: Create the ambari cluster
   ambari_cluster_state:
-    host: "{{ ambari_host }}"
+    host: "{{ groups.ambari_master[0] }}"
     port: "{{ ambari_port }}"
     username: "{{ ambari_user }}"
     password: "{{ ambari_password }}"

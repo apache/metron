@@ -15,6 +15,11 @@
 #  limitations under the License.
 #
 ---
+- hosts: metron
+  sudo: yes
+  roles:
+    - role: metron_common
+
 - hosts: hadoop_client
   sudo: yes
   roles:
@@ -23,10 +28,19 @@
 
 - hosts: search
   sudo: yes
+  vars:
+    es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
   roles:
     - role: elasticsearch
   tags:
     - elasticsearch
+
+- hosts: mysql
+  sudo: yes
+  roles:
+    - role: mysql
+  tags:
+    - mysql
 
 - hosts: sensors
   sudo: yes
@@ -37,7 +51,7 @@
     - role: bro
     - role: snort
     - role: yaf
-    - role: pcap_replay
+    - { role: pcap_replay , when: pcap_replay | default(False)  == True }
   tags:
       - sensors
 
@@ -57,3 +71,4 @@
     - role: metron_pcapservice
   tags:
     - web
+

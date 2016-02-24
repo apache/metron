@@ -15,3 +15,5 @@
 #  limitations under the License.
 #
 ---
+- name: restart elasticsearch
+  service: name=elasticsearch state=restarted
