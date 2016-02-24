@@ -48,7 +48,7 @@
     line="{{ item.line }}"
     state=present
   with_items:
-    - { regexp: '"elasticsearch":', line: '"  elasticsearch": { "url": "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}" },' }
+    - { regexp: '"elasticsearch":', line: '"elasticsearch": { "url": "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}" },' }
     - { regexp: '"pcap":', line: '  "pcap": { "url": "http://{{ groups.web[0] }}:{{ pcapservice_port }}/pcap/pcapGetter","mock": false }' }
 
 - name: Fix pcap_all error

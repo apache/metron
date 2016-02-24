@@ -15,6 +15,7 @@
 #  limitations under the License.
 #
 ---
+#must run on hadoop host
 - name: Create HBase tables
   shell: echo "create '{{ item }}','t'" | hbase shell -n
   ignore_errors: yes
@@ -23,6 +24,7 @@
     - "{{ tracker_hbase_table }}"
     - "{{ threatintel_ip_hbase_table }}"
 
+#if kafka topic
 - name: Create Kafka topics
   shell: "{{ kafka_home }}/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --create --topic {{ item }} --partitions 1 --replication-factor 1"
   ignore_errors: yes

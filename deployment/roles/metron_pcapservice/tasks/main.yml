@@ -26,11 +26,30 @@
     src: "{{ pcapservice_jar_path }}"
     dest: "{{ metron_directory }}/lib/"
 
-- name: Alternatives link for "java"
+- name: Check for Java at "{{ java_home }}"
+  stat: path="{{ java_home }}"
+  register: jdk_dir
+
+- name: alternatives link for "java"
   alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
   with_items:
-    - { name: java, link: /usr/bin/java, path: /usr/jdk64/jdk1.8.0_40/bin/java}
-    - { name: jar, link: /usr/bin/jar, path: /usr/jdk64/jdk1.8.0_40/bin/jar}
+    - { name: java, link: /usr/bin/java, path: "{{ java_home }}/bin/java" }
+    - { name: jar, link: /usr/bin/jar, path: "{{ java_home }}/bin/jar" }
+  when: jdk_dir.stat.exists
+
+- name: install OpenJdk
+  yum: name={{item}}
+  with_items:
+    - java-1.8.0-openjdk
+    - java-1.8.0-openjdk-devel
+  when: not jdk_dir.stat.exists
+
+- name: Check for hase-site
+  stat: path=/etc/hbase/conf/hbase-site.xml
+  register: hbase_site
+
+- include: hdfs-site.yml
+  when: not hbase_site.stat.exists
 
 - name: Add hbase-site.xml to pcapservice jar
   shell: cd /etc/hbase/conf/ && jar -uf {{ metron_directory }}/lib/{{ pcapservice_jar_name }} hbase-site.xml
