@@ -27,5 +27,5 @@
 - name: start ambari server
   service: name=ambari-server state=restarted
 
-- name : check if ambari-server is up
-  wait_for : host={{ ambari_host }} port={{ ambari_port }} delay=10
+- name : check if ambari-server is up on {{ ambari_host }}:{{ambari_port}}
+  wait_for : host={{ ambari_host }} port={{ ambari_port }} delay=10 timeout=120

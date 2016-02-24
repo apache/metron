@@ -18,21 +18,16 @@
 - name: Generate ssh key pair for "{{ ambari_user }}"
   user: name={{ ambari_user }} generate_ssh_key=yes
 
-- name: Fetch the generated public key from "{{ ansible_hostname }}"
-  fetch: src=~{{ ambari_user }}/.ssh/id_rsa.pub dest=/tmp/keys/{{ ansible_hostname }}.pub flat=yes
+- name: Fetch the generated public key
+  fetch: src=~{{ ambari_user }}/.ssh/id_rsa.pub dest=/tmp/keys/{{ inventory_hostname }}.pub flat=yes
 
-- name: Set ownership/permissions on 'authorized_keys' file
-  file:
-    path: "~{{ ambari_user }}/.ssh/authorized_keys"
-    owner: "{{ ambari_user }}"
-    group: "{{ ambari_user }}"
-    mode: 0644
-    state: touch
+- name: Add key pairs to existing authorized_keys
+  authorized_key: user={{ ambari_user }} key="{{ lookup('file', '/tmp/keys/{{ item }}.pub') }}"
+  with_items:
+    play_hosts
 
-- name: Assemble each host's public key into an 'authorized_keys' file
-  assemble:
-    remote_src: false
-    src: /tmp/keys
-    dest: "~{{ ambari_user }}/.ssh/authorized_keys"
-    owner: "{{ ambari_user }}"
-    mode: 0644
+#ambari_common.hosts
+- name: Remove local copy of ssh keys
+  local_action: file path=/tmp/keys/{{ inventory_hostname }}.pub state=absent
+  sudo: False
+

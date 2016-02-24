@@ -1,0 +1,47 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Check OS Version
+  fail: msg="Metron deployment supports CentOS 6 only."
+  when: (ansible_distribution != "CentOS" or ansible_distribution_major_version != "6")
+
+- name: Check for Metron jar path
+  stat: path={{ metron_jar_path }}
+  register: metron_jars
+
+- name: Verify Metron jars exist
+  fail: msg="Unable to locate staged Metron jars at {{ metron_jar_path }}.  Did you run 'mvn package'?"
+  when: metron_jars.stat.exists == True
+
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: get epel-repo rpm
+  get_url: dest=/tmp/epel-release.rpm  url=http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+- name: install epel-repo rpm
+  yum: pkg=/tmp/epel-release.rpm state=installed
+
+- name: install ntp
+  yum: name=ntp state=present
+
+- name: Ensure ntp is running and enabled
+  service: name=ntpd state=started enabled=yes
+
+- name: Ensure iptables is stopped and is not running at boot time.
+  ignore_errors: yes
+  service: name=iptables state=stopped enabled=no

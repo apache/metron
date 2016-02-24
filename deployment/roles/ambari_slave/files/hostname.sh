@@ -1,4 +1,5 @@
-#
+#!/bin/sh
+
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
 #  this work for additional information regarding copyright ownership.
@@ -15,49 +16,4 @@
 #  limitations under the License.
 #
 
-[ambari_master]
-node1
-
-#minimum of 3 - 6 from 12 node cluser
-[ambari_slave]
-node2
-node3
-node4
-node5
-node6
-node7
-node8
-
-#last ambari_slave
-[hadoop_client]
-node9
-
-#3rd ambari_slave
-[enrichment]
-node1
-
-#1 or more
-[search]
-node10
-node11
-node12
-
-#1 only
-[sensors]
-node1
-
-#same as mysql in 12 node topology
-[web]
-node12
-
-[mysql]
-node12
-
-[metron:children]
-enrichment
-search
-web
-sensors
-mysql
-hadoop_client
-
+echo {{ inventory_hostname }}

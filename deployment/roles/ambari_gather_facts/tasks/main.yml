@@ -27,7 +27,7 @@
 
 - name: Ambari rest get cluster name
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -39,7 +39,7 @@
 
 - name: Ambari rest get namenode hosts
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/HDFS/components/NAMENODE"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/HDFS/components/NAMENODE"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -51,7 +51,7 @@
 
 - name: Ambari rest get namenode core-site tag
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ namenode_host }}/host_components/NAMENODE"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ namenode_host }}/host_components/NAMENODE"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -63,7 +63,7 @@
 
 - name: Ambari rest get namenode core-site properties
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=core-site&tag={{ core_site_tag }}"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=core-site&tag={{ core_site_tag }}"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -75,7 +75,7 @@
 
 - name: Ambari rest get kafka broker hosts
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KAFKA/components/KAFKA_BROKER"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KAFKA/components/KAFKA_BROKER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -87,7 +87,7 @@
 
 - name: Ambari rest get kafka kafka-broker tag
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -99,7 +99,7 @@
 
 - name: Ambari rest get kafka kafka-broker properties
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -114,7 +114,7 @@
 
 - name: Ambari rest get zookeeper hosts
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/ZOOKEEPER/components/ZOOKEEPER_SERVER"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/ZOOKEEPER/components/ZOOKEEPER_SERVER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -126,7 +126,7 @@
 
 - name: Ambari rest get zookeeper zoo.cfg tag
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ zookeeper_hosts[0] }}/host_components/ZOOKEEPER_SERVER"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ zookeeper_hosts[0] }}/host_components/ZOOKEEPER_SERVER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -138,7 +138,7 @@
 
 - name: Ambari rest get kafka kafka-broker properties
   uri:
-    url: "http://{{ ambari_host }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=zoo.cfg&tag={{ zookeeper_tag }}"
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=zoo.cfg&tag={{ zookeeper_tag }}"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
