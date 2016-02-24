@@ -177,4 +177,20 @@ public class TaxiiConnectionConfig {
     public static synchronized TaxiiConnectionConfig load(String s) throws IOException {
         return load( s, Charset.defaultCharset());
     }
+
+    @Override
+    public String toString() {
+        return "TaxiiConnectionConfig{" +
+                "endpoint=" + endpoint +
+                ", port=" + port +
+                ", proxy=" + proxy +
+                ", username='" + username + '\'' +
+                ", password=" + (password == null?"null" : "'******'") +
+                ", type=" + type +
+                ", collection='" + collection + '\'' +
+                ", subscriptionId='" + subscriptionId + '\'' +
+                ", beginTime=" + beginTime +
+                ", tableMap=" + tableMap +
+                '}';
+    }
 }

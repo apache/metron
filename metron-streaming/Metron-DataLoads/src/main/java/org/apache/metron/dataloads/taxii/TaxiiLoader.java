@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
@@ -84,8 +85,17 @@ private static abstract class OptionHandler implements Function<String, Option> 
             @Override
             public Option apply(@Nullable String s) {
                 Option o = new Option(s, "begin_time", true, "Start time to poll the Taxii server (all data from that point will be gathered in the first pull).");
-                SimpleDateFormat sdf = (SimpleDateFormat)DateFormat.getDateInstance(DateFormat.MEDIUM);
-                o.setArgName(sdf.toPattern());
+                o.setArgName(DATE_FORMAT.toPattern());
+                o.setRequired(false);
+                return o;
+            }
+        })
+        ,LOG4J_PROPERTIES("l", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "log4j", true, "The log4j properties file to load");
+                o.setArgName("FILE");
                 o.setRequired(false);
                 return o;
             }
@@ -136,6 +146,7 @@ private static abstract class OptionHandler implements Function<String, Option> 
             return ret;
         }
     }
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static final long ONE_HR_IN_MS = 60*60*1000;
     public static final long DEFAULT_TIME_BETWEEN_POLLS = ONE_HR_IN_MS;
     public static void main(String... argv) throws Exception {
@@ -143,6 +154,9 @@ private static abstract class OptionHandler implements Function<String, Option> 
         String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
 
         CommandLine cli = TaxiiOptions.parse(new PosixParser(), otherArgs);
+        if(TaxiiOptions.LOG4J_PROPERTIES.has(cli)) {
+            PropertyConfigurator.configure(TaxiiOptions.LOG4J_PROPERTIES.get(cli));
+        }
         ExtractorHandler handler = ExtractorHandler.load(FileUtils.readFileToString(new File(TaxiiOptions.EXTRACTOR_CONFIG.get(cli))));
         Extractor e = handler.getExtractor();
         Timer timer = new Timer();
@@ -150,8 +164,7 @@ private static abstract class OptionHandler implements Function<String, Option> 
             StixExtractor extractor = (StixExtractor)e;
             TaxiiConnectionConfig connectionConfig = TaxiiConnectionConfig.load(FileUtils.readFileToString(new File(TaxiiOptions.CONNECTION_CONFIG.get(cli))));
             if(TaxiiOptions.BEGIN_TIME.has(cli)) {
-                SimpleDateFormat sdf = (SimpleDateFormat) DateFormat.getDateInstance(DateFormat.MEDIUM);
-                Date d = sdf.parse(TaxiiOptions.BEGIN_TIME.get(cli));
+                Date d = DATE_FORMAT.parse(TaxiiOptions.BEGIN_TIME.get(cli));
                 connectionConfig.withBeginTime(d);
             }
             long timeBetween = DEFAULT_TIME_BETWEEN_POLLS;

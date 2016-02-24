@@ -18,7 +18,6 @@
 
 package org.apache.metron.dataloads.taxii;
 
-import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -51,6 +50,7 @@ import org.apache.metron.reference.lookup.LookupKV;
 import org.mitre.taxii.client.HttpClient;
 import org.mitre.taxii.messages.xml11.*;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -65,6 +65,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TaxiiHandler extends TimerTask {
@@ -94,11 +95,13 @@ public class TaxiiHandler extends TimerTask {
     private ThreatIntelConverter converter = new ThreatIntelConverter();
     private Date beginTime;
     private Configuration config;
+    private boolean inProgress = false;
     public TaxiiHandler( TaxiiConnectionConfig connectionConfig
                        , Extractor extractor
                        , Configuration config
                        ) throws Exception
     {
+        LOG.info("Loading configuration: " + connectionConfig);
         this.extractor = extractor;
         this.collection = connectionConfig.getCollection();
         this.subscriptionId = connectionConfig.getSubscriptionId();
@@ -106,6 +109,7 @@ public class TaxiiHandler extends TimerTask {
         this.beginTime = connectionConfig.getBeginTime();
         this.config = config;
         initializeClient(connectionConfig);
+        LOG.info("Configured, starting polling " + endpoint + " for " + collection);
     }
 
     protected synchronized HTableInterface getTable(TableInfo tableInfo) throws IOException {
@@ -125,59 +129,88 @@ public class TaxiiHandler extends TimerTask {
      */
     @Override
     public void run() {
-        // Prepare the message to send.
-        String sessionID = MessageHelper.generateMessageId();
-        PollRequest request = messageFactory.get().createPollRequest()
-                .withMessageId(sessionID)
-                .withCollectionName(collection);
-        if(subscriptionId != null)
-        {
-            request = request.withSubscriptionID(subscriptionId);
+        if(inProgress) {
+            return;
         }
-        else {
-            request = request.withPollParameters(messageFactory.get().createPollParametersType());
-        }
-        if(beginTime != null) {
-            Calendar gc = GregorianCalendar.getInstance();
-            gc.setTime(beginTime);
-            XMLGregorianCalendar gTime = null;
-            try {
-                gTime = DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)gc).normalize();
-            } catch (DatatypeConfigurationException e) {
-                LOG.error("Unable to set the begin time", e);
-            }
-            gTime.setFractionalSecond(null);
-            LOG.info("Begin Time: " + gTime);
-            request.setExclusiveBeginTimestamp(gTime);
-        }
-
+        Date ts = new Date();
+        LOG.info("Polling..." + new SimpleDateFormat().format(ts));
         try {
-            PollResponse response = call(request, PollResponse.class);
-            for(ContentBlock block : response.getContentBlocks()) {
-                AnyMixedContentType content  = block.getContent();
-                for(Object o : content.getContent()) {
-                    String xml = null;
-                    if(o instanceof ElementNSImpl) {
-                        ElementNSImpl element = (ElementNSImpl)o;
-                        xml = getStringFromDocument(element.getOwnerDocument());
-                        for(LookupKV<ThreatIntelKey, ThreatIntelValue> kv :  extractor.extract(xml) ) {
-                            String indicatorType = kv.getValue().getMetadata().get("indicator-type");
-                            TableInfo tableInfo  = tableMap.get(indicatorType);
-                            boolean persisted = false;
-                            if(tableInfo != null) {
-                                Put p = converter.toPut(tableInfo.getColumnFamily(), kv.getKey(), kv.getValue());
-                                HTableInterface table = getTable(tableInfo);
-                                table.put(p);
-                                persisted = true;
+            inProgress = true;
+            // Prepare the message to send.
+            String sessionID = MessageHelper.generateMessageId();
+            PollRequest request = messageFactory.get().createPollRequest()
+                    .withMessageId(sessionID)
+                    .withCollectionName(collection);
+            if (subscriptionId != null) {
+                request = request.withSubscriptionID(subscriptionId);
+            } else {
+                request = request.withPollParameters(messageFactory.get().createPollParametersType());
+            }
+            if (beginTime != null) {
+                Calendar gc = GregorianCalendar.getInstance();
+                gc.setTime(beginTime);
+                XMLGregorianCalendar gTime = null;
+                try {
+                    gTime = DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) gc).normalize();
+                } catch (DatatypeConfigurationException e) {
+                    LOG.error("Unable to set the begin time", e);
+                }
+                gTime.setFractionalSecond(null);
+                LOG.info("Begin Time: " + gTime);
+                request.setExclusiveBeginTimestamp(gTime);
+            }
+
+            try {
+                PollResponse response = call(request, PollResponse.class);
+                LOG.info("Got Poll Response with " + response.getContentBlocks().size() + " blocks");
+                int numProcessed = 0;
+                long avgTimeMS = 0;
+                long timeStartedBlock = System.currentTimeMillis();
+                for (ContentBlock block : response.getContentBlocks()) {
+                    AnyMixedContentType content = block.getContent();
+                    for (Object o : content.getContent()) {
+                        numProcessed++;
+                        long timeS = System.currentTimeMillis();
+                        String xml = null;
+                        if (o instanceof Element) {
+                            Element element = (Element) o;
+                            xml = getStringFromDocument(element.getOwnerDocument());
+                            if(LOG.isDebugEnabled() && Math.random() < 0.01) {
+                                LOG.debug("Random Stix doc: " + xml);
                             }
-                            LOG.info("Persisted: " + persisted + ", " + kv.getKey()  + " => " + kv.getValue());
+                            for (LookupKV<ThreatIntelKey, ThreatIntelValue> kv : extractor.extract(xml)) {
+                                String indicatorType = kv.getValue().getMetadata().get("indicator-type");
+                                TableInfo tableInfo = tableMap.get(indicatorType);
+                                boolean persisted = false;
+                                if (tableInfo != null) {
+                                    kv.getValue().getMetadata().put("source_type", "taxii");
+                                    kv.getValue().getMetadata().put("taxii_url", endpoint.toString());
+                                    kv.getValue().getMetadata().put("taxii_collection", collection);
+                                    Put p = converter.toPut(tableInfo.getColumnFamily(), kv.getKey(), kv.getValue());
+                                    HTableInterface table = getTable(tableInfo);
+                                    table.put(p);
+                                    persisted = true;
+                                }
+                                LOG.info("Found Threat Intel: " + persisted + ", " + kv.getKey() + " => " + kv.getValue());
+                            }
                         }
+                        avgTimeMS += System.currentTimeMillis() - timeS;
+                    }
+                    if( (numProcessed + 1) % 100 == 0) {
+                        LOG.info("Processed " + numProcessed + " in " + (System.currentTimeMillis() - timeStartedBlock) + " ms, avg time: " + avgTimeMS / content.getContent().size());
+                        timeStartedBlock = System.currentTimeMillis();
+                        avgTimeMS = 0;
+                        numProcessed = 0;
                     }
                 }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+                throw new RuntimeException("Unable to make request", e);
             }
-            beginTime = new Date();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to make request", e);
+        }
+        finally {
+            inProgress = false;
+            beginTime = ts;
         }
     }
     public String getStringFromDocument(Document doc)
@@ -203,13 +236,16 @@ public class TaxiiHandler extends TimerTask {
     }
 
     private void initializeClient(TaxiiConnectionConfig config) throws Exception {
+        LOG.info("Initializing client..");
         if(context == null) {
             context = createContext(config.getEndpoint(), config.getUsername(), config.getPassword(), config.getPort());
         }
         URL endpoint = config.getEndpoint();
         if(config.getType() == ConnectionType.DISCOVER) {
+            LOG.info("Discovering endpoint");
             endpoint = discoverPollingClient(config.getProxy(), endpoint, config.getUsername(), config.getPassword(), context, collection).pollEndpoint;
             this.endpoint = endpoint;
+            LOG.info("Discovered endpoint as " + endpoint);
         }
         taxiiClient = buildClient(config.getProxy(), config.getUsername(), config.getPassword());
     }
@@ -249,9 +285,9 @@ public class TaxiiHandler extends TimerTask {
             CollectionInformationRequest request = messageFactory.get().createCollectionInformationRequest()
                                                                  .withMessageId(sessionID);
             CollectionInformationResponse response = call(discoverClient, results.collectionManagementEndpoint.toURI(), request, context, CollectionInformationResponse.class);
-            System.out.println("Unable to find the default collection; available collections are:");
+            LOG.info("Unable to find the default collection; available collections are:");
             for(CollectionRecordType c : response.getCollections()) {
-                System.out.println(c.getCollectionName());
+                LOG.info(c.getCollectionName());
                 results.collections.add(c.getCollectionName());
             }
             System.exit(0);
@@ -268,7 +304,6 @@ public class TaxiiHandler extends TimerTask {
             credsProvider.setCredentials(
                     new AuthScope(target.getHostName(), target.getPort()),
                     new UsernamePasswordCredentials(username, password));
-            //builder.setDefaultCredentialsProvider(credsProvider);
 
             // http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html
             AuthCache authCache = new BasicAuthCache();
@@ -295,8 +330,18 @@ public class TaxiiHandler extends TimerTask {
         //String req = taxiiXml.marshalToString(request, true);
         // Call the service
         Object responseObj =  taxiiClient.callTaxiiService(endpoint, request, context);
+        LOG.info("Request made : " + request.getClass().getCanonicalName() + " => " + responseObj.getClass().getCanonicalName() + " (expected " + responseClazz.getCanonicalName() + ")");
         //String resp = taxiiXml.marshalToString(responseObj, true);
-        return responseClazz.cast(responseObj);
+        try {
+            return responseClazz.cast(responseObj);
+        }
+        catch(ClassCastException cce) {
+            TaxiiXml taxiiXml = xmlFactory.get().createTaxiiXml();
+            String resp = taxiiXml.marshalToString(responseObj, true);
+            String msg = "Didn't return the response we expected: " + responseObj.getClass() + " \n" + resp;
+            LOG.error(msg, cce);
+            throw new RuntimeException(msg, cce);
+        }
     }
     private static HttpClient buildClient(URL proxy, String username, String password) throws Exception
     {

@@ -28,7 +28,10 @@ public class TaxiiIntegrationTest {
     @After
     public void teardown() {
         MockTaxiiService.shutdown();
+        MockHTable.Provider.clear();
     }
+
+
 
     @Test
     public void testTaxii() throws Exception {
@@ -60,7 +63,7 @@ public class TaxiiIntegrationTest {
                 return provider.addToCache(tableInfo.getTableName(), tableInfo.getColumnFamily());
             }
         };
-        UnitTestHelper.verboseLogging();
+        //UnitTestHelper.verboseLogging();
         handler.run();
         Set<String> maliciousDomains;
         {
@@ -76,6 +79,7 @@ public class TaxiiIntegrationTest {
         }
         Assert.assertTrue(maliciousAddresses.contains("94.102.53.142"));
         Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
+        MockHTable.Provider.clear();
     }
 
     private static int numStringsMatch(String xmlBundle, String text) {
