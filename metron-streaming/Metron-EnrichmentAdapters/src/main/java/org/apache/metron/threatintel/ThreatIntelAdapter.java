@@ -19,10 +19,8 @@ package org.apache.metron.threatintel;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.apache.metron.reference.lookup.Lookup;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
 import org.apache.metron.reference.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.reference.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.threatintel.hbase.ThreatIntelLookup;
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Map;
 import java.util.UUID;
 
 public class ThreatIntelAdapter implements EnrichmentAdapter<String>,Serializable {

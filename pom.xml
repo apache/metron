@@ -45,10 +45,12 @@
 						<exclude>**/.*</exclude>
 						<exclude>**/.*/**</exclude>
 						<exclude>**/*.seed</exclude>
+            <exclude>**/*.iml</exclude>
 						<exclude>**/ansible.cfg</exclude>
 						<exclude>site/**</exclude>
 						<exclude>metron-ui/lib/public/**</exclude>
 						<exclude>**/src/main/resources/patterns/**</exclude>
+						<exclude>**/src/test/resources/**</exclude>
 						<exclude>**/src/main/resources/SampleInput/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
 					        <exclude>**/files/opensoc-ui</exclude>

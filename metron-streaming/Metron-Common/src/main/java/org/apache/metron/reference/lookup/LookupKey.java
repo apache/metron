@@ -19,4 +19,5 @@ package org.apache.metron.reference.lookup;
 
 public interface LookupKey {
     byte[] toBytes();
+    void fromBytes(byte[] in);
 }

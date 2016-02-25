@@ -33,9 +33,9 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.ipc.CoprocessorRpcChannel;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.TableProvider;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -45,9 +45,8 @@ import java.util.*;
  */
 public class MockHTable implements HTableInterface {
 
-    public static class Provider implements TableProvider {
+    public static class Provider implements Serializable {
         private static Map<String, HTableInterface> _cache = new HashMap<>();
-        @Override
         public HTableInterface getTable(Configuration config, String tableName) throws IOException {
             return _cache.get(tableName);
         }

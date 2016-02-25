@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads;
+package org.apache.metron.dataloads.bulk;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -29,10 +29,11 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.hbase.mr.BulkLoadMapper;
+import org.apache.metron.hbase.converters.HbaseConverter;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -112,6 +113,16 @@ public class ThreatIntelBulkLoader  {
                 return o;
             }
         })
+        ,CONVERTER("c", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "converter", true, "The HBase converter class to use (Default is threat intel)");
+                o.setArgName("class");
+                o.setRequired(false);
+                return o;
+            }
+        })
         ;
         Option option;
         String shortCode;
@@ -177,7 +188,7 @@ public class ThreatIntelBulkLoader  {
         return Joiner.on("\n").join(Files.readLines(configFile, Charset.defaultCharset()));
     }
 
-    public static Job createJob(Configuration conf, String input, String table, String cf, String extractorConfigContents, long ts) throws IOException {
+    public static Job createJob(Configuration conf, String input, String table, String cf, String extractorConfigContents, long ts, HbaseConverter converter) throws IOException {
         Job job = new Job(conf);
         job.setJobName("ThreatIntelBulkLoader: " + input + " => " +  table + ":" + cf);
         System.out.println("Configuring " + job.getJobName());
@@ -188,6 +199,7 @@ public class ThreatIntelBulkLoader  {
         job.getConfiguration().set(BulkLoadMapper.COLUMN_FAMILY_KEY, cf);
         job.getConfiguration().set(BulkLoadMapper.CONFIG_KEY, extractorConfigContents);
         job.getConfiguration().set(BulkLoadMapper.LAST_SEEN_KEY, "" + ts);
+        job.getConfiguration().set(BulkLoadMapper.CONVERTER_KEY, converter.getClass().getName());
         job.setOutputKeyClass(ImmutableBytesWritable.class);
         job.setOutputValueClass(Put.class);
         job.setNumReduceTasks(0);
@@ -196,7 +208,7 @@ public class ThreatIntelBulkLoader  {
         return job;
     }
 
-    public static void main(String... argv) throws IOException, java.text.ParseException, ClassNotFoundException, InterruptedException {
+    public static void main(String... argv) throws IOException, java.text.ParseException, ClassNotFoundException, InterruptedException, IllegalAccessException, InstantiationException {
         Configuration conf = HBaseConfiguration.create();
         String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
 
@@ -206,7 +218,12 @@ public class ThreatIntelBulkLoader  {
         String table = BulkLoadOptions.TABLE.get(cli);
         String cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
         String extractorConfigContents = readExtractorConfig(new File(BulkLoadOptions.EXTRACTOR_CONFIG.get(cli)));
-        Job job = createJob(conf, input, table, cf, extractorConfigContents, ts);
+        String converterClass = ThreatIntelConverter.class.getName();
+        if(BulkLoadOptions.CONVERTER.has(cli)) {
+            converterClass = BulkLoadOptions.CONVERTER.get(cli);
+        }
+        HbaseConverter converter = (HbaseConverter) Class.forName(converterClass).newInstance();
+        Job job = createJob(conf, input, table, cf, extractorConfigContents, ts, converter);
         System.out.println(conf);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

@@ -21,7 +21,12 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.dataloads.extractor.Extractor;
+import org.apache.metron.hbase.converters.HbaseConverter;
+import org.apache.metron.reference.lookup.LookupKV;
+import org.apache.metron.reference.lookup.LookupKey;
+import org.apache.metron.reference.lookup.LookupValue;
 import org.apache.metron.threatintel.ThreatIntelResults;
 
 import java.io.IOException;
@@ -31,24 +36,26 @@ public class CSVExtractor implements Extractor {
     public static final String COLUMNS_KEY="columns";
     public static final String INDICATOR_COLUMN_KEY="indicator_column";
     public static final String SEPARATOR_KEY="separator";
+    public static final String LOOKUP_CONVERTER = "lookupConverter";
 
     private int indicatorColumn;
     private Map<String, Integer> columnMap = new HashMap<>();
     private CSVParser parser;
+    private LookupConverter converter = LookupConverters.THREAT_INTEL.getConverter();
 
     @Override
-    public Iterable<ThreatIntelResults> extract(String line) throws IOException {
+    public Iterable<LookupKV> extract(String line) throws IOException {
         if(line.trim().startsWith("#")) {
             //comment
             return Collections.emptyList();
         }
-        ThreatIntelResults ret = new ThreatIntelResults();
         String[] tokens = parser.parseLine(line);
-        ret.getKey().indicator = tokens[indicatorColumn];
+        LookupKey key = converter.toKey(tokens[indicatorColumn]);
+        Map<String, String> values = new HashMap<>();
         for(Map.Entry<String, Integer> kv : columnMap.entrySet()) {
-            ret.getValue().put(kv.getKey(), tokens[kv.getValue()]);
+            values.put(kv.getKey(), tokens[kv.getValue()]);
         }
-        return Arrays.asList(ret);
+        return Arrays.asList(new LookupKV(key, converter.toValue(values)));
     }
 
     private static Map.Entry<String, Integer> getColumnMapEntry(String column, int i) {
@@ -108,6 +115,9 @@ public class CSVExtractor implements Extractor {
             char separator = config.get(SEPARATOR_KEY).toString().charAt(0);
             parser = new CSVParserBuilder().withSeparator(separator)
                                            .build();
+        }
+        if(config.containsKey(LOOKUP_CONVERTER)) {
+           converter = LookupConverters.getConverter((String) config.get(LOOKUP_CONVERTER));
         }
     }
 }

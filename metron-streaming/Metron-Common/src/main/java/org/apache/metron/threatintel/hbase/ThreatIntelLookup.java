@@ -17,36 +17,36 @@
  */
 package org.apache.metron.threatintel.hbase;
 
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.converters.HbaseConverter;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.reference.lookup.Lookup;
-import org.apache.metron.reference.lookup.LookupKey;
+import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.reference.lookup.accesstracker.AccessTracker;
-import org.apache.metron.reference.lookup.handler.Handler;
-import org.apache.metron.threatintel.ThreatIntelKey;
-import org.apache.metron.threatintel.ThreatIntelResults;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.util.Map;
-
-public class ThreatIntelLookup extends Lookup<HTableInterface, ThreatIntelKey, Map.Entry<ThreatIntelResults, Long>> implements AutoCloseable {
 
 
+public class ThreatIntelLookup extends Lookup<HTableInterface, ThreatIntelKey, LookupKV<ThreatIntelKey,ThreatIntelValue>> implements AutoCloseable {
 
-    public static class Handler implements org.apache.metron.reference.lookup.handler.Handler<HTableInterface, ThreatIntelKey, Map.Entry<ThreatIntelResults, Long>> {
+
+
+    public static class Handler implements org.apache.metron.reference.lookup.handler.Handler<HTableInterface,ThreatIntelKey,LookupKV<ThreatIntelKey,ThreatIntelValue>> {
         String columnFamily;
+        HbaseConverter<ThreatIntelKey, ThreatIntelValue> converter = new ThreatIntelConverter();
         public Handler(String columnFamily) {
             this.columnFamily = columnFamily;
         }
         @Override
         public boolean exists(ThreatIntelKey key, HTableInterface table, boolean logAccess) throws IOException {
-            return table.exists(Converter.INSTANCE.toGet(columnFamily, key));
+            return table.exists(converter.toGet(columnFamily, key));
         }
 
         @Override
-        public Map.Entry<ThreatIntelResults,Long> get(ThreatIntelKey key, HTableInterface table, boolean logAccess) throws IOException {
-            return Converter.INSTANCE.fromResult(table.get(Converter.INSTANCE.toGet(columnFamily, key)), columnFamily);
+        public LookupKV<ThreatIntelKey, ThreatIntelValue> get(ThreatIntelKey key, HTableInterface table, boolean logAccess) throws IOException {
+            return converter.fromResult(table.get(converter.toGet(columnFamily, key)), columnFamily);
         }
 
 

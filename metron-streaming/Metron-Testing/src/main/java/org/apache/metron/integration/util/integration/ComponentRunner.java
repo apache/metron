@@ -17,7 +17,6 @@
  */
 package org.apache.metron.integration.util.integration;
 
-import backtype.storm.utils.Utils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -119,7 +118,11 @@ public class ComponentRunner {
                     throw new RuntimeException("Too many retries: " + retryCount);
                 }
             }
-            Utils.sleep(timeBetweenAttempts);
+            try {
+                Thread.sleep(timeBetweenAttempts);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Unable to sleep", e);
+            }
         }
     }
 

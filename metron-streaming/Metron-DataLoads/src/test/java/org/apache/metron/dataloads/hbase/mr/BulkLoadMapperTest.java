@@ -21,9 +21,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.threatintel.ThreatIntelResults;
-import org.apache.metron.threatintel.hbase.Converter;
-import org.apache.metron.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -67,6 +69,7 @@ public class BulkLoadMapperTest {
             set(BulkLoadMapper.COLUMN_FAMILY_KEY, "cf");
             set(BulkLoadMapper.CONFIG_KEY, extractorConfig);
             set(BulkLoadMapper.LAST_SEEN_KEY, "0");
+            set(BulkLoadMapper.CONVERTER_KEY, ThreatIntelConverter.class.getName());
         }});
         {
             mapper.map(null, new Text("#google.com,1,foo"), null);
@@ -78,14 +81,14 @@ public class BulkLoadMapperTest {
             ThreatIntelKey expectedKey = new ThreatIntelKey() {{
                 indicator = "google.com";
             }};
+            ThreatIntelConverter converter = new ThreatIntelConverter();
             Put put = puts.get(new ImmutableBytesWritable(expectedKey.toBytes()));
             Assert.assertNotNull(puts);
-            Map.Entry<ThreatIntelResults, Long> results = Converter.INSTANCE.fromPut(put, "cf");
-            Assert.assertEquals(0L, (long)results.getValue());
-            Assert.assertEquals(results.getKey().getKey().indicator, "google.com");
-            Assert.assertEquals(results.getKey().getValue().size(), 2);
-            Assert.assertEquals(results.getKey().getValue().get("meta"), "foo");
-            Assert.assertEquals(results.getKey().getValue().get("host"), "google.com");
+            LookupKV<ThreatIntelKey, ThreatIntelValue> results = converter.fromPut(put, "cf");
+            Assert.assertEquals(results.getKey().indicator, "google.com");
+            Assert.assertEquals(results.getValue().getMetadata().size(), 2);
+            Assert.assertEquals(results.getValue().getMetadata().get("meta"), "foo");
+            Assert.assertEquals(results.getValue().getMetadata().get("host"), "google.com");
         }
 
     }

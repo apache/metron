@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.threatintel;
+package org.apache.metron.hbase.converters.threatintel;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -58,10 +58,10 @@ public class ThreatIntelKey implements LookupKey{
         return val;
     }
 
-    public static ThreatIntelKey fromBytes(byte[] row) {
-        ThreatIntelKey key = new ThreatIntelKey();
+    @Override
+    public void fromBytes(byte[] row) {
+        ThreatIntelKey key = this;
         key.indicator = Bytes.toString(row, HASH_PREFIX_SIZE, row.length - HASH_PREFIX_SIZE);
-        return key;
     }
 
     @Override
