@@ -15,7 +15,6 @@
 #  limitations under the License.
 #
 ---
-
 - name: Install libselinux-python and java
   yum: name={{item}}
   with_items:
@@ -36,6 +35,17 @@
 - name: Install Elasticsearch.
   yum: pkg=elasticsearch state=installed
 
+- name: Create Data Directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: elasticsearch
+    group: elasticsearch
+  when: elasticsearch_data_dir is defined
+  with_items:
+     - '{{ elasticsearch_data_dir.split(",") }}'
+
 - name: Configure Elasticsearch.
   lineinfile: >
     dest=/etc/elasticsearch/elasticsearch.yml
@@ -48,6 +58,7 @@
     elasticsearch_network_interface | default("eth0") }}:ipv4_' }
     - { regexp: '#discovery\.zen\.ping\.unicast\.hosts',
     line: 'discovery.zen.ping.unicast.hosts: [ {{ es_hosts }} ]'}
+    - { regexp: '#path\.data', line: 'path.data: {{     elasticsearch_data_dir | default("/var/lib/elasticsearch")}}' }
   notify: restart elasticsearch
 
 - name: Start Elasticsearch.

@@ -19,7 +19,12 @@
   file: path={{ pcap_replay_path }} state=directory mode=0755
 
 - name: Install init.d service script
-  copy: src=pcap-replay dest=/etc/init.d/pcap-replay
+  template:
+    src: "../roles/pcap_replay/files/pcap-replay"
+    dest: "/etc/init.d/pcap-replay"
+    mode: 0755
+    owner: "root"
+    group: "root"
 
 - name: Set permissions on service script
   file: path=/etc/init.d/pcap-replay mode=0755
