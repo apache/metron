@@ -69,6 +69,7 @@
 		<module>Metron-DataLoads</module>
 		<module>Metron-Topologies</module>
 		<module>Metron-Pcap_Service</module>
+		<module>Metron-Testing</module>
 	</modules>
 	<dependencies>
 		<dependency>

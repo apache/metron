@@ -19,19 +19,17 @@ package org.apache.metron.dataloads.hbase.mr;
 
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.metron.dataloads.LeastRecentlyUsedPruner;
+import org.apache.metron.dataloads.bulk.LeastRecentlyUsedPruner;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.reference.lookup.LookupKey;
-import org.apache.metron.reference.lookup.accesstracker.AccessTrackerUtil;
 import org.apache.metron.reference.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.reference.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.metron.threatintel.ThreatIntelKey;
-import org.apache.metron.threatintel.hbase.Converter;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
 import org.apache.metron.threatintel.hbase.ThreatIntelLookup;
 import org.junit.After;
 import org.junit.Assert;
@@ -84,24 +82,26 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         List<LookupKey> goodKeysOtherHalf = getKeys(5, 10);
         Iterable<LookupKey> goodKeys = Iterables.concat(goodKeysHalf, goodKeysOtherHalf);
         List<LookupKey> badKey = getKeys(10, 11);
+        ThreatIntelConverter converter = new ThreatIntelConverter();
         for(LookupKey k : goodKeysHalf) {
-            testTable.put(Converter.INSTANCE.toPut(cf, (ThreatIntelKey) k
-                                                  , new HashMap<String, String>() {{
+            testTable.put(converter.toPut(cf, (ThreatIntelKey) k
+                                            , new ThreatIntelValue(
+                                                  new HashMap<String, String>() {{
                                                     put("k", "dummy");
                                                     }}
-                                                  , 1L
                                                   )
+                                          )
                          );
             Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
         }
         pat.persist(true);
         for(LookupKey k : goodKeysOtherHalf) {
-            testTable.put(Converter.INSTANCE.toPut(cf, (ThreatIntelKey) k
-                                                  , new HashMap<String, String>() {{
+            testTable.put(converter.toPut(cf, (ThreatIntelKey) k
+                                            , new ThreatIntelValue(new HashMap<String, String>() {{
                                                     put("k", "dummy");
                                                     }}
-                                                  , 1L
-                                                  )
+                                                                  )
+                                         )
                          );
             Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
         }
@@ -112,11 +112,11 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         }
         pat.persist(true);
         {
-            testTable.put(Converter.INSTANCE.toPut(cf, (ThreatIntelKey) badKey.get(0)
-                    , new HashMap<String, String>() {{
+            testTable.put(converter.toPut(cf, (ThreatIntelKey) badKey.get(0)
+                    , new ThreatIntelValue(new HashMap<String, String>() {{
                         put("k", "dummy");
                     }}
-                    , 1L
+                    )
                     )
             );
         }

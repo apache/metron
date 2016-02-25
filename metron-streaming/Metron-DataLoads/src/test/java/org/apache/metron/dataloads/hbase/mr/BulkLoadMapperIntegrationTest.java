@@ -26,9 +26,11 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.metron.dataloads.ThreatIntelBulkLoader;
-import org.apache.metron.threatintel.ThreatIntelResults;
-import org.apache.metron.threatintel.hbase.Converter;
+import org.apache.metron.dataloads.bulk.ThreatIntelBulkLoader;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.reference.lookup.LookupKV;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,19 +89,19 @@ public class BulkLoadMapperIntegrationTest {
     Assert.assertNotNull(testTable);
     FileSystem fs = FileSystem.get(config);
     String contents = "google.com,1,foo";
+    ThreatIntelConverter converter = new ThreatIntelConverter();
     HBaseUtil.INSTANCE.writeFile(contents, new Path("input.csv"), fs);
-    Job job = ThreatIntelBulkLoader.createJob(config, "input.csv", tableName, cf, extractorConfig, 0L);
+    Job job = ThreatIntelBulkLoader.createJob(config, "input.csv", tableName, cf, extractorConfig, 0L, new ThreatIntelConverter());
     Assert.assertTrue(job.waitForCompletion(true));
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
-    List<Map.Entry<ThreatIntelResults, Long>> results = new ArrayList<>();
+    List<LookupKV<ThreatIntelKey, ThreatIntelValue>> results = new ArrayList<>();
     for(Result r : scanner) {
-      results.add(Converter.INSTANCE.fromResult(r, cf));
+      results.add(converter.fromResult(r, cf));
     }
     Assert.assertEquals(1, results.size());
-    Assert.assertEquals(0L, (long)results.get(0).getValue());
-    Assert.assertEquals(results.get(0).getKey().getKey().indicator, "google.com");
-    Assert.assertEquals(results.get(0).getKey().getValue().size(), 2);
-    Assert.assertEquals(results.get(0).getKey().getValue().get("meta"), "foo");
-    Assert.assertEquals(results.get(0).getKey().getValue().get("host"), "google.com");
+    Assert.assertEquals(results.get(0).getKey().indicator, "google.com");
+    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    Assert.assertEquals(results.get(0).getValue().getMetadata().get("meta"), "foo");
+    Assert.assertEquals(results.get(0).getValue().getMetadata().get("host"), "google.com");
   }
 }

@@ -1,0 +1,21 @@
+<taxii_11:Discovery_Response in_response_to="urn:uuid:695149bd-72ab-41dd-a7e0-7d0b2a73e81f" message_id="65257" xmlns:xmldsig="http://www.w3.org/2000/09/xmldsig#" xmlns:taxii_11="http://taxii.mitre.org/messages/taxii_xml_binding-1.1">
+    <taxii_11:Service_Instance service_type="DISCOVERY" available="true" service_version="urn:taxii.mitre.org:services:1.1">
+        <taxii_11:Protocol_Binding>urn:taxii.mitre.org:protocol:https:1.0</taxii_11:Protocol_Binding>
+        <taxii_11:Address>http://localhost:PORT/taxii-data</taxii_11:Address>
+        <taxii_11:Message_Binding>urn:taxii.mitre.org:message:xml:1.1</taxii_11:Message_Binding>
+        <taxii_11:Message></taxii_11:Message>
+    </taxii_11:Service_Instance>
+    <taxii_11:Service_Instance service_type="COLLECTION_MANAGEMENT" available="true" service_version="urn:taxii.mitre.org:services:1.1">
+        <taxii_11:Protocol_Binding>urn:taxii.mitre.org:protocol:https:1.0</taxii_11:Protocol_Binding>
+        <taxii_11:Address>http://localhost:PORT/taxii-collections</taxii_11:Address>
+        <taxii_11:Message_Binding>urn:taxii.mitre.org:message:xml:1.1</taxii_11:Message_Binding>
+        <taxii_11:Message></taxii_11:Message>
+    </taxii_11:Service_Instance>
+    <taxii_11:Service_Instance service_type="POLL" available="true" service_version="urn:taxii.mitre.org:services:1.1">
+        <taxii_11:Protocol_Binding>urn:taxii.mitre.org:protocol:https:1.0</taxii_11:Protocol_Binding>
+        <taxii_11:Address>http://localhost:PORT/taxii-data</taxii_11:Address>
+        <taxii_11:Message_Binding>urn:taxii.mitre.org:message:xml:1.1</taxii_11:Message_Binding>
+        <taxii_11:Message></taxii_11:Message>
+    </taxii_11:Service_Instance>
+</taxii_11:Discovery_Response>
+

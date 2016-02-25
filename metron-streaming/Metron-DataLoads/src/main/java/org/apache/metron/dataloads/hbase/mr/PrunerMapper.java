@@ -70,6 +70,11 @@ public class PrunerMapper extends TableMapper<ImmutableBytesWritable, Delete> {
             public byte[] toBytes() {
                 return bytes;
             }
+
+            @Override
+            public void fromBytes(byte[] in) {
+
+            }
         };
     }
 

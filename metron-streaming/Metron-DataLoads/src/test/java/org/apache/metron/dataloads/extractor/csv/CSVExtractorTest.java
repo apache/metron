@@ -19,6 +19,9 @@ package org.apache.metron.dataloads.extractor.csv;
 
 import com.google.common.collect.Iterables;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.junit.Assert;
 import org.junit.Test;
@@ -102,14 +105,16 @@ public class CSVExtractorTest {
 
     public void validate(ExtractorHandler handler) throws IOException {
         {
-            ThreatIntelResults results = Iterables.getFirst(handler.getExtractor().extract("google.com,1.0,foo"), null);
-            Assert.assertEquals("google.com", results.getKey().indicator);
-            Assert.assertEquals("google.com", results.getValue().get("host"));
-            Assert.assertEquals("foo", results.getValue().get("meta"));
-            Assert.assertEquals(2, results.getValue().size());
+            LookupKV results = Iterables.getFirst(handler.getExtractor().extract("google.com,1.0,foo"), null);
+            ThreatIntelKey key = (ThreatIntelKey) results.getKey();
+            ThreatIntelValue value = (ThreatIntelValue) results.getValue();
+            Assert.assertEquals("google.com", key.indicator);
+            Assert.assertEquals("google.com", value.getMetadata().get("host"));
+            Assert.assertEquals("foo", value.getMetadata().get("meta"));
+            Assert.assertEquals(2, value.getMetadata().size());
         }
         {
-            Iterable<ThreatIntelResults> results = handler.getExtractor().extract("#google.com,1.0,foo");
+            Iterable<LookupKV> results = handler.getExtractor().extract("#google.com,1.0,foo");
             Assert.assertEquals(0, Iterables.size(results));
         }
     }

@@ -18,7 +18,9 @@
 package org.apache.metron.dataloads.extractor.stix.types;
 
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
-import org.apache.metron.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.DomainName;
@@ -34,19 +36,21 @@ public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
     }
 
     @Override
-    public Iterable<ThreatIntelResults> extract(final DomainName type, Map<String, Object> config) throws IOException {
-        List<ThreatIntelResults> ret = new ArrayList<>();
+    public Iterable<LookupKV> extract(final DomainName type, Map<String, Object> config) throws IOException {
+        List<LookupKV> ret = new ArrayList<>();
         final DomainNameTypeEnum domainType = type.getType();
-        if(SUPPORTED_TYPES.contains(domainType)) {
+        if(domainType == null || SUPPORTED_TYPES.contains(domainType)) {
             StringObjectPropertyType value = type.getValue();
             for (String token : StixExtractor.split(value)) {
-                ThreatIntelResults results = new ThreatIntelResults(new ThreatIntelKey(token),
-                        new HashMap<String, String>() {{
-                            put("source-type", "STIX");
-                            put("indicator-type", "DomainName");
-                            put("source", type.toXMLString());
-                        }}
-                );
+                LookupKV results = new LookupKV(new ThreatIntelKey(token)
+                                               , new ThreatIntelValue(
+                                                    new HashMap<String, String>() {{
+                                                        put("source-type", "STIX");
+                                                        put("indicator-type", type.getClass().getSimpleName() + ":" + DomainNameTypeEnum.FQDN);
+                                                        put("source", type.toXMLString());
+                                                    }}
+                                                                    )
+                                               );
                 ret.add(results);
             }
         }
