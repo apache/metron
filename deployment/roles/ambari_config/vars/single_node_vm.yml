@@ -35,25 +35,42 @@ cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
 
 configurations:
+  - zoo.cfg:
+      dataDir: '{{ zookeeper_data_dir | default("/hadoop/zookeeper") }}'
   - hadoop-env:
       namenode_heapsize: 1024
       dtnode_heapsize: 1024
   - hbase-env:
       hbase_regionserver_heapsize: 1024
       hbase_master_heapsize: 1024
+  - hdfs-site:
+      dfs.namenode.checkpoint.dir: '{{ namenode_checkpoint_dir | default("/hadoop/hdfs/namesecondary") }}'
+      dfs.namenode.name.dir: '{{ namenode_name_dir | default("/hadoop/hdfs/namenode") }}'
+      dfs.datanode.data.dir: '{{ datanode_data_dir | default("/hadoop/hdfs/data" ) }}'
+      dfs.journalnode.edits.dir: '{{ journalnode_edits_dir | default("/hadoop/hdfs/journalnode") }}'
   - yarn-env:
       nodemanager_heapsize: 512
       yarn_heapsize: 512
       apptimelineserver_heapsize : 512
   - mapred-env:
       jobhistory_heapsize: 256
+  - mapred-site:
+      mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path | default("/hadoop/mapreduce/jhs") }}'
   - yarn-site:
       yarn.nodemanager.resource.memory-mb: 1024
       yarn.scheduler.maximum-allocation-mb: 1024
+      yarn.nodemanager.local-dirs : '{{ nodemanager_local_dirs| default("/hadoop/yarn/local") }}'
+      yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path | default("/hadoop/yarn/timeline") }}'
+      yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path| default("/hadoop/yarn/timeline") }}'
+      yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs| default("/hadoop/yarn/log") }}'
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
+      storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'
   - kafka-env:
       content: "{% raw %}\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport KAFKA_HEAP_OPTS=\"-Xms256M -Xmx256M\"\nexport KAFKA_JVM_PERFORMANCE_OPTS=\"-server -XX:+UseG1GC -XX:+DisableExplicitGC -Djava.awt.headless=true\"\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin\nexport PID_DIR={{kafka_pid_dir}}\nexport LOG_DIR={{kafka_log_dir}}\nexport KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}\n# Add kafka sink to classpath and related depenencies\nif [ -e \"/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\" ]; then\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*\nfi\nif [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then\n   . /etc/kafka/conf/kafka-ranger-env.sh\nfi{% endraw %}"
+  - kafka-broker:
+      log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
+
 blueprint:
   stack_name: HDP
   stack_version: 2.3

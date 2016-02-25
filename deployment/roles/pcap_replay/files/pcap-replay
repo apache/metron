@@ -23,7 +23,7 @@
 
 DAEMON_PATH="/opt/pcap-replay"
 PCAPIN=`ls $DAEMON_PATH/*.pcap 2> /dev/null`
-IFACE="eth1"
+IFACE="{{ pcap_replay_interface | default("eth0") }}"
 DAEMON=/usr/local/bin/tcpreplay
 DAEMONOPTS="--intf1=$IFACE --loop=0 $PCAPIN"
 

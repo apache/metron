@@ -39,8 +39,31 @@ cluster_name: "metron"
 blueprint_name: "metron_blueprint"
 
 configurations:
+  - zoo.cfg:
+      dataDir: '{{ zookeeper_data_dir | default("/hadoop/zookeeper") }}'
+  - hadoop-env:
+      namenode_heapsize: 1024
+      dtnode_heapsize: 1024
+  - hbase-env:
+      hbase_regionserver_heapsize: 1024
+      hbase_master_heapsize: 1024
+  - hdfs-site:
+      dfs.namenode.checkpoint.dir: '{{ namenode_checkpoint_dir | default("/hadoop/hdfs/namesecondary") }}'
+      dfs.namenode.name.dir: '{{ namenode_name_dir | default("/hadoop/hdfs/namenode") }}'
+      dfs.datanode.data.dir: '{{ datanode_data_dir | default("/hadoop/hdfs/data" ) }}'
+      dfs.journalnode.edits.dir: '{{ journalnode_edits_dir | default("/hadoop/hdfs/journalnode") }}'
+  - mapred-site:
+      mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path | default("/hadoop/mapreduce/jhs") }}'
+  - yarn-site:
+      yarn.nodemanager.local-dirs : '{{ nodemanager_local_dirs| default("/hadoop/yarn/local") }}'
+      yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path | default("/hadoop/yarn/timeline") }}'
+      yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path| default("/hadoop/yarn/timeline") }}'
+      yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs| default("/hadoop/yarn/log") }}'
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
+      storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'
+  - kafka-broker:
+      log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
 
 blueprint:
   stack_name: HDP
