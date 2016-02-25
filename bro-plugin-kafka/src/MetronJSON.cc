@@ -40,7 +40,7 @@ bool MetronJSON::Describe(ODesc* desc, int num_fields,
     // prepend the stream name
     desc->AddRaw("\"");
     desc->AddRaw(stream_name);
-    desc->AddRaw("\", ");
+    desc->AddRaw("\": ");
 
     // append the JSON formatted log record itself
     JSON::Describe(desc, num_fields, fields, vals);
