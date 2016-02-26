@@ -4,6 +4,10 @@ package org.apache.metron.integration.util.integration.components;
 import com.google.common.base.Function;
 import kafka.Kafka;
 import kafka.admin.AdminUtils;
+import kafka.consumer.ConsumerConfig;
+import kafka.consumer.ConsumerIterator;
+import kafka.consumer.KafkaStream;
+import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
 import kafka.server.KafkaConfig;
@@ -15,10 +19,7 @@ import org.apache.metron.integration.util.integration.InMemoryComponent;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 
 public class KafkaWithZKComponent implements InMemoryComponent {
@@ -78,8 +79,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     }
     public <K,V> Producer<K,V> createProducer(Properties properties, Class<K> keyClass, Class<V> valueClass)
     {
-        Properties props = properties;
-        props.put("metadata.broker.list", getBrokerList());
+        Properties props = TestUtils.getProducerConfig(getBrokerList());
         props.put("request.required.acks", "-1");
         props.put("fetch.message.max.bytes", ""+ 1024*1024*10);
         props.put("replica.fetch.max.bytes", "" + 1024*1024*10);
@@ -120,6 +120,21 @@ public class KafkaWithZKComponent implements InMemoryComponent {
         zkClient.close();
         zkServer.shutdown();
 
+    }
+
+    public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic) {
+        return getStreamIterator(topic, "group0", "consumer0");
+    }
+    public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic, String group, String consumerName) {
+        // setup simple consumer
+        Properties consumerProperties = TestUtils.createConsumerProperties(zkServer.connectString(), group, consumerName, -1);
+        ConsumerConnector consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
+        Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
+        topicCountMap.put(topic, 1);
+        Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
+        KafkaStream<byte[], byte[]> stream = consumerMap.get(topic).get(0);
+        ConsumerIterator<byte[], byte[]> iterator = stream.iterator();
+        return iterator;
     }
 
     public void createTopic(String name) throws InterruptedException {

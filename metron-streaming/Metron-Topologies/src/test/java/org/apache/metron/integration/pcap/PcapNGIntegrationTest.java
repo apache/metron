@@ -1,6 +1,8 @@
 package org.apache.metron.integration.pcap;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
+import kafka.consumer.ConsumerIterator;
 import kafka.javaapi.producer.Producer;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.integration.util.UnitTestHelper;
@@ -67,6 +69,7 @@ public class PcapNGIntegrationTest {
         Assert.assertNotNull(targetDir);
         File pcapFile = new File(topologiesDir + "/../../SampleInput/PCAPExampleOutput");
         final List<Map.Entry<byte[], byte[]>> pcapEntries = readPcaps(pcapFile);
+        Assert.assertTrue(pcapEntries.size() > 0);
         final Properties topologyProperties = new Properties() {{
             setProperty("spout.kafka.topic.pcap", kafkaTopic);
             setProperty("kafka.pcap.out", outDir.getAbsolutePath());
@@ -82,6 +85,7 @@ public class PcapNGIntegrationTest {
                                                                                   public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
                                                                                       Producer<byte[], byte[]> producer = kafkaWithZKComponent.createProducer(byte[].class, byte[].class);
                                                                                       KafkaUtil.send(producer, pcapEntries, kafkaTopic);
+                                                                                      System.out.println("Sent pcap entries");
                                                                                       topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
                                                                                       return null;
                                                                                   }
@@ -101,6 +105,13 @@ public class PcapNGIntegrationTest {
                                                     .build();
         runner.start();
         System.out.println("Components started...");
+        int numMessages = 0;
+        ConsumerIterator<?,?> it = kafkaComponent.getStreamIterator(kafkaTopic);
+        for(int i = 0;i < pcapEntries.size();++i,it.next()) {
+           numMessages ++;
+        }
+        Assert.assertEquals(pcapEntries.size(), numMessages);
+        System.out.println("Wrote " + pcapEntries.size() + " to kafka");
         fluxComponent.submitTopology();
         runner.process(new Processor<Void>() {
             @Override

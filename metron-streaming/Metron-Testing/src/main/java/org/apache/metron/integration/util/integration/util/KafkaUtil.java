@@ -1,9 +1,13 @@
 package org.apache.metron.integration.util.integration.util;
 
 
+import kafka.consumer.ConsumerIterator;
+import kafka.consumer.KafkaStream;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class KafkaUtil {
@@ -16,4 +20,5 @@ public class KafkaUtil {
             send(producer, kv.getKey(), kv.getValue(), topic);
         }
     }
+
 }
