@@ -51,6 +51,9 @@ components:
       -   name: "withMaxTimeMS"
           args:
             - ${kafka.pcap.maxTimeMS}
+      -   name: "withZookeeperQuorum"
+          args:
+            - "${kafka.zk}"
 spouts:
   - id: "kafkaSpout"
     className: "org.apache.metron.spout.pcap.KafkaToHDFSSpout"

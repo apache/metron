@@ -85,6 +85,9 @@ public class FluxTopologyComponent implements InMemoryComponent {
         return topologyProperties;
     }
 
+    public String getZookeeperConnectString() {
+        return "localhost:2000";
+    }
     public void start() throws UnableToStartException{
         try {
             stormCluster = new LocalCluster();

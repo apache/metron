@@ -37,12 +37,18 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     private transient KafkaServer kafkaServer;
     private transient EmbeddedZookeeper zkServer;
     private transient ZkClient zkClient;
+    private String zookeeperConnectString;
     private int brokerPort = 6667;
     private List<Topic> topics = Collections.emptyList();
     private Function<KafkaWithZKComponent, Void> postStartCallback;
 
     public KafkaWithZKComponent withPostStartCallback(Function<KafkaWithZKComponent, Void> f) {
         postStartCallback = f;
+        return this;
+    }
+
+    public KafkaWithZKComponent withExistingZookeeper(String zookeeperConnectString) {
+        this.zookeeperConnectString = zookeeperConnectString;
         return this;
     }
 
@@ -85,15 +91,19 @@ public class KafkaWithZKComponent implements InMemoryComponent {
         props.put("replica.fetch.max.bytes", "" + 1024*1024*10);
         props.put("message.max.bytes", "" + 1024*1024*10);
         props.put("message.send.max.retries", "10");
+        props.putAll(properties);
         return new Producer<>(new ProducerConfig(props));
     }
 
     @Override
     public void start() {
         // setup Zookeeper
-        String zkConnect = TestZKUtils.zookeeperConnect();
-        zkServer = new EmbeddedZookeeper(zkConnect);
-        zkClient = new ZkClient(zkServer.connectString(), 30000, 30000, ZKStringSerializer$.MODULE$);
+        if(zookeeperConnectString == null) {
+            String zkConnect = TestZKUtils.zookeeperConnect();
+            zkServer = new EmbeddedZookeeper(zkConnect);
+            zookeeperConnectString = zkServer.connectString();
+        }
+        zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 
         // setup Broker
         Properties props = TestUtils.createBrokerConfig(0, brokerPort, true);
@@ -111,14 +121,16 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     }
 
     public String getZookeeperConnect() {
-        return zkServer.connectString();
+        return zookeeperConnectString;
     }
 
     @Override
     public void stop() {
         kafkaServer.shutdown();
         zkClient.close();
-        zkServer.shutdown();
+        if(zkServer != null) {
+            zkServer.shutdown();
+        }
 
     }
 

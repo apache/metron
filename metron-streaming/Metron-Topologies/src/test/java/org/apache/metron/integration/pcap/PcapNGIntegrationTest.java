@@ -1,6 +1,10 @@
 package org.apache.metron.integration.pcap;
 
+import backtype.storm.Config;
 import com.google.common.base.Function;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import kafka.consumer.ConsumerIterator;
 import kafka.javaapi.producer.Producer;
@@ -83,13 +87,13 @@ public class PcapNGIntegrationTest {
                                                                                   @Nullable
                                                                                   @Override
                                                                                   public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-                                                                                      Producer<byte[], byte[]> producer = kafkaWithZKComponent.createProducer(byte[].class, byte[].class);
-                                                                                      KafkaUtil.send(producer, pcapEntries, kafkaTopic);
-                                                                                      System.out.println("Sent pcap entries");
+
                                                                                       topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
                                                                                       return null;
                                                                                   }
-                                                                              });
+                                                                              }
+                                                                              );
+                                                                              //.withExistingZookeeper("localhost:2000");
 
 
 
@@ -105,14 +109,18 @@ public class PcapNGIntegrationTest {
                                                     .build();
         runner.start();
         System.out.println("Components started...");
-        int numMessages = 0;
+        /*int numMessages = 0;
         ConsumerIterator<?,?> it = kafkaComponent.getStreamIterator(kafkaTopic);
         for(int i = 0;i < pcapEntries.size();++i,it.next()) {
            numMessages ++;
         }
         Assert.assertEquals(pcapEntries.size(), numMessages);
-        System.out.println("Wrote " + pcapEntries.size() + " to kafka");
+        System.out.println("Wrote " + pcapEntries.size() + " to kafka");*/
         fluxComponent.submitTopology();
+        Producer<byte[], byte[]> producer = kafkaComponent.createProducer(byte[].class, byte[].class);
+        KafkaUtil.send(producer, pcapEntries, kafkaTopic);
+        System.out.println("Sent pcap entries");
+
         runner.process(new Processor<Void>() {
             @Override
             public ReadinessState process(ComponentRunner runner) {
@@ -130,6 +138,6 @@ public class PcapNGIntegrationTest {
             public Void getResult() {
                 return null;
             }
-        });
+        }, -1 , 30000, -1);
     }
 }
