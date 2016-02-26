@@ -78,7 +78,17 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.9.2</artifactId>
+      <version>${global_kafka_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.9.2</artifactId>
+      <version>${global_kafka_version}</version>
+      <classifier>test</classifier>
+    </dependency>
   </dependencies>
 
   <build>
