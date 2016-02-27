@@ -15,10 +15,12 @@
 #  limitations under the License.
 #
 ---
+- name: Install prerequisites
+  yum: name=libselinux-python
 
 - include: tcpreplay.yml
 
 - include: service.yml
 
 - name: Start the pcap-replay service
-  service: name=pcap-replay state=started
+  service: name=pcap-replay state=restarted

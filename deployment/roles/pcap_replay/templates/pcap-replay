@@ -1,34 +1,36 @@
 #!/usr/bin/env bash
 #
-#  Licensed to the Apache Software Foundation (ASF) under one or more
-#  contributor license agreements.  See the NOTICE file distributed with
-#  this work for additional information regarding copyright ownership.
-#  The ASF licenses this file to You under the Apache License, Version 2.0
-#  (the "License"); you may not use this file except in compliance with
-#  the License.  You may obtain a copy of the License at
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # pcap replay daemon
 # chkconfig: 345 20 80
 # description: Replays packet capture data stored in libpcap format
 # processname: pcap-replay
 #
 
-DAEMON_PATH="/opt/pcap-replay"
+DAEMON_PATH="{{ pcap_path }}"
 PCAPIN=`ls $DAEMON_PATH/*.pcap 2> /dev/null`
 IFACE="{{ pcap_replay_interface | default("eth0") }}"
-DAEMON=/usr/local/bin/tcpreplay
-DAEMONOPTS="--intf1=$IFACE --loop=0 $PCAPIN"
+EXTRA_ARGS="${@:2}"
+DAEMON="{{ tcpreplay_prefix }}/bin/tcpreplay"
+DAEMONOPTS="--intf1=$IFACE --loop=0 $EXTRA_ARGS $PCAPIN"
 
 NAME=pcap-replay
-DESC="Replays packet capture data stored in libpcap format"
+DESC="Replay packet capture data"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -38,7 +40,7 @@ case "$1" in
 
     # ensure that a pcap file exists to replay
     if [ -z "$PCAPIN" ]; then
-      printf "%s: %s\n" "Fail: No pcap files found" $DAEMON_PATH
+      printf "%s: %s\n" "Fail: No pcap files found at " $DAEMON_PATH
     else
       # kick-off the daemon
       cd $DAEMON_PATH
