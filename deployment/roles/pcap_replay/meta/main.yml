@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Nick Allen
+  description:
+  company: Metron
+
+  license: license (Apache, CC-BY, Nick Allen)
+  min_ansible_version: 1.2
+
+  platforms:
+  - name: CentOS
+    versions:
+      - 6
+
+  categories:
+  - networking
+
+dependencies: []
