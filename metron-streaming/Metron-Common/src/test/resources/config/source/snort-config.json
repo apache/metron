@@ -1,0 +1,13 @@
+{
+  "index": "snort",
+  "batchSize": 1,
+  "enrichmentFieldMap":
+  {
+    "geo": ["src", "dst"],
+    "host": ["src", "dst"]
+  },
+  "threatIntelFieldMap":
+  {
+    "ip": ["src", "dst"]
+  }
+}

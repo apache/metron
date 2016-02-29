@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.bolt;
 import backtype.storm.task.TopologyContext;
 import org.apache.metron.bolt.JoinBolt;
 import org.apache.metron.domain.Enrichment;
+import org.apache.metron.topology.TopologyUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,20 +35,14 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   protected static final Logger LOG = LoggerFactory
           .getLogger(EnrichmentJoinBolt.class);
 
-  protected List<Enrichment> enrichments;
+  private List<Enrichment> enrichments;
 
-  protected String type = "enrichment";
-  /**
-   * @param enrichments A class for sending tuples to enrichment bolt
-   * @return Instance of this class
-   */
-  public EnrichmentJoinBolt withEnrichments(List<Enrichment> enrichments) {
-    this.enrichments = enrichments;
-    return this;
+  public EnrichmentJoinBolt(String zookeeperUrl) {
+    super(zookeeperUrl);
   }
 
-  public EnrichmentJoinBolt withType(String type) {
-    this.type = type;
+  public EnrichmentJoinBolt withEnrichments(List<Enrichment> enrichments) {
+    this.enrichments = enrichments;
     return this;
   }
 
@@ -57,29 +52,27 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   }
 
   @Override
-  public Set<String> getStreamIds() {
+  public Set<String> getStreamIds(JSONObject message) {
     Set<String> streamIds = new HashSet<>();
-    for(Enrichment enrichment: enrichments) {
-      streamIds.add(enrichment.getName());
+    String sourceType = TopologyUtils.getSourceType(message);
+    for (String enrichmentType : getFieldMap(sourceType).keySet()) {
+      streamIds.add(enrichmentType);
     }
+    streamIds.add("message");
     return streamIds;
   }
 
 
   @Override
-  public JSONObject joinValues(Map<String, JSONObject> streamValueMap) {
+  public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
     JSONObject message = new JSONObject();
-    if(streamValueMap.get("message").containsKey("message")) {
-      message =  streamValueMap.get("message");
+    for (String key : streamMessageMap.keySet()) {
+      message.putAll(streamMessageMap.get(key));
     }
-    else {
-      message.put("message", streamValueMap.get("message"));
-    }
-    JSONObject enrichment = new JSONObject();
-    for(String streamId: getStreamIds()) {
-      enrichment.put(streamId, streamValueMap.get(streamId));
-    }
-    message.put(type, enrichment);
     return message;
+  }
+
+  public Map<String, List<String>> getFieldMap(String sourceType) {
+    return configurations.get(sourceType).getEnrichmentFieldMap();
   }
 }
