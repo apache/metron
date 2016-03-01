@@ -15,12 +15,20 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name=libselinux-python
+galaxy_info:
+  author: Nick Allen
+  description:
+  company: Metron
 
-- include: tcpreplay.yml
+  license: license (Apache, CC-BY, Nick Allen)
+  min_ansible_version: 1.2
 
-- include: service.yml
+  platforms:
+  - name: CentOS
+    versions:
+      - 6
 
-- name: Start the pcap-replay service
-  service: name=pcap-replay state=restarted
+  categories:
+  - networking
+
+dependencies: []

@@ -38,8 +38,8 @@
   shell: "{{ item }}"
   args:
     chdir: "/opt/tcpreplay-{{ tcpreplay_version }}"
-    creates: /usr/local/bin/tcpreplay
+    creates: "{{ tcpreplay_prefix }}/bin/tcpreplay"
   with_items:
-    - ./configure
+    - "./configure --prefix={{ tcpreplay_prefix }}"
     - make
     - make install
