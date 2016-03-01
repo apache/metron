@@ -16,18 +16,10 @@
 #
 ---
 - name: Create pcap directory
-  file: path={{ pcap_replay_path }} state=directory mode=0755
+  file: path={{ pcap_path }} state=directory mode=0755
 
 - name: Install init.d service script
-  template:
-    src: "../roles/pcap_replay/files/pcap-replay"
-    dest: "/etc/init.d/pcap-replay"
-    mode: 0755
-    owner: "root"
-    group: "root"
-
-- name: Set permissions on service script
-  file: path=/etc/init.d/pcap-replay mode=0755
+  template: src=pcap-replay dest=/etc/init.d/pcap-replay mode=0755
 
 - name: Install example pcap file
-  copy: src=example.pcap dest={{ pcap_replay_path }}/
+  copy: src=example.pcap dest={{ pcap_path }}/
