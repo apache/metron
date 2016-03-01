@@ -180,7 +180,8 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 					r.getResponse();
 					_LOG.trace("[Metron] ES SUCCESS MESSAGE: " + r.getFailureMessage());
 				}
-				
+
+
 				bulk_set.clear();
 				
 				if (resp.hasFailures()) {

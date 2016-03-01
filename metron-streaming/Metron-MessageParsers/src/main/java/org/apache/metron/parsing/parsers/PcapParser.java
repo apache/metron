@@ -17,18 +17,13 @@
  */
 package org.apache.metron.parsing.parsers;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.pcap.Constants;
+import org.apache.metron.pcap.MetronEthernetDecoder;
+import org.apache.metron.pcap.PacketInfo;
+import org.apache.metron.pcap.PcapByteInputStream;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.krakenapps.pcap.decoder.ethernet.EthernetDecoder;
@@ -42,10 +37,12 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 
-import org.apache.metron.pcap.Constants;
-import org.apache.metron.pcap.MetronEthernetDecoder;
-import org.apache.metron.pcap.PacketInfo;
-import org.apache.metron.pcap.PcapByteInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PcapParser implements MessageParser<JSONObject>, Serializable {
 

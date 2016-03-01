@@ -51,7 +51,7 @@
 						<exclude>metron-ui/lib/public/**</exclude>
 						<exclude>**/src/main/resources/patterns/**</exclude>
 						<exclude>**/src/test/resources/**</exclude>
-						<exclude>**/src/main/resources/SampleInput/**</exclude>
+						<exclude>**/src/main/resources/Sample*/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
 					        <exclude>**/files/opensoc-ui</exclude>
 					        <exclude>**/*.iml</exclude>

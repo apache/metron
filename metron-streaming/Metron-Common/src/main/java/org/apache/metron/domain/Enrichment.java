@@ -20,28 +20,25 @@ package org.apache.metron.domain;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class Enrichment<T extends EnrichmentAdapter> implements Serializable {
 
-  private String name;
-  private List<String> fields;
+  private String type;
   private T adapter;
 
-  public String getName() {
-    return name;
+  public Enrichment() {}
+
+  public Enrichment(String type, T adapter) {
+    this.type = type;
+    this.adapter = adapter;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public String getType() {
+    return type;
   }
 
-  public List<String> getFields() {
-    return fields;
-  }
-
-  public void setFields(List<String> fields) {
-    this.fields = fields;
+  public void setType(String type) {
+    this.type = type;
   }
 
   public T getAdapter() {

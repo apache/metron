@@ -20,7 +20,6 @@ package org.apache.metron.hbase;
 
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import com.google.common.base.Function;
@@ -40,7 +39,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.helpers.topology.ErrorUtils;
 
 /**
  * A Storm bolt for putting data into HBase.
@@ -136,7 +135,7 @@ public class HBaseBolt implements IRichBolt {
       this.connector.put(p);
     } catch (IOException ex) {
 
-  		JSONObject error = ErrorGenerator.generateErrorMessage(
+  		JSONObject error = ErrorUtils.generateErrorMessage(
   				"Alerts problem: " + input.toString(), ex);
   		collector.emit("error", new Values(error));
   		
