@@ -34,7 +34,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.helpers.topology.ErrorUtils;
 import org.apache.metron.index.interfaces.IndexAdapter;
 import org.apache.metron.json.serialization.JSONEncoderHelper;
 import org.apache.metron.metrics.MetricReporter;
@@ -64,6 +64,10 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	
 	private Set<Tuple> tuple_queue = new HashSet<Tuple>();
 
+	public TelemetryIndexingBolt(String zookeeperUrl) {
+		super(zookeeperUrl);
+	}
+
 	/**
 	 * 
 	 * @param IndexIP
@@ -84,17 +88,6 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 	public TelemetryIndexingBolt withIndexPort(int IndexPort) {
 		_IndexPort = IndexPort;
-		return this;
-	}
-
-	/**
-	 * 
-	 * @param IndexName
-	 *            name of the index in ElasticSearch/Solr/etc...
-	 * @return instance of bolt
-	 */
-	public TelemetryIndexingBolt withIndexName(String IndexName) {
-		_IndexName = IndexName;
 		return this;
 	}
 
@@ -146,7 +139,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	
 	/**
 	 * 
-	 * @param dateFormat
+	 * @param indexTimestamp
 	 *           timestamp to append to index names
 	 * @return instance of bolt
 	 */
@@ -185,7 +178,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 			
 			e.printStackTrace();
 					
-			JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e);
+			JSONObject error = ErrorUtils.generateErrorMessage(new String("bulk index problem"), e);
 			_collector.emit("error", new Values(error));
 		}
 
@@ -235,7 +228,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 				failCounter.inc();
 				
 				
-				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e);
+				JSONObject error = ErrorUtils.generateErrorMessage(new String("bulk index problem"), e);
 				_collector.emit("error", new Values(error));
 			}
 			tuple_queue.clear();

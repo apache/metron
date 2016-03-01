@@ -1,0 +1,95 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "yaf-test"
+config:
+    topology.workers: 1
+
+
+components:
+    -   id: "parser"
+        className: "org.apache.metron.parsing.parsers.GrokParser"
+        constructorArgs:
+            - "../Metron-MessageParsers/src/main/resources/patterns/yaf"
+            - "YAF_DELIMITED"
+        configMethods:
+            -   name: "withTimestampField"
+                args:
+                    - "start_time"
+            -   name: "withTimeFields"
+                args:
+                    - ["start_time", "end_time"]
+            -   name: "withDateFormat"
+                args:
+                    - "yyyy-MM-dd HH:mm:ss.S"
+    -   id: "writer"
+        className: "org.apache.metron.writer.KafkaWriter"
+        constructorArgs:
+            - "${kafka.broker}"
+    -   id: "zkHosts"
+        className: "storm.kafka.ZkHosts"
+        constructorArgs:
+            - "${kafka.zk}"
+    -   id: "kafkaConfig"
+        className: "storm.kafka.SpoutConfig"
+        constructorArgs:
+            # zookeeper hosts
+            - ref: "zkHosts"
+            # topic name
+            - "${spout.kafka.topic.yaf}"
+            # zk root
+            - ""
+            # id
+            - "${spout.kafka.topic.yaf}"
+        properties:
+            -   name: "ignoreZkOffsets"
+                value: true
+            -   name: "startOffsetTime"
+                value: -2
+            -   name: "socketTimeoutMs"
+                value: 1000000
+
+spouts:
+    -   id: "testingSpout"
+        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
+        parallelism: 1
+        configMethods:
+            -   name: "withFilename"
+                args:
+                    - "SampleInput/YafExampleOutput"
+            -   name: "withRepeating"
+                args:
+                    - false
+    -   id: "kafkaSpout"
+        className: "storm.kafka.KafkaSpout"
+        constructorArgs:
+            - ref: "kafkaConfig"
+
+bolts:
+    -   id: "parserBolt"
+        className: "org.apache.metron.bolt.ParserBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+            - "yaf"
+            - ref: "parser"
+            - ref: "writer"
+
+streams:
+    -   name: "spout -> bolt"
+        from: "kafkaSpout"
+        to: "parserBolt"
+        grouping:
+            type: SHUFFLE

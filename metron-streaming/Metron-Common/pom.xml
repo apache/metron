@@ -161,6 +161,21 @@
             <artifactId>json-schema-validator</artifactId>
             <version>${global_json_schema_validator_version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>flux-core</artifactId>
+            <version>${global_flux_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-kafka</artifactId>
+            <version>${global_storm_version}</version>
+        </dependency>
     </dependencies>
 
     <reporting>

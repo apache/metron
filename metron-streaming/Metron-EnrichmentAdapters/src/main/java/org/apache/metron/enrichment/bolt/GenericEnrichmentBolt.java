@@ -21,12 +21,13 @@ package org.apache.metron.enrichment.bolt;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import backtype.storm.topology.base.BaseRichBolt;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
+import org.apache.metron.Constants;
+import org.apache.metron.bolt.ConfiguredBolt;
 import org.apache.metron.domain.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
@@ -39,7 +40,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.helpers.topology.ErrorUtils;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
@@ -61,31 +62,32 @@ import org.apache.metron.helpers.topology.ErrorGenerator;
  **/
 
 @SuppressWarnings({"rawtypes", "serial"})
-public class GenericEnrichmentBolt extends BaseRichBolt {
+public class GenericEnrichmentBolt extends ConfiguredBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
   private OutputCollector collector;
 
 
-  protected String streamId;
-  protected Enrichment<EnrichmentAdapter> enrichment;
+  protected String enrichmentType;
   protected EnrichmentAdapter adapter;
   protected transient CacheLoader<String, JSONObject> loader;
   protected transient LoadingCache<String, JSONObject> cache;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
 
+  public GenericEnrichmentBolt(String zookeeperUrl) {
+    super(zookeeperUrl);
+  }
 
   /**
-   * @param enrichment Object holding enrichment metadata
+   * @param enrichment enrichment
    * @return Instance of this class
    */
 
-  public GenericEnrichmentBolt withEnrichment(Enrichment<EnrichmentAdapter> enrichment) {
-    this.streamId = enrichment.getName();
-    this.enrichment = enrichment;
-    this.adapter = this.enrichment.getAdapter();
+  public GenericEnrichmentBolt withEnrichment(Enrichment enrichment) {
+    this.enrichmentType = enrichment.getType();
+    this.adapter = enrichment.getAdapter();
     return this;
   }
 
@@ -113,17 +115,12 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
   public void prepare(Map conf, TopologyContext topologyContext,
                       OutputCollector collector) {
     this.collector = collector;
-    if (this.enrichment == null)
-      throw new IllegalStateException("enrichment must be specified");
     if (this.maxCacheSize == null)
       throw new IllegalStateException("MAX_CACHE_SIZE_OBJECTS_NUM must be specified");
     if (this.maxTimeRetain == null)
       throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
     if (this.adapter == null)
       throw new IllegalStateException("Adapter must be specified");
-    if (this.enrichment.getFields() == null)
-      throw new IllegalStateException(
-              "Fields to be enriched must be specified");
     loader = new CacheLoader<String, JSONObject>() {
       public JSONObject load(String key) throws Exception {
         return adapter.enrich(key);
@@ -141,7 +138,7 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declareStream(streamId, new Fields("key", "message"));
+    declarer.declareStream(enrichmentType, new Fields("key", "message"));
     declarer.declareStream("error", new Fields("message"));
   }
 
@@ -156,26 +153,40 @@ public class GenericEnrichmentBolt extends BaseRichBolt {
         throw new Exception("Could not parse binary stream to JSON");
       if (key == null)
         throw new Exception("Key is not valid");
-      for (String field : enrichment.getFields()) {
-        JSONObject enrichedField = new JSONObject();
+      for (Object o : rawMessage.keySet()) {
+        String field = (String) o;
         String value = (String) rawMessage.get(field);
-        if (value != null && value.length() != 0) {
-          adapter.logAccess(value);
-          enrichedField = cache.getUnchecked(value);
-          if (enrichedField == null)
-            throw new Exception("[Metron] Could not enrich string: "
-                    + value);
+        if (field.equals(Constants.SOURCE_TYPE)) {
+          enrichedMessage.put(Constants.SOURCE_TYPE, value);
+        } else {
+          JSONObject enrichedField = new JSONObject();
+          if (value != null && value.length() != 0) {
+            adapter.logAccess(value);
+            enrichedField = cache.getUnchecked(value);
+            if (enrichedField == null)
+              throw new Exception("[Metron] Could not enrich string: "
+                      + value);
+          }
+          if (!enrichedField.isEmpty()) {
+            for (Object enrichedKey : enrichedField.keySet()) {
+              enrichedMessage.put(field + "." + enrichedKey, enrichedField.get(enrichedKey));
+            }
+          } else {
+            enrichedMessage.put(field, "");
+          }
+          if (enrichmentType.equals("host")) {
+            String test = "";
+          }
         }
-        enrichedMessage.put(Iterables.getLast(Splitter.on('/').split(field)), enrichedField);
       }
       if (!enrichedMessage.isEmpty()) {
-        collector.emit(streamId, new Values(key, enrichedMessage));
+        collector.emit(enrichmentType, new Values(key, enrichedMessage));
       }
     } catch (Exception e) {
       LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
-      JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + rawMessage, e);
+      JSONObject error = ErrorUtils.generateErrorMessage("Enrichment problem: " + rawMessage, e);
       if (key != null) {
-        collector.emit(streamId, new Values(key, enrichedMessage));
+        collector.emit(enrichmentType, new Values(key, enrichedMessage));
       }
       collector.emit("error", new Values(error));
     }

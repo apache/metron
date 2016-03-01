@@ -20,14 +20,12 @@ package org.apache.metron.bolt;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,17 +35,20 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public abstract class JoinBolt<V> extends BaseRichBolt {
+public abstract class JoinBolt<V> extends ConfiguredBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(JoinBolt.class);
   protected OutputCollector collector;
-  protected ImmutableSet<String> streamIds;
 
   protected transient CacheLoader<String, Map<String, V>> loader;
   protected transient LoadingCache<String, Map<String, V>> cache;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
+
+  public JoinBolt(String zookeeperUrl) {
+    super(zookeeperUrl);
+  }
 
   public JoinBolt withMaxCacheSize(long maxCacheSize) {
     this.maxCacheSize = maxCacheSize;
@@ -61,6 +62,7 @@ public abstract class JoinBolt<V> extends BaseRichBolt {
 
   @Override
   public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
+    super.prepare(map, topologyContext, outputCollector);
     this.collector = outputCollector;
     if (this.maxCacheSize == null)
       throw new IllegalStateException("maxCacheSize must be specified");
@@ -74,9 +76,6 @@ public abstract class JoinBolt<V> extends BaseRichBolt {
     cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
-    Set<String> temp = getStreamIds();
-    temp.add("message");
-    streamIds = ImmutableSet.copyOf(temp);
     prepare(map, topologyContext);
   }
 
@@ -85,26 +84,28 @@ public abstract class JoinBolt<V> extends BaseRichBolt {
   public void execute(Tuple tuple) {
     String streamId = tuple.getSourceStreamId();
     String key = (String) tuple.getValueByField("key");
-    V value = (V) tuple.getValueByField("message");
+    V message = (V) tuple.getValueByField("message");
     try {
-      Map<String, V> streamValueMap = cache.get(key);
-      if (streamValueMap.containsKey(streamId)) {
+      Map<String, V> streamMessageMap = cache.get(key);
+      if (streamMessageMap.containsKey(streamId)) {
         LOG.warn(String.format("Received key %s twice for " +
                 "stream %s", key, streamId));
       }
-      streamValueMap.put(streamId, value);
-      Set<String> streamValueKeys = streamValueMap.keySet();
-      if (streamValueKeys.size() == streamIds.size() && Sets.symmetricDifference
-              (streamValueKeys, streamIds)
+      streamMessageMap.put(streamId, message);
+      Set<String> streamIds = getStreamIds(message);
+      Set<String> streamMessageKeys = streamMessageMap.keySet();
+      if (streamMessageKeys.size() == streamIds.size() && Sets.symmetricDifference
+              (streamMessageKeys, streamIds)
               .isEmpty()) {
-        collector.emit("message", tuple, new Values(key, joinValues
-                (streamValueMap)));
+        collector.emit("message", tuple, new Values(key, joinMessages
+                (streamMessageMap)));
         collector.ack(tuple);
         cache.invalidate(key);
       } else {
-        cache.put(key, streamValueMap);
+        cache.put(key, streamMessageMap);
       }
     } catch (ExecutionException e) {
+      collector.reportError(e);
       LOG.error(e.getMessage(), e);
     }
   }
@@ -116,7 +117,7 @@ public abstract class JoinBolt<V> extends BaseRichBolt {
 
   public abstract void prepare(Map map, TopologyContext topologyContext);
 
-  public abstract Set<String> getStreamIds();
+  public abstract Set<String> getStreamIds(V value);
 
-  public abstract V joinValues(Map<String, V> streamValueMap);
+  public abstract V joinMessages(Map<String, V> streamMessageMap);
 }

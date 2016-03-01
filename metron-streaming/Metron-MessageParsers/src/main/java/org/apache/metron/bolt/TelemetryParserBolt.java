@@ -18,11 +18,8 @@
 package org.apache.metron.bolt;
 
 import backtype.storm.task.TopologyContext;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
-import org.apache.metron.enrichment.EnrichmentSplitterBolt;
+import org.apache.metron.enrichment.bolt.EnrichmentSplitterBolt;
 import org.apache.metron.filters.GenericMessageFilter;
-import org.apache.metron.helpers.topology.ErrorGenerator;
 import org.apache.metron.parser.interfaces.MessageFilter;
 import org.apache.metron.parser.interfaces.MessageParser;
 import org.json.simple.JSONObject;
@@ -38,6 +35,10 @@ public class TelemetryParserBolt extends EnrichmentSplitterBolt {
 
   protected MessageParser<JSONObject> parser;
   protected MessageFilter<JSONObject> filter = new GenericMessageFilter();
+
+  public TelemetryParserBolt(String zookeeperUrl) {
+    super(zookeeperUrl);
+  }
 
   /**
    * @param parser The parser class for parsing the incoming raw message byte
@@ -74,6 +75,7 @@ public class TelemetryParserBolt extends EnrichmentSplitterBolt {
 
 
 
+  /*
   @Override
   public List<JSONObject> generateMessages(Tuple tuple) {
     List<JSONObject> filteredMessages = new ArrayList<>();
@@ -102,7 +104,7 @@ public class TelemetryParserBolt extends EnrichmentSplitterBolt {
       collector.emit("error", new Values(error));
     }
     return filteredMessages;
-  }
+  }*/
 
 
 }
