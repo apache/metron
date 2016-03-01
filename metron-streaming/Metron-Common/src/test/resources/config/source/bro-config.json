@@ -1,0 +1,13 @@
+{
+  "index": "bro",
+  "batchSize": 5,
+  "enrichmentFieldMap":
+  {
+    "geo": ["id.orig_h"],
+    "host": ["id.orig_h"]
+  },
+  "threatIntelFieldMap":
+  {
+    "ip": ["id.orig_h"]
+  }
+}

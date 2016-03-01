@@ -66,7 +66,12 @@ public class HostFromJSONListAdapter extends AbstractHostAdapter {
       return new JSONObject();
 
     JSONObject enrichment = new JSONObject();
-    enrichment.put("known_info", _known_hosts.get(metadata));
+    String prefix = "known_info.";
+    JSONObject knownInfo = _known_hosts.get(metadata);
+    for(Object key: knownInfo.keySet()) {
+      enrichment.put(prefix + key, knownInfo.get(key));
+    }
+    //enrichment.put("known_info", _known_hosts.get(metadata));
     return enrichment;
   }
 }

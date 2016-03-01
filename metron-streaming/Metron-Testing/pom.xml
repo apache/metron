@@ -78,7 +78,33 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.9.2</artifactId>
+      <version>${global_kafka_version}</version>
+      <classifier>test</classifier>
+      <exclusions>
+        <!--exclusion> <groupId>org.apache.zookeeper</groupId> <artifactId>zookeeper</artifactId>
+            </exclusion -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.9.2</artifactId>
+      <version>${global_kafka_version}</version>
+      <exclusions>
+        <!--exclusion> <groupId>org.apache.zookeeper</groupId> <artifactId>zookeeper</artifactId>
+            </exclusion -->
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
 
   <build>

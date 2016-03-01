@@ -21,6 +21,7 @@ package org.apache.metron.indexing;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.metron.bolt.ConfiguredBolt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ import org.apache.metron.index.interfaces.IndexAdapter;
 import org.apache.metron.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
-public abstract class AbstractIndexingBolt extends BaseRichBolt {
+public abstract class AbstractIndexingBolt extends ConfiguredBolt {
 	/**
 	 * 
 	 */
@@ -55,6 +56,10 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	protected int _BulkIndexNumber = 10;
 
 	protected Counter ackCounter, emitCounter, failCounter;
+
+	public AbstractIndexingBolt(String zookeeperUrl) {
+		super(zookeeperUrl);
+	}
 
 	protected void registerCounters() {
 

@@ -34,7 +34,7 @@ import backtype.storm.tuple.Values;
 
 import com.google.common.cache.CacheBuilder;
 import org.apache.metron.alerts.interfaces.AlertsAdapter;
-import org.apache.metron.helpers.topology.ErrorGenerator;
+import org.apache.metron.helpers.topology.ErrorUtils;
 import org.apache.metron.json.serialization.JSONEncoderHelper;
 import org.apache.metron.metrics.MetricReporter;
 
@@ -245,7 +245,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			 */
 
 
-			JSONObject error = ErrorGenerator.generateErrorMessage(
+			JSONObject error = ErrorUtils.generateErrorMessage(
 					"Alerts problem: " + original_message, e);
 			_collector.emit("error", new Values(error));
 		}

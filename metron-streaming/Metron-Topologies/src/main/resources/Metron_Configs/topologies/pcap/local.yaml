@@ -53,7 +53,7 @@ components:
     -   id: "ipThreatIntelEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         properties:
-           - name: "name"
+           - name: "type"
              value: "ip"
            - name: "fields"
              value: ["message/ip_src_addr", "message/ip_dst_addr"]
@@ -71,7 +71,7 @@ components:
     -   id: "geoEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         properties:
-            -   name: "name"
+            -   name: "type"
                 value:  "geo"
             -   name: "fields"
                 value: ["ip_src_addr", "ip_dst_addr"]
@@ -84,7 +84,7 @@ components:
     -   id: "hostEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         properties:
-            -   name: "name"
+            -   name: "type"
                 value:  "host"
             -   name: "fields"
                 value: ["ip_src_addr", "ip_dst_addr"]
@@ -274,7 +274,7 @@ bolts:
                     - ref: "metricConfig"
 # Threat Intel Bolts
     -   id: "threatIntelSplitBolt"
-        className: "org.apache.metron.enrichment.EnrichmentSplitterBolt"
+        className: "org.apache.metron.enrichment.bolt.EnrichmentSplitterBolt"
         configMethods:
             -   name: "withEnrichments"
                 args:
@@ -342,13 +342,13 @@ streams:
         grouping:
             type: SHUFFLE
 #hbase
-    -   name: "parser -> hbase"
-        from: "parserBolt"
-        to: "hbaseBolt"
-        grouping:
-            streamId: "raw"
-            type: FIELDS
-            args: ["key"]
+#    -   name: "parser -> hbase"
+#        from: "parserBolt"
+#        to: "hbaseBolt"
+#        grouping:
+#            streamId: "raw"
+#            type: FIELDS
+#            args: ["key"]
 #enrichment
     -   name: "parser -> host"
         from: "parserBolt"

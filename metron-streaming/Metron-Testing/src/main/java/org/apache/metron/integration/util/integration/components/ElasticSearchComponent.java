@@ -145,13 +145,13 @@ public class ElasticSearchComponent implements InMemoryComponent {
         }
     }
 
-    public List<Map<String, Object>> getAllIndexedDocs(String index) throws IOException {
-       return getAllIndexedDocs(index, "message");
+    public List<Map<String, Object>> getAllIndexedDocs(String index, String sourceType) throws IOException {
+       return getAllIndexedDocs(index, sourceType, null);
     }
-    public List<Map<String, Object>> getAllIndexedDocs(String index, String subMessage) throws IOException {
+    public List<Map<String, Object>> getAllIndexedDocs(String index, String sourceType, String subMessage) throws IOException {
         getClient().admin().indices().refresh(new RefreshRequest());
         SearchResponse response = getClient().prepareSearch(index)
-                .setTypes("pcap_doc")
+                .setTypes(sourceType)
                 .setSource("message")
                 .setFrom(0)
                 .setSize(1000)

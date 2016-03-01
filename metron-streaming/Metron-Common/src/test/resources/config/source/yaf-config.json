@@ -1,0 +1,13 @@
+{
+  "index": "yaf",
+  "batchSize": 5,
+  "enrichmentFieldMap":
+  {
+    "geo": ["sip", "dip"],
+    "host": ["sip", "dip"]
+  },
+  "threatIntelFieldMap":
+  {
+    "ip": ["sip", "dip"]
+  }
+}
