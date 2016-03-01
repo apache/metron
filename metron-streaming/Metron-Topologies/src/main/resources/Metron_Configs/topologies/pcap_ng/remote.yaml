@@ -60,13 +60,13 @@ spouts:
     constructorArgs:
       - ref: "kafkaConfig"
       - ref: "writerConfig"
-bolts:
-  - id: "noop"
-    className: "org.apache.metron.bolt.NoopBolt"
+#bolts:
+#  - id: "noop"
+#    className: "org.apache.metron.bolt.NoopBolt"
 
-streams:
-  - name: "spout -> noop"
-    from: "kafkaSpout"
-    to: "noop"
-    grouping:
-      type: SHUFFLE
+#streams:
+#  - name: "spout -> noop"
+#    from: "kafkaSpout"
+#    to: "noop"
+#    grouping:
+#      type: SHUFFLE

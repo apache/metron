@@ -11,12 +11,12 @@ import storm.kafka.KeyValueScheme;
 import java.util.List;
 
 public class TimestampedPacketScheme implements KeyValueScheme {
-    private static final String VALUE_FIELD = "value";
-    private static final String TIMESTAMP_FIELD = "ts";
+    private static final String KV_FIELD = "kv";
 
     @Override
     public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
         Long ts = Bytes.toLong(key);
+        System.out.println("Scheme: " + ts);
         return new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(value)));
     }
 
@@ -27,6 +27,6 @@ public class TimestampedPacketScheme implements KeyValueScheme {
 
     @Override
     public Fields getOutputFields() {
-        return new Fields(TIMESTAMP_FIELD, VALUE_FIELD);
+        return new Fields(KV_FIELD);
     }
 }

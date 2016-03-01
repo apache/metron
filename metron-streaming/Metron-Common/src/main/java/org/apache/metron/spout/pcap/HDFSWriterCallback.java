@@ -42,21 +42,29 @@ public class HDFSWriterCallback implements Callback {
         this.config = config;
         return this;
     }
-
     @Override
     public List<Object> apply(List<Object> tuple, EmitContext context) {
 
-        LongWritable ts = (LongWritable) tuple.get(0);
-        BytesWritable rawPacket = (BytesWritable)tuple.get(1);
+        /**
+         * TODO: Figure out if append is really atomic or what
+         * TODO: Put timer in here to rotate file periodically.
+         * TODO: Roll files per partition
+         */
+        List<Object> keyValue = (List<Object>) tuple.get(0);
+        LongWritable ts = (LongWritable) keyValue.get(0);
+        BytesWritable rawPacket = (BytesWritable)keyValue.get(1);
+        System.out.println("Packet: " + ts.get());
         try {
             turnoverIfNecessary(ts.get());
             writer.append(ts, headerize(rawPacket.getBytes()));
             writer.hflush();
+            writer.syncFs();
+            numWritten++;
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             //drop?  not sure..
         }
-        return RET_TUPLE;
+        return tuple;
     }
 
     private static BytesWritable headerize(byte[] packet) {
@@ -87,6 +95,7 @@ public class HDFSWriterCallback implements Callback {
             batchStartTime = ts;
             numWritten = 0;
         }
+
     }
 
     private Path getPath(long ts) {

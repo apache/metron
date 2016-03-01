@@ -42,19 +42,24 @@ public class PcapNGIntegrationTest {
         }
     }
     private static int numFiles(File outDir) {
-        return outDir.listFiles().length;
+        return outDir.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return !name.endsWith(".crc");
+            }
+        }).length;
     }
 
     private static List<Map.Entry<byte[], byte[]>> readPcaps(File pcapFile) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(pcapFile));
         List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
         HexStringConverter converter = new HexStringConverter();
+        long ts = 0L;
         for(String line = null;(line = br.readLine()) != null;) {
             byte[] pcapWithHeader = converter.convert(line);
-            long ts = System.currentTimeMillis();
             byte[] pcapRaw = new byte[pcapWithHeader.length - HDFSWriterCallback.PCAP_GLOBAL_HEADER.length];
             System.arraycopy(pcapWithHeader, HDFSWriterCallback.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
-            ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts), pcapRaw));
+            ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
         }
         return ret;
     }
@@ -109,18 +114,20 @@ public class PcapNGIntegrationTest {
                                                     .build();
         runner.start();
         System.out.println("Components started...");
-        /*int numMessages = 0;
-        ConsumerIterator<?,?> it = kafkaComponent.getStreamIterator(kafkaTopic);
-        for(int i = 0;i < pcapEntries.size();++i,it.next()) {
-           numMessages ++;
-        }
-        Assert.assertEquals(pcapEntries.size(), numMessages);
-        System.out.println("Wrote " + pcapEntries.size() + " to kafka");*/
+
         fluxComponent.submitTopology();
         Producer<byte[], byte[]> producer = kafkaComponent.createProducer(byte[].class, byte[].class);
-        KafkaUtil.send(producer, pcapEntries, kafkaTopic);
-        System.out.println("Sent pcap entries");
-
+        KafkaUtil.send(producer, pcapEntries, kafkaTopic,2);
+        System.out.println("Sent pcap data: " + pcapEntries.size());
+        {
+            int numMessages = 0;
+            ConsumerIterator<?, ?> it = kafkaComponent.getStreamIterator(kafkaTopic);
+            for (int i = 0; i < pcapEntries.size(); ++i, it.next()) {
+                numMessages++;
+            }
+            Assert.assertEquals(pcapEntries.size(), numMessages);
+            System.out.println("Wrote " + pcapEntries.size() + " to kafka");
+        }
         runner.process(new Processor<Void>() {
             @Override
             public ReadinessState process(ComponentRunner runner) {

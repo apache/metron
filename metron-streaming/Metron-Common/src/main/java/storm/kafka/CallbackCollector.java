@@ -55,7 +55,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public List<Integer> emit(List<Object> tuple, Object messageId) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId));
-        return super.emit(t, messageId);
+        return _delegate.emit(t, messageId);
     }
 
     /**
@@ -68,7 +68,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public List<Integer> emit(List<Object> tuple) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext());
-        return super.emit(t);
+        return _delegate.emit(t);
     }
 
     /**
@@ -82,7 +82,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId));
-        return super.emit(streamId, t);
+        return _delegate.emit(streamId, t);
     }
 
     /**
@@ -102,7 +102,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
                                                                        .with(EmitContext.Type.MESSAGE_ID, messageId)
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
                                         );
-        super.emitDirect(taskId, streamId, t, messageId);
+        _delegate.emitDirect(taskId, streamId, t, messageId);
     }
 
     /**
@@ -120,7 +120,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId)
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
                        );
-        super.emitDirect(taskId, t, messageId);
+        _delegate.emitDirect(taskId, t, messageId);
     }
 
     /**
@@ -141,7 +141,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
                        );
-        super.emitDirect(taskId, streamId, t);
+        _delegate.emitDirect(taskId, streamId, t);
     }
 
     /**
@@ -160,6 +160,6 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     public void emitDirect(int taskId, List<Object> tuple) {
 
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.TASK_ID, new Integer(taskId)));
-        super.emitDirect(taskId, t);
+        _delegate.emitDirect(taskId, t);
     }
 }
