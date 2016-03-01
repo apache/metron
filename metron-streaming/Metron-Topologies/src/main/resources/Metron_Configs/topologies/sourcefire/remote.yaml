@@ -21,143 +21,10 @@ config:
 components:
     -   id: "parser"
         className: "org.apache.metron.parsing.parsers.BasicSourcefireParser"
-    -   id: "jdbcConfig"
-        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
-        properties:
-            -   name: "host"
-                value: "${mysql.ip}"
-            -   name: "port"
-                value: ${mysql.port}
-            -   name: "username"
-                value: "${mysql.username}"
-            -   name: "password"
-                value: "${mysql.password}"
-            -   name: "table"
-                value: "GEO"
-    -   id: "geoEnrichmentAdapter"
-        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
-        configMethods:
-            -   name: "withJdbcConfig"
-                args:
-                    - ref: "jdbcConfig"
-    -   id: "geoEnrichment"
-        className: "org.apache.metron.domain.Enrichment"
-        properties:
-            -   name: "name"
-                value:  "geo"
-            -   name: "fields"
-                value: ["ip_src_addr", "ip_dst_addr"]
-            -   name: "adapter"
-                ref: "geoEnrichmentAdapter"
-    -   id: "hostEnrichmentAdapter"
-        className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
+    -   id: "writer"
+        className: "org.apache.metron.writer.KafkaWriter"
         constructorArgs:
-            - '${org.apache.metron.enrichment.host.known_hosts}'
-    -   id: "hostEnrichment"
-        className: "org.apache.metron.domain.Enrichment"
-        properties:
-            -   name: "name"
-                value:  "host"
-            -   name: "fields"
-                value: ["ip_src_addr", "ip_dst_addr"]
-            -   name: "adapter"
-                ref: "hostEnrichmentAdapter"
-    -   id: "enrichments"
-        className: "java.util.ArrayList"
-        configMethods:
-            -   name: "add"
-                args:
-                    - ref: "geoEnrichment"
-            -   name: "add"
-                args:
-                    - ref: "hostEnrichment"
-    -   id: "indexAdapter"
-        className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
-    -   id: "alertsConfig"
-        className: "java.util.HashMap"
-        configMethods:
-            -   name: "put"
-                args: ["whitelist_table_name", "ip_whitelist"]
-            -   name: "put"
-                args: ["blacklist_table_name", "ip_blacklist"]
-            -   name: "put"
-                args: ["quorum", "mon.cluster2.ctolab.hortonworks.com, nn1.cluster2.ctolab.hortonworks.com, nn2.cluster2.ctolab.hortonworks.com"]
-            -   name: "put"
-                args: ["port", "2181"]
-            -   name: "put"
-                args: ["_MAX_CACHE_SIZE_OBJECTS_NUM", "3600"]
-            -   name: "put"
-                args: ["_MAX_TIME_RETAIN_MINUTES", "1000"]
-    -   id: "alertsAdapter"
-        className: "org.apache.metron.alerts.adapters.CIFAlertsAdapter"
-        constructorArgs:
-            - ref: "alertsConfig"
-    -   id: "alertsIdentifier"
-        className: "org.json.simple.JSONObject"
-        configMethods:
-            -   name: "put"
-                args: ["environment", "local"]
-            -   name: "put"
-                args: ["topology", "sourcefire"]
-    -   id: "metricConfig"
-        className: "org.apache.commons.configuration.BaseConfiguration"
-        configMethods:
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.reporter.graphite"
-                    - "${org.apache.metron.metrics.reporter.graphite}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.reporter.console"
-                    - "${org.apache.metron.metrics.reporter.console}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.reporter.jmx"
-                    - "${org.apache.metron.metrics.reporter.jmx}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.graphite.address"
-                    - "${org.apache.metron.metrics.graphite.address}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.graphite.port"
-                    - "${org.apache.metron.metrics.graphite.port}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryParserBolt.acks"
-                    - "${org.apache.metron.metrics.TelemetryParserBolt.acks}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryParserBolt.emits"
-                    - "${org.apache.metron.metrics.TelemetryParserBolt.emits}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryParserBolt.fails"
-                    - "${org.apache.metron.metrics.TelemetryParserBolt.fails}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.GenericEnrichmentBolt.acks"
-                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.acks}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.GenericEnrichmentBolt.emits"
-                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.emits}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.GenericEnrichmentBolt.fails"
-                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.fails}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryIndexingBolt.acks"
-                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.acks}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryIndexingBolt.emits"
-                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.emits}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryIndexingBolt.fails"
-                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.fails}"
+            - "${kafka.broker}"
     -   id: "zkHosts"
         className: "storm.kafka.ZkHosts"
         constructorArgs:
@@ -168,18 +35,28 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "${spout.kafka.topic.pcap}"
+            - "${spout.kafka.topic.snort}"
             # zk root
             - ""
             # id
-            - "${spout.kafka.topic.pcap}"
+            - "${spout.kafka.topic.snort}"
         properties:
-            -   name: "forceFromStart"
+            -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
                 value: -1
 
 spouts:
+    -   id: "testingSpout"
+        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
+        parallelism: 1
+        configMethods:
+            -   name: "withFilename"
+                args:
+                    - "SampleInput/YafExampleOutput"
+            -   name: "withRepeating"
+                args:
+                    - true
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
@@ -187,229 +64,16 @@ spouts:
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.bolt.TelemetryParserBolt"
-        configMethods:
-            -   name: "withMessageParser"
-                args:
-                    - ref: "parser"
-            -   name: "withEnrichments"
-                args:
-                    - ref: "enrichments"
-    -   id: "indexingBolt"
-        className: "org.apache.metron.indexing.TelemetryIndexingBolt"
-        configMethods:
-            -   name: "withIndexIP"
-                args:
-                    - "${es.ip}"
-            -   name: "withIndexPort"
-                args:
-                    - ${es.port}
-            -   name: "withClusterName"
-                args:
-                    - "${es.clustername}"
-            -   name: "withIndexName"
-                args:
-                    - "sourcefire_index"
-            -   name: "withIndexTimestamp"
-                args:
-                    - "yyyy.MM.dd.hh"
-            -   name: "withDocumentName"
-                args:
-                    - "sourcefire_doc"
-            -   name: "withBulk"
-                args:
-                    - 1
-            -   name: "withIndexAdapter"
-                args:
-                    - ref: "indexAdapter"
-            -   name: "withMetricConfiguration"
-                args:
-                    - ref: "metricConfig"
-    -   id: "alertsBolt"
-        className: "org.apache.metron.alerts.TelemetryAlertsBolt"
-        configMethods:
-            -   name: "withIdentifier"
-                args:
-                    - ref: "alertsIdentifier"
-            -   name: "withMaxCacheSize"
-                args: [1000]
-            -   name: "withMaxTimeRetain"
-                args: [3600]
-            -   name: "withAlertsAdapter"
-                args:
-                    - ref: "alertsAdapter"
-            -   name: "withOutputFieldName"
-                args: ["message"]
-            -   name: "withMetricConfiguration"
-                args:
-                    - ref: "metricConfig"
-    -   id: "alertsIndexingBolt"
-        className: "org.apache.metron.indexing.TelemetryIndexingBolt"
-        configMethods:
-            -   name: "withIndexIP"
-                args:
-                    - "${es.ip}"
-            -   name: "withIndexPort"
-                args:
-                    - ${es.port}
-            -   name: "withClusterName"
-                args:
-                    - "${es.clustername}"
-            -   name: "withIndexName"
-                args:
-                    - "alert"
-            -   name: "withIndexTimestamp"
-                args:
-                    - "yyyy.MM.ww"
-            -   name: "withDocumentName"
-                args:
-                    - "sourcefire_alert"
-            -   name: "withBulk"
-                args:
-                    - 1
-            -   name: "withIndexAdapter"
-                args:
-                    - ref: "indexAdapter"
-            -   name: "withMetricConfiguration"
-                args:
-                    - ref: "metricConfig"
-    -   id: "errorIndexingBolt"
-        className: "org.apache.metron.indexing.TelemetryIndexingBolt"
-        configMethods:
-            -   name: "withIndexIP"
-                args:
-                    - "${es.ip}"
-            -   name: "withIndexPort"
-                args:
-                    - ${es.port}
-            -   name: "withClusterName"
-                args:
-                    - "${es.clustername}"
-            -   name: "withIndexName"
-                args:
-                    - "error"
-            -   name: "withIndexTimestamp"
-                args:
-                    - "yyyy.MM"
-            -   name: "withDocumentName"
-                args:
-                    - "sourcefire_error"
-            -   name: "withBulk"
-                args:
-                    - 1
-            -   name: "withIndexAdapter"
-                args:
-                    - ref: "indexAdapter"
-            -   name: "withMetricConfiguration"
-                args:
-                    - ref: "metricConfig"
-    -   id: "geoEnrichmentBolt"
-        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-        configMethods:
-            -   name: "withEnrichment"
-                args:
-                    - ref: "geoEnrichment"
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-    -   id: "hostEnrichmentBolt"
-        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-        configMethods:
-            -   name: "withEnrichment"
-                args:
-                    - ref: "hostEnrichment"
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-    -   id: "joinBolt"
-        className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
-        configMethods:
-        -   name: "withEnrichments"
-            args:
-                - ref: "enrichments"
-        -   name: "withMaxCacheSize"
-            args: [10000]
-        -   name: "withMaxTimeRetain"
-            args: [10]
+        className: "org.apache.metron.bolt.ParserBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+            - "${spout.kafka.topic.snort}"
+            - ref: "parser"
+            - ref: "writer"
 
 streams:
-    -   name: "spout -> parser"
+    -   name: "spout -> bolt"
         from: "kafkaSpout"
         to: "parserBolt"
         grouping:
-            type: SHUFFLE
-    -   name: "parser -> host"
-        from: "parserBolt"
-        to: "hostEnrichmentBolt"
-        grouping:
-            streamId: "host"
-            type: FIELDS
-            args: ["key"]
-    -   name: "parser -> geo"
-        from: "parserBolt"
-        to: "geoEnrichmentBolt"
-        grouping:
-            streamId: "geo"
-            type: FIELDS
-            args: ["key"]
-    -   name: "parser -> join"
-        from: "parserBolt"
-        to: "joinBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-    -   name: "geo -> join"
-        from: "geoEnrichmentBolt"
-        to: "joinBolt"
-        grouping:
-            streamId: "geo"
-            type: FIELDS
-            args: ["key"]
-    -   name: "host -> join"
-        from: "hostEnrichmentBolt"
-        to: "joinBolt"
-        grouping:
-            streamId: "host"
-            type: FIELDS
-            args: ["key"]
-    -   name: "join -> alerts"
-        from: "joinBolt"
-        to: "alertsBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-    -   name: "alerts -> alertsIndexing"
-        from: "alertsBolt"
-        to: "alertsIndexingBolt"
-        grouping:
-            streamId: "message"
-            type: SHUFFLE
-    -   name: "join -> indexing"
-        from: "joinBolt"
-        to: "indexingBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-    -   name: "parser -> errors"
-        from: "parserBolt"
-        to: "errorIndexingBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE
-    -   name: "indexing -> errors"
-        from: "indexingBolt"
-        to: "errorIndexingBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE
-    -   name: "alerts -> errors"
-        from: "alertsBolt"
-        to: "errorIndexingBolt"
-        grouping:
-            streamId: "error"
             type: SHUFFLE

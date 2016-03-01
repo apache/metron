@@ -20,7 +20,7 @@ config:
 
 
 components:
-    -   id: "broParser"
+    -   id: "parser"
         className: "org.apache.metron.parsing.parsers.BasicBroParser"
     -   id: "writer"
         className: "org.apache.metron.writer.KafkaWriter"

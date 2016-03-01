@@ -19,103 +19,12 @@ config:
     topology.workers: 1
 
 components:
-    -   id: "paloAltoParser"
+    -   id: "parser"
         className: "org.apache.metron.parsing.parsers.BasicPaloAltoFirewallParser"
-    -   id: "genericMessageFilter"
-        className: "org.apache.metron.filters.GenericMessageFilter"
-    -   id: "filenameFormat"
-        className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
-        configMethods:
-            -   name: "withPath"
-                args:
-                    - "${bolt.hdfs.wip.file.path}"
-    -   id: "messageField"
-        className: "backtype.storm.tuple.Fields"
+    -   id: "writer"
+        className: "org.apache.metron.writer.KafkaWriter"
         constructorArgs:
-            - ["message"]
-    -   id: "recordFormat"
-        className: "org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat"
-        configMethods:
-            -   name: "withFieldDelimiter"
-                args:
-                    - "${bolt.hdfs.field.delimiter}"
-            -   name: "withFields"
-                args:
-                    - ref: "messageField"
-    -   id: "rotationPolicy"
-        className: "org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy"
-        constructorArgs:
-            - ${bolt.hdfs.file.rotation.size.in.mb}
-            - MB
-    -   id: "syncPolicy"
-        className: "org.apache.storm.hdfs.bolt.sync.CountSyncPolicy"
-        constructorArgs:
-            - ${bolt.hdfs.batch.size}
-    -   id: "moveFileAction"
-        className: "org.apache.storm.hdfs.common.rotation.MoveFileAction"
-        configMethods:
-            -   name: "toDestination"
-                args:
-                    - "${bolt.hdfs.finished.file.path}"
-    -   id: "metricConfig"
-        className: "org.apache.commons.configuration.BaseConfiguration"
-        configMethods:
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.reporter.graphite"
-                    - "${org.apache.metron.metrics.reporter.graphite}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.reporter.console"
-                    - "${org.apache.metron.metrics.reporter.console}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.reporter.jmx"
-                    - "${org.apache.metron.metrics.reporter.jmx}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.graphite.address"
-                    - "${org.apache.metron.metrics.graphite.address}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.graphite.port"
-                    - "${org.apache.metron.metrics.graphite.port}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryParserBolt.acks"
-                    - "${org.apache.metron.metrics.TelemetryParserBolt.acks}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryParserBolt.emits"
-                    - "${org.apache.metron.metrics.TelemetryParserBolt.emits}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryParserBolt.fails"
-                    - "${org.apache.metron.metrics.TelemetryParserBolt.fails}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.GenericEnrichmentBolt.acks"
-                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.acks}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.GenericEnrichmentBolt.emits"
-                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.emits}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.GenericEnrichmentBolt.fails"
-                    - "${org.apache.metron.metrics.GenericEnrichmentBolt.fails}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryIndexingBolt.acks"
-                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.acks}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryIndexingBolt.emits"
-                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.emits}"
-            -   name: "setProperty"
-                args:
-                    - "org.apache.metron.metrics.TelemetryIndexingBolt.fails"
-                    - "${org.apache.metron.metrics.TelemetryIndexingBolt.fails}"
+            - "${kafka.broker}"
     -   id: "zkHosts"
         className: "storm.kafka.ZkHosts"
         constructorArgs:
@@ -126,18 +35,28 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "${spout.kafka.topic.paloalto}"
+            - "${spout.kafka.topic.snort}"
             # zk root
             - ""
             # id
-            - "${spout.kafka.topic.paloalto}"
+            - "${spout.kafka.topic.snort}"
         properties:
-            -   name: "forceFromStart"
+            -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
                 value: -1
 
 spouts:
+    -   id: "testingSpout"
+        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
+        parallelism: 1
+        configMethods:
+            -   name: "withFilename"
+                args:
+                    - "SampleInput/YafExampleOutput"
+            -   name: "withRepeating"
+                args:
+                    - true
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
@@ -145,42 +64,16 @@ spouts:
 
 bolts:
     -   id: "parserBolt"
-        className: "org.apache.metron.bolt.TelemetryParserBolt"
-        configMethods:
-            -   name: "withMessageParser"
-                args:
-                    - ref: "paloAltoParser"
-    -   id: "hdfsBolt"
-        className: "org.apache.storm.hdfs.bolt.HdfsBolt"
-        configMethods:
-            -   name: "withFsUrl"
-                args:
-                    - "${bolt.hdfs.file.system.url}"
-            -   name: "withFileNameFormat"
-                args:
-                    - ref: "filenameFormat"
-            -   name: "withRecordFormat"
-                args:
-                    - ref: "recordFormat"
-            -   name: "withRotationPolicy"
-                args:
-                    - ref: "rotationPolicy"
-            -   name: "withSyncPolicy"
-                args:
-                    - ref: "syncPolicy"
-            -   name: "addRotationAction"
-                args:
-                    - ref: "moveFileAction"
+        className: "org.apache.metron.bolt.ParserBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+            - "${spout.kafka.topic.snort}"
+            - ref: "parser"
+            - ref: "writer"
 
 streams:
-    -   name: "spout -> parser"
+    -   name: "spout -> bolt"
         from: "kafkaSpout"
         to: "parserBolt"
         grouping:
-            type: SHUFFLE
-    -   name: "parser -> hdfs"
-        from: "parserBolt"
-        to: "hdfsBolt"
-        grouping:
-            streamId: "message"
             type: SHUFFLE
