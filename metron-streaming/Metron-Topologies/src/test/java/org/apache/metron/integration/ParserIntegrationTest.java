@@ -18,76 +18,53 @@
 package org.apache.metron.integration;
 
 import com.google.common.base.Function;
+import kafka.api.FetchRequest;
+import kafka.api.FetchRequestBuilder;
 import kafka.consumer.ConsumerIterator;
+import kafka.javaapi.FetchResponse;
+import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.producer.Producer;
 import kafka.message.MessageAndMetadata;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.metron.Constants;
+import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
+import org.apache.metron.integration.util.integration.ComponentRunner;
+import org.apache.metron.integration.util.integration.Processor;
+import org.apache.metron.integration.util.integration.ReadinessState;
+import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
 import org.apache.metron.spout.pcap.HDFSWriterCallback;
 import org.apache.metron.test.converters.HexStringConverter;
+import org.apache.metron.utils.SourceConfigUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
-public class ParserIntegrationTest {
+public abstract class ParserIntegrationTest {
 
-  private String topologiesDir = "src/main/resources/Metron_Configs/topologies";
-  private String targetDir = "target";
-  private String samplePath = "src/main/resources/SampleInput/YafExampleOutput";
-
-  private static File getOutDir(String targetDir) {
-    File outDir = new File(new File(targetDir), "pcap_ng");
-    if (!outDir.exists()) {
-      outDir.mkdirs();
-      outDir.deleteOnExit();
-    }
-    return outDir;
-  }
-  private static void clearOutDir(File outDir) {
-    for(File f : outDir.listFiles()) {
-      f.delete();
-    }
-  }
-  private static int numFiles(File outDir) {
-    return outDir.listFiles().length;
-  }
-
-  private static List<byte[]> readMessages(File sampleDataFile) throws IOException {
-    BufferedReader br = new BufferedReader(new FileReader(sampleDataFile));
-    List<byte[]> ret = new ArrayList<>();
-    for(String line = null;(line = br.readLine()) != null;) {
-      long ts = System.currentTimeMillis();
-      ret.add(line.getBytes());
-    }
-    return ret;
-  }
+  public abstract String getFluxPath();
+  public abstract String getSampleInputPath();
+  public abstract String getSampleParsedPath();
+  public abstract String getSourceType();
+  public abstract String getSourceConfig();
+  public abstract String getFluxTopicProperty();
 
   @Test
   public void test() throws Exception {
-    UnitTestHelper.verboseLogging();
-    if (!new File(topologiesDir).exists()) {
-      topologiesDir = UnitTestHelper.findDir("topologies");
-    }
-    targetDir = UnitTestHelper.findDir("target");
-    final String kafkaTopic = "yaf";
-    final File outDir = getOutDir(targetDir);
-    clearOutDir(outDir);
-    Assert.assertEquals(0, numFiles(outDir));
-    Assert.assertNotNull(topologiesDir);
-    Assert.assertNotNull(targetDir);
+
+    final String kafkaTopic = "test";
+
+    final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleInputPath());
 
     final Properties topologyProperties = new Properties() {{
-      setProperty("spout.kafka.topic.yaf", kafkaTopic);
+      setProperty(getFluxTopicProperty(), kafkaTopic);
     }};
     final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
@@ -97,24 +74,58 @@ public class ParserIntegrationTest {
               @Override
               public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
                 topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
+                try {
+                  SourceConfigUtils.writeToZookeeper(getSourceType(), getSourceConfig().getBytes(), kafkaWithZKComponent.getZookeeperConnect());
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
                 return null;
               }
             });
 
-    kafkaComponent.writeMessages(kafkaTopic, readMessages(new File(samplePath)));
+    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
+    FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
+            .withTopologyLocation(new File(getFluxPath()))
+            .withTopologyName("test")
+            .withTopologyProperties(topologyProperties)
+            .build();
 
-//    FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
-//            .withTopologyLocation(new File(topologiesDir + "/pcap_ng/remote.yaml"))
-//            .withTopologyName("pcap_ng")
-//            .withTopologyProperties(topologyProperties)
-//            .build();
+    UnitTestHelper.verboseLogging();
+    ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("kafka", kafkaComponent)
+            .withComponent("storm", fluxComponent)
+            .withTimeBetweenAttempts(5000)
+            .build();
+    runner.start();
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(kafkaTopic, inputMessages);
+    List<byte[]> outputMessages =
+            runner.process(new Processor<List<byte[]>>() {
+              List<byte[]> messages = null;
 
-    List<byte[]> consumedMessages = new ArrayList<>();
-    ConsumerIterator consumerIterator = kafkaComponent.getStreamIterator(kafkaTopic);
-    while(consumerIterator.hasNext()) {
-      MessageAndMetadata messageAndMetadata = consumerIterator.next();
-      consumedMessages.add(messageAndMetadata.message().toString().getBytes());
+              public ReadinessState process(ComponentRunner runner) {
+                KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
+                List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                if (outputMessages.size() == inputMessages.size()) {
+                  messages = outputMessages;
+                  return ReadinessState.READY;
+                } else {
+                  return ReadinessState.NOT_READY;
+                }
+              }
+
+              public List<byte[]> getResult() {
+                return messages;
+              }
+            });
+    List<byte[]> sampleParsedMessages = TestUtils.readSampleData(getSampleParsedPath());
+    Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());
+    for (int i = 0; i < outputMessages.size(); i++) {
+      String sampleParsedMessage = new String(sampleParsedMessages.get(i));
+      String outputMessage = new String(outputMessages.get(i));
+      Assert.assertEquals(sampleParsedMessage, outputMessage);
     }
+    runner.stop();
 
   }
 }

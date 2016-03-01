@@ -158,7 +158,7 @@ public class PcapIntegrationTest {
                 ElasticSearchComponent elasticSearchComponent = runner.getComponent("elasticsearch", ElasticSearchComponent.class);
                 if(elasticSearchComponent.hasIndex(index)) {
                     try {
-                        docs = elasticSearchComponent.getAllIndexedDocs(index);
+                        docs = elasticSearchComponent.getAllIndexedDocs(index, "pcap_doc");
                     } catch (IOException e) {
                         throw new IllegalStateException("Unable to retrieve indexed documents.", e);
                     }
