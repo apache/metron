@@ -89,8 +89,13 @@ public class BasicBroParser extends BasicParser {
             long timestamp = 0L;
             if (payload.containsKey("timestamp")) {
                 try {
-                    timestamp = Long.parseLong(payload.get("timestamp").toString());
+                    String broTimestamp = payload.get("timestamp").toString();
+                    String convertedTimestamp = broTimestamp.replace(".","");
+                    convertedTimestamp = convertedTimestamp.substring(0,13);
+                    timestamp = Long.parseLong(convertedTimestamp);
                     payload.put("timestamp", timestamp);
+                    payload.put("bro_timestamp",broTimestamp);
+                    _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get("timestamp")));
                 } catch (NumberFormatException nfe) {
                     _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
                     payload.put("timestamp", 0);

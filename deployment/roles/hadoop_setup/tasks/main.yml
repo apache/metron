@@ -26,10 +26,11 @@
 
 #if kafka topic
 - name: Create Kafka topics
-  shell: "{{ kafka_home }}/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --create --topic {{ item }} --partitions 1 --replication-factor 1"
+  shell: "{{ kafka_home }}/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --create --topic {{ item }} --partitions {{ num_partitions }} --replication-factor 1 --config retention.bytes={{ retention_in_gb * 1024 * 1024 * 1024}}"
   ignore_errors: yes
   with_items:
     - "{{ pycapa_topic }}"
     - "{{ bro_topic }}"
     - "{{ yaf_topic }}"
     - "{{ snort_topic }}"
+    - "{{ enrichments_topic }}"

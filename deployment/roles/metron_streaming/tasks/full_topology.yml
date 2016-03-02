@@ -15,8 +15,12 @@
 #  limitations under the License.
 #
 ---
-fixbuf_version: 1.7.1
-yaf_version: 2.8.0
-yaf_home: /opt/yaf
-yaf_topic: ipfix
-hdp_repo_def: http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.2.0/hdp.repo
+
+- name: Submit Metron topologies
+  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ item }} --filter {{ metron_properties_config_path }}
+  with_items:
+    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/pcap/parse.yaml"
+    - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"

@@ -19,12 +19,16 @@
   sudo: yes
   roles:
     - role: metron_common
+  tags:
+    - metron-prereqs
 
 - hosts: hadoop_client
   sudo: yes
   roles:
     - role: ambari_gather_facts
     - role: hadoop_setup
+  tags:
+    - metron-prereqs
 
 - hosts: search
   sudo: yes
@@ -38,13 +42,22 @@
 - hosts: mysql
   sudo: yes
   roles:
-    - role: mysql
+    - role: mysql_server
   tags:
-    - mysql
+    - mysql-server
+
+- hosts: ambari_slave
+  sudo: yes
+  roles:
+    - role: mysql_client
+  tags:
+    - mysql-client
+
 
 - hosts: sensors
   sudo: yes
   roles:
+    - { role: tap_interface, when: install_tap | default(False) == True }
     - role: ambari_gather_facts
     - role: flume
     - role: pycapa

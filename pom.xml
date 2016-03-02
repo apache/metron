@@ -45,7 +45,7 @@
 						<exclude>**/.*</exclude>
 						<exclude>**/.*/**</exclude>
 						<exclude>**/*.seed</exclude>
-            <exclude>**/*.iml</exclude>
+						<exclude>**/*.iml</exclude>
 						<exclude>**/ansible.cfg</exclude>
 						<exclude>site/**</exclude>
 						<exclude>metron-ui/lib/public/**</exclude>
@@ -54,7 +54,6 @@
 						<exclude>**/src/main/resources/Sample*/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
 					        <exclude>**/files/opensoc-ui</exclude>
-					        <exclude>**/*.iml</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

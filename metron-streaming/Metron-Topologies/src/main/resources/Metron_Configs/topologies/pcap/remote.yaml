@@ -19,12 +19,12 @@ config:
     topology.workers: 1
 
 components:
+# Parser
     -   id: "parser"
         className: "org.apache.metron.parsing.parsers.PcapParser"
         configMethods:
             -   name: "withTsPrecision"
                 args: ["MICRO"]
-
 # Threat Intel
     -   id: "ipThreatIntelConfig"
         className: "org.apache.metron.threatintel.ThreatIntelConfig"
@@ -50,7 +50,7 @@ components:
     -   id: "ipThreatIntelEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         properties:
-           - name: "name"
+           - name: "type"
              value: "ip"
            - name: "fields"
              value: ["message/ip_src_addr", "message/ip_dst_addr"]
@@ -62,35 +62,8 @@ components:
             -   name: "add"
                 args:
                     - ref: "ipThreatIntelEnrichment"
-#Enrichment
-#    -   id: "jdbcConfig"
-#        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
-#        properties:
-#            -   name: "host"
-#                value: "${mysql.ip}"
-#            -   name: "port"
-#                value: ${mysql.port}
-#            -   name: "username"
-#                value: "${mysql.username}"
-#            -   name: "password"
-#                value: "${mysql.password}"
-#            -   name: "table"
-#                value: "GEO"
-#    -   id: "geoEnrichmentAdapter"
-#        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
-#        configMethods:
-#            -   name: "withJdbcConfig"
-#                args:
-#                    - ref: "jdbcConfig"
-#    -   id: "geoEnrichment"
-#        className: "org.apache.metron.domain.Enrichment"
-#        properties:
-#            -   name: "name"
-#                value:  "geo"
-#            -   name: "fields"
-#                value: ["ip_src_addr", "ip_dst_addr"]
-#            -   name: "adapter"
-#                ref: "geoEnrichmentAdapter"
+# Enrichment
+
     -   id: "hostEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
         constructorArgs:
@@ -98,7 +71,7 @@ components:
     -   id: "hostEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         properties:
-            -   name: "name"
+            -   name: "type"
                 value:  "host"
             -   name: "fields"
                 value: ["ip_src_addr", "ip_dst_addr"]
@@ -107,12 +80,10 @@ components:
     -   id: "enrichments"
         className: "java.util.ArrayList"
         configMethods:
-#            -   name: "add"
-#                args:
-#                    - ref: "geoEnrichment"
             -   name: "add"
                 args:
                     - ref: "hostEnrichment"
+#indexing
     -   id: "indexAdapter"
         className: "org.apache.metron.indexing.adapters.ESTimedRotatingAdapter"
     -   id: "metricConfig"
@@ -190,10 +161,13 @@ components:
             # id
             - "${spout.kafka.topic.pcap}"
         properties:
-            -   name: "forceFromStart"
+            -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
                 value: -1
+            -   name: "socketTimeoutMs"
+                value: 1000000
+#hbase bolt
     -   id: "hbaseConfig"
         className: "org.apache.metron.hbase.TupleTableConfig"
         configMethods:
@@ -217,7 +191,6 @@ spouts:
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
-
 bolts:
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.HBaseBolt"
@@ -226,6 +199,8 @@ bolts:
             - "${kafka.zk}"
     -   id: "parserBolt"
         className: "org.apache.metron.bolt.PcapParserBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withMessageParser"
                 args:
@@ -235,6 +210,8 @@ bolts:
                     - ref: "enrichments"
     -   id: "indexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withIndexIP"
                 args:
@@ -265,6 +242,8 @@ bolts:
                     - ref: "metricConfig"
     -   id: "errorIndexingBolt"
         className: "org.apache.metron.indexing.TelemetryIndexingBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withIndexIP"
                 args:
@@ -293,15 +272,19 @@ bolts:
             -   name: "withMetricConfiguration"
                 args:
                     - ref: "metricConfig"
-    # Threat Intel Bolts
+# Threat Intel Bolts
     -   id: "threatIntelSplitBolt"
         className: "org.apache.metron.enrichment.bolt.EnrichmentSplitterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withEnrichments"
                 args:
                     - ref: "threatIntels"
     -   id: "ipThreatIntelBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withEnrichment"
                 args:
@@ -312,29 +295,21 @@ bolts:
                 args: [10]
     -   id: "threatIntelJoinBolt"
         className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withEnrichments"
                 args:
                     - ref: "threatIntels"
-            -   name: "withType"
-                args:
-                    - "alerts"
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
-#    -   id: "geoEnrichmentBolt"
-#        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-#        configMethods:
-#            -   name: "withEnrichment"
-#                args:
-#                    - ref: "geoEnrichment"
-#            -   name: "withMaxCacheSize"
-#                args: [10000]
-#            -   name: "withMaxTimeRetain"
-#                args: [10]
+# Enrichment Bolts
     -   id: "hostEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
             -   name: "withEnrichment"
                 args:
@@ -345,6 +320,8 @@ bolts:
                 args: [10]
     -   id: "joinBolt"
         className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
+        constructorArgs:
+            - "${kafka.zk}"
         configMethods:
         -   name: "withEnrichments"
             args:
@@ -355,11 +332,13 @@ bolts:
             args: [10]
 
 streams:
+#parser
     -   name: "spout -> parser"
         from: "kafkaSpout"
         to: "parserBolt"
         grouping:
             type: SHUFFLE
+#hbase
     -   name: "parser -> hbase"
         from: "parserBolt"
         to: "hbaseBolt"
@@ -367,6 +346,7 @@ streams:
             streamId: "raw"
             type: FIELDS
             args: ["key"]
+#enrichment
     -   name: "parser -> host"
         from: "parserBolt"
         to: "hostEnrichmentBolt"
@@ -374,13 +354,6 @@ streams:
             streamId: "host"
             type: FIELDS
             args: ["key"]
-#    -   name: "parser -> geo"
-#        from: "parserBolt"
-#        to: "geoEnrichmentBolt"
-#        grouping:
-#            streamId: "geo"
-#            type: FIELDS
-#            args: ["key"]
     -   name: "parser -> join"
         from: "parserBolt"
         to: "joinBolt"
@@ -388,13 +361,6 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-#    -   name: "geo -> join"
-#        from: "geoEnrichmentBolt"
-#        to: "joinBolt"
-#        grouping:
-#            streamId: "geo"
-#            type: FIELDS
-#            args: ["key"]
     -   name: "host -> join"
         from: "hostEnrichmentBolt"
         to: "joinBolt"
@@ -402,6 +368,7 @@ streams:
             streamId: "host"
             type: FIELDS
             args: ["key"]
+
 #threat intel
     -   name: "enrichmentJoin -> threatSplit"
         from: "joinBolt"

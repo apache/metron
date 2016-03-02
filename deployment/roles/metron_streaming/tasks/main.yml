@@ -52,6 +52,10 @@
     - "etc"
     - "topologies"
 
+- name: Get Default mysql passowrd
+  include_vars: "../roles/mysql_server/vars/main.yml"
+  when: mysql_root_password is undefined
+
 - name: Configure Metron topologies
   lineinfile: >
     dest={{ metron_properties_config_path }}
@@ -59,6 +63,7 @@
     line="{{ item.line }}"
   with_items:
     - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
+    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
     - { regexp: "es.ip=", line: "es.ip={{ groups.search[0] }}" }
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
@@ -70,7 +75,8 @@
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
     - { regexp: "threat.intel.ip.table=", line: "threat.intel.ip.table={{ threatintel_ip_hbase_table }}" }
     - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
-    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.search[0] }}" }
+    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
+    - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
 
 - name: Add Elasticsearch templates for topologies
   uri:
@@ -80,11 +86,11 @@
     status_code: 200
     body_format: json
 
-- name: Submit Metron topologies
-  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ item }} --filter {{ metron_properties_config_path }}
-  ignore_errors: yes
-  with_items:
-    - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
+- include: source_config.yml
+  run_once: true
+- include: threat_intel.yml
+  run_once: true
+  when: threat_intel_bulk_load == True
+
+- include: "{{ topology_name }}"
+
