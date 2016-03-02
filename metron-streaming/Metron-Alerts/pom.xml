@@ -141,8 +141,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                  <source>${global_java_version}</source>
+                  <target>${global_java_version}</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -150,7 +150,7 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <targetJdk>1.7</targetJdk>
+                  <targetJdk>${global_java_version}</targetJdk>
                 </configuration>
             </plugin>
             <plugin>

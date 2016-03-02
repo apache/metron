@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package storm.kafka;
 
 import backtype.storm.spout.ISpoutOutputCollector;
@@ -19,6 +37,11 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     }
 
 
+    public static int getPartition(Object messageIdObj) {
+        PartitionManager.KafkaMessageId messageId = (PartitionManager.KafkaMessageId) messageIdObj;
+        return messageId.partition.partition;
+    }
+
     /**
      * Emits a new tuple to the specified output stream with the given message ID.
      * When Storm detects that this tuple has been fully processed, or has failed
@@ -34,7 +57,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId)
+        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId))
                                                                        .with(EmitContext.Type.STREAM_ID, streamId)
                                         );
         return _delegate.emit(streamId, t, messageId);
@@ -54,7 +77,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public List<Integer> emit(List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId));
+        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId)));
         return _delegate.emit(t, messageId);
     }
 
@@ -99,7 +122,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public void emitDirect(int taskId, String streamId, List<Object> tuple, Object messageId) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
-                                                                       .with(EmitContext.Type.MESSAGE_ID, messageId)
+                                                                       .with(EmitContext.Type.PARTITION, getPartition(messageId))
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
                                         );
         _delegate.emitDirect(taskId, streamId, t, messageId);
@@ -117,7 +140,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public void emitDirect(int taskId, List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId)
+        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId))
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
                        );
         _delegate.emitDirect(taskId, t, messageId);

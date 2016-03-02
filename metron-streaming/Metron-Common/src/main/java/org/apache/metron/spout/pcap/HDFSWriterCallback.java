@@ -1,40 +1,96 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.metron.spout.pcap;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSOutputStream;
+import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
 import storm.kafka.Callback;
 import storm.kafka.EmitContext;
+import storm.kafka.PartitionManager;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HDFSWriterCallback implements Callback {
     static final long serialVersionUID = 0xDEADBEEFL;
     private static final Logger LOG = Logger.getLogger(HDFSWriterCallback.class);
-    public static final byte[] PCAP_GLOBAL_HEADER = new byte[] {
-            (byte) 0xd4, (byte) 0xc3, (byte) 0xb2, (byte) 0xa1, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00
-            ,0x00, 0x00, 0x00, 0x00, (byte) 0xff, (byte) 0xff, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00
-    };
 
-    private static final List<Object> RET_TUPLE = ImmutableList.of((Object)Byte.valueOf((byte) 0x00), Byte.valueOf((byte)0x00));
-    private FileSystem fs;
-    private SequenceFile.Writer writer;
+    static class Partition {
+        String topic;
+        int partition;
+
+        public Partition(String topic, int partition) {
+            this.topic = topic;
+            this.partition = partition;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Partition partition1 = (Partition) o;
+
+            if (partition != partition1.partition) return false;
+            return topic != null ? topic.equals(partition1.topic) : partition1.topic == null;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = topic != null ? topic.hashCode() : 0;
+            result = 31 * result + partition;
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Partition{" +
+                    "topic='" + topic + '\'' +
+                    ", partition=" + partition +
+                    '}';
+        }
+    }
+
     private HDFSWriterConfig config;
-    private long batchStartTime;
-    private long numWritten;
     private EmitContext context;
-
+    private Map<Partition, PartitionHDFSWriter> writers = new HashMap<>();
+    private PartitionHDFSWriter lastWriter = null;
+    private String topic;
     public HDFSWriterCallback() {
-        //this.config = config;
     }
 
     public HDFSWriterCallback withConfig(HDFSWriterConfig config) {
@@ -45,21 +101,13 @@ public class HDFSWriterCallback implements Callback {
     @Override
     public List<Object> apply(List<Object> tuple, EmitContext context) {
 
-        /**
-         * TODO: Figure out if append is really atomic or what
-         * TODO: Put timer in here to rotate file periodically.
-         * TODO: Roll files per partition
-         */
         List<Object> keyValue = (List<Object>) tuple.get(0);
         LongWritable ts = (LongWritable) keyValue.get(0);
         BytesWritable rawPacket = (BytesWritable)keyValue.get(1);
-        System.out.println("Packet: " + ts.get());
         try {
-            turnoverIfNecessary(ts.get());
-            writer.append(ts, headerize(rawPacket.getBytes()));
-            writer.hflush();
-            writer.syncFs();
-            numWritten++;
+            getWriter(new Partition( topic
+                                   , context.get(EmitContext.Type.PARTITION))
+                     ).handle(ts, rawPacket);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             //drop?  not sure..
@@ -67,53 +115,27 @@ public class HDFSWriterCallback implements Callback {
         return tuple;
     }
 
-    private static BytesWritable headerize(byte[] packet) {
-        byte[] ret = new byte[packet.length + PCAP_GLOBAL_HEADER.length];
-        int offset = 0;
-        System.arraycopy(PCAP_GLOBAL_HEADER, 0, ret, offset, PCAP_GLOBAL_HEADER.length);
-        offset += PCAP_GLOBAL_HEADER.length;
-        System.arraycopy(packet, 0, ret, offset, packet.length);
-        return new BytesWritable(ret);
-    }
-
-
-    private synchronized void turnoverIfNecessary(long ts) throws IOException {
-        long duration = ts - batchStartTime;
-        if(batchStartTime == 0L || duration > config.getMaxTimeMS() || numWritten > config.getNumPackets()) {
-            //turnover
-            Path path = getPath(ts);
-            if(writer != null) {
-                writer.close();
-            }
-            writer = SequenceFile.createWriter(new Configuration()
-                                              , SequenceFile.Writer.file(path)
-                                              , SequenceFile.Writer.keyClass(LongWritable.class)
-                                              , SequenceFile.Writer.valueClass(BytesWritable.class)
-                                              );
-            //reset state
-            LOG.info("Turning over and writing to " + path);
-            batchStartTime = ts;
-            numWritten = 0;
+    private PartitionHDFSWriter getWriter(Partition partition) {
+        //if we have just one partition or a run from a single partition in this spout, we don't want a map lookup
+        if(lastWriter != null && lastWriter.getTopic().equals(partition.topic) && lastWriter.getPartition() == partition.partition) {
+            return lastWriter;
         }
-
-    }
-
-    private Path getPath(long ts) {
-        String fileName = Joiner.on("_").join("pcap"
-                                             , "" + ts
-                                             , context.get(EmitContext.Type.UUID)
-        );
-        return new Path(config.getOutputPath(), fileName);
+        lastWriter = writers.get(partition);
+        if(lastWriter == null) {
+            lastWriter = new PartitionHDFSWriter( partition.topic
+                                         , partition.partition
+                                         , context.get(EmitContext.Type.UUID)
+                                         , config
+                                         );
+            writers.put(partition, lastWriter);
+        }
+        return lastWriter;
     }
 
     @Override
     public void initialize(EmitContext context) {
         this.context = context;
-        try {
-            fs = FileSystem.get(new Configuration());
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to create filesystem", e);
-        }
+        this.topic = context.get(EmitContext.Type.TOPIC);
     }
 
     /**
@@ -154,7 +176,7 @@ public class HDFSWriterCallback implements Callback {
      */
     @Override
     public void close() throws Exception {
-        if(writer != null) {
+        for(PartitionHDFSWriter writer : writers.values()) {
             writer.close();
         }
     }

@@ -90,7 +90,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<configuration>
-					<targetJdk>1.7</targetJdk>
+          <targetJdk>${global_java_version}</targetJdk>
 				</configuration>
 				
 			</plugin>
@@ -104,8 +104,8 @@
 				<version>3.1</version>
 				<inherited>true</inherited>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+          <source>${global_java_version}</source>
+          <target>${global_java_version}</target>
 				</configuration>
 			</plugin>
 			</plugins>

@@ -41,6 +41,7 @@
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
+		<global_java_version>1.8</global_java_version>
 	</properties>
 	<licenses>
 		<license>
@@ -105,8 +106,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>${global_java_version}</source>
+					<target>${global_java_version}</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -168,7 +169,7 @@
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.3</version>
 				<configuration>
-					<targetJdk>1.7</targetJdk>
+          <targetJdk>${global_java_version}</targetJdk>
 				</configuration>
 			</plugin>
 			<plugin>
