@@ -41,6 +41,8 @@
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
+		<checkstyle_location>style/checkstyle.xml</checkstyle_location>
+		<checkstyle_hdr_location>style/LICENSE</checkstyle_hdr_location>
 	</properties>
 	<licenses>
 		<license>
@@ -95,8 +97,9 @@
           </execution>
         </executions>
         <configuration>
-          <configLocation>style/checkstyle.xml</configLocation>
-          <headerLocation>style/LICENSE</headerLocation>
+          <configLocation>${checkstyle_location}</configLocation>
+          <headerLocation>${checkstyle_hdr_location}</headerLocation>
+          <headerFile>${checkstyle_hdr_file}</headerFile>
           <failOnViolation>true</failOnViolation>
         </configuration>
       </plugin>
