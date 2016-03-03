@@ -15,42 +15,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment;
+package org.apache.metron.enrichment.bolt;
 
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
-import com.google.common.base.Splitter;
+import org.apache.metron.Constants;
 import org.apache.metron.bolt.SplitBolt;
 import org.apache.metron.domain.Enrichment;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
+import org.apache.metron.topology.TopologyUtils;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-/**
- * Created by cstella on 2/10/16.
- */
 public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     protected static final Logger LOG = LoggerFactory.getLogger(EnrichmentSplitterBolt.class);
-    protected List<Enrichment> enrichments = new ArrayList<>();
-    protected String messageFieldName = "message";
-    /**
-     * @param enrichments A class for sending tuples to enrichment bolt
-     * @return Instance of this class
-     */
+    private List<Enrichment> enrichments;
+    protected String messageFieldName;
+    private transient JSONParser parser;
+
+
+    public EnrichmentSplitterBolt(String zookeeperUrl) {
+        super(zookeeperUrl);
+    }
+
     public EnrichmentSplitterBolt withEnrichments(List<Enrichment> enrichments) {
         this.enrichments = enrichments;
         return this;
     }
+
     public EnrichmentSplitterBolt withMessageFieldName(String messageFieldName) {
         this.messageFieldName = messageFieldName;
         return this;
     }
     @Override
     public void prepare(Map map, TopologyContext topologyContext) {
-
+        parser = new JSONParser();
     }
     @Override
     public String getKey(Tuple tuple, JSONObject message) {
@@ -70,51 +76,56 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     }
 
     @Override
-    public List<JSONObject> generateMessages(Tuple tuple) {
-        return Arrays.asList((JSONObject)tuple.getValueByField(messageFieldName));
+    public JSONObject generateMessage(Tuple tuple) {
+        JSONObject message = null;
+        if (messageFieldName == null) {
+            byte[] data = tuple.getBinary(0);
+            try {
+                message = (JSONObject) parser.parse(new String(data, "UTF8"));
+            } catch (ParseException | UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            message = (JSONObject) tuple.getValueByField(messageFieldName);
+        }
+        return message;
     }
 
     @Override
     public Set<String> getStreamIds() {
         Set<String> streamIds = new HashSet<>();
         for(Enrichment enrichment: enrichments) {
-            streamIds.add(enrichment.getName());
+            streamIds.add(enrichment.getType());
         }
         return streamIds;
     }
+
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, JSONObject> splitMessage(JSONObject message) {
-
         Map<String, JSONObject> streamMessageMap = new HashMap<>();
-        for (Enrichment enrichment : enrichments) {
-            List<String> fields = enrichment.getFields();
+        String sourceType = TopologyUtils.getSourceType(message);
+        Map<String, List<String>> enrichmentFieldMap = getFieldMap(sourceType);
+        for (String enrichmentType : enrichmentFieldMap.keySet()) {
+            List<String> fields = enrichmentFieldMap.get(enrichmentType);
+            JSONObject enrichmentObject = new JSONObject();
             if (fields != null && fields.size() > 0) {
-                JSONObject enrichmentObject = new JSONObject();
                 for (String field : fields) {
-                    enrichmentObject.put(field, getField(message,field));
+                    enrichmentObject.put(getKeyName(enrichmentType, field), message.get(field));
                 }
-                streamMessageMap.put(enrichment.getName(), enrichmentObject);
+                enrichmentObject.put(Constants.SOURCE_TYPE, sourceType);
+                streamMessageMap.put(enrichmentType, enrichmentObject);
             }
         }
-        /*if(message != null && enrichments.size() != 1) {
-            throw new RuntimeException("JSON: " + message.toJSONString() + " => " + streamMessageMap);
-        }*/
         return streamMessageMap;
     }
 
-    public Object getField(JSONObject object, String path) {
-        Map ret = object;
-        for(String node: Splitter.on('/').split(path))  {
-            Object o = ret.get(node);
-            if(o instanceof Map) {
-                ret = (Map) o;
-            }
-            else {
-                return o;
-            }
-        }
-        return ret;
+    protected Map<String, List<String>> getFieldMap(String sourceType) {
+        return configurations.get(sourceType).getEnrichmentFieldMap();
+    }
+
+    protected String getKeyName(String type, String field) {
+        return EnrichmentUtils.getEnrichmentKey(type, field);
     }
 
     @Override
@@ -123,7 +134,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     }
 
     @Override
-    public void emitOther(Tuple tuple, List<JSONObject> messages) {
+    public void emitOther(Tuple tuple, JSONObject message) {
 
     }
 }

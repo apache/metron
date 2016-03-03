@@ -15,22 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.integration.util.integration.util;
 
 
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class KafkaUtil {
     public static <K,V> void send(Producer<K,V> producer, K key, V value, String topic) {
-        producer.send(new KeyedMessage<>(topic, key,value));
+        ProducerRecord<K,V> record = new ProducerRecord<K, V>(topic, key, value);
+        producer.send(record);
     }
 
     public static <K,V> void send(Producer<K,V> producer, Iterable<Map.Entry<K,V>> messages, String topic, long sleepBetween) throws InterruptedException {

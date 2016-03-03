@@ -295,7 +295,7 @@ bolts:
                     - ref: "metricConfig"
     # Threat Intel Bolts
     -   id: "threatIntelSplitBolt"
-        className: "org.apache.metron.enrichment.EnrichmentSplitterBolt"
+        className: "org.apache.metron.enrichment.bolt.EnrichmentSplitterBolt"
         configMethods:
             -   name: "withEnrichments"
                 args:

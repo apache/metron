@@ -20,22 +20,25 @@ package org.apache.metron.helpers.topology;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import backtype.storm.task.OutputCollector;
+import backtype.storm.tuple.Values;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.metron.Constants;
 import org.json.simple.JSONObject;
 
-public class ErrorGenerator {
+public class ErrorUtils {
 
 	@SuppressWarnings("unchecked")
-	public static JSONObject generateErrorMessage(String message, Exception e)
+	public static JSONObject generateErrorMessage(String message, Throwable t)
 	{
 		JSONObject error_message = new JSONObject();
 		
 		/*
 		 * Save full stack trace in object.
 		 */
-		String stackTrace = ExceptionUtils.getStackTrace(e);
+		String stackTrace = ExceptionUtils.getStackTrace(t);
 		
-		String exception = e.toString();
+		String exception = t.toString();
 		
 		error_message.put("time", System.currentTimeMillis());
 		try {
@@ -46,9 +49,16 @@ public class ErrorGenerator {
 		}
 		
 		error_message.put("message", message);
+		error_message.put(Constants.SOURCE_TYPE, "error");
 		error_message.put("exception", exception);
 		error_message.put("stack", stackTrace);
 		
 		return error_message;
+	}
+
+	public static void handleError(OutputCollector collector, Throwable t, String errorStream) {
+		JSONObject error = ErrorUtils.generateErrorMessage(t.getMessage(), t);
+		collector.emit(errorStream, new Values(error));
+		collector.reportError(t);
 	}
 }

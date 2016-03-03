@@ -8,8 +8,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import kafka.consumer.ConsumerIterator;
-import kafka.javaapi.producer.Producer;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.integration.Processor;
@@ -147,7 +147,8 @@ public class PcapNGIntegrationTest {
             public Void getResult() {
                 return null;
             }
-        }, -1 , 30000, -1);
+        }, -1 , 30000);
         System.out.println("Ended");
+        runner.stop();
     }
 }

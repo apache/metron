@@ -26,6 +26,7 @@ public class ComponentRunner {
         LinkedHashMap<String, InMemoryComponent> components;
         String[] startupOrder;
         String[] shutdownOrder;
+        long timeBetweenAttempts;
         public Builder() {
             components = new LinkedHashMap<String, InMemoryComponent>();
         }
@@ -43,6 +44,10 @@ public class ComponentRunner {
             this.shutdownOrder = shutdownOrder;
             return this;
         }
+        public Builder withTimeBetweenAttempts(long timeBetweenAttempts) {
+            this.timeBetweenAttempts = timeBetweenAttempts;
+            return this;
+        }
         private static String[] toOrderedList(Map<String, InMemoryComponent> components) {
             String[] ret = new String[components.size()];
             int i = 0;
@@ -58,7 +63,7 @@ public class ComponentRunner {
             if(startupOrder == null) {
                 startupOrder = toOrderedList(components);
             }
-            return new ComponentRunner(components, startupOrder, shutdownOrder);
+            return new ComponentRunner(components, startupOrder, shutdownOrder, timeBetweenAttempts);
         }
 
     }
@@ -66,15 +71,17 @@ public class ComponentRunner {
     LinkedHashMap<String, InMemoryComponent> components;
     String[] startupOrder;
     String[] shutdownOrder;
+    long timeBetweenAttempts;
     public ComponentRunner( LinkedHashMap<String, InMemoryComponent> components
                           , String[] startupOrder
                           , String[] shutdownOrder
+                          , long timeBetweenAttempts
                           )
     {
         this.components = components;
         this.startupOrder = startupOrder;
         this.shutdownOrder = shutdownOrder;
-
+        this.timeBetweenAttempts = timeBetweenAttempts;
     }
 
     public <T extends InMemoryComponent> T getComponent(String name, Class<T> clazz) {
@@ -97,10 +104,10 @@ public class ComponentRunner {
     }
 
     public <T> T process(Processor<T> successState) {
-        return process(successState, 5, 30000, 120000);
+        return process(successState, 5, 120000);
     }
 
-    public <T> T process(Processor<T> successState, int numRetries, long timeBetweenAttempts, long maxTimeMs) {
+    public <T> T process(Processor<T> successState, int numRetries, long maxTimeMs) {
         int retryCount = 0;
         long start = System.currentTimeMillis();
         while(true) {

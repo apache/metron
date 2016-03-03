@@ -27,18 +27,22 @@ import java.util.List;
 
 public class PcapParserBolt extends TelemetryParserBolt {
 
+  public PcapParserBolt(String zookeeperUrl) {
+    super(zookeeperUrl);
+  }
+
   @Override
   public void declareOther(OutputFieldsDeclarer declarer) {
     declarer.declareStream("raw", new Fields("key", "value", "timestamp") );
   }
 
   @Override
-  public void emitOther(Tuple tuple, List<JSONObject> messages) {
-    for(JSONObject message: messages) {
+  public void emitOther(Tuple tuple, JSONObject message) {
+    //for(JSONObject message: messages) {
       String key = (String) message.get("pcap_id");
       long timestamp = (long) message.get("ts_micro");
       collector.emit("raw", tuple, new Values(key, tuple.getBinary(0),
               timestamp));
-    }
+    //}
   }
 }
