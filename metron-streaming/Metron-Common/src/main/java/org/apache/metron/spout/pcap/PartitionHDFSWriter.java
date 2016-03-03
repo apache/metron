@@ -1,9 +1,28 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.metron.spout.pcap;
 
 import com.google.common.base.Joiner;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.hadoop.io.BytesWritable;
@@ -11,9 +30,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigInteger;
 import java.util.EnumSet;
 
@@ -45,6 +62,14 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
                 outputStream.hflush();
                 outputStream.hsync();
                 ((HdfsDataOutputStream)outputStream).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
+            }
+        })
+        ,LOCAL(new SyncHandler() {
+
+            @Override
+            public void sync(FSDataOutputStream outputStream) throws IOException {
+                outputStream.getWrappedStream().flush();
+                outputStream.getWrappedStream();
             }
         })
         ;
@@ -80,6 +105,11 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         this.partition = partition;
         this.uuid = uuid;
         this.config = config;
+        try {
+            this.fs = FileSystem.get(new Configuration());
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to get FileSystem", e);
+        }
     }
 
     public String timestampToString(long ts) {
@@ -172,30 +202,39 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
 
     private void turnoverIfNecessary(long ts, boolean force) throws IOException {
         long duration = ts - batchStartTime;
-        if(force || batchStartTime == 0L || duration > config.getMaxTimeMS() || numWritten > config.getNumPackets()) {
+        boolean initial = outputStream == null;
+        boolean overDuration = duration >= config.getMaxTimeMS();
+        boolean tooManyPackets = numWritten >= config.getNumPackets();
+        if(force || initial || overDuration || tooManyPackets ) {
             //turnover
             Path path = getPath(ts);
             close();
-            boolean initial = outputStream == null;
-            outputStream = fs.create(path, true);
-            if(outputStream instanceof HdfsDataOutputStream) {
-                if(initial) {
-                    LOG.info("Using the HDFS sync handler.");
-                }
-                syncHandler = SyncHandlers.HDFS.getHandler();
+
+            if(fs instanceof LocalFileSystem) {
+                outputStream = new FSDataOutputStream(new FileOutputStream(new File(path.toString())));
+                syncHandler = SyncHandlers.LOCAL.getHandler();
             }
             else {
-                if(initial) {
-                    LOG.info("Using the default sync handler, which cannot guarantee atomic appends at the record level, be forewarned!");
+                outputStream = fs.create(path, true);
+                if (outputStream instanceof HdfsDataOutputStream) {
+                    if (initial) {
+                        LOG.info("Using the HDFS sync handler.");
+                    }
+                    syncHandler = SyncHandlers.HDFS.getHandler();
+                } else {
+                    if (initial) {
+                        LOG.info("Using the default sync handler, which cannot guarantee atomic appends at the record level, be forewarned!");
+                    }
+                    syncHandler = SyncHandlers.DEFAULT.getHandler();
                 }
-                syncHandler = SyncHandlers.DEFAULT.getHandler();
+
             }
             writer = SequenceFile.createWriter(new Configuration()
-                                              , SequenceFile.Writer.keyClass(LongWritable.class)
-                                              , SequenceFile.Writer.valueClass(BytesWritable.class)
-                                              , SequenceFile.Writer.stream(outputStream)
-                                              , SequenceFile.Writer.compression(SequenceFile.CompressionType.NONE)
-                                              );
+                        , SequenceFile.Writer.keyClass(LongWritable.class)
+                        , SequenceFile.Writer.valueClass(BytesWritable.class)
+                        , SequenceFile.Writer.stream(outputStream)
+                        , SequenceFile.Writer.compression(SequenceFile.CompressionType.NONE)
+                );
             //reset state
             LOG.info("Turning over and writing to " + path);
             batchStartTime = ts;

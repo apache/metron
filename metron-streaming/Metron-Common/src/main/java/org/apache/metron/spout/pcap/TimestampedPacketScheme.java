@@ -34,7 +34,6 @@ public class TimestampedPacketScheme implements KeyValueScheme {
     @Override
     public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
         Long ts = Bytes.toLong(key);
-        System.out.println("Scheme: " + ts);
         return new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(value)));
     }
 

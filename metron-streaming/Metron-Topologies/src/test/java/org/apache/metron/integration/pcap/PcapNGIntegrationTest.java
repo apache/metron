@@ -6,6 +6,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import kafka.consumer.ConsumerIterator;
 import kafka.javaapi.producer.Producer;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -17,6 +18,7 @@ import org.apache.metron.integration.util.integration.components.FluxTopologyCom
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
 import org.apache.metron.spout.pcap.HDFSWriterCallback;
+import org.apache.metron.spout.pcap.PartitionHDFSWriter;
 import org.apache.metron.test.converters.HexStringConverter;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,18 +52,18 @@ public class PcapNGIntegrationTest {
         }).length;
     }
 
-    private static List<Map.Entry<byte[], byte[]>> readPcaps(File pcapFile) throws IOException {
+    private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(File pcapFile) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(pcapFile));
         List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
         HexStringConverter converter = new HexStringConverter();
         long ts = 0L;
         for(String line = null;(line = br.readLine()) != null;) {
             byte[] pcapWithHeader = converter.convert(line);
-            byte[] pcapRaw = new byte[pcapWithHeader.length - HDFSWriterCallback.PCAP_GLOBAL_HEADER.length];
-            System.arraycopy(pcapWithHeader, HDFSWriterCallback.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
+            byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
+            System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
             ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
         }
-        return ret;
+        return Iterables.limit(ret, 2*(ret.size()/2));
     }
 
     @Test
@@ -77,8 +79,8 @@ public class PcapNGIntegrationTest {
         Assert.assertNotNull(topologiesDir);
         Assert.assertNotNull(targetDir);
         File pcapFile = new File(topologiesDir + "/../../SampleInput/PCAPExampleOutput");
-        final List<Map.Entry<byte[], byte[]>> pcapEntries = readPcaps(pcapFile);
-        Assert.assertTrue(pcapEntries.size() > 0);
+        final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile));
+        Assert.assertTrue(Iterables.size(pcapEntries) > 0);
         final Properties topologyProperties = new Properties() {{
             setProperty("spout.kafka.topic.pcap", kafkaTopic);
             setProperty("kafka.pcap.out", outDir.getAbsolutePath());
@@ -146,5 +148,6 @@ public class PcapNGIntegrationTest {
                 return null;
             }
         }, -1 , 30000, -1);
+        System.out.println("Ended");
     }
 }
