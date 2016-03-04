@@ -26,9 +26,21 @@ public class ComponentRunner {
         LinkedHashMap<String, InMemoryComponent> components;
         String[] startupOrder;
         String[] shutdownOrder;
-        long timeBetweenAttempts;
+        long timeBetweenAttempts = 1000;
+        int numRetries = 5;
+        long maxTimeMS = 120000;
         public Builder() {
             components = new LinkedHashMap<String, InMemoryComponent>();
+        }
+
+        public Builder withNumRetries(int numRetries) {
+            this.numRetries = numRetries;
+            return this;
+        }
+
+        public Builder withMaxTimeMS(long maxTimeMS) {
+            this.maxTimeMS = maxTimeMS;
+            return this;
         }
 
         public Builder withComponent(String name, InMemoryComponent component) {
@@ -44,7 +56,7 @@ public class ComponentRunner {
             this.shutdownOrder = shutdownOrder;
             return this;
         }
-        public Builder withTimeBetweenAttempts(long timeBetweenAttempts) {
+        public Builder withMillisecondsBetweenAttempts(long timeBetweenAttempts) {
             this.timeBetweenAttempts = timeBetweenAttempts;
             return this;
         }
@@ -63,7 +75,7 @@ public class ComponentRunner {
             if(startupOrder == null) {
                 startupOrder = toOrderedList(components);
             }
-            return new ComponentRunner(components, startupOrder, shutdownOrder, timeBetweenAttempts);
+            return new ComponentRunner(components, startupOrder, shutdownOrder, timeBetweenAttempts, numRetries, maxTimeMS);
         }
 
     }
@@ -72,16 +84,22 @@ public class ComponentRunner {
     String[] startupOrder;
     String[] shutdownOrder;
     long timeBetweenAttempts;
+    int numRetries;
+    long maxTimeMS;
     public ComponentRunner( LinkedHashMap<String, InMemoryComponent> components
                           , String[] startupOrder
                           , String[] shutdownOrder
                           , long timeBetweenAttempts
+                          , int numRetries
+                          , long maxTimeMS
                           )
     {
         this.components = components;
         this.startupOrder = startupOrder;
         this.shutdownOrder = shutdownOrder;
         this.timeBetweenAttempts = timeBetweenAttempts;
+        this.numRetries = numRetries;
+        this.maxTimeMS = maxTimeMS;
     }
 
     public <T extends InMemoryComponent> T getComponent(String name, Class<T> clazz) {
@@ -103,17 +121,14 @@ public class ComponentRunner {
         }
     }
 
-    public <T> T process(Processor<T> successState) {
-        return process(successState, 5, 120000);
-    }
 
-    public <T> T process(Processor<T> successState, int numRetries, long maxTimeMs) {
+    public <T> T process(Processor<T> successState) {
         int retryCount = 0;
         long start = System.currentTimeMillis();
         while(true) {
             long duration = System.currentTimeMillis() - start;
-            if(duration > maxTimeMs) {
-                throw new RuntimeException("Took too long to complete: " + duration + " > " + maxTimeMs);
+            if(duration > maxTimeMS) {
+                throw new RuntimeException("Took too long to complete: " + duration + " > " + maxTimeMS);
             }
             ReadinessState state = successState.process(this);
             if(state == ReadinessState.READY) {

@@ -64,7 +64,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       builder.put(optionalSettings);
     }
     client = new TransportClient(builder.build())
-            .addTransportAddress(new InetSocketTransportAddress(host, port));
+            .addTransportAddress(new InetSocketTransportAddress(host, port))
+            ;
 
   }
 

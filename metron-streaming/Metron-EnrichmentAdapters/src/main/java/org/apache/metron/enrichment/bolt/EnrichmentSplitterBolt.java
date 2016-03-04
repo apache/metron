@@ -87,6 +87,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
             }
         } else {
             message = (JSONObject) tuple.getValueByField(messageFieldName);
+            message.put(getClass().getSimpleName().toLowerCase() + ".splitter.ts", "" + System.currentTimeMillis());
         }
         return message;
     }

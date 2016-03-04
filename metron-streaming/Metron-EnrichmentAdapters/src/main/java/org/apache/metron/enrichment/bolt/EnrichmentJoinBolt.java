@@ -25,10 +25,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
 
@@ -67,8 +64,20 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
     JSONObject message = new JSONObject();
     for (String key : streamMessageMap.keySet()) {
-      message.putAll(streamMessageMap.get(key));
+      JSONObject obj = streamMessageMap.get(key);
+      message.putAll(obj);
     }
+    List<Object> emptyKeys = new ArrayList<>();
+    for(Object key : message.keySet()) {
+      Object value = message.get(key);
+      if(value.toString().length() == 0) {
+        emptyKeys.add(key);
+      }
+    }
+    for(Object o : emptyKeys) {
+      message.remove(o);
+    }
+    message.put(getClass().getSimpleName().toLowerCase() + ".joiner.ts", "" + System.currentTimeMillis());
     return message;
   }
 

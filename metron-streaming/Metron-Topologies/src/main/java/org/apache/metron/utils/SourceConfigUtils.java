@@ -79,16 +79,13 @@ public class SourceConfigUtils {
     client.close();
   }
 
-  public static void main(String[] args) {
-    try {
-      File root = new File("./metron-streaming/Metron-Common/src/test/resources/config/source/");
-      for(File child: root.listFiles()) {
-        writeToZookeeperFromFile(child.getName().replaceFirst("-config.json", ""), child.getPath(), "node1:2181");
-      }
-      SourceConfigUtils.dumpConfigs("node1:2181");
-    } catch (Exception e) {
-      e.printStackTrace();
+  public static void main(String[] args) throws Exception{
+    File root = new File(args[0]);
+    for(File child: root.listFiles()) {
+      writeToZookeeperFromFile(child.getName().replaceFirst("-config.json", ""), child.getPath(), args[1]);
     }
+    SourceConfigUtils.dumpConfigs(args[1]);
+
   }
 
 
