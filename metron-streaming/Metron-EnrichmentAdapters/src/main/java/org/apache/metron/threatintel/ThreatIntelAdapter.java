@@ -63,7 +63,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<String>,Serializabl
             throw new RuntimeException("Unable to retrieve value", e);
         }
         if(isThreat) {
-            enriched.put("threat_source", config.getHBaseTable());
+            enriched.put(config.getHBaseTable(), "alert");
             _LOG.trace("Enriched value => " + enriched);
         }
         //throw new RuntimeException("Unable to retrieve value " + value);

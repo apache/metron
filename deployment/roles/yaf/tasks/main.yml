@@ -43,13 +43,6 @@
 - name: Install kafka
   yum: name=kafka
 
-- set_fact:
-    yaf: /usr/local/bin/yaf
-    yafscii: /usr/local/bin/yafscii
-    yaf_log: /var/log/yaf.log
-    yaf_lock: /var/lock/subsys/yaf
-    kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh
-
 - name: Check for Java at "{{ java_home }}"
   stat: path="{{ java_home }}"
   register: jdk_dir
@@ -69,6 +62,6 @@
   when: not jdk_dir.stat.exists
 
 - name: Start yaf
-  shell: "daemonize -c {{ yaf_home }} -e {{ yaf_log }} -o {{ yaf_log }} -l {{ yaf_lock }} {{ yaf }} --in {{ sniff_interface }} --live pcap | {{ yafscii }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}"
+  shell: "daemonize -c {{ yaf_home }} -e {{ yaf_log }} -o {{ yaf_log }} -l {{ yaf_lock }} {{ yaf }} --in {{ sniff_interface }} --live pcap {{ yaf_args }} | {{ yafscii }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}"
   args:
     creates: "{{ yaf_lock }}"

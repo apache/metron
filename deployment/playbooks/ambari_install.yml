@@ -19,17 +19,29 @@
   sudo: yes
   roles:
     - role: ambari_common
+  tags:
+    - ambari-prereqs
+    - hdp-install
 
 - hosts: ambari_master
   sudo: yes
   roles:
-    - role: ambari_master
+    - role:  ambari_master
+  tags:
+    - ambari-server
+    - hdp-install
 
 - hosts: ambari_slave
   sudo: yes
   roles:
     - role: ambari_slave
+  tags:
+    - ambari-agent
+    - hdp-install
 
 - hosts: ambari_master
   roles:
     - role: ambari_config
+  tags:
+    - hdp-install
+    - hdp-deploy

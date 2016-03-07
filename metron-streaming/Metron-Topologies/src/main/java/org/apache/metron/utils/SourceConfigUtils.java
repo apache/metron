@@ -17,6 +17,7 @@
  */
 package org.apache.metron.utils;
 
+import org.apache.commons.cli.*;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -27,6 +28,7 @@ import org.apache.zookeeper.KeeperException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -80,16 +82,39 @@ public class SourceConfigUtils {
   }
 
   public static void main(String[] args) {
+
+      Options options = new Options();
+      options.addOption("p", true, "Path to source option files");
+      options.addOption("z", true, "Zookeeper Quroum URL (zk1:2181,zk2:2181,...");
+
     try {
-      File root = new File("./metron-streaming/Metron-Common/src/test/resources/config/source/");
-      for(File child: root.listFiles()) {
-        writeToZookeeperFromFile(child.getName().replaceFirst("-config.json", ""), child.getPath(), "node1:2181");
+      CommandLineParser parser = new BasicParser();
+      CommandLine cmd = parser.parse( options, args);
+
+      if( !cmd.hasOption('p') || !cmd.hasOption('z') ){
+        final PrintWriter writer = new PrintWriter(System.out);
+        final HelpFormatter usageFormatter = new HelpFormatter();
+        usageFormatter.printUsage(writer, 80, "Apache Metron SourceConfigUtils", options);
+        writer.close();
+        System.exit(1);
       }
-      SourceConfigUtils.dumpConfigs("node1:2181");
+
+      String sourcePath = cmd.getOptionValue('p');
+      String zkQuorum = cmd.getOptionValue('z');
+
+
+      File root = new File(sourcePath);
+
+      if( root.isDirectory() ) {
+        for (File child : root.listFiles()) {
+          writeToZookeeperFromFile(child.getName().replaceFirst("-config.json", ""), child.getPath(), zkQuorum);
+        }
+      }
+
+      SourceConfigUtils.dumpConfigs(zkQuorum);
+
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
-
-
 }
