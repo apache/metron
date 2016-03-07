@@ -16,4 +16,8 @@
 #
 ---
 - include: ambari_install.yml
+  tags:
+    - ambari
 - include: metron_install.yml
+  tags:
+    - metron

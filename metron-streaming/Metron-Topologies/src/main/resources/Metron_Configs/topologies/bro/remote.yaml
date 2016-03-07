@@ -18,7 +18,6 @@ name: "bro"
 config:
     topology.workers: 1
 
-
 components:
     -   id: "parser"
         className: "org.apache.metron.parsing.parsers.BasicBroParser"
@@ -45,21 +44,11 @@ components:
             -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
-                value: -1
+                value: -2
             -   name: "socketTimeoutMs"
                 value: 1000000
 
 spouts:
-    -   id: "testingSpout"
-        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
-        parallelism: 1
-        configMethods:
-            -   name: "withFilename"
-                args:
-                    - "SampleInput/YafExampleOutput"
-            -   name: "withRepeating"
-                args:
-                    - true
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
@@ -70,7 +59,7 @@ bolts:
         className: "org.apache.metron.bolt.ParserBolt"
         constructorArgs:
             - "${kafka.zk}"
-            - "yaf"
+            - "${spout.kafka.topic.bro}"
             - ref: "parser"
             - ref: "writer"
 

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,5 +38,15 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     return configurations.get(sourceType).getThreatIntelFieldMap();
   }
 
-
+  @Override
+  public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
+    JSONObject ret = super.joinMessages(streamMessageMap);
+    for(Object key : ret.keySet()) {
+      if(key.toString().startsWith("threatintels") && !key.toString().endsWith(".ts")) {
+        ret.put("is_alert" , "true");
+        break;
+      }
+    }
+    return ret;
+  }
 }
