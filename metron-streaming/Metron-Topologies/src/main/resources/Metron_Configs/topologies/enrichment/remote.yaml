@@ -100,7 +100,25 @@ components:
                 args:
                     - ref: "ipThreatIntelEnrichment"
 
+    -   id: "fileNameFormat"
+        className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
+        configMethods:
+            -   name: "withPrefix"
+                args:
+                    - "enrichment"
+            -   name: "withExtension"
+                args:
+                  - ".json"
+            -   name: "withPath"
+                args:
+                    - "${index.hdfs.output}"
 #indexing
+    -   id: "hdfsWriter"
+        className: "org.apache.metron.writer.hdfs.HdfsWriter"
+        configMethods:
+            -   name: "withFileNameFormat"
+                args:
+                    - ref: "fileNameFormat"
     -   id: "indexWriter"
         className: "org.apache.metron.writer.ElasticsearchWriter"
         constructorArgs:
@@ -237,6 +255,14 @@ bolts:
             -   name: "withBulkMessageWriter"
                 args:
                     - ref: "indexWriter"
+    -   id: "hdfsIndexingBolt"
+        className: "org.apache.metron.bolt.BulkMessageWriterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withBulkMessageWriter"
+                args:
+                    - ref: "hdfsWriter"
 
 
 streams:
@@ -323,6 +349,13 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
+    -   name: "threatIntelJoin -> hdfs"
+        from: "threatIntelJoinBolt"
+        to: "hdfsIndexingBolt"
+        grouping:
+            streamId: "message"
+            type: SHUFFLE
+
     -   name: "indexingBolt -> errorIndexingBolt"
         from: "indexingBolt"
         to: "indexingBolt"

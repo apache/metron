@@ -254,6 +254,8 @@ public class EnrichmentIntegrationTest {
 
       }
       List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
+      Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
+
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
       Assert.assertEquals(new File(hdfsDir).list()[0], "yaf");
       for (Map<String, Object> doc : docsFromDisk) {

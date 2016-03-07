@@ -91,7 +91,7 @@ components:
                     - "enrichment"
             -   name: "withExtension"
                 args:
-                    - ".json"
+                  - ".json"
             -   name: "withPath"
                 args:
                     - "${index.hdfs.output}"
