@@ -1,0 +1,29 @@
+#
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+fixbuf_version: 1.7.1
+yaf_version: 2.8.0
+yaf_home: /opt/yaf
+yaf_topic: ipfix
+hdp_repo_def: http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.2.0/hdp.repo
+yaf: /usr/local/bin/yaf
+yaf_args: ""
+yafscii: /usr/local/bin/yafscii
+yaf_log: /var/log/yaf.log
+yaf_lock: /var/lock/subsys/yaf
+kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh

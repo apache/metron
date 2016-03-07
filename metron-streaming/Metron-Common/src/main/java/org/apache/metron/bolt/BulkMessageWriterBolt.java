@@ -66,6 +66,7 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   @Override
   public void execute(Tuple tuple) {
     JSONObject message = (JSONObject) tuple.getValueByField("message");
+    message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
     String sourceType = TopologyUtils.getSourceType(message);
     SourceConfig configuration = configurations.get(sourceType);
     int batchSize = configuration != null ? configuration.getBatchSize() : 1;
@@ -80,7 +81,9 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
       sourceMessageMap.put(sourceType, messageList);
     } else {
       try {
-        bulkMessageWriter.write(sourceType, configuration, tupleList, messageList);
+
+        String esType = sourceType + "_doc";
+        bulkMessageWriter.write(esType, configuration, tupleList, messageList);
         for(Tuple t: tupleList) {
           collector.ack(t);
         }

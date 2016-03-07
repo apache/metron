@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "yaf-test"
+name: "yaf"
 config:
     topology.workers: 1
-
 
 components:
     -   id: "parser"
@@ -63,16 +62,6 @@ components:
                 value: 1000000
 
 spouts:
-    -   id: "testingSpout"
-        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
-        parallelism: 1
-        configMethods:
-            -   name: "withFilename"
-                args:
-                    - "SampleInput/YafExampleOutput"
-            -   name: "withRepeating"
-                args:
-                    - true
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
@@ -83,7 +72,7 @@ bolts:
         className: "org.apache.metron.bolt.ParserBolt"
         constructorArgs:
             - "${kafka.zk}"
-            - "yaf"
+            - "${spout.kafka.topic.yaf}"
             - ref: "parser"
             - ref: "writer"
 

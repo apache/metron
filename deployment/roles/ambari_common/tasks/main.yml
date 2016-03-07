@@ -59,7 +59,7 @@
 - name: install epel-repo rpm
   yum: pkg=/tmp/epel-release.rpm state=installed
 
-- name: Download HDP repo
+- name: Download Ambari repo
   get_url: url="{{ rhel_ambari_install_url }}" dest=/etc/yum.repos.d/ambari.repo
 
 - name: Clean yum

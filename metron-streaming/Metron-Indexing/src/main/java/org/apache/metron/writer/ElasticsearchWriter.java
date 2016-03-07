@@ -27,6 +27,8 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -42,6 +44,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   private String host;
   private int port;
   private SimpleDateFormat dateFormat;
+  private static final Logger LOG = LoggerFactory
+          .getLogger(ElasticsearchWriter.class);
 
   public ElasticsearchWriter(String clusterName, String host, int port, String dateFormat) {
     this.clusterName = clusterName;
@@ -64,7 +68,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       builder.put(optionalSettings);
     }
     client = new TransportClient(builder.build())
-            .addTransportAddress(new InetSocketTransportAddress(host, port));
+            .addTransportAddress(new InetSocketTransportAddress(host, port))
+            ;
 
   }
 
@@ -77,8 +82,9 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       if (configuration != null) {
         indexName = configuration.getIndex();
       }
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName + "_" + indexPostfix,
+      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName + "_index_" + indexPostfix,
               sourceType);
+
       indexRequestBuilder.setSource(message.toJSONString());
       bulkRequest.add(indexRequestBuilder);
     }
