@@ -60,7 +60,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   }
 
   @Override
-  public void init() {
+  public void init(Map stormConf) {
     ImmutableSettings.Builder builder = ImmutableSettings.settingsBuilder();
     builder.put("cluster.name", clusterName);
     builder.put("client.transport.ping_timeout","500s");

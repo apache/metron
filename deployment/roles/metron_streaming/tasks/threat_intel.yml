@@ -15,8 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Create root user HDFS directory
-  command: su - hdfs -c "hdfs dfs -mkdir -p /user/root && hdfs dfs -chown root:root /user/root"
 
 - name: Create Bulk load working Directory
   file:

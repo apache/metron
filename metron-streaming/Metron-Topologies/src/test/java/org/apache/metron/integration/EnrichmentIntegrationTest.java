@@ -17,8 +17,10 @@
  */
 package org.apache.metron.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.Constants;
@@ -43,10 +45,7 @@ import org.junit.Test;
 import org.apache.metron.utils.JSONUtils;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -54,6 +53,7 @@ public class EnrichmentIntegrationTest {
 
   private String fluxPath = "src/main/resources/Metron_Configs/topologies/enrichment/test.yaml";
   private String indexDir = "target/elasticsearch";
+  private String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
   private String sampleParsedPath = "src/main/resources/SampleParsed/YafExampleParsed";
   private String sampleIndexedPath = "src/main/resources/SampleIndexed/YafIndexed";
   private Map<String, String> sourceConfigs = new HashMap<>();
@@ -66,9 +66,68 @@ public class EnrichmentIntegrationTest {
     }
   }
 
+  public static void cleanHdfsDir(String hdfsDirStr) {
+    File hdfsDir = new File(hdfsDirStr);
+    Stack<File> fs = new Stack<>();
+    if(hdfsDir.exists()) {
+      fs.push(hdfsDir);
+      while(!fs.empty()) {
+        File f = fs.pop();
+        if (f.isDirectory()) {
+          for(File child : f.listFiles()) {
+            fs.push(child);
+          }
+        }
+        else {
+          if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
+            f.delete();
+          }
+        }
+      }
+    }
+  }
+
+  public static List<Map<String, Object> > readDocsFromDisk(String hdfsDirStr) throws IOException {
+    List<Map<String, Object>> ret = new ArrayList<>();
+    File hdfsDir = new File(hdfsDirStr);
+    Stack<File> fs = new Stack<>();
+    if(hdfsDir.exists()) {
+      fs.push(hdfsDir);
+      while(!fs.empty()) {
+        File f = fs.pop();
+        if(f.isDirectory()) {
+          for (File child : f.listFiles()) {
+            fs.push(child);
+          }
+        }
+        else {
+          System.out.println("Processed " + f);
+          if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
+            List<byte[]> data = TestUtils.readSampleData(f.getPath());
+            Iterables.addAll(ret, Iterables.transform(data, new Function<byte[], Map<String, Object>>() {
+              @Nullable
+              @Override
+              public Map<String, Object> apply(@Nullable byte[] bytes) {
+                String s = new String(bytes);
+                try {
+                  return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
+                  });
+                } catch (IOException e) {
+                  throw new RuntimeException(e);
+                }
+              }
+            }));
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
 
   @Test
   public void test() throws Exception {
+    cleanHdfsDir(hdfsDir);
     final String dateFormat = "yyyy.MM.dd.hh";
     final String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
     String yafConfig = "{\n" +
@@ -103,6 +162,7 @@ public class EnrichmentIntegrationTest {
       setProperty("es.port", "9300");
       setProperty("es.ip", "localhost");
       setProperty("index.date.format", dateFormat);
+      setProperty("index.hdfs.output", hdfsDir);
     }};
     final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
@@ -147,52 +207,69 @@ public class EnrichmentIntegrationTest {
             .withComponent("elasticsearch", esComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(10000)
-            .withNumRetries(30)
-            .withMaxTimeMS(300000)
+            .withNumRetries(10)
             .build();
     runner.start();
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-    List<Map<String, Object>> docs =
-            runner.process(new Processor<List<Map<String, Object>>> () {
-              List<Map<String, Object>> docs = null;
-              public ReadinessState process(ComponentRunner runner){
-                ElasticSearchComponent elasticSearchComponent = runner.getComponent("elasticsearch", ElasticSearchComponent.class);
-                if(elasticSearchComponent.hasIndex(index)) {
-                  try {
-                    docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf_doc");
-                  } catch (IOException e) {
-                    throw new IllegalStateException("Unable to retrieve indexed documents.", e);
-                  }
-                  if(docs.size() < inputMessages.size()) {
+    try {
+      fluxComponent.submitTopology();
+      kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
+      List<Map<String, Object>> docs =
+              runner.process(new Processor<List<Map<String, Object>>>() {
+                List<Map<String, Object>> docs = null;
+
+                public ReadinessState process(ComponentRunner runner) {
+                  ElasticSearchComponent elasticSearchComponent = runner.getComponent("elasticsearch", ElasticSearchComponent.class);
+                  if (elasticSearchComponent.hasIndex(index)) {
+                    List<Map<String, Object>> docsFromDisk;
+                    try {
+                      docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf_doc");
+                      docsFromDisk = readDocsFromDisk(hdfsDir);
+                      System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
+                    } catch (IOException e) {
+                      throw new IllegalStateException("Unable to retrieve indexed documents.", e);
+                    }
+                    if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
+                      return ReadinessState.NOT_READY;
+                    } else {
+                      return ReadinessState.READY;
+                    }
+                  } else {
                     return ReadinessState.NOT_READY;
                   }
-                  else {
-                    return ReadinessState.READY;
-                  }
                 }
-                else {
-                  return ReadinessState.NOT_READY;
+
+                public List<Map<String, Object>> getResult() {
+                  return docs;
                 }
-              }
+              });
 
-              public List<Map<String, Object>> getResult() {
-                return docs;
-              }
-            });
 
-    List<byte[]> sampleIndexedMessages = TestUtils.readSampleData(sampleIndexedPath);
-    Assert.assertEquals(sampleIndexedMessages.size(), docs.size());
+      Assert.assertEquals(inputMessages.size(), docs.size());
 
-    for (Map<String, Object> doc : docs) {
-      baseValidation(doc);
+      for (Map<String, Object> doc : docs) {
+        baseValidation(doc);
+        hostEnrichmentValidation(doc);
+        geoEnrichmentValidation(doc);
+        threatIntelValidation(doc);
 
-      hostEnrichmentValidation(doc);
-      geoEnrichmentValidation(doc);
-      threatIntelValidation(doc);
+      }
+      List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
+      Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
 
+      Assert.assertEquals(new File(hdfsDir).list().length, 1);
+      Assert.assertEquals(new File(hdfsDir).list()[0], "yaf_doc");
+      for (Map<String, Object> doc : docsFromDisk) {
+        baseValidation(doc);
+        hostEnrichmentValidation(doc);
+        geoEnrichmentValidation(doc);
+        threatIntelValidation(doc);
+
+      }
     }
-    runner.stop();
+    finally {
+      cleanHdfsDir(hdfsDir);
+      runner.stop();
+    }
   }
 
   public static void baseValidation(Map<String, Object> jsonDoc) {
