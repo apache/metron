@@ -17,4 +17,4 @@
 ---
 bro_crontab_minutes: 0-59/5
 bro_crontab_job: /usr/local/bro/bin/broctl cron
-
+bro_clean_job: rm -rf /usr/local/bro/spool/tmp/*

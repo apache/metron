@@ -35,22 +35,16 @@ elasticsearch_web_port: 9200
 
 # metron variables
 metron_version: 0.1BETA
+metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
-pcapservice_port: 8081
-sniff_interface: eth1
 bro_version: "2.4.1"
 fixbuf_version: "1.7.1"
 yaf_version: "2.8.0"
 daq_version: "2.0.6-1"
-iface: "eth0"
 pycapa_repo: "https://github.com/OpenSOC/pycapa.git"
 pycapa_home: "/opt/pycapa"
 snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
-
-#PCAP Replay
-pcap_replay: False
-pcap_replay_interface: eth1
 
 #data directories - only required to override defaults
 zookeeper_data_dir: "/data1/hadoop/zookeeper"
@@ -68,5 +62,18 @@ kafka_log_dirs: "/data1/kafka-log"
 elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
 
 ambari_server_mem: 512
-topology_name: small_topology.yml
 threat_intel_bulk_load: False
+
+#Sensors
+install_pycapa: False
+install_bro: True
+install_snort: True
+install_yaf: False
+pcap_replay: True
+sniff_interface: eth1
+pcap_replay_interface: "{{ sniff_interface }}"
+storm_topologies:
+    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
+pcapservice_port: 8081
