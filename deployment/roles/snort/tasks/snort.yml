@@ -57,36 +57,40 @@
 - name: Install snort
   yum: name=/root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm
 
-#
-# TODO download latest rules from snort website - requires credentials
-#
-- name: Download snort rules
+- name: Download snort community rules
+  get_url:
+    url: "https://www.snort.org/downloads/community/community-rules.tar.gz"
+    dest: "/tmp/community-rules.tar.gz"
+
+- name: Extract tarball
   unarchive:
-    src: snortrules-snapshot-2962.tar.gz
+    src: "/tmp/community-rules.tar.gz"
     dest: /tmp
-    creates: /tmp/snortrules-snapshot-2962.tar.gz
+    copy: no
+    creates: "/tmp/community-rules"
 
 - name: Install snort rules
   shell: "{{ item }}"
   args:
     chdir: /tmp
   with_items:
-    - cp -r etc/* /etc/snort/
-    - cp -r rules /etc/snort/
-    - cp -r so_rules /etc/snort/
-    - cp -r preproc_rules /etc/snort/
+    - cp -r community-rules/community.rules /etc/snort/rules
     - touch /etc/snort/rules/white_list.rules
     - touch /etc/snort/rules/black_list.rules
     - touch /var/log/snort/alerts
     - chown -R snort:snort /etc/snort
 
+- name: Uncomment all snort community rules
+  shell: sed -i 's/^# alert/alert/' /etc/snort/rules/community.rules
+
 - name: Download snort configuration
   copy: src=snort.conf dest=/etc/snort/snort.conf
 
 - name: Configure network
-  lineinfile: dest=/etc/snort/snort.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
-  with_items:
-    - { regexp: "^ipvar HOME_NET.*$", line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}" }
+  lineinfile:
+    dest: /etc/snort/snort.conf
+    regexp: "^ipvar HOME_NET.*$"
+    line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}"
 
 - name: Configure alerting
   lineinfile:
@@ -94,7 +98,10 @@
     line: "output alert_csv: {{ snort_alert_csv_path }} default"
 
 - name: Configure sysconfig
-  lineinfile: dest=/etc/sysconfig/snort regexp="{{ item.regexp }}" line="{{ item.line }}"
+  lineinfile:
+    dest: /etc/sysconfig/snort
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
   with_items:
     - { regexp: "^ALERTMODE=.*$",     line: "ALERTMODE=" }
     - { regexp: "^NO_PACKET_LOG=.*$", line: "NO_PACKET_LOG=1" }
