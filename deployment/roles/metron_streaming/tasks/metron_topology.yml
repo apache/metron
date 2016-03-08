@@ -17,10 +17,6 @@
 ---
 
 - name: Submit Metron topologies
-  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux --remote {{ item }} --filter {{ metron_properties_config_path }}
+  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux  --filter {{ metron_properties_config_path }} --remote {{ item }}
   with_items:
-    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/pcap/parse.yaml"
-    - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
+    "{{ storm_topologies }}"
