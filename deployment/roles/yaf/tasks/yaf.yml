@@ -55,4 +55,3 @@
 
 - name: Start yaf
   service: name=yaf state=restarted
-  

@@ -58,10 +58,11 @@
   args:
     creates: ~/.my.cnf
 
-- name: Copy mylogin.cnf
-  copy:
-    src:  mylogin.cnf
+- name: Create .my.cnf
+  template:
+    src: "../roles/mysql_server/templates/.my.cnf"
     dest: ~/.my.cnf
+
 
 - name: Download GeoIP databases
   unarchive:

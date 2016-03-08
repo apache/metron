@@ -20,10 +20,12 @@ package org.apache.metron.domain;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class Enrichment<T extends EnrichmentAdapter> implements Serializable {
 
   private String type;
+  private List<String> fields;
   private T adapter;
 
   public Enrichment() {}
@@ -31,6 +33,15 @@ public class Enrichment<T extends EnrichmentAdapter> implements Serializable {
   public Enrichment(String type, T adapter) {
     this.type = type;
     this.adapter = adapter;
+  }
+
+
+  public List<String> getFields() {
+    return fields;
+  }
+
+  public void setFields(List<String> fields) {
+    this.fields = fields;
   }
 
   public String getType() {

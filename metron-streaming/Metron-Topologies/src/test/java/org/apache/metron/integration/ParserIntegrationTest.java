@@ -18,27 +18,14 @@
 package org.apache.metron.integration;
 
 import com.google.common.base.Function;
-import kafka.api.FetchRequest;
-import kafka.api.FetchRequestBuilder;
-import kafka.consumer.ConsumerIterator;
-import kafka.javaapi.FetchResponse;
-import kafka.javaapi.consumer.SimpleConsumer;
-import kafka.javaapi.producer.Producer;
-import kafka.message.MessageAndMetadata;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.Constants;
 import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ReadinessState;
-import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
-import org.apache.metron.integration.util.integration.util.KafkaUtil;
-import org.apache.metron.spout.pcap.HDFSWriterCallback;
-import org.apache.metron.test.converters.HexStringConverter;
 import org.apache.metron.utils.SourceConfigUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
@@ -95,7 +82,7 @@ public abstract class ParserIntegrationTest {
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
             .withComponent("storm", fluxComponent)
-            .withTimeBetweenAttempts(5000)
+            .withMillisecondsBetweenAttempts(5000)
             .build();
     runner.start();
     fluxComponent.submitTopology();

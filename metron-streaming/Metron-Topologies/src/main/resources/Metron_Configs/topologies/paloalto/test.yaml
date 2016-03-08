@@ -44,7 +44,7 @@ components:
             -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
-                value: -2
+                value: -1
 
 spouts:
     -   id: "testingSpout"

@@ -29,7 +29,6 @@ public class TestUtils {
     BufferedReader br = new BufferedReader(new FileReader(samplePath));
     List<byte[]> ret = new ArrayList<>();
     for (String line = null; (line = br.readLine()) != null; ) {
-      long ts = System.currentTimeMillis();
       ret.add(line.getBytes());
     }
     br.close();
