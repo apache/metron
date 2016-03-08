@@ -15,30 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.writer;
 
-import backtype.storm.tuple.Tuple;
-import org.apache.metron.domain.SourceConfig;
-import org.apache.metron.writer.interfaces.BulkMessageWriter;
-import org.json.simple.JSONObject;
+package org.apache.metron.writer.hdfs;
 
-import java.io.Serializable;
-import java.util.List;
+import backtype.storm.task.TopologyContext;
+import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 
-public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
+import java.util.Map;
 
-  @Override
-  public void init() {
-
+public class SourceFileNameFormat implements FileNameFormat {
+  FileNameFormat delegate;
+  String sourceType;
+  public SourceFileNameFormat(String sourceType, FileNameFormat delegate) {
+    this.delegate = delegate;
+    this.sourceType = sourceType;
   }
 
   @Override
-  public void write(String sourceType, SourceConfig configuration, List<Tuple> tuples, List<JSONObject> messages) throws Exception {
-
+  public void prepare(Map map, TopologyContext topologyContext) {
+    this.delegate.prepare(map, topologyContext);
   }
 
   @Override
-  public void close() {
+  public String getName(long l, long l1) {
+    return delegate.getName(l, l1);
+  }
 
+  @Override
+  public String getPath() {
+    return delegate.getPath() + "/" + sourceType;
   }
 }

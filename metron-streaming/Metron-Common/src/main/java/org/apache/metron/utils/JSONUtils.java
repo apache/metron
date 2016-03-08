@@ -19,6 +19,7 @@
 package org.apache.metron.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -50,6 +51,13 @@ public enum JSONUtils {
       return new ObjectMapper();
     }
   };
+
+  public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
+    return _mapper.get().readValue(is, ref);
+  }
+  public <T> T load(String is, TypeReference<T> ref) throws IOException {
+    return _mapper.get().readValue(is, ref);
+  }
 
   public <T> T load(InputStream is, Class<T> clazz) throws IOException {
     return _mapper.get().readValue(is, clazz);

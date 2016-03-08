@@ -44,6 +44,12 @@
 - name: Add hbase-site.xml to topology jar
   shell: cd {{ hbase_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hbase-site.xml
 
+- name: Add core-site.xml to topology jar
+  shell: cd {{ hdfs_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} core-site.xml
+
+- name: Add hdfs-site.xml to topology jar
+  shell: cd {{ hdfs_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hdfs-site.xml
+
 - name: Copy Metron topology config files
   copy:
     src: "{{ metron_src_config_path }}/{{ item }}"
@@ -55,6 +61,12 @@
 - name: Get Default mysql passowrd
   include_vars: "../roles/mysql_server/vars/main.yml"
   when: mysql_root_password is undefined
+
+- name: Create root user HDFS directory
+  command: su - hdfs -c "hdfs dfs -mkdir -p /user/root && hdfs dfs -chown root:root /user/root"
+
+- name: Create Metron HDFS output directory
+  command: su - hdfs -c "hdfs dfs -mkdir -p {{ metron_hdfs_output_dir }} && hdfs dfs -chown hdfs:hadoop {{ metron_hdfs_output_dir }} && hdfs dfs -chmod 775 {{ metron_hdfs_output_dir }}"
 
 - name: Configure Metron topologies
   lineinfile: >
@@ -77,6 +89,7 @@
     - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
     - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
     - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
+    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
 
 - name: Add Elasticsearch templates for topologies
   uri:

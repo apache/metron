@@ -26,3 +26,5 @@ elasticsearch_config_path: /etc/elasticsearch
 elasticsearch_cluster_name: metron
 elasticsearch_transport_port: 9300
 hbase_config_path: "/etc/hbase/conf"
+hdfs_config_path: "/etc/hadoop/conf"
+metron_hdfs_output_dir: "/apps/metron"
