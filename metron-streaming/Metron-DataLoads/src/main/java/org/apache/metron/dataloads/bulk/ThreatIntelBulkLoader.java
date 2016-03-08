@@ -103,7 +103,7 @@ public class ThreatIntelBulkLoader  {
                 return o;
             }
         })
-        ,AS_OF_TIME_FORMAT("t", new OptionHandler() {
+        ,AS_OF_TIME_FORMAT("z", new OptionHandler() {
             @Nullable
             @Override
             public Option apply(@Nullable String s) {

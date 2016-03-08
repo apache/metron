@@ -28,12 +28,6 @@ pcap_hbase_table: pcap
 tracker_hbase_table: access_tracker
 threatintel_ip_hbase_table: malicious_ip
 
-# kafka
-pycapa_topic: pcap
-bro_topic: bro
-yaf_topic: ipfix
-snort_topic: snort
-
 #elasticsearch
 elasticsearch_transport_port: 9300
 elasticsearch_network_interface: eth1
@@ -55,7 +49,7 @@ snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
 
 #PCAP Replay
-pcap_replay: True
+pcap_replay: False
 pcap_replay_interface: eth1
 
 #data directories - only required to override defaults
@@ -73,3 +67,6 @@ storm_local_dir: "/data1/hadoop/storm"
 kafka_log_dirs: "/data1/kafka-log"
 elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
 
+ambari_server_mem: 512
+topology_name: small_topology.yml
+threat_intel_bulk_load: False

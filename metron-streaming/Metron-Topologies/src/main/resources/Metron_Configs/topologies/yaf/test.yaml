@@ -63,16 +63,6 @@ components:
                 value: 1000000
 
 spouts:
-    -   id: "testingSpout"
-        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
-        parallelism: 1
-        configMethods:
-            -   name: "withFilename"
-                args:
-                    - "SampleInput/YafExampleOutput"
-            -   name: "withRepeating"
-                args:
-                    - false
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:

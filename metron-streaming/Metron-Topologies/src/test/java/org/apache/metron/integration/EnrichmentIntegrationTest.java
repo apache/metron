@@ -17,7 +17,8 @@
  */
 package org.apache.metron.integration;
 
-import com.google.common.base.Function;
+import com.google.common.base.*;
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.Constants;
@@ -32,16 +33,19 @@ import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.util.mock.MockGeoAdapter;
 import org.apache.metron.integration.util.mock.MockHTable;
 import org.apache.metron.integration.util.threatintel.ThreatIntelHelper;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.utils.SourceConfigUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.apache.metron.utils.JSONUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -66,7 +70,7 @@ public class EnrichmentIntegrationTest {
   @Test
   public void test() throws Exception {
     final String dateFormat = "yyyy.MM.dd.hh";
-    final String index = "yaf_" + new SimpleDateFormat(dateFormat).format(new Date());
+    final String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
     String yafConfig = "{\n" +
             "  \"index\": \"yaf\",\n" +
             "  \"batchSize\": 5,\n" +
@@ -142,7 +146,9 @@ public class EnrichmentIntegrationTest {
             .withComponent("kafka", kafkaComponent)
             .withComponent("elasticsearch", esComponent)
             .withComponent("storm", fluxComponent)
-            .withTimeBetweenAttempts(10000)
+            .withMillisecondsBetweenAttempts(10000)
+            .withNumRetries(30)
+            .withMaxTimeMS(300000)
             .build();
     runner.start();
     fluxComponent.submitTopology();
@@ -154,7 +160,7 @@ public class EnrichmentIntegrationTest {
                 ElasticSearchComponent elasticSearchComponent = runner.getComponent("elasticsearch", ElasticSearchComponent.class);
                 if(elasticSearchComponent.hasIndex(index)) {
                   try {
-                    docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf");
+                    docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf_doc");
                   } catch (IOException e) {
                     throw new IllegalStateException("Unable to retrieve indexed documents.", e);
                   }
@@ -177,19 +183,209 @@ public class EnrichmentIntegrationTest {
 
     List<byte[]> sampleIndexedMessages = TestUtils.readSampleData(sampleIndexedPath);
     Assert.assertEquals(sampleIndexedMessages.size(), docs.size());
-    for (int i = 0; i < docs.size(); i++) {
-      String doc = docs.get(i).toString();
-      String sampleIndexedMessage = new String(sampleIndexedMessages.get(i));
-      assertEqual(sampleIndexedMessage, doc);
+
+    for (Map<String, Object> doc : docs) {
+      baseValidation(doc);
+
+      hostEnrichmentValidation(doc);
+      geoEnrichmentValidation(doc);
+      threatIntelValidation(doc);
+
     }
     runner.stop();
   }
-  public static void assertEqual(String doc1, String doc2) {
-    Assert.assertEquals(doc1.length(), doc2.length());
-    char[] c1 = doc1.toCharArray();
-    Arrays.sort(c1);
-    char[] c2 = doc2.toCharArray();
-    Arrays.sort(c2);
-    Assert.assertArrayEquals(c1, c2);
+
+  public static void baseValidation(Map<String, Object> jsonDoc) {
+    assertEnrichmentsExists("threatintels.", setOf("ip"), jsonDoc.keySet());
+    assertEnrichmentsExists("enrichments.", setOf("geo", "host"), jsonDoc.keySet());
+    for(Map.Entry<String, Object> kv : jsonDoc.entrySet()) {
+      //ensure no values are empty.
+      Assert.assertTrue(kv.getValue().toString().length() > 0);
+    }
+    //ensure we always have a source ip and destination ip
+    Assert.assertNotNull(jsonDoc.get("sip"));
+    Assert.assertNotNull(jsonDoc.get("dip"));
   }
+
+  private static class EvaluationPayload {
+    Map<String, Object> indexedDoc;
+    String key;
+    public EvaluationPayload(Map<String, Object> indexedDoc, String key) {
+      this.indexedDoc = indexedDoc;
+      this.key = key;
+    }
+  }
+
+  private static enum HostEnrichments implements Predicate<EvaluationPayload>{
+    LOCAL_LOCATION(new Predicate<EvaluationPayload>() {
+
+      @Override
+      public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
+        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.local").equals("YES");
+      }
+    })
+    ,UNKNOWN_LOCATION(new Predicate<EvaluationPayload>() {
+
+      @Override
+      public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
+        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.local").equals("UNKNOWN");
+      }
+    })
+    ,IMPORTANT(new Predicate<EvaluationPayload>() {
+      @Override
+      public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
+        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.asset_value").equals("important");
+      }
+    })
+    ,PRINTER_TYPE(new Predicate<EvaluationPayload>() {
+      @Override
+      public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
+        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.type").equals("printer");
+      }
+    })
+    ,WEBSERVER_TYPE(new Predicate<EvaluationPayload>() {
+      @Override
+      public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
+        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.type").equals("webserver");
+      }
+    })
+    ,UNKNOWN_TYPE(new Predicate<EvaluationPayload>() {
+      @Override
+      public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
+        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.type").equals("unknown");
+      }
+    })
+    ;
+
+    Predicate<EvaluationPayload> _predicate;
+    HostEnrichments(Predicate<EvaluationPayload> predicate) {
+      this._predicate = predicate;
+    }
+
+    public boolean apply(EvaluationPayload payload) {
+      return _predicate.apply(payload);
+    }
+
+  }
+
+  private static void assertEnrichmentsExists(String topLevel, Set<String> expectedEnrichments, Set<String> keys) {
+    for(String key : keys) {
+      if(key.startsWith(topLevel)) {
+        String secondLevel = Iterables.get(Splitter.on(".").split(key), 1);
+        String message = "Found an enrichment/threat intel (" + secondLevel + ") that I didn't expect (expected enrichments :"
+                       + Joiner.on(",").join(expectedEnrichments) + "), but it was not there.  If you've created a new"
+                       + " enrichment, then please add a validation method to this unit test.  Otherwise, it's a solid error"
+                       + " and should be investigated.";
+        Assert.assertTrue( message, expectedEnrichments.contains(secondLevel));
+      }
+    }
+  }
+  private static void threatIntelValidation(Map<String, Object> indexedDoc) {
+    if(keyPatternExists("threatintels.", indexedDoc)) {
+      //if we have any threat intel messages, we want to tag is_alert to true
+      Assert.assertEquals(indexedDoc.get("is_alert"), "true");
+    }
+    else {
+      //For YAF this is the case, but if we do snort later on, this will be invalid.
+      Assert.assertNull(indexedDoc.get("is_alert"));
+    }
+    //ip threat intels
+    if(keyPatternExists("threatintels.ip.", indexedDoc)) {
+      if(indexedDoc.get("sip").equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get("threatintels.ip.sip.ip_threat_intel"), "alert");
+      }
+      else if(indexedDoc.get("dip").equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get("threatintels.ip.dip.ip_threat_intel"), "alert");
+      }
+      else {
+        Assert.fail("There was a threat intels that I did not expect.");
+      }
+    }
+
+  }
+
+  private static void geoEnrichmentValidation(Map<String, Object> indexedDoc) {
+    //should have geo enrichment on every message due to mock geo adapter
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.city"), MockGeoAdapter.DEFAULT_CITY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.city"), MockGeoAdapter.DEFAULT_CITY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.country"), MockGeoAdapter.DEFAULT_COUNTRY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.country"), MockGeoAdapter.DEFAULT_COUNTRY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+  }
+
+  private static void hostEnrichmentValidation(Map<String, Object> indexedDoc) {
+    boolean enriched = false;
+    //important local printers
+    {
+      Set<String> ips = setOf("10.0.2.15", "10.60.10.254");
+      if (ips.contains(indexedDoc.get("sip"))) {
+        //this is a local, important, printer
+        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+                ,HostEnrichments.IMPORTANT
+                ,HostEnrichments.PRINTER_TYPE
+                ).apply(new EvaluationPayload(indexedDoc, "sip"))
+        );
+        enriched = true;
+      }
+      if (ips.contains(indexedDoc.get("dip"))) {
+        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+                ,HostEnrichments.IMPORTANT
+                ,HostEnrichments.PRINTER_TYPE
+                ).apply(new EvaluationPayload(indexedDoc, "dip"))
+        );
+        enriched = true;
+      }
+    }
+    //important local webservers
+    {
+      Set<String> ips = setOf("10.1.128.236");
+      if (ips.contains(indexedDoc.get("sip"))) {
+        //this is a local, important, printer
+        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+                ,HostEnrichments.IMPORTANT
+                ,HostEnrichments.WEBSERVER_TYPE
+                ).apply(new EvaluationPayload(indexedDoc, "sip"))
+        );
+        enriched = true;
+      }
+      if (ips.contains(indexedDoc.get("dip"))) {
+        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+                ,HostEnrichments.IMPORTANT
+                ,HostEnrichments.WEBSERVER_TYPE
+                ).apply(new EvaluationPayload(indexedDoc, "dip"))
+        );
+        enriched = true;
+      }
+    }
+    if(!enriched) {
+      Assert.assertFalse(keyPatternExists("enrichments.host", indexedDoc));
+    }
+  }
+
+
+  private static boolean keyPatternExists(String pattern, Map<String, Object> indexedObj) {
+    for(String k : indexedObj.keySet()) {
+      if(k.startsWith(pattern)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  private static Set<String> setOf(String... items) {
+    Set<String> ret = new HashSet<>();
+    for(String item : items) {
+      ret.add(item);
+    }
+    return ret;
+  }
+
 }

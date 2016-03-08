@@ -24,6 +24,13 @@
   register: ambari_server_setup
   failed_when: ambari_server_setup.stderr
 
+- name: Set Ambari Server Max Memory
+  replace:
+    dest: /var/lib/ambari-server/ambari-env.sh
+    regexp:  "\ -Xmx2048m\ "
+    replace: " -Xmx{{ ambari_server_mem }}m "
+    backup: no
+
 - name: start ambari server
   service: name=ambari-server state=restarted
 

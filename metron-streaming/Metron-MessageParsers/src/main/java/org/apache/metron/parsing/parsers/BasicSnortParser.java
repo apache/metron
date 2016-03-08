@@ -111,6 +111,7 @@ public class BasicSnortParser extends BasicParser {
 
 			// add original msg; required by 'checkForSchemaCorrectness'
 			jsonMessage.put("original_string", csvMessage);
+			jsonMessage.put("is_alert", "true");
 			messages.add(jsonMessage);
 		} catch (Exception e) {
 

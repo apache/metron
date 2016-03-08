@@ -24,7 +24,7 @@
 
 DAEMON_PATH="{{ pcap_path }}"
 PCAPIN=`ls $DAEMON_PATH/*.pcap 2> /dev/null`
-IFACE="{{ pcap_replay_interface | default("eth0") }}"
+IFACE="{{ pcap_replay_interface }}"
 EXTRA_ARGS="${@:2}"
 DAEMON="{{ tcpreplay_prefix }}/bin/tcpreplay"
 DAEMONOPTS="--intf1=$IFACE --loop=0 $EXTRA_ARGS $PCAPIN"
