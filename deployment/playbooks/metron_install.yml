@@ -57,13 +57,13 @@
 - hosts: sensors
   sudo: yes
   roles:
-    - { role: tap_interface, when: install_tap | default(False) == True }
     - role: ambari_gather_facts
-    - role: flume
-    - role: pycapa
-    - role: bro
-    - role: snort
-    - role: yaf
+    - { role: tap_interface, when: install_tap | default(False) == True }
+    - { role: pycapa, when: install_pycapa | default(True) == True }
+    - { role: bro, when: install_bro | default(True) == True }
+    - { role: flume,  when: install_snort | default(True) == True }
+    - { role: snort , when: install_snort | default(True) == True }
+    - { role: yaf, when: install_yaf | default(True) == True }
     - { role: pcap_replay , when: pcap_replay | default(False)  == True }
   tags:
       - sensors
