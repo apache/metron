@@ -17,6 +17,7 @@
 name: "enrichment"
 config:
     topology.workers: 1
+    topology.acker.executors: 0
 
 components:
 # Enrichment
@@ -105,7 +106,7 @@ components:
         configMethods:
             -   name: "withPrefix"
                 args:
-                    - "enrichment"
+                    - "enrichment-"
             -   name: "withExtension"
                 args:
                   - ".json"
@@ -147,19 +148,9 @@ components:
             -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
-                value: -1
+                value: -2
 
 spouts:
-    -   id: "testingSpout"
-        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
-        parallelism: 1
-        configMethods:
-            -   name: "withFilename"
-                args:
-                    - "SampleInput/YafExampleOutput"
-            -   name: "withRepeating"
-                args:
-                    - true
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:

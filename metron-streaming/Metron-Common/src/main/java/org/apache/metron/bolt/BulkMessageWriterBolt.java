@@ -80,7 +80,9 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
       sourceMessageMap.put(sourceType, messageList);
     } else {
       try {
-        bulkMessageWriter.write(sourceType, configuration, tupleList, messageList);
+
+        String esType = sourceType + "_doc";
+        bulkMessageWriter.write(esType, configuration, tupleList, messageList);
         for(Tuple t: tupleList) {
           collector.ack(t);
         }

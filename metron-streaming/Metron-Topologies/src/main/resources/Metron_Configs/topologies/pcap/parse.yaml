@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "yaf-test"
+name: "pcap-parse"
 config:
     topology.workers: 1
 
@@ -45,7 +45,7 @@ components:
             -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
-                value: -2
+                value: -1
 
 spouts:
     -   id: "kafkaSpout"

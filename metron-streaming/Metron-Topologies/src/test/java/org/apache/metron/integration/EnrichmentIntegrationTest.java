@@ -129,7 +129,7 @@ public class EnrichmentIntegrationTest {
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final String dateFormat = "yyyy.MM.dd.hh";
-    final String index = "yaf_" + new SimpleDateFormat(dateFormat).format(new Date());
+    final String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
     String yafConfig = "{\n" +
             "  \"index\": \"yaf\",\n" +
             "  \"batchSize\": 5,\n" +
@@ -222,7 +222,7 @@ public class EnrichmentIntegrationTest {
                   if (elasticSearchComponent.hasIndex(index)) {
                     List<Map<String, Object>> docsFromDisk;
                     try {
-                      docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf");
+                      docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf_doc");
                       docsFromDisk = readDocsFromDisk(hdfsDir);
                       System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
                     } catch (IOException e) {
@@ -257,7 +257,7 @@ public class EnrichmentIntegrationTest {
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
 
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
-      Assert.assertEquals(new File(hdfsDir).list()[0], "yaf");
+      Assert.assertEquals(new File(hdfsDir).list()[0], "yaf_doc");
       for (Map<String, Object> doc : docsFromDisk) {
         baseValidation(doc);
         hostEnrichmentValidation(doc);

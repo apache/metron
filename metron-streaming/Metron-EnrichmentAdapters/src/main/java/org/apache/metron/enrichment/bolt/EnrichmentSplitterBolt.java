@@ -104,6 +104,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, JSONObject> splitMessage(JSONObject message) {
+
         Map<String, JSONObject> streamMessageMap = new HashMap<>();
         String sourceType = TopologyUtils.getSourceType(message);
         Map<String, List<String>> enrichmentFieldMap = getFieldMap(sourceType);

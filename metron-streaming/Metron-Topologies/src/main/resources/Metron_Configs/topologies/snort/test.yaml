@@ -42,7 +42,7 @@ components:
             - "${spout.kafka.topic.snort}"
         properties:
             -   name: "ignoreZkOffsets"
-                value: true
+                value: false
             -   name: "startOffsetTime"
                 value: -2
 
