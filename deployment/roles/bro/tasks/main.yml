@@ -52,5 +52,7 @@
   cron:
     name: Bro Cron
     minute: "{{ bro_crontab_minutes }}"
-    job: "{{ bro_crontab_job }}"
-
+    job: "{{ item }}"
+  with_items:
+    - "{{ bro_crontab_job }}"
+    - "{{ bro_clean_job }}"

@@ -92,5 +92,5 @@
   run_once: true
   when: threat_intel_bulk_load == True
 
-- include: "{{ topology_name }}"
+- include: metron_topology.yml
 
