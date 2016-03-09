@@ -16,12 +16,11 @@
 #
 ---
 # ec2
-region: us-west-2
+region: us-east-1
 instance_type: m4.xlarge
-image: ami-05cf2265
+image: ami-1c221e76
 volume_type: standard
-key_name: metron-test #Change this
-ec2_host_tag: metron-test
+key_name: metron-key-pair
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
