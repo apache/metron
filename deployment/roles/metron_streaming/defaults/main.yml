@@ -23,9 +23,14 @@ threat_intel_work_dir: /tmp/ti_bulk
 threat_intel_csv_filename: "threat_ip.csv"
 threat_intel_csv_filepath: "../roles/metron_streaming/templates/{{ threat_intel_csv_filename }}"
 
-topology_name: full_topology.yml
 pycapa_topic: pcap
 bro_topic: bro
 yaf_topic: ipfix
 snort_topic: snort
 enrichments_topic: enrichments
+storm_topologies:
+    - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/pcap/parse.yaml"
+    - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"

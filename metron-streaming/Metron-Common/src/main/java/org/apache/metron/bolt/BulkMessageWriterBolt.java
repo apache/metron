@@ -45,7 +45,6 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   private Map<String, List<Tuple>> sourceTupleMap = new HashMap<>();
   private Map<String, List<JSONObject>> sourceMessageMap = new HashMap<>();
 
-
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -59,7 +58,7 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     super.prepare(stormConf, context, collector);
-    bulkMessageWriter.init();
+    bulkMessageWriter.init(stormConf);
   }
 
   @SuppressWarnings("unchecked")
