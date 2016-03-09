@@ -42,3 +42,12 @@ Each of the provisioned hosts will be externally accessible from the internet at
 ```
 ssh centos@ec2-52-91-215-174.compute-1.amazonaws.com
 ```
+
+Multiple Environments
+---------------------
+
+This process can support provisioning of multiple, isolated environments.  Simply change the `env` settings in `conf/defaults.yml`.  For example, you might provision separate development, test, and production environments.
+
+```
+env: metron-test
+```

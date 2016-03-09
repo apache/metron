@@ -20,7 +20,7 @@ region: us-west-2
 instance_type: m4.xlarge
 image: ami-05cf2265
 volume_type: standard
-key_name: metron-test
+key_name: metron-key
 env: metron-test
 
 # ambari
