@@ -15,15 +15,21 @@
 #  limitations under the License.
 #
 ---
+- hosts: ec2
+  become: true
+  tasks:
+  - debug: msg="Detected EC2 - including defaults"
+  - include_vars: ../amazon-ec2/conf/defaults.yml
+
 - hosts: metron
-  sudo: yes
+  become: true
   roles:
     - role: metron_common
   tags:
     - metron-prereqs
 
 - hosts: hadoop_client
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - role: hadoop_setup
@@ -31,7 +37,7 @@
     - metron-prereqs
 
 - hosts: search
-  sudo: yes
+  become: true
   vars:
     es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
   roles:
@@ -40,14 +46,14 @@
     - elasticsearch
 
 - hosts: mysql
-  sudo: yes
+  become: true
   roles:
     - role: mysql_server
   tags:
     - mysql-server
 
 - hosts: ambari_slave
-  sudo: yes
+  become: true
   roles:
     - role: mysql_client
   tags:
@@ -55,7 +61,7 @@
 
 
 - hosts: sensors
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - { role: tap_interface, when: install_tap | default(False) == True }
@@ -69,7 +75,7 @@
       - sensors
 
 - hosts: enrichment
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - role: metron_streaming
@@ -77,11 +83,10 @@
     - enrichment
 
 - hosts: web
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - role: metron_ui
     - role: metron_pcapservice
   tags:
     - web
-

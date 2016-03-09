@@ -1,0 +1,27 @@
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Expand {{ volume }} volume
+#          sectors  delete 1  new      primary  first    past mbr to end  bootable     write and exit
+  shell: "(echo u s; echo d 1; echo n; echo p; echo 1; echo 2048 ; echo ;echo a; echo 1; echo w) | fdisk {{ volume }} || true"
+  args:
+    executable: /bin/bash
+
+- name: Restart host(s)
+  command: shutdown -r now "Trigger volume changes"
+  async: 0
+  poll: 0
+  ignore_errors: True
+
+- name: Wait for connectivity to host(s)
+  local_action: wait_for host={{ inventory_hostname }} state=started
+  become: False

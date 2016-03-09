@@ -1,0 +1,49 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# instantiate the hosts on amazon ec2
+#
+- hosts: localhost
+  vars_files:
+    - conf/defaults.yml
+  tasks:
+    - include: tasks/create-keypair.yml
+    - include: tasks/create-vpc.yml
+    - include: tasks/create-open-inbound-security-group.yml
+    - include: tasks/create-open-outbound-security-group.yml
+    - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2
+    - include: tasks/create-hosts.yml host_count=5 host_type=ambari_slave,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,hadoop_client,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
+    - include: tasks/create-hosts.yml host_count=3 host_type=search,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2
+
+#
+# mount additional data volumes on all ec2 hosts
+#
+- hosts: ec2
+  become: True
+  tasks:
+    - include: tasks/mount-volume.yml vol_src=/dev/xvdb vol_mnt=/data1
+    - include: tasks/mount-volume.yml vol_src=/dev/xvdc vol_mnt=/data2
+    - include: tasks/expand-volume.yml volume=/dev/xvda
+
+#
+# build the metron cluster
+#
+- include: ../playbooks/metron_full_install.yml

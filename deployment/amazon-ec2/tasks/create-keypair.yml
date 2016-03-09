@@ -15,39 +15,9 @@
 #  limitations under the License.
 #
 ---
-- hosts: ec2
-  become: true
-  tasks:
-  - debug: msg="Detected EC2 - including defaults"
-  - include_vars: ../amazon-ec2/conf/defaults.yml
-
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+- name: Define keypair
+  ec2_key:
+    name: "{{ key_name }}"
+    region: "{{ region }}"
+    key_material: "{{ item }}"
+  with_file: "{{ key_file | default('~/.ssh/id_rsa.pub') }}"
