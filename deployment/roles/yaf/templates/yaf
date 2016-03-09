@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# yaf daemon
+# chkconfig: 345 20 80
+# description: Runs yaf - yet another flowmeter
+# processname: yaf
+#
+NAME=yaf
+DESC="Executes yaf - yet another flowmeter"
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+EXTRA_ARGS="${@:2}"
+DAEMON_PATH="{{ yaf_home }}"
+DAEMON="{{ daemon_bin }} --airdaemon-pidfile $PIDFILE --log {{ yaf_log }} --retry 15 --retry-max 300 --"
+DAEMONOPTS="{{ yaf_bin }} --in {{ sniff_interface }} --live pcap $EXTRA_ARGS | {{ yafscii_bin }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}"
+
+case "$1" in
+  start)
+    printf "%-50s" "Starting $NAME..."
+
+    # kick-off the daemon
+    cd $DAEMON_PATH
+    PID=`$DAEMON $DAEMONOPTS > /dev/null 2>&1 & echo $!`
+    if [ -z $PID ]; then
+        printf "%s\n" "Fail"
+    else
+        echo $PID > $PIDFILE
+        printf "%s\n" "Ok"
+    fi
+  ;;
+
+  status)
+    printf "%-50s" "Checking $NAME..."
+    if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+        printf "%s\n" "Process dead but pidfile exists"
+      else
+        echo "Running"
+      fi
+    else
+      printf "%s\n" "Service not running"
+    fi
+  ;;
+
+  stop)
+    printf "%-50s" "Stopping $NAME"
+    PID=`cat $PIDFILE`
+    cd $DAEMON_PATH
+    if [ -f $PIDFILE ]; then
+        kill -HUP $PID
+        printf "%s\n" "Ok"
+        rm -f $PIDFILE
+    else
+        printf "%s\n" "pidfile not found"
+    fi
+  ;;
+
+  restart)
+    $0 stop
+    $0 start
+  ;;
+
+  *)
+    echo "Usage: $0 {status|start|stop|restart}"
+    exit 1
+esac

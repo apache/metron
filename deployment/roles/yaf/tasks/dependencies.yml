@@ -1,5 +1,4 @@
 #
-#
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
 #  this work for additional information regarding copyright ownership.
@@ -16,13 +15,17 @@
 #  limitations under the License.
 #
 ---
-fixbuf_version: 1.7.1
-yaf_version: 2.8.0
-yaf_home: /opt/yaf
-yaf_topic: ipfix
-hdp_repo_def: http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.2.0/hdp.repo
-yaf_bin: /usr/local/bin/yaf
-yafscii_bin: /usr/local/bin/yafscii
-yaf_log: /var/log/yaf.log
-kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh
-daemon_bin: /usr/local/bin/airdaemon
+- name: Install prerequisites
+  yum: name={{ item }}
+  with_items:
+    - "@Development tools"
+    - libselinux-python
+    - libpcap
+    - libpcap-devel
+    - pcre
+    - pcre-devel
+    - glib2-devel
+    - zlib
+    - zlib-devel
+    - java-1.8.0-openjdk
+    - java-1.8.0-openjdk-devel

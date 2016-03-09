@@ -37,8 +37,21 @@
     - make
     - make install
 
-- name: Create Yaf home directory
+- name: Create yaf home directory
   file:
     path: "{{ yaf_home }}"
     state: directory
     mode: 0755
+
+- name: Install init.d service script
+  template: src=yaf dest=/etc/init.d/yaf mode=0755
+
+- name: Register the service with systemd
+  shell: systemctl enable pcap-replay
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
+- name: Turn on promiscuous mode for {{ sniff_interface }}
+  shell: "ip link set {{ sniff_interface }} promisc on"
+
+- name: Start yaf
+  service: name=yaf state=restarted
