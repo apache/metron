@@ -15,39 +15,12 @@
 #  limitations under the License.
 #
 ---
-- hosts: ec2
-  become: true
-  tasks:
-  - debug: msg="Detected EC2 - including defaults"
-  - include_vars: ../amazon-ec2/conf/defaults.yml
-
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+- name: WARNING Define open inbound security group
+  ec2_group:
+    name: vpc-all-inbound
+    description: WARNING allow all inbound connections from the internet
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    rules:
+      - proto: all
+        cidr_ip: 0.0.0.0/0

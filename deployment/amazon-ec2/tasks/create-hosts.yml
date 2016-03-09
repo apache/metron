@@ -1,0 +1,58 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Instantiate '{{ host_count }}' host(s) as '{{ host_type }}'
+  ec2:
+    region: "{{ region }}"
+    instance_type: "{{ instance_type }}"
+    image: "{{ image }}"
+    key_name: "{{ key_name }}"
+    assign_public_ip: True
+    group: [vpc-all-inbound,vpc-all-outbound]
+    vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+    instance_tags:
+      Name: "[{{ env }}] {{ host_type }}"
+      type: "{{ host_type }}"
+      env: "{{ env }}"
+    exact_count: "{{ host_count }}"
+    count_tag:
+      type: "{{ host_type }}"
+    volumes:
+    - device_name: /dev/sda1
+      volume_type: "{{ volume_type }}"
+      volume_size: 50
+      delete_on_termination: true
+    - device_name: /dev/xvdb
+      volume_type: "{{ volume_type }}"
+      volume_size: 100
+      delete_on_termination: true
+    - device_name: /dev/xvdc
+      volume_type: "{{ volume_type }}"
+      volume_size: 100
+      delete_on_termination: true
+    wait: yes
+  register: ec2
+
+- name: Add host(s) to a hostgroup
+  add_host: hostname={{ item.public_dns_name }} groups={{ host_type }}
+  with_items: ec2.tagged_instances
+  when: item.public_dns_name is defined
+
+- name: Wait for connectivity to host(s)
+  wait_for: host={{ item.public_dns_name }} port=22 search_regex=OpenSSH
+  with_items: ec2.tagged_instances
+  when: item.public_dns_name is defined
