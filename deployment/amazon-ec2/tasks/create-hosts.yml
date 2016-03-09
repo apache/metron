@@ -31,10 +31,6 @@
     count_tag:
       type: "{{ host_type }}"
     volumes:
-    - device_name: /dev/sda1
-      volume_type: "{{ volume_type }}"
-      volume_size: 50
-      delete_on_termination: true
     - device_name: /dev/xvdb
       volume_type: "{{ volume_type }}"
       volume_size: 100
@@ -52,12 +48,6 @@
   when: item.public_dns_name is defined
 
 - name: Wait for connectivity to host(s)
-  wait_for:
-    host: "{{ item.public_dns_name }}"
-    port: 22
-    search_regex: OpenSSH
-    delay: 10
-    timeout: 360
+  wait_for: host={{ item.public_dns_name }} port=22 search_regex=OpenSSH
   with_items: ec2.tagged_instances
   when: item.public_dns_name is defined
-

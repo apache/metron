@@ -24,27 +24,27 @@
   tasks:
     - include: tasks/create-keypair.yml
     - include: tasks/create-vpc.yml
-    #TODO - create more closed security group
     # - include: tasks/create-security-group.yml name=vpc-http proto=tcp port=80
     # - include: tasks/create-security-group.yml name=vpc-http-8080 proto=tcp port=8080
     # - include: tasks/create-security-group.yml name=vpc-https proto=tcp port=443
     # - include: tasks/create-security-group.yml name=vpc-ssh proto=tcp port=22
     - include: tasks/create-open-inbound-security-group.yml
     - include: tasks/create-open-outbound-security-group.yml
-    - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2,{{ ec2_host_tag | default("") }}
-    - include: tasks/create-hosts.yml host_count=5 host_type=ambari_slave,ec2,{{ ec2_host_tag | default("") }}
-    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,hadoop_client,metron,ec2,{{ ec2_host_tag | default("") }}
-    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2,{{ ec2_host_tag | default("") }}
-    - include: tasks/create-hosts.yml host_count=3 host_type=search,metron,ec2,{{ ec2_host_tag | default("") }}
-    - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2,{{ ec2_host_tag | default("") }}
+    - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2
+    - include: tasks/create-hosts.yml host_count=5 host_type=ambari_slave,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,hadoop_client,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
+    - include: tasks/create-hosts.yml host_count=3 host_type=search,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2
 
 #
-# exapnd xvda on all hosts
+# mount additional data volumes on amazon ec2 hosts
 #
 - hosts: ec2
   become: True
   tasks:
-    - include: tasks/expand-xdva.yml
+    - include: tasks/mount-volume.yml vol_src=/dev/xvdb vol_mnt=/data1
+    - include: tasks/mount-volume.yml vol_src=/dev/xvdc vol_mnt=/data2
 
 #
 # provision metron on the cluster
