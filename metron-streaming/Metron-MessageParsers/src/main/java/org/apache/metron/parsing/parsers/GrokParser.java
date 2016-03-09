@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsing.parsers;
 
+import com.google.common.io.Resources;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -77,7 +79,9 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    InputStream is = GrokParser.class.getClassLoader().getResourceAsStream(streamName);
+    URL url = Resources.getResource(streamName);
+
+    InputStream is = url.openStream();
     if(is == null) {
       FileSystem fs = FileSystem.get(new Configuration());
       Path path = new Path(streamName);
