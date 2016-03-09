@@ -93,7 +93,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   public void init() {
     grok = new Grok();
     try {
-      InputStream commonInputStream = openInputStream("/patterns/common");
+      InputStream commonInputStream = openInputStream("patterns/common");
       if(commonInputStream == null) {
         throw new RuntimeException("Unable to initialize grok parser: Unable to load /patterns/common from either classpath or HDFS" );
       }
