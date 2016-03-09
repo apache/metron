@@ -1,0 +1,177 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# instantiate the hosts on amazon ec2
+#
+- hosts: localhost
+  vars_files:
+    - conf/defaults.yml
+  tasks:
+    - include: tasks/create-keypair.yml
+    - include: tasks/create-vpc.yml
+    # - include: tasks/create-security-group.yml name=vpc-http proto=tcp port=80
+    # - include: tasks/create-security-group.yml name=vpc-http-8080 proto=tcp port=8080
+    # - include: tasks/create-security-group.yml name=vpc-https proto=tcp port=443
+    # - include: tasks/create-security-group.yml name=vpc-ssh proto=tcp port=22
+    - include: tasks/create-open-inbound-security-group.yml
+    - include: tasks/create-open-outbound-security-group.yml
+    - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2
+    - include: tasks/create-hosts.yml host_count=5 host_type=ambari_slave,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,hadoop_client,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
+    - include: tasks/create-hosts.yml host_count=3 host_type=search,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2
+
+#
+# mount additional data volumes on amazon ec2 hosts
+#
+- hosts: ec2
+  become: True
+  tasks:
+    - include: tasks/mount-volume.yml vol_src=/dev/xvdb vol_mnt=/data1
+    - include: tasks/mount-volume.yml vol_src=/dev/xvdc vol_mnt=/data2
+
+#
+# provision metron on the cluster
+#
+# TODO - can i simply point to the playbooks under deployment/playbooks?  how to
+# get the equivalent of vars_files: conf/defaults.yml using the existing playbooks ??
+#
+- hosts: ambari_*
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_common
+  tags:
+    - ambari-prereqs
+    - hdp-install
+
+- hosts: ambari_master
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role:  ambari_master
+  tags:
+    - ambari-server
+    - hdp-install
+
+- hosts: ambari_slave
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_slave
+  tags:
+    - ambari-agent
+    - hdp-install
+
+- hosts: ambari_master
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_config
+  tags:
+    - hdp-install
+    - hdp-deploy
+
+- hosts: metron
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: metron_common
+  tags:
+    - metron-prereqs
+
+- hosts: hadoop_client
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_gather_facts
+    - role: hadoop_setup
+  tags:
+    - metron-prereqs
+
+- hosts: search
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  vars:
+    es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
+  roles:
+    - role: elasticsearch
+  tags:
+    - elasticsearch
+
+- hosts: mysql
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: mysql_server
+  tags:
+    - mysql-server
+
+- hosts: ambari_slave
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: mysql_client
+  tags:
+    - mysql-client
+
+- hosts: sensors
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_gather_facts
+    - role: flume
+    - role: pycapa
+    - role: bro
+    - role: snort
+    - role: yaf
+    - { role: pcap_replay , when: pcap_replay | default(False)  == True }
+  tags:
+      - sensors
+
+- hosts: enrichment
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_gather_facts
+    - role: metron_streaming
+  tags:
+    - enrichment
+
+- hosts: web
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  roles:
+    - role: ambari_gather_facts
+    - role: metron_ui
+    - role: metron_pcapservice
+  tags:
+    - web
