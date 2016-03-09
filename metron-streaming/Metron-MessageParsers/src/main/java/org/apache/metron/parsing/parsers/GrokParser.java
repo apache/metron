@@ -76,21 +76,40 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     return this;
   }
 
+  public InputStream openInputStream(String streamName) throws IOException {
+    InputStream is = getClass().getResourceAsStream(streamName);
+    if(is == null) {
+      FileSystem fs = FileSystem.get(new Configuration());
+      Path path = new Path(streamName);
+      if(fs.exists(path)) {
+        return fs.open(path);
+      }
+    }
+    return null;
+
+  }
+
   @Override
   public void init() {
     grok = new Grok();
     try {
-      InputStream commonInputStream = getClass().getResourceAsStream
-              ("/patterns/common");
+      InputStream commonInputStream = openInputStream("/patterns/common");
+      if(commonInputStream == null) {
+        throw new RuntimeException("Unable to initialize grok parser: Unable to load /patterns/common from either classpath or HDFS" );
+      }
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
-      InputStream patterInputStream = FileSystem.get(new Configuration()).open(new
-              Path(grokHdfsPath));
+      InputStream patterInputStream = openInputStream(grokHdfsPath);
+      if(patterInputStream == null) {
+        throw new RuntimeException("Unable to initialize grok parser: Unable to load " + grokHdfsPath + " from either classpath or HDFS" );
+      }
       grok.addPatternFromReader(new InputStreamReader(patterInputStream));
       grok.compile("%{" + patternLabel + "}");
     } catch (GrokException e) {
       LOG.error(e.getMessage(), e);
+      throw new RuntimeException("Unable to initialize grok parser: " + e.getMessage(), e);
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage(), e);
+      throw new RuntimeException("Unable to initialize grok parser: " + e.getMessage(), e);
     }
   }
 

@@ -82,7 +82,8 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
       try {
 
         String esType = sourceType + "_doc";
-        bulkMessageWriter.write(esType, configuration, tupleList, messageList);
+        ArrayList<JSONObject> tmpList = (ArrayList<JSONObject>) messageList;
+        bulkMessageWriter.write(esType, configuration, tupleList, (List<JSONObject>) tmpList.clone());
         for(Tuple t: tupleList) {
           collector.ack(t);
         }
