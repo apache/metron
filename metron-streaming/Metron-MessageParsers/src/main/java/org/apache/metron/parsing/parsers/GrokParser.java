@@ -77,7 +77,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    InputStream is = getClass().getClassLoader().getResourceAsStream(streamName);
+    InputStream is = GrokParser.class.getClassLoader().getResourceAsStream(streamName);
     if(is == null) {
       FileSystem fs = FileSystem.get(new Configuration());
       Path path = new Path(streamName);
@@ -93,9 +93,9 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   public void init() {
     grok = new Grok();
     try {
-      InputStream commonInputStream = openInputStream("patterns/common");
+      InputStream commonInputStream = openInputStream("/patterns/common");
       if(commonInputStream == null) {
-        throw new RuntimeException("Unable to initialize grok parser: Unable to load patterns/common from either classpath or HDFS" );
+        throw new RuntimeException("Unable to initialize grok parser: Unable to load /patterns/common from either classpath or HDFS" );
       }
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
       InputStream patterInputStream = openInputStream(grokHdfsPath);
