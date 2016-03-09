@@ -1,0 +1,77 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+# ec2
+region: us-west-2
+instance_type: m4.xlarge
+image: ami-05cf2265
+volume_type: standard
+key_name: metron-test
+env: metron-test
+
+# ambari
+ambari_host: "{{ groups.ambari_master[0] }}"
+ambari_port: 8080
+ambari_user: admin
+ambari_password: admin
+cluster_type: small_cluster
+
+# hbase
+pcap_hbase_table: pcap
+tracker_hbase_table: access_tracker
+threatintel_ip_hbase_table: malicious_ip
+
+# kafka
+pycapa_topic: pcap
+bro_topic: bro
+yaf_topic: ipfix
+snort_topic: snort
+num_partitions: 3
+retention_in_gb: 25
+
+# elasticsearch
+elasticsearch_transport_port: 9300
+elasticsearch_network_interface: eth0
+elasticsearch_web_port: 9200
+
+# metron variables
+metron_version: 0.1BETA
+java_home: /usr/jdk64/jdk1.8.0_40
+pcapservice_port: 8081
+sniff_interface: tap0
+snort_alert_csv_path: "/var/log/snort/alert.csv"
+yaf_args: "--idle-timeout 0"
+
+# pcap-replay
+pcap_replay: True
+pcap_replay_interface: tap0
+install_tap: True
+
+# data directories
+zookeeper_data_dir: "/data1/hadoop/zookeeper"
+namenode_checkpoint_dir: "/data1/hadoop/hdfs/namesecondary"
+namenode_name_dir: "/data1/hadoop/hdfs/namenode"
+datanode_data_dir: "/data1/hadoop/hdfs/data,/data2/hadoop/hdfs/data"
+journalnode_edits_dir: "/data1/hadoop/hdfs/journalnode"
+nodemanager_local_dirs: "/data1/hadoop/yarn/local"
+timeline_ldb_store_path: "/data1/hadoop/yarn/timeline"
+timeline_ldb_state_path: "/data1/hadoop/yarn/timeline"
+nodemanager_log_dirs: "/data1/hadoop/yarn/log"
+jhs_recovery_store_ldb_path: "/data1/hadoop/mapreduce/jhs"
+storm_local_dir: "/data1/hadoop/storm"
+kafka_log_dirs: "/data2/kafka-log"
+elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
