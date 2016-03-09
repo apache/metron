@@ -1,5 +1,4 @@
 #
-#
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
 #  this work for additional information regarding copyright ownership.
@@ -16,13 +15,13 @@
 #  limitations under the License.
 #
 ---
-fixbuf_version: 1.7.1
-yaf_version: 2.8.0
-yaf_home: /opt/yaf
-yaf_topic: ipfix
-hdp_repo_def: http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.2.0/hdp.repo
-yaf_bin: /usr/local/bin/yaf
-yafscii_bin: /usr/local/bin/yafscii
-yaf_log: /var/log/yaf.log
-kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh
-daemon_bin: /usr/local/bin/airdaemon
+  - name: Retrieve HDP repository definition
+    get_url:
+      url: "{{ hdp_repo_def }}"
+      dest: /etc/yum.repos.d/hdp.repo
+      mode: 0644
+
+  - name: Install kafka
+    yum: name={{ item }}
+    with_items:
+      - kafka
