@@ -23,6 +23,7 @@ import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.parser.interfaces.MessageParser;
 import org.json.simple.JSONObject;
@@ -79,18 +80,21 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    URL url = Resources.getResource(streamName);
-
-    InputStream is = url.openStream();
-    if(is == null) {
+    try {
+      URL url = Resources.getResource(streamName);
+      return url.openStream();
+    }
+    catch(IllegalArgumentException iae) {
       FileSystem fs = FileSystem.get(new Configuration());
+      if(fs instanceof LocalFileSystem) {
+        throw new IllegalStateException("FileSystem is a local filesystem, not HDFS.  Your topology is misconfigured.");
+      }
       Path path = new Path(streamName);
       if(fs.exists(path)) {
         return fs.open(path);
       }
     }
-    return null;
-
+    throw new IllegalArgumentException("* Unable to find " + streamName + " from either the classpath or HDFS");
   }
 
   @Override
@@ -110,10 +114,10 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       grok.compile("%{" + patternLabel + "}");
     } catch (GrokException e) {
       LOG.error(e.getMessage(), e);
-      throw new RuntimeException("Unable to initialize grok parser: " + e.getMessage(), e);
+      throw new RuntimeException("Grok parser Error: " + e.getMessage(), e);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      throw new RuntimeException("Unable to initialize grok parser: " + e.getMessage(), e);
+      throw new RuntimeException("Grok parser Error: " + e.getMessage(), e);
     }
   }
 
