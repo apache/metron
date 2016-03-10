@@ -129,7 +129,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       grok.compile("%{" + patternLabel + "}");
     } catch (Throwable e) {
       LOG.error(e.getMessage(), e);
-      System.exit(-1);
       throw new RuntimeException("Grok parser Error: " + e.getMessage(), e);
     }
   }
