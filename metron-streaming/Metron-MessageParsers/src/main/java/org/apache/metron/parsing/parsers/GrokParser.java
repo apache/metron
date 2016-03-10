@@ -53,10 +53,15 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   private String timestampField;
   private String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
   private TimeZone timeZone = TimeZone.getTimeZone("UTC");
-
+  private String metronHdfsHome = "/apps/metron";
   public GrokParser(String grokHdfsPath, String patterLabel) {
     this.grokHdfsPath = grokHdfsPath;
     this.patternLabel = patterLabel;
+  }
+
+  public GrokParser withMetronHDFSHome(String home) {
+    this.grokHdfsPath = home;
+    return this;
   }
 
   public GrokParser withTimestampField(String timestampField) {
@@ -80,21 +85,30 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    try {
-      URL url = Resources.getResource(streamName);
-      return url.openStream();
+    /*try {
+      return Thread.currentThread().getContextClassLoader().getResourceAsStream(streamName);
+
     }
     catch(IllegalArgumentException iae) {
       FileSystem fs = FileSystem.get(new Configuration());
       if(fs instanceof LocalFileSystem) {
         throw new IllegalStateException("FileSystem is a local filesystem, not HDFS.  Your topology is misconfigured.");
       }
-      Path path = new Path(streamName);
+      Path path = new Path(grokHdfsPath.length() > 0?(grokHdfsPath + "/"):"" + streamName);
       if(fs.exists(path)) {
         return fs.open(path);
       }
+    }*/
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    InputStream is = cl.getResourceAsStream(streamName);
+    if(is == null) {
+      String context = "ClassLoader: " + cl  + ", ";
+      throw new IllegalArgumentException("* Unable to find " + streamName + " from the classpath.  Context: " + context);
     }
-    throw new IllegalArgumentException("* Unable to find " + streamName + " from either the classpath or HDFS");
+      /*throw new IllegalArgumentException("* Unable to find " + streamName + " from either the classpath or HDFS");
+      throw new IllegalArgumentException("* Unable to find " + streamName + " from either the classpath or HDFS");
+      */
+    return is;
   }
 
   @Override
