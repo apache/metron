@@ -21,7 +21,7 @@ public class Constants {
 
   public static final String ZOOKEEPER_ROOT = "/metron";
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
-  public static final String SOURCE_TYPE = "source.type";
+  public static final String SOURCE_TYPE = "type";
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String ERROR_STREAM = "error";
 }

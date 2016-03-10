@@ -53,6 +53,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   private String timestampField;
   private String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
   private TimeZone timeZone = TimeZone.getTimeZone("UTC");
+
   private String metronHdfsHome = "/apps/metron";
   public GrokParser(String grokHdfsPath, String patterLabel) {
     this.grokHdfsPath = grokHdfsPath;
