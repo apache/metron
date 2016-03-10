@@ -44,7 +44,7 @@ components:
             -   name: "ignoreZkOffsets"
                 value: true
             -   name: "startOffsetTime"
-                value: -2
+                value: -1
             -   name: "socketTimeoutMs"
                 value: 1000000
 
