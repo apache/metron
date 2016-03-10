@@ -86,11 +86,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    /*try {
-      return Thread.currentThread().getContextClassLoader().getResourceAsStream(streamName);
-
-    }
-    catch(IllegalArgumentException iae) {
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(streamName);
+    if(is == null) {
       FileSystem fs = FileSystem.get(new Configuration());
       if(fs instanceof LocalFileSystem) {
         throw new IllegalStateException("FileSystem is a local filesystem, not HDFS.  Your topology is misconfigured.");
@@ -99,16 +96,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       if(fs.exists(path)) {
         return fs.open(path);
       }
-    }*/
-    ClassLoader cl = Thread.currentThread().getContextClassLoader();
-    InputStream is = cl.getResourceAsStream(streamName);
-    if(is == null) {
-      String context = "ClassLoader: " + cl  + ", ";
-      throw new IllegalArgumentException("* Unable to find " + streamName + " from the classpath.  Context: " + context);
     }
-      /*throw new IllegalArgumentException("* Unable to find " + streamName + " from either the classpath or HDFS");
-      throw new IllegalArgumentException("* Unable to find " + streamName + " from either the classpath or HDFS");
-      */
     return is;
   }
 
