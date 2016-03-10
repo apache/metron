@@ -14,63 +14,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef BRO_PLUGIN_METRON_KAFKA_KAFKAWRITER_H
-#define BRO_PLUGIN_METRON_KAFKA_KAFKAWRITER_H
 
-#include <logging/WriterBackend.h>
-#include <logging/WriterFrontend.h>
-#include <threading/Formatter.h>
+#ifndef BRO_PLUGIN_BRO_KAFKA_KAFKAWRITER_H
+#define BRO_PLUGIN_BRO_KAFKA_KAFKAWRITER_H
+
+#include <string>
 #include <librdkafka/rdkafkacpp.h>
+#include <logging/WriterBackend.h>
+#include <threading/formatters/JSON.h>
+#include <Type.h>
+#include "kafka.bif.h"
 
-using logging::WriterBackend;
-using logging::WriterFrontend;
-using threading::Value;
-using threading::Field;
-using threading::formatter::Formatter;
+#include "TaggedJSON.h"
 
-namespace metron {
-namespace kafka {
+namespace logging { namespace writer {
 
-    /**
+/**
  * A logging writer that sends data to a Kafka broker.
  */
-    class KafkaWriter : public WriterBackend {
-    public:
-        KafkaWriter(WriterFrontend* frontend);
-        ~KafkaWriter();
+class KafkaWriter : public WriterBackend {
 
-        static WriterBackend* Instantiate(WriterFrontend* frontend)
-        {
-            return new KafkaWriter(frontend);
-        }
+public:
+    KafkaWriter(WriterFrontend* frontend);
+    ~KafkaWriter();
 
-    protected:
-        virtual bool DoInit(const WriterBackend::WriterInfo& info, int num_fields,
-            const threading::Field* const* fields);
-        virtual bool DoWrite(int num_fields, const threading::Field* const* fields,
-            threading::Value** vals);
-        virtual bool DoSetBuf(bool enabled);
-        virtual bool DoRotate(const char* rotated_path, double open, double close,
-            bool terminating);
-        virtual bool DoFlush(double network_time);
-        virtual bool DoFinish(double network_time);
-        virtual bool DoHeartbeat(double network_time, double current_time);
+    static WriterBackend* Instantiate(WriterFrontend* frontend)
+    {
+        return new KafkaWriter(frontend);
+    }
 
-    private:
-        // values defined within 'bro-space'; must match kafka.bif, scripts/init.bro
-        string kafka_broker_list;
-        string topic_name;
-        int max_wait_on_delivery;
+protected:
+    virtual bool DoInit(const WriterBackend::WriterInfo& info, int num_fields, const threading::Field* const* fields);
+    virtual bool DoWrite(int num_fields, const threading::Field* const* fields, threading::Value** vals);
+    virtual bool DoSetBuf(bool enabled);
+    virtual bool DoRotate(const char* rotated_path, double open, double close, bool terminating);
+    virtual bool DoFlush(double network_time);
+    virtual bool DoFinish(double network_time);
+    virtual bool DoHeartbeat(double network_time, double current_time);
 
-        // other
-        Formatter* formatter;
-        RdKafka::Producer* producer;
-        RdKafka::Topic* topic;
-        RdKafka::Conf* conf;
-        RdKafka::Conf* topic_conf;
-    };
-}
-}
+private:
+    string topic_name;
+    threading::formatter::Formatter *formatter;
+    RdKafka::Producer* producer;
+    RdKafka::Topic* topic;
+    RdKafka::Conf* conf;
+    RdKafka::Conf* topic_conf;
+};
+
+}}
 
 #endif

@@ -14,25 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "Plugin.h"
 #include "KafkaWriter.h"
 
-namespace plugin {
-namespace Metron_Kafka {
+namespace plugin { namespace Bro_Kafka {
     Plugin plugin;
-}
-}
+}}
 
-using namespace plugin::Metron_Kafka;
+using namespace plugin::Bro_Kafka;
 
 plugin::Configuration Plugin::Configure()
 {
-    AddComponent(new ::logging::Component(
-        "KafkaWriter", ::metron::kafka::KafkaWriter::Instantiate));
+    AddComponent(new ::logging::Component("KafkaWriter", ::logging::writer::KafkaWriter::Instantiate));
 
     plugin::Configuration config;
-    config.name = "Metron::Kafka";
+    config.name = "Bro::Kafka";
     config.description = "Writes logs to Kafka";
     config.version.major = 0;
     config.version.minor = 1;

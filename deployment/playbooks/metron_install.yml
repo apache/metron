@@ -18,9 +18,10 @@
 - hosts: ec2
   become: true
   tasks:
-  - debug: msg="Detected EC2 - including defaults"
-  - include_vars: ../amazon-ec2/conf/defaults.yml
-
+    - include_vars: ../amazon-ec2/conf/defaults.yml
+  tags:
+    - ec2
+    
 - hosts: metron
   become: true
   roles:

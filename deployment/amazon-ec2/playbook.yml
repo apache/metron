@@ -32,6 +32,8 @@
     - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
     - include: tasks/create-hosts.yml host_count=3 host_type=search,metron,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2
+  tags:
+    - ec2
 
 #
 # mount additional data volumes on all ec2 hosts
@@ -42,6 +44,8 @@
     - include: tasks/mount-volume.yml vol_src=/dev/xvdb vol_mnt=/data1
     - include: tasks/mount-volume.yml vol_src=/dev/xvdc vol_mnt=/data2
     - include: tasks/expand-volume.yml volume=/dev/xvda
+  tags:
+    - ec2
 
 #
 # build the metron cluster

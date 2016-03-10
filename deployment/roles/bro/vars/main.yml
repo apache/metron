@@ -17,3 +17,5 @@
 ---
 bro_version: 2.4.1
 bro_topic: bro
+librdkafka_version: 0.8.6
+librdkafka_url: https://github.com/edenhill/librdkafka/archive/0.8.6.tar.gz
