@@ -92,7 +92,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       if(fs instanceof LocalFileSystem) {
         throw new IllegalStateException("FileSystem is a local filesystem, not HDFS.  Your topology is misconfigured.");
       }
-      Path path = new Path(grokHdfsPath.length() > 0?(grokHdfsPath + "/"):"" + streamName);
+      Path path = new Path(metronHdfsHome + "/" + streamName);
       if(fs.exists(path)) {
         return fs.open(path);
       }
