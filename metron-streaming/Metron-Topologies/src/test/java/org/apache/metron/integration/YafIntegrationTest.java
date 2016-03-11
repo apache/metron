@@ -45,12 +45,12 @@ public class YafIntegrationTest extends ParserIntegrationTest {
             " \"batchSize\": 5," +
             " \"enrichmentFieldMap\":" +
             "  {" +
-            "    \"geo\": [\"sip\", \"dip\"]," +
-            "    \"host\": [\"sip\", \"dip\"]" +
+            "    \"geo\": [\"ip_src_addr\", \"ip_dst_addr\"]," +
+            "    \"host\": [\"ip_src_addr\", \"ip_dst_addr\"]" +
             "  }," +
             "  \"threatIntelFieldMap\":" +
             "  {" +
-            "    \"ip\": [\"sip\", \"dip\"]" +
+            "    \"ip\": [\"ip_src_addr\", \"ip_dst_addr\"]" +
             "  }" +
             "}";
   }

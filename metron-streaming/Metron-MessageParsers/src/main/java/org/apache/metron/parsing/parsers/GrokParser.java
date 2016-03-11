@@ -61,7 +61,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public GrokParser withMetronHDFSHome(String home) {
-    this.grokHdfsPath = home;
+    this.metronHdfsHome= home;
     return this;
   }
 
@@ -86,13 +86,10 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(streamName);
+    InputStream is = getClass().getResourceAsStream(streamName);
     if(is == null) {
       FileSystem fs = FileSystem.get(new Configuration());
-      if(fs instanceof LocalFileSystem) {
-        throw new IllegalStateException("FileSystem is a local filesystem, not HDFS.  Your topology is misconfigured.");
-      }
-      Path path = new Path(metronHdfsHome + "/" + streamName);
+      Path path = new Path((metronHdfsHome != null && metronHdfsHome.length() > 0?metronHdfsHome + "/":"") + streamName);
       if(fs.exists(path)) {
         return fs.open(path);
       }
