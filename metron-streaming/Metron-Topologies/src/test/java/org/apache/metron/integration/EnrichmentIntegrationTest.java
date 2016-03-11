@@ -130,9 +130,9 @@ public class EnrichmentIntegrationTest {
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final String dateFormat = "yyyy.MM.dd.hh";
-    final String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
+    final String index = "test_index_" + new SimpleDateFormat(dateFormat).format(new Date());
     String yafConfig = "{\n" +
-            "  \"index\": \"yaf\",\n" +
+            "  \"index\": \"test\",\n" +
             "  \"batchSize\": 5,\n" +
             "  \"enrichmentFieldMap\":\n" +
             "  {\n" +
