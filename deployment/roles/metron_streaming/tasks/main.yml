@@ -34,7 +34,7 @@
     dest: "{{ metron_directory }}"
 
 - name: Unbundle Metron bundles
-  shell: cd {{ metron_directory }} && tar xzvf *.tar.gz && rm *.tar.gz
+  shell: cd {{ metron_directory }} && tar xzvf Metron-Topologies*.tar.gz && tar xzvf Metron-DataLoads*.tar.gz && rm *.tar.gz
 
 - name: Alternatives link for "java"
   alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
