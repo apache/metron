@@ -17,11 +17,13 @@
  */
 package org.apache.metron.parsing.parsers;
 
+import com.google.common.io.Resources;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.parser.interfaces.MessageParser;
 import org.json.simple.JSONObject;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,9 +54,15 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   private String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
   private TimeZone timeZone = TimeZone.getTimeZone("UTC");
 
+  private String metronHdfsHome = "/apps/metron";
   public GrokParser(String grokHdfsPath, String patterLabel) {
     this.grokHdfsPath = grokHdfsPath;
     this.patternLabel = patterLabel;
+  }
+
+  public GrokParser withMetronHDFSHome(String home) {
+    this.metronHdfsHome= home;
+    return this;
   }
 
   public GrokParser withTimestampField(String timestampField) {
@@ -76,21 +85,36 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     return this;
   }
 
+  public InputStream openInputStream(String streamName) throws IOException {
+    InputStream is = getClass().getResourceAsStream(streamName);
+    if(is == null) {
+      FileSystem fs = FileSystem.get(new Configuration());
+      Path path = new Path((metronHdfsHome != null && metronHdfsHome.length() > 0?metronHdfsHome + "/":"") + streamName);
+      if(fs.exists(path)) {
+        return fs.open(path);
+      }
+    }
+    return is;
+  }
+
   @Override
   public void init() {
     grok = new Grok();
     try {
-      InputStream commonInputStream = getClass().getResourceAsStream
-              ("/patterns/common");
+      InputStream commonInputStream = openInputStream("/patterns/common");
+      if(commonInputStream == null) {
+        throw new RuntimeException("Unable to initialize grok parser: Unable to load /patterns/common from either classpath or HDFS" );
+      }
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
-      InputStream patterInputStream = FileSystem.get(new Configuration()).open(new
-              Path(grokHdfsPath));
+      InputStream patterInputStream = openInputStream(grokHdfsPath);
+      if(patterInputStream == null) {
+        throw new RuntimeException("Unable to initialize grok parser: Unable to load " + grokHdfsPath + " from either classpath or HDFS" );
+      }
       grok.addPatternFromReader(new InputStreamReader(patterInputStream));
       grok.compile("%{" + patternLabel + "}");
-    } catch (GrokException e) {
+    } catch (Throwable e) {
       LOG.error(e.getMessage(), e);
-    } catch (IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException("Grok parser Error: " + e.getMessage(), e);
     }
   }
 

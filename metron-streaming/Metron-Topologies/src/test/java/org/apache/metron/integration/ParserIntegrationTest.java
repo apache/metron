@@ -83,6 +83,7 @@ public abstract class ParserIntegrationTest {
             .withComponent("kafka", kafkaComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(5000)
+            .withNumRetries(10)
             .build();
     runner.start();
     fluxComponent.submitTopology();
