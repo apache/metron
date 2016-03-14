@@ -16,13 +16,13 @@
 #
 ---
 - name: Distribute bro-kafka plugin
-  copy: src=../../../bro-plugin-kafka dest=/tmp mode=0755
+  copy: src=../../../bro-plugin-kafka dest=/tmp/ mode=0755
 
 - name: Compile and install the plugin
   shell: "{{ item }}"
   args:
     chdir: "/tmp/bro-plugin-kafka"
-    creates: /usr/local/bro/lib/bro/plugins/METRON_KAFKA
+    creates: /usr/local/bro/lib/bro/plugins/BRO_KAFKA
   with_items:
     - rm -rf build/
     - "./configure --bro-dist=/tmp/bro-{{ bro_version }}"
