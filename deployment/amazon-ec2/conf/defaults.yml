@@ -20,7 +20,7 @@ region: us-west-2
 instance_type: m4.xlarge
 image: ami-05cf2265
 volume_type: standard
-key_name: metron-test
+key_name: metron-key
 env: metron-test
 
 # ambari
@@ -36,10 +36,6 @@ tracker_hbase_table: access_tracker
 threatintel_ip_hbase_table: malicious_ip
 
 # kafka
-pycapa_topic: pcap
-bro_topic: bro
-yaf_topic: ipfix
-snort_topic: snort
 num_partitions: 3
 retention_in_gb: 25
 

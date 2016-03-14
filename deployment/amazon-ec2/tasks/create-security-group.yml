@@ -15,11 +15,11 @@
 #  limitations under the License.
 #
 ---
-- name: Define "{{ name }}" security group
+- name: "{{ env }}: Define the {{ name }} security group"
   ec2_group:
-    name: "{{ name }}"
+    name: "{{ env }}-{{ name }}"
     region: "{{ region }}"
-    description: "{{ name }} - {{ proto }} - {{ port }}"
+    description: "[{{env}}] {{ name }}/{{ proto }}/{{ port }}"
     vpc_id: "{{ vpc_id }}"
     rules:
       - proto: "{{ proto }}"

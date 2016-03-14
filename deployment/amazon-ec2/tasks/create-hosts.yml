@@ -15,14 +15,14 @@
 #  limitations under the License.
 #
 ---
-- name: Instantiate '{{ host_count }}' host(s) as '{{ host_type }}'
+- name: "{{ env }}: Instantiate {{ host_count }} host(s) as {{ host_type }}"
   ec2:
     region: "{{ region }}"
     instance_type: "{{ instance_type }}"
     image: "{{ image }}"
-    key_name: "{{ key_name }}"
+    key_name: "{{ env }}-{{ key_name }}"
     assign_public_ip: True
-    group: [vpc-all-inbound,vpc-all-outbound]
+    group: ["{{ env }}-vpc-all-inbound","{{ env }}-vpc-all-outbound"]
     vpc_subnet_id: "{{ vpc.subnets[0].id }}"
     instance_tags:
       Name: "[{{ env }}] {{ host_type }}"
@@ -31,6 +31,7 @@
     exact_count: "{{ host_count }}"
     count_tag:
       type: "{{ host_type }}"
+      env: "{{ env }}"
     volumes:
     - device_name: /dev/sda1
       volume_type: "{{ volume_type }}"

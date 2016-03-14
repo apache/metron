@@ -25,7 +25,7 @@ threat_intel_csv_filepath: "../roles/metron_streaming/templates/{{ threat_intel_
 
 pycapa_topic: pcap
 bro_topic: bro
-yaf_topic: ipfix
+yaf_topic: yaf
 snort_topic: snort
 enrichments_topic: enrichments
 storm_topologies:

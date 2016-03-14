@@ -23,10 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class BasicSnortParser extends BasicParser {
@@ -43,11 +40,11 @@ public class BasicSnortParser extends BasicParser {
 			"sig_id",
 			"sig_rev",
 			"msg",
-			"proto",
-			"src",
-			"srcport",
-			"dst",
-			"dstport",
+			"protocol",
+			"ip_src_addr",
+			"ip_src_port",
+			"ip_dst_addr",
+			"ip_dst_port",
 			"ethsrc",
 			"ethdst",
 			"ethlen",
@@ -66,6 +63,7 @@ public class BasicSnortParser extends BasicParser {
 			"icmpid",
 			"icmpseq"
 	};
+
 
 	/**
 	 * Snort alerts are received as CSV records
