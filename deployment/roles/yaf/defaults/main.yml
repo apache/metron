@@ -26,3 +26,5 @@ yafscii_bin: /usr/local/bin/yafscii
 yaf_log: /var/log/yaf.log
 kafka_prod: /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh
 daemon_bin: /usr/local/bin/airdaemon
+yaf_start: /opt/yaf/start-yaf.sh
+yaf_args:
