@@ -29,32 +29,34 @@
 	<description>Performs release auditing for Metron.</description>
 	<url>https://metron.incubator.apache.org/</url>
 	<build>
-    <plugins>
+		<plugins>
 			<plugin>
 				<groupId>org.apache.rat</groupId>
 				<artifactId>apache-rat-plugin</artifactId>
 				<version>0.11</version>
 				<configuration>
-					<excludes>
-						<exclude>**/README.md</exclude>
-						<exclude>**/VERSION</exclude>
-						<exclude>**/*.json</exclude>
-						<exclude>**/*.log</exclude>
-						<exclude>**/*.ldif</exclude>
-						<exclude>**/*.template</exclude>
-						<exclude>**/.*</exclude>
-						<exclude>**/.*/**</exclude>
-						<exclude>**/*.seed</exclude>
-						<exclude>**/*.iml</exclude>
-						<exclude>**/ansible.cfg</exclude>
-						<exclude>site/**</exclude>
-						<exclude>metron-ui/lib/public/**</exclude>
-						<exclude>**/src/main/resources/patterns/**</exclude>
-						<exclude>**/src/test/resources/**</exclude>
-						<exclude>**/src/main/resources/Sample*/**</exclude>
-						<exclude>**/dependency-reduced-pom.xml</exclude>
-					        <exclude>**/files/opensoc-ui</exclude>
-					</excludes>
+				<excludes>
+					<exclude>**/README.md</exclude>
+					<exclude>**/VERSION</exclude>
+					<exclude>**/*.json</exclude>
+					<exclude>**/*.log</exclude>
+					<exclude>**/*.ldif</exclude>
+					<exclude>**/*.template</exclude>
+					<exclude>**/.*</exclude>
+					<exclude>**/.*/**</exclude>
+					<exclude>**/*.seed</exclude>
+					<exclude>**/*.iml</exclude>
+					<exclude>**/ansible.cfg</exclude>
+					<exclude>site/**</exclude>
+					<exclude>metron-ui/lib/public/**</exclude>
+					<exclude>**/src/main/resources/patterns/**</exclude>
+					<exclude>**/src/test/resources/**</exclude>
+					<exclude>**/src/main/resources/Sample*/**</exclude>
+					<exclude>**/dependency-reduced-pom.xml</exclude>
+				        <exclude>**/files/opensoc-ui</exclude>
+					<exclude>**/target/**</exclude>
+					<exclude>**/bro-plugin-kafka/build/**</exclude>
+				</excludes>
 				</configuration>
 			</plugin>
 		</plugins>

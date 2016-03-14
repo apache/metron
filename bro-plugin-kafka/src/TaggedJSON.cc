@@ -14,30 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include <threading/Formatter.h>
-#include "MetronJSON.h"
 
-using metron::formatter::MetronJSON;
-using threading::formatter::JSON;
-using threading::MsgThread;
-using threading::Field;
-using threading::Value;
+#include "TaggedJSON.h"
 
-MetronJSON::MetronJSON(string sn, MsgThread* t, TimeFormat tf)
-    : JSON(t, tf)
-    , stream_name(sn)
-{
-}
+namespace threading { namespace formatter {
 
-MetronJSON::~MetronJSON() {}
+TaggedJSON::TaggedJSON(string sn, MsgThread* t, JSON::TimeFormat tf): JSON(t, tf), stream_name(sn)
+{}
 
-bool MetronJSON::Describe(ODesc* desc, int num_fields,
-    const Field* const* fields, Value** vals) const
+TaggedJSON::~TaggedJSON()
+{}
+
+bool TaggedJSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const
 {
     desc->AddRaw("{");
 
-    // prepend the stream name
+    // 'tag' the json; aka prepend the stream name to the json-formatted log content
     desc->AddRaw("\"");
     desc->AddRaw(stream_name);
     desc->AddRaw("\": ");
@@ -48,3 +40,4 @@ bool MetronJSON::Describe(ODesc* desc, int num_fields,
     desc->AddRaw("}");
     return true;
 }
+}}

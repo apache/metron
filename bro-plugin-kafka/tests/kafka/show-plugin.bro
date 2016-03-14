@@ -15,5 +15,5 @@
 #  limitations under the License.
 #
 
-# @TEST-EXEC: bro -NN Metron::Kafka >output
+# @TEST-EXEC: bro -NN Bro::Kafka >output
 # @TEST-EXEC: btest-diff output

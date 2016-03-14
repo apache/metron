@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 ---
-- name: Distribute bro plugin
+- name: Distribute bro-kafka plugin
   copy: src=../../../bro-plugin-kafka dest=/tmp mode=0755
 
 - name: Compile and install the plugin
@@ -24,16 +24,18 @@
     chdir: "/tmp/bro-plugin-kafka"
     creates: /usr/local/bro/lib/bro/plugins/METRON_KAFKA
   with_items:
+    - rm -rf build/
     - "./configure --bro-dist=/tmp/bro-{{ bro_version }}"
     - make
     - make install
 
-- name: Configure bro plugin
+- name: Configure bro-kafka plugin
   lineinfile:
     dest: /usr/local/bro/share/bro/site/local.bro
     line: "{{ item }}"
   with_items:
-    - "@load Metron/Kafka/logs-to-kafka.bro"
+    - "@load Bro/Kafka/logs-to-kafka.bro"
     - "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);"
-    - "redef Kafka::kafka_broker_list = \"{{ kafka_broker_url }}\";"
     - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
+    - "redef Kafka::tag_json = T;"
+    - "redef Kafka::kafka_conf = table([\"metadata.broker.list\"] = \"{{ kafka_broker_url }}\");"

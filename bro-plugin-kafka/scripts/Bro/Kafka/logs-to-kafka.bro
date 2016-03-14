@@ -1,5 +1,3 @@
-#!/bin/sh
-#
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -16,28 +14,31 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-# Hooks to add custom options to the configure script.
-#
+##! load this script to enable log output to kafka
 
-plugin_usage()
-{
-  cat <<EOF
-  --with-librdkafka=PATH	 path to librdkafka
-  --with-openssl=PATH      path to OpenSSL install root
-EOF
+module Kafka;
+
+export {
+	##
+	## which log streams should be sent to kafka?
+	## example:
+	##		redef Kafka::logs_to_send = set(Conn::Log, HTTP::LOG, DNS::LOG);
+	##
+	const logs_to_send: set[Log::ID] &redef;
 }
 
-plugin_option()
+event bro_init() &priority=-5
 {
-  case "$1" in
-    --with-librdkafka=*)
-      append_cache_entry LibRdKafka_ROOT_DIR PATH $optarg
-      ;;
-    --with-openssl=*)
-      append_cache_entry OpenSSL_ROOT_DIR PATH $optarg
-      ;;
-    *)
-      return 1;
-    ;;
-    esac
+	for (stream_id in Log::active_streams)
+	{
+		if (stream_id in Kafka::logs_to_send)
+		{
+			local filter: Log::Filter = [
+				$name = fmt("kafka-%s", stream_id),
+				$writer = Log::WRITER_KAFKAWRITER
+			];
+
+			Log::add_filter(stream_id, filter);
+		}
+	}
 }
