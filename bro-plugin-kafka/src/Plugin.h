@@ -14,14 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef BRO_PLUGIN_METRON_KAFKA
-#define BRO_PLUGIN_METRON_KAFKA
+
+#ifndef BRO_PLUGIN_BRO_KAFKA
+#define BRO_PLUGIN_BRO_KAFKA
 
 #include <plugin/Plugin.h>
 
-namespace plugin {
-namespace Metron_Kafka {
+namespace plugin { namespace Bro_Kafka {
 
     class Plugin : public ::plugin::Plugin {
     protected:
@@ -30,7 +29,6 @@ namespace Metron_Kafka {
     };
 
     extern Plugin plugin;
-}
-}
+}}
 
 #endif

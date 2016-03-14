@@ -45,7 +45,6 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   private Map<String, List<Tuple>> sourceTupleMap = new HashMap<>();
   private Map<String, List<JSONObject>> sourceMessageMap = new HashMap<>();
 
-
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -59,13 +58,14 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     super.prepare(stormConf, context, collector);
-    bulkMessageWriter.init();
+    bulkMessageWriter.init(stormConf);
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = (JSONObject) tuple.getValueByField("message");
+    JSONObject message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
+    message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
     String sourceType = TopologyUtils.getSourceType(message);
     SourceConfig configuration = configurations.get(sourceType);
     int batchSize = configuration != null ? configuration.getBatchSize() : 1;
@@ -80,7 +80,9 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
       sourceMessageMap.put(sourceType, messageList);
     } else {
       try {
-        bulkMessageWriter.write(sourceType, configuration, tupleList, messageList);
+
+        String esType = sourceType + "_doc";
+        bulkMessageWriter.write(esType, configuration, tupleList, messageList);
         for(Tuple t: tupleList) {
           collector.ack(t);
         }

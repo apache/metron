@@ -92,6 +92,17 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	}
 
 	/**
+	 *
+	 * @param IndexName
+	 *            name of the index in ElasticSearch/Solr/etc...
+	 * @return instance of bolt
+	 */
+	public TelemetryIndexingBolt withIndexName(String IndexName) {
+		_IndexName = IndexName;
+		return this;
+	}
+
+	/**
 	 * 
 	 * @param ClusterName
 	 *            name of cluster to index into in ElasticSearch/Solr/etc...

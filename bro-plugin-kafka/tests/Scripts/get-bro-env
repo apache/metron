@@ -15,10 +15,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-#
 # BTest helper for getting values for Bro-related environment variables.
-#
+
 base=`dirname $0`
 bro=`cat ${base}/../../build/CMakeCache.txt | grep BRO_DIST | cut -d = -f 2`
 

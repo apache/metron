@@ -29,47 +29,49 @@ zookeeper_slave: [ZOOKEEPER_CLIENT]
 hbase_master: [HBASE_MASTER, HBASE_CLIENT]
 hbase_slave: [HBASE_REGIONSERVER]
 
-metron_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(spark_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) | union(storm_slave) | union(spark_slave) | union(kafka_broker) | union(hbase_slave) }}"
+metron_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) | union(storm_slave) | union(kafka_broker) | union(hbase_slave) }}"
 
 cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
 
 configurations:
   - zoo.cfg:
-      dataDir: '{{ zookeeper_data_dir | default("/hadoop/zookeeper") }}'
+      dataDir: '{{ zookeeper_data_dir }}'
   - hadoop-env:
-      namenode_heapsize: 1024
-      dtnode_heapsize: 1024
+      hadoop_heapsize: 1024
+      namenode_heapsize: 512
+      dtnode_heapsize: 512
+      namenode_opt_permsize: 128m
   - hbase-env:
-      hbase_regionserver_heapsize: 1024
-      hbase_master_heapsize: 1024
+      hbase_regionserver_heapsize: 512
+      hbase_master_heapsize: 512
+      hbase_regionserver_xmn_max: 512
   - hdfs-site:
-      dfs.namenode.checkpoint.dir: '{{ namenode_checkpoint_dir | default("/hadoop/hdfs/namesecondary") }}'
-      dfs.namenode.name.dir: '{{ namenode_name_dir | default("/hadoop/hdfs/namenode") }}'
-      dfs.datanode.data.dir: '{{ datanode_data_dir | default("/hadoop/hdfs/data" ) }}'
-      dfs.journalnode.edits.dir: '{{ journalnode_edits_dir | default("/hadoop/hdfs/journalnode") }}'
+      dfs.namenode.checkpoint.dir: '{{ namenode_checkpoint_dir  }}'
+      dfs.namenode.name.dir: '{{ namenode_name_dir }}'
+      dfs.datanode.data.dir: '{{ datanode_data_dir }}'
+      dfs.journalnode.edits.dir: '{{ journalnode_edits_dir }}'
   - yarn-env:
       nodemanager_heapsize: 512
       yarn_heapsize: 512
       apptimelineserver_heapsize : 512
+      resourcemanager_heapsize: 1024
   - mapred-env:
       jobhistory_heapsize: 256
   - mapred-site:
-      mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path | default("/hadoop/mapreduce/jhs") }}'
+      mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path }}'
   - yarn-site:
-      yarn.nodemanager.resource.memory-mb: 1024
-      yarn.scheduler.maximum-allocation-mb: 1024
-      yarn.nodemanager.local-dirs : '{{ nodemanager_local_dirs| default("/hadoop/yarn/local") }}'
-      yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path | default("/hadoop/yarn/timeline") }}'
-      yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path| default("/hadoop/yarn/timeline") }}'
-      yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs| default("/hadoop/yarn/log") }}'
+      yarn.nodemanager.local-dirs : '{{ nodemanager_local_dirs }}'
+      yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path }}'
+      yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path }}'
+      yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs }}'
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
-      storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'
+      storm.local.dir: '{{ storm_local_dir }}'
   - kafka-env:
       content: "{% raw %}\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport KAFKA_HEAP_OPTS=\"-Xms256M -Xmx256M\"\nexport KAFKA_JVM_PERFORMANCE_OPTS=\"-server -XX:+UseG1GC -XX:+DisableExplicitGC -Djava.awt.headless=true\"\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin\nexport PID_DIR={{kafka_pid_dir}}\nexport LOG_DIR={{kafka_log_dir}}\nexport KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}\n# Add kafka sink to classpath and related depenencies\nif [ -e \"/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\" ]; then\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*\nfi\nif [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then\n   . /etc/kafka/conf/kafka-ranger-env.sh\nfi{% endraw %}"
   - kafka-broker:
-      log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
+      log.dirs: '{{ kafka_log_dirs }}'
 
 blueprint:
   stack_name: HDP

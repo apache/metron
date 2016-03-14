@@ -15,19 +15,30 @@
 #  limitations under the License.
 #
 ---
+- hosts: ec2
+  become: true
+  tasks:
+    - include_vars: ../amazon-ec2/conf/defaults.yml
+  tags:
+    - ec2
+    
 - hosts: metron
-  sudo: yes
+  become: true
   roles:
     - role: metron_common
+  tags:
+    - metron-prereqs
 
 - hosts: hadoop_client
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - role: hadoop_setup
+  tags:
+    - metron-prereqs
 
 - hosts: search
-  sudo: yes
+  become: true
   vars:
     es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
   roles:
@@ -36,27 +47,36 @@
     - elasticsearch
 
 - hosts: mysql
-  sudo: yes
+  become: true
   roles:
-    - role: mysql
+    - role: mysql_server
   tags:
-    - mysql
+    - mysql-server
+
+- hosts: ambari_slave
+  become: true
+  roles:
+    - role: mysql_client
+  tags:
+    - mysql-client
+
 
 - hosts: sensors
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
-    - role: flume
-    - role: pycapa
-    - role: bro
-    - role: snort
-    - role: yaf
+    - { role: tap_interface, when: install_tap | default(False) == True }
+    - { role: pycapa, when: install_pycapa | default(True) == True }
+    - { role: bro, when: install_bro | default(True) == True }
+    - { role: flume,  when: install_snort | default(True) == True }
+    - { role: snort , when: install_snort | default(True) == True }
+    - { role: yaf, when: install_yaf | default(True) == True }
     - { role: pcap_replay , when: pcap_replay | default(False)  == True }
   tags:
       - sensors
 
 - hosts: enrichment
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - role: metron_streaming
@@ -64,11 +84,10 @@
     - enrichment
 
 - hosts: web
-  sudo: yes
+  become: true
   roles:
     - role: ambari_gather_facts
     - role: metron_ui
     - role: metron_pcapservice
   tags:
     - web
-

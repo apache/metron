@@ -157,8 +157,11 @@
             <type>pom</type>
             <scope>provided</scope>
         </dependency>
-
-
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
         <dependency>
             <groupId>com.github.ptgoetz</groupId>
             <artifactId>storm-hbase</artifactId>
@@ -239,7 +242,8 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin> 
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -258,16 +262,10 @@
                                 <excludes>
                                     <exclude>storm:storm-core:*</exclude>
                                     <exclude>storm:storm-lib:*</exclude>
-                                    <exclude>*slf4j*</exclude>
+                                    <exclude>org.slf4j.impl*</exclude>
+                                    <exclude>org.slf4j:slf4j-log4j*</exclude>
                                 </excludes>
                             </artifactSet>
-                            <!--relocations>
-                                <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava.common</shadedPattern>
-                                </relocation>
-                            </relocations-->
-
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
@@ -284,6 +282,23 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptor>src/main/assembly/assembly.xml</descriptor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
         </plugins>
     </build>
 </project>

@@ -148,6 +148,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
     JSONObject enrichedMessage = new JSONObject();
+    enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".begin.ts", "" + System.currentTimeMillis());
     try {
       if (rawMessage == null || rawMessage.isEmpty())
         throw new Exception("Could not parse binary stream to JSON");
@@ -174,11 +175,10 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
           } else {
             enrichedMessage.put(field, "");
           }
-          if (enrichmentType.equals("host")) {
-            String test = "";
-          }
         }
       }
+
+      enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
       if (!enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage));
       }

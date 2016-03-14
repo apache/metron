@@ -17,22 +17,23 @@
 ---
 - name: Download librdkafka
   get_url:
-    url: https://github.com/edenhill/librdkafka/archive/v0.9.0.tar.gz
-    dest: /tmp/librdkafka-0.9.0.tar.gz
+    url: "{{ librdkafka_url }}"
+    dest: "/tmp/librdkafka-{{ librdkafka_version }}.tar.gz"
 
 - name: Extract librdkafka tarball
   unarchive:
-    src: /tmp/librdkafka-0.9.0.tar.gz
+    src: "/tmp/librdkafka-{{ librdkafka_version }}.tar.gz"
     dest: /tmp
     copy: no
-    creates: /tmp/librdkafka-0.9.0
+    creates: "/tmp/librdkafka-{{ librdkafka_version }}"
 
 - name: Compile and install librdkafka
   shell: "{{ item }}"
   args:
-    chdir: /tmp/librdkafka-0.9.0
+    chdir: "/tmp/librdkafka-{{ librdkafka_version }}"
     creates: /usr/local/lib/librdkafka.so
   with_items:
+    - rm -rf build/
     - ./configure
     - make
     - make install

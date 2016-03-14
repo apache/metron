@@ -58,6 +58,6 @@
   yum: name=daemonize
 
 - name: Start pcap_service
-  shell: "daemonize -c {{ metron_directory }} -e /var/log/metron_pcapservice.log -o /var/log/metron_pcapservice.log -l /var/lock/subsys/metron_pcapservice /usr/bin/java -cp {{ metron_directory }}/lib/{{ pcapservice_jar_name }} com.opensoc.pcapservice.rest.PcapService -p {{ pcapservice_port }}"
+  shell: "daemonize -c {{ metron_directory }} -e /var/log/metron_pcapservice.log -o /var/log/metron_pcapservice.log -l /var/lock/subsys/metron_pcapservice /usr/bin/java -cp {{ metron_directory }}/lib/{{ pcapservice_jar_name }} org.apache.metron.pcapservice.rest.PcapService -p {{ pcapservice_port }}"
   args:
     creates: /var/lock/subsys/metron_pcapservice

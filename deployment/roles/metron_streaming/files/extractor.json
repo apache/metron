@@ -1,0 +1,11 @@
+{
+  "config": {
+    "columns": {
+      "ip": 0
+    },
+    "indicator_column": "ip",
+    "separator": ","
+  },
+  "extractor": "CSV"
+}
+
