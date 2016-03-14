@@ -15,9 +15,15 @@
 #  limitations under the License.
 #
 ---
+- set_fact:
+    the_key_file: "{{ key_file | default('~/.ssh/id_rsa.pub') }}"
+
 - name: Define keypair
   ec2_key:
-    name: "{{ key_name }}"
+    name: "{{ env }}-{{ key_name }}"
     region: "{{ region }}"
     key_material: "{{ item }}"
-  with_file: "{{ key_file | default('~/.ssh/id_rsa.pub') }}"
+  with_file: "{{ the_key_file }}"
+
+- debug: msg="Created keypair '{{ env }}-{{ key_name }}' from '{{ the_key_file }}'"
+
