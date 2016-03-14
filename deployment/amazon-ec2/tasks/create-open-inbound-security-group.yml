@@ -15,9 +15,9 @@
 #  limitations under the License.
 #
 ---
-- name: WARNING Define open inbound security group
+- name: "{{ env }}: Define open inbound security group"
   ec2_group:
-    name: vpc-all-inbound
+    name: "{{ env }}-vpc-all-inbound"
     description: WARNING allow all inbound connections from the internet
     region: "{{ region }}"
     vpc_id: "{{ vpc_id }}"

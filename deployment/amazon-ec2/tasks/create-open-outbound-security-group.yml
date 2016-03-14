@@ -15,9 +15,9 @@
 #  limitations under the License.
 #
 ---
-- name: Define outbound security group
+- name: "{{ env }}: Define open outbound security group"
   ec2_group:
-    name: vpc-all-outbound
+    name: "{{ env }}-vpc-all-outbound"
     description: allow all outbound connections to the internet
     region: "{{ region }}"
     vpc_id: "{{ vpc_id }}"

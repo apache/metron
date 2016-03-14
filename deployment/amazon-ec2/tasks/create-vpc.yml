@@ -15,12 +15,16 @@
 #  limitations under the License.
 #
 ---
-  - name: Create vpc
+  - name: "{{ env }}:  Create virtual private cloud"
     ec2_vpc:
       region: "{{ region }}"
       internet_gateway: True
-      resource_tags: { Name: Metron }
+      resource_tags:
+        Name: "{{ env }}-virtual-private-cloud"
+        env: "{{ env }}"
       cidr_block: 10.0.0.0/16
+      dns_hostnames: yes
+      dns_support: yes
       subnets:
         - cidr: 10.0.0.0/24
           resource_tags:
@@ -41,6 +45,6 @@
             gw: igw
     register: vpc
 
-  - name: Created vpc with id='"{{ vpc.vpc_id }}"'
+  - name: "[{{ env }}] Created vpc with id='{{ vpc.vpc_id }}'"
     set_fact:
       vpc_id: "{{ vpc.vpc_id }}"
