@@ -35,6 +35,9 @@ components:
             -   name: "withDateFormat"
                 args:
                     - "yyyy-MM-dd HH:mm:ss.S"
+            -   name: "withMetronHDFSHome"
+                args:
+                    - ""
     -   id: "writer"
         className: "org.apache.metron.writer.KafkaWriter"
         constructorArgs:
@@ -56,7 +59,7 @@ components:
             - "${spout.kafka.topic.yaf}"
         properties:
             -   name: "ignoreZkOffsets"
-                value: true
+                value: false
             -   name: "startOffsetTime"
                 value: -2
             -   name: "socketTimeoutMs"
@@ -73,7 +76,7 @@ bolts:
         className: "org.apache.metron.bolt.ParserBolt"
         constructorArgs:
             - "${kafka.zk}"
-            - "yaf"
+            - "${spout.kafka.topic.yaf}"
             - ref: "parser"
             - ref: "writer"
 

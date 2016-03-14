@@ -22,18 +22,19 @@
       - { name: 'bin'}
       - { name: 'config'}
 
-- name: Copy Metron streaming jars
+
+- name: Copy Metron Topologies bundle
   copy:
-    src: "{{ metron_jar_path }}"
-    dest: "{{ metron_directory }}/lib/"
+    src: "{{ metron_topologies_bundle_path }}"
+    dest: "{{ metron_directory }}"
 
 - name: Copy Metron DataLoads bundle
   copy:
     src: "{{ metron_dataloads_path }}"
     dest: "{{ metron_directory }}"
 
-- name: Unbundle Metron DataLoads bundle
-  shell: cd {{ metron_directory }} && tar xzvf *.tar.gz
+- name: Unbundle Metron bundles
+  shell: cd {{ metron_directory }} && tar xzvf Metron-Topologies*.tar.gz && tar xzvf Metron-DataLoads*.tar.gz && rm *.tar.gz
 
 - name: Alternatives link for "java"
   alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
@@ -50,14 +51,6 @@
 - name: Add hdfs-site.xml to topology jar
   shell: cd {{ hdfs_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hdfs-site.xml
 
-- name: Copy Metron topology config files
-  copy:
-    src: "{{ metron_src_config_path }}/{{ item }}"
-    dest: "{{ metron_directory }}/config/"
-  with_items:
-    - "etc"
-    - "topologies"
-
 - name: Get Default mysql passowrd
   include_vars: "../roles/mysql_server/vars/main.yml"
   when: mysql_root_password is undefined
@@ -67,6 +60,9 @@
 
 - name: Create Metron HDFS output directory
   command: su - hdfs -c "hdfs dfs -mkdir -p {{ metron_hdfs_output_dir }} && hdfs dfs -chown hdfs:hadoop {{ metron_hdfs_output_dir }} && hdfs dfs -chmod 775 {{ metron_hdfs_output_dir }}"
+
+- name: Upload grok patterns
+  command: su - hdfs -c "hdfs dfs -mkdir -p {{ metron_hdfs_output_dir }}/patterns && hdfs dfs -put {{ metron_directory }}/config/patterns/*  {{ metron_hdfs_output_dir }}/patterns && hdfs dfs -chown -R hdfs:hadoop {{ metron_hdfs_output_dir }}/patterns && hdfs dfs -chmod -R 775 {{ metron_hdfs_output_dir }}/patterns"
 
 - name: Configure Metron topologies
   lineinfile: >

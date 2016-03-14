@@ -50,7 +50,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class EnrichmentIntegrationTest {
-
+  private static final String SRC_IP = "ip_src_addr";
+  private static final String DST_IP = "ip_dst_addr";
   private String fluxPath = "src/main/resources/Metron_Configs/topologies/enrichment/test.yaml";
   private String indexDir = "target/elasticsearch";
   private String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
@@ -129,21 +130,21 @@ public class EnrichmentIntegrationTest {
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final String dateFormat = "yyyy.MM.dd.hh";
-    final String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
+    final String index = "test_index_" + new SimpleDateFormat(dateFormat).format(new Date());
     String yafConfig = "{\n" +
-            "  \"index\": \"yaf\",\n" +
+            "  \"index\": \"test\",\n" +
             "  \"batchSize\": 5,\n" +
             "  \"enrichmentFieldMap\":\n" +
             "  {\n" +
-            "    \"geo\": [\"sip\", \"dip\"],\n" +
-            "    \"host\": [\"sip\", \"dip\"]\n" +
+            "    \"geo\": [\"" + SRC_IP + "\", \"" + DST_IP + "\"],\n" +
+            "    \"host\": [\"" + SRC_IP + "\", \"" + DST_IP + "\"]\n" +
             "  },\n" +
             "  \"threatIntelFieldMap\":\n" +
             "  {\n" +
-            "    \"ip\": [\"sip\", \"dip\"]\n" +
+            "    \"ip\": [\"" + SRC_IP + "\", \"" + DST_IP + "\"]\n" +
             "  }\n" +
             "}";
-    sourceConfigs.put("yaf", yafConfig);
+    sourceConfigs.put("test", yafConfig);
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTable = "tracker";
@@ -222,7 +223,7 @@ public class EnrichmentIntegrationTest {
                   if (elasticSearchComponent.hasIndex(index)) {
                     List<Map<String, Object>> docsFromDisk;
                     try {
-                      docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf_doc");
+                      docs = elasticSearchComponent.getAllIndexedDocs(index, "test_doc");
                       docsFromDisk = readDocsFromDisk(hdfsDir);
                       System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
                     } catch (IOException e) {
@@ -257,7 +258,7 @@ public class EnrichmentIntegrationTest {
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
 
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
-      Assert.assertEquals(new File(hdfsDir).list()[0], "yaf_doc");
+      Assert.assertEquals(new File(hdfsDir).list()[0], "test_doc");
       for (Map<String, Object> doc : docsFromDisk) {
         baseValidation(doc);
         hostEnrichmentValidation(doc);
@@ -280,8 +281,8 @@ public class EnrichmentIntegrationTest {
       Assert.assertTrue(kv.getValue().toString().length() > 0);
     }
     //ensure we always have a source ip and destination ip
-    Assert.assertNotNull(jsonDoc.get("sip"));
-    Assert.assertNotNull(jsonDoc.get("dip"));
+    Assert.assertNotNull(jsonDoc.get(SRC_IP));
+    Assert.assertNotNull(jsonDoc.get(DST_IP));
   }
 
   private static class EvaluationPayload {
@@ -368,11 +369,11 @@ public class EnrichmentIntegrationTest {
     }
     //ip threat intels
     if(keyPatternExists("threatintels.ip.", indexedDoc)) {
-      if(indexedDoc.get("sip").equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.ip.sip.ip_threat_intel"), "alert");
+      if(indexedDoc.get(SRC_IP).equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get("threatintels.ip." + SRC_IP + ".ip_threat_intel"), "alert");
       }
-      else if(indexedDoc.get("dip").equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.ip.dip.ip_threat_intel"), "alert");
+      else if(indexedDoc.get(DST_IP).equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get("threatintels.ip." + DST_IP + ".ip_threat_intel"), "alert");
       }
       else {
         Assert.fail("There was a threat intels that I did not expect.");
@@ -383,20 +384,20 @@ public class EnrichmentIntegrationTest {
 
   private static void geoEnrichmentValidation(Map<String, Object> indexedDoc) {
     //should have geo enrichment on every message due to mock geo adapter
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.city"), MockGeoAdapter.DEFAULT_CITY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.city"), MockGeoAdapter.DEFAULT_CITY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.country"), MockGeoAdapter.DEFAULT_COUNTRY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.country"), MockGeoAdapter.DEFAULT_COUNTRY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.dip.postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo.sip.postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP +".location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".city"), MockGeoAdapter.DEFAULT_CITY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".city"), MockGeoAdapter.DEFAULT_CITY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".country"), MockGeoAdapter.DEFAULT_COUNTRY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".country"), MockGeoAdapter.DEFAULT_COUNTRY);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
   }
 
   private static void hostEnrichmentValidation(Map<String, Object> indexedDoc) {
@@ -404,20 +405,20 @@ public class EnrichmentIntegrationTest {
     //important local printers
     {
       Set<String> ips = setOf("10.0.2.15", "10.60.10.254");
-      if (ips.contains(indexedDoc.get("sip"))) {
+      if (ips.contains(indexedDoc.get(SRC_IP))) {
         //this is a local, important, printer
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, "sip"))
+                ).apply(new EvaluationPayload(indexedDoc, SRC_IP))
         );
         enriched = true;
       }
-      if (ips.contains(indexedDoc.get("dip"))) {
+      if (ips.contains(indexedDoc.get(DST_IP))) {
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, "dip"))
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
         );
         enriched = true;
       }
@@ -425,20 +426,20 @@ public class EnrichmentIntegrationTest {
     //important local webservers
     {
       Set<String> ips = setOf("10.1.128.236");
-      if (ips.contains(indexedDoc.get("sip"))) {
+      if (ips.contains(indexedDoc.get(SRC_IP))) {
         //this is a local, important, printer
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, "sip"))
+                ).apply(new EvaluationPayload(indexedDoc, SRC_IP))
         );
         enriched = true;
       }
-      if (ips.contains(indexedDoc.get("dip"))) {
+      if (ips.contains(indexedDoc.get(DST_IP))) {
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, "dip"))
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
         );
         enriched = true;
       }
