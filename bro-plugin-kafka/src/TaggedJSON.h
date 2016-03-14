@@ -14,41 +14,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef BRO_PLUGIN_METRON_KAFKA_METRONJSON_H
-#define BRO_PLUGIN_METRON_KAFKA_METRONJSON_H
+
+#ifndef BRO_PLUGIN_BRO_KAFKA_TAGGEDJSON_H
+#define BRO_PLUGIN_BRO_KAFKA_TAGGEDJSON_H
 
 #include <string>
 #include <threading/Formatter.h>
 #include <threading/formatters/JSON.h>
 
-using threading::Field;
-using threading::Value;
 using threading::formatter::JSON;
+using threading::MsgThread;
+using threading::Value;
+using threading::Field;
 
-namespace metron {
-namespace formatter {
+namespace threading { namespace formatter {
 
- /**
-  * A formatter that produces bro records in a format accepted by
-  * Metron. Specifically, the stream ID is prepended to each JSON
-  * formatted log record.
-  *
-  * {"conn": { ... }}
-  * {"dns":  { ... }}
-  */
-    class MetronJSON : public JSON {
+/*
+ * A JSON formatter that prepends or 'tags' the content with a log stream
+ * identifier.  For example,
+ *   { 'conn' : { ... }}
+ *   { 'http' : { ... }}
+ */
+class TaggedJSON : public JSON {
 
-    public:
-        MetronJSON(string stream_name, threading::MsgThread* t, TimeFormat tf);
-        virtual ~MetronJSON();
-        virtual bool Describe(ODesc* desc, int num_fields, const Field* const* fields,
-            Value** vals) const;
+public:
+    TaggedJSON(string stream_name, MsgThread* t, JSON::TimeFormat tf);
+    virtual ~TaggedJSON();
+    virtual bool Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const;
 
-    private:
-        string stream_name;
-    };
-}
-}
+private:
+    string stream_name;
+};
 
+}}
 #endif

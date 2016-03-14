@@ -14,58 +14,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#include <librdkafka/rdkafkacpp.h>
-#include <logging/WriterBackend.h>
-#include <logging/WriterFrontend.h>
+
+#include <Type.h>
+#include <threading/Formatter.h>
 #include <threading/formatters/JSON.h>
-#include "KafkaWriter.h"
 #include "kafka.bif.h"
-#include "MetronJSON.h"
+#include "TaggedJSON.h"
+#include "KafkaWriter.h"
 
-using metron::kafka::KafkaWriter;
-using logging::WriterBackend;
-using logging::WriterFrontend;
-using threading::Value;
-using threading::Field;
-using threading::formatter::JSON;
-using metron::formatter::MetronJSON;
+using namespace logging;
+using namespace writer;
 
-KafkaWriter::KafkaWriter(WriterFrontend* frontend)
-    : WriterBackend(frontend)
-    , formatter(NULL)
-    , producer(NULL)
-    , topic(NULL)
+KafkaWriter::KafkaWriter(WriterFrontend* frontend): WriterBackend(frontend), formatter(NULL), producer(NULL), topic(NULL)
 {
-    // kafka broker setting
-    kafka_broker_list.assign(
-        (const char*)BifConst::Kafka::kafka_broker_list->Bytes(),
-        BifConst::Kafka::kafka_broker_list->Len());
-
-    // topic name setting
+    // TODO do we need this??
     topic_name.assign((const char*)BifConst::Kafka::topic_name->Bytes(),
         BifConst::Kafka::topic_name->Len());
-
-    // max wait for queued messages to send on shutdown
-    max_wait_on_delivery = BifConst::Kafka::max_wait_on_delivery;
 }
 
-KafkaWriter::~KafkaWriter() {}
+KafkaWriter::~KafkaWriter()
+{}
 
-bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields,
-    const Field* const* fields)
+bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
 {
     // initialize the formatter
-    // 'info.path' indicates the log stream type; aka HTTP::LOG, DNS::LOG
-    delete formatter;
-    formatter = new MetronJSON(info.path, this, JSON::TS_EPOCH);
+    if(BifConst::Kafka::tag_json) {
+      formatter = new threading::formatter::TaggedJSON(info.path, this, threading::formatter::JSON::TS_EPOCH);
+    } else {
+      formatter = new threading::formatter::JSON(this, threading::formatter::JSON::TS_EPOCH);
+    }
 
     // kafka global configuration
     string err;
     conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
-    if (RdKafka::Conf::CONF_OK != conf->set("metadata.broker.list", kafka_broker_list, err)) {
-        reporter->Error("Failed to set metatdata.broker.list: %s", err.c_str());
-        return false;
+
+    // apply the user-defined settings to kafka
+    Val* val = BifConst::Kafka::kafka_conf->AsTableVal();
+    IterCookie* c = val->AsTable()->InitForIteration();
+    HashKey* k;
+    TableEntryVal* v;
+    while ((v = val->AsTable()->NextEntry(k, c))) {
+
+        // fetch the key and value
+        ListVal* index = val->AsTableVal()->RecoverIndex(k);
+        string key = index->Index(0)->AsString()->CheckString();
+        string val = v->Value()->AsString()->CheckString();
+
+        // apply setting to kafka
+        if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
+            reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
+            return false;
+        }
+
+        // cleanup
+        Unref(index);
+        delete k;
     }
 
     // create kafka producer
@@ -94,13 +97,14 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields,
 bool KafkaWriter::DoFinish(double network_time)
 {
     bool success = false;
-    int interval = 1000;
+    int poll_interval = 1000;
     int waited = 0;
+    int max_wait = BifConst::Kafka::max_wait_on_shutdown;
 
     // wait a bit for queued messages to be delivered
-    while (producer->outq_len() > 0 && waited < max_wait_on_delivery) {
-        producer->poll(interval);
-        waited += interval;
+    while (producer->outq_len() > 0 && waited <= max_wait) {
+        producer->poll(poll_interval);
+        waited += poll_interval;
     }
 
     // successful only if all messages delivered
@@ -111,6 +115,7 @@ bool KafkaWriter::DoFinish(double network_time)
 
     delete topic;
     delete producer;
+    delete formatter;
 
     return success;
 }
@@ -119,8 +124,7 @@ bool KafkaWriter::DoFinish(double network_time)
  * Writer-specific output method implementing recording of one log
  * entry.
  */
-bool KafkaWriter::DoWrite(int num_fields, const threading::Field* const* fields,
-    threading::Value** vals)
+bool KafkaWriter::DoWrite(int num_fields, const threading::Field* const* fields, threading::Value** vals)
 {
     ODesc buff;
     buff.Clear();
@@ -180,11 +184,10 @@ bool KafkaWriter::DoFlush(double network_time)
  * FinishedRotation() to signal the log manager that potential
  * postprocessors can now run.
  */
-bool KafkaWriter::DoRotate(const char* rotated_path, double open, double close,
-    bool terminating)
+bool KafkaWriter::DoRotate(const char* rotated_path, double open, double close, bool terminating)
 {
     // no need to perform log rotation
-    return true;
+    return FinishedRotation();
 }
 
 /**

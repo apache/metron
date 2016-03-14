@@ -1,2 +1,3 @@
 *.pem
 *.secret
+*.log

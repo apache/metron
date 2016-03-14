@@ -43,11 +43,21 @@ Each of the provisioned hosts will be externally accessible from the internet at
 ssh centos@ec2-52-91-215-174.compute-1.amazonaws.com
 ```
 
-Multiple Environments
----------------------
+Usage
+-----
+
+### Multiple Environments
 
 This process can support provisioning of multiple, isolated environments.  Simply change the `env` settings in `conf/defaults.yml`.  For example, you might provision separate development, test, and production environments.
 
 ```
 env: metron-test
+```
+
+### Selective Provisioning
+
+To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command.
+
+```
+ansible-playbook -i ec2.py playbook.yml --tags "ec2,sensors"
 ```
