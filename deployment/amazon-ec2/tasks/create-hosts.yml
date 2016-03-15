@@ -35,15 +35,15 @@
     volumes:
     - device_name: /dev/sda1
       volume_type: "{{ volume_type }}"
-      volume_size: 50
+      volume_size: "{{ xvda_vol_size }}"
       delete_on_termination: true
     - device_name: /dev/xvdb
       volume_type: "{{ volume_type }}"
-      volume_size: 100
+      volume_size: "{{ xvdb_vol_size }}"
       delete_on_termination: true
     - device_name: /dev/xvdc
       volume_type: "{{ volume_type }}"
-      volume_size: 100
+      volume_size: "{{ xvdc_vol_size }}"
       delete_on_termination: true
     wait: yes
   register: ec2

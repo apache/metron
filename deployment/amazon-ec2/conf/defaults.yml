@@ -16,12 +16,15 @@
 #
 ---
 # ec2
+env: metron-test
 region: us-west-2
 instance_type: m4.xlarge
 image: ami-05cf2265
 volume_type: standard
 key_name: metron-key
-env: metron-test
+xvda_vol_size: 50
+xvdb_vol_size: 100
+xvdc_vol_size: 100
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
