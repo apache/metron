@@ -15,13 +15,12 @@
 #  limitations under the License.
 #
 ---
-- include: config-java.yml
+ - name: Fetch hbase-site.xml
+   fetch: src=/etc/hbase/conf/hbase-site.xml dest=/tmp/hbase/conf/hbase-site.xml flat=yes
+   delegate_to: "{{ groups.ambari_slave[0] }}"
 
-- name: Check for hbase-site
-  stat: path=/etc/hbase/conf/hbase-site.xml
-  register: hbase_site
+ - name: Create hbase conf directory
+   file: path=/etc/hbase/conf state=directory mode=0755
 
-- include: config-hbase.yml
-  when: not hbase_site.stat.exists
-
-- include: pcapservice.yml
+ - name: Copy hbase-site.xml
+   copy: src=/tmp/hbase/conf/hbase-site.xml dest=/etc/hbase/conf/hbase-site.xml mode=0644

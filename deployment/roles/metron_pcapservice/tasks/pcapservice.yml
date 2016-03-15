@@ -14,17 +14,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
 ---
-- name: Fetch hbase-site.xml
-  fetch: src=/etc/hbase/conf/hbase-site.xml dest=/tmp/hbase/conf/hbase-site.xml flat=yes
-  when: not hbase_site.stat.exists
-  delegate_to: "{{ groups.ambari_slave[0] }}"
+- name: Create Metron streaming directories
+  file: path={{ metron_directory }}/{{ item.name }}  state=directory mode=0755
+  with_items:
+      - { name: 'lib'}
+      - { name: 'config'}
 
-- name: Create hbase conf directory
-  file: path=/etc/hbase/conf state=directory mode=0755
-  when: not hbase_site.stat.exists
+- name: Copy Metron pcapservice jar
+  copy:
+    src: "{{ pcapservice_jar_src }}"
+    dest: "{{ pcapservice_jar_dst }}"
 
-- name: Copy hbase-site.xml
-  copy: src=/tmp/hbase/conf/hbase-site.xml dest=/etc/hbase/conf/hbase-site.xml mode=0644
-  when: not hbase_site.stat.exists
+- name: Add hbase-site.xml to pcapservice jar
+  shell: "jar -uf {{ pcapservice_jar_dst }} /etc/hbase/conf/hbase-site.xml"
+
+- name: Install service script
+  template: src=pcapservice dest=/etc/init.d/pcapservice mode=0755
+
+- name: Start pcapservice
+  service: name=pcapservice state=restarted

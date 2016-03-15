@@ -18,4 +18,6 @@
 metron_version: 0.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
 pcapservice_jar_name: Metron-Pcap_Service-{{ metron_version }}-jar-with-dependencies.jar
-pcapservice_jar_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Pcap_Service/target/{{ pcapservice_jar_name }}"
+pcapservice_jar_src: "{{ playbook_dir }}/../../metron-streaming/Metron-Pcap_Service/target/{{ pcapservice_jar_name }}"
+pcapservice_jar_dst: "{{ metron_directory }}/lib/{{ pcapservice_jar_name }}"
+pcapservice_port: 8081
