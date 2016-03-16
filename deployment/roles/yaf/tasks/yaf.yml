@@ -43,6 +43,9 @@
     state: directory
     mode: 0755
 
+- name: Install yaf start script
+  template: src=start-yaf.sh dest={{ yaf_home }}/start-yaf.sh mode=0755
+
 - name: Install init.d service script
   template: src=yaf dest=/etc/init.d/yaf mode=0755
 
@@ -54,4 +57,4 @@
   shell: "ip link set {{ sniff_interface }} promisc on"
 
 - name: Start yaf
-  service: name=yaf state=restarted
+  service: name=yaf state=restarted args="{{ yaf_args }}"

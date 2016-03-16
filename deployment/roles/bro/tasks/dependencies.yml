@@ -15,8 +15,20 @@
 #  limitations under the License.
 #
 ---
-- include: dependencies.yml
-- include: librdkafka.yml
-- include: bro.yml
-- include: bro-plugin-kafka.yml
-- include: start-bro.yml
+- name: Install prerequisites
+  yum: name={{ item }}
+  with_items:
+    - libselinux-python
+    - cmake
+    - make
+    - gcc
+    - gcc-c++
+    - flex
+    - bison
+    - libpcap
+    - libpcap-devel
+    - openssl-devel
+    - python-devel
+    - swig
+    - zlib-devel
+    - perl

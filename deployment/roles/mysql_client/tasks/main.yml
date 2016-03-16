@@ -31,4 +31,5 @@
     name: "all"
     state: "import"
     target: "/tmp/{{ansible_fqdn}}.sql"
+  ignore_errors: True
   delegate_to: "{{ groups.mysql[0] }}"
