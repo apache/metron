@@ -51,3 +51,14 @@
 # build the metron cluster
 #
 - include: ../playbooks/metron_full_install.yml
+
+#
+# provisioning report
+#
+- hosts: localhost
+  vars_files:
+    - conf/defaults.yml
+  tasks:
+    - include: tasks/provisioning-report.yml
+  tags:
+    - ec2

@@ -20,7 +20,7 @@
 - name: Install python-requests
   yum: name=python-requests
 
-- name: Create the ambari cluster
+- name: Deploy cluster with Ambari; http://{{ groups.ambari_master[0] }}:{{ ambari_port }}
   ambari_cluster_state:
     host: "{{ groups.ambari_master[0] }}"
     port: "{{ ambari_port }}"

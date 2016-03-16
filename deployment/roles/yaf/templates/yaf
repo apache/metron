@@ -25,10 +25,9 @@ NAME=yaf
 DESC="Executes yaf - yet another flowmeter"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
-EXTRA_ARGS="${@:2}"
 DAEMON_PATH="{{ yaf_home }}"
-DAEMON="{{ daemon_bin }} --airdaemon-pidfile $PIDFILE --log {{ yaf_log }} --retry 15 --retry-max 300 --"
-DAEMONOPTS="{{ yaf_bin }} --in {{ sniff_interface }} --live pcap $EXTRA_ARGS | {{ yafscii_bin }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}"
+DAEMON="{{ yaf_start }}"
+DAEMONOPTS="${@:2}"
 
 case "$1" in
   start)
