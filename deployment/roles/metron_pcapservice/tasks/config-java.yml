@@ -15,13 +15,20 @@
 #  limitations under the License.
 #
 ---
-- include: config-java.yml
+- name: Check for java at "{{ java_home }}"
+  stat: path="{{ java_home }}"
+  register: jdk_dir
 
-- name: Check for hbase-site
-  stat: path=/etc/hbase/conf/hbase-site.xml
-  register: hbase_site
+- name: Alternatives link for java
+  alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
+  with_items:
+    - { name: java, link: /usr/bin/java, path: "{{ java_home }}/bin/java" }
+    - { name: jar, link: /usr/bin/jar, path: "{{ java_home }}/bin/jar" }
+  when: jdk_dir.stat.exists
 
-- include: config-hbase.yml
-  when: not hbase_site.stat.exists
-
-- include: pcapservice.yml
+- name: Install openjdk
+  yum: name={{item}}
+  with_items:
+    - java-1.8.0-openjdk
+    - java-1.8.0-openjdk-devel
+  when: not jdk_dir.stat.exists
