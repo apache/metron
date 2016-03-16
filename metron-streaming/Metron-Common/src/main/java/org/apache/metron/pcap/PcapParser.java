@@ -15,15 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsing.parsers;
+package org.apache.metron.pcap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.metron.parser.interfaces.MessageParser;
-import org.apache.metron.pcap.Constants;
-import org.apache.metron.pcap.MetronEthernetDecoder;
-import org.apache.metron.pcap.PacketInfo;
-import org.apache.metron.pcap.PcapByteInputStream;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.krakenapps.pcap.decoder.ethernet.EthernetDecoder;
@@ -133,6 +129,7 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
         // LOG.trace("Got packet # " + ++packetCounter);
 
         // LOG.trace(packet.getPacketData());
+        if(packet.getPacketData().isEOB())
         ethernetDecoder.decode(packet);
 
         PacketHeader packetHeader = packet.getPacketHeader();

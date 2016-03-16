@@ -35,8 +35,6 @@ components:
       # id
       - "${spout.kafka.topic.pcap}"
     properties:
-      - name: "forceFromStart"
-        value: true
       - name: "startOffsetTime"
         value: -1
   - id: "writerConfig"

@@ -21,7 +21,7 @@ config:
 components:
 # Parser
     -   id: "parser"
-        className: "org.apache.metron.parsing.parsers.PcapParser"
+        className: "org.apache.metron.pcap.PcapParser"
         configMethods:
             -   name: "withTsPrecision"
                 args: ["MICRO"]

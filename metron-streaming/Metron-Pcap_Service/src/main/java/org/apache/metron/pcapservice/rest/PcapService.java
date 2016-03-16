@@ -19,6 +19,7 @@ package org.apache.metron.pcapservice.rest;
 
 import java.io.IOException;
 
+import org.apache.metron.pcapservice.ConfigurationUtil;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -33,7 +34,8 @@ public class PcapService {
 
 		PcapServiceCli cli = new PcapServiceCli(args);
 		cli.parse();
-		
+		ConfigurationUtil.setPcapOutputPath(cli.getPcapHdfsPath());
+		ConfigurationUtil.setTempQueryOutputPath(cli.getQueryHdfsPath());
 		Server server = new Server(cli.getPort());
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("/");

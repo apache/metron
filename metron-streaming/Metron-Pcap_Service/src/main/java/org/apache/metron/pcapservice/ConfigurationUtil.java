@@ -58,13 +58,29 @@ public class ConfigurationUtil {
 	 * Loads configuration resources 
 	 * @return Configuration
 	 */
-	public static Configuration getConfiguration() {
+	public synchronized static Configuration getConfiguration() {
 		if(propConfiguration == null){
 			propConfiguration =  ConfigurationManager.getConfiguration(configDefFileName);
 		}
 		return propConfiguration;
 	}
 
+	public static String getPcapOutputPath() {
+		String ret = getConfiguration().getString("pcap.output.path");
+		return ret == null?"/apps/metron/pcap":ret;
+	}
+
+	public static void setPcapOutputPath(String path) {
+		getConfiguration().setProperty("pcap.output.path", path);
+	}
+
+	public static String getTempQueryOutputPath() {
+		String ret = getConfiguration().getString("temp.query.output.path");
+		return ret == null?"/apps/metron/pcap_query":ret;
+	}
+	public static void setTempQueryOutputPath(String path) {
+		getConfiguration().setProperty("temp.query.output.path", path);
+	}
 	/**
 	 * Returns the configured default result size in bytes, if the user input is
 	 * null; otherwise, returns the user input after validating with the

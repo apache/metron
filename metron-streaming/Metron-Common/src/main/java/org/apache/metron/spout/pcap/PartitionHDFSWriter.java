@@ -18,7 +18,6 @@
 
 package org.apache.metron.spout.pcap;
 
-import com.google.common.base.Joiner;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,7 +30,6 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.math.BigInteger;
 import java.util.EnumSet;
 
 public class PartitionHDFSWriter implements AutoCloseable, Serializable {
@@ -187,12 +185,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     }
     private Path getPath(long ts) {
 
-        String fileName = Joiner.on("_").join("pcap"
-                                             ,topic
-                                             , timestampToString(ts)
-                                             ,partition
-                                             , uuid
-        );
+        String fileName = PcapFileHelper.toFilename(topic, ts, partition + "", uuid);
         return new Path(config.getOutputPath(), fileName);
     }
 
@@ -246,7 +239,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         byte[] ret = new byte[packet.length + PCAP_GLOBAL_HEADER.length];
         int offset = 0;
         System.arraycopy(PCAP_GLOBAL_HEADER, 0, ret, offset, PCAP_GLOBAL_HEADER.length);
-        offset += PCAP_GLOBAL_HEADER.length;
+        offset += PCAP_GLOBAL_HEADER.length-1;
         System.arraycopy(packet, 0, ret, offset, packet.length);
         return new BytesWritable(ret);
     }

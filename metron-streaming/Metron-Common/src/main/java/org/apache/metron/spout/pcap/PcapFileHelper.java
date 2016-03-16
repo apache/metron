@@ -15,31 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron;
 
-public class Constants {
+package org.apache.metron.spout.pcap;
 
-  public static final String ZOOKEEPER_ROOT = "/metron";
-  public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
-  public static final String SOURCE_TYPE = "source.type";
-  public static final String ENRICHMENT_TOPIC = "enrichments";
-  public static final String ERROR_STREAM = "error";
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import org.apache.hadoop.fs.Path;
 
-  public static enum Fields {
-    SRC_ADDR("ip_src_addr")
-    ,SRC_PORT("ip_src_port")
-    ,DST_ADDR("ip_dst_addr")
-    ,DST_PORT("ip_dst_port")
-    ,PROTOCOL("protocol")
-    ,TIMESTAMP("timestamp")
-    ;
-    private String name;
-    Fields(String name) {
-      this.name = name;
+public class PcapFileHelper {
+
+
+  public static Long getTimestamp(String filename) {
+    try {
+      return Long.parseUnsignedLong(Iterables.get(Splitter.on('_').split(filename), 2));
     }
-    public String getName() {
-      return name;
+    catch(Exception e) {
+      //something went wrong here.
+      return null;
     }
   }
 
+  public static String toFilename(String topic, long timestamp, String partition, String uuid)
+  {
+    return Joiner.on("_").join("pcap"
+                              ,topic
+                              , Long.toUnsignedString(timestamp)
+                              ,partition
+                              , uuid
+                              );
+  }
 }

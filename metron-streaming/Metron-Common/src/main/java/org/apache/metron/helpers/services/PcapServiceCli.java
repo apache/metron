@@ -24,6 +24,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.configuration.ConfigurationUtils;
 
 public class PcapServiceCli {
 
@@ -32,6 +33,8 @@ public class PcapServiceCli {
 
 	int port = 8081;
 	String uri = "/pcapGetter";
+	String pcapHdfsPath= "/apps/metron/pcap";
+	String queryHdfsPath = "/apps/metron/pcap_query";
 
 	public int getPort() {
 		return port;
@@ -49,6 +52,13 @@ public class PcapServiceCli {
 		this.uri = uri;
 	}
 
+	public String getPcapHdfsPath() {
+		return pcapHdfsPath;
+	}
+
+	public String getQueryHdfsPath() {
+		return queryHdfsPath;
+	}
 	public PcapServiceCli(String[] args) {
 
 		this.args = args;
@@ -63,6 +73,16 @@ public class PcapServiceCli {
 				"endpoint_uri",
 				true,
 				"OPTIONAL ARGUMENT [/uri/to/service] This sets the URI for the service to be hosted.  The default URI is /pcapGetter");
+		options.addOption(
+				"query_hdfs_path",
+				true,
+				"OPTIONAL ARGUMENT [query_hdfs_loc] The location in HDFS to temporarily store query results.  They will be cleaned up after the query is returned."
+		);
+		options.addOption(
+				"pcap_hdfs_path",
+				true,
+				"OPTIONAL ARGUMENT [pcap_hdfs_path] The location in HDFS where PCAP raw data is stored in sequence files."
+		);
 	}
 
 	public void parse() {
@@ -77,8 +97,9 @@ public class PcapServiceCli {
 			e1.printStackTrace();
 		}
 
-		if (cmd.hasOption("h"))
+		if (cmd.hasOption("h")) {
 			help();
+		}
 
 		if (cmd.hasOption("port")) {
 
@@ -89,6 +110,12 @@ public class PcapServiceCli {
 				System.out.println("[Metron] Invalid value for port entered");
 				help();
 			}
+		}
+		if(cmd.hasOption("pcap_hdfs_path")) {
+			pcapHdfsPath = cmd.getOptionValue("pcap_hdfs_path");
+		}
+		if(cmd.hasOption("query_hdfs_path")) {
+			queryHdfsPath = cmd.getOptionValue("query_hdfs_path");
 		}
 		if (cmd.hasOption("endpoint_uri")) {
 

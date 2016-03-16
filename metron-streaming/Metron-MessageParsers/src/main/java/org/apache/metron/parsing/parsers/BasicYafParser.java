@@ -21,6 +21,7 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.commons.io.IOUtils;
+import org.apache.metron.Constants;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,9 +142,9 @@ public class BasicYafParser extends BasicParser {
       long timestamp = 0L;
       if (startTime != null) {
         timestamp = toEpoch(startTime);
-        jsonMessage.put("timestamp", timestamp);
+        jsonMessage.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
       } else {
-        jsonMessage.put("timestamp", "0");
+        jsonMessage.put(Constants.Fields.TIMESTAMP.getName(), "0");
       }
       String endTime = (String) grokMap.get("end_time");
       if (endTime != null) {
