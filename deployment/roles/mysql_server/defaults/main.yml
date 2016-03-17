@@ -16,5 +16,5 @@
 #
 ---
 mysql_rpm_version: mysql57-community-release-el6-7.noarch
+mysql_yum_repo_url: https://dev.mysql.com/get/{{ mysql_rpm_version }}.rpm
 mysql_root_password: P@ssw0rd
-
