@@ -20,24 +20,28 @@ package org.apache.metron.helpers.services.mr;
 
 import com.google.common.base.Predicate;
 import org.apache.metron.Constants;
+import org.apache.metron.pcap.PacketInfo;
 import org.json.simple.JSONObject;
 
 import javax.annotation.Nullable;
+import java.util.EnumMap;
 import java.util.Map;
 
 
-public class PcapFilter implements Predicate<JSONObject> {
+public class PcapFilter implements Predicate<PacketInfo> {
   private String srcAddr;
   private Integer srcPort;
   private String dstAddr;
   private Integer dstPort;
   private String protocol;
+  private boolean includesReverseTraffic = false;
 
   public PcapFilter( String srcAddr
                    , Integer srcPort
                    , String dstAddr
                    , Integer dstPort
                    , String protocol
+                   , boolean includesReverseTraffic
                    )
   {
     this.srcAddr = srcAddr;
@@ -45,6 +49,7 @@ public class PcapFilter implements Predicate<JSONObject> {
     this.dstAddr = dstAddr;
     this.dstPort = dstPort;
     this.protocol = protocol;
+    this.includesReverseTraffic = includesReverseTraffic;
   }
 
   public PcapFilter(Iterable<Map.Entry<String, String>> config) {
@@ -64,32 +69,77 @@ public class PcapFilter implements Predicate<JSONObject> {
       if(kv.getKey().equals(Constants.Fields.PROTOCOL.getName())) {
         this.protocol= kv.getValue();
       }
+      if(kv.getKey().equals(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName())) {
+        this.includesReverseTraffic = Boolean.getBoolean(kv.getValue());
+      }
     }
   }
 
-
-  @Override
-  public boolean apply(@Nullable JSONObject input) {
+  private boolean matchSourceAndDestination(Object srcAddrObj
+                                           , Object srcPortObj
+                                           , Object dstAddrObj
+                                           , Object dstPortObj
+                                            )
+  {
     boolean isMatch = true;
-    if(srcAddr != null) {
-      Object o = input.get(Constants.Fields.SRC_ADDR.getName());
+    if(srcAddr != null ) {
+      Object o = srcAddrObj;
       isMatch &= o != null && o instanceof String && ((String)o).equals(srcAddr);
     }
-    if(isMatch && srcPort != null) {
-      Object o = input.get(Constants.Fields.SRC_PORT.getName());
+    if(isMatch && srcPort != null ) {
+      Object o = srcPortObj;
       isMatch &= o != null && o.toString().equals(srcPort);
     }
-    if(isMatch && dstAddr != null) {
-      Object o = input.get(Constants.Fields.DST_ADDR.getName());
-      isMatch &= o != null && o instanceof String && ((String)o).equals(dstAddr);
+    if(isMatch && dstAddr != null ) {
+      Object o = dstAddrObj;
+      isMatch &= o != null &&  o instanceof String && ((String)o).equals(dstAddr);
     }
     if(isMatch && dstPort != null) {
-      Object o = input.get(Constants.Fields.DST_PORT.getName());
+      Object o = dstPortObj;
       isMatch &= o != null && o.toString().equals(dstPort);
     }
-    if(isMatch && protocol != null) {
-      Object o = input.get(Constants.Fields.PROTOCOL.getName());
+    return isMatch;
+  }
+
+  public EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
+    EnumMap<Constants.Fields, Object> ret = new EnumMap(Constants.Fields.class);
+    if(pi.getIpv4Packet() != null) {
+      if(pi.getIpv4Packet().getSourceAddress() != null) {
+        ret.put(Constants.Fields.SRC_ADDR, pi.getIpv4Packet().getSourceAddress().getHostAddress());
+      }
+      ret.put(Constants.Fields.SRC_PORT, pi.getIpv4Packet().getSource());
+      if(pi.getIpv4Packet().getDestinationAddress() != null ) {
+        ret.put(Constants.Fields.DST_ADDR, pi.getIpv4Packet().getDestinationAddress().getHostAddress());
+      }
+      ret.put(Constants.Fields.DST_PORT, pi.getIpv4Packet().getDestination());
+      ret.put(Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
+    }
+    return ret;
+  }
+
+  @Override
+  public boolean apply(@Nullable PacketInfo pi ) {
+    boolean isMatch = true;
+    EnumMap<Constants.Fields, Object> input= packetToFields(pi);
+    Object srcAddrObj = input.get(Constants.Fields.SRC_ADDR);
+    Object srcPortObj = input.get(Constants.Fields.SRC_PORT);
+    Object dstAddrObj = input.get(Constants.Fields.DST_ADDR);
+    Object dstPortObj = input.get(Constants.Fields.DST_PORT);
+    Object protocolObj = input.get(Constants.Fields.PROTOCOL);
+
+    //first we ensure the protocol matches if you pass one in
+    if(isMatch && protocol != null ) {
+      Object o = protocolObj;
       isMatch &= o != null && o.toString().equals(protocol);
+    }
+    if(isMatch) {
+      //if we're still a match, then we try to match the source and destination
+      isMatch &= matchSourceAndDestination(srcAddrObj, srcPortObj, dstAddrObj, dstPortObj);
+      if (!isMatch && includesReverseTraffic) {
+        isMatch = true;
+        //then we have to try the other direction if that the forward direction isn't a match
+        isMatch &= matchSourceAndDestination(dstAddrObj, dstPortObj, srcAddrObj, srcPortObj);
+      }
     }
     return isMatch;
   }

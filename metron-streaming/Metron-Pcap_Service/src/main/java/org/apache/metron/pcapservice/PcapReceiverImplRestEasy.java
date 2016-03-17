@@ -24,10 +24,7 @@ import java.util.EnumMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -246,13 +243,23 @@ public class PcapReceiverImplRestEasy {
       return Response.serverError().status(Response.Status.NO_CONTENT)
               .entity("'dstPort' must not be null or empty").build();
 
-
+    final boolean includeReverseTrafficF = includeReverseTraffic;
     List<byte[]> response = null;
     try {
+      if(startTime < 0) {
+        return Response.serverError().status(Response.Status.NO_CONTENT)
+              .entity("'startTime' must not be null or empty").build();
+      }
+      if(endTime < 0) {
+        endTime = System.currentTimeMillis();
+      }
+      //convert to nanoseconds since the epoch
+      startTime *= 1000000L;
+      endTime *= 1000000L;
       response = new PcapJob().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
                                     , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
-                                    , startTime == -1?null:startTime
-                                    , endTime == -1?null:endTime
+                                    , startTime
+                                    , endTime
                                     , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                                       if(srcIp != null) {
                                         put(Constants.Fields.SRC_ADDR, srcIp);
@@ -269,6 +276,7 @@ public class PcapReceiverImplRestEasy {
                                       if(protocol != null) {
                                         put(Constants.Fields.PROTOCOL, protocol);
                                       }
+                                      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "" + includeReverseTrafficF);
                                     }}
                                     , CONFIGURATION.get()
                                     , FileSystem.get(CONFIGURATION.get())
@@ -276,29 +284,9 @@ public class PcapReceiverImplRestEasy {
     } catch (Exception e) {
       LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
               e);
-      throw new RuntimeException("Unable to fetch Pcaps by MR job.", e);
+      throw new WebApplicationException("Unable to fetch Pcaps via MR job", e);
     }
-			/*
-	    try {
 
-	      String sessionKey = PcapUtils.getSessionKey(srcIp, dstIp, protocol,
-	          srcPort, dstPort);
-	      LOGGER.info("sessionKey =" + sessionKey);
-	      IPcapGetter pcapGetter = PcapGetterHBaseImpl.getInstance();
-	      response = pcapGetter.getPcaps(Arrays.asList(sessionKey), null,
-	          startTime, endTime, includeReverseTraffic, false,
-	          ConfigurationUtil.getDefaultResultSize());
-	      if (response == null || response.getResponseSize() == 0) {
-	         return Response.status(Response.Status.NO_CONTENT).build();
-	      }
-	      servlet_response.setHeader(HEADER_CONTENT_DISPOSITION_NAME,
-					HEADER_CONTENT_DISPOSITION_VALUE);
-
-	    } catch (IOException e) {
-	      LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
-	          e);
-	      throw e;
-	    }*/
     // return http status '200 OK' along with the complete pcaps response file,
     // and headers
     return Response

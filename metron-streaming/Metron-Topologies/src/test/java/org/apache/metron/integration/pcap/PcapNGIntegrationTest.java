@@ -22,10 +22,12 @@ import org.apache.metron.integration.util.integration.components.FluxTopologyCom
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.util.integration.components.MRComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
+import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapParser;
 import org.apache.metron.spout.pcap.HDFSWriterCallback;
 import org.apache.metron.spout.pcap.PartitionHDFSWriter;
 import org.apache.metron.test.converters.HexStringConverter;
+import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -90,7 +92,7 @@ public class PcapNGIntegrationTest {
       byte[] pcapWithHeader = converter.convert(line);
       byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
       System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
-      parser.parse(pcapWithHeader);
+      List<PacketInfo> l = parser.getPacketInfo(pcapWithHeader);
       ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
     }
     return Iterables.limit(ret, 2*(ret.size()/2));
@@ -201,6 +203,36 @@ public class PcapNGIntegrationTest {
                 , FileSystem.get(new Configuration())
                 );
         Assert.assertEquals(results.size(), 2);
+      }
+      {
+        System.err.println("Starting job\n\n===============================================");
+        List<byte[]> results =
+        job.query(new Path(outDir.getAbsolutePath())
+                , new Path(queryDir.getAbsolutePath())
+                , 0l
+                , 1l
+                , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+                  put(Constants.Fields.DST_ADDR, "207.28.210.1");
+                }}
+                , new Configuration()
+                , FileSystem.get(new Configuration())
+                );
+        Assert.assertEquals(results.size(), 0);
+      }
+      {
+        System.err.println("Starting job\n\n===============================================");
+        List<byte[]> results =
+        job.query(new Path(outDir.getAbsolutePath())
+                , new Path(queryDir.getAbsolutePath())
+                , 0l
+                , 1l
+                , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+                  put(Constants.Fields.PROTOCOL, "foo");
+                }}
+                , new Configuration()
+                , FileSystem.get(new Configuration())
+                );
+        Assert.assertEquals(results.size(), 0);
       }
       System.out.println("Ended");
     }

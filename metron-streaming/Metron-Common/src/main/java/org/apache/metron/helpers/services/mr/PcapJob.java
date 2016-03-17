@@ -58,7 +58,7 @@ public class PcapJob {
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
       if(key.get() >= start && key.get() <= end) {
-        boolean send = Iterables.size(Iterables.filter(parser.parse(value.getBytes()), filter)) > 0;
+        boolean send = Iterables.size(Iterables.filter(parser.getPacketInfo(value.getBytes()), filter)) > 0;
         if(send) {
           context.write(key, value);
         }
@@ -115,6 +115,7 @@ public class PcapJob {
     for(RemoteIterator<LocatedFileStatus> it= fs.listFiles(outputPath, false);it.hasNext();) {
       Path p = it.next().getPath();
       if(p.getName().equals("_SUCCESS")) {
+        fs.delete(p, false);
         continue;
       }
       SequenceFile.Reader reader = new SequenceFile.Reader(config,
@@ -129,6 +130,7 @@ public class PcapJob {
       reader.close();
       fs.delete(p, false);
     }
+    fs.delete(outputPath, false);
     return ret;
   }
 
@@ -138,18 +140,18 @@ public class PcapJob {
 
   public List<byte[]> query(Path basePath
                             , Path baseOutputPath
-                            , long begin
-                            , long end
+                            , long beginNS
+                            , long endNS
                             , EnumMap<Constants.Fields, String> fields
                             , Configuration conf
                             , FileSystem fs
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    String fileName = Joiner.on("_").join(begin, end, queryToString(fields), UUID.randomUUID().toString());
+    String fileName = Joiner.on("_").join(beginNS, endNS, queryToString(fields), UUID.randomUUID().toString());
     Path outputPath =  new Path(baseOutputPath, fileName);
     Job job = createJob( basePath
                        , outputPath
-                       , begin
-                       , end
+                       , beginNS
+                       , endNS
                        ,fields
                        , conf
                        , fs
@@ -166,15 +168,15 @@ public class PcapJob {
 
   public Job createJob( Path basePath
                       , Path outputPath
-                      , long begin
-                      , long end
+                      , long beginNS
+                      , long endNS
                       , EnumMap<Constants.Fields, String> fields
                       , Configuration conf
                       , FileSystem fs
                       ) throws IOException
   {
-    conf.set(PcapMapper.START_TS_CONF, Long.toUnsignedString(begin));
-    conf.set(PcapMapper.END_TS_CONF, Long.toUnsignedString(end));
+    conf.set(PcapMapper.START_TS_CONF, Long.toUnsignedString(beginNS));
+    conf.set(PcapMapper.END_TS_CONF, Long.toUnsignedString(endNS));
     for(Map.Entry<Constants.Fields, String> kv : fields.entrySet()) {
       conf.set(kv.getKey().getName(), kv.getValue());
     }
@@ -186,7 +188,7 @@ public class PcapJob {
     job.setReducerClass(PcapReducer.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
-    SequenceFileInputFormat.addInputPaths(job, Joiner.on(',').join(getPaths(fs, basePath, begin, end )));
+    SequenceFileInputFormat.addInputPaths(job, Joiner.on(',').join(getPaths(fs, basePath, beginNS, endNS )));
     job.setInputFormatClass(SequenceFileInputFormat.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
     SequenceFileOutputFormat.setOutputPath(job, outputPath);
