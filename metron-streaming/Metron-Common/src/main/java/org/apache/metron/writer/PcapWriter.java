@@ -18,6 +18,7 @@
 package org.apache.metron.writer;
 
 import backtype.storm.tuple.Tuple;
+import org.apache.metron.pcap.PcapUtils;
 import org.json.simple.JSONObject;
 
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class PcapWriter extends HBaseWriter {
 
   @Override
   public byte[] getKey(Tuple tuple, JSONObject message) {
-    String key = (String) message.get("pcap_id");
+    String key = PcapUtils.getSessionKey(message);
     return key.getBytes();
   }
 

@@ -100,107 +100,7 @@
 
 <div class="table-container">
     <div class="pcap-editor" pcap-settings></div>
-    <div class="pcap-editor">
-      <h6>PCAP Search Results</h6>
-      <table class="table table-bordered table-condensed table-details table-striped" ng-style="panel.style">
-      <thead>
-        <tr>
-          <td>PCAP ID</td>
-          <td>Source Port</td>
-          <td>Destination Port</td>
-          <td>Source IP</td>
-          <td>Destination IP</td>
-          <td>Protocol</td>
-        <tr>
-      </thead>
-
-      <tbody bindonce ng-repeat="doc in results.hits.hits">
-          <tr ng-click="get_pcap(doc._source.message.pcap_id)" ng-class="">
-            <td>{{ doc._source.message.pcap_id }}</td>
-            <td>{{ doc._source.message.ip_src_port }}</td>
-            <td>{{ doc._source.message.dst_port }}</td>
-            <td>{{ doc._source.message.ip_src_addr }}</td>
-            <td>{{ doc._source.message.ip_dst_addr }}</td>
-            <td>{{ doc._source.message.ip_protocol }}</td>
-          </tr>
-      </tbody>
-      </table>
-    </div>
-
-    <table class="table table-bordered table-condensed table-details table-striped" ng-style="panel.style">
-    <thead>
-      <tr>
-        <td>Packet No.</td>
-        <td>Source</td>
-        <td>Destination</td>
-        <td>Info</td>
-      <tr>
-    </thead>
-    <tbody bindonce ng-repeat="packet in packet_data.pdml.packet">
-        <tr ng-click="$parent.drilldown = packet; setSelected($index);" ng-class="{highlight : $index === selectedValue}">
-          <td><span>{{$index}}</span></td>
-          <td>{{packet.proto[3].field[10].$.show}}</td>
-          <td>{{packet.proto[3].field[14].$.show}}</td>
-          <td>{{packet.proto[4].field[0].$.showname}}</td>
-        </tr>
-    </tbody>
-    </table>
-
-      <table class="">
-       <thead></thead>
-       <!-- TODO: Fix repeater bug -->
-        <tbody bindonce ng-repeat="event in data| slice:panel.offset:panel.offset+panel.size" ng-class-odd="'odd'" class="extra-row" ng-show="activePosition == $index">
-          <tr bindonce ng-repeat="prot in event.proto" class="main-row">
-            <td><div ng-click="prot.isVisible = !prot.isVisible">{{protShowname(prot.$)}}</div>
-            <div>
-              <ul ng-show="prot.isVisible">
-                <li ng-repeat="fieldval in prot.field" ng-click="fieldBytes(fieldval)">
-                    <p>{{fieldvalShowname(fieldval)}}</p>
-                </li>
-            </ul>
-            </div>
-            </td>
-          </tr>
-       </tbody>
-      </table>
-
-    <div packet="drilldown"></div>
 </div>
-
-  <script type="text/ng-template" id="packet.html">
-    <div ng-repeat="proto in packet.proto">
-      <span ng-class="{'icon-chevron-down': proto.expanded, 'icon-chevron-right': !proto.expanded}" ng-click="proto.expanded = select(proto) || !proto.expanded"></span>
-      <span ng-class="{highlight: (selectedData.uid === proto.$.uid) || (selectedData2 === proto.$.name )}" ng-click="proto.expanded = select(proto) || !proto.expanded">
-        {{ proto.$.showname }}
-      </span>
-
-      <div ng-if="proto.expanded" style="margin-left:50px">
-        <div ng-repeat="f in proto.field">
-          <span ng-class="{highlight: ($parent.selectedData.uid === f.$.uid) || (selectedData2 === f.$)}" ng-click="select_field(f)">
-            {{ f.$.showname }}
-          </span>
-        </div>
-      </div>
-    </div>
-    <div hex-bytes bytes="packet.hexPacket" selected-bytes="selectedBytes" selected-data="selectedData"></div>
-  </script>
-
-  <script type="text/ng-template" id="hexBytes.html">
-    <br/>
-    <span ng-repeat="b in bytes track by $index">
-      <span class="byte" ng-class="{highlight: selectedBytes.pos <= $index && (selectedBytes.pos|num)+(selectedBytes.size|num) > $index, newline:$index%16==0, padright:($index+8)%16==0}" ng-click="selectByte($index)" style="float:left; padding:4px;">
-        {{ b }}
-      </span>
-    </span>
-    <div style="clear:left">
-    <br/>
-    Position: {{selectedBytes.pos}}<br/>
-    Size: {{selectedBytes.size}}<br/>
-    Selected Field: {{selectedBytes.showname}} ({{selectedBytes.name}})</br>
-    selectedBytes :: {{$parent.selectedBytes}}</br>
-    selectedBytes.expand :: {{$parent.selectedBytes.expanded}}
-    </div>
-  </script>
 
   <!-- Filter PCAP Panel -->
   <script type="text/ng-template" id="pcapSettings.html">
@@ -221,9 +121,11 @@
           <div class="editor-option">
               <label class="small">Protocol</label><input type="text" class="input-medium" ng-model="ip_protocol"></input>
           </div>
-
+          <div class="editor-option">
+            <label class="small">Include Reverse Traffic</label><input type="checkbox" value="false" class="input-medium" ng-model="include_reverse_traffic"></input>
+          </div>
           <div class="edit-option">
-          <button type="button" class="btn btn-success" ng-click="search()">Search</button>
+            <button type="button" class="btn btn-success" ng-click="getPcap()">Search</button>
           </div>
 
         </form>

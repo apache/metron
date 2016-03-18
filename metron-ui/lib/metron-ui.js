@@ -23,6 +23,7 @@ var path = require('path');
 var express = require('express');
 
 var connect = require('connect');
+var serveStatic = require('serve-static');
 var flash = require('connect-flash');
 
 var cookieParser = require('cookie-parser');
@@ -37,7 +38,7 @@ var login = require('./modules/login');
 var pcap = require('./modules/pcap');
 
 var app = express();
-var config = require('./config');
+var config = require('../config.json');
 
 
 try {
@@ -51,7 +52,7 @@ app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'views/'));
 
 // Cookie middleware
-app.use(connect.logger('dev'));
+//app.use(connect.logger('dev'));
 app.use(flash());
 app.use(cookieParser());
 app.use(cookieSession({
@@ -110,7 +111,7 @@ pcap(app, config);
 login(app, config);
 
 // Serve static assets
-app.use(connect.static(path.join(__dirname, 'public')));
+app.use(serveStatic(path.join(__dirname, 'public')));
 
 
 // Start server

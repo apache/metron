@@ -222,7 +222,7 @@ public class PcapReceiverImplRestEasy {
 	
 	    PcapsResponse response = null;
 	    try {
-	      String sessionKey = PcapUtils.getSessionKey(srcIp, dstIp, protocol,
+	      String sessionKey = PcapUtils.getPartialSessionKey(srcIp, dstIp, protocol,
 	          srcPort, dstPort);
 	      LOGGER.info("sessionKey =" + sessionKey);
 	      IPcapGetter pcapGetter = PcapGetterHBaseImpl.getInstance();

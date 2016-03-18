@@ -23,46 +23,33 @@
       - { package: 'nodejs'}
       - { package: 'npm'}
 
-- name: Download nvm installer
-  get_url: url=https://raw.githubusercontent.com/creationix/nvm/v0.30.1/install.sh dest=/tmp/nvm-install.sh
-
-- name: Change nvm installer permissions
-  file: path=/tmp/nvm-install.sh mode=0755
-
-- name: Install nvm
-  shell: /tmp/nvm-install.sh creates=~/.nvm/nvm.sh
-
-- name: Install Metron UI
-  shell: source ~/.bashrc && nvm install 0.10.35 && nvm use 0.10.35 && nvm alias default 0.10.35 && npm install -g opensoc-ui creates=/root/.nvm/v0.10.35/lib/node_modules/opensoc-ui/package.json
-
-- name: Add Metron UI config
+- name: Copy Metron UI source
   copy:
-    src: opensoc-ui
-    dest: ~/.opensoc-ui
-    mode: 0644
+    src: "{{ playbook_dir }}/../../metron-ui"
+    dest: "{{ metron_directory }}"
 
-- name: Configure opensoc-ui
-  lineinfile: >
-    dest=~/.opensoc-ui
+- name: Configure Metron UI
+  lineinfile:
+    dest="{{ metron_directory }}/metron-ui/config.json"
     regexp="{{ item.regexp }}"
     line="{{ item.line }}"
     state=present
   with_items:
     - { regexp: '"elasticsearch":', line: '"elasticsearch": { "url": "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}" },' }
-    - { regexp: '"pcap":', line: '  "pcap": { "url": "http://{{ groups.web[0] }}:{{ pcapservice_port }}/pcap/pcapGetter","mock": false }' }
+    - { regexp: '"pcap":', line: '  "pcap": { "url": "http://{{ groups.web[0] }}:{{ pcapservice_port }}/pcapGetter","mock": false }' }
 
-- name: Fix pcap_all error
-  replace:
-    dest: /root/.nvm/v0.10.35/lib/node_modules/opensoc-ui/lib/static_dist/app/panels/pcap/module.js
-    regexp: "pcap_all"
-    replace: "pcap_*"
-    backup: yes
+- name: Install Node dependencies
+  npm:
+    name: "{{ item }}"
+    path: "{{ metron_ui_directory }}"
+    global: true
+  with_items:
+    - pm2
 
-- name: Configure default dashboard
-  copy:
-    src: default.json
-    dest: /root/.nvm/v0.10.35/lib/node_modules/opensoc-ui/lib/static_dist/app/dashboards/
-    mode: 0644
+- name: Install Metron UI
+  npm:
+    path: "{{ metron_ui_directory }}"
+    production: no
 
-- name: Start Metron UI service
-  shell: source ~/.bashrc && opensoc-ui start
+- name: Start Metron UI
+  shell: "pm2 start /usr/metron/0.1BETA/metron-ui/lib/metron-ui.js --name metron"

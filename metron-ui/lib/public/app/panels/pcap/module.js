@@ -168,6 +168,11 @@ function (angular, app, _, require, kbn) {
         });
     }
 
+    $scope.getPcap = function() {
+      var url = '/pcap/getPcapsByIdentifiers?srcIp=' + $scope.ip_src_addr + '&dstIp=' + $scope.ip_dst_addr + '&protocol=' + $scope.ip_protocol + '&srcPort=' + $scope.ip_src_port + '&dstPort=' + $scope.dst_port + '&includeReverseTraffic=' + $scope.include_reverse_traffic;
+      window.location = url;
+    };
+
     // Query for PCAP IDS
     $scope.search = function() {
       var client = $scope.ejs.Request()
