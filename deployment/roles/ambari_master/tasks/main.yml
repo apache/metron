@@ -16,7 +16,7 @@
 #
 ---
 # tasks file for ambari_master
-- name: Install ambari repo
+- name: Install ambari server
   yum: name=ambari-server state=present
 
 - name: Setup ambari server

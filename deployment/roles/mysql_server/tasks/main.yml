@@ -17,20 +17,19 @@
 ---
 - name: Create temporary directories
   file:
-    path: "/tmp/{{ item }}"
+    path: "/tmp/geoip"
     state: directory
     mode: 0755
-  with_items:
-    - "geoip"
 
-- name: Distribute Mysql
-  copy:
-    src: "{{ mysql_rpm_version }}.rpm"
-    dest: /tmp
+- name: Install Mysql Community Release Repo Def
+  get_url:
+    dest: /tmp/{{ mysql_rpm_version }}.rpm
+    url: "{{ mysql_yum_repo_url }}"
 
-- name: Install Msyql Yum Repository
+- name: Install Mysql Community Release Repo
   yum:
-    name: "/tmp/{{ mysql_rpm_version }}.rpm"
+    pkg: /tmp/{{ mysql_rpm_version }}.rpm
+    state: installed
 
 - name: Install MySQL
   yum:

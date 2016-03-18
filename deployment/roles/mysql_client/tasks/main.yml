@@ -17,7 +17,7 @@
 ---
 
 - name: Get Default mysql passowrd
-  include_vars: "../roles/mysql_server/vars/main.yml"
+  include_vars: "../roles/mysql_server/defaults/main.yml"
   when: mysql_root_password is undefined
 
 - name: Allow remote login to mysql
