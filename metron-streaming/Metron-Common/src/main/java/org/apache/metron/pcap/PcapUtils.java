@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.json.simple.JSONObject;
 
 /**
  * The Class PcapUtils.
@@ -262,6 +263,30 @@ public class PcapUtils {
         .append(SESSION_KEY_SEPERATOR)
         .append(fragmentOffset == null ? "0" : fragmentOffset);
 
+    return sb.toString();
+  }
+
+  public static String getSessionKey(JSONObject message) {
+    String srcIp = (String) message.get("ip_src_addr");
+    String dstIp = (String) message.get("ip_dst_addr");
+    Long protocol = (Long) message.get("ip_protocol");
+    Long srcPort = (Long) message.get("ip_src_port");
+    Long dstPort = (Long) message.get("ip_dst_port");
+    Long ipId = (Long) message.get("ip_id");
+    String ipIdString = ipId == null ? null : ipId.toString();
+    Long fragmentOffset = (Long) message.get("frag_offset");
+    String fragmentOffsetString = fragmentOffset == null ? null : fragmentOffset.toString();
+    return PcapUtils.getSessionKey(srcIp, dstIp, protocol.toString(), srcPort.toString(), dstPort.toString(), ipIdString, fragmentOffsetString);
+  }
+
+  public static String getPartialSessionKey(String srcIp, String dstIp,
+                                            String protocol, String srcPort, String dstPort) {
+    StringBuffer sb = new StringBuffer(40);
+    sb.append(convertIpv4IpToHex(srcIp)).append(SESSION_KEY_SEPERATOR)
+            .append(convertIpv4IpToHex(dstIp)).append(SESSION_KEY_SEPERATOR)
+            .append(protocol == null ? "0" : protocol)
+            .append(SESSION_KEY_SEPERATOR).append(srcPort == null ? "0" : srcPort)
+            .append(SESSION_KEY_SEPERATOR).append(dstPort == null ? "0" : dstPort);
     return sb.toString();
   }
 
