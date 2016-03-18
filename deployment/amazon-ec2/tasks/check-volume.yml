@@ -15,18 +15,12 @@
 #  limitations under the License.
 #
 ---
-- name: "Expand {{ vol_src }} volume"
-#          sectors  delete 1  new      primary  first    past mbr to end  bootable     write and exit
-  shell: "(echo u s; echo d 1; echo n; echo p; echo 1; echo 2048 ; echo ;echo a; echo 1; echo w) | fdisk {{ vol_src }} || true"
-  args:
-    executable: /bin/bash
+- name: "Check size of volume {{ vol_src }}"
+  shell: "lsblk | grep part | grep {{ vol_name }} | awk '{ print $4}' | sed 's/[^0-9]//g'"
+  register: current_size
 
-- name: Restart host(s)
-  command: shutdown -r now "Trigger volume changes"
-  async: 0
-  poll: 0
-  ignore_errors: True
+- name: "Status of {{ vol_src }} volume"
+  debug: msg="volume={{ vol_src }} current={{ current_size.stdout|int }} expected={{ vol_size|int }}"
 
-- name: Wait for connectivity to host(s)
-  local_action: wait_for host={{ inventory_hostname }} state=started
-  become: False
+- include: expand-volume.yml vol_src={{ vol_src }}
+  when: current_size.stdout|int < vol_size|int
