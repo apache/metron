@@ -25,7 +25,7 @@ exports = module.exports = function(config) {
   });
 
   return function(req, res, next) {
-    if (!req.user) {
+    if (config.auth && !req.user) {
       res.send(403, 'Forbidden!');
       return;
     }

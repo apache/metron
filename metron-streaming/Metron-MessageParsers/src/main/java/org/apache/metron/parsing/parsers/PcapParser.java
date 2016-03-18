@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PcapParser implements MessageParser<JSONObject>, Serializable {
@@ -96,7 +97,13 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
 
   @Override
   public boolean validate(JSONObject message) {
-    return true;
+    List<String> requiredFields = Arrays.asList("ip_src_addr",
+            "ip_dst_addr",
+            "ip_protocol",
+            "ip_src_port",
+            "ip_dst_port");
+    return message.keySet().containsAll(requiredFields);
+
   }
 
   /**

@@ -1,6 +1,0 @@
-{
-  "auth":false,
-  "secrent":"secret",
-  "elasticsearch": { "url": "http://host:port" },
-  "pcap": { "url": "http://host:port/pcap/pcapGetter","mock": false }
-}
