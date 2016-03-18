@@ -35,21 +35,22 @@ import org.apache.metron.pcap.PcapParser;
 import org.apache.metron.spout.pcap.PcapFileHelper;
 
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.util.*;
 
 public class PcapJob {
   public static class PcapMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
     public static final String START_TS_CONF = "start_ts";
     public static final String END_TS_CONF = "end_ts";
-    PcapParser parser;
+    //PcapParser parser;
     PcapFilter filter;
     long start;
     long end;
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
       super.setup(context);
-      parser = new PcapParser();
-      parser.init();
+      //parser = new PcapParser();
+      //parser.init();
       filter = new PcapFilter(context.getConfiguration());
       start = Long.parseUnsignedLong(context.getConfiguration().get(START_TS_CONF));
       end = Long.parseUnsignedLong(context.getConfiguration().get(END_TS_CONF));
@@ -58,8 +59,13 @@ public class PcapJob {
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
       if(key.get() >= start && key.get() <= end) {
-        boolean send = Iterables.size(Iterables.filter(parser.getPacketInfo(value.getBytes()), filter)) > 0;
-        if(send) {
+        byte[] b = null;
+        PcapParser parser = new PcapParser();
+        parser.init();
+        b = new byte[value.getLength()];
+        System.arraycopy(value.getBytes(), 0, b, 0, b.length);
+        boolean send = Iterables.size(Iterables.filter(parser.getPacketInfo(b), filter)) > 0;
+        if (send) {
           context.write(key, value);
         }
       }

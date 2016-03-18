@@ -28,6 +28,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
+import org.apache.metron.pcap.PcapParser;
 
 import java.io.*;
 import java.util.EnumSet;
@@ -235,11 +236,11 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         }
     }
 
-    private static BytesWritable headerize(byte[] packet) {
+    public static BytesWritable headerize(byte[] packet) {
         byte[] ret = new byte[packet.length + PCAP_GLOBAL_HEADER.length];
         int offset = 0;
         System.arraycopy(PCAP_GLOBAL_HEADER, 0, ret, offset, PCAP_GLOBAL_HEADER.length);
-        offset += PCAP_GLOBAL_HEADER.length-1;
+        offset += PCAP_GLOBAL_HEADER.length;
         System.arraycopy(packet, 0, ret, offset, packet.length);
         return new BytesWritable(ret);
     }

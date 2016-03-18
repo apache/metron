@@ -93,6 +93,8 @@ public class PcapNGIntegrationTest {
       byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
       System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
       List<PacketInfo> l = parser.getPacketInfo(pcapWithHeader);
+      byte[] headerized = PartitionHDFSWriter.headerize(pcapRaw).getBytes();
+      Assert.assertArrayEquals(pcapWithHeader, headerized);
       ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
     }
     return Iterables.limit(ret, 2*(ret.size()/2));
@@ -196,9 +198,9 @@ public class PcapNGIntegrationTest {
         List<byte[]> results =
         job.query(new Path(outDir.getAbsolutePath())
                 , new Path(queryDir.getAbsolutePath())
-                , 0l
-                , 1l
-                , new EnumMap<Constants.Fields, String>(Constants.Fields.class)
+                , 4l
+                , 5l
+                , new EnumMap<>(Constants.Fields.class)
                 , new Configuration()
                 , FileSystem.get(new Configuration())
                 );
@@ -233,6 +235,19 @@ public class PcapNGIntegrationTest {
                 , FileSystem.get(new Configuration())
                 );
         Assert.assertEquals(results.size(), 0);
+      }
+      {
+        System.err.println("Starting job\n\n===============================================");
+        List<byte[]> results =
+        job.query(new Path(outDir.getAbsolutePath())
+                , new Path(queryDir.getAbsolutePath())
+                , 0l
+                , 16l
+                , new EnumMap<>(Constants.Fields.class)
+                , new Configuration()
+                , FileSystem.get(new Configuration())
+                );
+        Assert.assertEquals(results.size(), 14);
       }
       System.out.println("Ended");
     }
