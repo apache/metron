@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "pcap-parse"
+name: "pcap-test"
 config:
     topology.workers: 1
 
@@ -26,6 +26,10 @@ components:
         constructorArgs:
             - "${bolt.hbase.table.name}"
             - "${bolt.hbase.table.fields}"
+        configMethods:
+            -   name: "withProviderImpl"
+                args:
+                    - "${hbase.provider.impl}"
     -   id: "zkHosts"
         className: "storm.kafka.ZkHosts"
         constructorArgs:
@@ -43,9 +47,9 @@ components:
             - "${spout.kafka.topic.pcap}"
         properties:
             -   name: "ignoreZkOffsets"
-                value: true
+                value: false
             -   name: "startOffsetTime"
-                value: -1
+                value: -2
 
 spouts:
     -   id: "kafkaSpout"

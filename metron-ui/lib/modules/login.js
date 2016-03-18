@@ -20,7 +20,7 @@ exports = module.exports = function(app, config) {
   var passport = require('passport');
 
   app.get('/', function (req, res, next) {
-    if (!req.user) {
+    if (config.auth && !req.user ) {
       res.redirect('/login');
       return;
     }

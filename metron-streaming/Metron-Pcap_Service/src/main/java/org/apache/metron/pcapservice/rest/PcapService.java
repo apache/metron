@@ -19,6 +19,7 @@ package org.apache.metron.pcapservice.rest;
 
 import java.io.IOException;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;

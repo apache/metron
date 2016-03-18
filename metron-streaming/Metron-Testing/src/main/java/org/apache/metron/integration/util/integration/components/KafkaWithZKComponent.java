@@ -218,7 +218,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     }
   }
 
-  public void writeMessages(String topic, List<byte[]> messages) {
+  public void writeMessages(String topic, Collection<byte[]> messages) {
     KafkaProducer<String, byte[]> kafkaProducer = createProducer();
     for(byte[] message: messages) {
       kafkaProducer.send(new ProducerRecord<String, byte[]>(topic, message));

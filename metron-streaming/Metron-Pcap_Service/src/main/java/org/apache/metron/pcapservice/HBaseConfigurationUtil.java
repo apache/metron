@@ -80,7 +80,7 @@ public class HBaseConfigurationUtil {
       if (connectionAvailable()) {
         return;
       }
-      clusterConnection = HConnectionManager.createConnection(read());
+      clusterConnection = HConnectionManager.createConnection(HBaseConfiguration.create());
       addShutdownHook();
       System.out.println("Created HConnection and added shutDownHook");
     } catch (IOException e) {
