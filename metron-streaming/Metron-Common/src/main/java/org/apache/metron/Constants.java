@@ -26,11 +26,11 @@ public class Constants {
   public static final String ERROR_STREAM = "error";
 
   public static enum Fields {
-    SRC_ADDR("ip_src")
+    SRC_ADDR("ip_src_addr")
     ,SRC_PORT("ip_src_port")
     ,DST_ADDR("ip_dst_addr")
-    ,DST_PORT("ip_dst")
-    ,PROTOCOL("ip_protocol")
+    ,DST_PORT("ip_dst_port")
+    ,PROTOCOL("protocol")
     ,TIMESTAMP("timestamp")
     ,INCLUDES_REVERSE_TRAFFIC("includes_reverse_traffic")
     ;
