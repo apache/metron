@@ -40,10 +40,12 @@
 #
 - hosts: ec2
   become: True
+  vars_files:
+    - conf/defaults.yml
   tasks:
     - include: tasks/mount-volume.yml vol_src=/dev/xvdb vol_mnt=/data1
     - include: tasks/mount-volume.yml vol_src=/dev/xvdc vol_mnt=/data2
-    - include: tasks/expand-volume.yml volume=/dev/xvda
+    - include: tasks/check-volume.yml vol_name=xvda vol_src=/dev/xvda vol_size={{ xvda_vol_size }}
   tags:
     - ec2
 
