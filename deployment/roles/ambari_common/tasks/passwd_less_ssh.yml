@@ -29,5 +29,5 @@
 #ambari_common.hosts
 - name: Remove local copy of ssh keys
   local_action: file path=/tmp/keys/{{ inventory_hostname }}.pub state=absent
-  sudo: False
+  become: False
 
