@@ -18,11 +18,8 @@
 - name: Turn on promiscuous mode for {{ sniff_interface }}
   shell: "ip link set {{ sniff_interface }} promisc on"
 
-- name: Update bro configuration
-  shell: /usr/local/bro/bin/broctl install
-
 - name: Start bro
-  shell: /usr/local/bro/bin/broctl start
+  shell: "{{ bro_home }}/bin/broctl deploy"
 
 - name: Bro Cronjob
   cron:
