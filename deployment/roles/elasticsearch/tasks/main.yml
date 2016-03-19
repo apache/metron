@@ -15,12 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install libselinux-python and java
-  yum: name={{item}}
-  with_items:
-    - libselinux-python
-    - java-1.8.0-openjdk
-
 - name: Add Elasticsearch GPG key.
   rpm_key:
     key: https://packages.elastic.co/GPG-KEY-elasticsearch
@@ -33,7 +27,13 @@
     mode: 0644
 
 - name: Install Elasticsearch.
-  yum: pkg=elasticsearch state=installed
+  yum:
+    name: elasticsearch
+    state: installed
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
 - name: Create Data Directories
   file:
@@ -59,7 +59,8 @@
     - { regexp: '#discovery\.zen\.ping\.unicast\.hosts',
     line: 'discovery.zen.ping.unicast.hosts: [ {{ es_hosts }} ]'}
     - { regexp: '#path\.data', line: 'path.data: {{     elasticsearch_data_dir }}' }
-  notify: restart elasticsearch
 
 - name: Start Elasticsearch.
   service: name=elasticsearch state=started enabled=yes
+
+- include: configure_index.yml

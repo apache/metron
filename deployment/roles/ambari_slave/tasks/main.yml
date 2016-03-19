@@ -17,7 +17,13 @@
 ---
 # tasks file for ambari_slave
 - name: Install ambari-agent
-  yum: name=ambari-agent
+  yum:
+    name: ambari-agent
+    state: installed
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
 - name: Create ambari-agent hostname script
   template:

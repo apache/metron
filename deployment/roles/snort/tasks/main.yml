@@ -15,22 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install EPEL repository
-  yum: name=epel-release
-
-- name: Install snort prerequisites
-  yum: name={{ item }}
-  with_items:
-    - "@Development tools"
-    - libdnet-devel
-    - rpm-build
-    - libpcap
-    - libpcap-devel
-    - pcre
-    - pcre-devel
-    - zlib-devel
-    - libselinux-python
-
 - include: daq.yml
 
 - include: snort.yml

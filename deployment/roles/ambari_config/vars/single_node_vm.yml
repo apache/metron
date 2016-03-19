@@ -29,6 +29,7 @@ zookeeper_slave: [ZOOKEEPER_CLIENT]
 hbase_master: [HBASE_MASTER, HBASE_CLIENT]
 hbase_slave: [HBASE_REGIONSERVER]
 
+metron_services: ["HDFS","YARN","MAPREDUCE2","ZOOKEEPER", "HBASE", "STORM", "KAFKA"]
 metron_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) | union(storm_slave) | union(kafka_broker) | union(hbase_slave) }}"
 
 cluster_name: "metron_cluster"

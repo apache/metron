@@ -17,12 +17,14 @@
 ---
 # tasks file for ambari_master
 - name: Install ambari server
-  yum: name=ambari-server state=present
-
-- name: Setup ambari server
-  shell: ambari-server setup -s; touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
-  register: ambari_server_setup
-  failed_when: ambari_server_setup.stderr
+  yum:
+    name: ambari-server
+    state: present
+    update_cache: yes
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
 - name: Set Ambari Server Max Memory
   replace:
@@ -31,8 +33,19 @@
     replace: " -Xmx{{ ambari_server_mem }}m "
     backup: no
 
+- name: Setup ambari server
+  shell: ambari-server setup -s && touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
+  register: ambari_server_setup
+  failed_when: ambari_server_setup.stderr
+
 - name: start ambari server
-  service: name=ambari-server state=restarted
+  service:
+    name: ambari-server
+    state: restarted
 
 - name : check if ambari-server is up on {{ ambari_host }}:{{ambari_port}}
-  wait_for : host={{ ambari_host }} port={{ ambari_port }} delay=10 timeout=120
+  wait_for :
+    host: "{{ ambari_host }}"
+    port: "{{ ambari_port }}"
+    delay: 120
+    timeout: 300
