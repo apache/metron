@@ -15,20 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install development tools
-  yum: name="@Development tools" state=present
-
-- name: Install snort prerequisites
-  yum: name={{ item }}
-  with_items:
-    - libdnet-devel
-    - rpm-build
-    - libpcap
-    - libpcap-devel
-    - pcre
-    - pcre-devel
-    - zlib-devel
-
 - name: Download daq
   get_url:
     url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
@@ -41,7 +27,12 @@
     creates: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
 
 - name: Install daq
-  yum: name=/root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
+  yum:
+    name: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
 - name: Download snort
   get_url:
@@ -55,7 +46,12 @@
     creates: /root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm
 
 - name: Install snort
-  yum: name=/root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm
+  yum:
+    name: /root/rpmbuild/RPMS/x86_64/snort-{{ snort_version }}.x86_64.rpm
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
 - name: Download snort community rules
   get_url:

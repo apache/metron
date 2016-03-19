@@ -15,8 +15,6 @@
 #  limitations under the License.
 #
 ---
-- include: config-java.yml
-
 - name: Check for hbase-site
   stat: path=/etc/hbase/conf/hbase-site.xml
   register: hbase_site

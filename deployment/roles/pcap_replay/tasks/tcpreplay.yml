@@ -15,13 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name={{ item }}
-  with_items:
-    - "@Development tools"
-    - libpcap
-    - libpcap-devel
-
 - name: Download tcpreplay
   get_url:
     url: "https://github.com/appneta/tcpreplay/releases/download/v{{ tcpreplay_version }}/tcpreplay-{{ tcpreplay_version }}.tar.gz"

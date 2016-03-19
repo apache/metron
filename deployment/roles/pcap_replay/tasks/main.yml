@@ -15,9 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name=libselinux-python
-
 - include: tcpreplay.yml
 
 - include: service.yml
