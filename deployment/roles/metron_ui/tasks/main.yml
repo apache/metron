@@ -16,12 +16,19 @@
 #
 ---
 - name: Install Metron UI dependencies
-  yum: pkg={{ item.package }} state=installed
+  yum:
+    pkg: "{{ item.package }}"
+    state: installed
   with_items:
       - { package: 'libpcap-devel'}
       - { package: 'wireshark'}
       - { package: 'nodejs'}
       - { package: 'npm'}
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
+
 
 - name: Copy Metron UI source
   copy:

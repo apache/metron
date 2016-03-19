@@ -36,12 +36,6 @@
 - name: Unbundle Metron bundles
   shell: cd {{ metron_directory }} && tar xzvf Metron-Topologies*.tar.gz && tar xzvf Metron-DataLoads*.tar.gz && rm *.tar.gz
 
-- name: Alternatives link for "java"
-  alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
-  with_items:
-    - { name: java, link: /usr/bin/java, path: "{{ java_home }}/bin/java" }
-    - { name: jar, link: /usr/bin/jar, path: "{{ java_home }}/bin/jar" }
-
 - name: Add hbase-site.xml to topology jar
   shell: cd {{ hbase_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hbase-site.xml
 
@@ -52,17 +46,14 @@
   shell: cd {{ hdfs_config_path }} && jar -uf {{ metron_directory }}/lib/{{ metron_jar_name }} hdfs-site.xml
 
 - name: Get Default mysql passowrd
-  include_vars: "../roles/mysql_server/vars/main.yml"
+  include_vars: "../roles/mysql_server/defaults/main.yml"
   when: mysql_root_password is undefined
 
-- name: Create root user HDFS directory
-  command: su - hdfs -c "hdfs dfs -mkdir -p /user/root && hdfs dfs -chown root:root /user/root"
+- include: hdfs_filesystem.yml
+  run_once: true
 
-- name: Create Metron HDFS output directory
-  command: su - hdfs -c "hdfs dfs -mkdir -p {{ metron_hdfs_output_dir }} && hdfs dfs -chown hdfs:hadoop {{ metron_hdfs_output_dir }} && hdfs dfs -chmod 775 {{ metron_hdfs_output_dir }}"
-
-- name: Upload grok patterns
-  command: su - hdfs -c "hdfs dfs -mkdir -p {{ metron_hdfs_output_dir }}/patterns && hdfs dfs -put {{ metron_directory }}/config/patterns/*  {{ metron_hdfs_output_dir }}/patterns && hdfs dfs -chown -R hdfs:hadoop {{ metron_hdfs_output_dir }}/patterns && hdfs dfs -chmod -R 775 {{ metron_hdfs_output_dir }}/patterns"
+- include: grok_upload.yml
+  run_once: true
 
 - name: Configure Metron topologies
   lineinfile: >
@@ -87,16 +78,10 @@
     - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
     - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
 
-- name: Add Elasticsearch templates for topologies
-  uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_yaf"
-    method: POST
-    body: "{{ lookup('file','yaf_index.template') }}"
-    status_code: 200
-    body_format: json
 
 - include: source_config.yml
   run_once: true
+
 - include: threat_intel.yml
   run_once: true
   when: threat_intel_bulk_load == True

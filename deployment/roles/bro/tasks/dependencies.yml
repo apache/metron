@@ -18,7 +18,6 @@
 - name: Install prerequisites
   yum: name={{ item }}
   with_items:
-    - libselinux-python
     - cmake
     - make
     - gcc
@@ -32,3 +31,7 @@
     - swig
     - zlib-devel
     - perl
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10

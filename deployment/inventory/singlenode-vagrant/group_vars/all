@@ -28,11 +28,6 @@ pcap_hbase_table: pcap
 tracker_hbase_table: access_tracker
 threatintel_ip_hbase_table: malicious_ip
 
-#elasticsearch
-elasticsearch_transport_port: 9300
-elasticsearch_network_interface: eth1
-elasticsearch_web_port: 9200
-
 # metron variables
 metron_version: 0.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
@@ -78,3 +73,9 @@ storm_topologies:
     - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
 pcapservice_port: 8081
+
+#Search
+install_elasticsearch: True
+elasticsearch_transport_port: 9300
+elasticsearch_network_interface: eth1
+elasticsearch_web_port: 9200

@@ -27,4 +27,10 @@
     creates: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
 
 - name: Install daq
-  yum: name=/root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
+  yum:
+    name: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
+

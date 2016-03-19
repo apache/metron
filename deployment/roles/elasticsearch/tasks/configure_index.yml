@@ -15,5 +15,30 @@
 #  limitations under the License.
 #
 ---
-- name: restart elasticsearch
-  service: name=elasticsearch state=restarted
+- name : Wait for Elasticsearch Host to Start
+  wait_for:
+    host: "{{ groups.search[0] }}"
+    port: "{{ elasticsearch_web_port }}"
+    delay: 10
+    timeout: 300
+
+- name: Wait for Green Index Status
+  uri:
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_cat/health"
+    method: GET
+    status_code: 200
+    return_content: yes
+  register: result
+  until: result.content.find("green") != -1
+  retries: 10
+  delay: 60
+  run_once: yes
+
+- name: Add Elasticsearch templates for topologies
+  uri:
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_yaf"
+    method: POST
+    body: "{{ lookup('file','yaf_index.template') }}"
+    status_code: 200
+    body_format: json
+  run_once: yes

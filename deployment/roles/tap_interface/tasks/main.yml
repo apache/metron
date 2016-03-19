@@ -16,9 +16,14 @@
 #
 ---
 - name: Install tunctl
-  yum: name=tunctl
+  yum:
+    name: tunctl
+    state: installed
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
-#TODO - only run when tap_if does not exist
 - name: Create {{ tap_if }}
   command: tunctl -p
 
