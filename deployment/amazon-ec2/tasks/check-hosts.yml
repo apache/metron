@@ -15,17 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install prerequisites
-  yum: name={{ item }}
-  with_items:
-    - "@Development tools"
-    - libselinux-python
-    - libpcap
-    - libpcap-devel
-    - pcre
-    - pcre-devel
-    - glib2-devel
-    - zlib
-    - zlib-devel
-    - java-1.8.0-openjdk
-    - java-1.8.0-openjdk-devel
+- name: Wait for connectivity to host(s)
+  local_action: wait_for host={{ inventory_hostname }} state=started timeout=300 delay=10
+  become: False

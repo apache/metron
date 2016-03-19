@@ -53,7 +53,3 @@
   with_items: ec2.tagged_instances
   when: item.public_dns_name is defined
 
-- name: Wait for connectivity to host(s)
-  wait_for: host={{ item.public_dns_name }} port=22 search_regex=OpenSSH
-  with_items: ec2.tagged_instances
-  when: item.public_dns_name is defined

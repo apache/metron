@@ -47,6 +47,7 @@
     - hdp-install
 
 - hosts: ambari_master
+  become: true
   roles:
     - role: ambari_config
   tags:

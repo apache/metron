@@ -18,7 +18,13 @@
 - include_vars: "{{ cluster_type }}.yml"
 
 - name: Install python-requests
-  yum: name=python-requests
+  yum:
+    name: python-requests
+    state: installed
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
 - name: Deploy cluster with Ambari; http://{{ groups.ambari_master[0] }}:{{ ambari_port }}
   ambari_cluster_state:
@@ -32,3 +38,5 @@
     configurations: "{{ configurations }}"
     wait_for_complete: True
     blueprint_var: "{{ blueprint }}"
+
+- include: start_services.yml

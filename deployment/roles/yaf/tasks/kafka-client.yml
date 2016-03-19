@@ -22,6 +22,9 @@
       mode: 0644
 
   - name: Install kafka
-    yum: name={{ item }}
-    with_items:
-      - kafka
+    yum:
+      name: kafka
+    register: result
+    until: result.rc == 0
+    retries: 5
+    delay: 10
