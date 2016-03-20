@@ -15,6 +15,5 @@
 #  limitations under the License.
 #
 ---
-- include: kafka-client.yml
 - include: fixbuf.yml
 - include: yaf.yml

@@ -1,36 +1,82 @@
 {
-    "template" : "yaf_index*",
-    "mappings" : {
-        "yaf_doc" : {
-            "properties": {
-                "message": {
-                    "properties": {
-                        "@timestamp":{"type":"date","format":"dateOptionalTime"},
-                        "end-time":{"type":"string"},
-                        "duration":{"type":"string"},
-                        "rtt":{"type":"string"},
-                        "proto":{"type":"string"},
-                        "sip":{"type":"string"},
-                        "sp":{"type":"string"},
-                        "dip":{"type":"string"},
-                        "dp":{"type":"string"},
-                        "iflags":{"type":"string"},
-                        "uflags":{"type":"string"},
-                        "riflags":{"type":"string"},
-                        "ruflags":{"type":"string"},
-                        "isn":{"type":"string"},
-                        "risn":{"type":"string"},
-                        "tag":{"type":"string"},
-                        "rtag":{"type":"string"},
-                        "pkt":{"type":"string"},
-                        "oct":{"type":"string"},
-                        "rpkt":{"type":"string"},
-                        "roct":{"type":"string"},
-                        "app":{"type":"string"},
-                        "end-reason":{"type":"string"}
-                    }
-                }
+   "template": "yaf_index*",
+   "mappings": {
+      "yaf_doc": {
+         "properties": {
+            "timestamp": {
+               "type": "date",
+               "format": "dateOptionalTime"
+            },
+            "location_point": {
+               "type": "geo_point"
+            },
+            "end-time": {
+               "type": "string"
+            },
+            "duration": {
+               "type": "string"
+            },
+            "rtt": {
+               "type": "string"
+            },
+            "proto": {
+               "type": "string"
+            },
+            "sip": {
+               "type": "string"
+            },
+            "sp": {
+               "type": "string"
+            },
+            "dip": {
+               "type": "string"
+            },
+            "dp": {
+               "type": "string"
+            },
+            "iflags": {
+               "type": "string"
+            },
+            "uflags": {
+               "type": "string"
+            },
+            "riflags": {
+               "type": "string"
+            },
+            "ruflags": {
+               "type": "string"
+            },
+            "isn": {
+               "type": "string"
+            },
+            "risn": {
+               "type": "string"
+            },
+            "tag": {
+               "type": "string"
+            },
+            "rtag": {
+               "type": "string"
+            },
+            "pkt": {
+               "type": "string"
+            },
+            "oct": {
+               "type": "string"
+            },
+            "rpkt": {
+               "type": "string"
+            },
+            "roct": {
+               "type": "string"
+            },
+            "app": {
+               "type": "string"
+            },
+            "end-reason": {
+               "type": "string"
             }
-        }
-    }
+         }
+      }
+   }
 }

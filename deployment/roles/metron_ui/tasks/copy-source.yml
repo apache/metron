@@ -14,10 +14,32 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+---
+- name: Verify {{ metron_ui_directory }} exists
+  file:
+    path: "{{ metron_ui_directory }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
 
-[defaults]
-host_key_checking = false
-library = ../../extra_modules
-roles_path = ../../roles
-pipelining = True
-log_path = ./ansible.log
+- name: Archive metron-ui on localhost
+  shell: tar -czf {{ metron_temp_archive }} .
+  args:
+    chdir: "{{ playbook_dir }}/../../metron-ui"
+    creates: "{{ metron_temp_archive }}"
+    warn: false    #Warns to use unarchive - unarchive does not archive
+  become: false
+  delegate_to: localhost
+  run_once: true
+
+- name: Extract metron-ui tarball
+  unarchive:
+    src: "{{ metron_temp_archive }}"
+    dest: "{{ metron_ui_directory }}"
+    creates: "{{ metron_ui_directory}}/config"
+
+- name: Delete {{ metron_temp_archive }}
+  local_action: file path="{{ metron_temp_archive }}" state=absent
+  become: false
+  run_once: true
