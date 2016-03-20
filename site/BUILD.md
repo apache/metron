@@ -8,7 +8,7 @@ This directory contains the code for the Apache Metron web site,
 1. `cd site`
 2. `git clone https://git-wip-us.apache.org/repos/asf/incubator-metron.git -b asf-site target`
 3. `sudo gem install bundler`
-4. `sudo gem install github-pages jeykll`
+4. `sudo gem install github-pages jekyll`
 4. `bundle install`
 
 ## Running locally
