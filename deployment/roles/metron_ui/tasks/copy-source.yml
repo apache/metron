@@ -43,3 +43,4 @@
   local_action: file path="{{ metron_temp_archive }}" state=absent
   become: false
   run_once: true
+
