@@ -125,7 +125,7 @@
             <label class="small">Include Reverse Traffic</label><input type="checkbox" value="false" class="input-medium" ng-model="include_reverse_traffic"></input>
           </div>
           <div class="edit-option">
-            <button type="button" class="btn btn-success" ng-click="getPcap()">Search</button>
+            <button type="button" class="btn btn-success" ng-show="ip_src_addr && ip_dst_addr && ip_protocol && ip_src_port && dst_port" ng-click="getPcap()">Search</button>
           </div>
 
         </form>
