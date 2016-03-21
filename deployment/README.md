@@ -85,7 +85,7 @@ A VagrantFile is included and will install a working version of the entire Metro
 run this:
 
 - Vagrant - https://www.vagrantup.com/
-- Hostmanager plugin for vagrant - Run `vagrant install plugin vagrant-hostmanager` on the machine where Vagrant is
+- Hostmanager plugin for vagrant - Run `vagrant plugin install vagrant-hostmanager` on the machine where Vagrant is
 installed
 
 Navigate to `incubator-metron/deployment/vagrant/singlenode-vagrant` and run `vagrant up`.  This also provides a good
