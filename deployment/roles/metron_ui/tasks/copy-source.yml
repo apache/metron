@@ -15,8 +15,32 @@
 #  limitations under the License.
 #
 ---
-metron_version: 0.1BETA
-metron_directory: /usr/metron/{{ metron_version }}
-metron_ui_directory: "{{ metron_directory }}/metron-ui"
-metron_jar_url: http://192.168.1.174:8080/repository/internal/com/opensoc/OpenSOC-Topologies/{{ metron_version }}/OpenSOC-Topologies-{{ metron_version }}.jar
-metron_source_url: https://github.com/merrimanr/incubator-metron/archive/master.zip
+- name: Verify {{ metron_ui_directory }} exists
+  file:
+    path: "{{ metron_ui_directory }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Archive metron-ui on localhost
+  shell: tar -czf {{ metron_temp_archive }} .
+  args:
+    chdir: "{{ playbook_dir }}/../../metron-ui"
+    creates: "{{ metron_temp_archive }}"
+    warn: false    #Warns to use unarchive - unarchive does not archive
+  become: false
+  delegate_to: localhost
+  run_once: true
+
+- name: Extract metron-ui tarball
+  unarchive:
+    src: "{{ metron_temp_archive }}"
+    dest: "{{ metron_ui_directory }}"
+    creates: "{{ metron_ui_directory}}/config"
+
+- name: Delete {{ metron_temp_archive }}
+  local_action: file path="{{ metron_temp_archive }}" state=absent
+  become: false
+  run_once: true
+

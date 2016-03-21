@@ -32,5 +32,5 @@ storm_topologies:
     - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
     - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
     - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/pcap/parse.yaml"
+    - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
