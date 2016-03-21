@@ -14,10 +14,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-[defaults]
-host_key_checking = false
-library = ../../extra_modules
-roles_path = ../../roles
-pipelining = True
-log_path = ./ansible.log
+---
+metron_version: 0.1BETA
+metron_directory: /usr/metron/{{ metron_version }}
+metron_ui_directory: "{{ metron_directory }}/metron-ui"
+metron_temp_archive: /tmp/metron-ui.tar.gz

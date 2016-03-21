@@ -60,17 +60,17 @@ ambari_server_mem: 512
 threat_intel_bulk_load: False
 
 #Sensors
-install_pycapa: True
+install_pycapa: False
 install_bro: True
 install_snort: True
-install_yaf: False
+install_yaf: True
 pcap_replay: True
 sniff_interface: eth1
 pcap_replay_interface: "{{ sniff_interface }}"
 storm_topologies:
     - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
-    - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
     - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
 pcapservice_port: 8081
 

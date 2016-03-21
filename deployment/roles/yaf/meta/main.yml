@@ -20,3 +20,4 @@ dependencies:
   - build-tools
   - java_jdk
   - libselinux-python
+  - kafka-client
