@@ -22,16 +22,16 @@
   shell: "{{ item }}"
   args:
     chdir: "/tmp/bro-plugin-kafka"
-    creates: /usr/local/bro/lib/bro/plugins/BRO_KAFKA
+    creates: "{{ bro_home }}/lib/bro/plugins/BRO_KAFKA"
   with_items:
     - rm -rf build/
-    - "./configure --bro-dist=/tmp/bro-{{ bro_version }}"
+    - "./configure --bro-dist=/tmp/bro-{{ bro_version }} --install-root={{ bro_home }}/lib/bro/plugins/ --with-librdkafka={{ librdkafka_home }}"
     - make
     - make install
 
 - name: Configure bro-kafka plugin
   lineinfile:
-    dest: /usr/local/bro/share/bro/site/local.bro
+    dest: "{{ bro_home }}/share/bro/site/local.bro"
     line: "{{ item }}"
   with_items:
     - "@load Bro/Kafka/logs-to-kafka.bro"
