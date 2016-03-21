@@ -27,7 +27,7 @@
     dest: "{{ pcapservice_jar_dst }}"
 
 - name: Add hbase-site.xml to pcapservice jar
-  shell: "jar -uf {{ pcapservice_jar_dst }} /etc/hbase/conf/hbase-site.xml"
+  shell: cd {{ hbase_config_path }} && jar -uf {{ pcapservice_jar_dst }} hbase-site.xml
 
 - name: Install service script
   template: src=pcapservice dest=/etc/init.d/pcapservice mode=0755
