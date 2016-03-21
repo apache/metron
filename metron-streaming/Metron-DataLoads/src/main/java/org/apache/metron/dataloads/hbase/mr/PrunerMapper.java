@@ -48,7 +48,7 @@ public class PrunerMapper extends TableMapper<ImmutableBytesWritable, Delete> {
         }
         try {
             tracker = AccessTrackerUtil.INSTANCE.loadAll(AccessTrackerUtil.INSTANCE.loadAll(table, atCF, atName, timestamp));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new IllegalStateException("Unable to load the accesstrackers from the directory", e);
         }
     }

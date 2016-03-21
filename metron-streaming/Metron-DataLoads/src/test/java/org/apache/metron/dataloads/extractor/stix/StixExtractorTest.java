@@ -20,7 +20,7 @@ package org.apache.metron.dataloads.extractor.stix;
 import com.google.common.collect.Iterables;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.junit.Assert;
 import org.junit.Test;
@@ -149,9 +149,9 @@ public class StixExtractorTest {
             Iterable<LookupKV> results = extractor.extract(stixDoc);
 
             Assert.assertEquals(3, Iterables.size(results));
-            Assert.assertEquals("10.0.0.0", ((ThreatIntelKey)(Iterables.get(results, 0).getKey())).indicator);
-            Assert.assertEquals("10.0.0.1", ((ThreatIntelKey)(Iterables.get(results, 1).getKey())).indicator);
-            Assert.assertEquals("10.0.0.2", ((ThreatIntelKey)(Iterables.get(results, 2).getKey())).indicator);
+            Assert.assertEquals("10.0.0.0", ((EnrichmentKey)(Iterables.get(results, 0).getKey())).indicator);
+            Assert.assertEquals("10.0.0.1", ((EnrichmentKey)(Iterables.get(results, 1).getKey())).indicator);
+            Assert.assertEquals("10.0.0.2", ((EnrichmentKey)(Iterables.get(results, 2).getKey())).indicator);
         }
         {
             /**
@@ -170,9 +170,9 @@ public class StixExtractorTest {
             Extractor extractor = handler.getExtractor();
             Iterable<LookupKV> results = extractor.extract(stixDoc);
             Assert.assertEquals(3, Iterables.size(results));
-            Assert.assertEquals("10.0.0.0", ((ThreatIntelKey)(Iterables.get(results, 0).getKey())).indicator);
-            Assert.assertEquals("10.0.0.1", ((ThreatIntelKey)(Iterables.get(results, 1).getKey())).indicator);
-            Assert.assertEquals("10.0.0.2", ((ThreatIntelKey)(Iterables.get(results, 2).getKey())).indicator);
+            Assert.assertEquals("10.0.0.0", ((EnrichmentKey)(Iterables.get(results, 0).getKey())).indicator);
+            Assert.assertEquals("10.0.0.1", ((EnrichmentKey)(Iterables.get(results, 1).getKey())).indicator);
+            Assert.assertEquals("10.0.0.2", ((EnrichmentKey)(Iterables.get(results, 2).getKey())).indicator);
         }
         {
             /**

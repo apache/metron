@@ -27,10 +27,10 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.metron.dataloads.bulk.ThreatIntelBulkLoader;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,32 +74,38 @@ public class BulkLoadMapperIntegrationTest {
                                     }
                        ,"indicator_column" : "host"
                        ,"separator" : ","
+                       ,"type" : "threat"
                        }
             ,"extractor" : "CSV"
          }
          */
         final String extractorConfig = "{\n" +
                 "            \"config\" : {\n" +
-                "                        \"columns\" : [\"host:0\",\"meta:2\"]\n" +
+                "                        \"columns\" : {\n" +
+                "                                \"host\" : 0\n" +
+                "                                ,\"meta\" : 2\n" +
+                "                                    }\n" +
                 "                       ,\"indicator_column\" : \"host\"\n" +
                 "                       ,\"separator\" : \",\"\n" +
+                "                       ,\"type\" : \"threat\"\n" +
                 "                       }\n" +
                 "            ,\"extractor\" : \"CSV\"\n" +
                 "         }";
     Assert.assertNotNull(testTable);
     FileSystem fs = FileSystem.get(config);
     String contents = "google.com,1,foo";
-    ThreatIntelConverter converter = new ThreatIntelConverter();
+    EnrichmentConverter converter = new EnrichmentConverter();
     HBaseUtil.INSTANCE.writeFile(contents, new Path("input.csv"), fs);
-    Job job = ThreatIntelBulkLoader.createJob(config, "input.csv", tableName, cf, extractorConfig, 0L, new ThreatIntelConverter());
+    Job job = ThreatIntelBulkLoader.createJob(config, "input.csv", tableName, cf, extractorConfig, 0L, new EnrichmentConverter());
     Assert.assertTrue(job.waitForCompletion(true));
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
-    List<LookupKV<ThreatIntelKey, ThreatIntelValue>> results = new ArrayList<>();
+    List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
     for(Result r : scanner) {
       results.add(converter.fromResult(r, cf));
     }
     Assert.assertEquals(1, results.size());
     Assert.assertEquals(results.get(0).getKey().indicator, "google.com");
+    Assert.assertEquals(results.get(0).getKey().type, "threat");
     Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
     Assert.assertEquals(results.get(0).getValue().getMetadata().get("meta"), "foo");
     Assert.assertEquals(results.get(0).getValue().getMetadata().get("host"), "google.com");
