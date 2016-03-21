@@ -15,47 +15,5 @@
 #  limitations under the License.
 #
 ---
-- name: Install python and tcpdump
-  yum:
-    name: "{{item}}"
-  with_items:
-    - python
-    - tcpdump
-    - git
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
-
-- name: Clone pycapa repo
-  git: repo={{ pycapa_repo }} dest={{ pycapa_home }}
-
-- name: Build pycapa
-  shell: "{{ item }}"
-  args:
-    chdir: "{{ pycapa_home }}"
-  with_items:
-    - pip install -r requirements.txt
-    - pip install argparse
-    - python setup.py install
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Install Daemonize
-  yum:
-    name: daemonize
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
-
-- set_fact:
-    pycapa: /opt/pycapa/pycapa/pycapa_cli.py
-    pycapa_log: /var/log/pycapa.log
-    pycapa_lock: /var/lock/subsys/pycapa
-
-- name: Start pycapa
-  shell: "daemonize -c {{ pycapa_home }} -e {{ pycapa_log }} -o {{ pycapa_log }} -l {{ pycapa_lock }} /usr/bin/python {{ pycapa }}  -z {{ zookeeper_url }} -t {{ pycapa_topic }} -i {{ sniff_interface }}"
-  args:
-    creates: "{{ pycapa_lock }}"
+- include: dependencies.yml
+- include: pycapa.yml

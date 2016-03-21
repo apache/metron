@@ -15,6 +15,15 @@
 #  limitations under the License.
 #
 ---
+- name: Known hosts groups
+  debug: var=groups
+
+- name: Sanity check Metron web
+  local_action: wait_for host="{{ groups.web[0] }}" port=5000 timeout=20
+
+- name: Sanity check Ambari web
+  local_action: wait_for host="{{ groups.ambari_master[0] }}" port="{{ ambari_port }}" timeout=20
+
 - set_fact:
     Success:
       - "Apache Metron deployed successfully"

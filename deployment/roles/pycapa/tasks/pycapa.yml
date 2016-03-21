@@ -15,7 +15,23 @@
 #  limitations under the License.
 #
 ---
-bro_version: 2.4.1
-bro_topic: bro
-librdkafka_version: 0.8.6
-librdkafka_url: https://github.com/edenhill/librdkafka/archive/0.8.6.tar.gz
+- name: Clone pycapa repo
+  git: repo={{ pycapa_repo }} dest={{ pycapa_home }}
+
+- name: Build pycapa
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ pycapa_home }}"
+  with_items:
+    - pip install -r requirements.txt
+    - pip install argparse
+    - python setup.py install
+
+- name: Turn on promiscuous mode for {{ pycapa_sniff_interface }}
+  shell: "ip link set {{ pycapa_sniff_interface }} promisc on"
+
+- name: Install service script
+  template: src=pycapa dest=/etc/init.d/pycapa mode=0755
+
+- name: Start pycapa
+  service: name=pycapa state=restarted

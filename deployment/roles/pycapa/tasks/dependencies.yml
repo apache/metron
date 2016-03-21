@@ -15,18 +15,17 @@
 #  limitations under the License.
 #
 ---
-- name: Generate ssh key pair for "{{ ambari_user }}"
-  user: name={{ ambari_user }} generate_ssh_key=yes
+- name: Install epel-release repository
+  yum: name=epel-release
 
-- name: Fetch the generated public key
-  fetch: src=~{{ ambari_user }}/.ssh/id_rsa.pub dest=/tmp/keys/{{ inventory_hostname }}.pub flat=yes
-
-- name: Add key pairs to existing authorized_keys
-  authorized_key: user={{ ambari_user }} key="{{ lookup('file', '/tmp/keys/{{ item }}.pub') }}"
+- name: Install python and tcpdump
+  yum:
+    name: "{{item}}"
   with_items:
-    - "{{ play_hosts }}"
-
-- name: Remove local copy of ssh keys
-  local_action: file path=/tmp/keys/{{ inventory_hostname }}.pub state=absent
-  become: False
-
+    - python
+    - tcpdump
+    - git
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
