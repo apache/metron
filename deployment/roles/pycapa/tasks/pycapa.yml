@@ -15,18 +15,23 @@
 #  limitations under the License.
 #
 ---
-- name: Generate ssh key pair for "{{ ambari_user }}"
-  user: name={{ ambari_user }} generate_ssh_key=yes
+- name: Clone pycapa repo
+  git: repo={{ pycapa_repo }} dest={{ pycapa_home }}
 
-- name: Fetch the generated public key
-  fetch: src=~{{ ambari_user }}/.ssh/id_rsa.pub dest=/tmp/keys/{{ inventory_hostname }}.pub flat=yes
-
-- name: Add key pairs to existing authorized_keys
-  authorized_key: user={{ ambari_user }} key="{{ lookup('file', '/tmp/keys/{{ item }}.pub') }}"
+- name: Build pycapa
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ pycapa_home }}"
   with_items:
-    - "{{ play_hosts }}"
+    - pip install -r requirements.txt
+    - pip install argparse
+    - python setup.py install
 
-- name: Remove local copy of ssh keys
-  local_action: file path=/tmp/keys/{{ inventory_hostname }}.pub state=absent
-  become: False
+- name: Turn on promiscuous mode for {{ pycapa_sniff_interface }}
+  shell: "ip link set {{ pycapa_sniff_interface }} promisc on"
 
+- name: Install service script
+  template: src=pycapa dest=/etc/init.d/pycapa mode=0755
+
+- name: Start pycapa
+  service: name=pycapa state=restarted
