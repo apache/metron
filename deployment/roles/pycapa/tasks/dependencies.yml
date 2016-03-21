@@ -29,6 +29,3 @@
   until: result.rc == 0
   retries: 5
   delay: 10
-
-- name: Install pip
-  easy_install: name=pip
