@@ -19,8 +19,8 @@ package org.apache.metron.dataloads.extractor.csv;
 
 import com.google.common.collect.Iterables;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.threatintel.ThreatIntelResults;
 import org.junit.Assert;
@@ -39,15 +39,20 @@ public class CSVExtractorTest {
                                 ,"meta" : 2
                                     }
                        ,"indicator_column" : "host"
+                       ,"type" : "threat"
                        ,"separator" : ","
                        }
             ,"extractor" : "CSV"
          }
          */
-        String config = "{\n" +
+        String config = " {\n" +
                 "            \"config\" : {\n" +
-                "                        \"columns\" : [\"host:0\",\"meta:2\"]\n" +
+                "                        \"columns\" : {\n" +
+                "                                \"host\" : 0\n" +
+                "                                ,\"meta\" : 2\n" +
+                "                                    }\n" +
                 "                       ,\"indicator_column\" : \"host\"\n" +
+                "                       ,\"type\" : \"threat\" \n" +
                 "                       ,\"separator\" : \",\"\n" +
                 "                       }\n" +
                 "            ,\"extractor\" : \"CSV\"\n" +
@@ -63,6 +68,7 @@ public class CSVExtractorTest {
                         "columns" : ["host:0","meta:2"]
                        ,"indicator_column" : "host"
                        ,"separator" : ","
+                       ,"type" : "threat"
                        }
             ,"extractor" : "CSV"
          }
@@ -72,6 +78,7 @@ public class CSVExtractorTest {
                 "                        \"columns\" : [\"host:0\",\"meta:2\"]\n" +
                 "                       ,\"indicator_column\" : \"host\"\n" +
                 "                       ,\"separator\" : \",\"\n" +
+                "                       ,\"type\" : \"threat\" \n" +
                 "                       }\n" +
                 "            ,\"extractor\" : \"CSV\"\n" +
                 "         }";
@@ -87,15 +94,17 @@ public class CSVExtractorTest {
                         "columns" : "host:0,meta:2"
                        ,"indicator_column" : "host"
                        ,"separator" : ","
+                       ,"type" : "threat"
                        }
             ,"extractor" : "CSV"
          }
          */
-        String config = "{\n" +
+        String config = " {\n" +
                 "            \"config\" : {\n" +
                 "                        \"columns\" : \"host:0,meta:2\"\n" +
                 "                       ,\"indicator_column\" : \"host\"\n" +
                 "                       ,\"separator\" : \",\"\n" +
+                "                       ,\"type\" : \"threat\" \n" +
                 "                       }\n" +
                 "            ,\"extractor\" : \"CSV\"\n" +
                 "         }";
@@ -106,9 +115,10 @@ public class CSVExtractorTest {
     public void validate(ExtractorHandler handler) throws IOException {
         {
             LookupKV results = Iterables.getFirst(handler.getExtractor().extract("google.com,1.0,foo"), null);
-            ThreatIntelKey key = (ThreatIntelKey) results.getKey();
-            ThreatIntelValue value = (ThreatIntelValue) results.getValue();
+            EnrichmentKey key = (EnrichmentKey) results.getKey();
+            EnrichmentValue value = (EnrichmentValue) results.getValue();
             Assert.assertEquals("google.com", key.indicator);
+            Assert.assertEquals("threat", key.type);
             Assert.assertEquals("google.com", value.getMetadata().get("host"));
             Assert.assertEquals("foo", value.getMetadata().get("meta"));
             Assert.assertEquals(2, value.getMetadata().size());

@@ -18,6 +18,7 @@
 
 package org.apache.metron.dataloads.taxii;
 
+import com.google.common.base.Joiner;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
@@ -29,9 +30,7 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TaxiiConnectionConfig {
     final static ObjectMapper _mapper = new ObjectMapper();
@@ -44,9 +43,21 @@ public class TaxiiConnectionConfig {
     private String collection = "default";
     private String subscriptionId = null;
     private Date beginTime;
-    private Map<String, TableInfo> tableMap;
-    public TaxiiConnectionConfig withTableMap(Map<String, TableInfo> tableMap) {
-        this.tableMap = tableMap;
+    private String table;
+    private String columnFamily;
+    private Set<String> allowedIndicatorTypes = new HashSet<String>();
+
+    public TaxiiConnectionConfig withAllowedIndicatorTypes(List<String> indicatorTypes) {
+        allowedIndicatorTypes = new HashSet(indicatorTypes);
+        return this;
+    }
+
+    public TaxiiConnectionConfig withTable(String table) {
+        this.table = table;
+        return this;
+    }
+    public TaxiiConnectionConfig withColumnFamily(String cf) {
+        this.columnFamily = cf;
         return this;
     }
     public TaxiiConnectionConfig withBeginTime(Date time) {
@@ -124,15 +135,20 @@ public class TaxiiConnectionConfig {
         this.beginTime = sdf.parse(beginTime);
     }
 
-    public void setTableMap(Map<String, String> tableMap) {
-        this.tableMap = new HashMap<>();
-        for(Map.Entry<String, String> kv : tableMap.entrySet()) {
-            this.tableMap.put(kv.getKey(), new TableInfo(kv.getValue()));
-        }
+    public String getTable() {
+        return table;
     }
 
-    public Map<String, TableInfo> getTableMap() {
-        return tableMap;
+    public void setTable(String table) {
+        this.table = table;
+    }
+
+    public String getColumnFamily() {
+        return columnFamily;
+    }
+
+    public void setColumnFamily(String columnFamily) {
+        this.columnFamily = columnFamily;
     }
 
     public Date getBeginTime() {
@@ -167,6 +183,14 @@ public class TaxiiConnectionConfig {
     public String getSubscriptionId() {
         return subscriptionId;
     }
+
+    public void setAllowedIndicatorTypes(List<String> allowedIndicatorTypes) {
+        withAllowedIndicatorTypes(allowedIndicatorTypes);
+    }
+
+    public Set<String> getAllowedIndicatorTypes() {
+        return allowedIndicatorTypes;
+    }
     public static synchronized TaxiiConnectionConfig load(InputStream is) throws IOException {
         TaxiiConnectionConfig ret = _mapper.readValue(is, TaxiiConnectionConfig.class);
         return ret;
@@ -187,10 +211,11 @@ public class TaxiiConnectionConfig {
                 ", username='" + username + '\'' +
                 ", password=" + (password == null?"null" : "'******'") +
                 ", type=" + type +
+                ", allowedIndicatorTypes=" + Joiner.on(',').join(allowedIndicatorTypes)+
                 ", collection='" + collection + '\'' +
                 ", subscriptionId='" + subscriptionId + '\'' +
                 ", beginTime=" + beginTime +
-                ", tableMap=" + tableMap +
+                ", table=" + table + ":" + columnFamily+
                 '}';
     }
 }
