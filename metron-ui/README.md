@@ -82,7 +82,7 @@ All dependencies will be installed in the VM. The repository root is shared betw
 
 ```bash
 vagrant ssh
-cd vagrant
+cd /vagrant
 ```
 
 ###  Step 5: Seed the development VM
