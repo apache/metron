@@ -77,11 +77,11 @@
   },
   "lodash": {
     "version":"2.4.1",
-    "license":"https://github.com/lodash/lodash/blob/2.4.1/LICENSE.txt"
+    "license":"MIT"
   },
   "leaflet": {
     "version":"0.6",
-    "license":"https://github.com/Leaflet/Leaflet/blob/v0.6/LICENSE"
+    "license":"2-Clause BSD"
   },
   "jvectormap": {
     "version":"1.2.2",
