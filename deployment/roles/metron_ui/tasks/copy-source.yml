@@ -24,7 +24,7 @@
     group: root
 
 - name: Archive metron-ui on localhost
-  shell: tar -czf {{ metron_temp_archive }} .
+  shell: tar --exclude='./node_modules' -czf {{ metron_temp_archive }} .
   args:
     chdir: "{{ playbook_dir }}/../../metron-ui"
     creates: "{{ metron_temp_archive }}"
