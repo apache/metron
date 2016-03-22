@@ -15,5 +15,5 @@
 #  limitations under the License.
 #
 ---
-- include: tcpreplay.yml
-- include: service.yml
+dependencies:
+  - pcap_replay

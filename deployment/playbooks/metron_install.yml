@@ -76,6 +76,7 @@
     - { role: snort , when: install_snort | default(True) == True }
     - { role: yaf, when: install_yaf | default(True) == True }
     - { role: pcap_replay , when: pcap_replay | default(False)  == True }
+    - { role: sensor-test-mode, when: sensor_test_mode | default(False) == True }
   tags:
       - sensors
 

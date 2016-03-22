@@ -60,7 +60,8 @@ elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
 ambari_server_mem: 512
 threat_intel_bulk_load: False
 
-#Sensors
+# sensors
+sensor_test_mode: True
 install_pycapa: False
 install_bro: True
 install_snort: True
