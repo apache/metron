@@ -21,14 +21,13 @@ package org.apache.metron.enrichment.bolt;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Iterables;
 import org.apache.metron.Constants;
 import org.apache.metron.bolt.ConfiguredBolt;
 import org.apache.metron.domain.Enrichment;
+import org.apache.metron.domain.SourceConfig;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -68,11 +67,10 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
           .getLogger(GenericEnrichmentBolt.class);
   private OutputCollector collector;
 
-
   protected String enrichmentType;
-  protected EnrichmentAdapter adapter;
-  protected transient CacheLoader<String, JSONObject> loader;
-  protected transient LoadingCache<String, JSONObject> cache;
+  protected EnrichmentAdapter<CacheKey> adapter;
+  protected transient CacheLoader<CacheKey, JSONObject> loader;
+  protected transient LoadingCache<CacheKey, JSONObject> cache;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
 
@@ -121,8 +119,8 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
       throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
     if (this.adapter == null)
       throw new IllegalStateException("Adapter must be specified");
-    loader = new CacheLoader<String, JSONObject>() {
-      public JSONObject load(String key) throws Exception {
+    loader = new CacheLoader<CacheKey, JSONObject>() {
+      public JSONObject load(CacheKey key) throws Exception {
         return adapter.enrich(key);
       }
     };
@@ -162,8 +160,10 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
         } else {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
-            adapter.logAccess(value);
-            enrichedField = cache.getUnchecked(value);
+            SourceConfig config = configurations.get(enrichmentType);
+            CacheKey cacheKey= new CacheKey(field, value, config);
+            adapter.logAccess(cacheKey);
+            enrichedField = cache.getUnchecked(cacheKey);
             if (enrichedField == null)
               throw new Exception("[Metron] Could not enrich string: "
                       + value);

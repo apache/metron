@@ -15,27 +15,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.reference.lookup.accesstracker;
 
-package org.apache.metron.enrichment.adapters.threat;
+import org.apache.metron.reference.lookup.LookupKey;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class NoopAccessTracker implements AccessTracker {
+  @Override
+  public void logAccess(LookupKey key) {
 
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+  }
 
-public abstract class AbstractThreatAdapter implements EnrichmentAdapter,Serializable{
+  @Override
+  public void configure(Map<String, Object> config) {
 
-	
-	private static final long serialVersionUID = 1524030932856141771L;
-	protected static final Logger LOG = LoggerFactory
-			.getLogger(AbstractThreatAdapter.class);
-	
-	abstract public boolean initializeAdapter();
+  }
 
-	@Override
-	public void cleanup() {
+  @Override
+  public boolean hasSeen(LookupKey key) {
+    return false;
+  }
 
-	}
+  @Override
+  public String getName() {
+    return "noop";
+  }
+
+  @Override
+  public AccessTracker union(AccessTracker tracker) {
+    return null;
+  }
+
+  @Override
+  public void reset() {
+
+  }
+
+  @Override
+  public boolean isFull() {
+    return false;
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+
+  }
 }

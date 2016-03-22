@@ -48,7 +48,7 @@ components:
 
 # Threat Intel
     -   id: "ipThreatIntelConfig"
-        className: "org.apache.metron.threatintel.ThreatIntelConfig"
+        className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelConfig"
         configMethods:
             -   name: "withProviderImpl"
                 args:
@@ -66,7 +66,7 @@ components:
                 args:
                     - "${threat.intel.ip.cf}"
     -   id: "ipThreatIntelAdapter"
-        className: "org.apache.metron.threatintel.ThreatIntelAdapter"
+        className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelAdapter"
         configMethods:
            -    name: "withConfig"
                 args:

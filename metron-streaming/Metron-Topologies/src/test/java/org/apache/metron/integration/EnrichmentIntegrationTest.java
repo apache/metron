@@ -20,13 +20,12 @@ package org.apache.metron.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.Constants;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
@@ -37,7 +36,7 @@ import org.apache.metron.integration.util.integration.components.FluxTopologyCom
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.util.mock.MockGeoAdapter;
 import org.apache.metron.integration.util.mock.MockHTable;
-import org.apache.metron.integration.util.threatintel.ThreatIntelHelper;
+import org.apache.metron.integration.util.threatintel.EnrichmentHelper;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.apache.metron.utils.SourceConfigUtils;
 import org.junit.Assert;
@@ -192,8 +191,8 @@ public class EnrichmentIntegrationTest {
     //create MockHBaseTables
     final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTable, cf);
     final MockHTable ipTable = (MockHTable)MockHTable.Provider.addToCache(ipThreatIntelTable, cf);
-    ThreatIntelHelper.INSTANCE.load(ipTable, cf, new ArrayList<LookupKV<ThreatIntelKey, ThreatIntelValue>>(){{
-      add(new LookupKV<>(new ThreatIntelKey("10.0.2.3"), new ThreatIntelValue(new HashMap<String, String>())));
+    EnrichmentHelper.INSTANCE.load(ipTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
+      add(new LookupKV<>(new EnrichmentKey("malicious_ip","10.0.2.3"), new EnrichmentValue(new HashMap<String, String>())));
     }});
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()

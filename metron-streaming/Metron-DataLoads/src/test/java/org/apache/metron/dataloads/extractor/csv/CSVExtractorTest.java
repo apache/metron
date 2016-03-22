@@ -22,7 +22,6 @@ import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
 import org.junit.Assert;
 import org.junit.Test;
 

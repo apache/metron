@@ -21,10 +21,7 @@ package org.apache.metron.dataloads.extractor.stix.types;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.Hostname;
 

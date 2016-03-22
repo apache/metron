@@ -33,7 +33,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.hbase.mr.BulkLoadMapper;
 import org.apache.metron.hbase.converters.HbaseConverter;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -218,7 +218,7 @@ public class ThreatIntelBulkLoader  {
         String table = BulkLoadOptions.TABLE.get(cli);
         String cf = BulkLoadOptions.COLUMN_FAMILY.get(cli);
         String extractorConfigContents = readExtractorConfig(new File(BulkLoadOptions.EXTRACTOR_CONFIG.get(cli)));
-        String converterClass = ThreatIntelConverter.class.getName();
+        String converterClass = EnrichmentConverter.class.getName();
         if(BulkLoadOptions.CONVERTER.has(cli)) {
             converterClass = BulkLoadOptions.CONVERTER.get(cli);
         }

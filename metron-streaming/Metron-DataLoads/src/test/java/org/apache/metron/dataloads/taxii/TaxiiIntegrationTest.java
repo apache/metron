@@ -27,8 +27,6 @@ import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
-import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.mock.MockHTable;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.junit.After;

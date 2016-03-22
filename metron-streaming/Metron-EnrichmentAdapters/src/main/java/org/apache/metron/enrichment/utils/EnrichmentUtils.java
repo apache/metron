@@ -18,6 +18,10 @@
 package org.apache.metron.enrichment.utils;
 
 import com.google.common.base.Joiner;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class EnrichmentUtils {
 
@@ -27,6 +31,26 @@ public class EnrichmentUtils {
     return Joiner.on(".").join(new String[]{KEY_PREFIX, enrichmentName, field});
   }
 
-
+  public static TableProvider getTableProvider(String connectorImpl, TableProvider defaultImpl) {
+    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
+      return defaultImpl;
+    }
+    else {
+      try {
+        Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(connectorImpl);
+        return clazz.getConstructor().newInstance();
+      } catch (InstantiationException e) {
+        throw new IllegalStateException("Unable to instantiate connector.", e);
+      } catch (IllegalAccessException e) {
+        throw new IllegalStateException("Unable to instantiate connector: illegal access", e);
+      } catch (InvocationTargetException e) {
+        throw new IllegalStateException("Unable to instantiate connector", e);
+      } catch (NoSuchMethodException e) {
+        throw new IllegalStateException("Unable to instantiate connector: no such method", e);
+      } catch (ClassNotFoundException e) {
+        throw new IllegalStateException("Unable to instantiate connector: class not found", e);
+      }
+    }
+  }
 
 }

@@ -26,16 +26,41 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SourceConfig {
 
-  final static ObjectMapper _mapper = new ObjectMapper();
+  final static ThreadLocal<ObjectMapper> _mapper = new ThreadLocal<ObjectMapper>() {
+    /**
+     * Returns the current thread's "initial value" for this
+     * thread-local variable.  This method will be invoked the first
+     * time a thread accesses the variable with the {@link #get}
+     * method, unless the thread previously invoked the {@link #set}
+     * method, in which case the {@code initialValue} method will not
+     * be invoked for the thread.  Normally, this method is invoked at
+     * most once per thread, but it may be invoked again in case of
+     * subsequent invocations of {@link #remove} followed by {@link #get}.
+     * <p>
+     * <p>This implementation simply returns {@code null}; if the
+     * programmer desires thread-local variables to have an initial
+     * value other than {@code null}, {@code ThreadLocal} must be
+     * subclassed, and this method overridden.  Typically, an
+     * anonymous inner class will be used.
+     *
+     * @return the initial value for this thread-local
+     */
+    @Override
+    protected ObjectMapper initialValue() {
+      return new ObjectMapper();
+    }
+  };
 
   private String index;
   private Map<String, List<String>> enrichmentFieldMap;
   private Map<String, List<String>> threatIntelFieldMap;
+  private Map<String, List<String>> fieldToEnrichmentTypeMap = new HashMap<>();
   private int batchSize;
 
   public String getIndex() {
@@ -62,6 +87,14 @@ public class SourceConfig {
     this.threatIntelFieldMap = threatIntelFieldMap;
   }
 
+  public Map<String, List<String>> getFieldToEnrichmentTypeMap() {
+    return fieldToEnrichmentTypeMap;
+  }
+
+  public void setFieldToEnrichmentTypeMap(Map<String, List<String>> fieldToEnrichmentTypeMap) {
+    this.fieldToEnrichmentTypeMap = fieldToEnrichmentTypeMap;
+  }
+
   public int getBatchSize() {
     return batchSize;
   }
@@ -70,8 +103,35 @@ public class SourceConfig {
     this.batchSize = batchSize;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    SourceConfig that = (SourceConfig) o;
+
+    if (getBatchSize() != that.getBatchSize()) return false;
+    if (getIndex() != null ? !getIndex().equals(that.getIndex()) : that.getIndex() != null) return false;
+    if (getEnrichmentFieldMap() != null ? !getEnrichmentFieldMap().equals(that.getEnrichmentFieldMap()) : that.getEnrichmentFieldMap() != null)
+      return false;
+    if (getThreatIntelFieldMap() != null ? !getThreatIntelFieldMap().equals(that.getThreatIntelFieldMap()) : that.getThreatIntelFieldMap() != null)
+      return false;
+    return getFieldToEnrichmentTypeMap() != null ? getFieldToEnrichmentTypeMap().equals(that.getFieldToEnrichmentTypeMap()) : that.getFieldToEnrichmentTypeMap() == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getIndex() != null ? getIndex().hashCode() : 0;
+    result = 31 * result + (getEnrichmentFieldMap() != null ? getEnrichmentFieldMap().hashCode() : 0);
+    result = 31 * result + (getThreatIntelFieldMap() != null ? getThreatIntelFieldMap().hashCode() : 0);
+    result = 31 * result + (getFieldToEnrichmentTypeMap() != null ? getFieldToEnrichmentTypeMap().hashCode() : 0);
+    result = 31 * result + getBatchSize();
+    return result;
+  }
+
   public static synchronized SourceConfig load(InputStream is) throws IOException {
-    SourceConfig ret = _mapper.readValue(is, SourceConfig.class);
+    SourceConfig ret = _mapper.get().readValue(is, SourceConfig.class);
     return ret;
   }
 

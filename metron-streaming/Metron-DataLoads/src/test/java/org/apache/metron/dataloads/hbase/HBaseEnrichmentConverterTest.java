@@ -25,9 +25,6 @@ import org.apache.metron.hbase.converters.HbaseConverter;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,7 +33,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 
-public class HBaseThreatIntelConverterTest {
+public class HBaseEnrichmentConverterTest {
     EnrichmentKey key = new EnrichmentKey("domain", "google");
     EnrichmentValue value = new EnrichmentValue(
             new HashMap<String, String>() {{
