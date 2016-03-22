@@ -1,2 +1,9 @@
 language: java
-script: mvn apache-rat:check && cd metron-streaming && mvn -q integration-test package | grep -v "DEBUG\|INFO\|WARN"
+jdk:
+  - oraclejdk8
+  - openjdk7
+script:
+  - |
+    mvn apache-rat:check
+    cd metron-streaming
+    mvn -q integration-test package | grep -v "DEBUG\|INFO\|WARN"
