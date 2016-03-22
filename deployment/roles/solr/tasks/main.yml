@@ -15,20 +15,52 @@
 #  limitations under the License.
 #
 ---
-- name: Install HDP-UTILs Repo
-  get_url: url="{{ rhel_hdp_utils_install_url }}" dest=/etc/yum.repos.d/hdp-util.repo
+- name: Check for Metron jar path
+  stat: path={{ hdp_utils_repo_path }}
+  register: hdp_utils
 
-- name: Check that JAVA_HOME is set
-  include: ../metron_pcapservice/tasks/config-java.yml
+
+- name: Install HDP-UTILs Repo
+  get_url:
+    url: "{{ rhel_hdp_utils_install_url }}"
+    dest: /etc/yum.repos.d/HDP-UTILS.repo
+  when: hdp_utils.stat.exists == False
 
 - name: Install HDP-UTIL gpg key
   rpm_key:
     state: present
     key: http://pgp.mit.edu/pks/lookup?op=get&search=0xB9733A7A07513CAD
+  when: hdp_utils.stat.exists == False
 
 - name: Install Solr
   yum:
     name: lucidworks-hdpsearch
     state: present
-  notify: restart solr
 
+- name: Create solr.xml from template
+  template:
+    src: solr.xml
+    dest: "{{ solr_install_path }}/server/solr"
+    mode: 0644
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user }}"
+
+- name: Copy solrschema.xml to {{ inventory_hostname }}
+  copy:
+    src: schema.xml
+    dest: "{{ solr_config_dir }}"
+    mode: 0644
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user }}"
+
+- name: Start Solr
+  service:
+    name: solr
+    state: restarted
+    enabled: yes
+
+- name: Create Collection {{ solr_collection_name }} with {{ solr_number_shards }} shard(s) and replication factor {{ solr_replication_factor }}
+  shell: "{{ solr_cmd }}"
+  ignore_errors: yes
+  register: result
+  failed_when: result.rc == 1 and result.stderr.find("already exists!") == -1

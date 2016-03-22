@@ -15,5 +15,7 @@
 #  limitations under the License.
 #
 ---
-- name: restart solr
-  service: name=solr state=restarted
+dependencies:
+  - ambari_gather_facts
+  - java_jdk
+

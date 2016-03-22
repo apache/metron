@@ -16,4 +16,13 @@
 #
 ---
 rhel_hdp_utils_install_url: http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6/hdp-util.repo
-
+solr_install_path: /opt/lucidworks-hdpsearch/solr
+solr_user: solr
+solr_collection_name: Metron
+solr_config_dir: "{{ solr_install_path }}/server/solr/configsets/basic_configs/conf"
+solr_bin_dir: "/opt/lucidworks-hdpsearch/solr/bin"
+solr_config_name: "metron_conf"
+solr_number_shards: "{{ groups['search'] | length }}"
+solr_replication_factor: 1
+solr_cmd: "{{ solr_bin_dir}}/solr create_collection -c  {{ solr_collection_name }} -d {{ solr_config_dir }} -n {{ solr_config_name }} -shards {{ solr_number_shards }} -replicationFactor {{ solr_replication_factor }}"
+hdp_utils_repo_path: /etc/yum.repos.d/HDP-UTILS.repo
