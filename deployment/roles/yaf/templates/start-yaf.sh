@@ -22,4 +22,4 @@
 # flowmeter - and sends the output to kafka so that it can be consumed
 # by metron
 #
-{{ yaf_bin }} --in {{ sniff_interface }} --live pcap ${@:2} | {{ yafscii_bin }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}
+{{ yaf_bin }} --in {{ sniff_interface }} --live pcap "${@:1}" | {{ yafscii_bin }} --tabular | {{ kafka_prod }} --broker-list {{ kafka_broker_url }} --topic {{ yaf_topic }}
