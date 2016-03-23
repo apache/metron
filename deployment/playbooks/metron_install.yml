@@ -89,8 +89,7 @@
 - hosts: web
   become: true
   roles:
-    - role: ambari_gather_facts
     - { role: metron_ui, when: install_elasticsearch | default(True) == True }
-    - role: metron_pcapservice
+    - { role: metron_pcapservice, when: install_elasticsearch | default(True) == True }
   tags:
     - web
