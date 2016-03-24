@@ -74,7 +74,7 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     };
     cache.getListenable().addListener(listener);
     try {
-      configurations.putAll(SourceConfigUtils.readConfigsFromZookeeper(client));
+      //configurations.putAll(SourceConfigUtils.readConfigsFromZookeeper(client));
       cache.start();
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
