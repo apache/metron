@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.adapters.host;
 
 import java.util.Map;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 
 @SuppressWarnings("serial")
@@ -43,20 +44,20 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	}
 
 	@Override
-	public void logAccess(String value) {
+	public void logAccess(CacheKey value) {
 
 	}
 
 	@SuppressWarnings("unchecked")
     @Override
-	public JSONObject enrich(String metadata) {
+	public JSONObject enrich(CacheKey metadata) {
 		
 		
-		if(!_known_hosts.containsKey(metadata))
+		if(!_known_hosts.containsKey(metadata.getValue()))
 			return new JSONObject();
 		
 		JSONObject enrichment = new JSONObject();
-		enrichment.put("known_info", (JSONObject) _known_hosts.get(metadata));
+		enrichment.put("known_info", (JSONObject) _known_hosts.get(metadata.getValue()));
 		return enrichment;
 	}
 	

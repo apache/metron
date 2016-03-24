@@ -21,8 +21,10 @@ import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 
+import java.io.Serializable;
 
-public class SimpleHBaseConfig {
+
+public class SimpleHBaseConfig implements Serializable {
   private String hBaseTable;
   private String hBaseCF;
   private TableProvider provider = new HTableProvider();

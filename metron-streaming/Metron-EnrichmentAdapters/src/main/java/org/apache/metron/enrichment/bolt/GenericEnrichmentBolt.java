@@ -112,6 +112,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
   @Override
   public void prepare(Map conf, TopologyContext topologyContext,
                       OutputCollector collector) {
+    super.prepare(conf, topologyContext, collector);
     this.collector = collector;
     if (this.maxCacheSize == null)
       throw new IllegalStateException("MAX_CACHE_SIZE_OBJECTS_NUM must be specified");
@@ -145,6 +146,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
   public void execute(Tuple tuple) {
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
+
     JSONObject enrichedMessage = new JSONObject();
     enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".begin.ts", "" + System.currentTimeMillis());
     try {
@@ -152,6 +154,13 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
         throw new Exception("Could not parse binary stream to JSON");
       if (key == null)
         throw new Exception("Key is not valid");
+      String sourceType = null;
+      if(rawMessage.containsKey(Constants.SOURCE_TYPE)) {
+        sourceType = rawMessage.get(Constants.SOURCE_TYPE).toString();
+      }
+      else {
+        throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
+      }
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
         String value = (String) rawMessage.get(field);
@@ -160,7 +169,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
         } else {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
-            SourceConfig config = configurations.get(enrichmentType);
+            SourceConfig config = configurations.get(sourceType);
             CacheKey cacheKey= new CacheKey(field, value, config);
             adapter.logAccess(cacheKey);
             enrichedField = cache.getUnchecked(cacheKey);

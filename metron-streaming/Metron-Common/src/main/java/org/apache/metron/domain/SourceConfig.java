@@ -145,4 +145,8 @@ public class SourceConfig {
   public static synchronized SourceConfig load(String s) throws IOException {
     return load( s, Charset.defaultCharset());
   }
+
+  public String toJSON() throws IOException {
+    return _mapper.get().writerWithDefaultPrettyPrinter().writeValueAsString(this);
+  }
 }

@@ -30,6 +30,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.metron.Constants;
 import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.SourceConfigUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -73,8 +74,10 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     };
     cache.getListenable().addListener(listener);
     try {
+      configurations.putAll(SourceConfigUtils.readConfigsFromZookeeper(client));
       cache.start();
     } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
       throw new RuntimeException(e);
     }
   }

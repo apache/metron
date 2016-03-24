@@ -20,13 +20,14 @@ package org.apache.metron.enrichment.adapters.host;
 
 import java.io.Serializable;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
-public abstract class AbstractHostAdapter implements EnrichmentAdapter<String>,
+public abstract class AbstractHostAdapter implements EnrichmentAdapter<CacheKey>,
 				Serializable{
 
 	/**
@@ -37,7 +38,7 @@ public abstract class AbstractHostAdapter implements EnrichmentAdapter<String>,
 			.getLogger(AbstractHostAdapter.class);
 	
 	abstract public boolean initializeAdapter();
-	abstract public JSONObject enrich(String metadata);
+	abstract public JSONObject enrich(CacheKey metadata);
 
 	@Override
 	public void cleanup() {

@@ -18,6 +18,8 @@
 package org.apache.metron.enrichment.utils;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 
@@ -29,6 +31,13 @@ public class EnrichmentUtils {
 
   public static String getEnrichmentKey(String enrichmentName, String field) {
     return Joiner.on(".").join(new String[]{KEY_PREFIX, enrichmentName, field});
+  }
+
+  public static String toTopLevelField(String field) {
+    if(field == null) {
+      return null;
+    }
+    return Iterables.getLast(Splitter.on('.').split(field));
   }
 
   public static TableProvider getTableProvider(String connectorImpl, TableProvider defaultImpl) {

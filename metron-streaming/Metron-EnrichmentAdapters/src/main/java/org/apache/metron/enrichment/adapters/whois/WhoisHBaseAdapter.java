@@ -29,6 +29,7 @@ import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
@@ -36,7 +37,7 @@ import org.apache.metron.tldextractor.BasicTldExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WhoisHBaseAdapter implements EnrichmentAdapter<String>,
+public class WhoisHBaseAdapter implements EnrichmentAdapter<CacheKey>,
 				Serializable {
 
 	protected static final Logger LOG = LoggerFactory
@@ -80,7 +81,7 @@ public class WhoisHBaseAdapter implements EnrichmentAdapter<String>,
 
 			LOG.trace("--------CONNECTED TO TABLE: " + table);
 
-			JSONObject tester = enrich("cisco.com");
+			JSONObject tester = enrich(new CacheKey("whois", "cisco.com", null));
 
 			if (tester.keySet().size() == 0)
 				throw new IOException(
@@ -96,13 +97,13 @@ public class WhoisHBaseAdapter implements EnrichmentAdapter<String>,
 	}
 
 	@Override
-	public void logAccess(String value) {
+	public void logAccess(CacheKey value) {
 
 	}
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public JSONObject enrich(String metadataIn) {
-		
+	public JSONObject enrich(CacheKey k) {
+		String metadataIn = k.getValue();
 		String metadata = tldex.extract2LD(metadataIn);
 
 		LOG.trace("[Metron] Pinging HBase For:" + metadata);

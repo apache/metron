@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.hbase.lookup.EnrichmentLookup;
@@ -59,16 +60,20 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   @Override
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
-    List<String> enrichmentTypes = value.getConfig().getFieldToEnrichmentTypeMap().get(value.getField());
+    List<String> enrichmentTypes = value.getConfig()
+                                        .getFieldToEnrichmentTypeMap()
+                                        .get(EnrichmentUtils.toTopLevelField(value.getField()));
     if(enrichmentTypes != null) {
       for(String enrichmentType : enrichmentTypes) {
         try {
           LookupKV<EnrichmentKey, EnrichmentValue> kv = lookup.get(new EnrichmentKey(enrichmentType, value.getValue()), lookup.getTable(), false);
-          enriched.put(kv.getKey().type, kv.getValue().getMetadata());
-          _LOG.trace("Enriched type " + enrichmentType + " => " + enriched);
+          if(kv != null) {
+            enriched.put(kv.getKey().type, kv.getValue().getMetadata());
+            _LOG.trace("Enriched type " + enrichmentType + " => " + enriched);
+          }
         } catch (IOException e) {
           _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
-          throw new RuntimeException("Unable to retrieve value", e);
+          throw new RuntimeException("Unable to retrieve value: " + e.getMessage(), e);
         }
       }
     }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.utils;
+package org.apache.metron.domain;
 
 import org.apache.commons.cli.*;
 import org.apache.curator.RetryPolicy;
@@ -23,15 +23,15 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.Constants;
-import org.apache.metron.domain.SourceConfig;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SourceConfigUtils {
 
@@ -41,31 +41,85 @@ public class SourceConfigUtils {
   }
 
   public static void writeToZookeeperFromFile(String sourceName, String filePath, String zookeeperUrl) throws Exception {
-    writeToZookeeper(sourceName, Files.readAllBytes(Paths.get(filePath)), zookeeperUrl);
+    CuratorFramework client = getClient(zookeeperUrl);
+    client.start();
+    try {
+      writeToZookeeperFromFile(client, sourceName, filePath);
+    }
+    finally {
+      client.close();
+    }
+  }
+  public static void writeToZookeeperFromFile(CuratorFramework client, String sourceName, String filePath) throws Exception {
+    writeToZookeeper(client, sourceName, Files.readAllBytes(Paths.get(filePath)));
   }
 
   public static void writeToZookeeper(String sourceName, byte[] configData, String zookeeperUrl) throws Exception {
     CuratorFramework client = getClient(zookeeperUrl);
     client.start();
     try {
+      writeToZookeeper(client, sourceName, configData);
+    }
+    finally {
+      client.close();
+    }
+  }
+  public static void writeToZookeeper(CuratorFramework client, String sourceName, byte[] configData) throws Exception {
+    try {
       client.setData().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + sourceName, configData);
     } catch(KeeperException.NoNodeException e) {
       client.create().creatingParentsIfNeeded().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + sourceName, configData);
     }
-    client.close();
+
   }
 
   public static byte[] readConfigBytesFromZookeeper(String sourceName, String zookeeperUrl) throws Exception {
     CuratorFramework client = getClient(zookeeperUrl);
     client.start();
+    try {
+      return readConfigBytesFromZookeeper(client, sourceName);
+    }
+    finally {
+      client.close();
+    }
+  }
+  public static byte[] readConfigBytesFromZookeeper(CuratorFramework client, String sourceName) throws Exception {
     byte[] data = client.getData().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + sourceName);
-    client.close();
     return data;
   }
 
   public static SourceConfig readConfigFromZookeeper(String sourceName, String zookeeperUrl) throws Exception {
-    byte[] data = readConfigBytesFromZookeeper(sourceName, zookeeperUrl);
+    CuratorFramework client = getClient(zookeeperUrl);
+    client.start();
+    try {
+      return readConfigFromZookeeper(client, sourceName);
+    }
+    finally {
+      client.close();
+    }
+  }
+  public static SourceConfig readConfigFromZookeeper(CuratorFramework client, String sourceName) throws Exception {
+    byte[] data = readConfigBytesFromZookeeper(client, sourceName);
     return SourceConfig.load(new ByteArrayInputStream(data));
+  }
+
+  public static Map<String, SourceConfig> readConfigsFromZookeeper(String zookeeperUrl) throws Exception {
+    CuratorFramework client = getClient(zookeeperUrl);
+    client.start();
+    try {
+      return readConfigsFromZookeeper(client);
+    }
+    finally {
+      client.close();
+    }
+  }
+  public static Map<String, SourceConfig> readConfigsFromZookeeper(CuratorFramework client) throws Exception {
+    List<String> children = client.getChildren().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT);
+    Map<String, SourceConfig> configMap = new HashMap<String, SourceConfig>();
+    for(String child: children) {
+      configMap.put(child, readConfigFromZookeeper(client, child));
+    }
+    return configMap;
   }
 
   public static void dumpConfigs(String zookeeperUrl) throws Exception {
