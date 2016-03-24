@@ -126,7 +126,7 @@ components:
             - "${es.clustername}"
             - "${es.ip}"
             - ${es.port}
-            - "yyyy.MM.dd.hh"
+            - "${index.date.format}"
 
 #kafka/zookeeper
     -   id: "zkHosts"

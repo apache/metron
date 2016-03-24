@@ -41,6 +41,7 @@
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
+		<global_solr_version>5.2.1</global_solr_version>
 	</properties>
 	<licenses>
 		<license>
@@ -69,6 +70,7 @@
 		<module>Metron-DataLoads</module>
 		<module>Metron-Topologies</module>
 		<module>Metron-Pcap_Service</module>
+		<module>Metron-Solr</module>
 		<module>Metron-Testing</module>
 	</modules>
 	<dependencies>

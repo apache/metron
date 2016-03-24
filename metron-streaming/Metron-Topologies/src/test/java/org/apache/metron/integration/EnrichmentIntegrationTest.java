@@ -30,6 +30,7 @@ import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
 import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
+import org.apache.metron.integration.util.integration.InMemoryComponent;
 import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.ElasticSearchComponent;
@@ -49,12 +50,11 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class EnrichmentIntegrationTest {
+public abstract class EnrichmentIntegrationTest {
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
-  private String fluxPath = "src/main/resources/Metron_Configs/topologies/enrichment/test.yaml";
-  private String indexDir = "target/elasticsearch";
-  private String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
+  private String fluxPath = "src/main/resources/Metron_Configs/topologies/enrichment/solr.yaml";
+  protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
   private String sampleParsedPath = "src/main/resources/SampleParsed/YafExampleParsed";
   private String sampleIndexedPath = "src/main/resources/SampleIndexed/YafIndexed";
   private Map<String, String> sourceConfigs = new HashMap<>();
@@ -129,8 +129,6 @@ public class EnrichmentIntegrationTest {
   @Test
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
-    final String dateFormat = "yyyy.MM.dd.hh";
-    final String index = "test_index_" + new SimpleDateFormat(dateFormat).format(new Date());
     String yafConfig = "{\n" +
             "  \"index\": \"test\",\n" +
             "  \"batchSize\": 5,\n" +
@@ -159,12 +157,9 @@ public class EnrichmentIntegrationTest {
       setProperty("threat.intel.tracker.cf", cf);
       setProperty("threat.intel.ip.table", ipThreatIntelTable);
       setProperty("threat.intel.ip.cf", cf);
-      setProperty("es.clustername", "metron");
-      setProperty("es.port", "9300");
-      setProperty("es.ip", "localhost");
-      setProperty("index.date.format", dateFormat);
       setProperty("index.hdfs.output", hdfsDir);
     }};
+    setAdditionalProperties(topologyProperties);
     final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     }})
@@ -184,11 +179,6 @@ public class EnrichmentIntegrationTest {
               }
             });
 
-    ElasticSearchComponent esComponent = new ElasticSearchComponent.Builder()
-            .withHttpPort(9211)
-            .withIndexDir(new File(indexDir))
-            .build();
-
     //create MockHBaseTables
     final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTable, cf);
     final MockHTable ipTable = (MockHTable)MockHTable.Provider.addToCache(ipThreatIntelTable, cf);
@@ -205,7 +195,7 @@ public class EnrichmentIntegrationTest {
     UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
-            .withComponent("elasticsearch", esComponent)
+            .withComponent("search", getSearchComponent(topologyProperties))
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(10000)
             .withNumRetries(10)
@@ -214,62 +204,28 @@ public class EnrichmentIntegrationTest {
     try {
       fluxComponent.submitTopology();
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-      List<Map<String, Object>> docs =
-              runner.process(new Processor<List<Map<String, Object>>>() {
-                List<Map<String, Object>> docs = null;
-
-                public ReadinessState process(ComponentRunner runner) {
-                  ElasticSearchComponent elasticSearchComponent = runner.getComponent("elasticsearch", ElasticSearchComponent.class);
-                  if (elasticSearchComponent.hasIndex(index)) {
-                    List<Map<String, Object>> docsFromDisk;
-                    try {
-                      docs = elasticSearchComponent.getAllIndexedDocs(index, "test_doc");
-                      docsFromDisk = readDocsFromDisk(hdfsDir);
-                      System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
-                    } catch (IOException e) {
-                      throw new IllegalStateException("Unable to retrieve indexed documents.", e);
-                    }
-                    if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
-                      return ReadinessState.NOT_READY;
-                    } else {
-                      return ReadinessState.READY;
-                    }
-                  } else {
-                    return ReadinessState.NOT_READY;
-                  }
-                }
-
-                public List<Map<String, Object>> getResult() {
-                  return docs;
-                }
-              });
-
-
+      List<Map<String, Object>> docs = runner.process(getProcessor(inputMessages));
       Assert.assertEquals(inputMessages.size(), docs.size());
+      validateAll(docs);
 
-      for (Map<String, Object> doc : docs) {
-        baseValidation(doc);
-        hostEnrichmentValidation(doc);
-        geoEnrichmentValidation(doc);
-        threatIntelValidation(doc);
-
-      }
       List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
-
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
       Assert.assertEquals(new File(hdfsDir).list()[0], "test_doc");
-      for (Map<String, Object> doc : docsFromDisk) {
-        baseValidation(doc);
-        hostEnrichmentValidation(doc);
-        geoEnrichmentValidation(doc);
-        threatIntelValidation(doc);
-
-      }
+      validateAll(docsFromDisk);
     }
     finally {
       cleanHdfsDir(hdfsDir);
       runner.stop();
+    }
+  }
+
+  public static void validateAll(List<Map<String, Object>> docs) {
+    for (Map<String, Object> doc : docs) {
+      baseValidation(doc);
+      hostEnrichmentValidation(doc);
+      geoEnrichmentValidation(doc);
+      threatIntelValidation(doc);
     }
   }
 
@@ -465,5 +421,9 @@ public class EnrichmentIntegrationTest {
     }
     return ret;
   }
+
+  abstract InMemoryComponent getSearchComponent(Properties topologyProperties) throws Exception;
+  abstract Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages);
+  abstract void setAdditionalProperties(Properties topologyProperties);
 
 }

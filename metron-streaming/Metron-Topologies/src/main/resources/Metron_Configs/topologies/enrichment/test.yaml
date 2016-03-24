@@ -332,7 +332,6 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-
     -   name: "threatIntelJoin -> hdfs"
         from: "threatIntelJoinBolt"
         to: "hdfsIndexingBolt"

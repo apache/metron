@@ -48,6 +48,18 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>Metron-Solr</artifactId>
+            <version>${project.parent.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>Metron-Solr</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>Metron-Common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -176,6 +188,12 @@
                     <artifactId>hadoop-client</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-test-framework</artifactId>
+            <version>${global_solr_version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
