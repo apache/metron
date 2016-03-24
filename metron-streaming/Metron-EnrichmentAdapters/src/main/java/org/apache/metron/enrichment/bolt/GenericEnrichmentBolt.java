@@ -21,6 +21,7 @@ package org.apache.metron.enrichment.bolt;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -170,6 +171,11 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
             SourceConfig config = configurations.get(sourceType);
+            if(config == null) {
+              throw new RuntimeException("Unable to find " + config
+                                        + " in " + Joiner.on(',').join(configurations.keySet())
+                                        );
+            }
             CacheKey cacheKey= new CacheKey(field, value, config);
             adapter.logAccess(cacheKey);
             enrichedField = cache.getUnchecked(cacheKey);

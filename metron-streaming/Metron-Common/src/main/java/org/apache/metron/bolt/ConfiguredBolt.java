@@ -74,7 +74,12 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     };
     cache.getListenable().addListener(listener);
     try {
-      //configurations.putAll(SourceConfigUtils.readConfigsFromZookeeper(client));
+      configurations.putAll(SourceConfigUtils.readConfigsFromZookeeper(client));
+    }
+    catch(Exception e) {
+      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
+    }
+    try {
       cache.start();
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);

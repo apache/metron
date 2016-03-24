@@ -55,7 +55,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
   @Override
   public void logAccess(CacheKey value) {
-    List<String> enrichmentTypes = value.getConfig().getFieldToEnrichmentTypeMap().get(value.getField());
+    List<String> enrichmentTypes = value.getConfig().getFieldToThreatIntelTypeMap().get(value.getField());
     if(enrichmentTypes != null) {
       for(String enrichmentType : enrichmentTypes) {
         lookup.getAccessTracker().logAccess(new EnrichmentKey(enrichmentType, value.getValue()));
@@ -69,7 +69,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     JSONObject enriched = new JSONObject();
     boolean isThreat = false;
     List<String> enrichmentTypes = value.getConfig()
-                                        .getFieldToEnrichmentTypeMap()
+                                        .getFieldToThreatIntelTypeMap()
                                         .get(EnrichmentUtils.toTopLevelField(value.getField()));
     if(enrichmentTypes != null) {
       for(String enrichmentType : enrichmentTypes) {

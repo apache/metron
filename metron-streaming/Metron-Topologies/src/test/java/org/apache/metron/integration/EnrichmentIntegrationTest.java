@@ -149,9 +149,13 @@ public class EnrichmentIntegrationTest {
       config.setThreatIntelFieldMap(new HashMap<String, List<String>>() {{
         put("hbaseThreatIntel", ImmutableList.of(SRC_IP, DST_IP));
       }});
+      config.setFieldToThreatIntelTypeMap(new HashMap<String, List<String>>() {{
+        put(SRC_IP, ImmutableList.of(MALICIOUS_IP_TYPE));
+        put(DST_IP, ImmutableList.of(MALICIOUS_IP_TYPE));
+      }});
       config.setFieldToEnrichmentTypeMap(new HashMap<String, List<String>>() {{
-        put(SRC_IP, ImmutableList.of(MALICIOUS_IP_TYPE, PLAYFUL_CLASSIFICATION_TYPE));
-        put(DST_IP, ImmutableList.of(MALICIOUS_IP_TYPE, PLAYFUL_CLASSIFICATION_TYPE));
+        put(SRC_IP, ImmutableList.of( PLAYFUL_CLASSIFICATION_TYPE));
+        put(DST_IP, ImmutableList.of( PLAYFUL_CLASSIFICATION_TYPE));
       }});
       sourceConfigs.put(config.getIndex(), config.toJSON());
     }
