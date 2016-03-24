@@ -1,8 +1,6 @@
 language: java
 
-before_script:
-  - pip install --user codecov
-  
+
 jdk:
   - oraclejdk8
   - openjdk7
@@ -13,4 +11,4 @@ script:
     mvn -q integration-test package | grep -v "DEBUG\|INFO\|WARN"
     
 after_success:
-  - codecov
+  bash <(curl -s https://codecov.io/bash)
