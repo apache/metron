@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -33,10 +33,8 @@ import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.text.*;
 import java.util.Date;
-import java.util.Map;
 import java.util.Timer;
 
 public class TaxiiLoader {

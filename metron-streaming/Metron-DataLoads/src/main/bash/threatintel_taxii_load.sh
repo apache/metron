@@ -36,4 +36,4 @@ for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do
   fi
 done
 export HADOOP_CLASSPATH
-hadoop jar /usr/metron/0.1BETA/lib/Metron-DataLoads-0.1BETA.jar org.apache.metron.dataloads.taxii.TaxiiLoader "$@"
+hadoop jar /usr/metron/0.1BETA/lib/Metron-DataLoads-0.1BETA.jar org.apache.metron.dataloads.nonbulk.taxii.TaxiiLoader "$@"

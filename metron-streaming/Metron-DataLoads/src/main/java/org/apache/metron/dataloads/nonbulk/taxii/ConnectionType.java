@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 public enum ConnectionType {
    POLL, DISCOVER;

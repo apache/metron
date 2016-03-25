@@ -144,10 +144,10 @@ public class EnrichmentIntegrationTest {
       config.setEnrichmentFieldMap(new HashMap<String, List<String>>() {{
         put("geo", ImmutableList.of(SRC_IP, DST_IP));
         put("host", ImmutableList.of(SRC_IP, DST_IP));
-        put("hbaseEnrichment", ImmutableList.of(SRC_IP, DST_IP));
+        put(Constants.SIMPLE_HBASE_ENRICHMENT, ImmutableList.of(SRC_IP, DST_IP));
       }});
       config.setThreatIntelFieldMap(new HashMap<String, List<String>>() {{
-        put("hbaseThreatIntel", ImmutableList.of(SRC_IP, DST_IP));
+        put(Constants.SIMPLE_HBASE_THREAT_INTEL, ImmutableList.of(SRC_IP, DST_IP));
       }});
       config.setFieldToThreatIntelTypeMap(new HashMap<String, List<String>>() {{
         put(SRC_IP, ImmutableList.of(MALICIOUS_IP_TYPE));

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;

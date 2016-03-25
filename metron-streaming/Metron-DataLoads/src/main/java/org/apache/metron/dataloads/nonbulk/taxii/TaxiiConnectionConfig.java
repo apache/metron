@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 import com.google.common.base.Joiner;
 import org.codehaus.jackson.map.ObjectMapper;

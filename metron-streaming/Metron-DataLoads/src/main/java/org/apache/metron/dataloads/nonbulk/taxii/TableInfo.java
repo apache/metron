@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.hadoop.hbase.client.HTableInterface;
 
 public class TableInfo {
     private String tableName;

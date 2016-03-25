@@ -49,11 +49,7 @@ public class ExtractorHandler {
     public void setInputFormatHandler(String handler) {
         try {
             this.inputFormatHandler= Formats.create(handler);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Unable to create an inputformathandler", e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Unable to create an inputformathandler", e);
-        } catch (InstantiationException e) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Unable to create an inputformathandler", e);
         }
     }
@@ -64,11 +60,7 @@ public class ExtractorHandler {
     public void setExtractor(String extractor) {
         try {
             this.extractor = Extractors.create(extractor);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Unable to create an extractor", e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Unable to create an extractor", e);
-        } catch (InstantiationException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new IllegalStateException("Unable to create an extractor", e);
         }
     }
