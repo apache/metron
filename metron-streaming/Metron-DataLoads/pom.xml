@@ -25,6 +25,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <httpcore.version>4.3.2</httpcore.version>
+		<checkstyle_location>../style/checkstyle.xml</checkstyle_location>
+		<checkstyle_hdr_location>../style/LICENSE</checkstyle_hdr_location>
+		<checkstyle_hdr_file>../style/LICENSE.java</checkstyle_hdr_file>
     </properties>
     <dependencies>
         <dependency>
