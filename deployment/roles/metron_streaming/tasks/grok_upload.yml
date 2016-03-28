@@ -34,4 +34,5 @@
   command: hdfs dfs -put {{ metron_directory }}/config/patterns  {{ metron_hdfs_output_dir }}
   become: yes
   become_user: hdfs
+  ignore_errors: yes
 
