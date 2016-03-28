@@ -26,7 +26,8 @@ cluster_type: multi_vagrant_cluster
 # hbase
 pcap_hbase_table: pcap
 tracker_hbase_table: access_tracker
-threatintel_ip_hbase_table: malicious_ip
+threatintel_hbase_table: threatintel
+enrichment_hbase_table: enrichment
 
 #elasticsearch
 elasticsearch_transport_port: 9300

@@ -80,4 +80,15 @@ public class AddressHandler extends AbstractObjectTypeHandler<Address> {
     }
     return ret;
   }
+
+  @Override
+  public List<String> getPossibleTypes() {
+    String typeStr = getType();
+    List<String> ret = new ArrayList<>();
+    for(CategoryTypeEnum e : SUPPORTED_CATEGORIES)
+    {
+       ret.add(typeStr + ":" + e);
+    }
+    return ret;
+  }
 }

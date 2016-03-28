@@ -64,4 +64,14 @@ public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
     }
     return ret;
   }
+  @Override
+  public List<String> getPossibleTypes() {
+    String typeStr = getType();
+    List<String> ret = new ArrayList<>();
+    for(DomainNameTypeEnum e : SUPPORTED_TYPES)
+    {
+       ret.add(typeStr + ":" + e);
+    }
+    return ret;
+  }
 }

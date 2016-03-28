@@ -8,7 +8,12 @@
   },
   "threatIntelFieldMap":
   {
-    "ip": ["ip_dst_addr", "ip_src_addr"]
+    "hbaseThreatIntel": ["ip_dst_addr", "ip_src_addr"]
+  },
+  "fieldToThreatIntelTypeMap":
+  {
+    "ip_dst_addr" : [ "malicious_ip" ]
+    ,"ip_src_addr" : [ "malicious_ip" ]
   }
 }
 

@@ -18,6 +18,7 @@
 
 package org.apache.metron.dataloads.extractor.stix.types;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
@@ -61,5 +62,9 @@ public class HostnameHandler  extends AbstractObjectTypeHandler<Hostname>{
       ret.add(results);
     }
     return ret;
+  }
+  @Override
+  public List<String> getPossibleTypes() {
+    return ImmutableList.of(getType());
   }
 }
