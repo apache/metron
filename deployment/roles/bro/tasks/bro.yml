@@ -31,14 +31,14 @@
   shell: "{{ item }}"
   args:
     chdir: "/tmp/bro-{{ bro_version }}"
-    creates: /usr/local/bro/bin/bro
+    creates: "{{ bro_home }}/bin/bro"
   with_items:
-    - ./configure
+    - "./configure --prefix={{ bro_home }}"
     - make
     - make install
 
 - name: Configure bro
   lineinfile:
-    dest: /usr/local/bro/etc/node.cfg
+    dest: "{{ bro_home }}/etc/node.cfg"
     regexp: '^interface=.*$'
     line: 'interface={{ sniff_interface }}'

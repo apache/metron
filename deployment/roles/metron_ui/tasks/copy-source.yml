@@ -15,24 +15,32 @@
 #  limitations under the License.
 #
 ---
-- name: Create Metron streaming directories
-  file: path={{ metron_directory }}/{{ item.name }}  state=directory mode=0755
-  with_items:
-      - { name: 'lib'}
-      - { name: 'config'}
+- name: Verify {{ metron_ui_directory }} exists
+  file:
+    path: "{{ metron_ui_directory }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
 
-- name: Copy Metron pcapservice jar
-  copy:
-    src: "{{ pcapservice_jar_src }}"
-    dest: "{{ pcapservice_jar_dst }}"
-
-- name: Add hbase-site.xml to pcapservice jar
-  shell: "jar -uf {{ pcapservice_jar_dst }} hbase-site.xml"
+- name: Archive metron-ui on localhost
+  shell: tar --exclude='./node_modules' -czf {{ metron_temp_archive }} .
   args:
-    chdir: "{{ hbase_config_path }}"
+    chdir: "{{ playbook_dir }}/../../metron-ui"
+    creates: "{{ metron_temp_archive }}"
+    warn: false    #Warns to use unarchive - unarchive does not archive
+  become: false
+  delegate_to: localhost
+  run_once: true
 
-- name: Install service script
-  template: src=pcapservice dest=/etc/init.d/pcapservice mode=0755
+- name: Extract metron-ui tarball
+  unarchive:
+    src: "{{ metron_temp_archive }}"
+    dest: "{{ metron_ui_directory }}"
+    creates: "{{ metron_ui_directory}}/config"
 
-- name: Start pcapservice
-  service: name=pcapservice state=restarted
+- name: Delete {{ metron_temp_archive }}
+  local_action: file path="{{ metron_temp_archive }}" state=absent
+  become: false
+  run_once: true
+

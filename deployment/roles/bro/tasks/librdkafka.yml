@@ -31,9 +31,9 @@
   shell: "{{ item }}"
   args:
     chdir: "/tmp/librdkafka-{{ librdkafka_version }}"
-    creates: /usr/local/lib/librdkafka.so
+    creates: "{{ librdkafka_home }}/lib/librdkafka.so"
   with_items:
     - rm -rf build/
-    - ./configure
+    - "./configure --prefix={{ librdkafka_home }}"
     - make
     - make install
