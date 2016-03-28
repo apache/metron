@@ -15,13 +15,35 @@
 #  limitations under the License.
 #
 ---
-metron_dataloads_path: "{{ playbook_dir }}/../../metron-streaming/Metron-DataLoads/target/{{ metron_dataloads_name }}"
-metron_topologies_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_topologies_bundle_name }}"
-metron_src_config_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs"
-metron_properties_config_path: "{{ metron_directory }}/config/etc/env/config.properties"
-elasticsearch_config_path: /etc/elasticsearch
-elasticsearch_cluster_name: metron
-elasticsearch_transport_port: 9300
-hbase_config_path: "/etc/hbase/conf"
-hdfs_config_path: "/etc/hadoop/conf"
-metron_hdfs_output_dir: "/apps/metron"
+- name: Create Log Directories for HDFS Purge
+  file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0755
+      owner: hdfs
+      group: hdfs
+  with_items:
+    - /var/log/bro-purge
+    - /var/log/yaf-purge
+
+- name: Create Empty Log Files for HDFS Purge
+  file:
+    path: "{{ item }}"
+    state: touch
+    owner: hdfs
+    group: hdfs
+    mode: 0644
+  with_items:
+    - /var/log/bro-purge/cron-bro-purge.log
+    - /var/log/yaf-purge/cron-yaf-purge.log
+
+
+- name: Purge HDFS Sensor Data every 30 days.
+  cron:
+    name: "{{ item.name }}"
+    job: "{{ item.job }}"
+    special_time: daily
+    user: hdfs
+  with_items:
+    - { name: "bro_purge", job:  "{{ hdfs_bro_purge_cronjob }}" }
+    - { name: "yaf_purge", job: "{{ hdfs_yaf_purge_cronjob }}" }
