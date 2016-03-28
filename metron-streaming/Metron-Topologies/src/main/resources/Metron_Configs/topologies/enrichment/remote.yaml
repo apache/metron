@@ -54,6 +54,7 @@ components:
         constructorArgs:
             -   "host"
             -   ref: "hostEnrichmentAdapter"
+
     -   id: "simpleHBaseEnrichmentConfig"
         className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseConfig"
         configMethods:
@@ -89,8 +90,8 @@ components:
             -   name: "add"
                 args:
                     - ref: "simpleHBaseEnrichment"
-
 # Threat Intel
+
     -   id: "simpleHBaseThreatIntelConfig"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelConfig"
         configMethods:
@@ -128,7 +129,6 @@ components:
                 args:
                     - ref: "simpleHBaseThreatIntelEnrichment"
 
-
     -   id: "fileNameFormat"
         className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
         configMethods:
@@ -148,7 +148,6 @@ components:
             -   name: "withFileNameFormat"
                 args:
                     - ref: "fileNameFormat"
-
     -   id: "indexWriter"
         className: "org.apache.metron.writer.ElasticsearchWriter"
         constructorArgs:
@@ -218,7 +217,6 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
-
     -   id: "simpleHBaseEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
@@ -255,7 +253,7 @@ bolts:
                     - ref: "threatIntels"
             -   name: "withMessageFieldName"
                 args: ["message"]
-    -   id: "ipThreatIntelBolt"
+    -   id: "simpleHBaseThreatIntelBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
             - "${kafka.zk}"
@@ -392,7 +390,6 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-
 #indexing
     -   name: "threatIntelJoin -> indexing"
         from: "threatIntelJoinBolt"
@@ -401,6 +398,7 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
+
     -   name: "threatIntelJoin -> hdfs"
         from: "threatIntelJoinBolt"
         to: "hdfsIndexingBolt"
