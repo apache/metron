@@ -71,6 +71,9 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
             enriched.put(kv.getKey().type, kv.getValue().getMetadata());
             _LOG.trace("Enriched type " + enrichmentType + " => " + enriched);
           }
+          else {
+            _LOG.trace("Missed" + enrichmentType + " => " + value.getValue());
+          }
         } catch (IOException e) {
           _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
           throw new RuntimeException("Unable to retrieve value: " + e.getMessage(), e);

@@ -111,6 +111,13 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
   }
 
   @Override
+  protected void reloadCallback() {
+    if(cache != null) {
+      cache.invalidateAll();
+    }
+  }
+
+  @Override
   public void prepare(Map conf, TopologyContext topologyContext,
                       OutputCollector collector) {
     super.prepare(conf, topologyContext, collector);

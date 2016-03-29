@@ -51,6 +51,10 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     this.zookeeperUrl = zookeeperUrl;
   }
 
+  protected void reloadCallback() {
+
+  }
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -67,6 +71,7 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
             if (temp != null) {
               String[] path = event.getData().getPath().split("/");
               configurations.put(path[path.length - 1], temp);
+              reloadCallback();
             }
           }
         }

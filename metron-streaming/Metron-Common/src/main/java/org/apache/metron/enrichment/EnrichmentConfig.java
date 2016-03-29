@@ -18,11 +18,15 @@
 
 package org.apache.metron.enrichment;
 
+import com.google.common.base.Joiner;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.Constants;
 import org.apache.metron.domain.SourceConfig;
 import org.apache.metron.domain.SourceConfigUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 public class EnrichmentConfig {
@@ -30,6 +34,8 @@ public class EnrichmentConfig {
      THREAT_INTEL
     ,ENRICHMENT
   }
+
+  protected static final Logger _LOG = LoggerFactory.getLogger(EnrichmentConfig.class);
   public static class FieldList {
     Type type;
     Map<String, List<String>> fieldToEnrichmentTypes;
@@ -72,18 +78,47 @@ public class EnrichmentConfig {
   public void updateSensorConfigs( ) throws Exception {
     CuratorFramework client = SourceConfigUtils.getClient(getZkQuorum());
     try {
-      updateSensorConfigs(client, sensorToFieldList);
+      client.start();
+      updateSensorConfigs(new ZKSourceConfigHandler(client), sensorToFieldList);
     }
     finally {
       client.close();
     }
   }
-  public static void updateSensorConfigs(CuratorFramework client, Map<String, FieldList> sensorToFieldList) throws Exception {
+
+  public static interface SourceConfigHandler {
+    SourceConfig readConfig(String sensor) throws Exception;
+    void persistConfig(String sensor, SourceConfig config) throws Exception;
+  }
+
+  public static class ZKSourceConfigHandler implements SourceConfigHandler {
+    CuratorFramework client;
+    public ZKSourceConfigHandler(CuratorFramework client) {
+      this.client = client;
+    }
+    @Override
+    public SourceConfig readConfig(String sensor) throws Exception {
+      return SourceConfigUtils.readConfigFromZookeeper(client, sensor);
+    }
+
+    @Override
+    public void persistConfig(String sensor, SourceConfig config) throws Exception {
+      SourceConfigUtils.writeToZookeeper(client, sensor, config.toJSON().getBytes());
+    }
+  }
+
+  public static void updateSensorConfigs( SourceConfigHandler scHandler
+                                        , Map<String, FieldList> sensorToFieldList
+                                        ) throws Exception
+  {
     Map<String, SourceConfig> sourceConfigsChanged = new HashMap<>();
     for (Map.Entry<String, FieldList> kv : sensorToFieldList.entrySet()) {
       SourceConfig config = sourceConfigsChanged.get(kv.getKey());
       if(config == null) {
-        config = SourceConfigUtils.readConfigFromZookeeper(client, kv.getKey());
+        config = scHandler.readConfig(kv.getKey());
+        if(_LOG.isDebugEnabled()) {
+          _LOG.debug(config.toJSON());
+        }
       }
       Map<String, List<String> > fieldMap = null;
       Map<String, List<String> > fieldToTypeMap = null;
@@ -92,6 +127,10 @@ public class EnrichmentConfig {
         fieldMap = config.getThreatIntelFieldMap();
         if(fieldMap!= null) {
           fieldList = fieldMap.get(Constants.SIMPLE_HBASE_THREAT_INTEL);
+        }
+        if(fieldList == null) {
+          fieldList = new ArrayList<>();
+          fieldMap.put(Constants.SIMPLE_HBASE_THREAT_INTEL, fieldList);
         }
         fieldToTypeMap = config.getFieldToThreatIntelTypeMap();
         if(fieldToTypeMap == null) {
@@ -104,13 +143,18 @@ public class EnrichmentConfig {
         if(fieldMap!= null) {
           fieldList = fieldMap.get(Constants.SIMPLE_HBASE_ENRICHMENT);
         }
+        if(fieldList == null) {
+          fieldList = new ArrayList<>();
+          fieldMap.put(Constants.SIMPLE_HBASE_ENRICHMENT, fieldList);
+        }
         fieldToTypeMap = config.getFieldToEnrichmentTypeMap();
         if(fieldToTypeMap == null) {
           fieldToTypeMap = new HashMap<>();
           config.setFieldToEnrichmentTypeMap(fieldToTypeMap);
         }
       }
-      if(fieldToTypeMap == null || fieldList == null) {
+      if(fieldToTypeMap == null  || fieldMap == null) {
+        _LOG.debug("fieldToTypeMap is null or fieldMap is null, so skipping");
         continue;
       }
       //Add the additional fields to the field list associated with the hbase adapter
@@ -124,28 +168,35 @@ public class EnrichmentConfig {
         }
         //adding only the ones that we don't already have to the field list
         if (additionalFields.size() > 0) {
+          _LOG.debug("Adding additional fields: " + Joiner.on(',').join(additionalFields));
           fieldList.addAll(additionalFields);
           sourceConfigsChanged.put(kv.getKey(), config);
         }
       }
       //Add the additional enrichment types to the mapping between the fields
       {
-        for(Map.Entry<String, List<String>> fieldToType : fieldToTypeMap.entrySet()) {
+        for(Map.Entry<String, List<String>> fieldToType : kv.getValue().getFieldToEnrichmentTypes().entrySet()) {
           String field = fieldToType.getKey();
-          List<String> additionalTypes = fieldToTypeMap.get(field);
-          if(additionalTypes != null) {
-            Set<String> enrichmentTypes = new HashSet<>(fieldToType.getValue());
-            for(String additionalType : additionalTypes) {
-              if(!enrichmentTypes.contains(additionalType)) {
-                fieldToType.getValue().add(additionalType);
-              }
-            }
+          final HashSet<String> types = new HashSet<>(fieldToType.getValue());
+          int sizeBefore = 0;
+          if(fieldToTypeMap.containsKey(field)) {
+            List<String> typeList = fieldToTypeMap.get(field);
+            sizeBefore = new HashSet<>(typeList).size();
+            types.addAll(typeList);
+          }
+          int sizeAfter = types.size();
+          boolean changed = sizeBefore != sizeAfter;
+          if(changed) {
+            fieldToTypeMap.put(field, new ArrayList<String>() {{
+                addAll(types);
+              }});
+            sourceConfigsChanged.put(kv.getKey(), config);
           }
         }
       }
     }
     for(Map.Entry<String, SourceConfig> kv : sourceConfigsChanged.entrySet()) {
-      SourceConfigUtils.writeToZookeeper(client, kv.getKey(), kv.getValue().toJSON().getBytes());
+      scHandler.persistConfig(kv.getKey(), kv.getValue());
     }
   }
 
