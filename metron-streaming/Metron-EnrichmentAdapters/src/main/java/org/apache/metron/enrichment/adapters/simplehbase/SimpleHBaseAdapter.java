@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
   protected static final Logger _LOG = LoggerFactory.getLogger(SimpleHBaseAdapter.class);
@@ -67,12 +68,11 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       for(String enrichmentType : enrichmentTypes) {
         try {
           LookupKV<EnrichmentKey, EnrichmentValue> kv = lookup.get(new EnrichmentKey(enrichmentType, value.getValue()), lookup.getTable(), false);
-          if(kv != null) {
-            enriched.put(kv.getKey().type, kv.getValue().getMetadata());
+          if(kv != null && kv.getValue() != null && kv.getValue().getMetadata() != null) {
+            for(Map.Entry<String, String> values : kv.getValue().getMetadata().entrySet()) {
+              enriched.put(kv.getKey().type +"."+ values.getKey(), values.getValue());
+            }
             _LOG.trace("Enriched type " + enrichmentType + " => " + enriched);
-          }
-          else {
-            _LOG.trace("Missed" + enrichmentType + " => " + value.getValue());
           }
         } catch (IOException e) {
           _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
