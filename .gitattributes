@@ -1,0 +1,10 @@
+# used to remove files from deployment using `git archive`
+# git files
+**/.gitattributes export-ignore
+**/.gitignore export-ignore
+**/.git export-ignore
+
+#site
+/site export-ignore
+#DS_Image
+**/.DS_Image
