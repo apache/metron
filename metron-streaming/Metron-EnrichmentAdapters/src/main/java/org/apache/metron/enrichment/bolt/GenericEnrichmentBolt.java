@@ -74,6 +74,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
   protected transient LoadingCache<CacheKey, JSONObject> cache;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
+  protected boolean invalidateCacheOnReload = false;
 
   public GenericEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -110,10 +111,16 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     return this;
   }
 
+  public GenericEnrichmentBolt withCacheInvalidationOnReload(boolean cacheInvalidationOnReload) {
+    this.invalidateCacheOnReload= cacheInvalidationOnReload;
+    return this;
+  }
   @Override
   protected void reloadCallback() {
-    if(cache != null) {
-      cache.invalidateAll();
+    if(invalidateCacheOnReload) {
+      if (cache != null) {
+        cache.invalidateAll();
+      }
     }
   }
 
