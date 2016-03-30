@@ -24,11 +24,12 @@ def merge_dicts(*dict_args):
         result.update(dictionary)
     return result
 
-def get_statement(component, version, license):
+def get_statement(component, version, license, location):
     #This product bundles SuperWidget 1.2.3, which is available under a
     #"3-clause BSD" license.
     s = "This product bundles " + component + " " + version \
-      + ", which is available under a \"" + license + "\" license."
+      + ", which is available under a \"" + license + "\" license. " \
+      + "For details, see " + location + "/LICENSE." + component
     return s
 
 licenses = {}
@@ -38,5 +39,5 @@ for i in xrange(1, len(sys.argv)):
         licenses = merge_dicts(licenses, json.loads(license_summary))
 for component, value in licenses.iteritems():
     if not(value['license'].startswith("Apache")):
-        print get_statement(component, value['version'], value['license'])
+        print get_statement(component, value['version'], value['license'], value['location'])
 
