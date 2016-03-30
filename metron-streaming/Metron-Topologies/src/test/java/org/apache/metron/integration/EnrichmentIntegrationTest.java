@@ -388,13 +388,13 @@ public class EnrichmentIntegrationTest {
             ) {
       Assert.assertTrue(keyPatternExists("enrichments.hbaseEnrichment", indexedDoc));
       if(indexedDoc.get(SRC_IP).equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE)
-                , PLAYFUL_ENRICHMENT
+        Assert.assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation")
+                , PLAYFUL_ENRICHMENT.get("orientation")
         );
       }
       else if(indexedDoc.get(DST_IP).equals("10.0.2.3")) {
-        Assert.assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE)
-                , PLAYFUL_ENRICHMENT
+        Assert.assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation")
+                , PLAYFUL_ENRICHMENT.get("orientation")
         );
       }
     }

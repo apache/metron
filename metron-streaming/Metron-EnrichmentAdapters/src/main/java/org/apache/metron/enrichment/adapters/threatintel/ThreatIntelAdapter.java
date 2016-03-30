@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.adapters.threatintel;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.enrichment.bolt.CacheKey;
@@ -27,7 +28,6 @@ import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.lookup.EnrichmentLookup;
 import org.apache.metron.reference.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.reference.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.storm.shade.com.google.common.collect.Iterables;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,21 +67,30 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   @Override
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
-    boolean isThreat = false;
     List<String> enrichmentTypes = value.getConfig()
                                         .getFieldToThreatIntelTypeMap()
                                         .get(EnrichmentUtils.toTopLevelField(value.getField()));
     if(enrichmentTypes != null) {
-      for(String enrichmentType : enrichmentTypes) {
-        try {
-          isThreat = lookup.exists(new EnrichmentKey(enrichmentType, value.getValue()), lookup.getTable(), false);
-        } catch (IOException e) {
-          throw new RuntimeException("Unable to retrieve value", e);
+      int i = 0;
+      try {
+        for (Boolean isThreat :
+                lookup.exists(Iterables.transform(enrichmentTypes
+                                                 , new EnrichmentUtils.TypeToKey(value.getValue())
+                                                 )
+                             , lookup.getTable()
+                             , false
+                             )
+            )
+        {
+          String enrichmentType = enrichmentTypes.get(i++);
+          if (isThreat) {
+            enriched.put(enrichmentType, "alert");
+            _LOG.trace("Enriched value => " + enriched);
+          }
         }
-        if (isThreat) {
-          enriched.put(enrichmentType, "alert");
-          _LOG.trace("Enriched value => " + enriched);
-        }
+      }
+      catch(IOException e) {
+        throw new RuntimeException("Unable to retrieve value", e);
       }
     }
     //throw new RuntimeException("Unable to retrieve value " + value);
