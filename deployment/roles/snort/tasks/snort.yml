@@ -36,7 +36,7 @@
 
 - name: Download snort
   get_url:
-    url: "https://snort.org/downloads/snort/snort-{{ snort_version }}.src.rpm"
+    url: "https://snort.org/downloads/archive/snort/snort-{{ snort_version }}.src.rpm"
     dest: "/tmp/snort-{{ snort_version }}.src.rpm"
 
 - name: Build snort
