@@ -15,17 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.writer.interfaces;
+package org.apache.metron.solr;
 
-import backtype.storm.tuple.Tuple;
-import org.apache.metron.domain.Configurations;
+public class SolrConstants {
 
-import java.util.List;
-import java.util.Map;
-
-public interface BulkMessageWriter<T> extends AutoCloseable {
-
-  void init(Map stormConf, Configurations configuration) throws Exception;
-  void write(String sensorType, Configurations configurations, List<Tuple> tuples, List<T> messages) throws Exception;
-
+  public static final String REQUEST_ACTION = "action";
+  public static final String REQUEST_NAME = "name";
+  public static final String REQUEST_NUM_SHARDS = "numShards";
+  public static final String REQUEST_REPLICATION_FACTOR = "replicationFactor";
+  public static final String REQUEST_COLLECTION_CONFIG_NAME = "collection.configName";
+  public static final String REQUEST_COLLECTIONS_PATH = "/admin/collections";
+  public static final String RESPONSE_COLLECTIONS = "collections";
 }

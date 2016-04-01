@@ -62,38 +62,21 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     client.start();
     try {
       ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
-    TreeCacheListener listener = new TreeCacheListener() {
-      @Override
-      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
-          String path = event.getData().getPath();
-          byte[] data = event.getData().getData();
-          updateConfig(path, data);
+      cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
+      TreeCacheListener listener = new TreeCacheListener() {
+        @Override
+        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+          if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
+            String path = event.getData().getPath();
+            byte[] data = event.getData().getData();
+            updateConfig(path, data);
+          }
         }
-      }
-    };
-    cache.getListenable().addListener(listener);
-    try {
+      };
+      cache.getListenable().addListener(listener);
       cache.start();
     } catch (Exception e) {
       throw new RuntimeException(e);
-    }
-
-    long timeElapsed = 0;
-    while(configurations.getGlobalConfig() == null) {
-      try {
-        if (timeElapsed < timeout) {
-          Thread.sleep(100);
-          timeElapsed += 100;
-        } else {
-          throw new IllegalStateException("Could not initialize " + this.getClass().getName() + ". Retrieving configurations from Zookeeper (" + zookeeperUrl + ") timed out.");
-        }
-      } catch (InterruptedException e) {
-      }
     }
   }
 
@@ -112,7 +95,7 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
 
   @Override
   public void cleanup() {
-      cache.close();
-      client.close();
+    cache.close();
+    client.close();
   }
 }

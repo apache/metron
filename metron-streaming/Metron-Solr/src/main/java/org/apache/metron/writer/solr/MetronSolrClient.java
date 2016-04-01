@@ -18,6 +18,7 @@
 package org.apache.metron.writer.solr;
 
 import org.apache.log4j.Logger;
+import org.apache.metron.solr.SolrConstants;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.QueryRequest;
@@ -26,7 +27,6 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MetronSolrClient extends CloudSolrClient {
@@ -38,46 +38,35 @@ public class MetronSolrClient extends CloudSolrClient {
     super(zkHost);
   }
 
-  public void createCollection(String name, int numShards, int replicationFactor) {
-    if(!listCollections().contains(name)) {
-      try {
-        request(getCreasteCollectionsRequest(name, numShards, replicationFactor));
-      } catch (SolrServerException | IOException e) {
-        LOG.error(e, e);
-      }
+  public void createCollection(String name, int numShards, int replicationFactor) throws IOException, SolrServerException {
+    if (!listCollections().contains(name)) {
+      request(getCreateCollectionsRequest(name, numShards, replicationFactor));
     }
   }
 
-  public QueryRequest getCreasteCollectionsRequest(String name, int numShards, int replicationFactor) {
+  public QueryRequest getCreateCollectionsRequest(String name, int numShards, int replicationFactor) {
     ModifiableSolrParams params = new ModifiableSolrParams();
-    params.set("action", CollectionParams.CollectionAction.CREATE.name());
-    params.set("name", name);
-    params.set("numShards", numShards);
-    params.set("replicationFactor", replicationFactor);
-    params.set("collection.configName", name);
+    params.set(SolrConstants.REQUEST_ACTION, CollectionParams.CollectionAction.CREATE.name());
+    params.set(SolrConstants.REQUEST_NAME, name);
+    params.set(SolrConstants.REQUEST_NUM_SHARDS, numShards);
+    params.set(SolrConstants.REQUEST_REPLICATION_FACTOR, replicationFactor);
+    params.set(SolrConstants.REQUEST_COLLECTION_CONFIG_NAME, name);
     QueryRequest request = new QueryRequest(params);
-    request.setPath("/admin/collections");
+    request.setPath(SolrConstants.REQUEST_COLLECTIONS_PATH);
     return request;
   }
 
-  public List<String> listCollections() {
-    List<String> collections = new ArrayList<>();
-    try {
-      NamedList<Object> response = request(getListCollectionsRequest(), null);
-      collections = (List<String>) response.get("collections");
-    } catch (SolrServerException | IOException e) {
-      LOG.error(e, e);
-    }
-    return collections;
+  @SuppressWarnings("unchecked")
+  public List<String> listCollections() throws IOException, SolrServerException {
+    NamedList<Object> response = request(getListCollectionsRequest(), null);
+    return (List<String>) response.get(SolrConstants.RESPONSE_COLLECTIONS);
   }
 
   public QueryRequest getListCollectionsRequest() {
     ModifiableSolrParams params = new ModifiableSolrParams();
-    params.set("action", CollectionParams.CollectionAction.LIST.name());
+    params.set(SolrConstants.REQUEST_ACTION, CollectionParams.CollectionAction.LIST.name());
     QueryRequest request = new QueryRequest(params);
-    request.setPath("/admin/collections");
+    request.setPath(SolrConstants.REQUEST_COLLECTIONS_PATH);
     return request;
   }
-
-  public String test() { return "test1"; }
 }

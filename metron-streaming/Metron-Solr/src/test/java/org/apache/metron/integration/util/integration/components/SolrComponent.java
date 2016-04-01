@@ -86,9 +86,6 @@ public class SolrComponent implements InMemoryComponent {
 
   @Override
   public void start() throws UnableToStartException {
-    //org.apache.solr.client.solrj.impl.HttpClientUtil
-    //org.apache.http.impl.client.DefaultHttpClient test1 = null;
-    //org.apache.http.impl.client.CloseableHttpClient test = test1;
     try {
       File baseDir = Files.createTempDirectory("solrcomponent").toFile();
       baseDir.deleteOnExit();
@@ -127,12 +124,17 @@ public class SolrComponent implements InMemoryComponent {
 
   public boolean hasCollection(String collection) {
     MetronSolrClient solr = getSolrClient();
-    return solr.listCollections().contains(collection);
+    boolean collectionFound = false;
+    try {
+      collectionFound = solr.listCollections().contains(collection);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
+    return collectionFound;
   }
 
   public List<Map<String, Object>> getAllIndexedDocs(String collection) {
     List<Map<String, Object>> docs = new ArrayList<>();
-    //CloudSolrClient solr = getSolrClient();
     CloudSolrClient solr = miniSolrCloudCluster.getSolrClient();
     solr.setDefaultCollection(collection);
     SolrQuery parameters = new SolrQuery();

@@ -55,7 +55,11 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     super.prepare(stormConf, context, collector);
-    bulkMessageWriter.init(stormConf, configurations);
+    try {
+      bulkMessageWriter.init(stormConf, configurations);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @SuppressWarnings("unchecked")

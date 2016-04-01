@@ -21,10 +21,12 @@ import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import org.apache.metron.domain.Configurations;
 import org.apache.metron.writer.interfaces.BulkMessageWriter;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.json.simple.JSONObject;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConf, Configurations configurations) {
+  public void init(Map stormConf, Configurations configurations) throws IOException, SolrServerException {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     if(solr == null) solr = new MetronSolrClient((String) globalConfiguration.get("solr.zookeeper"));
     String collection = getCollection(configurations);

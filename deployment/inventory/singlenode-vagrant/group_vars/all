@@ -62,7 +62,7 @@ threat_intel_bulk_load: False
 #Sensors
 install_pycapa: False
 install_bro: True
-install_snort: False
+install_snort: True
 install_yaf: True
 pcap_replay: True
 sniff_interface: eth1
