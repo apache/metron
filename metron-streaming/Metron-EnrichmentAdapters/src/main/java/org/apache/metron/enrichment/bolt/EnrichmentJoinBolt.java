@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.bolt;
 import backtype.storm.task.TopologyContext;
 import org.apache.metron.bolt.JoinBolt;
 import org.apache.metron.domain.Enrichment;
+import org.apache.metron.domain.SourceConfig;
 import org.apache.metron.topology.TopologyUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -52,8 +53,11 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   public Set<String> getStreamIds(JSONObject message) {
     Set<String> streamIds = new HashSet<>();
     String sourceType = TopologyUtils.getSourceType(message);
-    for (String enrichmentType : getFieldMap(sourceType).keySet()) {
-      streamIds.add(enrichmentType);
+    Map<String, List<String>>  fieldMap = getFieldMap(sourceType);
+    if(fieldMap != null) {
+      for (String enrichmentType : getFieldMap(sourceType).keySet()) {
+        streamIds.add(enrichmentType);
+      }
     }
     streamIds.add("message");
     return streamIds;
@@ -82,6 +86,10 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   }
 
   public Map<String, List<String>> getFieldMap(String sourceType) {
-    return configurations.get(sourceType).getEnrichmentFieldMap();
+    SourceConfig config = configurations.get(sourceType);
+    if(config != null) {
+      return config.getEnrichmentFieldMap();
+    }
+    return null;
   }
 }

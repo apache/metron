@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.metron.domain.SourceConfig;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,13 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   @Override
   public Map<String, List<String>> getFieldMap(String sourceType) {
-    return configurations.get(sourceType).getThreatIntelFieldMap();
+    SourceConfig config = configurations.get(sourceType);
+    if(config != null) {
+      return config.getThreatIntelFieldMap();
+    }
+    else {
+      return null;
+    }
   }
 
   @Override
