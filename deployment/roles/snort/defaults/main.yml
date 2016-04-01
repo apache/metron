@@ -19,3 +19,7 @@ snort_version: 2.9.8.0-1
 daq_version: 2.0.6-1
 snort_topic: snort
 snort_alert_csv_path: /var/log/snort/alert.csv
+snort_src_url: "https://snort.org/downloads/archive/snort/snort-{{ snort_version }}.src.rpm"
+snort_community_rules_url: "https://www.snort.org/downloads/community/community-rules.tar.gz"
+dag_src_url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
+

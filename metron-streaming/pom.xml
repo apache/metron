@@ -21,7 +21,13 @@
 	<packaging>pom</packaging>
 	<name>Metron-Streaming</name>
 	<description>Stream analytics for Metron</description>
-	<url>https://metron.incubator.apache.org/</url>
+  <url>https://metron.incubator.apache.org/</url>
+  <scm>
+    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</connection>
+    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
+  </scm>
 	<properties>
 		<twitter>@ApacheMetron</twitter>
 		<global_opencsv_version>3.7</global_opencsv_version>
