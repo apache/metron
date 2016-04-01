@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,14 +28,12 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.cloud.MiniSolrCloudCluster;
 import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +41,7 @@ public class SolrComponent implements InMemoryComponent {
 
   public static class Builder {
     private int port = 8983;
-    private String solrXmlPath = "../Metron-Solr/src/main/resources/solr/solr.xml";
+    private String solrXmlPath = "../Metron-Solr/src/test/resources/solr/solr.xml";
     private Map<String, String> collections = new HashMap<>();
     private Function<SolrComponent, Void> postStartCallback;
 
@@ -88,6 +86,9 @@ public class SolrComponent implements InMemoryComponent {
 
   @Override
   public void start() throws UnableToStartException {
+    //org.apache.solr.client.solrj.impl.HttpClientUtil
+    //org.apache.http.impl.client.DefaultHttpClient test1 = null;
+    //org.apache.http.impl.client.CloseableHttpClient test = test1;
     try {
       File baseDir = Files.createTempDirectory("solrcomponent").toFile();
       baseDir.deleteOnExit();
@@ -96,6 +97,7 @@ public class SolrComponent implements InMemoryComponent {
         String configPath = collections.get(name);
         miniSolrCloudCluster.uploadConfigDir(new File(configPath), name);
       }
+      miniSolrCloudCluster.createCollection("metron", 1, 1, "metron", new HashMap<String, String>());
       if (postStartCallback != null) postStartCallback.apply(this);
     } catch(Exception e) {
       throw new UnableToStartException(e.getMessage(), e);
@@ -115,6 +117,10 @@ public class SolrComponent implements InMemoryComponent {
     return new MetronSolrClient(getZookeeperUrl());
   }
 
+  public MiniSolrCloudCluster getMiniSolrCloudCluster() {
+    return this.miniSolrCloudCluster;
+  }
+
   public String getZookeeperUrl() {
     return miniSolrCloudCluster.getZkServer().getZkAddress();
   }
@@ -126,7 +132,8 @@ public class SolrComponent implements InMemoryComponent {
 
   public List<Map<String, Object>> getAllIndexedDocs(String collection) {
     List<Map<String, Object>> docs = new ArrayList<>();
-    CloudSolrClient solr = getSolrClient();
+    //CloudSolrClient solr = getSolrClient();
+    CloudSolrClient solr = miniSolrCloudCluster.getSolrClient();
     solr.setDefaultCollection(collection);
     SolrQuery parameters = new SolrQuery();
     parameters.set("q", "*:*");

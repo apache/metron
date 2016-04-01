@@ -49,7 +49,7 @@ public class ErrorUtils {
 		}
 		
 		error_message.put("message", message);
-		error_message.put(Constants.SOURCE_TYPE, "error");
+		error_message.put(Constants.SENSOR_TYPE, "error");
 		error_message.put("exception", exception);
 		error_message.put("stack", stackTrace);
 		

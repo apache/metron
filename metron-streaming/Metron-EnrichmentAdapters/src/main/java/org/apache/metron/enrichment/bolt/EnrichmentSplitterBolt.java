@@ -105,10 +105,9 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, JSONObject> splitMessage(JSONObject message) {
-
         Map<String, JSONObject> streamMessageMap = new HashMap<>();
-        String sourceType = TopologyUtils.getSourceType(message);
-        Map<String, List<String>> enrichmentFieldMap = getFieldMap(sourceType);
+        String sensorType = TopologyUtils.getSensorType(message);
+        Map<String, List<String>> enrichmentFieldMap = getFieldMap(sensorType);
         for (String enrichmentType : enrichmentFieldMap.keySet()) {
             List<String> fields = enrichmentFieldMap.get(enrichmentType);
             JSONObject enrichmentObject = new JSONObject();
@@ -116,7 +115,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
                 for (String field : fields) {
                     enrichmentObject.put(getKeyName(enrichmentType, field), message.get(field));
                 }
-                enrichmentObject.put(Constants.SOURCE_TYPE, sourceType);
+                enrichmentObject.put(Constants.SENSOR_TYPE, sensorType);
                 streamMessageMap.put(enrichmentType, enrichmentObject);
             }
         }
@@ -124,8 +123,8 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
         return streamMessageMap;
     }
 
-    protected Map<String, List<String>> getFieldMap(String sourceType) {
-        return configurations.get(sourceType).getEnrichmentFieldMap();
+    protected Map<String, List<String>> getFieldMap(String sensorType) {
+        return configurations.getSensorEnrichmentConfig(sensorType).getEnrichmentFieldMap();
     }
 
     protected String getKeyName(String type, String field) {

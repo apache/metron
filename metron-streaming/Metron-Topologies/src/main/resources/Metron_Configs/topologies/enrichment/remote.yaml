@@ -121,12 +121,7 @@ components:
                 args:
                     - ref: "fileNameFormat"
     -   id: "indexWriter"
-        className: "org.apache.metron.writer.ElasticsearchWriter"
-        constructorArgs:
-            - "${es.clustername}"
-            - "${es.ip}"
-            - ${es.port}
-            - "${index.date.format}"
+        className: "${writer.class.name}"
 
 #kafka/zookeeper
     -   id: "zkHosts"

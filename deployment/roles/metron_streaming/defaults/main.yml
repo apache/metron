@@ -15,7 +15,9 @@
 #  limitations under the License.
 #
 ---
-source_config_path: "{{ metron_directory }}/config/source"
+config_path: "{{ metron_directory }}/config"
+zookeeper_config_path: "{{ config_path }}/zookeeper"
+zookeeper_global_config_path: "{{ zookeeper_config_path }}/global.json"
 threat_intel_bulk_load: True
 threat_intel_bin: "{{ metron_directory }}/bin/threatintel_bulk_load.sh"
 threat_intel_host: "{{ groups.ambari_master[0] }}"

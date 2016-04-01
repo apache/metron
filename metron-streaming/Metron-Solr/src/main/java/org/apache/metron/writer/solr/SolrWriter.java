@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,9 +19,8 @@ package org.apache.metron.writer.solr;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.Configurations;
 import org.apache.metron.writer.interfaces.BulkMessageWriter;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.json.simple.JSONObject;
@@ -36,30 +35,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   private static final Logger LOG = Logger.getLogger(SolrWriter.class);
 
-  private String zookeeperUrl;
-  private String collection = DEFAULT_COLLECTION;
-  private int numShards = 1;
-  private int replicationFactor = 1;
   private MetronSolrClient solr;
-
-  public SolrWriter(String zookeeperUrl) {
-    this.zookeeperUrl = zookeeperUrl;
-  }
-
-  public SolrWriter withCollection(String collection) {
-    this.collection = collection;
-    return this;
-  }
-
-  public SolrWriter withNumShards(int numShards) {
-    this.numShards = numShards;
-    return this;
-  }
-
-  public SolrWriter withReplicationFactor(int replicationFactor) {
-    this.replicationFactor = replicationFactor;
-    return this;
-  }
 
   public SolrWriter withMetronSolrClient(MetronSolrClient solr) {
     this.solr = solr;
@@ -67,25 +43,32 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConf) {
-    if(solr == null) solr = new MetronSolrClient(zookeeperUrl);
-    solr.createCollection(collection, numShards, replicationFactor);
+  public void init(Map stormConf, Configurations configurations) {
+    Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
+    if(solr == null) solr = new MetronSolrClient((String) globalConfiguration.get("solr.zookeeper"));
+    String collection = getCollection(configurations);
+    solr.createCollection(collection, (Integer) globalConfiguration.get("solr.numShards"), (Integer) globalConfiguration.get("solr.replicationFactor"));
     solr.setDefaultCollection(collection);
   }
 
   @Override
-  public void write(String sourceType, SourceConfig configuration, List<Tuple> tuples, List<JSONObject> messages) throws Exception {
+  public void write(String sourceType, Configurations configurations, List<Tuple> tuples, List<JSONObject> messages) throws Exception {
     for(JSONObject message: messages) {
       SolrInputDocument document = new SolrInputDocument();
       document.addField("id", getIdValue(message));
-      document.addField("sourceType", sourceType);
+      document.addField("sensorType", sourceType);
       for(Object key: message.keySet()) {
         Object value = message.get(key);
         document.addField(getFieldName(key, value), value);
       }
       UpdateResponse response = solr.add(document);
     }
-    solr.commit(collection);
+    solr.commit(getCollection(configurations));
+  }
+
+  protected String getCollection(Configurations configurations) {
+    String collection = (String) configurations.getGlobalConfig().get("solr.collection");
+    return collection != null ? collection : DEFAULT_COLLECTION;
   }
 
   private int getIdValue(JSONObject message) {
@@ -103,7 +86,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     } else if (value instanceof Double) {
       field = key + "_d";
     } else {
-      field = (String) key;
+      field = key + "_s";
     }
     return field;
   }

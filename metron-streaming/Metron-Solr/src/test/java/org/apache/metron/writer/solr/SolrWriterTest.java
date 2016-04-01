@@ -18,12 +18,10 @@
 package org.apache.metron.writer.solr;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.domain.SourceConfig;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.metron.domain.Configurations;
+import org.apache.metron.util.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.CollectionParams;
-import org.apache.solr.common.util.NamedList;
 import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.junit.Test;
@@ -32,12 +30,12 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 public class SolrWriterTest {
@@ -80,7 +78,7 @@ public class SolrWriterTest {
     public boolean matches(Object o) {
       SolrInputDocument solrInputDocument = (SolrInputDocument) o;
       int actualId = (Integer) solrInputDocument.get("id").getValue();
-      String actualName = (String) solrInputDocument.get("sourceType").getValue();
+      String actualName = (String) solrInputDocument.get("sensorType").getValue();
       int actualInt = (Integer) solrInputDocument.get("intField_i").getValue();
       double actualDouble = (Double) solrInputDocument.get("doubleField_d").getValue();
       return expectedId == actualId && expectedSourceType.equals(actualName) && expectedInt == actualInt && expectedDouble == actualDouble;
@@ -95,6 +93,7 @@ public class SolrWriterTest {
 
   @Test
   public void testWriter() throws Exception {
+    Configurations configurations = SampleUtil.getSampleConfigs();
     JSONObject message1 = new JSONObject();
     message1.put("intField", 100);
     message1.put("doubleField", 100.0);
@@ -107,20 +106,25 @@ public class SolrWriterTest {
 
     String collection = "metron";
     MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
-    SolrWriter writer = new SolrWriter("").withMetronSolrClient(solr);
-    writer.init(null);
+    SolrWriter writer = new SolrWriter().withMetronSolrClient(solr);
+    writer.init(null, configurations);
     verify(solr, times(1)).createCollection(collection, 1, 1);
     verify(solr, times(1)).setDefaultCollection(collection);
 
     collection = "metron2";
     int numShards = 4;
     int replicationFactor = 2;
-    writer = new SolrWriter("").withMetronSolrClient(solr).withCollection(collection).withNumShards(numShards).withReplicationFactor(replicationFactor);
-    writer.init(null);
+    Map<String, Object> globalConfig = configurations.getGlobalConfig();
+    globalConfig.put("solr.collection", collection);
+    globalConfig.put("solr.numShards", numShards);
+    globalConfig.put("solr.replicationFactor", replicationFactor);
+    configurations.updateGlobalConfig(globalConfig);
+    writer = new SolrWriter().withMetronSolrClient(solr);
+    writer.init(null, configurations);
     verify(solr, times(1)).createCollection(collection, numShards, replicationFactor);
     verify(solr, times(1)).setDefaultCollection(collection);
 
-    writer.write("test", new SourceConfig(), new ArrayList<Tuple>(), messages);
+    writer.write("test", configurations, new ArrayList<Tuple>(), messages);
     verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "test", 100, 100.0)));
     verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "test", 200, 200.0)));
     verify(solr, times(1)).commit(collection);

@@ -23,17 +23,16 @@ import backtype.storm.topology.base.BaseRichBolt;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.metron.Constants;
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.Configurations;
+import org.apache.metron.utils.ConfigurationsUtils;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class ConfiguredBolt extends BaseRichBolt {
@@ -41,13 +40,19 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
   private static final Logger LOG = Logger.getLogger(ConfiguredBolt.class);
 
   private String zookeeperUrl;
+  private long timeout = Constants.DEFAULT_CONFIGURED_BOLT_TIMEOUT;
 
-  protected Map<String, SourceConfig> configurations = Collections.synchronizedMap(new HashMap<String, SourceConfig>());
+  protected final Configurations configurations = new Configurations();
   private CuratorFramework client;
-  private PathChildrenCache cache;
+  private TreeCache cache;
 
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
+  }
+
+  public ConfiguredBolt withTimeout(long timeout) {
+    this.timeout = timeout;
+    return this;
   }
 
   @Override
@@ -55,19 +60,19 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
     client.start();
-    cache = new PathChildrenCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT, true);
-    PathChildrenCacheListener listener = new PathChildrenCacheListener() {
+    try {
+      ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
+    TreeCacheListener listener = new TreeCacheListener() {
       @Override
-      public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-        if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED) || event.getType().equals(PathChildrenCacheEvent.Type.CHILD_UPDATED)) {
+      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
+          String path = event.getData().getPath();
           byte[] data = event.getData().getData();
-          if (data != null) {
-            SourceConfig temp = SourceConfig.load(data);
-            if (temp != null) {
-              String[] path = event.getData().getPath().split("/");
-              configurations.put(path[path.length - 1], temp);
-            }
-          }
+          updateConfig(path, data);
         }
       }
     };
@@ -77,15 +82,37 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+
+    long timeElapsed = 0;
+    while(configurations.getGlobalConfig() == null) {
+      try {
+        if (timeElapsed < timeout) {
+          Thread.sleep(100);
+          timeElapsed += 100;
+        } else {
+          throw new IllegalStateException("Could not initialize " + this.getClass().getName() + ". Retrieving configurations from Zookeeper (" + zookeeperUrl + ") timed out.");
+        }
+      } catch (InterruptedException e) {
+      }
+    }
+  }
+
+  public void updateConfig(String path, byte[] data) throws IOException {
+    if (data.length != 0 && path != null) {
+      String name = path.substring(path.lastIndexOf("/") + 1);
+      if (path.startsWith(Constants.ZOOKEEPER_SENSOR_ROOT)) {
+        configurations.updateSensorEnrichmentConfig(name, data);
+      } else if (Constants.ZOOKEEPER_GLOBAL_ROOT.equals(path)) {
+        configurations.updateGlobalConfig(data);
+      } else {
+        configurations.updateConfig(name, data);
+      }
+    }
   }
 
   @Override
   public void cleanup() {
-    try {
       cache.close();
       client.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-    }
   }
 }

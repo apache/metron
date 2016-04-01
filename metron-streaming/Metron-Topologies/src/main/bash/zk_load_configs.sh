@@ -30,4 +30,4 @@ export METRON_VERSION=0.1BETA
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export TOPOLOGIES_JAR=Metron-Topologies-$METRON_VERSION.jar
 export ZK_HOME=${ZK_HOME:-/usr/hdp/current/hbase-client}
-java -cp $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.metron.utils.SourceConfigUtils "$@"
+java -cp $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.metron.utils.ConfigurationsUtils "$@"

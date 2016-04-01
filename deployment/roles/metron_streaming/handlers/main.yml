@@ -15,5 +15,5 @@
 #  limitations under the License.
 #
 ---
-- name: Load Source Config
-  shell: java -cp {{ metron_directory }}/lib/{{ metron_jar_name }}::/usr/hdp/current/hadoop-client/lib/slf4j-api-1.7.10.jar org.apache.metron.utils.SourceConfigUtils -p {{ source_config_path }} -z {{ zookeeper_url }} && touch {{ source_config_path }}/configured
+- name: Load Config
+  shell: "{{ metron_directory }}/bin/zk_load_configs.sh -p {{ zookeeper_config_path }} -z {{ zookeeper_url }} && touch {{ zookeeper_config_path }}/configured"

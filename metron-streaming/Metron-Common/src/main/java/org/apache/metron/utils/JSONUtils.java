@@ -75,4 +75,8 @@ public enum JSONUtils {
       return _mapper.get().writeValueAsString(o);
     }
   }
+
+  public byte[] toJSON(Object config) throws JsonProcessingException {
+    return _mapper.get().writeValueAsBytes(config);
+  }
 }

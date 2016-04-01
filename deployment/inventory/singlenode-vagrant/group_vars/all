@@ -62,7 +62,7 @@ threat_intel_bulk_load: False
 #Sensors
 install_pycapa: False
 install_bro: True
-install_snort: True
+install_snort: False
 install_yaf: True
 pcap_replay: True
 sniff_interface: eth1
@@ -75,8 +75,11 @@ storm_topologies:
 pcapservice_port: 8081
 
 #Search
-install_elasticsearch: False
-install_solr: True
+install_elasticsearch: True
+install_solr: False
+solr_collection_name: Metron
+solr_number_shards: 1
+solr_replication_factor: 1
 elasticsearch_transport_port: 9300
 elasticsearch_network_interface: eth1
 elasticsearch_web_port: 9200
