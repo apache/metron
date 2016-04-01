@@ -15,28 +15,9 @@
 #  limitations under the License.
 #
 ---
-- name: Download daq
-  get_url:
-    url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
-    dest: "/tmp/daq-{{ daq_version }}.src.rpm"
-
-- name: Build daq
-  shell: "rpmbuild --rebuild daq-{{ daq_version }}.src.rpm"
-  args:
-    chdir: /tmp
-    creates: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
-
-- name: Install daq
-  yum:
-    name: /root/rpmbuild/RPMS/x86_64/daq-{{ daq_version }}.x86_64.rpm
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
-
 - name: Download snort
   get_url:
-    url: "https://snort.org/downloads/snort/snort-{{ snort_version }}.src.rpm"
+    url: "{{ snort_src_url }}"
     dest: "/tmp/snort-{{ snort_version }}.src.rpm"
 
 - name: Build snort
@@ -55,7 +36,7 @@
 
 - name: Download snort community rules
   get_url:
-    url: "https://www.snort.org/downloads/community/community-rules.tar.gz"
+    url: "{{ snort_community_rules_url }}"
     dest: "/tmp/community-rules.tar.gz"
 
 - name: Extract tarball

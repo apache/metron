@@ -17,7 +17,7 @@
 ---
 - name: Download daq
   get_url:
-    url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
+    url: "{{ dag_src_url }}"
     dest: "/tmp/daq-{{ daq_version }}.src.rpm"
 
 - name: Build daq
