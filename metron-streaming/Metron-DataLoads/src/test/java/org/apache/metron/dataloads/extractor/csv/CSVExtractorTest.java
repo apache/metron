@@ -18,6 +18,7 @@
 package org.apache.metron.dataloads.extractor.csv;
 
 import com.google.common.collect.Iterables;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
@@ -28,103 +29,45 @@ import org.junit.Test;
 import java.io.IOException;
 
 public class CSVExtractorTest {
-    @Test
-    public void testCSVExtractorMapColumns() throws Exception {
-        /**
-         {
-            "config" : {
-                        "columns" : {
-                                "host" : 0
-                                ,"meta" : 2
-                                    }
-                       ,"indicator_column" : "host"
-                       ,"type" : "threat"
-                       ,"separator" : ","
-                       }
-            ,"extractor" : "CSV"
-         }
-         */
-        String config = " {\n" +
-                "            \"config\" : {\n" +
-                "                        \"columns\" : {\n" +
-                "                                \"host\" : 0\n" +
-                "                                ,\"meta\" : 2\n" +
-                "                                    }\n" +
-                "                       ,\"indicator_column\" : \"host\"\n" +
-                "                       ,\"type\" : \"threat\" \n" +
-                "                       ,\"separator\" : \",\"\n" +
-                "                       }\n" +
-                "            ,\"extractor\" : \"CSV\"\n" +
-                "         }";
-        ExtractorHandler handler = ExtractorHandler.load(config);
-        validate(handler);
-    }
-    @Test
-    public void testCSVExtractorListColumns() throws Exception {
-        /**
-         {
-            "config" : {
-                        "columns" : ["host:0","meta:2"]
-                       ,"indicator_column" : "host"
-                       ,"separator" : ","
-                       ,"type" : "threat"
-                       }
-            ,"extractor" : "CSV"
-         }
-         */
-        String config = "{\n" +
-                "            \"config\" : {\n" +
-                "                        \"columns\" : [\"host:0\",\"meta:2\"]\n" +
-                "                       ,\"indicator_column\" : \"host\"\n" +
-                "                       ,\"separator\" : \",\"\n" +
-                "                       ,\"type\" : \"threat\" \n" +
-                "                       }\n" +
-                "            ,\"extractor\" : \"CSV\"\n" +
-                "         }";
-        ExtractorHandler handler = ExtractorHandler.load(config);
-        validate(handler);
-    }
 
-    @Test
-    public void testCSVExtractor() throws Exception {
-        /**
-         {
-            "config" : {
-                        "columns" : "host:0,meta:2"
-                       ,"indicator_column" : "host"
-                       ,"separator" : ","
-                       ,"type" : "threat"
-                       }
-            ,"extractor" : "CSV"
-         }
-         */
-        String config = " {\n" +
-                "            \"config\" : {\n" +
-                "                        \"columns\" : \"host:0,meta:2\"\n" +
-                "                       ,\"indicator_column\" : \"host\"\n" +
-                "                       ,\"separator\" : \",\"\n" +
-                "                       ,\"type\" : \"threat\" \n" +
-                "                       }\n" +
-                "            ,\"extractor\" : \"CSV\"\n" +
-                "         }";
-        ExtractorHandler handler = ExtractorHandler.load(config);
-        validate(handler);
-    }
+  /**
+   {
+     "config" : {
+        "columns" : {
+            "host" : 0
+           ,"meta" : 2
+                    }
+       ,"indicator_column" : "host"
+       ,"type" : "threat"
+       ,"separator" : ","
+               }
+     ,"extractor" : "CSV"
+   }
+   */
+  @Multiline
+  static String testCSVConfig;
 
-    public void validate(ExtractorHandler handler) throws IOException {
-        {
-            LookupKV results = Iterables.getFirst(handler.getExtractor().extract("google.com,1.0,foo"), null);
-            EnrichmentKey key = (EnrichmentKey) results.getKey();
-            EnrichmentValue value = (EnrichmentValue) results.getValue();
-            Assert.assertEquals("google.com", key.indicator);
-            Assert.assertEquals("threat", key.type);
-            Assert.assertEquals("google.com", value.getMetadata().get("host"));
-            Assert.assertEquals("foo", value.getMetadata().get("meta"));
-            Assert.assertEquals(2, value.getMetadata().size());
-        }
-        {
-            Iterable<LookupKV> results = handler.getExtractor().extract("#google.com,1.0,foo");
-            Assert.assertEquals(0, Iterables.size(results));
-        }
+  @Test
+  public void testCSVExtractor() throws Exception {
+
+    ExtractorHandler handler = ExtractorHandler.load(testCSVConfig);
+    validate(handler);
+  }
+
+  public void validate(ExtractorHandler handler) throws IOException {
+    {
+      LookupKV results = Iterables.getFirst(handler.getExtractor().extract("google.com,1.0,foo"), null);
+      EnrichmentKey key = (EnrichmentKey) results.getKey();
+      EnrichmentValue value = (EnrichmentValue) results.getValue();
+      Assert.assertEquals("google.com", key.indicator);
+      Assert.assertEquals("threat", key.type);
+      Assert.assertEquals("google.com", value.getMetadata().get("host"));
+      Assert.assertEquals("foo", value.getMetadata().get("meta"));
+      Assert.assertEquals(2, value.getMetadata().size());
     }
+    {
+      Iterable<LookupKV> results = handler.getExtractor().extract("#google.com,1.0,foo");
+      Assert.assertEquals(0, Iterables.size(results));
+    }
+  }
 }

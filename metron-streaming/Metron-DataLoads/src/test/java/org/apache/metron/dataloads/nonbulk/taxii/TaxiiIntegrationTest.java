@@ -19,6 +19,7 @@
 package org.apache.metron.dataloads.nonbulk.taxii;
 
 import com.google.common.base.Splitter;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -51,11 +52,7 @@ public class TaxiiIntegrationTest {
         MockHTable.Provider.clear();
     }
 
-
-
-    @Test
-    public void testTaxii() throws Exception {
-        /**
+    /**
          {
             "endpoint" : "http://localhost:8282/taxii-discovery-service"
            ,"type" : "DISCOVER"
@@ -64,15 +61,13 @@ public class TaxiiIntegrationTest {
            ,"columnFamily" : "cf"
            ,"allowedIndicatorTypes" : [ "domainname:FQDN", "address:IPV_4_ADDR" ]
          }
-         */
-        String taxiiConnectionConfig = "{\n" +
-                "            \"endpoint\" : \"http://localhost:8282/taxii-discovery-service\"\n" +
-                "           ,\"type\" : \"DISCOVER\"\n" +
-                "           ,\"collection\" : \"guest.Abuse_ch\"\n" +
-                "           ,\"table\" : \"threat_intel\"\n" +
-                "           ,\"columnFamily\" : \"cf\"\n" +
-                "           ,\"allowedIndicatorTypes\" : [ \"domainname:FQDN\", \"address:IPV_4_ADDR\" ]\n" +
-                "         }";
+    */
+    @Multiline
+    static String taxiiConnectionConfig;
+
+    @Test
+    public void testTaxii() throws Exception {
+
         final MockHTable.Provider provider = new MockHTable.Provider();
         final Configuration config = HBaseConfiguration.create();
         TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), new StixExtractor(), config ) {

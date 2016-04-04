@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.hbase.mr;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -62,9 +63,6 @@ public class BulkLoadMapperIntegrationTest {
   public void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
   }
-
-  @Test
-  public void test() throws IOException, ClassNotFoundException, InterruptedException {
  /**
          {
             "config" : {
@@ -79,18 +77,12 @@ public class BulkLoadMapperIntegrationTest {
             ,"extractor" : "CSV"
          }
          */
-        final String extractorConfig = "{\n" +
-                "            \"config\" : {\n" +
-                "                        \"columns\" : {\n" +
-                "                                \"host\" : 0\n" +
-                "                                ,\"meta\" : 2\n" +
-                "                                    }\n" +
-                "                       ,\"indicator_column\" : \"host\"\n" +
-                "                       ,\"separator\" : \",\"\n" +
-                "                       ,\"type\" : \"threat\"\n" +
-                "                       }\n" +
-                "            ,\"extractor\" : \"CSV\"\n" +
-                "         }";
+  @Multiline
+  private static String extractorConfig;
+
+  @Test
+  public void test() throws IOException, ClassNotFoundException, InterruptedException {
+
     Assert.assertNotNull(testTable);
     FileSystem fs = FileSystem.get(config);
     String contents = "google.com,1,foo";

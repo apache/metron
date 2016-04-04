@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.hbase.mr;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
@@ -33,9 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BulkLoadMapperTest {
-    @Test
-    public void testMapper() throws IOException, InterruptedException {
-        /**
+    /**
          {
             "config" : {
                         "columns" : {
@@ -49,18 +48,10 @@ public class BulkLoadMapperTest {
             ,"extractor" : "CSV"
          }
          */
-        final String extractorConfig = "{\n" +
-                "            \"config\" : {\n" +
-                "                        \"columns\" : {\n" +
-                "                                \"host\" : 0\n" +
-                "                                ,\"meta\" : 2\n" +
-                "                                    }\n" +
-                "                       ,\"indicator_column\" : \"host\"\n" +
-                "                       ,\"type\" : \"threat\" \n" +
-                "                       ,\"separator\" : \",\"\n" +
-                "                       }\n" +
-                "            ,\"extractor\" : \"CSV\"\n" +
-                "         }";
+    @Multiline
+    private static String extractorConfig;
+    @Test
+    public void testMapper() throws IOException, InterruptedException {
 
         final Map<ImmutableBytesWritable, Put> puts = new HashMap<>();
         BulkLoadMapper mapper = new BulkLoadMapper() {
