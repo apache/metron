@@ -3,14 +3,51 @@
 This project is a collection of classes to assist with loading of
 various enrichment and threat intelligence sources into Metron.
 
+## Simple HBase Enrichments/Threat Intelligence
+
+The vast majority of enrichments and threat intelligence processing tend
+toward the following pattern:
+# Take a field
+# Look up the field in a key/value store
+# If the key exists, then either it's a threat to be alerted or it
+  should be enriched with the value associated with the key.
+
+As such, we have created this capability as a default threat intel and
+enrichment adapter.
+
 The basic primitive for simple enrichments and threat intelligence sources
 is a complex key containing the following:
-* Type -- The type of threat intel or enrichment (e.g. malicious_ip)
-* Indicator -- The indicator in question
-* Value -- The value to associate with the type, indicator pair.  This is a JSON map.
+* Type : The type of threat intel or enrichment (e.g. malicious_ip)
+* Indicator : The indicator in question
+* Value : The value to associate with the type, indicator pair.  This is a JSON map.
 
 At present, all of the dataloads utilities function by converting raw data
 sources to this primitive key (type, indicator) and value to be placed in HBase.
+
+In the case of threat intel, a hit on the threat intel table will result
+in:
+* The `is_alert` field being set to `true` in the index
+* A field named `threatintels.hbaseThreatIntel.$field.$threatintel_type` is set to `alert` 
+   * `$field` is the field in the original document that was a match (e.g. `src_ip_addr`) 
+   * `$threatintel_type` is the type of threat intel imported (defined in the Extractor configuration below).
+
+In the case of simple hbase enrichment, a hit on the enrichments table
+will result in the following new field for each key in the value:`enrichments.hbaseEnrichment.$field.$enrichment_type.$key` 
+* `$field` is the field in the original document that was a match (e.g.  `src_ip_addr`)
+* `$enrichment_type` is the type of enrichment imported (defined in the Extractor configuration below).
+* `$key` is a key in the JSON map associated with the row in HBase.
+
+For instance, in the situation where we had the following very silly key/value in
+HBase in the enrichment table:
+* indicator: `127.0.0.1`
+* type : `important_addresses`
+* value: `{ "name" : "localhost", "location" : "home" }`
+
+If we had a document whose `ip_src_addr` came through with a value of
+`127.0.0.1`, we would have the following fields added to the indexed
+document:
+* `enrichments.hbaseEnrichment.ip_src_addr.important_addresses.name` : `localhost`
+* `enrichments.hbaseEnrichment.ip_src_addr.important_addresses.location` : `home`
 
 ## Extractor Framework
 
@@ -54,9 +91,9 @@ The other option is the STIX extractor or a fully qualified classname for your o
 The meta column values will show up in the value in HBase because it is called out as a non-indicator column.  The key
 for the value will be 'meta'.  For instance, given an input string of `123.45.123.12,something,the grapevine`, the following key, value
 would be extracted:
-* Indicator -- `123.45.123.12`
-* Type -- `malicious_ip`
-* Value -- `{ "source" : "the grapevine" }`
+* Indicator : `123.45.123.12`
+* Type : `malicious_ip`
+* Value : `{ "source" : "the grapevine" }`
 
 ### STIX Extractor
 
@@ -153,12 +190,12 @@ to the Taxii server.  An illustrative example of such a configuration file is:
 ````
 
 As you can see, we are specifying the following information:
-* endpoint -- The URL of the endpoint
-* type -- `POLL` or `DISCOVER` depending on the endpoint.
-* collection -- The Taxii collection to ingest
-* table -- The HBase table to import into
-* columnFamily -- The column family to import into
-* allowedIndicatorTypes -- an array of acceptable threat intel types (see the "Enrichment Type Name" column of the Stix table above for the possibilities).
+* endpoint : The URL of the endpoint
+* type : `POLL` or `DISCOVER` depending on the endpoint.
+* collection : The Taxii collection to ingest
+* table : The HBase table to import into
+* columnFamily : The column family to import into
+* allowedIndicatorTypes : an array of acceptable threat intel types (see the "Enrichment Type Name" column of the Stix table above for the possibilities).
 
 The parameters for the utility are as follows:
 
@@ -198,7 +235,7 @@ Note: This utility works for enrichment as well as threat intel due to the under
 One special thing to note here is that there is a special configuration
 parameter to the Extractor config that is only considered during this
 loader:
-* inputFormatHandler -- This specifies how to consider the data.  The two implementations are `BY_LINE` and `org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat`.
+* inputFormatHandler : This specifies how to consider the data.  The two implementations are `BY_LINE` and `org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat`.
 
 The default is `BY_LINE`, which makes sense for a list of CSVs where
 each line indicates a unit of information which can be imported.
