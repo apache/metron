@@ -195,6 +195,16 @@ or threat intel.
 The shell script `$METRON_HOME/bin/flatfile_loader.sh` will read data from local disk and load the enrichment or threat intel data into an HBase table.  
 Note: This utility works for enrichment as well as threat intel due to the underlying infrastructure being the same.
 
+One special thing to note here is that there is a special configuration
+parameter to the Extractor config that is only considered during this
+loader:
+* inputFormatHandler -- This specifies how to consider the data.  The two implementations are `BY_LINE` and `org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat`.
+
+The default is `BY_LINE`, which makes sense for a list of CSVs where
+each line indicates a unit of information which can be imported.
+However, if you are importing a set of STIX documents, then you want
+each document to be considered as input to the Extractor.
+
 The parameters for the utility are as follows:
 
 | Short Code | Long Code           | Is Required? | Description                                                                                                                                                                          |
