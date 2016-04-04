@@ -7,10 +7,9 @@ various enrichment and threat intelligence sources into Metron.
 
 The vast majority of enrichments and threat intelligence processing tend
 toward the following pattern:
-# Take a field
-# Look up the field in a key/value store
-# If the key exists, then either it's a threat to be alerted or it
-  should be enriched with the value associated with the key.
+* Take a field
+* Look up the field in a key/value store
+* If the key exists, then either it's a threat to be alerted or it should be enriched with the value associated with the key.
 
 As such, we have created this capability as a default threat intel and
 enrichment adapter.
