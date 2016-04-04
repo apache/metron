@@ -54,7 +54,7 @@ The other option is the STIX extractor or a fully qualified classname for your o
 The meta column values will show up in the value in HBase because it is called out as a non-indicator column.  The key
 for the value will be 'meta'.  For instance, given an input string of `123.45.123.12,something,the grapevine`, the following key, value
 would be extracted:
-* Indicator -- `123.45.123.12``
+* Indicator -- `123.45.123.12`
 * Type -- `malicious_ip`
 * Value -- `{ "source" : "the grapevine" }`
 
