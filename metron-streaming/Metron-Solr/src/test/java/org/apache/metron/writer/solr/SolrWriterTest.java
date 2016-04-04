@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -127,6 +126,13 @@ public class SolrWriterTest {
     writer.write("test", configurations, new ArrayList<Tuple>(), messages);
     verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "test", 100, 100.0)));
     verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "test", 200, 200.0)));
+    verify(solr, times(0)).commit(collection);
+
+    writer = new SolrWriter().withMetronSolrClient(solr).withShouldCommit(true);
+    writer.init(null, configurations);
+    writer.write("test", configurations, new ArrayList<Tuple>(), messages);
+    verify(solr, times(2)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "test", 100, 100.0)));
+    verify(solr, times(2)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "test", 200, 200.0)));
     verify(solr, times(1)).commit(collection);
 
   }

@@ -37,7 +37,13 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   private static final Logger LOG = Logger.getLogger(SolrWriter.class);
 
+  private boolean shouldCommit = false;
   private MetronSolrClient solr;
+
+  public SolrWriter withShouldCommit(boolean shouldCommit) {
+    this.shouldCommit = shouldCommit;
+    return this;
+  }
 
   public SolrWriter withMetronSolrClient(MetronSolrClient solr) {
     this.solr = solr;
@@ -65,7 +71,9 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
       }
       UpdateResponse response = solr.add(document);
     }
-    solr.commit(getCollection(configurations));
+    if (shouldCommit) {
+      solr.commit(getCollection(configurations));
+    }
   }
 
   protected String getCollection(Configurations configurations) {

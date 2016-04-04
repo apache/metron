@@ -140,6 +140,7 @@ public class SolrComponent implements InMemoryComponent {
     SolrQuery parameters = new SolrQuery();
     parameters.set("q", "*:*");
     try {
+      solr.commit();
       QueryResponse response = solr.query(parameters);
       for (SolrDocument solrDocument : response.getResults()) {
         docs.add(solrDocument);
