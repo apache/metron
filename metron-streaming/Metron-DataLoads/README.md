@@ -11,10 +11,7 @@ toward the following pattern:
 * Look up the field in a key/value store
 * If the key exists, then either it's a threat to be alerted or it should be enriched with the value associated with the key.
 
-As such, we have created this capability as a default threat intel and
-enrichment adapter.
-
-The basic primitive for simple enrichments and threat intelligence sources
+As such, we have created this capability as a default threat intel and enrichment adapter.  The basic primitive for simple enrichments and threat intelligence sources
 is a complex key containing the following:
 * Type : The type of threat intel or enrichment (e.g. malicious_ip)
 * Indicator : The indicator in question
