@@ -18,10 +18,10 @@
 package org.apache.metron.writer.interfaces;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.Configurations;
 
 public interface MessageWriter<T> extends AutoCloseable {
 
   void init();
-  void write(String sourceType, SourceConfig configuration, Tuple tuple, T message) throws Exception;
+  void write(String sensorType, Configurations configurations, Tuple tuple, T message) throws Exception;
 }

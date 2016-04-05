@@ -103,12 +103,7 @@ components:
                 args:
                     - ref: "fileNameFormat"
     -   id: "indexWriter"
-        className: "org.apache.metron.writer.ElasticsearchWriter"
-        constructorArgs:
-            - "${es.clustername}"
-            - "${es.ip}"
-            - ${es.port}
-            - "${index.date.format}"
+        className: "${writer.class.name}"
 
 #kafka/zookeeper
     -   id: "zkHosts"
@@ -139,7 +134,7 @@ spouts:
         configMethods:
             -   name: "withFilename"
                 args:
-                    - "SampleInput/YafExampleOutput"
+                    - "../Metron-Testing/src/main/resources/sample/data/SampleInput/YafExampleOutput"
             -   name: "withRepeating"
                 args:
                     - true
@@ -332,7 +327,6 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-
     -   name: "threatIntelJoin -> hdfs"
         from: "threatIntelJoinBolt"
         to: "hdfsIndexingBolt"

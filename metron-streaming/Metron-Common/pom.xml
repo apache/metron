@@ -175,6 +175,12 @@
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka</artifactId>
             <version>${global_storm_version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>org.apache.curator</artifactId>
+                    <groupId>curator-client</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

@@ -16,7 +16,14 @@
 #
 ---
 
-- name: Submit Metron topologies
-  command: storm jar {{ metron_directory }}/lib/{{ metron_jar_name }} org.apache.storm.flux.Flux  --filter {{ metron_properties_config_path }} --remote {{ item }}
+- name: Submit Solr Metron topologies
+  command: storm jar {{ metron_directory }}/lib/{{ metron_solr_jar_name }} org.apache.storm.flux.Flux  --filter {{ metron_solr_properties_config_path }} --remote {{ item }}
   with_items:
-    "{{ storm_topologies }}"
+      - "{{ storm_topologies }}"
+  when: install_solr | default(False) == True
+
+- name: Submit Elasticsearch Metron topologies
+  command: storm jar {{ metron_directory }}/lib/{{ metron_elasticsearch_jar_name }} org.apache.storm.flux.Flux  --filter {{ metron_elasticsearch_properties_config_path }} --remote {{ item }}
+  with_items:
+      - "{{ storm_topologies }}"
+  when: install_elasticsearch | default(False) == True

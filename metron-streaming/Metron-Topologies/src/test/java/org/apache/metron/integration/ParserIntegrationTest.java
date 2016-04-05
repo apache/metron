@@ -17,7 +17,6 @@
  */
 package org.apache.metron.integration;
 
-import com.google.common.base.Function;
 import org.apache.metron.Constants;
 import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
@@ -26,50 +25,38 @@ import org.apache.metron.integration.util.integration.Processor;
 import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
-import org.apache.metron.utils.SourceConfigUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.Nullable;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-public abstract class ParserIntegrationTest {
+public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
   public abstract String getFluxPath();
   public abstract String getSampleInputPath();
   public abstract String getSampleParsedPath();
-  public abstract String getSourceType();
-  public abstract String getSourceConfig();
+  public abstract String getSensorType();
   public abstract String getFluxTopicProperty();
 
   @Test
   public void test() throws Exception {
 
-    final String kafkaTopic = "test";
+    final String kafkaTopic = getSensorType();
 
     final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleInputPath());
 
     final Properties topologyProperties = new Properties() {{
       setProperty(getFluxTopicProperty(), kafkaTopic);
     }};
-    final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
+    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
-    }})
-            .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
-              @Nullable
-              @Override
-              public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-                topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
-                try {
-                  SourceConfigUtils.writeToZookeeper(getSourceType(), getSourceConfig().getBytes(), kafkaWithZKComponent.getZookeeperConnect());
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-                return null;
-              }
-            });
+    }});
 
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()

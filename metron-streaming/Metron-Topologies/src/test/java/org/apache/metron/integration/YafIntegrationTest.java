@@ -21,38 +21,22 @@ public class YafIntegrationTest extends ParserIntegrationTest {
 
   @Override
   public String getFluxPath() {
-    return "src/main/resources/Metron_Configs/topologies/yaf/test.yaml";
+    return "../Metron-Topologies/src/main/resources/Metron_Configs/topologies/yaf/test.yaml";
   }
 
   @Override
   public String getSampleInputPath() {
-    return "src/main/resources/SampleInput/YafExampleOutput";
+    return "../Metron-Testing/src/main/resources/sample/data/SampleInput/YafExampleOutput";
   }
 
   @Override
   public String getSampleParsedPath() {
-    return "src/main/resources/SampleParsed/YafExampleParsed";
+    return "../Metron-Testing/src/main/resources/sample/data/SampleParsed/YafExampleParsed";
   }
 
   @Override
-  public String getSourceType() {
+  public String getSensorType() {
     return "yaf";
-  }
-
-  @Override
-  public String getSourceConfig() {
-    return "{\"index\": \"yaf\"," +
-            " \"batchSize\": 5," +
-            " \"enrichmentFieldMap\":" +
-            "  {" +
-            "    \"geo\": [\"ip_src_addr\", \"ip_dst_addr\"]," +
-            "    \"host\": [\"ip_src_addr\", \"ip_dst_addr\"]" +
-            "  }," +
-            "  \"threatIntelFieldMap\":" +
-            "  {" +
-            "    \"ip\": [\"ip_src_addr\", \"ip_dst_addr\"]" +
-            "  }" +
-            "}";
   }
 
   @Override

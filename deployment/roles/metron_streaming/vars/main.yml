@@ -15,13 +15,23 @@
 #  limitations under the License.
 #
 ---
-metron_jar_name: Metron-Topologies-{{ metron_version }}.jar
-metron_jar_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_jar_name }}"
+metron_solr_jar_name: Metron-Solr-{{ metron_version }}.jar
+metron_elasticsearch_jar_name: Metron-Elasticsearch-{{ metron_version }}.jar
 metron_directory: /usr/metron/{{ metron_version }}
 metron_dataloads_name: Metron-DataLoads-{{ metron_version }}-archive.tar.gz
+metron_solr_bundle_name: Metron-Solr-{{ metron_version }}-archive.tar.gz
+metron_elasticsearch_bundle_name: Metron-Elasticsearch-{{ metron_version }}-archive.tar.gz
 metron_topologies_bundle_name: Metron-Topologies-{{ metron_version }}-archive.tar.gz
 metron_dataloads_path: "{{ playbook_dir }}/../../metron-streaming/Metron-DataLoads/target/{{ metron_dataloads_name }}"
+metron_solr_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Solr/target/{{ metron_solr_bundle_name }}"
+metron_elasticsearch_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Elasticsearch/target/{{ metron_elasticsearch_bundle_name }}"
 metron_topologies_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_topologies_bundle_name }}"
 metron_src_config_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs"
-metron_properties_config_path: "{{ metron_directory }}/config/etc/env/config.properties"
-
+metron_solr_properties_config_path: "{{ metron_directory }}/config/etc/env/solr.properties"
+metron_elasticsearch_properties_config_path: "{{ metron_directory }}/config/etc/env/elasticsearch.properties"
+elasticsearch_config_path: /etc/elasticsearch
+elasticsearch_cluster_name: metron
+elasticsearch_transport_port: 9300
+hbase_config_path: "/etc/hbase/conf"
+hdfs_config_path: "/etc/hadoop/conf"
+metron_hdfs_output_dir: "/apps/metron"

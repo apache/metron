@@ -29,8 +29,8 @@ public class ThreatIntelSplitterBolt extends EnrichmentSplitterBolt {
   }
 
   @Override
-  protected Map<String, List<String>> getFieldMap(String sourceType) {
-    return configurations.get(sourceType).getThreatIntelFieldMap();
+  protected Map<String, List<String>> getFieldMap(String sensorType) {
+    return configurations.getSensorEnrichmentConfig(sensorType).getThreatIntelFieldMap();
   }
 
   @Override

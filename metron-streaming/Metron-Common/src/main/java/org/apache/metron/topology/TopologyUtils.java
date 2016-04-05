@@ -22,7 +22,7 @@ import org.json.simple.JSONObject;
 
 public class TopologyUtils {
 
-  public static String getSourceType(JSONObject message) {
-    return (String) message.get(Constants.SOURCE_TYPE);
+  public static String getSensorType(JSONObject message) {
+    return (String) message.get(Constants.SENSOR_TYPE);
   }
 }

@@ -23,7 +23,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.Configurations;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.utils.ConfigUtils;
@@ -62,7 +62,7 @@ public abstract class HBaseWriter implements MessageWriter<JSONObject>, Serializ
   }
 
   @Override
-  public void write(String sourceType, SourceConfig configuration, Tuple tuple, JSONObject message) throws Exception {
+  public void write(String sourceType, Configurations configurations, Tuple tuple, JSONObject message) throws Exception {
     Put put = new Put(getKey(tuple, message));
     Map<String, byte[]> values = getValues(tuple, message);
     for(String column: values.keySet()) {
