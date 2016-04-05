@@ -131,12 +131,7 @@ components:
                     - ref: "hdfsRotationPolicy"
 
     -   id: "indexWriter"
-        className: "org.apache.metron.writer.ElasticsearchWriter"
-        constructorArgs:
-            - "${es.clustername}"
-            - "${es.ip}"
-            - ${es.port}
-            - "yyyy.MM.dd.hh"
+        className: "${writer.class.name}"
 
 #kafka/zookeeper
     -   id: "zkHosts"

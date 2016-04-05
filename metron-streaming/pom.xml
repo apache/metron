@@ -47,6 +47,8 @@
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
+		<global_solr_version>5.2.1</global_solr_version>
+		<global_mockito_version>1.9.5</global_mockito_version>
 	</properties>
 	<licenses>
 		<license>
@@ -75,6 +77,8 @@
 		<module>Metron-DataLoads</module>
 		<module>Metron-Topologies</module>
 		<module>Metron-Pcap_Service</module>
+		<module>Metron-Elasticsearch</module>
+		<module>Metron-Solr</module>
 		<module>Metron-Testing</module>
 	</modules>
 	<dependencies>
@@ -137,7 +141,9 @@
 						<exclude>**/*.json</exclude>
 						<exclude>**/*.log</exclude>
 						<exclude>**/src/main/resources/patterns/**</exclude>
-						<exclude>**/src/main/resources/SampleInput/**</exclude>
+						<exclude>**/src/main/resources/sample/data/SampleIndexed/**</exclude>
+						<exclude>**/src/main/resources/sample/data/SampleInput/**</exclude>
+						<exclude>**/src/main/resources/sample/data/SampleParsed/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
 					</excludes>
 				</configuration>

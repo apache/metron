@@ -76,6 +76,10 @@ pcapservice_port: 8081
 
 #Search
 install_elasticsearch: True
+install_solr: False
+solr_collection_name: Metron
+solr_number_shards: 1
+solr_replication_factor: 1
 elasticsearch_transport_port: 9300
 elasticsearch_network_interface: eth1
 elasticsearch_web_port: 9200

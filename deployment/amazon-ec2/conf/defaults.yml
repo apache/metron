@@ -42,11 +42,6 @@ threatintel_ip_hbase_table: malicious_ip
 num_partitions: 3
 retention_in_gb: 25
 
-# elasticsearch
-elasticsearch_transport_port: 9300
-elasticsearch_network_interface: eth0
-elasticsearch_web_port: 9200
-
 # metron variables
 metron_version: 0.1BETA
 java_home: /usr/jdk64/jdk1.8.0_40
@@ -74,3 +69,10 @@ jhs_recovery_store_ldb_path: "/data1/hadoop/mapreduce/jhs"
 storm_local_dir: "/data1/hadoop/storm"
 kafka_log_dirs: "/data2/kafka-log"
 elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
+
+#Search
+install_elasticsearch: True
+install_solr: False
+elasticsearch_transport_port: 9300
+elasticsearch_network_interface: eth1
+elasticsearch_web_port: 9200

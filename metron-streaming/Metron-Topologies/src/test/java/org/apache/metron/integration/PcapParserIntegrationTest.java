@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,6 @@
  */
 package org.apache.metron.integration;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -28,6 +27,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
+import org.apache.metron.Constants;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
@@ -42,13 +42,16 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-public class PcapParserIntegrationTest {
+public class PcapParserIntegrationTest extends BaseIntegrationTest {
 
   private static String BASE_DIR = "pcap";
   private static String DATA_DIR = BASE_DIR + "/data_dir";
@@ -57,7 +60,8 @@ public class PcapParserIntegrationTest {
   private String targetDir = "target";
 
   public static class Provider implements TableProvider, Serializable {
-    MockHTable.Provider  provider = new MockHTable.Provider();
+    MockHTable.Provider provider = new MockHTable.Provider();
+
     @Override
     public HTableInterface getTable(Configuration config, String tableName) throws IOException {
       return provider.getTable(config, tableName);
@@ -80,8 +84,9 @@ public class PcapParserIntegrationTest {
     }
     return outDir;
   }
+
   private static void clearOutDir(File outDir) {
-    for(File f : outDir.listFiles()) {
+    for (File f : outDir.listFiles()) {
       f.delete();
     }
   }
@@ -89,13 +94,13 @@ public class PcapParserIntegrationTest {
   private static Map<String, byte[]> readPcaps(Path pcapFile) throws IOException {
     SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
             Reader.file(pcapFile)
-            );
+    );
     Map<String, byte[]> ret = new HashMap<>();
     IntWritable key = new IntWritable();
     BytesWritable value = new BytesWritable();
     PcapParser parser = new PcapParser();
     parser.init();
-    while(reader.next(key, value)) {
+    while (reader.next(key, value)) {
       int keyInt = key.get();
       byte[] valueBytes = value.copyBytes();
       JSONObject message = parser.parse(valueBytes).get(0);
@@ -124,29 +129,19 @@ public class PcapParserIntegrationTest {
     File baseDir = new File(new File(targetDir), BASE_DIR);
     Assert.assertNotNull(topologiesDir);
     Assert.assertNotNull(targetDir);
-    Path pcapFile = new Path(topologiesDir + "/../../SampleInput/PCAPExampleOutput");
+    Path pcapFile = new Path("../Metron-Testing/src/main/resources/sample/data/SampleInput/PCAPExampleOutput");
     final Map<String, byte[]> pcapEntries = readPcaps(pcapFile);
     Assert.assertTrue(Iterables.size(pcapEntries.keySet()) > 0);
     final Properties topologyProperties = new Properties() {{
-      setProperty("hbase.provider.impl","" + Provider.class.getName());
+      setProperty("hbase.provider.impl", "" + Provider.class.getName());
       setProperty("spout.kafka.topic.pcap", kafkaTopic);
-      setProperty("bolt.hbase.table.name",tableName);
+      setProperty("bolt.hbase.table.name", tableName);
       setProperty("bolt.hbase.table.fields", columnFamily + ":" + columnIdentifier);
     }};
-    final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
+    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
-    }})
-            .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
-                                     @Nullable
-                                     @Override
-                                     public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-
-                                       topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
-                                       return null;
-                                     }
-                                   }
-            );
-    //.withExistingZookeeper("localhost:2000");
+      add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+    }});
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(topologiesDir + "/pcap/test.yaml"))
@@ -154,7 +149,7 @@ public class PcapParserIntegrationTest {
             .withTopologyProperties(topologyProperties)
             .build();
 
-    final MockHTable pcapTable = (MockHTable)MockHTable.Provider.addToCache(tableName, columnFamily);
+    final MockHTable pcapTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
 
     UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
@@ -166,7 +161,6 @@ public class PcapParserIntegrationTest {
             .build();
     try {
       runner.start();
-      System.out.println("Components started...");
       fluxComponent.submitTopology();
       kafkaComponent.writeMessages(kafkaTopic, pcapEntries.values());
       System.out.println("Sent pcap data: " + pcapEntries.size());
@@ -178,8 +172,9 @@ public class PcapParserIntegrationTest {
         public ReadinessState process(ComponentRunner runner) {
           int hbaseCount = 0;
           try {
+            System.out.println("Waiting...");
             ResultScanner resultScanner = pcapTable.getScanner(columnFamily.getBytes(), columnIdentifier.getBytes());
-            while(resultScanner.next() != null) hbaseCount++;
+            while (resultScanner.next() != null) hbaseCount++;
           } catch (IOException e) {
             e.printStackTrace();
           }
@@ -198,7 +193,7 @@ public class PcapParserIntegrationTest {
       ResultScanner resultScanner = pcapTable.getScanner(columnFamily.getBytes(), columnIdentifier.getBytes());
       Result result;
       int rowCount = 0;
-      while((result = resultScanner.next()) != null) {
+      while ((result = resultScanner.next()) != null) {
         String rowKey = new String(result.getRow());
         byte[] hbaseValue = result.getValue(columnFamily.getBytes(), columnIdentifier.getBytes());
         byte[] originalValue = pcapEntries.get(rowKey);
@@ -208,8 +203,7 @@ public class PcapParserIntegrationTest {
       }
       Assert.assertEquals(pcapEntries.size(), rowCount);
       System.out.println("Ended");
-    }
-    finally {
+    } finally {
       runner.stop();
       clearOutDir(outDir);
       clearOutDir(queryDir);

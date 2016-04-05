@@ -41,9 +41,16 @@
   vars:
     es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
   roles:
-    - role: elasticsearch
+    - { role: elasticsearch, when: install_elasticsearch | default(True) == True }
   tags:
-    - elasticsearch
+    - search
+
+- hosts: search
+  become: true
+  roles:
+    - { role: solr, when: install_solr | default(False) == True  }
+  tags:
+    - search
 
 - hosts: mysql
   become: true
@@ -82,7 +89,7 @@
 - hosts: web
   become: true
   roles:
-    - role: metron_ui
-    - role: metron_pcapservice
+    - { role: metron_ui, when: install_elasticsearch | default(True) == True }
+    - { role: metron_pcapservice, when: install_elasticsearch | default(True) == True }
   tags:
     - web

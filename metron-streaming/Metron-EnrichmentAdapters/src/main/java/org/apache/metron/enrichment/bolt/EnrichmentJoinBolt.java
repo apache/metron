@@ -25,7 +25,11 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
 
@@ -51,7 +55,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   @Override
   public Set<String> getStreamIds(JSONObject message) {
     Set<String> streamIds = new HashSet<>();
-    String sourceType = TopologyUtils.getSourceType(message);
+    String sourceType = TopologyUtils.getSensorType(message);
     for (String enrichmentType : getFieldMap(sourceType).keySet()) {
       streamIds.add(enrichmentType);
     }
@@ -81,7 +85,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
     return message;
   }
 
-  public Map<String, List<String>> getFieldMap(String sourceType) {
-    return configurations.get(sourceType).getEnrichmentFieldMap();
+  protected Map<String, List<String>> getFieldMap(String sensorType) {
+    return configurations.getSensorEnrichmentConfig(sensorType).getEnrichmentFieldMap();
   }
 }
