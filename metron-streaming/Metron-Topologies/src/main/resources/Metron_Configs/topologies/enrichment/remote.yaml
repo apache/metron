@@ -113,6 +113,12 @@ components:
             -   name: "withPath"
                 args:
                     - "${index.hdfs.output}"
+
+    -   id: "hdfsRotationPolicy"
+        className: "${bolt.hdfs.rotation.policy}"
+        constructorArgs:
+          -  ${bolt.hdfs.rotation.policy.count}
+          - "${bolt.hdfs.rotation.policy.units}"
 #indexing
     -   id: "hdfsWriter"
         className: "org.apache.metron.writer.hdfs.HdfsWriter"
@@ -120,6 +126,10 @@ components:
             -   name: "withFileNameFormat"
                 args:
                     - ref: "fileNameFormat"
+            -   name: "withRotationPolicy"
+                args:
+                    - ref: "hdfsRotationPolicy"
+
     -   id: "indexWriter"
         className: "org.apache.metron.writer.ElasticsearchWriter"
         constructorArgs:

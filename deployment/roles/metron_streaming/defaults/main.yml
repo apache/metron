@@ -34,3 +34,13 @@ storm_topologies:
     - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
     - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
+
+elasticsearch_config_path: /etc/elasticsearch
+elasticsearch_cluster_name: metron
+elasticsearch_transport_port: 9300
+hbase_config_path: "/etc/hbase/conf"
+hdfs_config_path: "/etc/hadoop/conf"
+metron_hdfs_output_dir: "/apps/metron"
+metron_hdfs_rotation_policy: org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
+metron_hdfs_rotation_policy_count: 1
+metron_hdfs_rotation_policy_units: DAYS
