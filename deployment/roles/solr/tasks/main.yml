@@ -53,6 +53,14 @@
     owner: "{{ solr_user }}"
     group: "{{ solr_user }}"
 
+- name: Create solrconfig.xml from template
+  template:
+    src: solrconfig.xml
+    dest: "{{ solr_config_dir }}"
+    mode: 0644
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user }}"
+
 - name: Start Solr
   service:
     name: solr

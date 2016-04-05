@@ -24,5 +24,6 @@ solr_bin_dir: "/opt/lucidworks-hdpsearch/solr/bin"
 solr_config_name: "metron_conf"
 solr_number_shards: "{{ groups['search'] | length }}"
 solr_replication_factor: 1
+solr_autoSoftCommit_maxTime: 60
 solr_cmd: "{{ solr_bin_dir}}/solr create_collection -c  {{ solr_collection_name }} -d {{ solr_config_dir }} -n {{ solr_config_name }} -shards {{ solr_number_shards }} -replicationFactor {{ solr_replication_factor }}"
 hdp_utils_repo_path: /etc/yum.repos.d/HDP-UTILS.repo
