@@ -81,7 +81,8 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
       sensorMessageMap.put(sensorType, messageList);
     } else {
       try {
-        bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
+        String esType = sensorType + "_doc";
+        bulkMessageWriter.write(esType, configurations, tupleList, messageList);
         for(Tuple t: tupleList) {
           collector.ack(t);
         }
