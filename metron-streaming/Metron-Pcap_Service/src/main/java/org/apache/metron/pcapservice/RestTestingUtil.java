@@ -223,6 +223,80 @@ public class RestTestingUtil {
 
   }
 
+  private static void getPcapsByIdentifiers(String srcIp, String dstIp, String protocol, String srcPort, String dstPort) {
+    System.out
+            .println("**********************getPcapsByKeysRange ******************************************************************************************");
+    // 1.
+    String url = "http://" + hostName
+            + "/pcapGetter/getPcapsByIdentifiers?srcIp={srcIp}"
+            + "&dstIp={dstIp}" + "&protocol={protocol}" + "&srcPort={srcPort}"
+            + "&dstPort={dstPort}";
+    // default values
+    String startTime = "-1";
+    String endTime = "-1";
+    String maxResponseSize = "6";
+    @SuppressWarnings("rawtypes")
+    Map map = new HashMap();
+    map.put("srcIp", srcIp);
+    map.put("dstIp", dstIp);
+    map.put("protocol", protocol);
+    map.put("srcPort", srcPort);
+    map.put("dstPort", dstPort);
+
+    RestTemplate template = new RestTemplate();
+
+    // set headers and entity to send
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Accept", MediaType.APPLICATION_OCTET_STREAM_VALUE);
+    HttpEntity<Object> requestEntity = new HttpEntity<Object>(headers);
+
+    // 1.
+    ResponseEntity<byte[]> response1 = template.exchange(url, HttpMethod.GET,
+            requestEntity, byte[].class, map);
+    System.out
+            .println("----------------------------------------------------------------------------------------------------");
+    System.out
+            .format(
+                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
+                    srcIp, dstIp, protocol, endTime, srcPort, dstPort, response1);
+    System.out
+            .println("----------------------------------------------------------------------------------------------------");
+    System.out.println();
+
+    // 2. with time range
+    startTime = System.getProperty("startTime", "-1");
+    endTime = System.getProperty("endTime", "-1");
+    map.put("startTime", startTime);
+    map.put("endTime", endTime);
+    ResponseEntity<byte[]> response2 = template.exchange(url, HttpMethod.GET,
+            requestEntity, byte[].class, map);
+    System.out
+            .println("----------------------------------------------------------------------------------------------------");
+    System.out
+            .format(
+                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
+                    srcIp, dstIp, protocol, endTime, srcPort, dstPort, response2);
+    System.out
+            .println("----------------------------------------------------------------------------------------------------");
+    System.out.println();
+
+    // 3. with maxResponseSize
+    maxResponseSize = System.getProperty("maxResponseSize", "6");
+    map.put("maxResponseSize", maxResponseSize);
+    ResponseEntity<byte[]> response3 = template.exchange(url, HttpMethod.GET,
+            requestEntity, byte[].class, map);
+    System.out
+            .println("----------------------------------------------------------------------------------------------------");
+    System.out
+            .format(
+                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
+                    srcIp, dstIp, protocol, endTime, srcPort, dstPort, response3);
+    System.out
+            .println("----------------------------------------------------------------------------------------------------");
+    System.out.println();
+
+  }
+
   /**
    * The main method.
    * 

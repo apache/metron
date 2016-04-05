@@ -40,7 +40,6 @@
 					<exclude>**/VERSION</exclude>
 					<exclude>**/*.json</exclude>
 					<exclude>**/*.log</exclude>
-					<exclude>**/*.ldif</exclude>
 					<exclude>**/*.template</exclude>
 					<exclude>**/.*</exclude>
 					<exclude>**/.*/**</exclude>
@@ -48,7 +47,32 @@
 					<exclude>**/*.iml</exclude>
 					<exclude>**/ansible.cfg</exclude>
 					<exclude>site/**</exclude>
-					<exclude>metron-ui/lib/public/**</exclude>
+          <exclude>metron-ui/lib/public/css/normalize.min.css</exclude>
+          <exclude>metron-ui/lib/public/app/panels/pcap/lib/showdown.js</exclude>
+          <!-- 3rd party bundled javascript dependencies -->
+          <exclude>metron-ui/lib/public/vendor/**</exclude>
+          <!-- Kibana panels copied from kibana and bundled -->
+          <exclude>metron-ui/lib/public/app/panels/dashcontrol/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/filtering/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/histogram/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/hits/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/map/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/query/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/sparklines/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/table/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/terms/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/text/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/timepicker/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/trends/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/bettermap/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/column/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/derivequeries/**</exclude>
+          <exclude>metron-ui/lib/public/app/panels/stats/**</exclude>
+          <exclude>metron-ui/lib/public/app/partials/**</exclude>
+          <exclude>metron-ui/lib/public/app/services/**</exclude>
+          <!-- fontawesome fonts are declared in the license, so we can exclude here -->
+          <exclude>metron-ui/lib/public/css/font-awesome.min.css</exclude>
+          <exclude>metron-ui/lib/public/font/**</exclude>
 					<exclude>**/src/main/resources/patterns/**</exclude>
 					<exclude>**/src/test/resources/**</exclude>
 					<exclude>**/src/main/resources/Sample*/**</exclude>

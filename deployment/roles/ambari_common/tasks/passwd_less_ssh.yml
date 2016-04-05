@@ -24,10 +24,9 @@
 - name: Add key pairs to existing authorized_keys
   authorized_key: user={{ ambari_user }} key="{{ lookup('file', '/tmp/keys/{{ item }}.pub') }}"
   with_items:
-    play_hosts
+    - "{{ play_hosts }}"
 
-#ambari_common.hosts
 - name: Remove local copy of ssh keys
   local_action: file path=/tmp/keys/{{ inventory_hostname }}.pub state=absent
-  sudo: False
+  become: False
 

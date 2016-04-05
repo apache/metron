@@ -1,3 +1,8 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
 #  (the "License"); you may not use this file except in compliance with
 #  the License.  You may obtain a copy of the License at
 #
@@ -10,9 +15,9 @@
 #  limitations under the License.
 #
 ---
-- name: Expand {{ volume }} volume
+- name: "Expand {{ vol_src }} volume"
 #          sectors  delete 1  new      primary  first    past mbr to end  bootable     write and exit
-  shell: "(echo u s; echo d 1; echo n; echo p; echo 1; echo 2048 ; echo ;echo a; echo 1; echo w) | fdisk {{ volume }} || true"
+  shell: "(echo u s; echo d 1; echo n; echo p; echo 1; echo 2048 ; echo ;echo a; echo 1; echo w) | fdisk {{ vol_src }} || true"
   args:
     executable: /bin/bash
 
@@ -22,6 +27,4 @@
   poll: 0
   ignore_errors: True
 
-- name: Wait for connectivity to host(s)
-  local_action: wait_for host={{ inventory_hostname }} state=started
-  become: False
+- include: tasks/check-hosts.yml

@@ -62,7 +62,7 @@ exports = module.exports = function(app, config) {
   }
 
   app.get('/pcap/:command', function(req, res) {
-    if (!req.user || !req.user.permissions.pcap) {
+    if (config.auth && (!req.user || !req.user.permissions.pcap)) {
       res.send(403, 'Forbidden!');
       return;
     }
@@ -72,6 +72,16 @@ exports = module.exports = function(app, config) {
     pcapUrl += '?' + querystring.stringify(req.query);
 
     var curl = spawn('curl', ['-s', pcapUrl]);
+
+    if (true) {
+      res.set('Content-Type', 'application/cap');
+      var fileName = req.query.srcIp + "-" + req.query.dstIp + '-' + req.query.srcPort + '-' + req.query.dstPort + '-' + req.query.protocol + '-' + req.query.includeReverseTraffic;
+      fileName = fileName.replace(/\./g, '_');
+      res.set('Content-Disposition', 'attachment; filename="' + fileName + '.pcap"');
+      curl.stdout.pipe(res);
+      return;
+    }
+
     var tshark = spawn('tshark', ['-i', '-', '-T', 'pdml']);
     var xml = new XmlStream(tshark.stdout);
 

@@ -21,7 +21,7 @@
     - include_vars: ../amazon-ec2/conf/defaults.yml
   tags:
     - ec2
-    
+
 - hosts: metron
   become: true
   roles:
@@ -32,7 +32,6 @@
 - hosts: hadoop_client
   become: true
   roles:
-    - role: ambari_gather_facts
     - role: hadoop_setup
   tags:
     - metron-prereqs
@@ -60,11 +59,9 @@
   tags:
     - mysql-client
 
-
 - hosts: sensors
   become: true
   roles:
-    - role: ambari_gather_facts
     - { role: tap_interface, when: install_tap | default(False) == True }
     - { role: pycapa, when: install_pycapa | default(True) == True }
     - { role: bro, when: install_bro | default(True) == True }
@@ -78,7 +75,6 @@
 - hosts: enrichment
   become: true
   roles:
-    - role: ambari_gather_facts
     - role: metron_streaming
   tags:
     - enrichment
@@ -86,7 +82,6 @@
 - hosts: web
   become: true
   roles:
-    - role: ambari_gather_facts
     - role: metron_ui
     - role: metron_pcapservice
   tags:

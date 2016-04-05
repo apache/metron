@@ -15,16 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Install EPEL repository
-  yum: name=epel-release
-
-- name: Install pip
-  yum: name=python-pip
-
-- name: Install python httplib2 dependency
-  pip:
-    name: httplib2
-
 - name: Ambari rest get cluster name
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters"

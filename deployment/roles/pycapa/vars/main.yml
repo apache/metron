@@ -16,5 +16,8 @@
 #
 ---
 pycapa_repo: https://github.com/OpenSOC/pycapa.git
-pycapa_home: /opt/pycapa
+pycapa_home: /usr/local/pycapa
+pycapa_main: "{{ pycapa_home }}/pycapa/pycapa_cli.py"
+pycapa_log: /var/log/pycapa.log
 pycapa_topic: pcap
+pycapa_sniff_interface: "{{ sniff_interface }}"

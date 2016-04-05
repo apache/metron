@@ -27,23 +27,38 @@
     - include: tasks/create-open-inbound-security-group.yml
     - include: tasks/create-open-outbound-security-group.yml
     - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2
-    - include: tasks/create-hosts.yml host_count=5 host_type=ambari_slave,ec2
+    - include: tasks/create-hosts.yml host_count=4 host_type=ambari_slave,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,hadoop_client,metron,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
-    - include: tasks/create-hosts.yml host_count=3 host_type=search,metron,ec2
+    - include: tasks/create-hosts.yml host_count=2 host_type=search,metron,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2
   tags:
     - ec2
 
 #
+# wait for all ec2 hosts to come up
+#
+- hosts: ec2
+  become: True
+  vars_files:
+    - conf/defaults.yml
+  gather_facts: False
+  tasks:
+    - include: tasks/check-hosts.yml
+  tags:
+    - ec2
+    - wait
+#
 # mount additional data volumes on all ec2 hosts
 #
 - hosts: ec2
   become: True
+  vars_files:
+    - conf/defaults.yml
   tasks:
     - include: tasks/mount-volume.yml vol_src=/dev/xvdb vol_mnt=/data1
     - include: tasks/mount-volume.yml vol_src=/dev/xvdc vol_mnt=/data2
-    - include: tasks/expand-volume.yml volume=/dev/xvda
+    - include: tasks/check-volume.yml vol_name=xvda vol_src=/dev/xvda vol_size={{ xvda_vol_size }}
   tags:
     - ec2
 
@@ -51,3 +66,14 @@
 # build the metron cluster
 #
 - include: ../playbooks/metron_full_install.yml
+
+#
+# provisioning report
+#
+- hosts: localhost
+  vars_files:
+    - conf/defaults.yml
+  tasks:
+    - include: tasks/provisioning-report.yml
+  tags:
+    - ec2
