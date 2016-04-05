@@ -24,9 +24,4 @@ metron_dataloads_path: "{{ playbook_dir }}/../../metron-streaming/Metron-DataLoa
 metron_topologies_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_topologies_bundle_name }}"
 metron_src_config_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/src/main/resources/Metron_Configs"
 metron_properties_config_path: "{{ metron_directory }}/config/etc/env/config.properties"
-elasticsearch_config_path: /etc/elasticsearch
-elasticsearch_cluster_name: metron
-elasticsearch_transport_port: 9300
-hbase_config_path: "/etc/hbase/conf"
-hdfs_config_path: "/etc/hadoop/conf"
-metron_hdfs_output_dir: "/apps/metron"
+
