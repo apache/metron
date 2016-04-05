@@ -17,15 +17,32 @@
 ---
 - name: Create Source Config Directory
   file:
-    path: "{{ source_config_path }}"
+    path: "{{ zookeeper_config_path }}"
     state: directory
 
-- name: Copy Source Config Files
+- name: Copy Elasticsearch Global Config File
+  template:
+    src: "templates/config/elasticsearch.global.json"
+    dest: "{{ zookeeper_global_config_path }}"
+    mode: 0644
+  when: install_elasticsearch | default(False) == True
+
+- name: Copy Solr Global Config File
+  template:
+    src: "../roles/metron_streaming/templates/config/solr.global.json"
+    dest: "{{ zookeeper_global_config_path }}"
+    mode: 0644
+  when: install_solr | default(False) == True
+
+- name: Copy Sensor Config Files
   copy:
     src: "{{ item }}"
-    dest: "{{ source_config_path }}"
+    dest: "{{ zookeeper_config_path }}"
     mode: 0644
-  with_fileglob:
-    - ../roles/metron_streaming/files/source/*.json
-  notify: Load Source Config
+  with_items:
+    - ../roles/metron_streaming/files/config/
+  notify: Load Config
+
+
+
 

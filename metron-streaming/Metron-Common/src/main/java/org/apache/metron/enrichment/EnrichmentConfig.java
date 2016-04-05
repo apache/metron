@@ -21,8 +21,8 @@ package org.apache.metron.enrichment;
 import com.google.common.base.Joiner;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.Constants;
-import org.apache.metron.domain.SourceConfig;
-import org.apache.metron.domain.SourceConfigUtils;
+import org.apache.metron.domain.SensorEnrichmentConfig;
+import org.apache.metron.utils.ConfigurationsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +76,7 @@ public class EnrichmentConfig {
   }
 
   public void updateSensorConfigs( ) throws Exception {
-    CuratorFramework client = SourceConfigUtils.getClient(getZkQuorum());
+    CuratorFramework client = ConfigurationsUtils.getClient(getZkQuorum());
     try {
       client.start();
       updateSensorConfigs(new ZKSourceConfigHandler(client), sensorToFieldList);
@@ -87,8 +87,8 @@ public class EnrichmentConfig {
   }
 
   public static interface SourceConfigHandler {
-    SourceConfig readConfig(String sensor) throws Exception;
-    void persistConfig(String sensor, SourceConfig config) throws Exception;
+    SensorEnrichmentConfig readConfig(String sensor) throws Exception;
+    void persistConfig(String sensor, SensorEnrichmentConfig config) throws Exception;
   }
 
   public static class ZKSourceConfigHandler implements SourceConfigHandler {
@@ -97,13 +97,13 @@ public class EnrichmentConfig {
       this.client = client;
     }
     @Override
-    public SourceConfig readConfig(String sensor) throws Exception {
-      return SourceConfigUtils.readConfigFromZookeeper(client, sensor);
+    public SensorEnrichmentConfig readConfig(String sensor) throws Exception {
+      return SensorEnrichmentConfig.fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(sensor, client));
     }
 
     @Override
-    public void persistConfig(String sensor, SourceConfig config) throws Exception {
-      SourceConfigUtils.writeToZookeeper(client, sensor, config.toJSON().getBytes());
+    public void persistConfig(String sensor, SensorEnrichmentConfig config) throws Exception {
+      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensor, config.toJSON().getBytes(), client);
     }
   }
 
@@ -111,9 +111,9 @@ public class EnrichmentConfig {
                                         , Map<String, FieldList> sensorToFieldList
                                         ) throws Exception
   {
-    Map<String, SourceConfig> sourceConfigsChanged = new HashMap<>();
+    Map<String, SensorEnrichmentConfig> sourceConfigsChanged = new HashMap<>();
     for (Map.Entry<String, FieldList> kv : sensorToFieldList.entrySet()) {
-      SourceConfig config = sourceConfigsChanged.get(kv.getKey());
+      SensorEnrichmentConfig config = sourceConfigsChanged.get(kv.getKey());
       if(config == null) {
         config = scHandler.readConfig(kv.getKey());
         if(_LOG.isDebugEnabled()) {
@@ -195,7 +195,7 @@ public class EnrichmentConfig {
         }
       }
     }
-    for(Map.Entry<String, SourceConfig> kv : sourceConfigsChanged.entrySet()) {
+    for(Map.Entry<String, SensorEnrichmentConfig> kv : sourceConfigsChanged.entrySet()) {
       scHandler.persistConfig(kv.getKey(), kv.getValue());
     }
   }

@@ -17,14 +17,14 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.SensorEnrichmentConfig;
 
 public class CacheKey {
   private String field;
   private String value;
-  private SourceConfig config;
+  private SensorEnrichmentConfig config;
 
-  public CacheKey(String field, String value, SourceConfig config) {
+  public CacheKey(String field, String value, SensorEnrichmentConfig config) {
     this.field = field;
     this.value = value;
     this.config = config;
@@ -38,7 +38,7 @@ public class CacheKey {
     return value;
   }
 
-  public SourceConfig getConfig() {
+  public SensorEnrichmentConfig getConfig() {
     return config;
   }
 

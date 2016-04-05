@@ -1,0 +1,6 @@
+{
+  "solr.zookeeper": "{{ zookeeper_url }}",
+  "solr.collection": "{{ solr_collection_name }}",
+  "solr.numShards": {{ solr_number_shards }},
+  "solr.replicationFactor": {{ solr_replication_factor }}
+}

@@ -32,7 +32,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
-import org.apache.metron.domain.SourceConfigUtils;
 import org.apache.metron.enrichment.EnrichmentConfig;
 import org.apache.metron.utils.JSONUtils;
 

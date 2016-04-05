@@ -22,9 +22,8 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
 import org.apache.metron.Constants;
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.helpers.topology.ErrorUtils;
 import org.apache.metron.topology.TopologyUtils;
 import org.apache.metron.writer.interfaces.BulkMessageWriter;
@@ -36,14 +35,12 @@ import java.util.*;
 
 public class BulkMessageWriterBolt extends ConfiguredBolt {
 
-  int count = 0;
-
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
   private OutputCollector collector;
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
-  private Map<String, List<Tuple>> sourceTupleMap = new HashMap<>();
-  private Map<String, List<JSONObject>> sourceMessageMap = new HashMap<>();
+  private Map<String, List<Tuple>> sensorTupleMap = new HashMap<>();
+  private Map<String, List<JSONObject>> sensorMessageMap = new HashMap<>();
 
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -58,7 +55,11 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     super.prepare(stormConf, context, collector);
-    bulkMessageWriter.init(stormConf);
+    try {
+      bulkMessageWriter.init(stormConf, configurations);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -66,23 +67,22 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
   public void execute(Tuple tuple) {
     JSONObject message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
     message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
-    String sourceType = TopologyUtils.getSourceType(message);
-    SourceConfig configuration = configurations.get(sourceType);
-    int batchSize = configuration != null ? configuration.getBatchSize() : 1;
-    List<Tuple> tupleList = sourceTupleMap.get(sourceType);
+    String sensorType = TopologyUtils.getSensorType(message);
+    SensorEnrichmentConfig sensorEnrichmentConfig = configurations.getSensorEnrichmentConfig(sensorType);
+    int batchSize = sensorEnrichmentConfig != null ? sensorEnrichmentConfig.getBatchSize() : 1;
+    List<Tuple> tupleList = sensorTupleMap.get(sensorType);
     if (tupleList == null) tupleList = new ArrayList<>();
     tupleList.add(tuple);
-    List<JSONObject> messageList = sourceMessageMap.get(sourceType);
+    List<JSONObject> messageList = sensorMessageMap.get(sensorType);
     if (messageList == null) messageList = new ArrayList<>();
     messageList.add(message);
     if (messageList.size() < batchSize) {
-      sourceTupleMap.put(sourceType, tupleList);
-      sourceMessageMap.put(sourceType, messageList);
+      sensorTupleMap.put(sensorType, tupleList);
+      sensorMessageMap.put(sensorType, messageList);
     } else {
       try {
-
-        String esType = sourceType + "_doc";
-        bulkMessageWriter.write(esType, configuration, tupleList, messageList);
+        String esType = sensorType + "_doc";
+        bulkMessageWriter.write(esType, configurations, tupleList, messageList);
         for(Tuple t: tupleList) {
           collector.ack(t);
         }
@@ -92,8 +92,8 @@ public class BulkMessageWriterBolt extends ConfiguredBolt {
         }
         ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
       }
-      sourceTupleMap.remove(sourceType);
-      sourceMessageMap.remove(sourceType);
+      sensorTupleMap.remove(sensorType);
+      sensorMessageMap.remove(sensorType);
     }
   }
 

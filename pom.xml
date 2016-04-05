@@ -19,70 +19,72 @@
 	code base of Metron.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.apache.metron</groupId>
-	<artifactId>Metron</artifactId>
-	<version>0.1BETA</version>
-	<packaging>pom</packaging>
-	<name>Metron</name>
-	<description>Performs release auditing for Metron.</description>
-	<url>https://metron.incubator.apache.org/</url>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.rat</groupId>
-				<artifactId>apache-rat-plugin</artifactId>
-				<version>0.11</version>
-				<configuration>
-				<excludes>
-					<exclude>**/README.md</exclude>
-					<exclude>**/VERSION</exclude>
-					<exclude>**/*.json</exclude>
-					<exclude>**/*.log</exclude>
-					<exclude>**/*.template</exclude>
-					<exclude>**/.*</exclude>
-					<exclude>**/.*/**</exclude>
-					<exclude>**/*.seed</exclude>
-					<exclude>**/*.iml</exclude>
-					<exclude>**/ansible.cfg</exclude>
-					<exclude>site/**</exclude>
-          <exclude>metron-ui/lib/public/css/normalize.min.css</exclude>
-          <exclude>metron-ui/lib/public/app/panels/pcap/lib/showdown.js</exclude>
-          <!-- 3rd party bundled javascript dependencies -->
-          <exclude>metron-ui/lib/public/vendor/**</exclude>
-          <!-- Kibana panels copied from kibana and bundled -->
-          <exclude>metron-ui/lib/public/app/panels/dashcontrol/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/filtering/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/histogram/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/hits/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/map/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/query/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/sparklines/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/table/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/terms/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/text/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/timepicker/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/trends/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/bettermap/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/column/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/derivequeries/**</exclude>
-          <exclude>metron-ui/lib/public/app/panels/stats/**</exclude>
-          <exclude>metron-ui/lib/public/app/partials/**</exclude>
-          <exclude>metron-ui/lib/public/app/services/**</exclude>
-          <!-- fontawesome fonts are declared in the license, so we can exclude here -->
-          <exclude>metron-ui/lib/public/css/font-awesome.min.css</exclude>
-          <exclude>metron-ui/lib/public/font/**</exclude>
-					<exclude>**/src/main/resources/patterns/**</exclude>
-					<exclude>**/src/test/resources/**</exclude>
-					<exclude>**/src/main/resources/Sample*/**</exclude>
-					<exclude>**/dependency-reduced-pom.xml</exclude>
-				        <exclude>**/files/opensoc-ui</exclude>
-					<exclude>**/target/**</exclude>
-					<exclude>**/bro-plugin-kafka/build/**</exclude>
-				</excludes>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.apache.metron</groupId>
+    <artifactId>Metron</artifactId>
+    <version>0.1BETA</version>
+    <packaging>pom</packaging>
+    <name>Metron</name>
+    <description>Performs release auditing for Metron.</description>
+    <url>https://metron.incubator.apache.org/</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <version>0.11</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/README.md</exclude>
+                        <exclude>**/VERSION</exclude>
+                        <exclude>**/*.json</exclude>
+                        <exclude>**/*.log</exclude>
+                        <exclude>**/*.template</exclude>
+                        <exclude>**/.*</exclude>
+                        <exclude>**/.*/**</exclude>
+                        <exclude>**/*.seed</exclude>
+                        <exclude>**/*.iml</exclude>
+                        <exclude>**/ansible.cfg</exclude>
+                        <exclude>site/**</exclude>
+                        <exclude>metron-ui/lib/public/css/normalize.min.css</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/pcap/lib/showdown.js</exclude>
+                        <!-- 3rd party bundled javascript dependencies -->
+                        <exclude>metron-ui/lib/public/vendor/**</exclude>
+                        <!-- Kibana panels copied from kibana and bundled -->
+                        <exclude>metron-ui/lib/public/app/panels/dashcontrol/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/filtering/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/histogram/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/hits/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/map/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/query/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/sparklines/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/table/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/terms/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/text/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/timepicker/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/trends/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/bettermap/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/column/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/derivequeries/**</exclude>
+                        <exclude>metron-ui/lib/public/app/panels/stats/**</exclude>
+                        <exclude>metron-ui/lib/public/app/partials/**</exclude>
+                        <exclude>metron-ui/lib/public/app/services/**</exclude>
+                        <exclude>metron-ui/lib/public/app/services/**</exclude>
+                        <!-- fontawesome fonts are declared in the license, so we can exclude here -->
+                        <exclude>metron-ui/lib/public/css/font-awesome.min.css</exclude>
+                        <exclude>metron-ui/lib/public/font/**</exclude>
+                        <exclude>metron-ui/node_modules/**</exclude>
+                        <exclude>**/src/main/resources/patterns/**</exclude>
+                        <exclude>**/src/test/resources/**</exclude>
+                        <exclude>**/src/main/resources/sample/data/Sample*/**</exclude>
+                        <exclude>**/dependency-reduced-pom.xml</exclude>
+                        <exclude>**/files/opensoc-ui</exclude>
+                        <exclude>**/target/**</exclude>
+                        <exclude>**/bro-plugin-kafka/build/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

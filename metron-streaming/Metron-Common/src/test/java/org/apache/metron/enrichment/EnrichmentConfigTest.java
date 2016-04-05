@@ -2,7 +2,7 @@ package org.apache.metron.enrichment;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.Constants;
-import org.apache.metron.domain.SourceConfig;
+import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.utils.JSONUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,16 +53,16 @@ public class EnrichmentConfigTest {
   @Test
   public void testThreatIntel() throws Exception {
 
-    SourceConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SourceConfig.class);
+    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
 
 
     EnrichmentConfig config = JSONUtils.INSTANCE.load(threatIntelConfigStr, EnrichmentConfig.class);
-    final Map<String, SourceConfig> outputScs = new HashMap<>();
+    final Map<String, SensorEnrichmentConfig> outputScs = new HashMap<>();
     EnrichmentConfig.SourceConfigHandler scHandler = new EnrichmentConfig.SourceConfigHandler() {
       @Override
-      public SourceConfig readConfig(String sensor) throws Exception {
+      public SensorEnrichmentConfig readConfig(String sensor) throws Exception {
         if(sensor.equals("bro")) {
-          return JSONUtils.INSTANCE.load(sourceConfigStr, SourceConfig.class);
+          return JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
         }
         else {
           throw new IllegalStateException("Tried to retrieve an unexpected sensor: " + sensor);
@@ -70,7 +70,7 @@ public class EnrichmentConfigTest {
       }
 
       @Override
-      public void persistConfig(String sensor, SourceConfig config) throws Exception {
+      public void persistConfig(String sensor, SensorEnrichmentConfig config) throws Exception {
         outputScs.put(sensor, config);
       }
     };
@@ -136,15 +136,15 @@ public class EnrichmentConfigTest {
   @Test
   public void testEnrichment() throws Exception {
 
-    SourceConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SourceConfig.class);
+    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
 
     EnrichmentConfig config = JSONUtils.INSTANCE.load(enrichmentConfigStr, EnrichmentConfig.class);
-    final Map<String, SourceConfig> outputScs = new HashMap<>();
+    final Map<String, SensorEnrichmentConfig> outputScs = new HashMap<>();
     EnrichmentConfig.SourceConfigHandler scHandler = new EnrichmentConfig.SourceConfigHandler() {
       @Override
-      public SourceConfig readConfig(String sensor) throws Exception {
+      public SensorEnrichmentConfig readConfig(String sensor) throws Exception {
         if(sensor.equals("bro")) {
-          return JSONUtils.INSTANCE.load(sourceConfigStr, SourceConfig.class);
+          return JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
         }
         else {
           throw new IllegalStateException("Tried to retrieve an unexpected sensor: " + sensor);
@@ -152,7 +152,7 @@ public class EnrichmentConfigTest {
       }
 
       @Override
-      public void persistConfig(String sensor, SourceConfig config) throws Exception {
+      public void persistConfig(String sensor, SensorEnrichmentConfig config) throws Exception {
         outputScs.put(sensor, config);
       }
     };

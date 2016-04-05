@@ -18,29 +18,27 @@
 
 package org.apache.metron.enrichment.bolt;
 
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import com.google.common.base.Joiner;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.apache.metron.Constants;
-import org.apache.metron.bolt.ConfiguredBolt;
-import org.apache.metron.domain.Enrichment;
-import org.apache.metron.domain.SourceConfig;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.apache.metron.Constants;
+import org.apache.metron.bolt.ConfiguredBolt;
+import org.apache.metron.domain.Enrichment;
+import org.apache.metron.domain.SensorEnrichmentConfig;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.helpers.topology.ErrorUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
@@ -170,8 +168,8 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
       if (key == null)
         throw new Exception("Key is not valid");
       String sourceType = null;
-      if(rawMessage.containsKey(Constants.SOURCE_TYPE)) {
-        sourceType = rawMessage.get(Constants.SOURCE_TYPE).toString();
+      if(rawMessage.containsKey(Constants.SENSOR_TYPE)) {
+        sourceType = rawMessage.get(Constants.SENSOR_TYPE).toString();
       }
       else {
         throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
@@ -179,16 +177,14 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
         String value = (String) rawMessage.get(field);
-        if (field.equals(Constants.SOURCE_TYPE)) {
-          enrichedMessage.put(Constants.SOURCE_TYPE, value);
+        if (field.equals(Constants.SENSOR_TYPE)) {
+          enrichedMessage.put(Constants.SENSOR_TYPE, value);
         } else {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
-            SourceConfig config = configurations.get(sourceType);
+            SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
             if(config == null) {
-              throw new RuntimeException("Unable to find " + config
-                                        + " in " + Joiner.on(',').join(configurations.keySet())
-                                        );
+              throw new RuntimeException("Unable to find " + config);
             }
             CacheKey cacheKey= new CacheKey(field, value, config);
             adapter.logAccess(cacheKey);
