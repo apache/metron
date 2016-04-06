@@ -146,24 +146,6 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     cleanHdfsDir(hdfsDir);
     final Configurations configurations = SampleUtil.getSampleConfigs();
     final String dateFormat = "yyyy.MM.dd.hh";
-    SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig("yaf");
-    {
-      config.setEnrichmentFieldMap(new HashMap<String, List<String>>(config.getEnrichmentFieldMap()) {{
-        put(Constants.SIMPLE_HBASE_ENRICHMENT, ImmutableList.of(SRC_IP, DST_IP));
-      }});
-      config.setThreatIntelFieldMap(new HashMap<String, List<String>>() {{
-        put(Constants.SIMPLE_HBASE_THREAT_INTEL, ImmutableList.of(SRC_IP, DST_IP));
-      }});
-      config.setFieldToThreatIntelTypeMap(new HashMap<String, List<String>>() {{
-        put(SRC_IP, ImmutableList.of(MALICIOUS_IP_TYPE));
-        put(DST_IP, ImmutableList.of(MALICIOUS_IP_TYPE));
-      }});
-      config.setFieldToEnrichmentTypeMap(new HashMap<String, List<String>>() {{
-        put(SRC_IP, ImmutableList.of( PLAYFUL_CLASSIFICATION_TYPE));
-        put(DST_IP, ImmutableList.of( PLAYFUL_CLASSIFICATION_TYPE));
-      }});
-      configurations.updateSensorEnrichmentConfig(config.getIndex(), config);
-    }
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
