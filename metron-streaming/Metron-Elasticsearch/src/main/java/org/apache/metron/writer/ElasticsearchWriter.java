@@ -76,7 +76,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
         indexName = sensorEnrichmentConfig.getIndex();
       }
       IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName + "_index_" + indexPostfix,
-              sensorType);
+              sensorType + "_doc");
 
       indexRequestBuilder.setSource(message.toJSONString());
       bulkRequest.add(indexRequestBuilder);

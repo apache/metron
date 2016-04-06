@@ -68,12 +68,10 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
     put("orientation", "north");
   }};
-  private String fluxPath = "src/main/resources/Metron_Configs/topologies/enrichment/test.yaml";
-  private String indexDir = "target/elasticsearch";
+  private String fluxPath = "../Metron-Topologies/src/main/resources/Metron_Configs/topologies/enrichment/test.yaml";
   protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
-  private String sampleParsedPath = "src/main/resources/SampleParsed/YafExampleParsed";
-  private String sampleIndexedPath = "src/main/resources/SampleIndexed/YafIndexed";
-  private Map<String, String> sourceConfigs = new HashMap<>();
+  private String sampleParsedPath = "../Metron-Testing/src/main/resources/sample/data/SampleParsed/YafExampleParsed";
+  private String sampleIndexedPath = "../Metron-Testing/src/main/resources/sample/data/SampleIndexed/YafIndexed";
 
 
   public static class Provider implements TableProvider, Serializable {

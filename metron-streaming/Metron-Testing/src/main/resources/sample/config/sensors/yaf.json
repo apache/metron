@@ -4,11 +4,22 @@
   "enrichmentFieldMap":
   {
     "geo": ["ip_src_addr", "ip_dst_addr"],
-    "host": ["ip_src_addr", "ip_dst_addr"]
+    "host": ["ip_src_addr", "ip_dst_addr"],
+    "hbaseEnrichment" : ["ip_src_addr", "ip_dst_addr"]
   },
   "threatIntelFieldMap":
   {
-    "ip": ["ip_src_addr", "ip_dst_addr"]
+    "hbaseThreatIntel": ["ip_src_addr", "ip_dst_addr"]
+  },
+  "fieldToThreatIntelTypeMap":
+  {
+    "ip_src_addr" : ["malicious_ip"],
+    "ip_dst_addr" : ["malicious_ip"]
+  },
+  "fieldToEnrichmentTypeMap":
+  {
+    "ip_src_addr" : ["playful_classification"],
+    "ip_dst_addr" : ["playful_classification"]
   }
 }
 
