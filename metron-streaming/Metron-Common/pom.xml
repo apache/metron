@@ -34,11 +34,8 @@
             <name>Metron Kraken Repository</name>
             <url>https://raw.github.com/opensoc/kraken/mvn-repo</url>
         </repository>
-
     </repositories>
     <dependencies>
-
-
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
