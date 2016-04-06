@@ -68,8 +68,7 @@ public class GeoAdapter extends JdbcAdapter {
       }
       resultSet.close();
     } catch (Exception e) {
-      e.printStackTrace();
-      _LOG.error("Enrichment failure: " + e);
+      _LOG.error("Enrichment failure: " + e.getMessage(), e);
       return new JSONObject();
     }
     return enriched;

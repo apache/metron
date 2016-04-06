@@ -23,6 +23,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -104,6 +105,11 @@ public abstract class JoinBolt<V> extends ConfiguredBolt {
         cache.invalidate(key);
       } else {
         cache.put(key, streamMessageMap);
+        if(LOG.isDebugEnabled()) {
+          LOG.debug(getClass().getSimpleName() + ": Missed joining portions for "+ key + ". Expected " + Joiner.on(",").join(streamIds)
+                  + " != " + Joiner.on(",").join(streamMessageKeys)
+                   );
+        }
       }
     } catch (ExecutionException e) {
       collector.reportError(e);

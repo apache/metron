@@ -67,11 +67,12 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${global_junit_version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>${global_guava_version}</version>
+			<version>${global_hbase_guava_version}</version>
 		</dependency>
 
 		<dependency>

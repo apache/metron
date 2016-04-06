@@ -41,6 +41,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
       return config.getThreatIntelFieldMap();
     }
     else {
+      LOG.error("Unable to retrieve sensor config: " + sourceType);
       return null;
     }
   }
