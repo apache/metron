@@ -132,12 +132,21 @@ public class ConfigurationsUtils {
   public static void dumpConfigs(String zookeeperUrl) throws Exception {
     CuratorFramework client = getClient(zookeeperUrl);
     client.start();
-    List<String> children = client.getChildren().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT);
-    for (String child : children) {
-      byte[] data = client.getData().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + child);
-      System.out.println("Config for source " + child);
-      System.out.println(new String(data));
-      System.out.println();
+    //Output global configs
+    {
+      System.out.println("Global config");
+      byte[] globalConfigData = client.getData().forPath(Constants.ZOOKEEPER_GLOBAL_ROOT);
+      System.out.println(new String(globalConfigData));
+    }
+    //Output sensor specific configs
+    {
+      List<String> children = client.getChildren().forPath(Constants.ZOOKEEPER_SENSOR_ROOT);
+      for (String child : children) {
+        byte[] data = client.getData().forPath(Constants.ZOOKEEPER_SENSOR_ROOT + "/" + child);
+        System.out.println("Config for source " + child);
+        System.out.println(new String(data));
+        System.out.println();
+      }
     }
     client.close();
   }
