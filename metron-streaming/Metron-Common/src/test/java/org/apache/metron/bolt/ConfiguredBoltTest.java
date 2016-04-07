@@ -17,15 +17,15 @@
  */
 package org.apache.metron.bolt;
 
-import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
+import org.apache.curator.test.TestingServer;
 import org.apache.metron.Constants;
 import org.apache.metron.domain.Configurations;
 import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.utils.ConfigurationsUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -35,11 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-
-public class ConfiguredBoltTest extends BaseBoltTest {
-
+public class ConfiguredBoltTest extends BaseEnrichmentBoltTest {
   private static Set<String> configsUpdated = new HashSet<>();
+  private Set<String> allConfigurationTypes = new HashSet<>();
+  private String zookeeperUrl;
 
   public static class StandAloneConfiguredBolt extends ConfiguredBolt {
 
@@ -61,11 +60,23 @@ public class ConfiguredBoltTest extends BaseBoltTest {
     }
   }
 
+  @Before
+  public void setupConfiguration() throws Exception {
+    TestingServer testZkServer = new TestingServer(true);
+    this.zookeeperUrl = testZkServer.getConnectString();
+    byte[] globalConfig = ConfigurationsUtils.readGlobalConfigFromFile(sampleConfigRoot);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, zookeeperUrl);
+    allConfigurationTypes.add(Constants.GLOBAL_CONFIG_NAME);
+    Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(sampleConfigRoot);
+    for (String sensorType : sensorEnrichmentConfigs.keySet()) {
+      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), zookeeperUrl);
+      allConfigurationTypes.add(sensorType);
+    }
+  }
+
   @Test
   public void test() throws Exception {
     Configurations sampleConfigurations = new Configurations();
-    TopologyContext topologyContext = mock(TopologyContext.class);
-    OutputCollector outputCollector = mock(OutputCollector.class);
     try {
       StandAloneConfiguredBolt configuredBolt = new StandAloneConfiguredBolt(null);
       configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
