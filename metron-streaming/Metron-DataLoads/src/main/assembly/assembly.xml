@@ -28,6 +28,7 @@
       </excludes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
+      <filtered>true</filtered>
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/target</directory>
