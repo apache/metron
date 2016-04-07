@@ -140,7 +140,6 @@ public class PcapParserIntegrationTest extends BaseIntegrationTest {
     }};
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     }});
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
@@ -203,6 +202,8 @@ public class PcapParserIntegrationTest extends BaseIntegrationTest {
       }
       Assert.assertEquals(pcapEntries.size(), rowCount);
       System.out.println("Ended");
+    } catch (Exception e ) {
+      e.printStackTrace();
     } finally {
       runner.stop();
       clearOutDir(outDir);
