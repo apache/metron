@@ -50,6 +50,9 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     this.zookeeperUrl = zookeeperUrl;
   }
 
+  protected void reloadCallback() {
+  }
+
   public ConfiguredBolt withTimeout(long timeout) {
     this.timeout = timeout;
     return this;
@@ -70,12 +73,21 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
             String path = event.getData().getPath();
             byte[] data = event.getData().getData();
             updateConfig(path, data);
+            reloadCallback();
           }
         }
       };
       cache.getListenable().addListener(listener);
+      try {
+        ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
+      }
+      catch(Exception e) {
+        LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
+      }
+
       cache.start();
     } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
       throw new RuntimeException(e);
     }
   }

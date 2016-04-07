@@ -21,6 +21,7 @@ import java.util.Properties;
 
 import org.apache.metron.enrichment.adapters.jdbc.JdbcAdapter;
 import org.apache.metron.enrichment.adapters.jdbc.MySqlConfig;
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
@@ -113,7 +114,7 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
        }else{
            
          try {           
-                JSONObject json = geoMySqlAdapter.enrich("72.163.4.161");
+                JSONObject json = geoMySqlAdapter.enrich(new CacheKey("dummy", "72.163.4.161", null));
                 
                 //assert Geo Response is not null
                 System.out.println("json ="+json);

@@ -17,9 +17,9 @@
  */
 package org.apache.metron.dataloads.extractor;
 
-import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
+import org.apache.metron.reference.lookup.LookupKey;
+import org.apache.metron.reference.lookup.LookupValue;
 
 import java.io.IOException;
 import java.util.Map;

@@ -86,6 +86,21 @@
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>org.apache.hadoop</artifactId>
+                    <groupId>hadoop-common</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${global_hadoop_version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>servlet-api</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

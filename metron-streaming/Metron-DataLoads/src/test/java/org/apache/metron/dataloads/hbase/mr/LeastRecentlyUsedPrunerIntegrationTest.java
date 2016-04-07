@@ -24,13 +24,13 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.metron.dataloads.bulk.LeastRecentlyUsedPruner;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
+import org.apache.metron.hbase.lookup.EnrichmentLookup;
 import org.apache.metron.reference.lookup.LookupKey;
 import org.apache.metron.reference.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.reference.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
-import org.apache.metron.threatintel.hbase.ThreatIntelLookup;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -68,7 +68,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     public List<LookupKey> getKeys(int start, int end) {
         List<LookupKey> keys = new ArrayList<>();
         for(int i = start;i < end;++i) {
-            keys.add(new ThreatIntelKey("key-" + i));
+            keys.add(new EnrichmentKey("type", "key-" + i));
         }
         return keys;
     }
@@ -77,33 +77,33 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         long ts = System.currentTimeMillis();
         BloomAccessTracker bat = new BloomAccessTracker("tracker1", 100, 0.03);
         PersistentAccessTracker pat = new PersistentAccessTracker(tableName, "0", atTable, atCF, bat, 0L);
-        ThreatIntelLookup lookup = new ThreatIntelLookup(testTable, cf, pat);
+        EnrichmentLookup lookup = new EnrichmentLookup(testTable, cf, pat);
         List<LookupKey> goodKeysHalf = getKeys(0, 5);
         List<LookupKey> goodKeysOtherHalf = getKeys(5, 10);
         Iterable<LookupKey> goodKeys = Iterables.concat(goodKeysHalf, goodKeysOtherHalf);
         List<LookupKey> badKey = getKeys(10, 11);
-        ThreatIntelConverter converter = new ThreatIntelConverter();
+        EnrichmentConverter converter = new EnrichmentConverter();
         for(LookupKey k : goodKeysHalf) {
-            testTable.put(converter.toPut(cf, (ThreatIntelKey) k
-                                            , new ThreatIntelValue(
+            testTable.put(converter.toPut(cf, (EnrichmentKey) k
+                                            , new EnrichmentValue(
                                                   new HashMap<String, String>() {{
                                                     put("k", "dummy");
                                                     }}
                                                   )
                                           )
                          );
-            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
+            Assert.assertTrue(lookup.exists((EnrichmentKey)k, testTable, true));
         }
         pat.persist(true);
         for(LookupKey k : goodKeysOtherHalf) {
-            testTable.put(converter.toPut(cf, (ThreatIntelKey) k
-                                            , new ThreatIntelValue(new HashMap<String, String>() {{
+            testTable.put(converter.toPut(cf, (EnrichmentKey) k
+                                            , new EnrichmentValue(new HashMap<String, String>() {{
                                                     put("k", "dummy");
                                                     }}
                                                                   )
                                          )
                          );
-            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
+            Assert.assertTrue(lookup.exists((EnrichmentKey)k, testTable, true));
         }
         testUtil.flush();
         Assert.assertFalse(lookup.getAccessTracker().hasSeen(goodKeysHalf.get(0)));
@@ -112,8 +112,8 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         }
         pat.persist(true);
         {
-            testTable.put(converter.toPut(cf, (ThreatIntelKey) badKey.get(0)
-                    , new ThreatIntelValue(new HashMap<String, String>() {{
+            testTable.put(converter.toPut(cf, (EnrichmentKey) badKey.get(0)
+                    , new EnrichmentValue(new HashMap<String, String>() {{
                         put("k", "dummy");
                     }}
                     )
@@ -127,10 +127,10 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         Job job = LeastRecentlyUsedPruner.createJob(config, tableName, cf, atTableName, atCF, ts);
         Assert.assertTrue(job.waitForCompletion(true));
         for(LookupKey k : goodKeys) {
-            Assert.assertTrue(lookup.exists((ThreatIntelKey)k, testTable, true));
+            Assert.assertTrue(lookup.exists((EnrichmentKey)k, testTable, true));
         }
         for(LookupKey k : badKey) {
-            Assert.assertFalse(lookup.exists((ThreatIntelKey)k, testTable, true));
+            Assert.assertFalse(lookup.exists((EnrichmentKey)k, testTable, true));
         }
 
     }

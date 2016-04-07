@@ -18,12 +18,13 @@
 package org.apache.metron.integration.util.mock;
 
 import com.google.common.base.Joiner;
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 
-public class MockGeoAdapter implements EnrichmentAdapter<String>,
+public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
         Serializable {
 
   public static final String DEFAULT_LOC_ID = "1";
@@ -36,11 +37,11 @@ public class MockGeoAdapter implements EnrichmentAdapter<String>,
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LONGITUDE, DEFAULT_LATITUDE);
 
   @Override
-  public void logAccess(String value) {
+  public void logAccess(CacheKey value) {
 
   }
 
-  public JSONObject enrich(String metadata) {
+  public JSONObject enrich(CacheKey cache ) {
     JSONObject enriched = new JSONObject();
     enriched.put("locID", DEFAULT_LOC_ID);
     enriched.put("country", DEFAULT_COUNTRY);

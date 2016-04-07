@@ -15,26 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.integration.util.UnitTestHelper;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
 import javax.ws.rs.ext.RuntimeDelegate;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collections;

@@ -17,6 +17,11 @@
  */
 package org.apache.metron.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.metron.utils.JSONUtils;
+
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +30,8 @@ public class SensorEnrichmentConfig {
   private String index;
   private Map<String, List<String>> enrichmentFieldMap;
   private Map<String, List<String>> threatIntelFieldMap;
+  private Map<String, List<String>> fieldToEnrichmentTypeMap = new HashMap<>();
+  private Map<String, List<String>> fieldToThreatIntelTypeMap = new HashMap<>();
   private int batchSize;
 
   public String getIndex() {
@@ -51,6 +58,20 @@ public class SensorEnrichmentConfig {
     this.threatIntelFieldMap = threatIntelFieldMap;
   }
 
+  public Map<String, List<String>> getFieldToEnrichmentTypeMap() {
+    return fieldToEnrichmentTypeMap;
+  }
+
+  public Map<String, List<String>> getFieldToThreatIntelTypeMap() {
+    return fieldToThreatIntelTypeMap;
+  }
+  public void setFieldToEnrichmentTypeMap(Map<String, List<String>> fieldToEnrichmentTypeMap) {
+    this.fieldToEnrichmentTypeMap = fieldToEnrichmentTypeMap;
+  }
+
+  public void setFieldToThreatIntelTypeMap(Map<String, List<String>> fieldToThreatIntelTypeMap) {
+    this.fieldToThreatIntelTypeMap= fieldToThreatIntelTypeMap;
+  }
   public int getBatchSize() {
     return batchSize;
   }
@@ -59,4 +80,43 @@ public class SensorEnrichmentConfig {
     this.batchSize = batchSize;
   }
 
+  public static SensorEnrichmentConfig fromBytes(byte[] config) throws IOException {
+    return JSONUtils.INSTANCE.load(new String(config), SensorEnrichmentConfig.class);
+  }
+  public String toJSON(boolean pretty) throws JsonProcessingException {
+    return JSONUtils.INSTANCE.toJSON(this, pretty);
+  }
+  public String toJSON() throws JsonProcessingException {
+    return JSONUtils.INSTANCE.toJSON(this, true);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    SensorEnrichmentConfig that = (SensorEnrichmentConfig) o;
+
+    if (getBatchSize() != that.getBatchSize()) return false;
+    if (getIndex() != null ? !getIndex().equals(that.getIndex()) : that.getIndex() != null) return false;
+    if (getEnrichmentFieldMap() != null ? !getEnrichmentFieldMap().equals(that.getEnrichmentFieldMap()) : that.getEnrichmentFieldMap() != null)
+      return false;
+    if (getThreatIntelFieldMap() != null ? !getThreatIntelFieldMap().equals(that.getThreatIntelFieldMap()) : that.getThreatIntelFieldMap() != null)
+      return false;
+    if (getFieldToEnrichmentTypeMap() != null ? !getFieldToEnrichmentTypeMap().equals(that.getFieldToEnrichmentTypeMap()) : that.getFieldToEnrichmentTypeMap() != null)
+      return false;
+    return getFieldToThreatIntelTypeMap() != null ? getFieldToThreatIntelTypeMap().equals(that.getFieldToThreatIntelTypeMap()) : that.getFieldToThreatIntelTypeMap() == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getIndex() != null ? getIndex().hashCode() : 0;
+    result = 31 * result + (getEnrichmentFieldMap() != null ? getEnrichmentFieldMap().hashCode() : 0);
+    result = 31 * result + (getThreatIntelFieldMap() != null ? getThreatIntelFieldMap().hashCode() : 0);
+    result = 31 * result + (getFieldToEnrichmentTypeMap() != null ? getFieldToEnrichmentTypeMap().hashCode() : 0);
+    result = 31 * result + (getFieldToThreatIntelTypeMap() != null ? getFieldToThreatIntelTypeMap().hashCode() : 0);
+    result = 31 * result + getBatchSize();
+    return result;
+  }
 }

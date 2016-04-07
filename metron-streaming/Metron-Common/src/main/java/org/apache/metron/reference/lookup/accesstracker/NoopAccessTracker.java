@@ -15,25 +15,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.reference.lookup.accesstracker;
 
-package org.apache.metron.hbase.converters.threatintel;
-
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.metron.hbase.converters.AbstractConverter;
-import org.apache.metron.reference.lookup.LookupKV;
+import org.apache.metron.reference.lookup.LookupKey;
 
 import java.io.IOException;
+import java.util.Map;
 
-public class ThreatIntelConverter extends AbstractConverter<ThreatIntelKey, ThreatIntelValue> {
+public class NoopAccessTracker implements AccessTracker {
+  @Override
+  public void logAccess(LookupKey key) {
 
-    @Override
-    public LookupKV<ThreatIntelKey, ThreatIntelValue> fromPut(Put put, String columnFamily) throws IOException {
-        return fromPut(put, columnFamily, new ThreatIntelKey(), new ThreatIntelValue());
-    }
+  }
 
-    @Override
-    public LookupKV<ThreatIntelKey, ThreatIntelValue> fromResult(Result result, String columnFamily) throws IOException {
-        return fromResult(result, columnFamily, new ThreatIntelKey(), new ThreatIntelValue());
-    }
+  @Override
+  public void configure(Map<String, Object> config) {
+
+  }
+
+  @Override
+  public boolean hasSeen(LookupKey key) {
+    return false;
+  }
+
+  @Override
+  public String getName() {
+    return "noop";
+  }
+
+  @Override
+  public AccessTracker union(AccessTracker tracker) {
+    return null;
+  }
+
+  @Override
+  public void reset() {
+
+  }
+
+  @Override
+  public boolean isFull() {
+    return false;
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+
+  }
 }

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.host;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -53,14 +54,14 @@ public class HostFromJSONListAdapter extends AbstractHostAdapter {
   }
 
   @Override
-  public void logAccess(String value) {
+  public void logAccess(CacheKey value) {
 
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public JSONObject enrich(String metadata) {
-
+  public JSONObject enrich(CacheKey k) {
+    String metadata = k.getValue();
 
     if(!_known_hosts.containsKey(metadata))
       return new JSONObject();

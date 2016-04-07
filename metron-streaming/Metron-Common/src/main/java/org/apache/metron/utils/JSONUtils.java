@@ -22,8 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public enum JSONUtils {
   INSTANCE;
@@ -58,11 +57,16 @@ public enum JSONUtils {
   public <T> T load(String is, TypeReference<T> ref) throws IOException {
     return _mapper.get().readValue(is, ref);
   }
-
+  public <T> T load(File f, TypeReference<T> ref) throws IOException {
+    return _mapper.get().readValue(new BufferedInputStream(new FileInputStream(f)), ref);
+  }
   public <T> T load(InputStream is, Class<T> clazz) throws IOException {
     return _mapper.get().readValue(is, clazz);
   }
 
+  public <T> T load(File f, Class<T> clazz) throws IOException {
+    return _mapper.get().readValue(new BufferedInputStream(new FileInputStream(f)), clazz);
+  }
   public <T> T load(String is, Class<T> clazz) throws IOException {
     return _mapper.get().readValue(is, clazz);
   }

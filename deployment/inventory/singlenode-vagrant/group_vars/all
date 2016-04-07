@@ -26,7 +26,8 @@ cluster_type: single_node_vm
 # hbase
 pcap_hbase_table: pcap
 tracker_hbase_table: access_tracker
-threatintel_ip_hbase_table: malicious_ip
+threatintel_hbase_table: threatintel
+enrichment_hbase_table: enrichment
 
 # metron variables
 metron_version: 0.1BETA
