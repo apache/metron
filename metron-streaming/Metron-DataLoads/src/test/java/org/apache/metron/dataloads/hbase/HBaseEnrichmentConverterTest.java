@@ -22,9 +22,9 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.converters.HbaseConverter;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,44 +32,42 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.HashMap;
 
-/**
- * Created by cstella on 2/3/16.
- */
-public class HBaseThreatIntelConverterTest {
-    ThreatIntelKey key = new ThreatIntelKey("google");
-    ThreatIntelValue value = new ThreatIntelValue(
-    new HashMap<String, String>() {{
-        put("foo", "bar");
-        put("grok", "baz");
-    }});
-    LookupKV<ThreatIntelKey, ThreatIntelValue> results = new LookupKV(key, value);
+
+public class HBaseEnrichmentConverterTest {
+    EnrichmentKey key = new EnrichmentKey("domain", "google");
+    EnrichmentValue value = new EnrichmentValue(
+            new HashMap<String, String>() {{
+                put("foo", "bar");
+                put("grok", "baz");
+            }});
+    LookupKV<EnrichmentKey, EnrichmentValue> results = new LookupKV(key, value);
     @Test
     public void testKeySerialization() {
         byte[] serialized = key.toBytes();
 
-        ThreatIntelKey deserialized = new ThreatIntelKey();
+        EnrichmentKey deserialized = new EnrichmentKey();
         deserialized.fromBytes(serialized);
         Assert.assertEquals(key, deserialized);
     }
 
     @Test
     public void testPut() throws IOException {
-        HbaseConverter<ThreatIntelKey, ThreatIntelValue> converter = new ThreatIntelConverter();
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Put put = converter.toPut("cf", key, value);
-        LookupKV<ThreatIntelKey, ThreatIntelValue> converted= converter.fromPut(put, "cf");
+        LookupKV<EnrichmentKey, EnrichmentValue> converted= converter.fromPut(put, "cf");
         Assert.assertEquals(results, converted);
     }
     @Test
     public void testResult() throws IOException {
-        HbaseConverter<ThreatIntelKey, ThreatIntelValue> converter = new ThreatIntelConverter();
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Result r = converter.toResult("cf", key, value);
-        LookupKV<ThreatIntelKey, ThreatIntelValue> converted= converter.fromResult(r, "cf");
+        LookupKV<EnrichmentKey, EnrichmentValue> converted= converter.fromResult(r, "cf");
         Assert.assertEquals(results, converted);
     }
 
     @Test
     public void testGet() throws Exception {
-        HbaseConverter<ThreatIntelKey, ThreatIntelValue> converter = new ThreatIntelConverter();
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Get get = converter.toGet("cf", key);
         Assert.assertArrayEquals(key.toBytes(), get.getRow());
     }

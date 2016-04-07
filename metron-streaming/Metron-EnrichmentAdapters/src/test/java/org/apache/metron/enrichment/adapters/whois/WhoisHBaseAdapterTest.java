@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.adapters.whois;
 import java.net.InetAddress;
 import java.util.Properties;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
@@ -125,13 +126,13 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#enrich(java.lang.String)}.
+     * Test method for {@link org.apache.metron.enrichment.adapters.whois.WhoisHBaseAdapter#enrich(CacheKey)}.
      */
     public void testEnrich() {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
-            JSONObject json = whoisHbaseAdapter.enrich("72.163.4.161");
+            JSONObject json = whoisHbaseAdapter.enrich(new CacheKey("whois", "72.163.4.161", null));
             
             //assert Geo Response is not null
             Assert.assertNotNull(json);

@@ -18,10 +18,9 @@
 package org.apache.metron.dataloads.extractor.stix.types;
 
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.DomainName;
 import org.mitre.cybox.objects.DomainNameTypeEnum;
@@ -30,30 +29,49 @@ import java.io.IOException;
 import java.util.*;
 
 public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
-    EnumSet<DomainNameTypeEnum> SUPPORTED_TYPES = EnumSet.of(DomainNameTypeEnum.FQDN);
-    public DomainHandler() {
-        super(DomainName.class);
-    }
+  public static final String TYPE_CONFIG = "stix_domain_type";
+  EnumSet<DomainNameTypeEnum> SUPPORTED_TYPES = EnumSet.of(DomainNameTypeEnum.FQDN);
+  public DomainHandler() {
+    super(DomainName.class);
+  }
 
-    @Override
-    public Iterable<LookupKV> extract(final DomainName type, Map<String, Object> config) throws IOException {
-        List<LookupKV> ret = new ArrayList<>();
-        final DomainNameTypeEnum domainType = type.getType();
-        if(domainType == null || SUPPORTED_TYPES.contains(domainType)) {
-            StringObjectPropertyType value = type.getValue();
-            for (String token : StixExtractor.split(value)) {
-                LookupKV results = new LookupKV(new ThreatIntelKey(token)
-                                               , new ThreatIntelValue(
-                                                    new HashMap<String, String>() {{
-                                                        put("source-type", "STIX");
-                                                        put("indicator-type", type.getClass().getSimpleName() + ":" + DomainNameTypeEnum.FQDN);
-                                                        put("source", type.toXMLString());
-                                                    }}
-                                                                    )
-                                               );
-                ret.add(results);
-            }
-        }
-        return ret;
+  @Override
+  public Iterable<LookupKV> extract(final DomainName type, Map<String, Object> config) throws IOException {
+    List<LookupKV> ret = new ArrayList<>();
+    String typeStr = getType();
+    if(config != null) {
+      Object o = config.get(TYPE_CONFIG);
+      if(o != null) {
+        typeStr = o.toString();
+      }
     }
+    final DomainNameTypeEnum domainType = type.getType();
+    if(domainType == null || SUPPORTED_TYPES.contains(domainType)) {
+      StringObjectPropertyType value = type.getValue();
+      for (String token : StixExtractor.split(value)) {
+        final String indicatorType = typeStr + ":" + DomainNameTypeEnum.FQDN;
+        LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
+                , new EnrichmentValue(
+                new HashMap<String, String>() {{
+                  put("source-type", "STIX");
+                  put("indicator-type", indicatorType);
+                  put("source", type.toXMLString());
+                }}
+        )
+        );
+        ret.add(results);
+      }
+    }
+    return ret;
+  }
+  @Override
+  public List<String> getPossibleTypes() {
+    String typeStr = getType();
+    List<String> ret = new ArrayList<>();
+    for(DomainNameTypeEnum e : SUPPORTED_TYPES)
+    {
+       ret.add(typeStr + ":" + e);
+    }
+    return ret;
+  }
 }

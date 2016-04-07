@@ -31,6 +31,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.Constants;
 import org.apache.metron.domain.Configurations;
+import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.File;
@@ -52,23 +53,40 @@ public class ConfigurationsUtils {
     writeToZookeeper(path, Files.readAllBytes(Paths.get(filePath)), zookeeperUrl);
   }
 
+  public static void writeToZookeeperFromFile(String path, String filePath, CuratorFramework client) throws Exception {
+    writeToZookeeper(path, Files.readAllBytes(Paths.get(filePath)), client);
+  }
   public static void writerGlobalConfigToZookeeper(byte[] configData, String zookeeperUrl) throws Exception {
     writeToZookeeper(Constants.ZOOKEEPER_GLOBAL_ROOT, configData, zookeeperUrl);
   }
 
+  public static void writerGlobalConfigToZookeeper(byte[] configData, CuratorFramework client) throws Exception {
+    writeToZookeeper(Constants.ZOOKEEPER_GLOBAL_ROOT, configData, client);
+  }
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
     writeToZookeeper(Constants.ZOOKEEPER_SENSOR_ROOT + "/" + sensorType, configData, zookeeperUrl);
   }
 
+  public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    writeToZookeeper(Constants.ZOOKEEPER_SENSOR_ROOT + "/" + sensorType, configData, client);
+  }
   public static void writeToZookeeper(String path, byte[] configData, String zookeeperUrl) throws Exception {
     CuratorFramework client = getClient(zookeeperUrl);
     client.start();
+    try {
+      writeToZookeeper(path, configData, client);
+    }
+    finally {
+      client.close();
+    }
+
+  }
+  public static void writeToZookeeper(String path, byte[] configData, CuratorFramework client) throws Exception {
     try {
       client.setData().forPath(path, configData);
     } catch (KeeperException.NoNodeException e) {
       client.create().creatingParentsIfNeeded().forPath(path, configData);
     }
-    client.close();
   }
 
   public static void updateConfigsFromZookeeper(Configurations configurations, CuratorFramework client) throws Exception {
@@ -114,12 +132,21 @@ public class ConfigurationsUtils {
   public static void dumpConfigs(String zookeeperUrl) throws Exception {
     CuratorFramework client = getClient(zookeeperUrl);
     client.start();
-    List<String> children = client.getChildren().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT);
-    for (String child : children) {
-      byte[] data = client.getData().forPath(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + child);
-      System.out.println("Config for source " + child);
-      System.out.println(new String(data));
-      System.out.println();
+    //Output global configs
+    {
+      System.out.println("Global config");
+      byte[] globalConfigData = client.getData().forPath(Constants.ZOOKEEPER_GLOBAL_ROOT);
+      System.out.println(new String(globalConfigData));
+    }
+    //Output sensor specific configs
+    {
+      List<String> children = client.getChildren().forPath(Constants.ZOOKEEPER_SENSOR_ROOT);
+      for (String child : children) {
+        byte[] data = client.getData().forPath(Constants.ZOOKEEPER_SENSOR_ROOT + "/" + child);
+        System.out.println("Config for source " + child);
+        System.out.println(new String(data));
+        System.out.println();
+      }
     }
     client.close();
   }

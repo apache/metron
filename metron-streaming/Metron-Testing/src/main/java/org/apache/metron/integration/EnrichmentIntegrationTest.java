@@ -18,19 +18,19 @@
 package org.apache.metron.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
+import com.google.common.collect.ImmutableList;
+
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.Constants;
 import org.apache.metron.domain.Configurations;
+import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
+import org.apache.metron.integration.util.EnrichmentHelper;
 import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
@@ -40,8 +40,8 @@ import org.apache.metron.integration.util.integration.components.FluxTopologyCom
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.util.mock.MockGeoAdapter;
 import org.apache.metron.integration.util.mock.MockHTable;
-import org.apache.metron.integration.util.threatintel.ThreatIntelHelper;
 import org.apache.metron.reference.lookup.LookupKV;
+
 import org.apache.metron.util.SampleUtil;
 import org.apache.metron.utils.JSONUtils;
 import org.junit.Assert;
@@ -63,11 +63,16 @@ import java.util.Stack;
 public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
+  private static final String MALICIOUS_IP_TYPE = "malicious_ip";
+  private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
+  private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
+    put("orientation", "north");
+  }};
   private String fluxPath = "../Metron-Topologies/src/main/resources/Metron_Configs/topologies/enrichment/test.yaml";
   protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
   private String sampleParsedPath = "../Metron-Testing/src/main/resources/sample/data/SampleParsed/YafExampleParsed";
   private String sampleIndexedPath = "../Metron-Testing/src/main/resources/sample/data/SampleIndexed/YafIndexed";
-  private Map<String, String> sensorConfigs = new HashMap<>();
+
 
   public static class Provider implements TableProvider, Serializable {
     MockHTable.Provider  provider = new MockHTable.Provider();
@@ -140,20 +145,28 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final Configurations configurations = SampleUtil.getSampleConfigs();
+    final String dateFormat = "yyyy.MM.dd.hh";
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
-    final String trackerHBaseTable = "tracker";
-    final String ipThreatIntelTable = "ip_threat_intel";
+    final String trackerHBaseTableName = "tracker";
+    final String threatIntelTableName = "threat_intel";
+    final String enrichmentsTableName = "enrichments";
     final Properties topologyProperties = new Properties() {{
       setProperty("org.apache.metron.enrichment.host.known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
       setProperty("hbase.provider.impl","" + Provider.class.getName());
-      setProperty("threat.intel.tracker.table", trackerHBaseTable);
+      setProperty("threat.intel.tracker.table", trackerHBaseTableName);
       setProperty("threat.intel.tracker.cf", cf);
-      setProperty("threat.intel.ip.table", ipThreatIntelTable);
-      setProperty("threat.intel.ip.cf", cf);
+      setProperty("threat.intel.simple.hbase.table", threatIntelTableName);
+      setProperty("threat.intel.simple.hbase.cf", cf);
+      setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
+      setProperty("enrichment.simple.hbase.cf", cf);
+      setProperty("es.clustername", "metron");
+      setProperty("es.port", "9300");
+      setProperty("es.ip", "localhost");
+      setProperty("index.date.format", dateFormat);
       setProperty("index.hdfs.output", hdfsDir);
     }};
     setAdditionalProperties(topologyProperties);
@@ -162,12 +175,18 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }});
 
     //create MockHBaseTables
-    final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTable, cf);
-    final MockHTable ipTable = (MockHTable)MockHTable.Provider.addToCache(ipThreatIntelTable, cf);
-    ThreatIntelHelper.INSTANCE.load(ipTable, cf, new ArrayList<LookupKV<ThreatIntelKey, ThreatIntelValue>>(){{
-      add(new LookupKV<>(new ThreatIntelKey("10.0.2.3"), new ThreatIntelValue(new HashMap<String, String>())));
+    final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
+    final MockHTable threatIntelTable = (MockHTable)MockHTable.Provider.addToCache(threatIntelTableName, cf);
+    EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
+      add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<String, String>())));
     }});
-
+    final MockHTable enrichmentTable = (MockHTable)MockHTable.Provider.addToCache(enrichmentsTableName, cf);
+    EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
+      add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
+                        , new EnrichmentValue(PLAYFUL_ENRICHMENT )
+                        )
+         );
+    }});
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
@@ -194,6 +213,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(inputMessages.size(), docs.size());
       List<Map<String, Object>> cleanedDocs = cleanDocs(docs);
       validateAll(cleanedDocs);
+
 
       List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
@@ -225,12 +245,13 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       hostEnrichmentValidation(doc);
       geoEnrichmentValidation(doc);
       threatIntelValidation(doc);
+      simpleEnrichmentValidation(doc);
     }
   }
 
   public static void baseValidation(Map<String, Object> jsonDoc) {
-    assertEnrichmentsExists("threatintels.", setOf("ip"), jsonDoc.keySet());
-    assertEnrichmentsExists("enrichments.", setOf("geo", "host"), jsonDoc.keySet());
+    assertEnrichmentsExists("threatintels.", setOf("hbaseThreatIntel"), jsonDoc.keySet());
+    assertEnrichmentsExists("enrichments.", setOf("geo", "host", "hbaseEnrichment" ), jsonDoc.keySet());
     for(Map.Entry<String, Object> kv : jsonDoc.entrySet()) {
       //ensure no values are empty.
       Assert.assertTrue(kv.getValue().toString().length() > 0);
@@ -313,25 +334,47 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       }
     }
   }
+  private static void simpleEnrichmentValidation(Map<String, Object> indexedDoc) {
+    if(indexedDoc.get(SRC_IP).equals("10.0.2.3")
+            || indexedDoc.get(DST_IP).equals("10.0.2.3")
+            ) {
+      Assert.assertTrue(keyPatternExists("enrichments.hbaseEnrichment", indexedDoc));
+      if(indexedDoc.get(SRC_IP).equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation")
+                , PLAYFUL_ENRICHMENT.get("orientation")
+        );
+      }
+      else if(indexedDoc.get(DST_IP).equals("10.0.2.3")) {
+        Assert.assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation")
+                , PLAYFUL_ENRICHMENT.get("orientation")
+        );
+      }
+    }
+
+  }
   private static void threatIntelValidation(Map<String, Object> indexedDoc) {
-    if(keyPatternExists("threatintels.", indexedDoc)) {
+    if(indexedDoc.get(SRC_IP).equals("10.0.2.3")
+    || indexedDoc.get(DST_IP).equals("10.0.2.3")
+            ) {
       //if we have any threat intel messages, we want to tag is_alert to true
+      Assert.assertTrue(keyPatternExists("threatintels.", indexedDoc));
       Assert.assertEquals(indexedDoc.get("is_alert"), "true");
     }
     else {
       //For YAF this is the case, but if we do snort later on, this will be invalid.
       Assert.assertNull(indexedDoc.get("is_alert"));
+      Assert.assertFalse(keyPatternExists("threatintels.", indexedDoc));
     }
     //ip threat intels
-    if(keyPatternExists("threatintels.ip.", indexedDoc)) {
+    if(keyPatternExists("threatintels.hbaseThreatIntel.", indexedDoc)) {
       if(indexedDoc.get(SRC_IP).equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.ip." + SRC_IP + ".ip_threat_intel"), "alert");
+        Assert.assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + SRC_IP + "." + MALICIOUS_IP_TYPE), "alert");
       }
       else if(indexedDoc.get(DST_IP).equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.ip." + DST_IP + ".ip_threat_intel"), "alert");
+        Assert.assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + DST_IP + "." + MALICIOUS_IP_TYPE), "alert");
       }
       else {
-        Assert.fail("There was a threat intels that I did not expect.");
+        Assert.fail("There was a threat intels that I did not expect: " + indexedDoc);
       }
     }
 

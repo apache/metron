@@ -15,27 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.hbase.converters.enrichment;
 
-package org.apache.metron.enrichment.adapters.threat;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.metron.hbase.converters.AbstractConverter;
+import org.apache.metron.reference.lookup.LookupKV;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class EnrichmentConverter extends AbstractConverter<EnrichmentKey, EnrichmentValue> {
 
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+  @Override
+  public LookupKV<EnrichmentKey, EnrichmentValue> fromPut(Put put, String columnFamily) throws IOException {
+    return fromPut(put, columnFamily, new EnrichmentKey(), new EnrichmentValue());
+  }
 
-public abstract class AbstractThreatAdapter implements EnrichmentAdapter,Serializable{
-
-	
-	private static final long serialVersionUID = 1524030932856141771L;
-	protected static final Logger LOG = LoggerFactory
-			.getLogger(AbstractThreatAdapter.class);
-	
-	abstract public boolean initializeAdapter();
-
-	@Override
-	public void cleanup() {
-
-	}
+  @Override
+  public LookupKV<EnrichmentKey, EnrichmentValue> fromResult(Result result, String columnFamily) throws IOException {
+    return fromResult(result, columnFamily, new EnrichmentKey(), new EnrichmentValue());
+  }
 }

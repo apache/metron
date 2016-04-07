@@ -88,6 +88,13 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.adrianwalker</groupId>
+			<artifactId>multiline-string</artifactId>
+			<version>0.1.2</version>
+			<scope>test</scope>
+
+		</dependency>
 	</dependencies>
 	<build>
     <plugins>
@@ -191,10 +198,18 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<repositories>
-		<repository>
-			<id>clojars.org</id>
-			<url>http://clojars.org/repo</url>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </repository>
+        <repository>
+            <id>multiline-release-repo</id>
+            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+    </repositories>
 </project>

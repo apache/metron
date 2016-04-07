@@ -29,6 +29,7 @@ public class Constants {
   public static final String SENSOR_TYPE = "source.type";
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String ERROR_STREAM = "error";
-
+  public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
+  public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
 }
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.dataloads.taxii;
+package org.apache.metron.dataloads.nonbulk.taxii;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
@@ -43,9 +43,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 import org.apache.metron.dataloads.extractor.Extractor;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
 import org.mitre.taxii.client.HttpClient;
 import org.mitre.taxii.messages.xml11.*;
@@ -87,42 +87,46 @@ public class TaxiiHandler extends TimerTask {
     private HttpClient taxiiClient;
     private URL endpoint;
     private Extractor extractor;
-    private Map<String, TableInfo> tableMap;
-    private Map<TableInfo, HTableInterface> connectionCache = new HashMap<>();
+    private String hbaseTable;
+    private String columnFamily;
+    private Map<String, HTableInterface> connectionCache = new HashMap<>();
     private HttpClientContext context;
     private String collection;
     private String subscriptionId;
-    private ThreatIntelConverter converter = new ThreatIntelConverter();
+    private EnrichmentConverter converter = new EnrichmentConverter();
     private Date beginTime;
     private Configuration config;
     private boolean inProgress = false;
+    private Set<String> allowedIndicatorTypes;
     public TaxiiHandler( TaxiiConnectionConfig connectionConfig
                        , Extractor extractor
                        , Configuration config
                        ) throws Exception
     {
         LOG.info("Loading configuration: " + connectionConfig);
+        this.allowedIndicatorTypes = connectionConfig.getAllowedIndicatorTypes();
         this.extractor = extractor;
         this.collection = connectionConfig.getCollection();
         this.subscriptionId = connectionConfig.getSubscriptionId();
-        this.tableMap = connectionConfig.getTableMap();
+        hbaseTable = connectionConfig.getTable();
+        columnFamily = connectionConfig.getColumnFamily();
         this.beginTime = connectionConfig.getBeginTime();
         this.config = config;
         initializeClient(connectionConfig);
         LOG.info("Configured, starting polling " + endpoint + " for " + collection);
     }
 
-    protected synchronized HTableInterface getTable(TableInfo tableInfo) throws IOException {
-        HTableInterface ret = connectionCache.get(tableInfo);
+    protected synchronized HTableInterface getTable(String table) throws IOException {
+        HTableInterface ret = connectionCache.get(table);
         if(ret == null) {
-            ret = createHTable(tableInfo);
-            connectionCache.put(tableInfo, ret);
+            ret = createHTable(table);
+            connectionCache.put(table, ret);
         }
         return ret;
     }
 
-    protected synchronized HTableInterface createHTable(TableInfo tableInfo) throws IOException {
-        return new HTable(config, tableInfo.getTableName());
+    protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
+        return new HTable(config, tableInfo);
     }
     /**
      * The action to be performed by this timer task.
@@ -178,20 +182,19 @@ public class TaxiiHandler extends TimerTask {
                             if(LOG.isDebugEnabled() && Math.random() < 0.01) {
                                 LOG.debug("Random Stix doc: " + xml);
                             }
-                            for (LookupKV<ThreatIntelKey, ThreatIntelValue> kv : extractor.extract(xml)) {
-                                String indicatorType = kv.getValue().getMetadata().get("indicator-type");
-                                TableInfo tableInfo = tableMap.get(indicatorType);
-                                boolean persisted = false;
-                                if (tableInfo != null) {
+                            for (LookupKV<EnrichmentKey, EnrichmentValue> kv : extractor.extract(xml)) {
+                                if(allowedIndicatorTypes.isEmpty()
+                                || allowedIndicatorTypes.contains(kv.getKey().type)
+                                  )
+                                {
                                     kv.getValue().getMetadata().put("source_type", "taxii");
                                     kv.getValue().getMetadata().put("taxii_url", endpoint.toString());
                                     kv.getValue().getMetadata().put("taxii_collection", collection);
-                                    Put p = converter.toPut(tableInfo.getColumnFamily(), kv.getKey(), kv.getValue());
-                                    HTableInterface table = getTable(tableInfo);
+                                    Put p = converter.toPut(columnFamily, kv.getKey(), kv.getValue());
+                                    HTableInterface table = getTable(hbaseTable);
                                     table.put(p);
-                                    persisted = true;
+                                    LOG.info("Found Threat Intel: " + kv.getKey() + " => " + kv.getValue());
                                 }
-                                LOG.info("Found Threat Intel: " + persisted + ", " + kv.getKey() + " => " + kv.getValue());
                             }
                         }
                         avgTimeMS += System.currentTimeMillis() - timeS;

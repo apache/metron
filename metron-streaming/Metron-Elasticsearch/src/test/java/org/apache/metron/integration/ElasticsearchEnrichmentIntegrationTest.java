@@ -54,7 +54,7 @@ public class ElasticsearchEnrichmentIntegrationTest extends EnrichmentIntegratio
         if (elasticSearchComponent.hasIndex(index)) {
           List<Map<String, Object>> docsFromDisk;
           try {
-            docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf");
+            docs = elasticSearchComponent.getAllIndexedDocs(index, "yaf_doc");
             docsFromDisk = readDocsFromDisk(hdfsDir);
             System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
           } catch (IOException e) {

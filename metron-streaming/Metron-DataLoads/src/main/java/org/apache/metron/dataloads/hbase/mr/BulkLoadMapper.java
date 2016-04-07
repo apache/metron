@@ -26,8 +26,6 @@ import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.hbase.converters.HbaseConverter;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
 
 import java.io.IOException;
 
@@ -39,7 +37,6 @@ public class BulkLoadMapper extends Mapper<Object, Text, ImmutableBytesWritable,
     public static final String CONVERTER_KEY = "bl_converter";
     Extractor extractor = null;
     String columnFamily = null;
-    Long lastSeen = null;
     HbaseConverter converter;
     @Override
     public void setup(Context context) throws IOException,
@@ -61,7 +58,6 @@ public class BulkLoadMapper extends Mapper<Object, Text, ImmutableBytesWritable,
         String configStr = configuration.get(CONFIG_KEY);
         extractor = ExtractorHandler.load(configStr).getExtractor();
         columnFamily = configuration.get(COLUMN_FAMILY_KEY);
-        lastSeen = Long.parseLong(configuration.get(LAST_SEEN_KEY));
         try {
             converter = (HbaseConverter) Class.forName(configuration.get(CONVERTER_KEY)).newInstance();
         } catch (InstantiationException e) {

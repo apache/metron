@@ -29,6 +29,8 @@ public abstract class AbstractObjectTypeHandler<T extends ObjectPropertiesType> 
     public Class<T> getTypeClass() {
         return objectPropertiesType;
     }
-
+    public String getType() {
+        return getTypeClass().getSimpleName().toLowerCase();
+    }
 
 }

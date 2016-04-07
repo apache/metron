@@ -83,8 +83,10 @@
     - { regexp: "bolt.hbase.table.name=", line: "bolt.hbase.table.name={{ pcap_hbase_table }}" }
     - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
-    - { regexp: "threat.intel.ip.table=", line: "threat.intel.ip.table={{ threatintel_ip_hbase_table }}" }
-    - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
+    - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }
+    - { regexp: "threat.intel.simple.hbase.cf=", line: "threat.intel.simple.hbase.cf=t" }
+    - { regexp: "enrichment.simple.hbase.table=", line: "enrichment.simple.hbase.table={{ enrichment_hbase_table }}" }
+    - { regexp: "enrichment.simple.hbase.cf=", line: "enrichment.simple.hbase.cf=t" }
     - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
     - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
     - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
@@ -109,8 +111,10 @@
     - { regexp: "bolt.hbase.table.name=", line: "bolt.hbase.table.name={{ pcap_hbase_table }}" }
     - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
-    - { regexp: "threat.intel.ip.table=", line: "threat.intel.ip.table={{ threatintel_ip_hbase_table }}" }
-    - { regexp: "threat.intel.ip.cf=", line: "threat.intel.ip.cf=t" }
+    - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }
+    - { regexp: "threat.intel.simple.hbase.cf=", line: "threat.intel.simple.hbase.cf=t" }
+    - { regexp: "enrichment.simple.hbase.table=", line: "enrichment.simple.hbase.table={{ enrichment_hbase_table }}" }
+    - { regexp: "enrichment.simple.hbase.cf=", line: "enrichment.simple.hbase.cf=t" }
     - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
     - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
     - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }

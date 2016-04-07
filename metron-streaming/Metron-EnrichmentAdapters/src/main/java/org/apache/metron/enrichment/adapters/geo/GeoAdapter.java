@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.adapters.geo;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.metron.enrichment.adapters.jdbc.JdbcAdapter;
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 
 import java.net.InetAddress;
@@ -29,19 +30,19 @@ public class GeoAdapter extends JdbcAdapter {
   private InetAddressValidator ipvalidator = new InetAddressValidator();
 
   @Override
-  public void logAccess(String value) {
+  public void logAccess(CacheKey value) {
 
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public JSONObject enrich(String value) {
+  public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
     try {
-      InetAddress addr = InetAddress.getByName(value);
+      InetAddress addr = InetAddress.getByName(value.getValue());
       if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
               || addr.isSiteLocalAddress() || addr.isMulticastAddress()
-              || !ipvalidator.isValidInet4Address(value)) {
+              || !ipvalidator.isValidInet4Address(value.getValue())) {
         return new JSONObject();
       }
       String locidQuery = "select IPTOLOCID(\"" + value
@@ -67,8 +68,7 @@ public class GeoAdapter extends JdbcAdapter {
       }
       resultSet.close();
     } catch (Exception e) {
-      e.printStackTrace();
-      _LOG.error("Enrichment failure: " + e);
+      _LOG.error("Enrichment failure: " + e.getMessage(), e);
       return new JSONObject();
     }
     return enriched;

@@ -36,6 +36,30 @@ components:
         constructorArgs:
             -   "host"
             -   ref: "hostEnrichmentAdapter"
+
+    -   id: "simpleHBaseEnrichmentConfig"
+        className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseConfig"
+        configMethods:
+            -   name: "withProviderImpl"
+                args:
+                    - "${hbase.provider.impl}"
+            -   name: "withHBaseTable"
+                args:
+                    - "${enrichment.simple.hbase.table}"
+            -   name: "withHBaseCF"
+                args:
+                    - "${enrichment.simple.hbase.cf}"
+    -   id: "simpleHBaseEnrichmentAdapter"
+        className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseAdapter"
+        configMethods:
+           -    name: "withConfig"
+                args:
+                    - ref: "simpleHBaseEnrichmentConfig"
+    -   id: "simpleHBaseEnrichment"
+        className: "org.apache.metron.domain.Enrichment"
+        constructorArgs:
+          -   "hbaseEnrichment"
+          -   ref: "simpleHBaseEnrichmentAdapter"
     -   id: "enrichments"
         className: "java.util.ArrayList"
         configMethods:
@@ -45,10 +69,13 @@ components:
             -   name: "add"
                 args:
                     - ref: "hostEnrichment"
-
+            -   name: "add"
+                args:
+                    - ref: "simpleHBaseEnrichment"
 # Threat Intel
-    -   id: "ipThreatIntelConfig"
-        className: "org.apache.metron.threatintel.ThreatIntelConfig"
+
+    -   id: "simpleHBaseThreatIntelConfig"
+        className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelConfig"
         configMethods:
             -   name: "withProviderImpl"
                 args:
@@ -61,27 +88,28 @@ components:
                     - "${threat.intel.tracker.cf}"
             -   name: "withHBaseTable"
                 args:
-                    - "${threat.intel.ip.table}"
+                    - "${threat.intel.simple.hbase.table}"
             -   name: "withHBaseCF"
                 args:
-                    - "${threat.intel.ip.cf}"
-    -   id: "ipThreatIntelAdapter"
-        className: "org.apache.metron.threatintel.ThreatIntelAdapter"
+                    - "${threat.intel.simple.hbase.cf}"
+    -   id: "simpleHBaseThreatIntelAdapter"
+        className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelAdapter"
         configMethods:
            -    name: "withConfig"
                 args:
-                    - ref: "ipThreatIntelConfig"
-    -   id: "ipThreatIntelEnrichment"
+                    - ref: "simpleHBaseThreatIntelConfig"
+    -   id: "simpleHBaseThreatIntelEnrichment"
         className: "org.apache.metron.domain.Enrichment"
         constructorArgs:
-          -   "ip"
-          -   ref: "ipThreatIntelAdapter"
+          -   "hbaseThreatIntel"
+          -   ref: "simpleHBaseThreatIntelAdapter"
+
     -   id: "threatIntels"
         className: "java.util.ArrayList"
         configMethods:
             -   name: "add"
                 args:
-                    - ref: "ipThreatIntelEnrichment"
+                    - ref: "simpleHBaseThreatIntelEnrichment"
 
     -   id: "fileNameFormat"
         className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
@@ -176,6 +204,18 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+    -   id: "simpleHBaseEnrichmentBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "simpleHBaseEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
     -   id: "enrichmentJoinBolt"
         className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
         constructorArgs:
@@ -200,14 +240,14 @@ bolts:
                     - ref: "threatIntels"
             -   name: "withMessageFieldName"
                 args: ["message"]
-    -   id: "ipThreatIntelBolt"
+    -   id: "simpleHBaseThreatIntelBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
             -   name: "withEnrichment"
                 args:
-                    - ref: "ipThreatIntelEnrichment"
+                    - ref: "simpleHBaseThreatIntelEnrichment"
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withMaxTimeRetain"
@@ -266,6 +306,15 @@ streams:
             streamId: "geo"
             type: FIELDS
             args: ["key"]
+
+    -   name: "enrichmentSplit -> simpleHBaseEnrichmentBolt"
+        from: "enrichmentSplitBolt"
+        to: "simpleHBaseEnrichmentBolt"
+        grouping:
+            streamId: "hbaseEnrichment"
+            type: FIELDS
+            args: ["key"]
+
     -   name: "splitter -> join"
         from: "enrichmentSplitBolt"
         to: "enrichmentJoinBolt"
@@ -278,6 +327,15 @@ streams:
         to: "enrichmentJoinBolt"
         grouping:
             streamId: "geo"
+            type: FIELDS
+            args: ["key"]
+
+
+    -   name: "simpleHBaseEnrichmentBolt -> join"
+        from: "simpleHBaseEnrichmentBolt"
+        to: "enrichmentJoinBolt"
+        grouping:
+            streamId: "hbaseEnrichment"
             type: FIELDS
             args: ["key"]
     -   name: "host -> join"
@@ -297,19 +355,19 @@ streams:
             type: FIELDS
             args: ["key"]
 
-    -   name: "threatSplit -> ip"
+    -   name: "threatSplit -> simpleHBaseThreatIntel"
         from: "threatIntelSplitBolt"
-        to: "ipThreatIntelBolt"
+        to: "simpleHBaseThreatIntelBolt"
         grouping:
-            streamId: "ip"
+            streamId: "hbaseThreatIntel"
             type: FIELDS
             args: ["key"]
 
-    -   name: "ip -> join"
-        from: "ipThreatIntelBolt"
+    -   name: "simpleHBaseThreatIntel -> join"
+        from: "simpleHBaseThreatIntelBolt"
         to: "threatIntelJoinBolt"
         grouping:
-            streamId: "ip"
+            streamId: "hbaseThreatIntel"
             type: FIELDS
             args: ["key"]
     -   name: "threatIntelSplit -> threatIntelJoin"

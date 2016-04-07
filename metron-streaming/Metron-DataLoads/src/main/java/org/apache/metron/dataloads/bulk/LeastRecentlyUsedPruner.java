@@ -150,7 +150,7 @@ public class LeastRecentlyUsedPruner {
 
         public static void printHelp() {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "ThreatIntelBulkLoader", getOptions());
+            formatter.printHelp( "LeastRecentlyUsedPruner", getOptions());
         }
 
         public static Options getOptions() {

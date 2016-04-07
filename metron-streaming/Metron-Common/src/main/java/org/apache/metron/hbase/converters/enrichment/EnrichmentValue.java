@@ -15,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.hbase.converters.threatintel;
+package org.apache.metron.hbase.converters.enrichment;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.converters.AbstractConverter;
@@ -27,7 +26,7 @@ import org.codehaus.jackson.type.TypeReference;
 import java.io.IOException;
 import java.util.Map;
 
-public class ThreatIntelValue implements LookupValue {
+public class EnrichmentValue implements LookupValue {
    private static final ThreadLocal<ObjectMapper> _mapper = new ThreadLocal<ObjectMapper>() {
              @Override
              protected ObjectMapper initialValue() {
@@ -36,17 +35,15 @@ public class ThreatIntelValue implements LookupValue {
     };
     public static final String VALUE_COLUMN_NAME = "v";
     public static final byte[] VALUE_COLUMN_NAME_B = Bytes.toBytes(VALUE_COLUMN_NAME);
-    public static final String LAST_SEEN_COLUMN_NAME = "t";
-    public static final byte[] LAST_SEEN_COLUMN_NAME_B = Bytes.toBytes(LAST_SEEN_COLUMN_NAME);
 
     private Map<String, String> metadata = null;
 
-    public ThreatIntelValue()
+    public EnrichmentValue()
     {
 
     }
 
-    public ThreatIntelValue(Map<String, String> metadata) {
+    public EnrichmentValue(Map<String, String> metadata) {
         this.metadata = metadata;
     }
 
@@ -90,7 +87,7 @@ public class ThreatIntelValue implements LookupValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ThreatIntelValue that = (ThreatIntelValue) o;
+        EnrichmentValue that = (EnrichmentValue) o;
 
         return getMetadata() != null ? getMetadata().equals(that.getMetadata()) : that.getMetadata() == null;
 
@@ -103,7 +100,7 @@ public class ThreatIntelValue implements LookupValue {
 
     @Override
     public String toString() {
-        return "ThreatIntelValue{" +
+        return "EnrichmentValue{" +
                 "metadata=" + metadata +
                 '}';
     }
