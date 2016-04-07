@@ -15,13 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.integration.util;
+package org.apache.metron.hbase.converters.enrichment;
 
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
-import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
-import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
 
 import java.io.IOException;

@@ -80,6 +80,7 @@
 		<module>Metron-Elasticsearch</module>
 		<module>Metron-Solr</module>
 		<module>Metron-Testing</module>
+		<module>Metron-TestingUtilities</module>
 	</modules>
 	<dependencies>
 		<dependency>
