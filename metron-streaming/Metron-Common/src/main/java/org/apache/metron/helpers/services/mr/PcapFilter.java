@@ -88,7 +88,7 @@ public class PcapFilter implements Predicate<PacketInfo> {
     }
     if(isMatch && srcPort != null ) {
       Object o = srcPortObj;
-      isMatch &= o != null && o.toString().equals(srcPort);
+      isMatch &= o != null && o.toString().equals(srcPort.toString());
     }
     if(isMatch && dstAddr != null ) {
       Object o = dstAddrObj;
@@ -96,23 +96,29 @@ public class PcapFilter implements Predicate<PacketInfo> {
     }
     if(isMatch && dstPort != null) {
       Object o = dstPortObj;
-      isMatch &= o != null && o.toString().equals(dstPort);
+      isMatch &= o != null && o.toString().equals(dstPort.toString());
     }
     return isMatch;
   }
 
   public EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
     EnumMap<Constants.Fields, Object> ret = new EnumMap(Constants.Fields.class);
-    if(pi.getIpv4Packet() != null) {
-      if(pi.getIpv4Packet().getSourceAddress() != null) {
-        ret.put(Constants.Fields.SRC_ADDR, pi.getIpv4Packet().getSourceAddress().getHostAddress());
+    if(pi.getTcpPacket() != null) {
+      if(pi.getTcpPacket().getSourceAddress() != null) {
+        ret.put(Constants.Fields.SRC_ADDR, pi.getTcpPacket().getSourceAddress().getHostAddress());
       }
-      ret.put(Constants.Fields.SRC_PORT, pi.getIpv4Packet().getSource());
-      if(pi.getIpv4Packet().getDestinationAddress() != null ) {
-        ret.put(Constants.Fields.DST_ADDR, pi.getIpv4Packet().getDestinationAddress().getHostAddress());
+      if(pi.getTcpPacket().getSource() != null ) {
+        ret.put(Constants.Fields.SRC_PORT, pi.getTcpPacket().getSource().getPort());
       }
-      ret.put(Constants.Fields.DST_PORT, pi.getIpv4Packet().getDestination());
-      ret.put(Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
+      if(pi.getTcpPacket().getDestinationAddress() != null ) {
+        ret.put(Constants.Fields.DST_ADDR, pi.getTcpPacket().getDestinationAddress().getHostAddress());
+      }
+      if(pi.getTcpPacket().getDestination() != null ) {
+        ret.put(Constants.Fields.DST_PORT, pi.getTcpPacket().getDestination().getPort());
+      }
+      if(pi.getIpv4Packet() != null) {
+        ret.put(Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
+      }
     }
     return ret;
   }

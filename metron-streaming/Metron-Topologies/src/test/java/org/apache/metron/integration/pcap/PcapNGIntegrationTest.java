@@ -2,15 +2,20 @@ package org.apache.metron.integration.pcap;
 
 import backtype.storm.Config;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import kafka.cluster.Partition;
 import kafka.consumer.ConsumerIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.metron.Constants;
 import org.apache.metron.helpers.services.mr.PcapJob;
@@ -24,6 +29,7 @@ import org.apache.metron.integration.util.integration.components.MRComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapParser;
+import org.apache.metron.pcap.PcapUtils;
 import org.apache.metron.spout.pcap.HDFSWriterCallback;
 import org.apache.metron.spout.pcap.PartitionHDFSWriter;
 import org.apache.metron.test.converters.HexStringConverter;
@@ -81,18 +87,46 @@ public class PcapNGIntegrationTest {
     }).length;
   }
 
-  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(File pcapFile) throws IOException {
-    BufferedReader br = new BufferedReader(new FileReader(pcapFile));
-    List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
-    HexStringConverter converter = new HexStringConverter();
-    long ts = 0L;
+  /*private static Map<String, byte[]> readPcaps(Path pcapFile) throws IOException {
+    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
+            SequenceFile.Reader.file(pcapFile)
+    );
+    Map<String, byte[]> ret = new HashMap<>();
+    IntWritable key = new IntWritable();
+    BytesWritable value = new BytesWritable();
     PcapParser parser = new PcapParser();
     parser.init();
-    for(String line = null;(line = br.readLine()) != null;) {
-      byte[] pcapWithHeader = converter.convert(line);
+    while (reader.next(key, value)) {
+      int keyInt = key.get();
+      byte[] valueBytes = value.copyBytes();
+      JSONObject message = parser.parse(valueBytes).get(0);
+      if (parser.validate(message)) {
+        ret.put(PcapUtils.getSessionKey(message), valueBytes);
+      }
+    }
+    return ret;
+  }*/
+
+  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile) throws IOException {
+    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
+            SequenceFile.Reader.file(pcapFile)
+    );
+    List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
+    long ts = 0L;
+    IntWritable key = new IntWritable();
+    BytesWritable value = new BytesWritable();
+    while (reader.next(key, value)) {
+      byte[] pcapWithHeader = value.copyBytes();
+      {
+        PcapParser parser = new PcapParser();
+        parser.init();
+        List<PacketInfo> info = parser.getPacketInfo(pcapWithHeader);
+        for(PacketInfo pi : info) {
+          System.out.println(pi.getJsonDoc());
+        }
+      }
       byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
       System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
-      List<PacketInfo> l = parser.getPacketInfo(pcapWithHeader);
       byte[] headerized = PartitionHDFSWriter.headerize(pcapRaw).getBytes();
       Assert.assertArrayEquals(pcapWithHeader, headerized);
       ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
@@ -116,11 +150,12 @@ public class PcapNGIntegrationTest {
     //Assert.assertEquals(0, numFiles(outDir));
     Assert.assertNotNull(topologiesDir);
     Assert.assertNotNull(targetDir);
-    File pcapFile = new File(topologiesDir + "/../../SampleInput/PCAPExampleOutput");
+    Path pcapFile = new Path("../Metron-Testing/src/main/resources/sample/data/SampleInput/PCAPExampleOutput");
     final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
       setProperty("spout.kafka.topic.pcap", kafkaTopic);
+      setProperty("kafka.pcap.start", "BEGINNING");
       setProperty("kafka.pcap.out", outDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
@@ -191,70 +226,152 @@ public class PcapNGIntegrationTest {
           return null;
         }
       });
-      //now we can do a query.
       PcapJob job = new PcapJob();
       {
-        System.err.println("Starting job\n\n===============================================");
+        //Ensure that only two pcaps are returned when we look at 4 and 5
         List<byte[]> results =
-        job.query(new Path(outDir.getAbsolutePath())
-                , new Path(queryDir.getAbsolutePath())
-                , 4l
-                , 5l
-                , new EnumMap<>(Constants.Fields.class)
-                , new Configuration()
-                , FileSystem.get(new Configuration())
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , 4l
+                        , 5l
+                        , new EnumMap<>(Constants.Fields.class)
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
                 );
         Assert.assertEquals(results.size(), 2);
       }
       {
-        System.err.println("Starting job\n\n===============================================");
+        //ensure that none get returned since that destination IP address isn't in the dataset
         List<byte[]> results =
-        job.query(new Path(outDir.getAbsolutePath())
-                , new Path(queryDir.getAbsolutePath())
-                , 0l
-                , 1l
-                , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                  put(Constants.Fields.DST_ADDR, "207.28.210.1");
-                }}
-                , new Configuration()
-                , FileSystem.get(new Configuration())
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , 0l
+                        , 1l
+                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+                          put(Constants.Fields.DST_ADDR, "207.28.210.1");
+                        }}
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
                 );
         Assert.assertEquals(results.size(), 0);
       }
       {
-        System.err.println("Starting job\n\n===============================================");
+        //same with protocol as before with the destination addr
         List<byte[]> results =
-        job.query(new Path(outDir.getAbsolutePath())
-                , new Path(queryDir.getAbsolutePath())
-                , 0l
-                , 1l
-                , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                  put(Constants.Fields.PROTOCOL, "foo");
-                }}
-                , new Configuration()
-                , FileSystem.get(new Configuration())
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , 0l
+                        , 1l
+                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+                          put(Constants.Fields.PROTOCOL, "foo");
+                        }}
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
                 );
         Assert.assertEquals(results.size(), 0);
       }
       {
-        System.err.println("Starting job\n\n===============================================");
+        //make sure I get them all.
         List<byte[]> results =
-        job.query(new Path(outDir.getAbsolutePath())
-                , new Path(queryDir.getAbsolutePath())
-                , 0l
-                , 16l
-                , new EnumMap<>(Constants.Fields.class)
-                , new Configuration()
-                , FileSystem.get(new Configuration())
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , 0l
+                        , 500l
+                        , new EnumMap<>(Constants.Fields.class)
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
                 );
-        Assert.assertEquals(results.size(), 14);
+        Assert.assertEquals(results.size(), pcapEntries.size());
+      }
+      {
+        List<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , 0l
+                        , 500l
+                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+                          put(Constants.Fields.DST_PORT, "22");
+                        }}
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                );
+        Assert.assertTrue(results.size() > 0);
+        Assert.assertEquals(results.size()
+                , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
+                  @Override
+                  public boolean apply(@Nullable JSONObject input) {
+                    Object prt = input.get(Constants.Fields.DST_PORT.getName());
+                    return prt != null && prt.toString().equals("22");
+                  }
+                })
+                )
+        );
       }
       System.out.println("Ended");
-    }
-    finally {
+    } finally {
       runner.stop();
       clearOutDir(outDir);
       clearOutDir(queryDir);
     }
+  }
+
+  public static Function<byte[], Iterable<JSONObject>> TO_JSONS = new Function<byte[], Iterable<JSONObject>>() {
+    @Nullable
+    @Override
+    public Iterable<JSONObject> apply(@Nullable byte[] input) {
+      PcapParser parser = new PcapParser();
+      parser.init();
+      return parser.parse(input);
+    }
+  };
+
+  public static class Project implements Function<Map.Entry<byte[], byte[]>, byte[]> {
+    int position;
+    byte[] header;
+    public Project(int position) {
+
+    }
+    public Project(int position, byte[] header) {
+      this.position = position;
+      this.header = header;
+    }
+    private byte[] headerize(byte[] packet) {
+      if(header != null) {
+        byte[] ret = new byte[packet.length + header.length];
+        int offset = 0;
+        System.arraycopy(header, 0, ret, offset, header.length);
+        offset += header.length;
+        System.arraycopy(packet, 0, ret, offset, packet.length);
+        return ret;
+      }
+      else {
+        return packet;
+      }
+    }
+    @Nullable
+    @Override
+    public byte[] apply(@Nullable Map.Entry<byte[], byte[]> input) {
+      if(position == 0) {
+        return headerize(input.getKey());
+      }
+      else {
+        return headerize(input.getValue());
+      }
+    }
+  }
+
+  private Iterable<JSONObject> filterPcaps(Iterable<Map.Entry<byte[], byte[]>> pcaps
+                                          ,Predicate<JSONObject> predicate
+                                          )
+  {
+    return Iterables.filter(
+              Iterables.concat(
+                      Iterables.transform(
+                              Iterables.transform(pcaps, new Project(1, PartitionHDFSWriter.PCAP_GLOBAL_HEADER))
+                                         , TO_JSONS
+                                         )
+                              )
+                           , predicate
+                           );
   }
 }

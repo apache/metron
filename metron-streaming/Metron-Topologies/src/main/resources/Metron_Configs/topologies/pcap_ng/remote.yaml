@@ -24,7 +24,7 @@ components:
     constructorArgs:
       - "${kafka.zk}"
   - id: "kafkaConfig"
-    className: "storm.kafka.SpoutConfig"
+    className: "org.apache.metron.spout.kafka.SpoutConfig"
     constructorArgs:
       # zookeeper hosts
       - ref: "zkHosts"
@@ -34,9 +34,11 @@ components:
       - ""
       # id
       - "${spout.kafka.topic.pcap}"
-    properties:
-      - name: "startOffsetTime"
-        value: -1
+    configMethods:
+      -   name: "from"
+          args:
+            - "${kafka.pcap.start}"
+
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"
     configMethods:
