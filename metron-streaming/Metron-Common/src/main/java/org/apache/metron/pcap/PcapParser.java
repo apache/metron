@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,6 +21,10 @@ package org.apache.metron.pcap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.metron.parser.interfaces.MessageParser;
+import org.apache.metron.pcap.Constants;
+import org.apache.metron.pcap.MetronEthernetDecoder;
+import org.apache.metron.pcap.PacketInfo;
+import org.apache.metron.pcap.PcapByteInputStream;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.krakenapps.pcap.decoder.ethernet.EthernetDecoder;
@@ -104,7 +109,7 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
 
   /**
    * Parses the.
-   * 
+   *
    * @param pcap
    *          the pcap
    * @return the list * @throws IOException Signals that an I/O exception has
@@ -136,7 +141,6 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
         // LOG.trace("Got packet # " + ++packetCounter);
 
         // LOG.trace(packet.getPacketData());
-        if(packet.getPacketData().isEOB())
         ethernetDecoder.decode(packet);
 
         PacketHeader packetHeader = packet.getPacketHeader();
@@ -162,7 +166,7 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
         }
 
         packetInfoList.add(new PacketInfo(globalHeader, packetHeader, packet,
-            ipv4Packet, tcpPacket, udpPacket));
+                ipv4Packet, tcpPacket, udpPacket));
       } catch (NegativeArraySizeException ignored) {
         LOG.debug("Ignorable exception while parsing packet.", ignored);
       } catch (EOFException eof) { // $codepro.audit.disable logExceptions
@@ -175,7 +179,7 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
 
   /**
    * The main method.
-   * 
+   *
    * @param args
    *          the arguments
    * @throws IOException
@@ -184,7 +188,7 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
    *           the interrupted exception
    */
   public static void main(String[] args) throws IOException,
-      InterruptedException {
+          InterruptedException {
 
     double totalIterations = 1000000;
     double parallelism = 64;
@@ -204,23 +208,23 @@ public class PcapParser implements MessageParser<JSONObject>, Serializable {
     long endTime = System.currentTimeMillis();
 
     System.out.println("Time taken to process " + totalIterations + " events :"
-        + (endTime - startTime) + " milliseconds");
+            + (endTime - startTime) + " milliseconds");
 
     System.out
-        .println("With parallelism of "
-            + parallelism
-            + " estimated time to process "
-            + targetEvents
-            + " events: "
-            + (((((endTime - startTime) / totalIterations) * targetEvents) / parallelism) / 1000)
-            + " seconds");
+            .println("With parallelism of "
+                    + parallelism
+                    + " estimated time to process "
+                    + targetEvents
+                    + " events: "
+                    + (((((endTime - startTime) / totalIterations) * targetEvents) / parallelism) / 1000)
+                    + " seconds");
     System.out.println("With parallelism of " + parallelism
-        + " estimated # of events per second: "
-        + ((parallelism * 1000 * totalIterations) / (endTime - startTime))
-        + " events");
+            + " estimated # of events per second: "
+            + ((parallelism * 1000 * totalIterations) / (endTime - startTime))
+            + " events");
     System.out.println("Expected Parallelism to process " + targetEvents
-        + " events in a second: "
-        + (targetEvents / ((1000 * totalIterations) / (endTime - startTime))));
+            + " events in a second: "
+            + (targetEvents / ((1000 * totalIterations) / (endTime - startTime))));
   }
 
 }

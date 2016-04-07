@@ -36,7 +36,7 @@ import org.krakenapps.pcap.util.ChainBuffer;
  * @version $Revision: 1.0 $
  */
 public class PcapByteInputStream implements PcapInputStream {
-  private int offset = 0;
+
   /** The is. */
   private DataInputStream is;
 
@@ -53,17 +53,9 @@ public class PcapByteInputStream implements PcapInputStream {
    *           Signals that an I/O exception has occurred.
    */
   public PcapByteInputStream(byte[] pcap) throws IOException {
-    this(new ByteArrayInputStream(pcap));
-  }
-
-  public PcapByteInputStream(ByteArrayInputStream bis) throws IOException {
-    is = new DataInputStream(bis); // $codepro.audit.disable
+    is = new DataInputStream(new ByteArrayInputStream(pcap)); // $codepro.audit.disable
                                                               // closeWhereCreated
     readGlobalHeader();
-  }
-
-  public int getOffset() {
-    return offset;
   }
 
   /**
@@ -101,19 +93,12 @@ public class PcapByteInputStream implements PcapInputStream {
    */
   private void readGlobalHeader() throws IOException {
     int magic = is.readInt();
-    offset += Integer.BYTES;
     short major = is.readShort();
-    offset += Short.BYTES;
     short minor = is.readShort();
-    offset += Short.BYTES;
     int tz = is.readInt();
-    offset += Integer.BYTES;
     int sigfigs = is.readInt();
-    offset += Integer.BYTES;
     int snaplen = is.readInt();
-    offset += Integer.BYTES;
     int network = is.readInt();
-    offset += Integer.BYTES;
 
     globalHeader = new GlobalHeader(magic, major, minor, tz, sigfigs, snaplen,
         network);
@@ -151,13 +136,9 @@ public class PcapByteInputStream implements PcapInputStream {
    */
   private PacketHeader readPacketHeader(int magicNumber) throws IOException {
     int tsSec = is.readInt();
-    offset += Integer.BYTES ;
     int tsUsec = is.readInt();
-    offset += Integer.BYTES;
     int inclLen = is.readInt();
-    offset += Integer.BYTES;
     int origLen = is.readInt();
-    offset += Integer.BYTES;
 
     if (magicNumber == 0xD4C3B2A1) {
       tsSec = ByteOrderConverter.swap(tsSec);
@@ -182,7 +163,6 @@ public class PcapByteInputStream implements PcapInputStream {
   private Buffer readPacketData(int packetLength) throws IOException {
     byte[] packets = new byte[packetLength];
     is.read(packets);
-    offset += packetLength;
 
     Buffer payload = new ChainBuffer();
     payload.addLast(packets);
@@ -198,6 +178,7 @@ public class PcapByteInputStream implements PcapInputStream {
    *           Signals that an I/O exception has occurred. * @see
    *           org.krakenapps.pcap.PcapInputStream#close()
    */
+
   public void close() throws IOException {
     is.close(); // $codepro.audit.disable closeInFinally
   }

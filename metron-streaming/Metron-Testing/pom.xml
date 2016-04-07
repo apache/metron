@@ -145,8 +145,12 @@
       <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <version>${global_hadoop_version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>Metron-MessageParsers</artifactId>
+      <version>0.1BETA</version>
+    </dependency>
   </dependencies>
-
   <build>
   </build>
   <reporting>

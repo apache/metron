@@ -36,7 +36,7 @@ import org.apache.metron.integration.util.integration.ReadinessState;
 import org.apache.metron.integration.util.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.util.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.util.mock.MockHTable;
-import org.apache.metron.parsing.parsers.PcapParser;
+import org.apache.metron.pcap.PcapParser;
 import org.apache.metron.pcap.PcapUtils;
 import org.json.simple.JSONObject;
 import org.junit.Assert;

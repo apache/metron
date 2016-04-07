@@ -29,7 +29,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Writer;
-import org.apache.metron.parsing.parsers.PcapParser;
+import org.apache.metron.pcap.PcapParser;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
