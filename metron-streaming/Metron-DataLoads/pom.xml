@@ -168,7 +168,7 @@
                 <version>2.12.4</version>
                 <configuration>
                     <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                    <argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx2048m -XX:MaxPermSize=256m -Djava.util.logging.config.file=logging.properties</argLine>
                     <skip>true</skip>
                     <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                     <trimStackTrace>false</trimStackTrace>

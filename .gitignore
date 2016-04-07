@@ -17,5 +17,4 @@ target
 *.classpath
 *.settings
 *hbase-site.xml
-log4j.properties
 *.log
