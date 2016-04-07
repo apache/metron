@@ -20,12 +20,13 @@ package org.apache.metron.enrichment.adapters.cif;
 
 import java.io.Serializable;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 
-public abstract class AbstractCIFAdapter implements EnrichmentAdapter,Serializable{
+public abstract class AbstractCIFAdapter implements EnrichmentAdapter<CacheKey>,Serializable{
 
 	/**
 	 * 

@@ -20,12 +20,17 @@ package org.apache.metron.enrichment.bolt;
 import backtype.storm.task.TopologyContext;
 import org.apache.metron.bolt.JoinBolt;
 import org.apache.metron.domain.Enrichment;
+import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.topology.TopologyUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
 
@@ -51,9 +56,12 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   @Override
   public Set<String> getStreamIds(JSONObject message) {
     Set<String> streamIds = new HashSet<>();
-    String sourceType = TopologyUtils.getSourceType(message);
-    for (String enrichmentType : getFieldMap(sourceType).keySet()) {
-      streamIds.add(enrichmentType);
+    String sourceType = TopologyUtils.getSensorType(message);
+    Map<String, List<String>>  fieldMap = getFieldMap(sourceType);
+    if(fieldMap != null) {
+      for (String enrichmentType : getFieldMap(sourceType).keySet()) {
+        streamIds.add(enrichmentType);
+      }
     }
     streamIds.add("message");
     return streamIds;
@@ -82,6 +90,18 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   }
 
   public Map<String, List<String>> getFieldMap(String sourceType) {
-    return configurations.get(sourceType).getEnrichmentFieldMap();
+    if(sourceType != null) {
+      SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+      if (config != null) {
+        return config.getEnrichmentFieldMap();
+      }
+      else {
+        LOG.error("Unable to retrieve a sensor enrichment config of " + sourceType);
+      }
+    }
+    else {
+      LOG.error("Trying to retrieve a field map with source type of null");
+    }
+    return null;
   }
 }

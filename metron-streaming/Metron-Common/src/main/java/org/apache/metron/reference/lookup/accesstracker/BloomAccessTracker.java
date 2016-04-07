@@ -43,6 +43,7 @@ public class BloomAccessTracker implements AccessTracker {
         public boolean equals(Object obj) {
             return this.getClass().equals(obj.getClass());
         }
+
     }
 
     private static Funnel<LookupKey> LOOKUPKEY_FUNNEL = new LookupKeyFunnel();

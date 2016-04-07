@@ -19,7 +19,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/bash</directory>
+      <directory>${project.basedir}/../Metron-Topologies/src/main/bash</directory>
       <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
@@ -30,7 +30,7 @@
       <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/Metron_Configs/etc</directory>
+      <directory>${project.basedir}/../Metron-Topologies/src/main/resources/Metron_Configs/etc</directory>
       <outputDirectory>/config/etc</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
@@ -41,7 +41,7 @@
       <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/Metron_Configs/topologies</directory>
+      <directory>${project.basedir}/../Metron-Topologies/src/main/resources/Metron_Configs/topologies</directory>
       <outputDirectory>/config/topologies</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>

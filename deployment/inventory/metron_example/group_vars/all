@@ -29,12 +29,8 @@ cluster_type: small_cluster
 # hbase
 pcap_hbase_table: pcap
 tracker_hbase_table: access_tracker
-threatintel_ip_hbase_table: malicious_ip
-
-#elasticsearch
-elasticsearch_transport_port: 9300
-elasticsearch_network_interface: eth0
-elasticsearch_web_port: 9200
+threatintel_hbase_table: threatintel
+enrichment_hbase_table: enrichment
 
 # metron variables
 metron_version: 0.1BETA
@@ -70,3 +66,9 @@ pcap_replay_interface: eth1
 #kafka_log_dirs: "/newdir/kafka-log"
 #elasticsearch_data_dir: "/newdir1/elasticsearch"
 
+#Search
+install_elasticsearch: True
+install_solr: False
+elasticsearch_transport_port: 9300
+elasticsearch_network_interface: eth1
+elasticsearch_web_port: 9200

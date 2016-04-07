@@ -17,15 +17,15 @@
  */
 package org.apache.metron.dataloads.hbase.mr;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentConverter;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelConverter;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,9 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BulkLoadMapperTest {
-    @Test
-    public void testMapper() throws IOException, InterruptedException {
-        /**
+    /**
          {
             "config" : {
                         "columns" : {
@@ -44,19 +42,16 @@ public class BulkLoadMapperTest {
                                 ,"meta" : 2
                                     }
                        ,"indicator_column" : "host"
+                       ,"type" : "threat"
                        ,"separator" : ","
                        }
             ,"extractor" : "CSV"
          }
          */
-        final String extractorConfig = "{\n" +
-                "            \"config\" : {\n" +
-                "                        \"columns\" : [\"host:0\",\"meta:2\"]\n" +
-                "                       ,\"indicator_column\" : \"host\"\n" +
-                "                       ,\"separator\" : \",\"\n" +
-                "                       }\n" +
-                "            ,\"extractor\" : \"CSV\"\n" +
-                "         }";
+    @Multiline
+    private static String extractorConfig;
+    @Test
+    public void testMapper() throws IOException, InterruptedException {
 
         final Map<ImmutableBytesWritable, Put> puts = new HashMap<>();
         BulkLoadMapper mapper = new BulkLoadMapper() {
@@ -69,7 +64,7 @@ public class BulkLoadMapperTest {
             set(BulkLoadMapper.COLUMN_FAMILY_KEY, "cf");
             set(BulkLoadMapper.CONFIG_KEY, extractorConfig);
             set(BulkLoadMapper.LAST_SEEN_KEY, "0");
-            set(BulkLoadMapper.CONVERTER_KEY, ThreatIntelConverter.class.getName());
+            set(BulkLoadMapper.CONVERTER_KEY, EnrichmentConverter.class.getName());
         }});
         {
             mapper.map(null, new Text("#google.com,1,foo"), null);
@@ -78,13 +73,14 @@ public class BulkLoadMapperTest {
         {
             mapper.map(null, new Text("google.com,1,foo"), null);
             Assert.assertTrue(puts.size() == 1);
-            ThreatIntelKey expectedKey = new ThreatIntelKey() {{
+            EnrichmentKey expectedKey = new EnrichmentKey() {{
                 indicator = "google.com";
+                type = "threat";
             }};
-            ThreatIntelConverter converter = new ThreatIntelConverter();
+            EnrichmentConverter converter = new EnrichmentConverter();
             Put put = puts.get(new ImmutableBytesWritable(expectedKey.toBytes()));
             Assert.assertNotNull(puts);
-            LookupKV<ThreatIntelKey, ThreatIntelValue> results = converter.fromPut(put, "cf");
+            LookupKV<EnrichmentKey, EnrichmentValue> results = converter.fromPut(put, "cf");
             Assert.assertEquals(results.getKey().indicator, "google.com");
             Assert.assertEquals(results.getValue().getMetadata().size(), 2);
             Assert.assertEquals(results.getValue().getMetadata().get("meta"), "foo");

@@ -17,7 +17,16 @@
  */
 package org.apache.metron.enrichment.utils;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 
 public class EnrichmentUtils {
 
@@ -27,6 +36,46 @@ public class EnrichmentUtils {
     return Joiner.on(".").join(new String[]{KEY_PREFIX, enrichmentName, field});
   }
 
+  public static class TypeToKey implements Function<String, EnrichmentKey> {
+    private final String indicator;
 
+    public TypeToKey(String indicator) {
+      this.indicator = indicator;
+
+    }
+    @Nullable
+    @Override
+    public EnrichmentKey apply(@Nullable String enrichmentType) {
+      return new EnrichmentKey(enrichmentType, indicator);
+    }
+  }
+  public static String toTopLevelField(String field) {
+    if(field == null) {
+      return null;
+    }
+    return Iterables.getLast(Splitter.on('.').split(field));
+  }
+
+  public static TableProvider getTableProvider(String connectorImpl, TableProvider defaultImpl) {
+    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
+      return defaultImpl;
+    }
+    else {
+      try {
+        Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(connectorImpl);
+        return clazz.getConstructor().newInstance();
+      } catch (InstantiationException e) {
+        throw new IllegalStateException("Unable to instantiate connector.", e);
+      } catch (IllegalAccessException e) {
+        throw new IllegalStateException("Unable to instantiate connector: illegal access", e);
+      } catch (InvocationTargetException e) {
+        throw new IllegalStateException("Unable to instantiate connector", e);
+      } catch (NoSuchMethodException e) {
+        throw new IllegalStateException("Unable to instantiate connector: no such method", e);
+      } catch (ClassNotFoundException e) {
+        throw new IllegalStateException("Unable to instantiate connector: class not found", e);
+      }
+    }
+  }
 
 }

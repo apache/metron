@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.apache.hadoop.conf.Configuration;
@@ -36,7 +37,7 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.log4j.Logger;
 
 @SuppressWarnings("unchecked")
-public class CIFHbaseAdapter implements EnrichmentAdapter<String>,Serializable {
+public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private String _tableName;
@@ -55,12 +56,12 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<String>,Serializable {
 			.getLogger(CIFHbaseAdapter.class);
 
 	@Override
-	public void logAccess(String value) {
+	public void logAccess(CacheKey value) {
 
 	}
 
-	public JSONObject enrich(String metadata) {
-
+	public JSONObject enrich(CacheKey k) {
+		String metadata = k.getValue();
 		JSONObject output = new JSONObject();
 		LOGGER.debug("=======Looking Up For:" + metadata);
 		output.putAll(getCIFObject(metadata));

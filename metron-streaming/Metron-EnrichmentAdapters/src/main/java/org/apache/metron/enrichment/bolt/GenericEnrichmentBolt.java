@@ -18,29 +18,27 @@
 
 package org.apache.metron.enrichment.bolt;
 
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import com.google.common.base.Splitter;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Iterables;
-import org.apache.metron.Constants;
-import org.apache.metron.bolt.ConfiguredBolt;
-import org.apache.metron.domain.Enrichment;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.apache.metron.Constants;
+import org.apache.metron.bolt.ConfiguredBolt;
+import org.apache.metron.domain.Enrichment;
+import org.apache.metron.domain.SensorEnrichmentConfig;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.helpers.topology.ErrorUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
@@ -68,13 +66,13 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
           .getLogger(GenericEnrichmentBolt.class);
   private OutputCollector collector;
 
-
   protected String enrichmentType;
-  protected EnrichmentAdapter adapter;
-  protected transient CacheLoader<String, JSONObject> loader;
-  protected transient LoadingCache<String, JSONObject> cache;
+  protected EnrichmentAdapter<CacheKey> adapter;
+  protected transient CacheLoader<CacheKey, JSONObject> loader;
+  protected transient LoadingCache<CacheKey, JSONObject> cache;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
+  protected boolean invalidateCacheOnReload = false;
 
   public GenericEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -111,9 +109,23 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     return this;
   }
 
+  public GenericEnrichmentBolt withCacheInvalidationOnReload(boolean cacheInvalidationOnReload) {
+    this.invalidateCacheOnReload= cacheInvalidationOnReload;
+    return this;
+  }
+  @Override
+  protected void reloadCallback() {
+    if(invalidateCacheOnReload) {
+      if (cache != null) {
+        cache.invalidateAll();
+      }
+    }
+  }
+
   @Override
   public void prepare(Map conf, TopologyContext topologyContext,
                       OutputCollector collector) {
+    super.prepare(conf, topologyContext, collector);
     this.collector = collector;
     if (this.maxCacheSize == null)
       throw new IllegalStateException("MAX_CACHE_SIZE_OBJECTS_NUM must be specified");
@@ -121,8 +133,8 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
       throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
     if (this.adapter == null)
       throw new IllegalStateException("Adapter must be specified");
-    loader = new CacheLoader<String, JSONObject>() {
-      public JSONObject load(String key) throws Exception {
+    loader = new CacheLoader<CacheKey, JSONObject>() {
+      public JSONObject load(CacheKey key) throws Exception {
         return adapter.enrich(key);
       }
     };
@@ -147,6 +159,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
   public void execute(Tuple tuple) {
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
+
     JSONObject enrichedMessage = new JSONObject();
     enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".begin.ts", "" + System.currentTimeMillis());
     try {
@@ -154,16 +167,28 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
         throw new Exception("Could not parse binary stream to JSON");
       if (key == null)
         throw new Exception("Key is not valid");
+      String sourceType = null;
+      if(rawMessage.containsKey(Constants.SENSOR_TYPE)) {
+        sourceType = rawMessage.get(Constants.SENSOR_TYPE).toString();
+      }
+      else {
+        throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
+      }
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
         String value = (String) rawMessage.get(field);
-        if (field.equals(Constants.SOURCE_TYPE)) {
-          enrichedMessage.put(Constants.SOURCE_TYPE, value);
+        if (field.equals(Constants.SENSOR_TYPE)) {
+          enrichedMessage.put(Constants.SENSOR_TYPE, value);
         } else {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
-            adapter.logAccess(value);
-            enrichedField = cache.getUnchecked(value);
+            SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+            if(config == null) {
+              throw new RuntimeException("Unable to find " + config);
+            }
+            CacheKey cacheKey= new CacheKey(field, value, config);
+            adapter.logAccess(cacheKey);
+            enrichedField = cache.getUnchecked(cacheKey);
             if (enrichedField == null)
               throw new Exception("[Metron] Could not enrich string: "
                       + value);

@@ -38,12 +38,12 @@ public class ParserBolt extends ConfiguredBolt {
   private MessageParser<JSONObject> parser;
   private MessageFilter<JSONObject> filter = new GenericMessageFilter();
   private MessageWriter<JSONObject> writer;
-  private String sourceType;
+  private String sensorType;
 
-  public ParserBolt(String zookeeperUrl, String sourceType, MessageParser<JSONObject> parser, MessageWriter<JSONObject> writer) {
+  public ParserBolt(String zookeeperUrl, String sensorType, MessageParser<JSONObject> parser, MessageWriter<JSONObject> writer) {
     super(zookeeperUrl);
     this.parser = parser;
-    this.sourceType = sourceType;
+    this.sensorType = sensorType;
     this.writer = writer;
   }
 
@@ -70,8 +70,8 @@ public class ParserBolt extends ConfiguredBolt {
       for(JSONObject message: messages) {
         if (parser.validate(message)) {
           if (filter != null && filter.emitTuple(message)) {
-            message.put(Constants.SOURCE_TYPE, sourceType);
-            writer.write(sourceType, configurations.get(sourceType), tuple, message);
+            message.put(Constants.SENSOR_TYPE, sensorType);
+            writer.write(sensorType, configurations, tuple, message);
           }
         }
       }

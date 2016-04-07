@@ -18,10 +18,9 @@
 package org.apache.metron.dataloads.extractor;
 
 import com.google.common.collect.Iterables;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,11 +35,12 @@ public class ExtractorTest {
 
         @Override
         public Iterable<LookupKV> extract(String line) throws IOException {
-            ThreatIntelKey key = new ThreatIntelKey();
+            EnrichmentKey key = new EnrichmentKey();
             key.indicator = "dummy";
+            key.type = "type";
             Map<String, String> value = new HashMap<>();
             value.put("indicator", "dummy");
-            return Arrays.asList(new LookupKV(key, new ThreatIntelValue(value)));
+            return Arrays.asList(new LookupKV(key, new EnrichmentValue(value)));
         }
 
         @Override
@@ -52,9 +52,10 @@ public class ExtractorTest {
     public void testDummyExtractor() throws IllegalAccessException, InstantiationException, ClassNotFoundException, IOException {
         Extractor extractor = Extractors.create(DummyExtractor.class.getName());
         LookupKV results = Iterables.getFirst(extractor.extract(null), null);
-        ThreatIntelKey key = (ThreatIntelKey) results.getKey();
-        ThreatIntelValue value = (ThreatIntelValue) results.getValue();
+        EnrichmentKey key = (EnrichmentKey) results.getKey();
+        EnrichmentValue value = (EnrichmentValue) results.getValue();
         Assert.assertEquals("dummy", key.indicator);
+        Assert.assertEquals("type", key.type);
         Assert.assertEquals("dummy", value.getMetadata().get("indicator"));
     }
 
@@ -73,9 +74,10 @@ public class ExtractorTest {
                 "         }";
         ExtractorHandler handler = ExtractorHandler.load(config);
         LookupKV results = Iterables.getFirst(handler.getExtractor().extract(null), null);
-        ThreatIntelKey key = (ThreatIntelKey) results.getKey();
-        ThreatIntelValue value = (ThreatIntelValue) results.getValue();
+        EnrichmentKey key = (EnrichmentKey) results.getKey();
+        EnrichmentValue value = (EnrichmentValue) results.getValue();
         Assert.assertEquals("dummy", key.indicator);
+        Assert.assertEquals("type", key.type);
         Assert.assertEquals("dummy", value.getMetadata().get("indicator"));
     }
 }

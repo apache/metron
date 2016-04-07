@@ -1,0 +1,6 @@
+{
+  "es.clustername": "{{ elasticsearch_cluster_name }}",
+  "es.ip": "{{ groups.search[0] }}",
+  "es.port": {{ elasticsearch_transport_port }},
+  "es.date.format": "yyyy.MM.dd.hh"
+}

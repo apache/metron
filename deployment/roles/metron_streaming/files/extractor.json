@@ -4,6 +4,7 @@
       "ip": 0
     },
     "indicator_column": "ip",
+    "type" : "malicious_ip",
     "separator": ","
   },
   "extractor": "CSV"

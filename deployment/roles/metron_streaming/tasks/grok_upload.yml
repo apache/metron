@@ -31,7 +31,7 @@
   become_user: hdfs
 
 - name: Upload Grok Patterns to hdfs://{{ metron_hdfs_output_dir }}
-  command: hdfs dfs -put {{ metron_directory }}/config/patterns  {{ metron_hdfs_output_dir }}
+  command: hdfs dfs -put -f {{ metron_directory }}/config/patterns  {{ metron_hdfs_output_dir }}
   become: yes
   become_user: hdfs
 

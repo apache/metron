@@ -37,7 +37,7 @@
   command: "hdfs dfs -put {{ threat_intel_work_dir }}/{{ threat_intel_csv_filename }} ."
 
 - name: Run Threat Intel Bulk Load
-  shell: "{{ threat_intel_bin }} -f t --table malicious_ip -e {{ threat_intel_work_dir }}/extractor.json  -i /user/root && touch {{ threat_intel_work_dir }}/loaded"
+  shell: "{{ threat_intel_bin }} -f t --table {{threatintel_hbase_table}} -e {{ threat_intel_work_dir }}/extractor.json  -i /user/root && touch {{ threat_intel_work_dir }}/loaded"
   args:
     creates: "{{ threat_intel_work_dir }}/loaded"
 

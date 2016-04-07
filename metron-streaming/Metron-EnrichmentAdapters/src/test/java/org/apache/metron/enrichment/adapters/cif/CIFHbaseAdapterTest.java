@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.adapters.cif;
 import java.net.InetAddress;
 import java.util.Properties;
 
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.test.AbstractTestContext;
 import org.junit.Assert;
@@ -174,17 +175,17 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     }
 
     /**
-     * Test method for {@link org.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#enrich(java.lang.String)}.
+     * Test method for {@link org.apache.metron.enrichment.adapters.cif.CIFHbaseAdapter#enrich(CacheKey)}.
      */
     public void testEnrich() {
         if(skipTests(this.getMode())){
             return;//skip tests
        }else{
             cifHbaseAdapter.initializeAdapter();
-            Assert.assertNotNull(cifHbaseAdapter.enrich("testinvalid.metadata"));
+            Assert.assertNotNull(cifHbaseAdapter.enrich(new CacheKey("cif", "testinvalid.metadata", null)));
             
-            Assert.assertNotNull(cifHbaseAdapter.enrich("ivalid.ip"));
-            Assert.assertNotNull(cifHbaseAdapter.enrich("1.1.1.10"));
+            Assert.assertNotNull(cifHbaseAdapter.enrich(new CacheKey("cif", "ivalid.ip", null)));
+            Assert.assertNotNull(cifHbaseAdapter.enrich(new CacheKey("cif", "1.1.1.10", null)));
        }
     }
     
