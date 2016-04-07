@@ -18,11 +18,11 @@
 
 package org.apache.metron.dataloads.extractor.stix.types;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelKey;
-import org.apache.metron.hbase.converters.threatintel.ThreatIntelValue;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
 import org.apache.metron.reference.lookup.LookupKV;
-import org.apache.metron.threatintel.ThreatIntelResults;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.Hostname;
 
@@ -33,25 +33,38 @@ import java.util.List;
 import java.util.Map;
 
 public class HostnameHandler  extends AbstractObjectTypeHandler<Hostname>{
-    public HostnameHandler() {
-        super(Hostname.class);
-    }
+  public static final String TYPE_CONFIG = "stix_hostname_type";
+  public HostnameHandler() {
+    super(Hostname.class);
+  }
 
-    @Override
-    public Iterable<LookupKV> extract(final Hostname type, Map<String, Object> config) throws IOException {
-        StringObjectPropertyType value = type.getHostnameValue();
-        List<LookupKV> ret = new ArrayList<>();
-        for(String token : StixExtractor.split(value)) {
-            LookupKV results = new LookupKV(new ThreatIntelKey(token)
-                                           , new ThreatIntelValue(new HashMap<String, String>() {{
-                                                                        put("source-type", "STIX");
-                                                                        put("indicator-type", type.getClass().getSimpleName());
-                                                                        put("source", type.toXMLString());
-                                                                    }}
-                                                                 )
-                                           );
-                ret.add(results);
-        }
-        return ret;
+  @Override
+  public Iterable<LookupKV> extract(final Hostname type, Map<String, Object> config) throws IOException {
+    StringObjectPropertyType value = type.getHostnameValue();
+    String typeStr = getType();
+    if(config != null) {
+      Object o = config.get(TYPE_CONFIG);
+      if(o != null) {
+        typeStr = o.toString();
+      }
     }
+    List<LookupKV> ret = new ArrayList<>();
+    for(String token : StixExtractor.split(value)) {
+      final String indicatorType = typeStr;
+      LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
+              , new EnrichmentValue(new HashMap<String, String>() {{
+        put("source-type", "STIX");
+        put("indicator-type", indicatorType);
+        put("source", type.toXMLString());
+      }}
+      )
+      );
+      ret.add(results);
+    }
+    return ret;
+  }
+  @Override
+  public List<String> getPossibleTypes() {
+    return ImmutableList.of(getType());
+  }
 }

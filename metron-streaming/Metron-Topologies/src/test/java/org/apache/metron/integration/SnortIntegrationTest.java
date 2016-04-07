@@ -21,38 +21,22 @@ public class SnortIntegrationTest extends ParserIntegrationTest {
 
   @Override
   public String getFluxPath() {
-    return "src/main/resources/Metron_Configs/topologies/snort/test.yaml";
+    return "../Metron-Topologies/src/main/resources/Metron_Configs/topologies/snort/test.yaml";
   }
 
   @Override
   public String getSampleInputPath() {
-    return "src/main/resources/SampleInput/SnortOutput";
+    return "../Metron-Testing/src/main/resources/sample/data/SampleInput/SnortOutput";
   }
 
   @Override
   public String getSampleParsedPath() {
-    return "src/main/resources/SampleParsed/SnortParsed";
+    return "../Metron-Testing/src/main/resources/sample/data/SampleParsed/SnortParsed";
   }
 
   @Override
-  public String getSourceType() {
+  public String getSensorType() {
     return "snort";
-  }
-
-  @Override
-  public String getSourceConfig() {
-    return "{\"index\": \"snort\"," +
-            " \"batchSize\": 1," +
-            " \"enrichmentFieldMap\":" +
-            "  {" +
-            "    \"geo\": [\"src\", \"dst\"]," +
-            "    \"host\": [\"src\", \"dst\"]" +
-            "  }," +
-            "  \"threatIntelFieldMap\":" +
-            "  {" +
-            "    \"ip\": [\"src\", \"dst\"]" +
-            "  }" +
-            "}";
   }
 
   @Override

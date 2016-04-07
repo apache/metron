@@ -28,7 +28,7 @@
         <mysql.version>5.1.31</mysql.version>
         <slf4j.version>1.7.7</slf4j.version>
         <storm.hdfs.version>0.1.2</storm.hdfs.version>
-        <guava.version>${global_guava_version}</guava.version>
+        <guava.version>${global_hbase_guava_version}</guava.version>
     </properties>
     <dependencies>
         <dependency>
@@ -99,6 +99,7 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${global_hadoop_version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>servlet-api</artifactId>

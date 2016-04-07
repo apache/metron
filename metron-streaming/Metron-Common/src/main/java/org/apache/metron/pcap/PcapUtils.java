@@ -17,10 +17,13 @@
  */
 package org.apache.metron.pcap;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.BiMap;
@@ -208,6 +211,15 @@ public class PcapUtils {
 
     return hexIp.toString();
 
+  }
+
+  public static String convertHexToIpv4Ip(String hex) {
+    List<Integer> ipSegments = new ArrayList<>();
+    for(int i = 0; i < hex.length(); i += 2) {
+      String segment = hex.substring(i, i + 2);
+      ipSegments.add(Integer.parseInt(segment, 16));
+    }
+    return Joiner.on(".").join(ipSegments);
   }
 
   /**

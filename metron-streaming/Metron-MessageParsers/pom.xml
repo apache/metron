@@ -37,6 +37,17 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${global_hadoop_version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>servlet-api</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
@@ -56,11 +67,12 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${global_junit_version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>${global_guava_version}</version>
+			<version>${global_hbase_guava_version}</version>
 		</dependency>
 
 		<dependency>

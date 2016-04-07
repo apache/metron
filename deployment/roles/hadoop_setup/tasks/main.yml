@@ -22,7 +22,8 @@
   with_items:
     - "{{ pcap_hbase_table }}"
     - "{{ tracker_hbase_table }}"
-    - "{{ threatintel_ip_hbase_table }}"
+    - "{{ threatintel_hbase_table }}"
+    - "{{ enrichment_hbase_table }}"
 
 #if kafka topic
 - name: Create Kafka topics

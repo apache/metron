@@ -48,6 +48,8 @@
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
 		<global_java_version>1.8</global_java_version>
+		<global_solr_version>5.2.1</global_solr_version>
+		<global_mockito_version>1.9.5</global_mockito_version>
 	</properties>
 	<licenses>
 		<license>
@@ -76,6 +78,8 @@
 		<module>Metron-DataLoads</module>
 		<module>Metron-Topologies</module>
 		<module>Metron-Pcap_Service</module>
+		<module>Metron-Elasticsearch</module>
+		<module>Metron-Solr</module>
 		<module>Metron-Testing</module>
 	</modules>
 	<dependencies>
@@ -84,6 +88,13 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.adrianwalker</groupId>
+			<artifactId>multiline-string</artifactId>
+			<version>0.1.2</version>
+			<scope>test</scope>
+
 		</dependency>
 	</dependencies>
 	<build>
@@ -138,7 +149,9 @@
 						<exclude>**/*.json</exclude>
 						<exclude>**/*.log</exclude>
 						<exclude>**/src/main/resources/patterns/**</exclude>
-						<exclude>**/src/main/resources/SampleInput/**</exclude>
+						<exclude>**/src/main/resources/sample/data/SampleIndexed/**</exclude>
+						<exclude>**/src/main/resources/sample/data/SampleInput/**</exclude>
+						<exclude>**/src/main/resources/sample/data/SampleParsed/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
 					</excludes>
 				</configuration>
@@ -186,10 +199,18 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<repositories>
-		<repository>
-			<id>clojars.org</id>
-			<url>http://clojars.org/repo</url>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </repository>
+        <repository>
+            <id>multiline-release-repo</id>
+            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+    </repositories>
 </project>
