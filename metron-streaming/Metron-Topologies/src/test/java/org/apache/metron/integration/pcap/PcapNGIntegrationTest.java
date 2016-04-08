@@ -2,6 +2,7 @@ package org.apache.metron.integration.pcap;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import kafka.consumer.ConsumerIterator;
@@ -65,16 +66,7 @@ public class PcapNGIntegrationTest {
     }
   }
   private static int numFiles(File outDir, Configuration config) {
-   /* try {
-      FileSystem fs = FileSystem.get(config);
-      int i = 0;
-      for(RemoteIterator<LocatedFileStatus> it =  fs.listFiles(new Path(outDir.getAbsolutePath()), false);it.hasNext();++i) {
-        it.next();
-      }
-      return i;
-    } catch (IOException e) {
-      throw new RuntimeException("failed to get the num files", e);
-    }*/
+
     return outDir.list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
@@ -82,26 +74,6 @@ public class PcapNGIntegrationTest {
       }
     }).length;
   }
-
-  /*private static Map<String, byte[]> readPcaps(Path pcapFile) throws IOException {
-    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
-            SequenceFile.Reader.file(pcapFile)
-    );
-    Map<String, byte[]> ret = new HashMap<>();
-    IntWritable key = new IntWritable();
-    BytesWritable value = new BytesWritable();
-    PcapParser parser = new PcapParser();
-    parser.init();
-    while (reader.next(key, value)) {
-      int keyInt = key.get();
-      byte[] valueBytes = value.copyBytes();
-      JSONObject message = parser.parse(valueBytes).get(0);
-      if (parser.validate(message)) {
-        ret.put(PcapUtils.getSessionKey(message), valueBytes);
-      }
-    }
-    return ret;
-  }*/
 
   private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile) throws IOException {
     SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
@@ -113,25 +85,41 @@ public class PcapNGIntegrationTest {
     BytesWritable value = new BytesWritable();
     while (reader.next(key, value)) {
       byte[] pcapWithHeader = value.copyBytes();
+      long calculatedTs = FromPacketScheme.getTimestamp(pcapWithHeader);
       {
         PcapParser parser = new PcapParser();
         parser.init();
-        long calculatedTs = FromPacketScheme.getTimestamp(pcapWithHeader);
         List<PacketInfo> info = parser.getPacketInfo(pcapWithHeader);
         for(PacketInfo pi : info) {
           Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
-          System.out.println(pi.getJsonDoc());
+          System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
         }
       }
       byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
       System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
       byte[] headerized = PcapHelper.headerizeIfNecessary(pcapRaw);
       Assert.assertArrayEquals(pcapWithHeader, headerized);
-      ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
+      ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
     }
     return Iterables.limit(ret, 2*(ret.size()/2));
   }
 
+  @Test
+  public void testTimestampInPacket() throws Exception {
+    testTopology(new Function<Properties, Void>() {
+      @Nullable
+      @Override
+      public Void apply(@Nullable Properties input) {
+        input.setProperty("kafka.pcap.ts_scheme", TimestampScheme.FROM_PACKET.toString());
+        return null;
+      }
+    }, (kafkaComponent, pcapEntries) -> kafkaComponent.writeMessages( KAFKA_TOPIC
+                                                                    , Collections2.transform(pcapEntries
+                                                                                            , input -> input.getValue()
+                                                                                            )
+                                                                    )
+               );
+  }
   @Test
   public void testTimestampInKey() throws Exception {
     testTopology(new Function<Properties, Void>() {
@@ -158,6 +146,10 @@ public class PcapNGIntegrationTest {
         }
       }
     });
+  }
+
+  private static long getTimestamp(int offset, List<Map.Entry<byte[], byte[]>> entries) {
+    return Bytes.toLong(entries.get(offset).getKey());
   }
 
   private static interface SendEntries {
@@ -254,8 +246,8 @@ public class PcapNGIntegrationTest {
         List<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
-                        , 4l
-                        , 5l
+                        , getTimestamp(4, pcapEntries)
+                        , getTimestamp(5, pcapEntries)
                         , new EnumMap<>(Constants.Fields.class)
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -267,8 +259,8 @@ public class PcapNGIntegrationTest {
         List<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
-                        , 0l
-                        , 1l
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(1, pcapEntries)
                         , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                           put(Constants.Fields.DST_ADDR, "207.28.210.1");
                         }}
@@ -282,8 +274,8 @@ public class PcapNGIntegrationTest {
         List<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
-                        , 0l
-                        , 1l
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(1, pcapEntries)
                         , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                           put(Constants.Fields.PROTOCOL, "foo");
                         }}
@@ -297,8 +289,8 @@ public class PcapNGIntegrationTest {
         List<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
-                        , 0l
-                        , 500l
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
                         , new EnumMap<>(Constants.Fields.class)
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -309,8 +301,8 @@ public class PcapNGIntegrationTest {
         List<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
-                        , 0l
-                        , 500l
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
                         , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                           put(Constants.Fields.DST_PORT, "22");
                         }}
