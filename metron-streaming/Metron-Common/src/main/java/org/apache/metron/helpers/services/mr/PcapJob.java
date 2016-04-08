@@ -57,7 +57,7 @@ public class PcapJob {
 
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
-      if(key.get() >= start && key.get() <= end) {
+      if(Long.compareUnsigned(key.get() ,start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
         byte[] b = null;
         PcapParser parser = new PcapParser();
         parser.init();
@@ -91,7 +91,7 @@ public class PcapJob {
     Path leftEndpoint = files.hasNext()?files.next().getPath():null;
     {
       Long ts = PcapHelper.getTimestamp(leftEndpoint.getName());
-      if(ts != null && ts >= begin && ts <= end) {
+      if(ts != null && Long.compareUnsigned(ts, begin) >= 0 && Long.compareUnsigned(ts, end) <= 0) {
         ret.add(leftEndpoint.toString());
         isFirst = false;
       }
@@ -99,7 +99,7 @@ public class PcapJob {
     while(files.hasNext()) {
       Path p = files.next().getPath();
       Long ts = PcapHelper.getTimestamp(p.getName());
-      if(ts != null && ts >= begin && ts <= end) {
+      if(ts != null && Long.compareUnsigned(ts, begin) >= 0 && Long.compareUnsigned(ts, end) <= 0) {
         if(isFirst && leftEndpoint != null) {
           ret.add(leftEndpoint.toString());
         }

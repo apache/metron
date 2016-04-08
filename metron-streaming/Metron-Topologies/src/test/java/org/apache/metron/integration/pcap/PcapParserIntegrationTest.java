@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.integration;
+package org.apache.metron.integration.pcap;
 
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
@@ -29,6 +29,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.metron.Constants;
 import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
 import org.apache.metron.integration.util.integration.Processor;
