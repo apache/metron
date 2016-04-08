@@ -32,10 +32,9 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.metron.Constants;
 import org.apache.metron.pcap.PcapParser;
-import org.apache.metron.spout.pcap.PcapFileHelper;
+import org.apache.metron.spout.pcap.PcapHelper;
 
 import java.io.IOException;
-import java.nio.BufferUnderflowException;
 import java.util.*;
 
 public class PcapJob {
@@ -91,7 +90,7 @@ public class PcapJob {
     boolean isFirst = true;
     Path leftEndpoint = files.hasNext()?files.next().getPath():null;
     {
-      Long ts = PcapFileHelper.getTimestamp(leftEndpoint.getName());
+      Long ts = PcapHelper.getTimestamp(leftEndpoint.getName());
       if(ts != null && ts >= begin && ts <= end) {
         ret.add(leftEndpoint.toString());
         isFirst = false;
@@ -99,7 +98,7 @@ public class PcapJob {
     }
     while(files.hasNext()) {
       Path p = files.next().getPath();
-      Long ts = PcapFileHelper.getTimestamp(p.getName());
+      Long ts = PcapHelper.getTimestamp(p.getName());
       if(ts != null && ts >= begin && ts <= end) {
         if(isFirst && leftEndpoint != null) {
           ret.add(leftEndpoint.toString());

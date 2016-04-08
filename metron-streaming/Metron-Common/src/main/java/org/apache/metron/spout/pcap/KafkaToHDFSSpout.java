@@ -18,18 +18,15 @@
 
 package org.apache.metron.spout.pcap;
 
+import org.apache.metron.spout.kafka.SpoutConfig;
 import storm.kafka.Callback;
 import storm.kafka.CallbackKafkaSpout;
-import storm.kafka.KeyValueSchemeAsMultiScheme;
-import storm.kafka.SpoutConfig;
-
-import java.util.List;
 
 public class KafkaToHDFSSpout extends CallbackKafkaSpout {
   static final long serialVersionUID = 0xDEADBEEFL;
   HDFSWriterConfig config = null;
   public KafkaToHDFSSpout(SpoutConfig spoutConfig, HDFSWriterConfig config) {
-    super(setScheme(spoutConfig), HDFSWriterCallback.class);
+    super(spoutConfig, HDFSWriterCallback.class);
     this.config = config;
   }
 
@@ -38,8 +35,5 @@ public class KafkaToHDFSSpout extends CallbackKafkaSpout {
     return new HDFSWriterCallback().withConfig(config);
   }
 
-  private static SpoutConfig setScheme(SpoutConfig spoutConfig) {
-    spoutConfig.scheme = new KeyValueSchemeAsMultiScheme(new TimestampedPacketScheme());
-    return spoutConfig;
-  }
+
 }

@@ -1,14 +1,9 @@
 package org.apache.metron.integration.pcap;
 
-import backtype.storm.Config;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import kafka.cluster.Partition;
 import kafka.consumer.ConsumerIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -29,10 +24,10 @@ import org.apache.metron.integration.util.integration.components.MRComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapParser;
-import org.apache.metron.pcap.PcapUtils;
-import org.apache.metron.spout.pcap.HDFSWriterCallback;
 import org.apache.metron.spout.pcap.PartitionHDFSWriter;
-import org.apache.metron.test.converters.HexStringConverter;
+import org.apache.metron.spout.pcap.PcapHelper;
+import org.apache.metron.spout.pcap.scheme.FromPacketScheme;
+import org.apache.metron.spout.pcap.scheme.TimestampScheme;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,6 +37,7 @@ import java.io.*;
 import java.util.*;
 
 public class PcapNGIntegrationTest {
+  final static String KAFKA_TOPIC = "pcap";
   private static String BASE_DIR = "pcap_ng";
   private static String DATA_DIR = BASE_DIR + "/data_dir";
   private static String QUERY_DIR = BASE_DIR + "/query";
@@ -120,14 +116,16 @@ public class PcapNGIntegrationTest {
       {
         PcapParser parser = new PcapParser();
         parser.init();
+        long calculatedTs = FromPacketScheme.getTimestamp(pcapWithHeader);
         List<PacketInfo> info = parser.getPacketInfo(pcapWithHeader);
         for(PacketInfo pi : info) {
+          Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
           System.out.println(pi.getJsonDoc());
         }
       }
       byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
       System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
-      byte[] headerized = PartitionHDFSWriter.headerize(pcapRaw).getBytes();
+      byte[] headerized = PcapHelper.headerizeIfNecessary(pcapRaw);
       Assert.assertArrayEquals(pcapWithHeader, headerized);
       ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(ts++), pcapRaw));
     }
@@ -135,12 +133,45 @@ public class PcapNGIntegrationTest {
   }
 
   @Test
-  public void testTopology() throws Exception {
+  public void testTimestampInKey() throws Exception {
+    testTopology(new Function<Properties, Void>() {
+      @Nullable
+      @Override
+      public Void apply(@Nullable Properties input) {
+        input.setProperty("kafka.pcap.ts_scheme", TimestampScheme.FROM_KEY.toString());
+        return null;
+      }
+    }, new SendEntries() {
+      @Override
+      public void send(KafkaWithZKComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> pcapEntries) throws Exception {
+        Producer<byte[], byte[]> producer = kafkaComponent.createProducer(byte[].class, byte[].class);
+        KafkaUtil.send(producer, pcapEntries, KAFKA_TOPIC, 2);
+        System.out.println("Sent pcap data: " + pcapEntries.size());
+        {
+          int numMessages = 0;
+          ConsumerIterator<?, ?> it = kafkaComponent.getStreamIterator(KAFKA_TOPIC);
+          for (int i = 0; i < pcapEntries.size(); ++i, it.next()) {
+            numMessages++;
+          }
+          Assert.assertEquals(pcapEntries.size(), numMessages);
+          System.out.println("Wrote " + pcapEntries.size() + " to kafka");
+        }
+      }
+    });
+  }
+
+  private static interface SendEntries {
+    public void send(KafkaWithZKComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> entries) throws Exception;
+  }
+
+  public void testTopology(Function<Properties, Void> updatePropertiesCallback
+                          ,SendEntries sendPcapEntriesCallback )
+          throws Exception
+  {
     if (!new File(topologiesDir).exists()) {
       topologiesDir = UnitTestHelper.findDir("topologies");
     }
     targetDir = UnitTestHelper.findDir("target");
-    final String kafkaTopic = "pcap";
     final File outDir = getOutDir(targetDir);
     final File queryDir = getQueryDir(targetDir);
     clearOutDir(outDir);
@@ -154,14 +185,16 @@ public class PcapNGIntegrationTest {
     final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
-      setProperty("spout.kafka.topic.pcap", kafkaTopic);
+      setProperty("spout.kafka.topic.pcap", KAFKA_TOPIC);
       setProperty("kafka.pcap.start", "BEGINNING");
       setProperty("kafka.pcap.out", outDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
     }};
+    updatePropertiesCallback.apply(topologyProperties);
+
     final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
+      add(new KafkaWithZKComponent.Topic(KAFKA_TOPIC, 1));
     }})
             .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
                                      @Nullable
@@ -197,18 +230,7 @@ public class PcapNGIntegrationTest {
       System.out.println("Components started...");
 
       fluxComponent.submitTopology();
-      Producer<byte[], byte[]> producer = kafkaComponent.createProducer(byte[].class, byte[].class);
-      KafkaUtil.send(producer, pcapEntries, kafkaTopic, 2);
-      System.out.println("Sent pcap data: " + pcapEntries.size());
-      {
-        int numMessages = 0;
-        ConsumerIterator<?, ?> it = kafkaComponent.getStreamIterator(kafkaTopic);
-        for (int i = 0; i < pcapEntries.size(); ++i, it.next()) {
-          numMessages++;
-        }
-        Assert.assertEquals(pcapEntries.size(), numMessages);
-        System.out.println("Wrote " + pcapEntries.size() + " to kafka");
-      }
+      sendPcapEntriesCallback.send(kafkaComponent, pcapEntries);
       runner.process(new Processor<Void>() {
         @Override
         public ReadinessState process(ComponentRunner runner) {

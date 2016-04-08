@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.spout.pcap;
+package org.apache.metron.spout.pcap.scheme;
 
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
@@ -28,8 +28,7 @@ import storm.kafka.KeyValueScheme;
 
 import java.util.List;
 
-public class TimestampedPacketScheme implements KeyValueScheme {
-    private static final String KV_FIELD = "kv";
+public class FromKeyScheme implements KeyValueScheme {
 
     @Override
     public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
@@ -44,6 +43,6 @@ public class TimestampedPacketScheme implements KeyValueScheme {
 
     @Override
     public Fields getOutputFields() {
-        return new Fields(KV_FIELD);
+        return new Fields(TimestampScheme.KV_FIELD);
     }
 }

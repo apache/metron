@@ -23,7 +23,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.fs.Path;
 
-public class PcapFileHelper {
+public class PcapHelper {
 
 
   public static Long getTimestamp(String filename) {
@@ -44,5 +44,25 @@ public class PcapFileHelper {
                               ,partition
                               , uuid
                               );
+  }
+
+  public static byte[] headerizeIfNecessary(byte[] packet) {
+    if( packet[0] == PartitionHDFSWriter.PCAP_GLOBAL_HEADER[0]
+    &&  packet[1] == PartitionHDFSWriter.PCAP_GLOBAL_HEADER[1]
+    &&  packet[2] == PartitionHDFSWriter.PCAP_GLOBAL_HEADER[2]
+    &&  packet[3] == PartitionHDFSWriter.PCAP_GLOBAL_HEADER[3]
+      )
+    {
+      //if we match the pcap magic number, then we don't need to add the header.
+      return packet;
+    }
+    else {
+      byte[] ret = new byte[packet.length + PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
+      int offset = 0;
+      System.arraycopy(PartitionHDFSWriter.PCAP_GLOBAL_HEADER, 0, ret, offset, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length);
+      offset += PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length;
+      System.arraycopy(packet, 0, ret, offset, packet.length);
+      return ret;
+    }
   }
 }
