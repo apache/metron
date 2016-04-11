@@ -15,12 +15,27 @@
 #  limitations under the License.
 #
 ---
-bro_home: /usr/local/bro
-bro_version: 2.4.1
-bro_daemon_log: /var/log/bro.log
-bro_topic: bro
+- name: Retrieve HDP repository definition
+  get_url:
+    url: "{{ hdp_repo_def }}"
+    dest: /etc/yum.repos.d/hdp.repo
+    mode: 0644
 
-# bro cronjob
-bro_crontab_minutes: 0-59/5
-bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
-bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
+- name: Install kafka
+  yum: name={{item}}
+  with_items:
+    - java-1.8.0-openjdk
+    - kafka
+    - zookeeper-server
+
+- name: Create pid directories
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - /var/run/zookeeper
+    - /var/run/kafka
+
+- name: Start zookeeper
+  shell: /usr/hdp/current/zookeeper-server/bin/zookeeper-server start
+
+- name: Start kafka
+  shell: /usr/hdp/current/kafka-broker/bin/kafka start

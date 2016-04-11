@@ -15,12 +15,29 @@
 #  limitations under the License.
 #
 ---
-bro_home: /usr/local/bro
-bro_version: 2.4.1
-bro_daemon_log: /var/log/bro.log
-bro_topic: bro
+#
+# produces network traffic
+#
+- hosts: source
+  become: yes
+  vars:
+    pcap_replay_interface: "enp0s8"
+  roles:
+    - role: pcap_replay
 
-# bro cronjob
-bro_crontab_minutes: 0-59/5
-bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
-bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
+#
+# consumes network traffic
+#
+- hosts: sink
+  become: yes
+  vars:
+      dpdk_device: ["00:08.0"]
+      dpdk_target: "x86_64-native-linuxapp-gcc"
+      num_huge_pages: 512
+      pcapture_portmask: 0xf
+      pcapture_topic: pcap
+      kafka_broker_url: localhost:9092
+  roles:
+    - role: librdkafka
+    - role: kafka-broker
+    - role: packet-capture

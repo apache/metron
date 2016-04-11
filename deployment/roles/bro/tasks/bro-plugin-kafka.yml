@@ -16,7 +16,7 @@
 #
 ---
 - name: Distribute bro-kafka plugin
-  copy: src=../../../bro-plugin-kafka dest=/tmp/ mode=0755
+  copy: src=../../../metron-sensors/bro-plugin-kafka dest=/tmp/ mode=0755
 
 - name: Compile and install the plugin
   shell: "{{ item }}"

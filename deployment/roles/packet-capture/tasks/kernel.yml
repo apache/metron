@@ -1,0 +1,51 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+#
+# DPDK requires specific kernel boot parameters.  set the params and reboot
+# the host, if the actual params differ from what is expected.
+#
+---
+  - set_fact:
+      expected_kernel_params: "default_hugepagesz=1G hugepagesz=1G hugepages={{ num_huge_pages }} iommu=pt intel_iommu=on"
+
+  - name: Check kernel boot parameters
+    shell: "cat /proc/cmdline"
+    register: actual_kernel_params
+
+  - name: Alter kernel boot parameters
+    lineinfile:
+      dest: /etc/default/grub
+      regexp:  '^(GRUB_CMDLINE_LINUX=\"[^\"]+)\"$'
+      line: '\1 {{ expected_kernel_params }}"'
+      backrefs: yes
+    when: not expected_kernel_params in actual_kernel_params.stdout
+
+  - name: Update grub with kernel boot parameters
+    shell: /sbin/grub2-mkconfig -o /boot/grub2/grub.cfg
+    when: not expected_kernel_params in actual_kernel_params.stdout
+
+  - name: Restart for modified kernel params
+    command: shutdown -r now "modified kernel params"
+    async: 0
+    poll: 0
+    ignore_errors: true
+    when: not expected_kernel_params in actual_kernel_params.stdout
+    
+  - name: Wait for reboot of '{{ inventory_hostname }}'
+    local_action: wait_for host={{ inventory_hostname }} state=started port=22 timeout=300 delay=10
+    become: false
+    when: not expected_kernel_params in actual_kernel_params.stdout

@@ -15,12 +15,24 @@
 #  limitations under the License.
 #
 ---
-bro_home: /usr/local/bro
-bro_version: 2.4.1
-bro_daemon_log: /var/log/bro.log
-bro_topic: bro
+  - name: Install dependencies
+    yum: name={{ item }}
+    with_items:
+      - "@Development tools"
+      - pciutils
+      - net-tools
+      - glib2
+      - glib2-devel
+      - git
 
-# bro cronjob
-bro_crontab_minutes: 0-59/5
-bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
-bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
+  #
+  # install prerequisite packages and the latest kernel headers.  need to
+  # ensure that the kernel headers match the current running kernel version.
+  # if this is not the case, the DPDK build process will fail
+  #
+  - name: Install latest kernel headers and source
+    yum: name={{ item }} state=latest
+    with_items:
+      - kernel
+      - kernel-devel
+      - kernel-headers
