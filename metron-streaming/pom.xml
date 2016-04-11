@@ -115,6 +115,7 @@
           <configLocation>style/checkstyle.xml</configLocation>
           <headerLocation>style/LICENSE</headerLocation>
           <failOnViolation>true</failOnViolation>
+	   <includeTestSourceDirectory>true</includeTestSourceDirectory>
         </configuration>
       </plugin>
 			<plugin>
