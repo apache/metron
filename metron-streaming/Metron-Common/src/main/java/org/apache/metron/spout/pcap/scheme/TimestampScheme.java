@@ -22,26 +22,24 @@ import backtype.storm.spout.MultiScheme;
 import storm.kafka.KeyValueSchemeAsMultiScheme;
 
 public enum TimestampScheme {
-  FROM_KEY(new KeyValueSchemeAsMultiScheme(new FromKeyScheme()))
-  ,FROM_PACKET(new FromPacketScheme());
+  FROM_KEY( converter -> new KeyValueSchemeAsMultiScheme(new FromKeyScheme().withTimestampConverter(converter)))
+
+  ,FROM_PACKET(converter -> new FromPacketScheme().withTimestampConverter(converter));
   ;
   public static final String KV_FIELD = "kv";
-  MultiScheme scheme;
-  TimestampScheme(MultiScheme scheme)
+  TimestampSchemeCreator creator;
+  TimestampScheme(TimestampSchemeCreator creator)
   {
-    this.scheme = scheme;
-  }
-  public MultiScheme getScheme() {
-    return scheme;
+    this.creator = creator;
   }
 
-  public static MultiScheme getScheme(String scheme) {
+  public static MultiScheme getScheme(String scheme, TimestampConverter converter) {
     try {
       TimestampScheme ts = TimestampScheme.valueOf(scheme.toUpperCase());
-      return ts.getScheme();
+      return ts.creator.create(converter);
     }
     catch(IllegalArgumentException iae) {
-      return TimestampScheme.FROM_KEY.getScheme();
+      return TimestampScheme.FROM_KEY.creator.create(converter);
     }
   }
 

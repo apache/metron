@@ -41,6 +41,7 @@ components:
       -   name: "withTimestampScheme"
           args:
             - "${kafka.pcap.ts_scheme}"
+            - "${kafka.pcap.ts_granularity}"
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"
     configMethods:

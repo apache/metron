@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class FromPacketScheme implements MultiScheme {
+public class FromPacketScheme implements MultiScheme,TimestampConvertible {
   private static final Logger LOG = Logger.getLogger(FromPacketScheme.class);
   @Override
   public Iterable<List<Object>> deserialize(byte[] rawValue) {
@@ -89,5 +89,10 @@ public class FromPacketScheme implements MultiScheme {
       }
     }
     return null;
+  }
+
+  @Override
+  public FromPacketScheme withTimestampConverter(TimestampConverter converter) {
+    return this;
   }
 }

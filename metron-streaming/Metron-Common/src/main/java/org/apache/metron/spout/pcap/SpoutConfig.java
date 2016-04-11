@@ -18,6 +18,7 @@
 
 package org.apache.metron.spout.pcap;
 
+import org.apache.metron.spout.pcap.scheme.TimestampConverters;
 import org.apache.metron.spout.pcap.scheme.TimestampScheme;
 import storm.kafka.BrokerHosts;
 
@@ -27,8 +28,8 @@ public class SpoutConfig extends org.apache.metron.spout.kafka.SpoutConfig{
     super(hosts, topic, zkRoot, id);
   }
 
-  public SpoutConfig withTimestampScheme(String scheme) {
-    super.scheme = TimestampScheme.getScheme(scheme);
+  public SpoutConfig withTimestampScheme(String scheme, String granularity) {
+    super.scheme = TimestampScheme.getScheme(scheme, TimestampConverters.getConverter(granularity));
     return this;
   }
 }
