@@ -48,7 +48,7 @@
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
 		<global_solr_version>5.2.1</global_solr_version>
-		<global_mockito_version>1.9.5</global_mockito_version>
+		<global_mockito_version>1.10.16</global_mockito_version>
 	</properties>
 	<licenses>
 		<license>
