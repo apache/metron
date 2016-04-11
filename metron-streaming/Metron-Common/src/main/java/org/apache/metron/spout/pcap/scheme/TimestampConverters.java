@@ -1,5 +1,6 @@
 package org.apache.metron.spout.pcap.scheme;
 
+
 public enum TimestampConverters {
   MILLISECONDS(tsMilli -> tsMilli*1000000L)
   ,MICROSECONDS(tsMicro -> tsMicro*1000L)
