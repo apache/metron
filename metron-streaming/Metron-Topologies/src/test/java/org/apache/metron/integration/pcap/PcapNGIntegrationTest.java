@@ -199,6 +199,7 @@ public class PcapNGIntegrationTest {
       setProperty("kafka.pcap.out", outDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
+      setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
     }};
     updatePropertiesCallback.apply(topologyProperties);
 

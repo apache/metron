@@ -42,7 +42,7 @@ public class FromPacketScheme implements MultiScheme,TimestampConvertible {
     byte[] value = PcapHelper.headerizeIfNecessary(rawValue);
     Long ts = getTimestamp(value);
     if(ts != null) {
-      return ImmutableList.of(new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(rawValue))));
+      return ImmutableList.of(new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(PcapHelper.headerizeIfNecessary(rawValue)))));
     }
     else {
       return ImmutableList.of(new Values(Collections.EMPTY_LIST));
