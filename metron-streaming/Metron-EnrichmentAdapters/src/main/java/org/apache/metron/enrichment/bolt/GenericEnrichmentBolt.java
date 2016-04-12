@@ -29,6 +29,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.metron.Constants;
 import org.apache.metron.bolt.ConfiguredBolt;
+import org.apache.metron.domain.Configurations;
 import org.apache.metron.domain.Enrichment;
 import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -114,7 +115,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     return this;
   }
   @Override
-  protected void reloadCallback() {
+  protected void reloadCallback(String name, Configurations.Type type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();

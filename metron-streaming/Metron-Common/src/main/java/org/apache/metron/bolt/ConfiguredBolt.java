@@ -40,7 +40,6 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
   private static final Logger LOG = Logger.getLogger(ConfiguredBolt.class);
 
   private String zookeeperUrl;
-  private long timeout = Constants.DEFAULT_CONFIGURED_BOLT_TIMEOUT;
 
   protected final Configurations configurations = new Configurations();
   private CuratorFramework client;
@@ -50,21 +49,15 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     this.zookeeperUrl = zookeeperUrl;
   }
 
-  protected void reloadCallback() {
-  }
-
-  public ConfiguredBolt withTimeout(long timeout) {
-    this.timeout = timeout;
-    return this;
+  protected void reloadCallback(String name, Configurations.Type type) {
   }
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-    client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
-    client.start();
     try {
-      ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+      client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
+      client.start();
       cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
       TreeCacheListener listener = new TreeCacheListener() {
         @Override
@@ -73,7 +66,6 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
             String path = event.getData().getPath();
             byte[] data = event.getData().getData();
             updateConfig(path, data);
-            reloadCallback();
           }
         }
       };
@@ -84,7 +76,6 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
       catch(Exception e) {
         LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
       }
-
       cache.start();
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -93,15 +84,20 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
   }
 
   public void updateConfig(String path, byte[] data) throws IOException {
-    if (data.length != 0 && path != null) {
+    if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
+      Configurations.Type type;
       if (path.startsWith(Constants.ZOOKEEPER_SENSOR_ROOT)) {
         configurations.updateSensorEnrichmentConfig(name, data);
+        type = Configurations.Type.SENSOR;
       } else if (Constants.ZOOKEEPER_GLOBAL_ROOT.equals(path)) {
         configurations.updateGlobalConfig(data);
+        type = Configurations.Type.GLOBAL;
       } else {
         configurations.updateConfig(name, data);
+        type = Configurations.Type.OTHER;
       }
+      reloadCallback(name, type);
     }
   }
 
