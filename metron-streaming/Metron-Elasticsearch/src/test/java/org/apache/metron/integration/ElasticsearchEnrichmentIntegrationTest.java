@@ -34,7 +34,7 @@ import java.util.Properties;
 public class ElasticsearchEnrichmentIntegrationTest extends EnrichmentIntegrationTest {
 
   private String indexDir = "target/elasticsearch";
-  private String dateFormat = "yyyy.MM.dd.hh";
+  private String dateFormat = "yyyy.MM.dd.HH";
   private String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
 
   @Override
