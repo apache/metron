@@ -33,6 +33,10 @@ public class Configurations implements Serializable {
 
   private static final Logger LOG = Logger.getLogger(Configurations.class);
 
+  public enum Type {
+    GLOBAL, SENSOR, OTHER
+  }
+
   public static final String GLOBAL_CONFIG_NAME = "global";
 
   private ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
@@ -47,7 +51,8 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(InputStream io) throws IOException {
-    Map<String, Object> globalConfig = JSONUtils.INSTANCE.load(io, new TypeReference<Map<String, Object>>() {});
+    Map<String, Object> globalConfig = JSONUtils.INSTANCE.load(io, new TypeReference<Map<String, Object>>() {
+    });
     updateGlobalConfig(globalConfig);
   }
 
@@ -77,16 +82,31 @@ public class Configurations implements Serializable {
     return (Map<String, Object>) configurations.get(name);
   }
 
-  public void updateConfig(String name, byte[] data) {
-    try {
-      Map<String, Object> config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(data), new TypeReference<Map<String, Object>>(){});
-      updateConfig(name, config);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
+  public void updateConfig(String name, byte[] data) throws IOException {
+    if (data == null) throw new IllegalStateException("config data cannot be null");
+    Map<String, Object> config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(data), new TypeReference<Map<String, Object>>() {});
+    updateConfig(name, config);
   }
 
   public void updateConfig(String name, Map<String, Object> config) {
     configurations.put(name, config);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Configurations that = (Configurations) o;
+    return configurations.equals(that.configurations);
+  }
+
+  @Override
+  public int hashCode() {
+    return configurations.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return configurations.toString();
   }
 }
