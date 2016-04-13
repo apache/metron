@@ -38,6 +38,10 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
   private JdbcConfig config;
   private String host;
 
+  public void setStatement(Statement statement) {
+    this.statement = statement;
+  }
+
   public JdbcAdapter withJdbcConfig(JdbcConfig config) {
     this.config = config;
     this.host = config.getHost();
