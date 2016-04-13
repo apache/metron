@@ -16,8 +16,8 @@
 #
 ---
 dependencies:
-  - ambari_gather_facts
   - libselinux-python
+  - ambari_gather_facts
   - build-tools
   - kafka-client
-
+  - librdkafka

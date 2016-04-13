@@ -15,12 +15,25 @@
 #  limitations under the License.
 #
 ---
-bro_home: /usr/local/bro
-bro_version: 2.4.1
-bro_daemon_log: /var/log/bro.log
-bro_topic: bro
+- name: Download librdkafka
+  get_url:
+    url: "{{ librdkafka_url }}"
+    dest: "/tmp/librdkafka-{{ librdkafka_version }}.tar.gz"
 
-# bro cronjob
-bro_crontab_minutes: 0-59/5
-bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
-bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
+- name: Extract librdkafka tarball
+  unarchive:
+    src: "/tmp/librdkafka-{{ librdkafka_version }}.tar.gz"
+    dest: /tmp
+    copy: no
+    creates: "/tmp/librdkafka-{{ librdkafka_version }}"
+
+- name: Compile and install librdkafka
+  shell: "{{ item }}"
+  args:
+    chdir: "/tmp/librdkafka-{{ librdkafka_version }}"
+    creates: "{{ librdkafka_home }}/lib/librdkafka.so"
+  with_items:
+    - rm -rf build/
+    - "./configure --prefix={{ librdkafka_home }}"
+    - make
+    - make install

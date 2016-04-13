@@ -1,0 +1,49 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Distribute pcapture
+  copy: src=../../../metron-sensors/packet-capture dest={{ pcapture_work_dir | dirname }} mode=0755
+
+- name: Build pcapture
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ pcapture_work_dir }}"
+  with_items:
+    - make
+  environment:
+    RTE_SDK: "{{ dpdk_sdk }}"
+    RTE_TARGET: "{{ dpdk_target }}"
+    LD_LIBRARY_PATH: "{{ pcapture_ld_library_path }}"
+
+- name: Install pcapture
+  shell: "cp {{ pcapture_work_dir }}/src/build/app/{{ pcapture_bin }} {{ pcapture_prefix }}"
+  args:
+    chdir: "{{ pcapture_work_dir }}"
+    creates: "{{ pcapture_prefix }}/{{ pcapture_bin }}"
+
+- name: Deploy configuration
+  template: src=pcapture.conf dest={{ pcapture_kafka_config }} mode=0755
+
+- name: Deploy service
+  template: src=pcapture dest=/etc/init.d/ mode=0755
+
+- name: Register the service with systemd
+  shell: systemctl enable pcapture
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
+- name: Run pcapture
+  service: name=pcapture state=restarted
