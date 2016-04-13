@@ -1,0 +1,59 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+  - name: "Download DPDK version {{ dpdk_version }}"
+    unarchive:
+      src: "http://dpdk.org/browse/dpdk/snapshot/dpdk-{{ dpdk_version }}.tar.gz"
+      dest: "/root"
+      creates: "{{ dpdk_sdk }}"
+      copy: no
+
+  - name: "Configure DPDK for the target environment: {{ dpdk_target }}"
+    shell: "make config T={{ dpdk_target }} DESTDIR={{ dpdk_home }}"
+    args:
+      chdir: "{{ dpdk_sdk }}"
+      creates: "{{ dpdk_home }}"
+
+  - name: "Turn on debug flags"
+    lineinfile:
+      dest: "{{ dpdk_sdk }}/config/common_linuxapp"
+      regexp: 'DEBUG=n'
+      line: 'DEBUG=y'
+    tags:
+      - debug
+
+  - name: "Build DPDK for the target environment: {{ dpdk_target }}"
+    shell: "make install T={{ dpdk_target }} DESTDIR={{ dpdk_home }} EXTRA_CFLAGS={{ extra_cflags }}"
+    args:
+      chdir: "{{ dpdk_sdk }}"
+      creates: "{{ dpdk_home }}"
+
+  - name: Load kernel modules to enable userspace IO
+    shell: "{{ item }}"
+    with_items:
+      - modprobe uio_pci_generic
+      - modprobe vfio-pci
+
+  - name: Bind the device to the loaded kernel module(s)
+    shell: "{{ dpdk_home }}/sbin/dpdk_nic_bind --force --bind=uio_pci_generic {{ item }}"
+    with_items: "{{ dpdk_device }}"
+
+  - name: Set useful environment variables
+    lineinfile: "dest=/root/.bash_profile line={{ item }}"
+    with_items:
+      - "export RTE_SDK={{ dpdk_sdk }}"
+      - "export RTE_TARGET={{ dpdk_target }}"

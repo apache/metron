@@ -14,13 +14,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-bro_home: /usr/local/bro
-bro_version: 2.4.1
-bro_daemon_log: /var/log/bro.log
-bro_topic: bro
 
-# bro cronjob
-bro_crontab_minutes: 0-59/5
-bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
-bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
+all: src
+
+src:
+	cd src; make
+
+clean:
+	cd src; make clean
+
+.PHONY: all src clean
