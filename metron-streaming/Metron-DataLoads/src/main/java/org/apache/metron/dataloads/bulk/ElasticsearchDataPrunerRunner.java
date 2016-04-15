@@ -86,15 +86,17 @@ public class ElasticsearchDataPrunerRunner {
 
                 String resourceFile = cmd.getOptionValue("c");
                 configuration = new Configuration(Paths.get(resourceFile));
-                configuration.update();
+
             }
+
+            configuration.update();
 
             Map<String, Object> globalConfiguration = configuration.getGlobalConfig();
             ImmutableSettings.Builder builder = ImmutableSettings.settingsBuilder();
             builder.put("cluster.name", globalConfiguration.get("es.clustername"));
             builder.put("curatorFramework.transport.ping_timeout","500s");
             client = new TransportClient(builder.build())
-                    .addTransportAddress(new InetSocketTransportAddress((String) globalConfiguration.get("es.ip"), (Integer) globalConfiguration.get("es.port")));
+                    .addTransportAddress(new InetSocketTransportAddress(globalConfiguration.get("es.ip").toString(), Integer.parseInt(globalConfiguration.get("es.port").toString())));
 
             DataPruner pruner = new ElasticsearchDataPruner(startDate, numDays, configuration, client, indexPrefix);
 

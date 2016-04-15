@@ -17,5 +17,5 @@
 # limitations under the License.
 #
 
-yarn /usr/metron/${project.version}/lib/Metron-DataLoads-${project.version}.jar org.apache.metron.dataloads.bulk.ElasticsearchDataPrunerRunner "$@"
+yarn jar /usr/metron/${project.version}/lib/Metron-DataLoads-${project.version}.jar org.apache.metron.dataloads.bulk.ElasticsearchDataPrunerRunner "$@"
 
