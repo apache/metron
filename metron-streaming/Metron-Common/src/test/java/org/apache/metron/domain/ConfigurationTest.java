@@ -35,7 +35,8 @@ import static org.mockito.Mockito.when;
 
 public class ConfigurationTest {
 
-
+    private static final String TEST_PROPERTY = "configuration.class.test.property";
+    private static final String TEST_VALUE = "Configuration";
     @Test
     public void testCanReadFromFile() throws Exception {
 
@@ -71,7 +72,7 @@ public class ConfigurationTest {
     private byte[] mockGlobalData(){
 
         JSONObject global = new JSONObject();
-        global.put("es.clustername", "metron");
+        global.put(TEST_PROPERTY, TEST_VALUE);
         return global.toString().getBytes();
 
     }
@@ -80,8 +81,9 @@ public class ConfigurationTest {
     private void checkResult( Configuration configuration ){
 
         assertEquals("File contains 1 entry: ",1,configuration.getGlobalConfig().size());
-        String esClustername = configuration.getGlobalConfig().get("es.clustername").toString();
-        assertEquals("es.clustername should be \"metron\"","metron",esClustername);
+        String testValue = configuration.getGlobalConfig().get(TEST_PROPERTY).toString();
+        assertEquals(TEST_PROPERTY + " should be \"" + TEST_VALUE + "\"",TEST_VALUE,testValue);
+
 
     }
 }
