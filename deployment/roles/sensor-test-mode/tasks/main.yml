@@ -1,0 +1,56 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# load example pcap data to replay
+#
+- name: Install example pcap file
+  copy: src=example.pcap dest={{ pcap_path }}/
+
+- name: Start the pcap-replay service
+  service: name=pcap-replay state=restarted
+
+#
+# configure yaf to generate a flow record for every packet
+#
+- name: Stop running instances of yaf
+  become: True
+  service: name=yaf state=stopped
+
+- name: Configure yaf to generate a flow record for every network packet
+  become: True
+  service: name=yaf state=started args="--idle-timeout 0"
+
+#
+# configure snort to alert on every packet
+#
+- name: Configure snort to use a set of test rules
+  become: True
+  lineinfile:
+    dest: /etc/snort/snort.conf
+    line: "include $RULE_PATH/test.rules"
+
+- name: Create a snort alert for testing that alerts on every packet
+  become: True
+  lineinfile:
+    dest: /etc/snort/rules/test.rules
+    line: "alert tcp any any -> any any (msg:'snort test alert'; sid:999158; )"
+    create: yes
+
+- name: Restart snort
+  become: True
+  service: name=snortd state=restarted

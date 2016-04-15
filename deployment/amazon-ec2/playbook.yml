@@ -48,6 +48,7 @@
   tags:
     - ec2
     - wait
+
 #
 # mount additional data volumes on all ec2 hosts
 #

@@ -47,14 +47,15 @@ retention_in_gb: 25
 metron_version: 0.1BETA
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
+
+# sensors
+sensor_test_mode: True
 sniff_interface: tap0
 snort_alert_csv_path: "/var/log/snort/alert.csv"
-yaf_args: "--idle-timeout 0"
-
-# pcap-replay
 pcap_replay: True
 pcap_replay_interface: tap0
 install_tap: True
+pcap_path: /opt/pcap-replay
 
 # data directories
 zookeeper_data_dir: "/data1/hadoop/zookeeper"
