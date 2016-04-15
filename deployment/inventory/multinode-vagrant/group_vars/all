@@ -38,6 +38,9 @@ elasticsearch_web_port: 9200
 metron_version: 0.1BETA
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
+
+# sensors
+sensor_test_mode: True
 sniff_interface: eth1
 bro_version: "2.4.1"
 fixbuf_version: "1.7.1"

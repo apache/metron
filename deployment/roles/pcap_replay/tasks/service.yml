@@ -20,6 +20,3 @@
 
 - name: Install init.d service script
   template: src=pcap-replay dest=/etc/init.d/pcap-replay mode=0755
-
-- name: Install example pcap file
-  copy: src=example.pcap dest={{ pcap_path }}/
