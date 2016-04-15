@@ -19,18 +19,16 @@ package org.apache.metron.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
-import com.google.common.collect.ImmutableList;
 
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.Constants;
 import org.apache.metron.domain.Configurations;
-import org.apache.metron.domain.SensorEnrichmentConfig;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentKey;
 import org.apache.metron.hbase.converters.enrichment.EnrichmentValue;
-import org.apache.metron.integration.util.EnrichmentHelper;
+import org.apache.metron.hbase.converters.enrichment.EnrichmentHelper;
 import org.apache.metron.integration.util.TestUtils;
 import org.apache.metron.integration.util.UnitTestHelper;
 import org.apache.metron.integration.util.integration.ComponentRunner;
