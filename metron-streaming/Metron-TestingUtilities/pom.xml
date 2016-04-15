@@ -20,7 +20,7 @@
     <artifactId>Metron-Streaming</artifactId>
     <version>0.1BETA</version>
   </parent>
-  <artifactId>Metron-Testing</artifactId>
+  <artifactId>Metron-TestingUtilities</artifactId>
   <description>Metron Testing Utilities</description>
   <properties>
   </properties>
@@ -36,17 +36,7 @@
       <version>${global_junit_version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.storm</groupId>
-      <artifactId>flux-core</artifactId>
-      <version>${global_flux_version}</version>
-    </dependency>
 
-    <dependency>
-      <groupId>org.apache.storm</groupId>
-      <artifactId>storm-core</artifactId>
-      <version>${global_storm_version}</version>
-    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -73,43 +63,6 @@
           <artifactId>slf4j-log4j12</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.9.2</artifactId>
-      <version>${global_kafka_version}</version>
-      <classifier>test</classifier>
-      <exclusions>
-        <!--exclusion> <groupId>org.apache.zookeeper</groupId> <artifactId>zookeeper</artifactId>
-            </exclusion -->
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.9.2</artifactId>
-      <version>${global_kafka_version}</version>
-      <exclusions>
-        <!--exclusion> <groupId>org.apache.zookeeper</groupId> <artifactId>zookeeper</artifactId>
-            </exclusion -->
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>Metron-MessageParsers</artifactId>
-      <version>0.1BETA</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>Metron-TestingUtilities</artifactId>
-      <version>0.1BETA</version>
     </dependency>
   </dependencies>
 
