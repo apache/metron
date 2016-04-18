@@ -1,0 +1,135 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+#Hadoop HDFS Logs
+/var/log/hadoop/hdfs/*.log* {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/hadoop/hdfs/*.out {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/hadoop/hdfs/*.audit {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+#Hadoop Yarn Logs
+/var/log/hadoop/yarn/*.log {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+#Hadoop Mapreduce Logs
+/var/log/hadoop/mapreduce/*.log {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+#Storm Logs
+/var/log/storm/*.log {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/storm/*.out {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+#Kafka Logs
+/var/log/kafka/*.log {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/kafka/*.err {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+#HBase Logs
+/var/log/hbase/*.log* {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/hbase/*.out {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/hbase/*.audit {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+#Zookeeper Logs
+/var/log/zookeeper/*.log {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
+
+/var/log/zookeeper/*.out {
+  {{ hadoop_logrotate_frequency }}
+  rotate {{ hadoop_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}

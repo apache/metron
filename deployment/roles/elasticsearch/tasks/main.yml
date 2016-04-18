@@ -64,3 +64,10 @@
   service: name=elasticsearch state=started enabled=yes
 
 - include: configure_index.yml
+
+- name: Create Logrotate Script for Elasticsearch
+  template:
+    src: "metron-elasticsearch-logrotate.yml"
+    dest: "/etc/logrotate.d/metron-elasticsearch"
+    mode: 0644
+

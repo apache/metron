@@ -15,8 +15,5 @@
 #  limitations under the License.
 #
 ---
-elasticsearch_data_dir: /var/lib/elasticsearch
-elasticsearch_network_interface: eth0
-elasticsearch_logrotate_frequency: daily
-elasticsearch_logrotate_retention: 30
-
+hadoop_logrotate_frequency: daily
+hadoop_logrotate_retention: 30
