@@ -25,6 +25,7 @@
   with_items:
     - /var/log/bro-purge/cron-es-bro-purge.log
     - /var/log/yaf-purge/cron-es-yaf-purge.log
+    - /var/log/snort-purge/cron-es-snort-purge.log
 
 
 - name: Purge Elasticsearch Indices every 30 days.
