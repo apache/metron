@@ -1,0 +1,4 @@
+*.pyc
+pycapa.egg-info
+dist
+build

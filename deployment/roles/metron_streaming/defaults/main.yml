@@ -15,12 +15,30 @@
 #  limitations under the License.
 #
 ---
+metron_jar_name: Metron-Topologies-{{ metron_version }}.jar
+metron_directory: /usr/metron/{{ metron_version }}
+metron_solr_jar_name: Metron-Solr-{{ metron_version }}.jar
+metron_elasticsearch_jar_name: Metron-Elasticsearch-{{ metron_version }}.jar
+
+metron_dataloads_name: Metron-DataLoads-{{ metron_version }}-archive.tar.gz
+metron_dataloads_path: "{{ playbook_dir }}/../../metron-streaming/Metron-DataLoads/target/{{ metron_dataloads_name }}"
+metron_topologies_bundle_name: Metron-Topologies-{{ metron_version }}-archive.tar.gz
+metron_solr_bundle_name: Metron-Solr-{{ metron_version }}-archive.tar.gz
+metron_elasticsearch_bundle_name: Metron-Elasticsearch-{{ metron_version }}-archive.tar.gz
+metron_solr_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Solr/target/{{ metron_solr_bundle_name }}"
+metron_elasticsearch_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Elasticsearch/target/{{ metron_elasticsearch_bundle_name }}"
+metron_topologies_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron-Topologies/target/{{ metron_topologies_bundle_name }}"
+
 config_path: "{{ metron_directory }}/config"
 zookeeper_config_path: "{{ config_path }}/zookeeper"
 zookeeper_global_config_path: "{{ zookeeper_config_path }}/global.json"
+metron_solr_properties_config_path: "{{ metron_directory }}/config/etc/env/solr.properties"
+metron_elasticsearch_properties_config_path: "{{ metron_directory }}/config/etc/env/elasticsearch.properties"
+hbase_config_path: "/etc/hbase/conf"
+hdfs_config_path: "/etc/hadoop/conf"
+
 threat_intel_bulk_load: True
 threat_intel_bin: "{{ metron_directory }}/bin/threatintel_bulk_load.sh"
-threat_intel_host: "{{ groups.ambari_master[0] }}"
 threat_intel_work_dir: /tmp/ti_bulk
 threat_intel_csv_filename: "threat_ip.csv"
 threat_intel_csv_filepath: "../roles/metron_streaming/templates/{{ threat_intel_csv_filename }}"
@@ -37,11 +55,14 @@ storm_topologies:
     - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
 
+hdfs_retention_days: 30
+hdfs_bro_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/bro_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/bro-purge/cron-bro-purge.log 2>&1"
+hdfs_yaf_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/yaf_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/yaf-purge/cron-yaf-purge.log 2>&1"
+
 elasticsearch_config_path: /etc/elasticsearch
 elasticsearch_cluster_name: metron
 elasticsearch_transport_port: 9300
-hbase_config_path: "/etc/hbase/conf"
-hdfs_config_path: "/etc/hadoop/conf"
+
 metron_hdfs_output_dir: "/apps/metron"
 metron_hdfs_rotation_policy: org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
 metron_hdfs_rotation_policy_count: 1

@@ -1,0 +1,67 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+#
+# kafka global settings
+#
+[kafka-global]
+
+# identifies the client to kafka
+client.id = pcap-localhost
+
+# initial list of kafka brokers
+metadata.broker.list = localhost:9092
+
+# max number of messages allowed on the producer queue
+queue.buffering.max.messages = 10000000
+
+# maximum time, in milliseconds, for buffering data on the producer queue
+queue.buffering.max.ms = 1000
+
+# compression codec = none, gzip or snappy
+compression.codec = snappy
+
+# maximum number of messages batched in one MessageSet (increase for better compression)
+batch.num.messages = 1000
+
+# max times to retry sending a failed message set
+message.send.max.retries = 10
+
+# backoff time before retrying a message send
+retry.backoff.ms = 250
+
+# how often statistics are emitted; 0 = never
+statistics.interval.ms = 0
+
+# only provide delivery reports for failed messages
+delivery.report.only.error = false
+
+#
+# kafka topic settings
+#
+[kafka-topic]
+
+# broker acks { 1 = leader ack, 0 = no acks, -1 = in sync replica ack }
+request.required.acks = 1
+
+# local message timeout. This value is only enforced locally and limits the time a
+# produced message waits for successful delivery. A time of 0 is infinite.
+message.timeout.ms = 300000
+
+# report offset of produced message back to application. The application must be
+# use the dr_msg_cb to retrieve the offset from rd_kafka_message_t.offset
+produce.offset.report = true
