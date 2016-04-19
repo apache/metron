@@ -42,11 +42,23 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
   private String zookeeperUrl;
 
   protected final Configurations configurations = new Configurations();
-  private CuratorFramework client;
-  private TreeCache cache;
+  protected CuratorFramework client;
+  protected TreeCache cache;
 
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
+  }
+
+  public Configurations getConfigurations() {
+    return configurations;
+  }
+
+  public void setCuratorFramework(CuratorFramework client) {
+    this.client = client;
+  }
+
+  public void setTreeCache(TreeCache cache) {
+    this.cache = cache;
   }
 
   protected void reloadCallback(String name, Configurations.Type type) {
@@ -55,26 +67,29 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     try {
-      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-      client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
-      client.start();
-      cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
-      TreeCacheListener listener = new TreeCacheListener() {
-        @Override
-        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-          if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
-            String path = event.getData().getPath();
-            byte[] data = event.getData().getData();
-            updateConfig(path, data);
-          }
-        }
-      };
-      cache.getListenable().addListener(listener);
-      try {
-        ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
+      if (client == null) {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
       }
-      catch(Exception e) {
-        LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
+      client.start();
+      if (cache == null) {
+        cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
+        TreeCacheListener listener = new TreeCacheListener() {
+          @Override
+          public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+            if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
+              String path = event.getData().getPath();
+              byte[] data = event.getData().getData();
+              updateConfig(path, data);
+            }
+          }
+        };
+        cache.getListenable().addListener(listener);
+        try {
+          ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
+        } catch (Exception e) {
+          LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
+        }
       }
       cache.start();
     } catch (Exception e) {

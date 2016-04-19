@@ -239,9 +239,6 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withEnrichments"
-                args:
-                    - ref: "enrichments"
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withMaxTimeRetain"
@@ -275,9 +272,6 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withEnrichments"
-                args:
-                    - ref: "threatIntels"
             -   name: "withMaxCacheSize"
                 args: [10000]
             -   name: "withMaxTimeRetain"
