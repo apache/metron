@@ -45,7 +45,7 @@ import java.util.Timer;
 
 public class TaxiiLoader {
   private static abstract class OptionHandler implements Function<String, Option> {}
-  private enum TaxiiOptions {
+  public enum TaxiiOptions {
     HELP("h", new OptionHandler() {
 
       @Nullable
