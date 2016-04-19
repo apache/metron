@@ -53,4 +53,4 @@
     production: no
 
 - name: Start Metron UI
-  shell: "pm2 start {{ metron_ui_directory }}/lib/metron-ui.js --name metron"
+  shell: "pm2 restart {{ metron_ui_directory }}/lib/metron-ui.js --name metron"
