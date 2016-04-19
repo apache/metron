@@ -64,6 +64,7 @@ case "$1" in
     cd $DAEMON_PATH
     if [ -f $PIDFILE ]; then
         kill -HUP $PID
+        killall $NAME
         printf "%s\n" "Ok"
         rm -f $PIDFILE
     else

@@ -113,11 +113,22 @@
             <version>${global_junit_version}</version>
         </dependency>
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${global_mockito_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
             <version>1.4.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>Metron-TestingUtilities</artifactId>
+            <version>0.1BETA</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>

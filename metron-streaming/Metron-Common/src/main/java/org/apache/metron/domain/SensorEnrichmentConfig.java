@@ -83,9 +83,7 @@ public class SensorEnrichmentConfig {
   public static SensorEnrichmentConfig fromBytes(byte[] config) throws IOException {
     return JSONUtils.INSTANCE.load(new String(config), SensorEnrichmentConfig.class);
   }
-  public String toJSON(boolean pretty) throws JsonProcessingException {
-    return JSONUtils.INSTANCE.toJSON(this, pretty);
-  }
+
   public String toJSON() throws JsonProcessingException {
     return JSONUtils.INSTANCE.toJSON(this, true);
   }
@@ -107,6 +105,15 @@ public class SensorEnrichmentConfig {
       return false;
     return getFieldToThreatIntelTypeMap() != null ? getFieldToThreatIntelTypeMap().equals(that.getFieldToThreatIntelTypeMap()) : that.getFieldToThreatIntelTypeMap() == null;
 
+  }
+
+  @Override
+  public String toString() {
+    return "{index=" + index + ", batchSize=" + batchSize +
+            ", enrichmentFieldMap=" + enrichmentFieldMap +
+            ", threatIntelFieldMap" + threatIntelFieldMap +
+            ", fieldToEnrichmentTypeMap=" + fieldToEnrichmentTypeMap +
+            ", fieldToThreatIntelTypeMap=" + fieldToThreatIntelTypeMap + "}";
   }
 
   @Override

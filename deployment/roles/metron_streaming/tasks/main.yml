@@ -131,3 +131,5 @@
 
 - include: metron_topology.yml
 
+- include: hdfs_purge.yml
+

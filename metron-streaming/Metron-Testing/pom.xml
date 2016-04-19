@@ -150,6 +150,11 @@
       <artifactId>Metron-MessageParsers</artifactId>
       <version>0.1BETA</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>Metron-TestingUtilities</artifactId>
+      <version>0.1BETA</version>
+    </dependency>
   </dependencies>
   <build>
   </build>
