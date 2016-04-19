@@ -19,12 +19,12 @@
 package org.apache.metron.spout.pcap.scheme;
 
 import backtype.storm.spout.MultiScheme;
+import org.apache.metron.spout.pcap.Endianness;
 import storm.kafka.KeyValueSchemeAsMultiScheme;
 
 public enum TimestampScheme {
-  FROM_KEY( converter -> new KeyValueSchemeAsMultiScheme(new FromKeyScheme().withTimestampConverter(converter)))
-
-  ,FROM_PACKET(converter -> new FromPacketScheme().withTimestampConverter(converter));
+  FROM_KEY( (converter, endianness) -> new KeyValueSchemeAsMultiScheme(new FromKeyScheme().withTimestampConverter(converter).withEndianness(endianness)))
+  ,FROM_PACKET((converter, endianness) -> new FromPacketScheme().withTimestampConverter(converter).withEndianness(endianness));
   ;
   public static final String KV_FIELD = "kv";
   TimestampSchemeCreator creator;
@@ -33,13 +33,13 @@ public enum TimestampScheme {
     this.creator = creator;
   }
 
-  public static MultiScheme getScheme(String scheme, TimestampConverter converter) {
+  public static MultiScheme getScheme(String scheme, TimestampConverter converter, Endianness endianness) {
     try {
       TimestampScheme ts = TimestampScheme.valueOf(scheme.toUpperCase());
-      return ts.creator.create(converter);
+      return ts.creator.create(converter, endianness);
     }
     catch(IllegalArgumentException iae) {
-      return TimestampScheme.FROM_KEY.creator.create(converter);
+      return TimestampScheme.FROM_KEY.creator.create(converter, endianness);
     }
   }
 

@@ -24,18 +24,24 @@ import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.log4j.Logger;
+import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.PcapHelper;
 import storm.kafka.KeyValueScheme;
 
 import java.util.List;
 
-public class FromKeyScheme implements KeyValueScheme, TimestampConvertible {
-  TimestampConverter converter = TimestampConverters.MICROSECONDS.converter;
+public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
+  private static final Logger LOG = Logger.getLogger(FromKeyScheme.class);
+
+  private TimestampConverter converter = TimestampConverters.MICROSECONDS.converter;
+  private Endianness endianness = Endianness.BIG;
   @Override
   public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
     Long ts = converter.toNanoseconds(Bytes.toLong(key));
-    //TODO: HEADERIZE packet!
-    return new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(PcapHelper.headerizeIfNecessary(value))));
+    byte[] packetHeaderized = PcapHelper.addPacketHeader(ts, value, endianness);
+    byte[] globalHeaderized= PcapHelper.addGlobalHeader(packetHeaderized, endianness);
+    return new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(globalHeaderized)));
   }
 
   @Override
@@ -50,7 +56,18 @@ public class FromKeyScheme implements KeyValueScheme, TimestampConvertible {
 
   @Override
   public FromKeyScheme withTimestampConverter(TimestampConverter converter) {
-    this.converter = converter;
+    try {
+      this.converter = converter;
+    }
+    catch(IllegalArgumentException iae) {
+      LOG.error(iae.getMessage(), iae);
+    }
+    return this;
+  }
+
+  @Override
+  public FromKeyScheme withEndianness(Endianness endianness) {
+    this.endianness = endianness;
     return this;
   }
 }

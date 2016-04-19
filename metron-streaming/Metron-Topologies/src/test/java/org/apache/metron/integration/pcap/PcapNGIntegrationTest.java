@@ -42,7 +42,7 @@ import org.apache.metron.integration.util.integration.components.MRComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapParser;
-import org.apache.metron.spout.pcap.PartitionHDFSWriter;
+import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.PcapHelper;
 import org.apache.metron.spout.pcap.scheme.FromPacketScheme;
 import org.apache.metron.spout.pcap.scheme.TimestampScheme;
@@ -92,17 +92,16 @@ public class PcapNGIntegrationTest {
     }).length;
   }
 
-  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile) throws IOException {
+  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile, boolean withHeaders) throws IOException {
     SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
             SequenceFile.Reader.file(pcapFile)
     );
     List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
-    long ts = 0L;
     IntWritable key = new IntWritable();
     BytesWritable value = new BytesWritable();
     while (reader.next(key, value)) {
       byte[] pcapWithHeader = value.copyBytes();
-      long calculatedTs = FromPacketScheme.getTimestamp(pcapWithHeader);
+      long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
       {
         PcapParser parser = new PcapParser();
         parser.init();
@@ -112,11 +111,14 @@ public class PcapNGIntegrationTest {
           System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
         }
       }
-      byte[] pcapRaw = new byte[pcapWithHeader.length - PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length];
-      System.arraycopy(pcapWithHeader, PartitionHDFSWriter.PCAP_GLOBAL_HEADER.length, pcapRaw, 0, pcapRaw.length);
-      byte[] headerized = PcapHelper.headerizeIfNecessary(pcapRaw);
-      Assert.assertArrayEquals(pcapWithHeader, headerized);
-      ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
+      if(withHeaders) {
+        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapWithHeader));
+      }
+      else {
+        byte[] pcapRaw = new byte[pcapWithHeader.length - PcapHelper.GLOBAL_HEADER_SIZE - PcapHelper.PACKET_HEADER_SIZE];
+        System.arraycopy(pcapWithHeader, PcapHelper.GLOBAL_HEADER_SIZE + PcapHelper.PACKET_HEADER_SIZE, pcapRaw, 0, pcapRaw.length);
+        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
+      }
     }
     return Iterables.limit(ret, 2*(ret.size()/2));
   }
@@ -135,6 +137,7 @@ public class PcapNGIntegrationTest {
                                                                                             , input -> input.getValue()
                                                                                             )
                                                                     )
+    , true
                );
   }
   @Test
@@ -162,7 +165,7 @@ public class PcapNGIntegrationTest {
           System.out.println("Wrote " + pcapEntries.size() + " to kafka");
         }
       }
-    });
+    }, false);
   }
 
   private static long getTimestamp(int offset, List<Map.Entry<byte[], byte[]>> entries) {
@@ -174,7 +177,9 @@ public class PcapNGIntegrationTest {
   }
 
   public void testTopology(Function<Properties, Void> updatePropertiesCallback
-                          ,SendEntries sendPcapEntriesCallback )
+                          ,SendEntries sendPcapEntriesCallback
+                          ,boolean withHeaders
+                          )
           throws Exception
   {
     if (!new File(topologiesDir).exists()) {
@@ -191,7 +196,7 @@ public class PcapNGIntegrationTest {
     Assert.assertNotNull(topologiesDir);
     Assert.assertNotNull(targetDir);
     Path pcapFile = new Path("../Metron-Testing/src/main/resources/sample/data/SampleInput/PCAPExampleOutput");
-    final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile));
+    final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile, withHeaders));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
       setProperty("spout.kafka.topic.pcap", KAFKA_TOPIC);
@@ -200,6 +205,7 @@ public class PcapNGIntegrationTest {
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
       setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
+      setProperty("kafka.pcap.endianness", "LITTLE");
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
@@ -335,7 +341,7 @@ public class PcapNGIntegrationTest {
                     Object prt = input.get(Constants.Fields.DST_PORT.getName());
                     return prt != null && prt.toString().equals("22");
                   }
-                })
+                }, withHeaders)
                 )
         );
       }
@@ -357,49 +363,28 @@ public class PcapNGIntegrationTest {
     }
   };
 
-  public static class Project implements Function<Map.Entry<byte[], byte[]>, byte[]> {
-    int position;
-    byte[] header;
-    public Project(int position) {
-
-    }
-    public Project(int position, byte[] header) {
-      this.position = position;
-      this.header = header;
-    }
-    private byte[] headerize(byte[] packet) {
-      if(header != null) {
-        byte[] ret = new byte[packet.length + header.length];
-        int offset = 0;
-        System.arraycopy(header, 0, ret, offset, header.length);
-        offset += header.length;
-        System.arraycopy(packet, 0, ret, offset, packet.length);
-        return ret;
-      }
-      else {
-        return packet;
-      }
-    }
-    @Nullable
-    @Override
-    public byte[] apply(@Nullable Map.Entry<byte[], byte[]> input) {
-      if(position == 0) {
-        return headerize(input.getKey());
-      }
-      else {
-        return headerize(input.getValue());
-      }
-    }
-  }
-
   private Iterable<JSONObject> filterPcaps(Iterable<Map.Entry<byte[], byte[]>> pcaps
                                           ,Predicate<JSONObject> predicate
+                                          ,boolean withHeaders
                                           )
   {
+    Function<Map.Entry<byte[], byte[]>, byte[]> pcapTransform = null;
+    if(!withHeaders) {
+      final Endianness endianness = Endianness.LITTLE;
+      pcapTransform = kv -> PcapHelper.addGlobalHeader(PcapHelper.addPacketHeader(Bytes.toLong(kv.getKey())
+                                                                                 , kv.getValue()
+                                                                                 , endianness
+                                                                                 )
+                                                      , endianness
+                                                      );
+    }
+    else {
+      pcapTransform = kv -> kv.getValue();
+    }
     return Iterables.filter(
               Iterables.concat(
                       Iterables.transform(
-                              Iterables.transform(pcaps, new Project(1, PartitionHDFSWriter.PCAP_GLOBAL_HEADER))
+                              Iterables.transform(pcaps, pcapTransform)
                                          , TO_JSONS
                                          )
                               )

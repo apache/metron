@@ -35,11 +35,6 @@ import java.util.EnumSet;
 public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   static final long serialVersionUID = 0xDEADBEEFL;
   private static final Logger LOG = Logger.getLogger(PartitionHDFSWriter.class);
-  public static final byte[] PCAP_GLOBAL_HEADER = new byte[] {
-          (byte) 0xd4, (byte) 0xc3, (byte) 0xb2, (byte) 0xa1, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00
-          ,0x00, 0x00, 0x00, 0x00, (byte) 0xff, (byte) 0xff, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00
-  };
-
 
 
   public static interface SyncHandler {

@@ -42,6 +42,8 @@ components:
           args:
             - "${kafka.pcap.ts_scheme}"
             - "${kafka.pcap.ts_granularity}"
+            - "${kafka.pcap.endianness}"
+
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"
     configMethods:
@@ -63,13 +65,3 @@ spouts:
     constructorArgs:
       - ref: "kafkaConfig"
       - ref: "writerConfig"
-#bolts:
-#  - id: "noop"
-#    className: "org.apache.metron.bolt.NoopBolt"
-
-#streams:
-#  - name: "spout -> noop"
-#    from: "kafkaSpout"
-#    to: "noop"
-#    grouping:
-#      type: SHUFFLE
