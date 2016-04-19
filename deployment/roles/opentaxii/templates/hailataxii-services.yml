@@ -1,0 +1,66 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# discovery: used by a TAXII Client to discover available TAXII Service
+#
+- id: hailataxii-discovery
+  type: discovery
+  address: /services/hailataxii/discovery
+  description: example discovery service
+  advertised_services:
+    - collection
+    - inbox
+    - poll
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0
+
+#
+# inbox: used by a TAXII Client to push information to a TAXII Server
+#
+- id: hailataxii-inbox
+  type: inbox
+  address: /services/hailataxii/inbox
+  description: example inbox service
+  destination_collection_required: yes
+  accept_all_content: yes
+  authentication_required: no
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0
+
+#
+# collection_management: used by a TAXII Client to request information about
+# available data collections or request a subscription.
+#
+- id: hailataxii-collection
+  type: collection_management
+  address: /services/hailataxii/collection
+  description: example collection service
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:https:1.0
+
+#
+# poll: used by a TAXII Client to request information from a TAXII Server
+#
+- id: hailataxii-poll
+  type: poll
+  address: /services/hailataxii/poll
+  description: example poll service
+  subscription_required: no
+  authentication_required: yes
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0

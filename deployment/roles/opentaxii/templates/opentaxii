@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# opentaxii daemon
+# chkconfig: 345 20 80
+# description: OpenTAXII is a robust Python implementation of TAXII Service
+# processname: opentaxii
+#
+export LD_LIBRARY_PATH="{{ python27_home }}/usr/lib64"
+export OPENTAXII_CONFIG="{{ opentaxii_home }}/opentaxii-conf.yml"
+
+NAME=opentaxii
+DESC="OpenTAXII is a robust Python implementation of a TAXII service"
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+LOGFILE="/var/log/$NAME.log"
+DAEMON_PATH="{{ opentaxii_home }}"
+DAEMON="{{ opentaxii_bin }}/gunicorn"
+DAEMONOPTS="opentaxii.http:app"
+DAEMONOPTS+=" --workers {{ opentaxii_workers }}"
+DAEMONOPTS+=" --log-level {{ opentaxii_loglevel }}"
+DAEMONOPTS+=" --log-file $LOGFILE"
+DAEMONOPTS+=" --timeout {{ opentaxii_timeout }}"
+DAEMONOPTS+=" --bind {{ opentaxii_bind }}"
+DAEMONOPTS+=" --env OPENTAXII_CONFIG={{ opentaxii_home }}/opentaxii-conf.yml"
+
+case "$1" in
+
+  #
+  # start
+  #
+  start)
+    printf "%-50s" "Starting $NAME..."
+
+    # kick-off the daemon
+    cd $DAEMON_PATH
+    . {{ opentaxii_bin }}/activate
+    PID=`$DAEMON $DAEMONOPTS >> $LOGFILE 2>&1 & echo $!`
+    if [ -z $PID ]; then
+        printf "%s\n" "Fail"
+    else
+        echo $PID > $PIDFILE
+        printf "%s\n" "Ok"
+    fi
+  ;;
+
+  #
+  # status
+  #
+  status)
+    printf "%-50s" "Checking $NAME..."
+    if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+        printf "%s\n" "Process dead but pidfile exists"
+      else
+        echo "Running"
+      fi
+    else
+      printf "%s\n" "Service not running"
+    fi
+  ;;
+
+  #
+  # stop
+  #
+  stop)
+    printf "%-50s" "Stopping $NAME"
+    PID=`cat $PIDFILE`
+    cd $DAEMON_PATH
+    if [ -f $PIDFILE ]; then
+        kill -HUP $PID
+        printf "%s\n" "Ok"
+        rm -f $PIDFILE
+    else
+        printf "%s\n" "pidfile not found"
+    fi
+  ;;
+
+  #
+  # restart
+  #
+  restart)
+    $0 stop
+    $0 start
+  ;;
+
+  #
+  # setup
+  #
+  setup)
+    read -p "WARNING: force reset and destroy all opentaxii data? [Ny]: " REPLY
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      cd $DAEMON_PATH
+      rm -f {{ opentaxii_auth_db }}
+      rm -f {{ opentaxii_data_db }}
+      {{ opentaxii_bin }}/opentaxii-create-services -c {{ opentaxii_home}}/hailataxii-services.yml
+      {{ opentaxii_bin }}/opentaxii-create-collections -c {{ opentaxii_home}}/hailataxii-collections.yml
+      echo "opentaxii successfull reset"
+    fi
+  ;;
+
+  *)
+    echo "Usage: $0 {status|start|stop|restart|setup}"
+    exit 1
+esac
