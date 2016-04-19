@@ -62,7 +62,6 @@ public class ConfigurationsUtilsTest {
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(testSensorType, testSensorConfigBytes, zookeeperUrl);
     byte[] readSensorConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(testSensorType, client);
     Assert.assertTrue(Arrays.equals(testSensorConfigBytes, readSensorConfigBytes));
-
     String name = "testConfig";
     Map<String, Object> testConfig = new HashMap<>();
     testConfig.put("stringField", "value");

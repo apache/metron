@@ -21,13 +21,13 @@
 	<packaging>pom</packaging>
 	<name>Metron-Streaming</name>
 	<description>Stream analytics for Metron</description>
-  <url>https://metron.incubator.apache.org/</url>
-  <scm>
-    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</connection>
-    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</developerConnection>
-    <tag>HEAD</tag>
-    <url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
-  </scm>
+	<url>https://metron.incubator.apache.org/</url>
+	<scm>
+		<connection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</connection>
+		<developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
+	</scm>
 	<properties>
 		<twitter>@ApacheMetron</twitter>
 		<global_opencsv_version>3.7</global_opencsv_version>
@@ -48,7 +48,7 @@
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
 		<global_solr_version>5.2.1</global_solr_version>
-		<global_mockito_version>1.10.16</global_mockito_version>
+		<global_mockito_version>1.10.19</global_mockito_version>
 	</properties>
 	<licenses>
 		<license>
@@ -82,6 +82,15 @@
 		<module>Metron-Testing</module>
 		<module>Metron-TestingUtilities</module>
 	</modules>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${global_mockito_version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -94,31 +103,83 @@
 			<artifactId>multiline-string</artifactId>
 			<version>0.1.2</version>
 			<scope>test</scope>
-
 		</dependency>
 	</dependencies>
 	<build>
-    <plugins>
-        <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
-        <executions>
-          <execution>
-            <id>checkstyle</id>
-            <phase>package</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <configLocation>style/checkstyle.xml</configLocation>
-          <headerLocation>style/LICENSE</headerLocation>
-          <failOnViolation>true</failOnViolation>
-	   <includeTestSourceDirectory>true</includeTestSourceDirectory>
-        </configuration>
-      </plugin>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- Separates the unit tests from the integration tests. -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.18</version>
+					<configuration>
+						<!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
+						<argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
+						<skip>true</skip>
+						<!-- Show 100% of the lines from the stack trace (doesn't work) -->
+						<trimStackTrace>false</trimStackTrace>
+					</configuration>
+					<executions>
+						<execution>
+							<id>unit-tests</id>
+							<phase>test</phase>
+							<goals>
+								<goal>test</goal>
+							</goals>
+							<configuration>
+								<!-- Never skip running the tests when the test phase is invoked -->
+								<skip>false</skip>
+								<includes>
+									<!-- Include unit tests within integration-test phase. -->
+									<include>**/*Test.java</include>
+								</includes>
+								<excludes>
+									<!-- Exclude integration tests within (unit) test phase. -->
+									<exclude>**/*IntegrationTest.java</exclude>
+								</excludes>
+							</configuration>
+						</execution>
+						<execution>
+							<id>integration-tests</id>
+							<phase>integration-test</phase>
+							<goals>
+								<goal>test</goal>
+							</goals>
+							<configuration>
+								<!-- Never skip running the tests when the integration-test phase is invoked -->
+								<skip>false</skip>
+								<includes>
+									<!-- Include integration tests within integration-test phase. -->
+									<include>**/*IntegrationTest.java</include>
+								</includes>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.17</version>
+				<executions>
+					<execution>
+						<id>checkstyle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<configLocation>style/checkstyle.xml</configLocation>
+					<headerLocation>style/LICENSE</headerLocation>
+					<failOnViolation>true</failOnViolation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -165,8 +226,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.18</version>
-        <configuration>
-          <argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
+				<configuration>
+					<argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
 					<systemProperties>
 						<property>
 							<name>mode</name>
@@ -200,18 +261,17 @@
 			</plugin>
 		</plugins>
 	</reporting>
-    <repositories>
-        <repository>
-            <id>clojars.org</id>
-            <url>http://clojars.org/repo</url>
-        </repository>
-        <repository>
-            <id>multiline-release-repo</id>
-            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
+	<repositories>
+		<repository>
+			<id>clojars.org</id>
+			<url>http://clojars.org/repo</url>
+		</repository>
+		<repository>
+			<id>multiline-release-repo</id>
+			<url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
     </repositories>
 </project>
