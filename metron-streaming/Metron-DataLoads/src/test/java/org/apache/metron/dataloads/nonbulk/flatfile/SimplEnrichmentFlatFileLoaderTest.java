@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.nonbulk.taxii.flatfile;
+package org.apache.metron.dataloads.nonbulk.flatfile;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
