@@ -37,15 +37,8 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   protected static final Logger LOG = LoggerFactory
           .getLogger(EnrichmentJoinBolt.class);
 
-  private List<Enrichment> enrichments;
-
   public EnrichmentJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
-  }
-
-  public EnrichmentJoinBolt withEnrichments(List<Enrichment> enrichments) {
-    this.enrichments = enrichments;
-    return this;
   }
 
   @Override

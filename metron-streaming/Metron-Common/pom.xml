@@ -194,6 +194,12 @@
             <version>2.0.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>Metron-TestingUtilities</artifactId>
+            <version>0.1BETA</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <reporting>
