@@ -15,19 +15,7 @@
 #  limitations under the License.
 #
 ---
-- name: Create Log Directories for HDFS Purge
-  file:
-      path: "{{ item }}"
-      state: directory
-      mode: 0755
-      owner: hdfs
-      group: hdfs
-  with_items:
-    - /var/log/bro-purge
-    - /var/log/yaf-purge
-    - /var/log/snort-purge
-
-- name: Create Empty Log Files for HDFS Purge
+- name: Create Empty Log Files for ES Purge
   file:
     path: "{{ item }}"
     state: touch
@@ -35,18 +23,20 @@
     group: hdfs
     mode: 0644
   with_items:
-    - /var/log/bro-purge/cron-hdfs-bro-purge.log
-    - /var/log/yaf-purge/cron-hdfs-yaf-purge.log
-    - /var/log/snort-purge/cron-hdfs-snort-purge.log
+    - /var/log/bro-purge/cron-es-bro-purge.log
+    - /var/log/yaf-purge/cron-es-yaf-purge.log
+    - /var/log/snort-purge/cron-es-snort-purge.log
 
-- name: Purge HDFS Sensor Data every 30 days.
+
+- name: Purge Elasticsearch Indices every 30 days.
   cron:
     name: "{{ item.name }}"
     job: "{{ item.job }}"
     special_time: daily
     user: hdfs
   with_items:
-    - { name: "bro_hdfs_purge", job:  "{{ hdfs_bro_purge_cronjob }}" }
-    - { name: "yaf_hdfs_purge", job: "{{ hdfs_yaf_purge_cronjob }}" }
-    - { name: "snort_hdfs_purge", job: "{{ hdfs_snort_purge_cronjob }}" }
+    - { name: "bro_es_purge", job:  "{{ es_bro_purge_cronjob }}" }
+    - { name: "yaf_es_purge", job: "{{ es_yaf_purge_cronjob }}" }
+    - { name: "snort_es_purge", job: "{{ es_snort_purge_cronjob }}" }
+
 
