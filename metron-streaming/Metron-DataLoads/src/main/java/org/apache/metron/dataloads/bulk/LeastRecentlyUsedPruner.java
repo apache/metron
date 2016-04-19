@@ -37,7 +37,7 @@ import java.util.Date;
 
 public class LeastRecentlyUsedPruner {
     private static abstract class OptionHandler implements Function<String, Option> {}
-    private enum BulkLoadOptions {
+    public enum BulkLoadOptions {
         HELP("h", new OptionHandler() {
 
             @Nullable
@@ -74,7 +74,7 @@ public class LeastRecentlyUsedPruner {
                 return o;
             }
         })
-        ,AS_OF_TIME_FORMAT("t", new OptionHandler() {
+        ,AS_OF_TIME_FORMAT("v", new OptionHandler() {
             @Nullable
             @Override
             public Option apply(@Nullable String s) {

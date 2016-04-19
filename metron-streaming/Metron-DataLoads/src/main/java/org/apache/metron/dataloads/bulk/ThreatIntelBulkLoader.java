@@ -46,7 +46,7 @@ import java.util.Date;
 
 public class ThreatIntelBulkLoader  {
   private static abstract class OptionHandler implements Function<String, Option> {}
-  private enum BulkLoadOptions {
+  public enum BulkLoadOptions {
     HELP("h", new OptionHandler() {
 
       @Nullable
@@ -184,6 +184,7 @@ public class ThreatIntelBulkLoader  {
       return ret;
     }
   }
+
   private static long getTimestamp(CommandLine cli) throws java.text.ParseException {
     if(BulkLoadOptions.AS_OF_TIME.has(cli)) {
       if(!BulkLoadOptions.AS_OF_TIME_FORMAT.has(cli)) {
