@@ -27,7 +27,8 @@ public class SampleUtil {
 
   public static final String sampleConfigRoot = "../Metron-Testing/src/main/resources/sample/config/";
 
-  public static Configurations getSampleConfigs() throws IOException {
+  public static
+  Configurations getSampleConfigs() throws IOException {
     Configurations configurations = new Configurations();
     configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(sampleConfigRoot));
     Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(sampleConfigRoot);

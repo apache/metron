@@ -133,3 +133,4 @@
 
 - include: hdfs_purge.yml
 
+- include: es_purge.yml

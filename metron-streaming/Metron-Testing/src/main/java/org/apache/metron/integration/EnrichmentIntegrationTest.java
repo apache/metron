@@ -143,7 +143,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final Configurations configurations = SampleUtil.getSampleConfigs();
-    final String dateFormat = "yyyy.MM.dd.hh";
+    final String dateFormat = "yyyy.MM.dd.HH";
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
