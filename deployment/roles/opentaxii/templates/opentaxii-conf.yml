@@ -15,24 +15,24 @@
 #  limitations under the License.
 #
 ---
-domain: "localhost:9000"
-support_basic_auth: no
+domain: "{{ opentaxii_domain }}"
+support_basic_auth: yes
 
 persistence_api:
   class: opentaxii.persistence.sqldb.SQLDatabaseAPI
   parameters:
-    db_connection: "sqlite:///{{ opentaxii_auth_db }}"
+    db_connection: "sqlite:///{{ opentaxii_data_db }}"
     create_tables: yes
 
 auth_api:
   class: opentaxii.auth.sqldb.SQLDatabaseAPI
   parameters:
-    db_connection: "sqlite:///{{ opentaxii_data_db }}"
+    db_connection: "sqlite:///{{ opentaxii_auth_db }}"
     create_tables: yes
     secret: "{{ opentaxii_salt }}"
 
 logging:
-  opentaxii: info
+  opentaxii: debug
   root: info
 
 hooks:

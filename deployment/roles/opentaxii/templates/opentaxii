@@ -21,70 +21,80 @@
 # description: OpenTAXII is a robust Python implementation of TAXII Service
 # processname: opentaxii
 #
-export LD_LIBRARY_PATH="{{ python27_home }}/usr/lib64"
-export OPENTAXII_CONFIG="{{ opentaxii_home }}/opentaxii-conf.yml"
-
 NAME=opentaxii
 DESC="OpenTAXII is a robust Python implementation of a TAXII service"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 LOGFILE="/var/log/$NAME.log"
+EXTRA_ARGS="${@:2}"
+CONFIRM_TIMEOUT=3
 DAEMON_PATH="{{ opentaxii_home }}"
-DAEMON="{{ opentaxii_bin }}/gunicorn"
-DAEMONOPTS="opentaxii.http:app"
-DAEMONOPTS+=" --workers {{ opentaxii_workers }}"
-DAEMONOPTS+=" --log-level {{ opentaxii_loglevel }}"
-DAEMONOPTS+=" --log-file $LOGFILE"
-DAEMONOPTS+=" --timeout {{ opentaxii_timeout }}"
-DAEMONOPTS+=" --bind {{ opentaxii_bind }}"
-DAEMONOPTS+=" --env OPENTAXII_CONFIG={{ opentaxii_home }}/opentaxii-conf.yml"
+
+export LD_LIBRARY_PATH={{ python27_home }}/usr/lib64
+export OPENTAXII_CONFIG={{ opentaxii_home }}/etc/opentaxii-conf.yml
 
 case "$1" in
 
-  #
+  ##############################################################################
   # start
   #
   start)
     printf "%-50s" "Starting $NAME..."
 
-    # kick-off the daemon
+    # setup virtual environment
     cd $DAEMON_PATH
     . {{ opentaxii_bin }}/activate
-    PID=`$DAEMON $DAEMONOPTS >> $LOGFILE 2>&1 & echo $!`
-    if [ -z $PID ]; then
-        printf "%s\n" "Fail"
-    else
-        echo $PID > $PIDFILE
-        printf "%s\n" "Ok"
-    fi
+
+    # kick-off the daemon
+    DAEMON="{{ opentaxii_bin }}/gunicorn"
+    DAEMONOPTS="opentaxii.http:app"
+    DAEMONOPTS+=" --daemon"
+    DAEMONOPTS+=" --pid $PIDFILE"
+    DAEMONOPTS+=" --workers {{ opentaxii_workers }}"
+    DAEMONOPTS+=" --log-level {{ opentaxii_loglevel }}"
+    DAEMONOPTS+=" --log-file $LOGFILE"
+    DAEMONOPTS+=" --timeout {{ opentaxii_timeout }}"
+    DAEMONOPTS+=" --bind {{ opentaxii_bind }}"
+    DAEMONOPTS+=" --env OPENTAXII_CONFIG={{ opentaxii_home }}/etc/opentaxii-conf.yml"
+    DAEMONOPTS+=" $EXTRA_ARGS"
+    PID=`$DAEMON $DAEMONOPTS >> $LOGFILE 2>&1`
+    printf "%s\n" "Ok"
   ;;
 
-  #
+  ##############################################################################
   # status
   #
   status)
     printf "%-50s" "Checking $NAME..."
+    . {{ opentaxii_bin }}/activate
     if [ -f $PIDFILE ]; then
       PID=`cat $PIDFILE`
       if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
         printf "%s\n" "Process dead but pidfile exists"
       else
-        echo "Running"
+        printf "%s\n" "Running"
+        {{ opentaxii_home }}/bin/collection-status.py
       fi
     else
       printf "%s\n" "Service not running"
     fi
   ;;
 
-  #
+  ##############################################################################
   # stop
   #
   stop)
     printf "%-50s" "Stopping $NAME"
-    PID=`cat $PIDFILE`
     cd $DAEMON_PATH
     if [ -f $PIDFILE ]; then
-        kill -HUP $PID
+        PID=`cat $PIDFILE`
+        while sleep 1
+          echo -n "."
+          kill -0 $PID >/dev/null 2>&1
+        do
+          kill $PID
+        done
+
         printf "%s\n" "Ok"
         rm -f $PIDFILE
     else
@@ -92,7 +102,7 @@ case "$1" in
     fi
   ;;
 
-  #
+  ##############################################################################
   # restart
   #
   restart)
@@ -100,22 +110,67 @@ case "$1" in
     $0 start
   ;;
 
-  #
+  ##############################################################################
   # setup
   #
   setup)
-    read -p "WARNING: force reset and destroy all opentaxii data? [Ny]: " REPLY
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-      cd $DAEMON_PATH
-      rm -f {{ opentaxii_auth_db }}
-      rm -f {{ opentaxii_data_db }}
-      {{ opentaxii_bin }}/opentaxii-create-services -c {{ opentaxii_home}}/hailataxii-services.yml
-      {{ opentaxii_bin }}/opentaxii-create-collections -c {{ opentaxii_home}}/hailataxii-collections.yml
-      echo "opentaxii successfull reset"
+
+    # if the database file already exists; prompt for confirmation
+    if [ -f "{{ opentaxii_data_db }}" ]; then
+      read -t $CONFIRM_TIMEOUT -p "WARNING: force reset and destroy all opentaxii data? [Ny]: " REPLY
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 0
+      fi
     fi
+
+    $0 stop
+    cd $DAEMON_PATH
+    rm -f {{ opentaxii_auth_db }}
+    rm -f {{ opentaxii_data_db }}
+    {{ opentaxii_bin }}/opentaxii-create-account --username {{ opentaxii_user }} --password {{ opentaxii_pass }}
+    {{ opentaxii_bin }}/opentaxii-create-services -c {{ opentaxii_home}}/etc/services.yml
+    {{ opentaxii_bin }}/opentaxii-create-collections -c {{ opentaxii_home}}/etc/collections.yml
+    printf "%s\n" "Ok"
+  ;;
+
+  ##############################################################################
+  # sync
+  #
+  sync)
+
+    # collect the arguments
+    POLL_SOURCE="http://hailataxii.com/taxii-data"
+    COLL="$2"
+    BEGIN="${3:-`date --iso-8601`}"
+    END="${4:-`date --date=tomorrow --iso-8601`}"
+
+    # validation
+    if [ -z "$COLL" ]; then
+      echo "$0 sync [COLLECTION] [BEGIN-AT] [END-AT]"
+      echo "error: missing name of collection"
+      exit 1
+    fi
+
+    # sync the data
+    set -x
+    {{ opentaxii_bin }}/taxii-proxy \
+      --poll-path $POLL_SOURCE \
+      --poll-collection $COLL \
+      --inbox-path http://{{ opentaxii_domain }}/services/inbox \
+      --inbox-collection $COLL \
+      --binding urn:stix.mitre.org:xml:1.1.1 \
+      --begin $BEGIN \
+      --end $END
+    set +x
+
+    # count the number of records in the local collection
+    {{ opentaxii_bin }}/taxii-poll \
+      --discovery http://{{ opentaxii_domain }}/services/discovery \
+      --collection $COLL \
+      --count-only
   ;;
 
   *)
-    echo "Usage: $0 {status|start|stop|restart|setup}"
+    echo "Usage: $0 {status|start|stop|restart|setup|sync}"
     exit 1
 esac

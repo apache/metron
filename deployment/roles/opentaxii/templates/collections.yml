@@ -15,24 +15,4 @@
 #  limitations under the License.
 #
 ---
-- name: hailataxii-phishtank
-  available: true
-  accept_all_content: false
-  supported_content:
-    - urn:stix.mitre.org:xml:1.1.1
-  service_ids:
-    - hailataxii-discovery
-    - hailataxii-inbox
-    - hailataxii-collection
-    - hailataxii-poll
-
-# - name: hailataxii-cybercrime
-#   available: true
-#   accept_all_content: false
-#   supported_content:
-#     - urn:stix.mitre.org:xml:1.1.1
-#   service_ids:
-#     - hailataxii-discovery
-#     - hailataxii-inbox
-#     - hailataxii-collection
-#     - hailataxii-poll
+# intentionally blank - managed by ansible

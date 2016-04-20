@@ -18,13 +18,13 @@
 #
 # discovery: used by a TAXII Client to discover available TAXII Service
 #
-- id: hailataxii-discovery
+- id: discovery
   type: discovery
-  address: /services/hailataxii/discovery
-  description: example discovery service
+  address: /services/discovery
+  description: Discovery service for Apache Metron
   advertised_services:
-    - collection
     - inbox
+    - collection
     - poll
   protocol_bindings:
     - urn:taxii.mitre.org:protocol:http:1.0
@@ -32,12 +32,14 @@
 #
 # inbox: used by a TAXII Client to push information to a TAXII Server
 #
-- id: hailataxii-inbox
+- id: inbox
   type: inbox
-  address: /services/hailataxii/inbox
-  description: example inbox service
+  address: /services/inbox
+  description: Inbox for Apache Metron
   destination_collection_required: yes
   accept_all_content: yes
+  supported_content:
+    - urn:stix.mitre.org:xml:1.1.1
   authentication_required: no
   protocol_bindings:
     - urn:taxii.mitre.org:protocol:http:1.0
@@ -46,21 +48,21 @@
 # collection_management: used by a TAXII Client to request information about
 # available data collections or request a subscription.
 #
-- id: hailataxii-collection
+- id: collection
   type: collection_management
-  address: /services/hailataxii/collection
-  description: example collection service
+  address: /services/collection
+  description: Collection management service for Apache Metron
   protocol_bindings:
-    - urn:taxii.mitre.org:protocol:https:1.0
+    - urn:taxii.mitre.org:protocol:http:1.0
 
 #
 # poll: used by a TAXII Client to request information from a TAXII Server
 #
-- id: hailataxii-poll
+- id: poll
   type: poll
-  address: /services/hailataxii/poll
-  description: example poll service
+  address: /services/poll
+  description: Poll service for Apache Metron
   subscription_required: no
-  authentication_required: yes
+  authentication_required: no
   protocol_bindings:
     - urn:taxii.mitre.org:protocol:http:1.0
