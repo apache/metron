@@ -30,29 +30,19 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
-public class HDFSDataPruner  {
+public class HDFSDataPruner extends DataPruner {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HDFSDataPruner.class);
-    private Date startDate;
-    private long firstTimeMillis;
-    private long lastTimeMillis;
+
     private Path globPath;
     protected FileSystem fileSystem;
+    protected static final Logger LOG = LoggerFactory.getLogger(HDFSDataPruner.class);
 
-    private HDFSDataPruner() {
-    }
+    HDFSDataPruner(Date startDate, Integer numDays, String fsUri, String globPath) throws IOException, StartDateException {
 
-
-    HDFSDataPruner(Date startDate, Integer numDays, String fsUri, String globPath) throws IOException {
-
-        this.startDate = dateAtMidnight(startDate);
-        this.lastTimeMillis = startDate.getTime();
-        this.firstTimeMillis = lastTimeMillis - TimeUnit.DAYS.toMillis(numDays);
-        this.globPath = new Path(globPath);
+        super(startDate,numDays,globPath);
+        this.globPath = new Path(wildCard);
         Configuration conf = new Configuration();
         conf.set("fs.defaultFS", fsUri);
         this.fileSystem = FileSystem.get(conf);
@@ -136,7 +126,7 @@ public class HDFSDataPruner  {
                 LOG.debug("Running prune with args: " + startDate + " " + numDays + " " + fileSystemUri + " " + globString);
             }
 
-            HDFSDataPruner pruner = new HDFSDataPruner(startDate, numDays, fileSystemUri, globString);
+            DataPruner pruner = new HDFSDataPruner(startDate, numDays, fileSystemUri, globString);
 
             LOG.info("Pruned " + pruner.prune() + " files from " + fileSystemUri + globString);
 
@@ -150,12 +140,6 @@ public class HDFSDataPruner  {
     public Long prune() throws IOException {
 
         Long filesPruned = new Long(0);
-
-        Date today = dateAtMidnight(new Date());
-
-        if (!today.after(startDate)) {
-            throw new RuntimeException("Prune Start Date must be prior to today");
-        }
 
         FileStatus[] filesToDelete = fileSystem.globStatus(globPath, new HDFSDataPruner.DateFileFilter(this));
 
@@ -171,20 +155,6 @@ public class HDFSDataPruner  {
         }
 
         return filesPruned;
-    }
-
-    private Date dateAtMidnight(Date date) {
-
-        Calendar calendar = Calendar.getInstance();
-
-        calendar.setTime(date);
-        calendar.set(Calendar.HOUR, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        return calendar.getTime();
-
     }
 
     class DateFileFilter extends Configured implements PathFilter {

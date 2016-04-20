@@ -25,6 +25,7 @@
   with_items:
     - /var/log/bro-purge
     - /var/log/yaf-purge
+    - /var/log/snort-purge
 
 - name: Create Empty Log Files for HDFS Purge
   file:
@@ -34,9 +35,9 @@
     group: hdfs
     mode: 0644
   with_items:
-    - /var/log/bro-purge/cron-bro-purge.log
-    - /var/log/yaf-purge/cron-yaf-purge.log
-
+    - /var/log/bro-purge/cron-hdfs-bro-purge.log
+    - /var/log/yaf-purge/cron-hdfs-yaf-purge.log
+    - /var/log/snort-purge/cron-hdfs-snort-purge.log
 
 - name: Purge HDFS Sensor Data every 30 days.
   cron:
@@ -45,6 +46,7 @@
     special_time: daily
     user: hdfs
   with_items:
-    - { name: "bro_purge", job:  "{{ hdfs_bro_purge_cronjob }}" }
-    - { name: "yaf_purge", job: "{{ hdfs_yaf_purge_cronjob }}" }
+    - { name: "bro_hdfs_purge", job:  "{{ hdfs_bro_purge_cronjob }}" }
+    - { name: "yaf_hdfs_purge", job: "{{ hdfs_yaf_purge_cronjob }}" }
+    - { name: "snort_hdfs_purge", job: "{{ hdfs_snort_purge_cronjob }}" }
 

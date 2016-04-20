@@ -14,9 +14,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-elasticsearch_data_dir: /var/lib/elasticsearch
-elasticsearch_network_interface: eth0
-elasticsearch_logrotate_frequency: daily
-elasticsearch_logrotate_retention: 30
+
+#Elasticsearch
+/var/log/elasticsearch/*.log {
+  {{ elasticsearch_logrotate_frequency }}
+  rotate {{ elasticsearch_logrotate_retention }}
+  missingok
+  notifempty
+  copytruncate
+}
 

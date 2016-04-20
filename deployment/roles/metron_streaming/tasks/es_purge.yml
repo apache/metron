@@ -15,8 +15,28 @@
 #  limitations under the License.
 #
 ---
-elasticsearch_data_dir: /var/lib/elasticsearch
-elasticsearch_network_interface: eth0
-elasticsearch_logrotate_frequency: daily
-elasticsearch_logrotate_retention: 30
+- name: Create Empty Log Files for ES Purge
+  file:
+    path: "{{ item }}"
+    state: touch
+    owner: hdfs
+    group: hdfs
+    mode: 0644
+  with_items:
+    - /var/log/bro-purge/cron-es-bro-purge.log
+    - /var/log/yaf-purge/cron-es-yaf-purge.log
+    - /var/log/snort-purge/cron-es-snort-purge.log
+
+
+- name: Purge Elasticsearch Indices every 30 days.
+  cron:
+    name: "{{ item.name }}"
+    job: "{{ item.job }}"
+    special_time: daily
+    user: hdfs
+  with_items:
+    - { name: "bro_es_purge", job:  "{{ es_bro_purge_cronjob }}" }
+    - { name: "yaf_es_purge", job: "{{ es_yaf_purge_cronjob }}" }
+    - { name: "snort_es_purge", job: "{{ es_snort_purge_cronjob }}" }
+
 

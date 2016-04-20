@@ -44,3 +44,9 @@
 - name: Download Ambari repo
   get_url: url="{{ rhel_ambari_install_url }}" dest=/etc/yum.repos.d/ambari.repo
 
+- name: Create Logrotate Script for Hadoop Services
+  template:
+    src: "metron-hadoop-logrotate.yml"
+    dest: "/etc/logrotate.d/metron-ambari"
+    mode: 0644
+

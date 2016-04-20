@@ -56,12 +56,18 @@ storm_topologies:
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
 
 hdfs_retention_days: 30
-hdfs_bro_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/bro_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/bro-purge/cron-bro-purge.log 2>&1"
-hdfs_yaf_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/yaf_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/yaf-purge/cron-yaf-purge.log 2>&1"
+hdfs_bro_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/bro_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/bro-purge/cron-hdfs-bro-purge.log 2>&1"
+hdfs_yaf_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/yaf_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/yaf-purge/cron-hdfs-yaf-purge.log 2>&1"
+hdfs_snort_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/snort_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/yaf-purge/cron-hdfs-yaf-purge.log 2>&1"
 
 elasticsearch_config_path: /etc/elasticsearch
 elasticsearch_cluster_name: metron
 elasticsearch_transport_port: 9300
+
+es_retention_days: 30
+es_bro_purge_cronjob: "{{ metron_directory }}/bin/prune_elasticsearch_indices.sh -z {{ zookeeper_url }} -p bro_index_ -s $(date -d '{{ es_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/bro-purge/cron-es-bro-purge.log 2>&1"
+es_yaf_purge_cronjob: "{{ metron_directory }}/bin/prune_elasticsearch_indices.sh -z {{ zookeeper_url }} -p yaf_index_ -s $(date -d '{{ es_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/yaf-purge/cron-es-yaf-purge.log 2>&1"
+es_snort_purge_cronjob: "{{ metron_directory }}/bin/prune_elasticsearch_indices.sh -z {{ zookeeper_url }} -p yaf_index_ -s $(date -d '{{ es_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/snort-purge/cron-es-snort-purge.log 2>&1"
 
 metron_hdfs_output_dir: "/apps/metron"
 metron_hdfs_rotation_policy: org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy

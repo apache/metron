@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -71,11 +72,10 @@ public class HDFSDataPrunerTest {
 
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = StartDateException.class)
     public void testFailsOnTodaysDate() throws Exception {
 
         HDFSDataPruner pruner = new HDFSDataPruner(todaysDate, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
-        pruner.prune();
 
     }
 
@@ -114,6 +114,19 @@ public class HDFSDataPrunerTest {
 
     }
 
+    @Test
+    public void testIgnoresDirectoies() throws Exception {
+
+        FileSystem testFS = mock(FileSystem.class);
+        when(testFS.isDirectory((Path) any())).thenReturn(true);
+
+        HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
+        pruner.fileSystem = testFS;
+        HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, false);
+        assertFalse("Should ignore directories",filter.accept(new Path("/tmp")));
+
+    }
+
     @Test(expected = RuntimeException.class)
     public void testThrowBadFile() throws Exception {
 
@@ -122,6 +135,7 @@ public class HDFSDataPrunerTest {
         when(testFS.getFileStatus((Path) any())).thenThrow(new IOException("Test Exception"));
 
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
+
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
 
