@@ -35,7 +35,7 @@ public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
   private static final Logger LOG = Logger.getLogger(FromKeyScheme.class);
 
   private TimestampConverter converter = TimestampConverters.MICROSECONDS.converter;
-  private Endianness endianness = Endianness.BIG;
+  private static Endianness endianness = Endianness.getNativeEndianness();
   @Override
   public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
     Long ts = converter.toNanoseconds(Bytes.toLong(key));
@@ -65,9 +65,5 @@ public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
     return this;
   }
 
-  @Override
-  public FromKeyScheme withEndianness(Endianness endianness) {
-    this.endianness = endianness;
-    return this;
-  }
+
 }

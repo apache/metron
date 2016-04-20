@@ -28,9 +28,8 @@ public class SpoutConfig extends org.apache.metron.spout.kafka.SpoutConfig{
     super(hosts, topic, zkRoot, id);
   }
 
-  public SpoutConfig withTimestampScheme(String scheme, String granularity, String endianness) {
-    Endianness e = Endianness.valueOf(endianness);
-    super.scheme = TimestampScheme.getScheme(scheme, TimestampConverters.getConverter(granularity), e);
+  public SpoutConfig withTimestampScheme(String scheme, String granularity) {
+    super.scheme = TimestampScheme.getScheme(scheme, TimestampConverters.getConverter(granularity));
     return this;
   }
 }

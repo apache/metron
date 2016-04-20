@@ -55,9 +55,4 @@ public class FromPacketScheme implements MultiScheme,KeyConvertible {
   public FromPacketScheme withTimestampConverter(TimestampConverter converter) {
     return this;
   }
-
-  @Override
-  public FromPacketScheme withEndianness(Endianness endianness) {
-    return this;
-  }
 }

@@ -206,7 +206,6 @@ public class PcapNGIntegrationTest {
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
       setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
-      setProperty("kafka.pcap.endianness", "LITTLE");
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
@@ -371,7 +370,7 @@ public class PcapNGIntegrationTest {
   {
     Function<Map.Entry<byte[], byte[]>, byte[]> pcapTransform = null;
     if(!withHeaders) {
-      final Endianness endianness = Endianness.LITTLE;
+      final Endianness endianness = Endianness.getNativeEndianness();
       pcapTransform = kv -> PcapHelper.addGlobalHeader(PcapHelper.addPacketHeader(Bytes.toLong(kv.getKey())
                                                                                  , kv.getValue()
                                                                                  , endianness

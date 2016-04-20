@@ -31,4 +31,7 @@ public enum TimestampConverters {
   public static TimestampConverter getConverter(String converter) {
     return TimestampConverters.valueOf(converter).converter;
   }
+  public long toNanoseconds(long in) {
+    return converter.toNanoseconds(in);
+  }
 }

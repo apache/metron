@@ -42,7 +42,6 @@ components:
           args:
             - "${kafka.pcap.ts_scheme}"
             - "${kafka.pcap.ts_granularity}"
-            - "${kafka.pcap.endianness}"
 
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"

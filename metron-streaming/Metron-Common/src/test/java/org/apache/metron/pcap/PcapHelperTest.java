@@ -64,7 +64,7 @@ public class PcapHelperTest {
     {
       long ts = PcapHelper.getTimestamp(pcap);
       byte[] stripped = stripHeaders(pcap);
-      byte[] reconstitutedPacket = PcapHelper.addGlobalHeader(PcapHelper.addPacketHeader(ts, stripped, Endianness.LITTLE), Endianness.LITTLE);
+      byte[] reconstitutedPacket = PcapHelper.addGlobalHeader(PcapHelper.addPacketHeader(ts, stripped, Endianness.getNativeEndianness()), Endianness.getNativeEndianness());
       if(!Arrays.equals(reconstitutedPacket, pcap)) {
         int eSecs = Bytes.toInt(pcap, 25);
         int rSec = Bytes.toInt(reconstitutedPacket, 25);

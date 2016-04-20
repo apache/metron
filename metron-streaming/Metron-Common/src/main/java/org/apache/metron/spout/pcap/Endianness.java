@@ -18,6 +18,16 @@
 
 package org.apache.metron.spout.pcap;
 
+import java.nio.ByteOrder;
+
 public enum Endianness {
   LITTLE, BIG;
+
+  public static Endianness getNativeEndianness() {
+    if (ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+      return BIG;
+    } else {
+      return LITTLE;
+    }
+  }
 }
