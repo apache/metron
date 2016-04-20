@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.spout.pcap;
+package org.apache.metron.pcap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -24,6 +24,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
+import org.apache.metron.spout.pcap.Endianness;
+import org.apache.metron.spout.pcap.PcapHelper;
 import org.junit.Assert;
 import org.junit.Test;
 

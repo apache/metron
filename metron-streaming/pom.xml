@@ -79,6 +79,7 @@
 		<module>Metron-DataLoads</module>
 		<module>Metron-Topologies</module>
 		<module>Metron-Pcap_Service</module>
+		<module>Metron-Pcap_Backend</module>
 		<module>Metron-Elasticsearch</module>
 		<module>Metron-Solr</module>
 		<module>Metron-Testing</module>

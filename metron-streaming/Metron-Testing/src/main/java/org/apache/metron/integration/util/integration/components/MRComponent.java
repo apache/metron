@@ -21,10 +21,8 @@ package org.apache.metron.integration.util.integration.components;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.mapreduce.v2.MiniMRYarnCluster;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.metron.integration.util.integration.InMemoryComponent;
-import org.apache.metron.integration.util.integration.UnableToStartException;
 
 import java.io.IOException;
 

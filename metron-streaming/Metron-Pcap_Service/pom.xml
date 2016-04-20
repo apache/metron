@@ -24,8 +24,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flume.version>${global_flume_version}</flume.version>
 		<hadoop.version>${global_hadoop_version}</hadoop.version>
-		<maven.compiler.target>1.7</maven.compiler.target>
-		<maven.compiler.source>1.7</maven.compiler.source>
 		<slf4j.version>${global_slf4j_version}</slf4j.version>
 		<zookeeper.version>3.4.5.2.0.6.0-76</zookeeper.version>
 		<logger.version>1.2.15</logger.version>
@@ -150,13 +148,11 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
 			<version>${global_hadoop_version}</version>
-			<!--scope>provided</scope-->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
 			<version>${global_hadoop_version}</version>
-			<!--scope>provided</scope-->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>

@@ -59,6 +59,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>Metron-Pcap_Backend</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>Metron-Alerts</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
