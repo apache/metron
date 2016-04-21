@@ -23,6 +23,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
+import org.apache.metron.Constants;
+import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapByteInputStream;
 import org.krakenapps.pcap.file.GlobalHeader;
 import org.krakenapps.pcap.packet.PacketHeader;
@@ -31,6 +33,7 @@ import org.krakenapps.pcap.util.ByteOrderConverter;
 
 import javax.xml.bind.annotation.XmlElementDecl;
 import java.io.IOException;
+import java.util.EnumMap;
 
 public class PcapHelper {
 
@@ -167,4 +170,26 @@ public class PcapHelper {
     System.arraycopy(packet, 0, ret, offset, packet.length);
     return ret;
   }
+  public static EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
+    EnumMap<Constants.Fields, Object> ret = new EnumMap(Constants.Fields.class);
+    if(pi.getTcpPacket() != null) {
+      if(pi.getTcpPacket().getSourceAddress() != null) {
+        ret.put(Constants.Fields.SRC_ADDR, pi.getTcpPacket().getSourceAddress().getHostAddress());
+      }
+      if(pi.getTcpPacket().getSource() != null ) {
+        ret.put(Constants.Fields.SRC_PORT, pi.getTcpPacket().getSource().getPort());
+      }
+      if(pi.getTcpPacket().getDestinationAddress() != null ) {
+        ret.put(Constants.Fields.DST_ADDR, pi.getTcpPacket().getDestinationAddress().getHostAddress());
+      }
+      if(pi.getTcpPacket().getDestination() != null ) {
+        ret.put(Constants.Fields.DST_PORT, pi.getTcpPacket().getDestination().getPort());
+      }
+      if(pi.getIpv4Packet() != null) {
+        ret.put(Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
+      }
+    }
+    return ret;
+  }
+
 }

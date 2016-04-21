@@ -21,6 +21,7 @@ package org.apache.metron.helpers.services.mr;
 import com.google.common.base.Predicate;
 import org.apache.metron.Constants;
 import org.apache.metron.pcap.PacketInfo;
+import org.apache.metron.spout.pcap.PcapHelper;
 import org.json.simple.JSONObject;
 
 import javax.annotation.Nullable;
@@ -101,32 +102,12 @@ public class PcapFilter implements Predicate<PacketInfo> {
     return isMatch;
   }
 
-  public EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-    EnumMap<Constants.Fields, Object> ret = new EnumMap(Constants.Fields.class);
-    if(pi.getTcpPacket() != null) {
-      if(pi.getTcpPacket().getSourceAddress() != null) {
-        ret.put(Constants.Fields.SRC_ADDR, pi.getTcpPacket().getSourceAddress().getHostAddress());
-      }
-      if(pi.getTcpPacket().getSource() != null ) {
-        ret.put(Constants.Fields.SRC_PORT, pi.getTcpPacket().getSource().getPort());
-      }
-      if(pi.getTcpPacket().getDestinationAddress() != null ) {
-        ret.put(Constants.Fields.DST_ADDR, pi.getTcpPacket().getDestinationAddress().getHostAddress());
-      }
-      if(pi.getTcpPacket().getDestination() != null ) {
-        ret.put(Constants.Fields.DST_PORT, pi.getTcpPacket().getDestination().getPort());
-      }
-      if(pi.getIpv4Packet() != null) {
-        ret.put(Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
-      }
-    }
-    return ret;
-  }
+
 
   @Override
   public boolean apply(@Nullable PacketInfo pi ) {
     boolean isMatch = true;
-    EnumMap<Constants.Fields, Object> input= packetToFields(pi);
+    EnumMap<Constants.Fields, Object> input= PcapHelper.packetToFields(pi);
     Object srcAddrObj = input.get(Constants.Fields.SRC_ADDR);
     Object srcPortObj = input.get(Constants.Fields.SRC_PORT);
     Object dstAddrObj = input.get(Constants.Fields.DST_ADDR);

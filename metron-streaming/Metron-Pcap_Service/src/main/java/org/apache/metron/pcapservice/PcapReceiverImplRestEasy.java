@@ -246,8 +246,7 @@ public class PcapReceiverImplRestEasy {
     List<byte[]> response = null;
     try {
       if(startTime < 0) {
-        return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'startTime' must not be null or empty").build();
+        startTime = 0L;
       }
       if(endTime < 0) {
         endTime = System.currentTimeMillis();
