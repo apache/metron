@@ -37,7 +37,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${global_guava_version}</version>
+            <version>${global_hbase_guava_version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -113,6 +113,12 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>Metron-Testing</artifactId>
+            <version>0.1BETA</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

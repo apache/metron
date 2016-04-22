@@ -19,6 +19,7 @@
 package org.apache.metron.spout.pcap.scheme;
 
 import backtype.storm.spout.MultiScheme;
+import org.apache.metron.helpers.timestamp.TimestampConverter;
 import storm.kafka.KeyValueSchemeAsMultiScheme;
 
 public enum TimestampScheme {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.integration;
+package org.apache.metron.pcap.integration;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -61,7 +61,7 @@ public class PcapTopologyIntegrationTest {
   private static String BASE_DIR = "pcap";
   private static String DATA_DIR = BASE_DIR + "/data_dir";
   private static String QUERY_DIR = BASE_DIR + "/query";
-  private String topologiesDir = "src/main/resources/Metron_Configs/topologies";
+  private String topologiesDir = "../Metron-Topologies/src/main/resources/Metron_Configs/topologies";
   private String targetDir = "target";
   private File getOutDir(String targetDir) {
     File outDir = new File(new File(targetDir), DATA_DIR);

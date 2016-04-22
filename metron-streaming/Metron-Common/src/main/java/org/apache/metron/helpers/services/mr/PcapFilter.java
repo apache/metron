@@ -71,7 +71,7 @@ public class PcapFilter implements Predicate<PacketInfo> {
         this.protocol= kv.getValue();
       }
       if(kv.getKey().equals(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName())) {
-        this.includesReverseTraffic = Boolean.getBoolean(kv.getValue());
+        this.includesReverseTraffic = Boolean.parseBoolean(kv.getValue());
       }
     }
   }

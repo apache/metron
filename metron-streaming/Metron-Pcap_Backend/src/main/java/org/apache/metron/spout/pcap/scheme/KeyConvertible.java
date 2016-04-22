@@ -17,7 +17,7 @@
  */
 package org.apache.metron.spout.pcap.scheme;
 
-import org.apache.metron.spout.pcap.Endianness;
+import org.apache.metron.helpers.timestamp.TimestampConverter;
 
 public interface KeyConvertible {
   KeyConvertible withTimestampConverter(TimestampConverter converter);

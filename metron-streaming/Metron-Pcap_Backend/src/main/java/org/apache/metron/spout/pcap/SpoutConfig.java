@@ -18,7 +18,7 @@
 
 package org.apache.metron.spout.pcap;
 
-import org.apache.metron.spout.pcap.scheme.TimestampConverters;
+import org.apache.metron.helpers.timestamp.TimestampConverters;
 import org.apache.metron.spout.pcap.scheme.TimestampScheme;
 import storm.kafka.BrokerHosts;
 

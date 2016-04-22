@@ -19,7 +19,7 @@ package org.apache.metron.spout.pcap;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.metron.spout.pcap.scheme.TimestampConverters;
+import org.apache.metron.helpers.timestamp.TimestampConverters;
 
 import java.io.Serializable;
 import java.util.ArrayList;

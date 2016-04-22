@@ -25,6 +25,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
+import org.apache.metron.helpers.timestamp.TimestampConverter;
+import org.apache.metron.helpers.timestamp.TimestampConverters;
 import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.PcapHelper;
 import storm.kafka.KeyValueScheme;
@@ -34,7 +36,7 @@ import java.util.List;
 public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
   private static final Logger LOG = Logger.getLogger(FromKeyScheme.class);
 
-  private TimestampConverter converter = TimestampConverters.MICROSECONDS.converter;
+  private TimestampConverter converter = TimestampConverters.MICROSECONDS;
   private static Endianness endianness = Endianness.getNativeEndianness();
   @Override
   public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {

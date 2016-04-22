@@ -95,6 +95,9 @@ public class PcapsResponse {
    *           Signals that an I/O exception has occurred.
    */
   public byte[] getPcaps() throws IOException {
+    if(pcaps == null) {
+      return new byte[] {};
+    }
     if (pcaps.size() == 1) {
       return pcaps.get(0);
     }

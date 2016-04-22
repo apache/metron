@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.metron.Constants;
 import org.apache.metron.helpers.services.mr.PcapJob;
+import org.apache.metron.helpers.timestamp.TimestampConverters;
 
 @Path("/")
 public class PcapReceiverImplRestEasy {
@@ -84,6 +85,18 @@ public class PcapReceiverImplRestEasy {
     return queryUtil;
   }
 
+  private static boolean isValidPort(String port) {
+    if( port != null && !port.equals("") ) {
+      try {
+        Integer.parseInt(port);
+        return true;
+      }
+      catch(Exception e) {
+        return false;
+      }
+    }
+    return false;
+  }
 
 	  /*
 	   * (non-Javadoc)
@@ -110,25 +123,15 @@ public class PcapReceiverImplRestEasy {
 
           throws IOException {
 
-    if (srcIp == null || srcIp.equals(""))
+    if (!isValidPort(srcPort)) {
       return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'srcIp' must not be null or empty").build();
+              .entity("'srcPort' must not be null, empty or a non-integer").build();
+    }
 
-    if (dstIp == null || dstIp.equals(""))
+    if (!isValidPort(dstPort)) {
       return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'dstIp' must not be null or empty").build();
-
-    if (protocol == null || protocol.equals(""))
-      return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'protocol' must not be null or empty").build();
-
-    if (srcPort == null || srcPort.equals(""))
-      return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'srcPort' must not be null or empty").build();
-
-    if (dstPort == null || dstPort.equals(""))
-      return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'dstPort' must not be null or empty").build();
+              .entity("'dstPort' must not be null, empty or a non-integer").build();
+    }
 
     final boolean includeReverseTrafficF = includeReverseTraffic;
     PcapsResponse response = new PcapsResponse();
@@ -141,8 +144,8 @@ public class PcapReceiverImplRestEasy {
       }
 
       //convert to nanoseconds since the epoch
-      startTime *= 1000000L;
-      endTime *= 1000000L;
+      startTime = TimestampConverters.MILLISECONDS.toNanoseconds(startTime);
+      endTime = TimestampConverters.MILLISECONDS.toNanoseconds(endTime);
       EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                                       if(srcIp != null) {
                                         put(Constants.Fields.SRC_ADDR, srcIp);
@@ -173,6 +176,7 @@ public class PcapReceiverImplRestEasy {
                                     , FileSystem.get(CONFIGURATION.get())
                                     )
                      );
+
     } catch (Exception e) {
       LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
               e);

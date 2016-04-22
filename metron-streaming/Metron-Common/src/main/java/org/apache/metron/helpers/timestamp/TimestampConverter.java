@@ -16,22 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.metron.spout.pcap.scheme;
+package org.apache.metron.helpers.timestamp;
 
+import java.io.Serializable;
 
-public enum TimestampConverters {
-  MILLISECONDS(tsMilli -> tsMilli*1000000L)
-  ,MICROSECONDS(tsMicro -> tsMicro*1000L)
-  ,NANOSECONDS(tsNano -> tsNano);
-  TimestampConverter converter;
-  TimestampConverters(TimestampConverter converter) {
-    this.converter = converter;
-  }
-
-  public static TimestampConverter getConverter(String converter) {
-    return TimestampConverters.valueOf(converter).converter;
-  }
-  public long toNanoseconds(long in) {
-    return converter.toNanoseconds(in);
-  }
+public interface TimestampConverter extends Serializable {
+  public long toNanoseconds(long input);
 }

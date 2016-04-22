@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
-import org.apache.metron.spout.pcap.Endianness;
+import org.apache.metron.helpers.timestamp.TimestampConverter;
 import org.apache.metron.spout.pcap.PcapHelper;
 
 import java.util.Collections;
