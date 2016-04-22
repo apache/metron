@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.integration.pcap;
+package org.apache.metron.integration;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -56,9 +56,9 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 
-public class PcapNGIntegrationTest {
+public class PcapTopologyIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
-  private static String BASE_DIR = "pcap_ng";
+  private static String BASE_DIR = "pcap";
   private static String DATA_DIR = BASE_DIR + "/data_dir";
   private static String QUERY_DIR = BASE_DIR + "/query";
   private String topologiesDir = "src/main/resources/Metron_Configs/topologies";
@@ -230,8 +230,8 @@ public class PcapNGIntegrationTest {
     final MRComponent mr = new MRComponent().withBasePath(baseDir.getAbsolutePath());
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
-            .withTopologyLocation(new File(topologiesDir + "/pcap_ng/remote.yaml"))
-            .withTopologyName("pcap_ng")
+            .withTopologyLocation(new File(topologiesDir + "/pcap/remote.yaml"))
+            .withTopologyName("pcap")
             .withTopologyProperties(topologyProperties)
             .build();
     UnitTestHelper.verboseLogging();

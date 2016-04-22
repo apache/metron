@@ -27,8 +27,8 @@ elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
   . /usr/lib/bigtop-utils/bigtop-detect-javahome
 fi
 
-export METRON_VERSION=0.1BETA
-export METRON_HOME=/usr/metron/${project.version}
+export METRON_VERSION=${project.version}
+export METRON_HOME=/usr/metron/$METRON_VERSION
 export TOPOLOGIES_JAR=Metron-Topologies-$METRON_VERSION.jar
 
 yarn jar $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.metron.utils.PcapInspector "$@"

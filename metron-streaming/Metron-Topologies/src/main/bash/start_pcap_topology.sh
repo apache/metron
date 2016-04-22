@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-METRON_VERSION=0.1BETA
-METRON_HOME=/usr/metron/$METRON_VERSION
-TOPOLOGY_JAR=Metron-Topologies-$METRON_VERSION.jar
-storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.storm.flux.Flux --remote $METRON_HOME/config/topologies/pcap_ng/remote.yaml --filter $METRON_HOME/config/etc/env/pcap_ng.properties
+export METRON_VERSION=${project.version}
+export METRON_HOME=/usr/metron/$METRON_VERSION
+export TOPOLOGIES_JAR=Metron-Topologies-$METRON_VERSION.jar
+
+storm jar $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.storm.flux.Flux --remote $METRON_HOME/config/topologies/pcap/remote.yaml --filter $METRON_HOME/config/etc/env/pcap.properties
