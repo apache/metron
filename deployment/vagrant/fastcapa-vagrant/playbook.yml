@@ -15,8 +15,29 @@
 #  limitations under the License.
 #
 ---
-  - include: dependencies.yml
-  - include: kernel.yml
-  - include: dpdk.yml
-  - include: pcapture.yml
-  - include: debug.yml
+#
+# produces network traffic
+#
+- hosts: source
+  become: yes
+  vars:
+    pcap_replay_interface: "enp0s8"
+  roles:
+    - role: pcap_replay
+    - { role: sensor-test-mode, pcap_replay: True, install_yaf: False, install_snort: False }
+#
+# consumes network traffic
+#
+- hosts: sink
+  become: yes
+  vars:
+      dpdk_device: ["00:08.0"]
+      dpdk_target: "x86_64-native-linuxapp-gcc"
+      num_huge_pages: 512
+      fastcapa_portmask: 0xf
+      fastcapa_topic: pcap
+      kafka_broker_url: localhost:9092
+  roles:
+    - role: librdkafka
+    - role: kafka-broker
+    - role: fastcapa

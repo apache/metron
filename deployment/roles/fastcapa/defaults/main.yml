@@ -23,10 +23,10 @@ dpdk_target: "x86_64-native-linuxapp-gcc"
 num_huge_pages: 512
 extra_cflags: -g
 
-# pcapture
-pcapture_work_dir: /root/packet-capture
-pcapture_prefix: /usr/local/bin
-pcapture_ld_library_path: /usr/local/lib
-pcapture_portmask: 0x01
-pcapture_kafka_config: /etc/pcapture.conf
-pcapture_bin: pcapture
+# fastcapa
+fastcapa_work_dir: /root/fastcapa
+fastcapa_prefix: /usr/local/bin
+fastcapa_ld_library_path: /usr/local/lib
+fastcapa_portmask: 0x01
+fastcapa_kafka_config: /etc/fastcapa.conf
+fastcapa_bin: fastcapa
