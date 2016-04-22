@@ -29,6 +29,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -243,7 +244,7 @@ public class PcapReceiverImplRestEasy {
               .entity("'dstPort' must not be null or empty").build();
 
     final boolean includeReverseTrafficF = includeReverseTraffic;
-    List<byte[]> response = null;
+    PcapsResponse response = new PcapsResponse();
     try {
       if(startTime < 0) {
         startTime = 0L;
@@ -251,14 +252,11 @@ public class PcapReceiverImplRestEasy {
       if(endTime < 0) {
         endTime = System.currentTimeMillis();
       }
+
       //convert to nanoseconds since the epoch
       startTime *= 1000000L;
       endTime *= 1000000L;
-      response = new PcapJob().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
-                                    , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
-                                    , startTime
-                                    , endTime
-                                    , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+      EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                                       if(srcIp != null) {
                                         put(Constants.Fields.SRC_ADDR, srcIp);
                                       }
@@ -275,10 +273,19 @@ public class PcapReceiverImplRestEasy {
                                         put(Constants.Fields.PROTOCOL, protocol);
                                       }
                                       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "" + includeReverseTrafficF);
-                                    }}
+                                    }};
+      if(LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Query received: " + Joiner.on(",").join(query.entrySet()));
+      }
+      response.setPcaps(new PcapJob().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
+                                    , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
+                                    , startTime
+                                    , endTime
+                                    , query
                                     , CONFIGURATION.get()
                                     , FileSystem.get(CONFIGURATION.get())
-                                    );
+                                    )
+                     );
     } catch (Exception e) {
       LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
               e);
@@ -288,7 +295,7 @@ public class PcapReceiverImplRestEasy {
     // return http status '200 OK' along with the complete pcaps response file,
     // and headers
     return Response
-            .ok(response, MediaType.APPLICATION_OCTET_STREAM)
+            .ok(response.getPcaps(), MediaType.APPLICATION_OCTET_STREAM)
             .status(200).build();
   }
   /**

@@ -42,6 +42,7 @@ import org.apache.metron.integration.util.integration.components.KafkaWithZKComp
 import org.apache.metron.integration.util.integration.components.MRComponent;
 import org.apache.metron.integration.util.integration.util.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
+import org.apache.metron.pcap.PcapMerger;
 import org.apache.metron.pcap.PcapParser;
 import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.PcapHelper;
@@ -344,6 +345,9 @@ public class PcapNGIntegrationTest {
                 }, withHeaders)
                 )
         );
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PcapMerger.merge(baos, results);
+        Assert.assertTrue(baos.toByteArray().length > 0);
       }
       System.out.println("Ended");
     } finally {

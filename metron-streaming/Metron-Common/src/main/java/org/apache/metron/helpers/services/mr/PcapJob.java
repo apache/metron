@@ -30,14 +30,19 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.log4j.Logger;
 import org.apache.metron.Constants;
 import org.apache.metron.pcap.PcapParser;
 import org.apache.metron.spout.pcap.PcapHelper;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class PcapJob {
+  private static final Logger LOG = Logger.getLogger(PcapJob.class);
+
   public static class PcapMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
     public static final String START_TS_CONF = "start_ts";
     public static final String END_TS_CONF = "end_ts";
@@ -58,12 +63,9 @@ public class PcapJob {
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
       if(Long.compareUnsigned(key.get() ,start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
-        byte[] b = null;
         PcapParser parser = new PcapParser();
         parser.init();
-        b = new byte[value.getLength()];
-        System.arraycopy(value.getBytes(), 0, b, 0, b.length);
-        boolean send = Iterables.size(Iterables.filter(parser.getPacketInfo(b), filter)) > 0;
+        boolean send = Iterables.size(Iterables.filter(parser.getPacketInfo(value.copyBytes()), filter)) > 0;
         if (send) {
           context.write(key, value);
         }
@@ -112,6 +114,9 @@ public class PcapJob {
         leftEndpoint = p;
       }
     }
+    if(LOG.isDebugEnabled()) {
+      LOG.debug("Including files " + Joiner.on(",").join(ret));
+    }
     return ret;
   }
 
@@ -128,14 +133,15 @@ public class PcapJob {
       LongWritable key = new LongWritable();
       BytesWritable value = new BytesWritable();
       while(reader.next(key, value)) {
-        byte[] data = new byte[value.getBytes().length];
-        System.arraycopy(value.getBytes(), 0, data, 0, data.length);
-        ret.add(data);
+        ret.add(value.copyBytes());
       }
       reader.close();
       fs.delete(p, false);
     }
     fs.delete(outputPath, false);
+    if(LOG.isDebugEnabled()) {
+      LOG.debug(outputPath + ": Returning " + ret.size());
+    }
     return ret;
   }
 
@@ -152,6 +158,14 @@ public class PcapJob {
                             , FileSystem fs
                             ) throws IOException, ClassNotFoundException, InterruptedException {
     String fileName = Joiner.on("_").join(beginNS, endNS, queryToString(fields), UUID.randomUUID().toString());
+    if(LOG.isDebugEnabled()) {
+      DateFormat format = SimpleDateFormat.getDateTimeInstance( SimpleDateFormat.LONG
+                                                              , SimpleDateFormat.LONG
+                                                              );
+      String from = format.format(new Date(Long.divideUnsigned(beginNS, 1000000)));
+      String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
+      LOG.debug("Executing query " + queryToString(fields) + " on timerange " + from + " to " + to);
+    }
     Path outputPath =  new Path(baseOutputPath, fileName);
     Job job = createJob( basePath
                        , outputPath
