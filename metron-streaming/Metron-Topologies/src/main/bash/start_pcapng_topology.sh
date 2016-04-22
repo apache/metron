@@ -18,5 +18,5 @@
 #
 METRON_VERSION=0.1BETA
 METRON_HOME=/usr/metron/$METRON_VERSION
-TOPOLOGY_JAR=Metron-Elasticsearch-$METRON_VERSION.jar
+TOPOLOGY_JAR=Metron-Topologies-$METRON_VERSION.jar
 storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.storm.flux.Flux --remote $METRON_HOME/config/topologies/pcap_ng/remote.yaml --filter $METRON_HOME/config/etc/env/pcap_ng.properties

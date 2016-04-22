@@ -18,6 +18,7 @@
 metron_jar_name: Metron-Topologies-{{ metron_version }}.jar
 metron_directory: /usr/metron/{{ metron_version }}
 metron_solr_jar_name: Metron-Solr-{{ metron_version }}.jar
+metron_topologies_jar_name: Metron-Topologies-{{ metron_version }}.jar
 metron_elasticsearch_jar_name: Metron-Elasticsearch-{{ metron_version }}.jar
 
 metron_dataloads_name: Metron-DataLoads-{{ metron_version }}-archive.tar.gz
@@ -32,10 +33,12 @@ metron_topologies_bundle_path: "{{ playbook_dir }}/../../metron-streaming/Metron
 config_path: "{{ metron_directory }}/config"
 zookeeper_config_path: "{{ config_path }}/zookeeper"
 zookeeper_global_config_path: "{{ zookeeper_config_path }}/global.json"
+metron_pcap_properties_config_path: "{{ metron_directory }}/config/etc/env/pcap_ng.properties"
 metron_solr_properties_config_path: "{{ metron_directory }}/config/etc/env/solr.properties"
 metron_elasticsearch_properties_config_path: "{{ metron_directory }}/config/etc/env/elasticsearch.properties"
 hbase_config_path: "/etc/hbase/conf"
 hdfs_config_path: "/etc/hadoop/conf"
+pcap_hdfs_path: "/apps/metron/pcap"
 
 threat_intel_bulk_load: True
 threat_intel_bin: "{{ metron_directory }}/bin/threatintel_bulk_load.sh"
@@ -52,6 +55,7 @@ storm_topologies:
     - "{{ metron_directory }}/config/topologies/bro/remote.yaml"
     - "{{ metron_directory }}/config/topologies/snort/remote.yaml"
     - "{{ metron_directory }}/config/topologies/yaf/remote.yaml"
+    - "{{ metron_directory }}/config/topologies/pcap_ng/remote.yaml"
     - "{{ metron_directory }}/config/topologies/pcap/remote.yaml"
     - "{{ metron_directory }}/config/topologies/enrichment/remote.yaml"
 
