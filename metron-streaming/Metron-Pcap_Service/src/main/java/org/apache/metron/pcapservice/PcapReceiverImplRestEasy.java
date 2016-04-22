@@ -78,125 +78,12 @@ public class PcapReceiverImplRestEasy {
       return new Configuration();
     }
   };
-  @GET
-  @Path("pcapGetter/getPcapsByKeys")
-  public Response getPcapsByKeys(
-          @QueryParam("keys") List<String> keys,
-          @QueryParam("lastRowKey") String lastRowKey,
-          @DefaultValue("-1") @QueryParam("startTime") long startTime,
-          @DefaultValue("-1") @QueryParam("endTime") long endTime,
-          @QueryParam("includeDuplicateLastRow") boolean includeDuplicateLastRow,
-          @QueryParam("includeReverseTraffic") boolean includeReverseTraffic,
-          @QueryParam("maxResponseSize") String maxResponseSize,
-          @Context HttpServletResponse response) throws IOException {
-    PcapsResponse pcapResponse = null;
+  PcapJob queryUtil = new PcapJob();
 
-    if (keys == null || keys.size() == 0)
-      return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'keys' must not be null or empty").build();
-
-    try {
-      IPcapGetter pcapGetter = PcapGetterHBaseImpl.getInstance();
-      pcapResponse = pcapGetter.getPcaps(parseKeys(keys), lastRowKey,
-              startTime, endTime, includeReverseTraffic,
-              includeDuplicateLastRow,
-              ConfigurationUtil.validateMaxResultSize(maxResponseSize));
-      LOGGER.info("pcaps response in REST layer ="
-              + pcapResponse.toString());
-
-      // return http status '204 No Content' if the pcaps response size is
-      // 0
-      if (pcapResponse == null || pcapResponse.getResponseSize() == 0) {
-
-        return Response.status(Response.Status.NO_CONTENT).build();
-      }
-
-      // return http status '206 Partial Content', the partial response
-      // file and
-      // 'lastRowKey' header , if the pcaps response status is 'PARTIAL'
-
-      response.setHeader(HEADER_CONTENT_DISPOSITION_NAME,
-              HEADER_CONTENT_DISPOSITION_VALUE);
-
-      if (pcapResponse.getStatus() == PcapsResponse.Status.PARTIAL) {
-
-        response.setHeader(HEADER_PARTIAL_RESPONE_KEY,
-                pcapResponse.getLastRowKey());
-
-        return Response
-                .ok(pcapResponse.getPcaps(),
-                        MediaType.APPLICATION_OCTET_STREAM).status(206)
-                .build();
-
-      }
-
-    } catch (IOException e) {
-      LOGGER.error(
-              "Exception occurred while fetching Pcaps for the keys :"
-                      + keys.toString(), e);
-      throw e;
-    }
-
-    // return http status '200 OK' along with the complete pcaps response
-    // file,
-    // and headers
-    // return new ResponseEntity<byte[]>(pcapResponse.getPcaps(), headers,
-    // HttpStatus.OK);
-
-    return Response
-            .ok(pcapResponse.getPcaps(), MediaType.APPLICATION_OCTET_STREAM)
-            .status(200).build();
-
+  protected PcapJob getQueryUtil() {
+    return queryUtil;
   }
 
-
-  @GET
-  @Path("/pcapGetter/getPcapsByKeyRange")
-
-  public Response getPcapsByKeyRange(
-          @QueryParam("startKey") String startKey,
-          @QueryParam("endKey")String endKey,
-          @QueryParam("maxResponseSize") String maxResponseSize,
-          @DefaultValue("-1") @QueryParam("startTime")long startTime,
-          @DefaultValue("-1") @QueryParam("endTime") long endTime,
-          @Context HttpServletResponse servlet_response) throws IOException {
-
-    if (startKey == null || startKey.equals(""))
-      return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'start key' must not be null or empty").build();
-
-    if (startKey == null || startKey.equals(""))
-      return Response.serverError().status(Response.Status.NO_CONTENT)
-              .entity("'end key' must not be null or empty").build();
-
-
-    byte[] response = null;
-    try {
-      IPcapScanner pcapScanner = PcapScannerHBaseImpl.getInstance();
-      response = pcapScanner.getPcaps(startKey, endKey,
-              ConfigurationUtil.validateMaxResultSize(maxResponseSize), startTime,
-              endTime);
-      if (response == null || response.length == 0) {
-
-        return Response.status(Response.Status.NO_CONTENT).build();
-
-      }
-      servlet_response.setHeader(HEADER_CONTENT_DISPOSITION_NAME,
-              HEADER_CONTENT_DISPOSITION_VALUE);
-
-    } catch (IOException e) {
-      LOGGER.error(
-              "Exception occurred while fetching Pcaps for the key range : startKey="
-                      + startKey + ", endKey=" + endKey, e);
-      throw e;
-    }
-    // return http status '200 OK' along with the complete pcaps response file,
-    // and headers
-
-    return Response
-            .ok(response, MediaType.APPLICATION_OCTET_STREAM)
-            .status(200).build();
-  }
 
 	  /*
 	   * (non-Javadoc)
@@ -277,7 +164,7 @@ public class PcapReceiverImplRestEasy {
       if(LOGGER.isDebugEnabled()) {
         LOGGER.debug("Query received: " + Joiner.on(",").join(query.entrySet()));
       }
-      response.setPcaps(new PcapJob().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
+      response.setPcaps(getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
                                     , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
                                     , startTime
                                     , endTime

@@ -123,8 +123,14 @@ public class PcapServiceCli {
     if(cmd.hasOption("pcap_hdfs_path")) {
       pcapHdfsPath = cmd.getOptionValue("pcap_hdfs_path");
     }
+    else {
+      throw new IllegalStateException("You must specify the pcap hdfs path");
+    }
     if(cmd.hasOption("query_hdfs_path")) {
       queryHdfsPath = cmd.getOptionValue("query_hdfs_path");
+    }
+    else {
+      throw new IllegalStateException("You must specify the query temp hdfs path");
     }
     if (cmd.hasOption("endpoint_uri")) {
 
