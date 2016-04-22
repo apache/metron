@@ -110,7 +110,8 @@ public class PcapNGIntegrationTest {
         List<PacketInfo> info = parser.getPacketInfo(pcapWithHeader);
         for(PacketInfo pi : info) {
           Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
-          System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
+          //IF you are debugging and want to see the packets, uncomment the following.
+          //System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
         }
       }
       if(withHeaders) {

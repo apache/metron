@@ -21,7 +21,7 @@ limitations under the License.
 		<result delimiterParsingDisabled="true" forceReloadCheck="true"></result>
 		<lookups>
       		<lookup config-prefix="expr"
-              	config-class="org.apache.metron.commons.configuration.interpol.ExprLookup">
+              	config-class="org.apache.metron.configuration.ExprLookup">
         		<variables>
           			<variable name="System" value="Class:java.lang.System"/>
           			<variable name="net" value="Class:java.net.InetAddress"/>
@@ -38,7 +38,7 @@ limitations under the License.
 
 		<properties fileName="${expr:System.getProperty('configPath')+'/hbase-config.properties'}"  config-optional="true">
 			<reloadingStrategy refreshDelay="${expr:System.getProperty('configRefreshDelay')}"
-	      config-class="org.apache.metron.commons.configuration.reloading.FileChangedReloadingStrategy"/>
+	      config-class="org.apache.metron.configuration.FileChangedReloadingStrategy"/>
 	     </properties>
 
 		<properties fileName="hbase-config-default.properties" config-optional="true">
