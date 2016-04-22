@@ -22,21 +22,36 @@
 # processname: pycapa
 #
 NAME=pycapa
-DESC="Metron Pycapa Packet Capture"
+DESC="Pycapa - Apache Metron Packet Capture"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 LOGFILE="{{ pycapa_log }}"
 EXTRA_ARGS="${@:2}"
 DAEMON_PATH="{{ pycapa_home }}"
-DAEMON="/usr/bin/python"
-DAEMONOPTS="{{ pycapa_main }} -z {{ zookeeper_url }} -t {{ pycapa_topic }} -i {{ pycapa_sniff_interface }}"
+
+export LD_LIBRARY_PATH={{ python27_home }}/usr/lib64
 
 case "$1" in
+
+  ##############################################################################
+  # start
+  #
   start)
     printf "%-50s" "Starting $NAME..."
 
-    # kick-off the daemon
+    # setup virtual environment
     cd $DAEMON_PATH
+    . {{ pycapa_bin }}/activate
+
+    # kick-off the daemon
+    DAEMON_PATH="{{ pycapa_home }}"
+    DAEMON="{{ pycapa_bin }}/pycapa"
+    DAEMONOPTS+=" --producer "
+    DAEMONOPTS+=" --kafka {{ kafka_broker_url }}"
+    DAEMONOPTS+=" --topic {{ pycapa_topic }}"
+    DAEMONOPTS+=" --interface {{ pycapa_sniff_interface }}"
+    DAEMONOPTS+=" $EXTRA_ARGS"
+
     PID=`$DAEMON $DAEMONOPTS >> $LOGFILE 2>&1 & echo $!`
     if [ -z $PID ]; then
         printf "%s\n" "Fail"
@@ -46,26 +61,39 @@ case "$1" in
     fi
   ;;
 
+  ##############################################################################
+  # status
+  #
   status)
     printf "%-50s" "Checking $NAME..."
+    . {{ pycapa_bin }}/activate
     if [ -f $PIDFILE ]; then
       PID=`cat $PIDFILE`
       if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
         printf "%s\n" "Process dead but pidfile exists"
       else
-        echo "Running"
+        printf "%s\n" "Running"
       fi
     else
       printf "%s\n" "Service not running"
     fi
   ;;
 
+  ##############################################################################
+  # stop
+  #
   stop)
     printf "%-50s" "Stopping $NAME"
-    PID=`cat $PIDFILE`
     cd $DAEMON_PATH
     if [ -f $PIDFILE ]; then
-        kill -HUP $PID
+        PID=`cat $PIDFILE`
+        while sleep 1
+          echo -n "."
+          kill -0 $PID >/dev/null 2>&1
+        do
+          kill $PID
+        done
+
         printf "%s\n" "Ok"
         rm -f $PIDFILE
     else
@@ -73,6 +101,9 @@ case "$1" in
     fi
   ;;
 
+  ##############################################################################
+  # restart
+  #
   restart)
     $0 stop
     $0 start
