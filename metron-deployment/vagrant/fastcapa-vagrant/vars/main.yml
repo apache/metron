@@ -15,9 +15,12 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+dpdk_device: ["00:08.0"]
+dpdk_target: "x86_64-native-linuxapp-gcc"
+num_huge_pages: 512
+fastcapa_portmask: "0x01"
+fastcapa_topic: pcap
+kafka_broker_url: source:9092
+zookeeper_url: source:2181
+pcap_replay_interface: eth1
+kafka_broker_home: /usr/hdp/current/kafka-broker/

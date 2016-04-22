@@ -15,9 +15,22 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+#
+# configure snort to alert on every packet
+#
+- name: Configure snort to use a set of test rules
+  become: True
+  lineinfile:
+    dest: /etc/snort/snort.conf
+    line: "include $RULE_PATH/test.rules"
+
+- name: Create a snort alert for testing that alerts on every packet
+  become: True
+  lineinfile:
+    dest: /etc/snort/rules/test.rules
+    line: "alert tcp any any -> any any (msg:'snort test alert'; sid:999158; )"
+    create: yes
+
+- name: Restart snort
+  become: True
+  service: name=snortd state=restarted

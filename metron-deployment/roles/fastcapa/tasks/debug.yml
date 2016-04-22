@@ -15,29 +15,12 @@
 #  limitations under the License.
 #
 ---
-#
-# produces network traffic
-#
-- hosts: source
-  become: yes
-  vars:
-    pcap_replay_interface: "enp0s8"
-  roles:
-    - role: pcap_replay
+  - name: Install debug utilities
+    yum: name=yum-utils
+    tags:
+      - debug
 
-#
-# consumes network traffic
-#
-- hosts: sink
-  become: yes
-  vars:
-      dpdk_device: ["00:08.0"]
-      dpdk_target: "x86_64-native-linuxapp-gcc"
-      num_huge_pages: 512
-      pcapture_portmask: 0xf
-      pcapture_topic: pcap
-      kafka_broker_url: localhost:9092
-  roles:
-    - role: librdkafka
-    - role: kafka-broker
-    - role: packet-capture
+  - name: Install debug symbols
+    shell: debuginfo-install -y glibc glib2 zlib
+    tags:
+      - debug
