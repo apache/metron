@@ -32,6 +32,7 @@ PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 DAEMONLOG=/var/log/$NAME.log
 NOW=`date`
+DAEMON_PATH="{{ dpdk_sdk }}"
 
 case "$1" in
   start)
@@ -39,7 +40,6 @@ case "$1" in
     echo "$NOW:  Starting $NAME..." >> $DAEMONLOG
 
     cd $DAEMON_PATH
-    DAEMON_PATH="{{ dpdk_sdk }}"
     DAEMON="{{ fastcapa_prefix }}/{{ fastcapa_bin }}"
     DAEMONOPTS+=" -- "
     DAEMONOPTS+="-p {{ fastcapa_portmask }} "
