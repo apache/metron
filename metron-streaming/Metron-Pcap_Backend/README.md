@@ -19,7 +19,7 @@ following:
 
 ## The PCAP Topology
 
-The structure of the topology is extremely simple.  This is a spout-only
+The structure of the topology is extremely simple.  In fact, it is a spout-only
 topology.  The `Storm Kafka` spout is used but extended to allow a
 callback to be used rather than having a separate bolt. 
 
