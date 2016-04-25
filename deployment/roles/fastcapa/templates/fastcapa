@@ -16,35 +16,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# pcapture daemon
+# fastcapa daemon
 # chkconfig: 345 20 80
 # description: Packet capture probe
-# processname: pcapture
+# processname: fastcapa
 #
 
 export RTE_SDK="{{ dpdk_sdk }}"
 export RTE_TARGET="{{ dpdk_target }}"
-export LD_LIBRARY_PATH="{{ pcapture_ld_library_path }}"
+export LD_LIBRARY_PATH="{{ fastcapa_ld_library_path }}"
 
-DAEMON_PATH="{{ dpdk_sdk }}"
-DAEMON="{{ pcapture_prefix }}/{{ pcapture_bin }}"
-DAEMONOPTS+=" -- "
-DAEMONOPTS+="-p {{ pcapture_portmask }} "
-DAEMONOPTS+="-t {{ pcapture_topic }} "
-DAEMONOPTS+="-c {{ pcapture_kafka_config }} "
-
-NAME="pcapture"
+NAME="fastcapa"
 DESC="Metron network packet capture probe"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 DAEMONLOG=/var/log/$NAME.log
 NOW=`date`
+DAEMON_PATH="{{ dpdk_sdk }}"
 
 case "$1" in
   start)
     printf "%-50s" "Starting $NAME..."
     echo "$NOW:  Starting $NAME..." >> $DAEMONLOG
+
     cd $DAEMON_PATH
+    DAEMON="{{ fastcapa_prefix }}/{{ fastcapa_bin }}"
+    DAEMONOPTS+=" -- "
+    DAEMONOPTS+="-p {{ fastcapa_portmask }} "
+    DAEMONOPTS+="-t {{ fastcapa_topic }} "
+    DAEMONOPTS+="-c {{ fastcapa_kafka_config }} "
+
     PID=`$DAEMON $DAEMONOPTS >> $DAEMONLOG 2>&1 & echo $!`
     if [ -z $PID ]; then
         printf "%s\n" "Fail"

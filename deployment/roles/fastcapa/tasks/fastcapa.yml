@@ -15,35 +15,35 @@
 #  limitations under the License.
 #
 ---
-- name: Distribute pcapture
-  copy: src=../../../metron-sensors/packet-capture dest={{ pcapture_work_dir | dirname }} mode=0755
+- name: Distribute fastcapa
+  copy: src=../../../metron-sensors/fastcapa dest={{ fastcapa_work_dir | dirname }} mode=0755
 
-- name: Build pcapture
+- name: Build fastcapa
   shell: "{{ item }}"
   args:
-    chdir: "{{ pcapture_work_dir }}"
+    chdir: "{{ fastcapa_work_dir }}"
   with_items:
     - make
   environment:
     RTE_SDK: "{{ dpdk_sdk }}"
     RTE_TARGET: "{{ dpdk_target }}"
-    LD_LIBRARY_PATH: "{{ pcapture_ld_library_path }}"
+    LD_LIBRARY_PATH: "{{ fastcapa_ld_library_path }}"
 
-- name: Install pcapture
-  shell: "cp {{ pcapture_work_dir }}/src/build/app/{{ pcapture_bin }} {{ pcapture_prefix }}"
+- name: Install fastcapa
+  shell: "cp {{ fastcapa_work_dir }}/src/build/app/{{ fastcapa_bin }} {{ fastcapa_prefix }}"
   args:
-    chdir: "{{ pcapture_work_dir }}"
-    creates: "{{ pcapture_prefix }}/{{ pcapture_bin }}"
+    chdir: "{{ fastcapa_work_dir }}"
+    creates: "{{ fastcapa_prefix }}/{{ fastcapa_bin }}"
 
 - name: Deploy configuration
-  template: src=pcapture.conf dest={{ pcapture_kafka_config }} mode=0755
+  template: src=fastcapa.conf dest={{ fastcapa_kafka_config }} mode=0755
 
 - name: Deploy service
-  template: src=pcapture dest=/etc/init.d/ mode=0755
+  template: src=fastcapa dest=/etc/init.d/ mode=0755
 
 - name: Register the service with systemd
-  shell: systemctl enable pcapture
+  shell: systemctl enable fastcapa
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
 
-- name: Run pcapture
-  service: name=pcapture state=restarted
+- name: Run fastcapa
+  service: name=fastcapa state=restarted
