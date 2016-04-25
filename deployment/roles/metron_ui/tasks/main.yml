@@ -39,7 +39,7 @@
     state=present
   with_items:
     - { regexp: '"elasticsearch":', line: '"elasticsearch": { "url": "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}" },' }
-    - { regexp: '"pcap":', line: '  "pcap": { "url": "http://{{ groups.web[0] }}:{{ pcapservice_port }}/pcapGetter","mock": false }' }
+    - { regexp: '"pcap":', line: '  "pcap": { "url": "http://{{ groups.pcap_server[0] }}:{{ pcapservice_port }}/pcapGetter","mock": false }' }
 
 - name: Install Node dependencies
   npm:
