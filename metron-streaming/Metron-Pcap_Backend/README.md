@@ -9,7 +9,7 @@ from Kafka.
 This component must be fed by fast packet capture components upstream
 via Kafka.  The two supported components shipped with Metron are as follows:
 * The pycapa [tool](../../metron-sensors/pycapa) aimed at low-volume packet capture
-* The [DPDK](http://dpdk.org/) based [tool](../../metron-sensors/packet-capture) 
+* The [DPDK](http://dpdk.org/) based [tool](../../metron-sensors/packet-capture) aimed at high-volume packet capture
 
 Both of these sensors feed kafka raw packet data directly into Kafka.
 The format of the record structure that this component expects is the
@@ -54,6 +54,12 @@ are as follows:
 * `kafka.pcap.ts_scheme` : One of `FROM_KEY` or `FROM_VALUE`.  You really only want `FROM_KEY` as that fits the current tooling.  `FROM_VALUE` assumes that fully headerized packets are coming in on the value, which is legacy.
 * `kafka.pcap.out` : The directory in HDFS to store the packet capture data
 * `kafka.pcap.ts_granularity` : The granularity of timing used in the timestamps.  One of `MILLISECONDS`, `MICROSECONDS`, or `NANOSECONDS` representing milliseconds, microseconds or nanoseconds since the unix epoch (respectively).
+
+## Starting the Topology
+
+To assist in starting the topology, a utility script which takes no
+arguments has been created to make this very simple.  Simply, execute
+`$METRON_HOME/bin/start_pcap_topology.sh`.
 
 ## Utilities
 
