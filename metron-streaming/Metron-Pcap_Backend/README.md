@@ -8,8 +8,8 @@ from Kafka.
 
 This component must be fed by fast packet capture components upstream
 via Kafka.  The two supported components shipped with Metron are as follows:
-* The pycapa [tool](metron-sensors/pycapa) aimed at low-volume packet capture
-* The [DPDK](http://dpdk.org/) based [tool](metron-sensors/packet-capture) 
+* The pycapa [tool](../../metron-sensors/pycapa) aimed at low-volume packet capture
+* The [DPDK](http://dpdk.org/) based [tool](../../metron-sensors/packet-capture) 
 
 Both of these sensors feed kafka raw packet data directly into Kafka.
 The format of the record structure that this component expects is the
