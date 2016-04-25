@@ -30,6 +30,7 @@ import java.util.Map;
 
 
 public class PcapFilter implements Predicate<PacketInfo> {
+
   private String srcAddr;
   private Integer srcPort;
   private String dstAddr;
@@ -37,21 +38,6 @@ public class PcapFilter implements Predicate<PacketInfo> {
   private String protocol;
   private boolean includesReverseTraffic = false;
 
-  public PcapFilter( String srcAddr
-                   , Integer srcPort
-                   , String dstAddr
-                   , Integer dstPort
-                   , String protocol
-                   , boolean includesReverseTraffic
-                   )
-  {
-    this.srcAddr = srcAddr;
-    this.srcPort = srcPort;
-    this.dstAddr = dstAddr;
-    this.dstPort = dstPort;
-    this.protocol = protocol;
-    this.includesReverseTraffic = includesReverseTraffic;
-  }
 
   public PcapFilter(Iterable<Map.Entry<String, String>> config) {
     for(Map.Entry<String, String> kv : config) {
@@ -103,11 +89,14 @@ public class PcapFilter implements Predicate<PacketInfo> {
   }
 
 
+  protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
+    return PcapHelper.packetToFields(pi);
+  }
 
   @Override
   public boolean apply(@Nullable PacketInfo pi ) {
     boolean isMatch = true;
-    EnumMap<Constants.Fields, Object> input= PcapHelper.packetToFields(pi);
+    EnumMap<Constants.Fields, Object> input= packetToFields(pi);
     Object srcAddrObj = input.get(Constants.Fields.SRC_ADDR);
     Object srcPortObj = input.get(Constants.Fields.SRC_PORT);
     Object dstAddrObj = input.get(Constants.Fields.DST_ADDR);

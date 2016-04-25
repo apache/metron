@@ -18,8 +18,10 @@
 
 package org.apache.metron.helpers.services.mr;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.BytesWritable;
@@ -35,6 +37,7 @@ import org.apache.metron.Constants;
 import org.apache.metron.pcap.PcapParser;
 import org.apache.metron.spout.pcap.PcapHelper;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -46,15 +49,12 @@ public class PcapJob {
   public static class PcapMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
     public static final String START_TS_CONF = "start_ts";
     public static final String END_TS_CONF = "end_ts";
-    //PcapParser parser;
     PcapFilter filter;
     long start;
     long end;
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
       super.setup(context);
-      //parser = new PcapParser();
-      //parser.init();
       filter = new PcapFilter(context.getConfiguration());
       start = Long.parseUnsignedLong(context.getConfiguration().get(START_TS_CONF));
       end = Long.parseUnsignedLong(context.getConfiguration().get(END_TS_CONF));
@@ -82,15 +82,27 @@ public class PcapJob {
     }
   }
 
-  private Iterable<String> getPaths(FileSystem fs, Path basePath, long begin, long end) throws IOException {
+  protected Iterable<Path> listFiles(FileSystem fs, Path basePath) throws IOException {
+    List<Path> ret = new ArrayList<>();
+    RemoteIterator<LocatedFileStatus> filesIt = fs.listFiles(basePath, true);
+    while(filesIt.hasNext()){
+      ret.add(filesIt.next().getPath());
+    }
+    return ret;
+  }
+
+  public Iterable<String> getPaths(FileSystem fs, Path basePath, long begin, long end) throws IOException {
     List<String> ret = new ArrayList<>();
-    RemoteIterator<LocatedFileStatus> files = fs.listFiles(basePath, true);
+    Iterator<Path> files = listFiles(fs, basePath).iterator();
     /*
     The trick here is that we need a trailing left endpoint, because we only capture the start of the
     timeseries kept in the file.
      */
     boolean isFirst = true;
-    Path leftEndpoint = files.hasNext()?files.next().getPath():null;
+    Path leftEndpoint = files.hasNext()?files.next():null;
+    if(leftEndpoint == null) {
+      return ret;
+    }
     {
       Long ts = PcapHelper.getTimestamp(leftEndpoint.getName());
       if(ts != null && Long.compareUnsigned(ts, begin) >= 0 && Long.compareUnsigned(ts, end) <= 0) {
@@ -99,7 +111,7 @@ public class PcapJob {
       }
     }
     while(files.hasNext()) {
-      Path p = files.next().getPath();
+      Path p = files.next();
       Long ts = PcapHelper.getTimestamp(p.getName());
       if(ts != null && Long.compareUnsigned(ts, begin) >= 0 && Long.compareUnsigned(ts, end) <= 0) {
         if(isFirst && leftEndpoint != null) {
@@ -171,7 +183,7 @@ public class PcapJob {
                        , outputPath
                        , beginNS
                        , endNS
-                       ,fields
+                       , fields
                        , conf
                        , fs
                        );
@@ -185,6 +197,12 @@ public class PcapJob {
   }
 
 
+  public static void addToConfig(EnumMap<Constants.Fields, String> fields, Configuration conf) {
+    for(Map.Entry<Constants.Fields, String> kv : fields.entrySet()) {
+      conf.set(kv.getKey().getName(), kv.getValue());
+    }
+  }
+
   public Job createJob( Path basePath
                       , Path outputPath
                       , long beginNS
@@ -196,9 +214,7 @@ public class PcapJob {
   {
     conf.set(PcapMapper.START_TS_CONF, Long.toUnsignedString(beginNS));
     conf.set(PcapMapper.END_TS_CONF, Long.toUnsignedString(endNS));
-    for(Map.Entry<Constants.Fields, String> kv : fields.entrySet()) {
-      conf.set(kv.getKey().getName(), kv.getValue());
-    }
+    addToConfig(fields, conf);
     Job job = new Job(conf);
     job.setJarByClass(PcapJob.class);
     job.setMapperClass(PcapJob.PcapMapper.class);
