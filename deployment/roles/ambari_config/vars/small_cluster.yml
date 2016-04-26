@@ -63,7 +63,7 @@ configurations:
       yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path | default("/hadoop/yarn/timeline") }}'
       yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path| default("/hadoop/yarn/timeline") }}'
       yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs| default("/hadoop/yarn/log") }}'
-      yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}',
+      yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}'
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
       storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'
