@@ -3,4 +3,4 @@ jdk:
   - oraclejdk8
 script:
   - |
-    mvn apache-rat:check && cd metron-streaming && mvn -q integration-test package
+    mvn apache-rat:check && cd metron-platform && mvn -q integration-test package
