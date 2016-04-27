@@ -1,0 +1,50 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Create install directory
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - "{{ opentaxii_home }}"
+    - "{{ opentaxii_home }}/etc"
+    - "{{ opentaxii_home }}/data"
+    - "{{ opentaxii_home }}/bin"
+
+- name: Create virtual environment
+  shell: "{{ python27_home }}/usr/bin/virtualenv {{ opentaxii_venv }}"
+  args:
+    chdir: "{{ opentaxii_home }}"
+    creates: "{{ opentaxii_home }}/{{ opentaxii_venv }}"
+  environment:
+    LD_LIBRARY_PATH: "{{ python27_home }}/usr/lib64"
+
+- name: Install opentaxii, cabby, and gunicorn
+  shell: "{{ opentaxii_bin }}/pip install {{ item }}"
+  environment:
+    LD_LIBRARY_PATH: "{{ python27_home }}/usr/lib64"
+  with_items:
+    - opentaxii
+    - cabby
+    - gunicorn
+
+- name: Deploy collection status script
+  template: src=collection-status.py dest={{ opentaxii_home }}/bin mode=0755
+
+- name: Deploy opentaxii configs
+  template: src=opentaxii-conf.yml dest={{ opentaxii_home }}/etc mode=0400
+
+- name: Deploy opentaxii service script
+  template: src=opentaxii dest=/etc/init.d/opentaxii mode=0755
