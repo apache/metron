@@ -76,6 +76,7 @@
                         <exclude>metron-ui/lib/public/font/**</exclude>
                         <exclude>metron-ui/node_modules/**</exclude>
                         <exclude>**/src/main/resources/patterns/**</exclude>
+                        <exclude>**/src/main/resources/sample/patterns/**</exclude>
                         <exclude>**/src/test/resources/**</exclude>
                         <exclude>**/src/main/resources/sample/data/Sample*/**</exclude>
                         <exclude>**/dependency-reduced-pom.xml</exclude>

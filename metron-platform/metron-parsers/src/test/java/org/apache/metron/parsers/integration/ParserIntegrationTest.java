@@ -52,9 +52,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
     final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleInputPath());
 
-    final Properties topologyProperties = new Properties() {{
-      setProperty(getFluxTopicProperty(), kafkaTopic);
-    }};
+    final Properties topologyProperties = new Properties();
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
     }});

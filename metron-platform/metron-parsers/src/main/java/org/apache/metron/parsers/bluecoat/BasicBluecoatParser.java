@@ -52,7 +52,7 @@ public class BasicBluecoatParser extends BasicParser {
 			
 			
 			String[] parts = message.split("<|>|\\(|\\)| ");
-
+			payload.put("original_string", message);
 			payload.put("priority", parts[1]);
 			
 			int year = Calendar.getInstance().get(Calendar.YEAR);
