@@ -15,17 +15,29 @@
 #  limitations under the License.
 #
 ---
-- name: Clone pycapa repo
-  git: repo={{ pycapa_repo }} dest={{ pycapa_home }}
+- name: Create install directory
+  file: path={{ pycapa_home }} state=directory mode=0755
+
+- name: Create virtual environment
+  shell: "{{ python27_home }}/usr/bin/virtualenv {{ pycapa_venv }}"
+  args:
+    chdir: "{{ pycapa_home }}"
+    creates: "{{ pycapa_home }}/{{ pycapa_venv }}"
+  environment:
+    LD_LIBRARY_PATH: "{{ python27_home }}/usr/lib64"
+
+- name: Distribute pycapa
+  copy: src=../../../metron-sensors/pycapa dest={{ pycapa_home }} mode=0755
 
 - name: Build pycapa
   shell: "{{ item }}"
   args:
-    chdir: "{{ pycapa_home }}"
+    chdir: "{{ pycapa_home }}/pycapa"
+  environment:
+    LD_LIBRARY_PATH: "{{ python27_home }}/usr/lib64"
   with_items:
-    - pip install -r requirements.txt
-    - pip install argparse
-    - python setup.py install
+    - "{{ pycapa_bin }}/pip install -r requirements.txt"
+    - "{{ pycapa_bin }}/python setup.py install"
 
 - name: Turn on promiscuous mode for {{ pycapa_sniff_interface }}
   shell: "ip link set {{ pycapa_sniff_interface }} promisc on"

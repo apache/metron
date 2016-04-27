@@ -15,8 +15,3 @@
 #  limitations under the License.
 #
 ---
-dependencies:
-  - ambari_gather_facts
-  - epel
-  - python-pip
-  - kafka-client
