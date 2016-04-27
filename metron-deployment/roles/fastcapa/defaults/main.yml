@@ -15,9 +15,18 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+# dpdk
+dpdk_home: "/usr/local/dpdk"
+dpdk_version: "2.2.0"
+dpdk_sdk: "/root/dpdk-{{ dpdk_version }}"
+dpdk_target: "x86_64-native-linuxapp-gcc"
+num_huge_pages: 512
+extra_cflags: -g
+
+# fastcapa
+fastcapa_work_dir: /root/fastcapa
+fastcapa_prefix: /usr/local/bin
+fastcapa_ld_library_path: /usr/local/lib
+fastcapa_portmask: 0x01
+fastcapa_kafka_config: /etc/fastcapa.conf
+fastcapa_bin: fastcapa

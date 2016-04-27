@@ -28,7 +28,7 @@ Vagrant.configure("2") do |config|
 
     # host settings
     node.vm.hostname = "source"
-    node.vm.box = "bento/centos-7.1"
+    node.vm.box = "bento/centos-6.7"
     node.ssh.insert_key = "true"
     node.vm.network :private_network, ip: "192.168.33.10", netmask: "255.255.255.0"
 
@@ -48,7 +48,6 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = "sink"
     node.vm.box = "bento/centos-7.1"
     node.ssh.insert_key = "true"
-    node.vm.network "public_network"
     node.vm.network :private_network, ip: "192.168.33.11", netmask: "255.255.255.0"
 
     # provider
@@ -60,10 +59,13 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
       vb.customize ["modifyvm", :id, "--nictype2","82545EM"]
     end
+
+    # provision host
+    node.vm.provision :ansible do |ansible|
+      ansible.limit = "all"
+      ansible.playbook = "playbook.yml"
+    end
   end
 
-  # provision hosts
-  config.vm.provision :ansible do |ansible|
-    ansible.playbook = "playbook.yml"
-  end
+
 end

@@ -15,9 +15,27 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+- name: Install tcpdump
+  yum: name=tcpdump
+
+- set_fact:
+    sniff_cmd: "tcpdump -i {{ pcap_replay_interface }} -c 10"
+
+- name: "Attempting to sniff packet(s)"
+  shell: "{{ sniff_cmd }}"
+  async: 30
+  register: sniffer
+
+- name: Waiting to receive packet(s)
+  async_status: jid={{ sniffer.ansible_job_id }}
+  register: job
+  until: job.finished
+  retries: 30
+
+- fail:
+    msg: "No packets received from pcap-replay within timeout: {{ sniff_cmd }}"
+  when: job.finished != 1
+
+- debug: var=job
+
+- debug: msg="Successfully received packets sent from pcap-replay!"

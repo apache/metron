@@ -15,9 +15,24 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+  - name: Install dependencies
+    yum: name={{ item }}
+    with_items:
+      - "@Development tools"
+      - pciutils
+      - net-tools
+      - glib2
+      - glib2-devel
+      - git
+
+  #
+  # install prerequisite packages and the latest kernel headers.  need to
+  # ensure that the kernel headers match the current running kernel version.
+  # if this is not the case, the DPDK build process will fail
+  #
+  - name: Install latest kernel headers and source
+    yum: name={{ item }} state=latest
+    with_items:
+      - kernel
+      - kernel-devel
+      - kernel-headers

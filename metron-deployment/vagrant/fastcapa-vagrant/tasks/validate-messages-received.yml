@@ -15,9 +15,24 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+- set_fact:
+    kafka_consumer_cmd: "{{ kafka_broker_home}}/bin/kafka-console-consumer.sh --zookeeper {{ zookeeper_url }} --topic {{ fastcapa_topic }} --max-messages 10 --from-beginning"
+
+- name: Attempting to receive message(s) sent by fastcapa
+  shell: "{{ kafka_consumer_cmd }}"
+  async: 30
+  register: kafka_consumer
+
+- name: Waiting to receive message(s) sent by fastcapa
+  async_status: jid={{ kafka_consumer.ansible_job_id }}
+  register: job
+  until: job.finished
+  retries: 30
+
+- fail:
+    msg: "No messages received from fastcapa within timeout: {{ kafka_consumer_cmd }}"
+  when: job.finished != 1
+
+- debug: var=job
+
+- debug: msg="Successfully received a Kafka message from fastcapa!"

@@ -15,7 +15,3 @@
 #  limitations under the License.
 #
 ---
-dependencies:
-  - libselinux-python
-  - build-tools
-
