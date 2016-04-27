@@ -15,9 +15,13 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+#
+# configure yaf to generate a flow record for every packet
+#
+- name: Stop running instances of yaf
+  become: True
+  service: name=yaf state=stopped
+
+- name: Configure yaf to generate a flow record for every network packet
+  become: True
+  service: name=yaf state=started args="--idle-timeout 0"

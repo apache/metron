@@ -15,9 +15,6 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: pcap_replay
-- include: yaf.yml
-  when: install_yaf
-- include: snort.yml
-  when: install_snort
+pcap_replay: True
+install_yaf: True
+install_snort: True
