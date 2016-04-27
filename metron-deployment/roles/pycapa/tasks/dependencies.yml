@@ -15,20 +15,22 @@
 #  limitations under the License.
 #
 ---
-- name: Install epel-release repository
-  yum: name=epel-release
-
-- name: Install python and tcpdump
-  yum:
-    name: "{{item}}"
+- name: Install yum repositories
+  yum: name={{ item }} update_cache=yes
   with_items:
-    - python
-    - tcpdump
-    - git
+    - epel-release
+    - centos-release-scl
+
+- name: Install dependencies
+  yum: name={{ item }}
+  with_items:
+    - "@Development tools"
+    - python27
+    - python27-scldevel
+    - python27-python-virtualenv
+    - libpcap-devel
+    - libselinux-python
   register: result
   until: result.rc == 0
   retries: 5
   delay: 10
-
-- name: Install pip
-  easy_install: name=pip

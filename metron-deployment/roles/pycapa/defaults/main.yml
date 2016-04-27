@@ -15,9 +15,10 @@
 #  limitations under the License.
 #
 ---
-pycapa_repo: https://github.com/OpenSOC/pycapa.git
 pycapa_home: /usr/local/pycapa
-pycapa_main: "{{ pycapa_home }}/pycapa/pycapa_cli.py"
+pycapa_venv: pycapa-venv
+pycapa_bin: "{{ pycapa_home }}/{{ pycapa_venv }}/bin"
 pycapa_log: /var/log/pycapa.log
 pycapa_topic: pcap
 pycapa_sniff_interface: "{{ sniff_interface }}"
+python27_home: /opt/rh/python27/root
