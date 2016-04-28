@@ -27,9 +27,8 @@ hbase_master: [HBASE_MASTER]
 hbase_slave: [HBASE_REGIONSERVER]
 hadoop_clients: [HDFS_CLIENT, YARN_CLIENT, MAPREDUCE2_CLIENT, SPARK_CLIENT, ZOOKEEPER_CLIENT, HBASE_CLIENT]
 
-metron_services: ["HDFS","YARN","MAPREDUCE2","ZOOKEEPER", "HBASE", "STORM", "KAFKA"]
-
 master_1_components: "{{ hadoop_master | union(hadoop_clients) }}"
+
 master_1_host:
   - "{{groups.ambari_slave[0]}}"
 master_2_components: "{{ zookeeper_master | union(storm_master) | union(spark_master) | union(hbase_master) | union(hadoop_clients) }}"

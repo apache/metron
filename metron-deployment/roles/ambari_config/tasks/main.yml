@@ -39,4 +39,12 @@
     wait_for_complete: True
     blueprint_var: "{{ blueprint }}"
 
-- include: start_services.yml
+- name: Start the ambari cluster
+  ambari_cluster_state:
+    host: "{{ groups.ambari_master[0] }}"
+    port: "{{ ambari_port }}"
+    username: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    cluster_name: "{{ cluster_name }}"
+    cluster_state: started
+    wait_for_complete: True
