@@ -17,3 +17,5 @@
 ---
 - include: dependencies.yml
 - include: pycapa.yml
+- include: pycapa-service.yml
+  when: install_pycapa_service
