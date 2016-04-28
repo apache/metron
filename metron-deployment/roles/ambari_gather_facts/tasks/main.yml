@@ -15,7 +15,10 @@
 #  limitations under the License.
 #
 ---
-- name: Ambari rest get cluster name
+#
+# cluster_name
+#
+- name: "Ask Ambari: cluster_name"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters"
     user: "{{ ambari_user }}"
@@ -23,11 +26,16 @@
     force_basic_auth: yes
     return_content: yes
   register: cluster_name_response
+  when: cluster_name is undefined
 
 - set_fact:
     cluster_name: "{{ (cluster_name_response.content | from_json)['items'][0].Clusters.cluster_name }}"
+  when: cluster_name is undefined
 
-- name: Ambari rest get namenode hosts
+#
+# namenode_host
+#
+- name: "Ask Ambari: namenode_host"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/HDFS/components/NAMENODE"
     user: "{{ ambari_user }}"
@@ -35,11 +43,16 @@
     force_basic_auth: yes
     return_content: yes
   register: namenode_hosts_response
+  when: namenode_host is undefined
 
 - set_fact:
     namenode_host: "{{ (namenode_hosts_response.content | from_json).host_components[0].HostRoles.host_name }}"
+  when: namenode_host is undefined
 
-- name: Ambari rest get namenode core-site tag
+#
+# core_site_tag
+#
+- name: "Ask Ambari: core_site_tag"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ namenode_host }}/host_components/NAMENODE"
     user: "{{ ambari_user }}"
@@ -47,11 +60,16 @@
     force_basic_auth: yes
     return_content: yes
   register: core_site_tag_response
+  when: core_site_tag is undefined
 
 - set_fact:
     core_site_tag: "{{ (core_site_tag_response.content | from_json).HostRoles.actual_configs['core-site'].default }}"
+  when: core_site_tag is undefined
 
-- name: Ambari rest get namenode core-site properties
+#
+# hdfs_url
+#
+- name: "Ask Ambari: hdfs_url"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=core-site&tag={{ core_site_tag }}"
     user: "{{ ambari_user }}"
@@ -59,11 +77,16 @@
     force_basic_auth: yes
     return_content: yes
   register: core_site_response
+  when: hdfs_url is undefined
 
 - set_fact:
     hdfs_url: "{{ (core_site_response.content | from_json)['items'][0].properties['fs.defaultFS'] }}"
+  when: hdfs_url is undefined
 
-- name: Ambari rest get kafka broker hosts
+#
+# kafka_broker_hosts
+#
+- name: "Ask Ambari: kafka_broker_hosts"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KAFKA/components/KAFKA_BROKER"
     user: "{{ ambari_user }}"
@@ -71,11 +94,16 @@
     force_basic_auth: yes
     return_content: yes
   register: kafka_broker_hosts_response
+  when: kafka_broker_hosts is undefined
 
 - set_fact:
     kafka_broker_hosts: "{{ (kafka_broker_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
+  when: kafka_broker_hosts is undefined
 
-- name: Ambari rest get kafka kafka-broker tag
+#
+# kafka_broker_tag
+#
+- name: "Ask Ambari: kafka_broker_tag"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
     user: "{{ ambari_user }}"
@@ -83,11 +111,16 @@
     force_basic_auth: yes
     return_content: yes
   register: kafka_broker_tag_response
+  when: kafka_broker_tag is undefined
 
 - set_fact:
     kafka_broker_tag: "{{ (kafka_broker_tag_response.content | from_json).HostRoles.actual_configs['kafka-broker'].default }}"
+  when: kafka_broker_tag is undefined
 
-- name: Ambari rest get kafka kafka-broker properties
+#
+# kafka_broker_url, kafka_broker_port
+#
+- name: "Ask Ambari: kafka_broker_port, kafka_broker_url"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}"
     user: "{{ ambari_user }}"
@@ -95,14 +128,20 @@
     force_basic_auth: yes
     return_content: yes
   register: kafka_broker_properties_response
+  when: (kafka_broker_url is undefined) or (kafka_broker_port is undefined)
 
 - set_fact:
     kafka_broker_port: "{{ (kafka_broker_properties_response.content | from_json)['items'][0].properties['listeners'] | replace('PLAINTEXT://localhost:', '')}}"
+  when: kafka_broker_port is undefined
 
 - set_fact:
     kafka_broker_url: "{% for host in kafka_broker_hosts %}{% if loop.index != 1 %},{% endif %}{{ host }}:{{ kafka_broker_port }}{% endfor %}"
+  when: kafka_broker_url is undefined
 
-- name: Ambari rest get zookeeper hosts
+#
+# zookeeper_hosts
+#
+- name: "Ask Ambari: zookeeper_hosts"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/ZOOKEEPER/components/ZOOKEEPER_SERVER"
     user: "{{ ambari_user }}"
@@ -110,11 +149,16 @@
     force_basic_auth: yes
     return_content: yes
   register: zookeeper_hosts_response
+  when: zookeeper_hosts is undefined
 
 - set_fact:
     zookeeper_hosts: "{{ (zookeeper_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
+  when: zookeeper_hosts is undefined
 
-- name: Ambari rest get zookeeper zoo.cfg tag
+#
+# zookeeper_tag
+#
+- name: "Ask Ambari: zookeeper_tag"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ zookeeper_hosts[0] }}/host_components/ZOOKEEPER_SERVER"
     user: "{{ ambari_user }}"
@@ -122,11 +166,16 @@
     force_basic_auth: yes
     return_content: yes
   register: zookeeper_tag_response
+  when: zookeeper_tag is undefined
 
 - set_fact:
     zookeeper_tag: "{{ (zookeeper_tag_response.content | from_json).HostRoles.actual_configs['zoo.cfg'].default }}"
+  when: zookeeper_tag is undefined
 
-- name: Ambari rest get kafka kafka-broker properties
+#
+# zookeeper_url, zookeeper_port
+#
+- name: "Ask Ambari: zookeeper_url, zookeeper_port"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=zoo.cfg&tag={{ zookeeper_tag }}"
     user: "{{ ambari_user }}"
@@ -134,13 +183,19 @@
     force_basic_auth: yes
     return_content: yes
   register: zookeeper_properties_response
+  when: zookeeper_url is undefined or zookeeper_port is undefined
 
 - set_fact:
     zookeeper_port: "{{ (zookeeper_properties_response.content | from_json)['items'][0].properties['clientPort'] }}"
+  when: zookeeper_port is undefined
 
 - set_fact:
     zookeeper_url: "{% for host in zookeeper_hosts %}{% if loop.index != 1 %},{% endif %}{{ host }}:{{ zookeeper_port }}{% endfor %}"
+  when: zookeeper_url is undefined
 
+#
+# debug output
+#
 - name: debug
   debug:
     msg: "zookeeper_port = {{ zookeeper_port }},
