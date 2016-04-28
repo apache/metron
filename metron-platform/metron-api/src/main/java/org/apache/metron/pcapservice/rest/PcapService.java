@@ -19,33 +19,39 @@ package org.apache.metron.pcapservice.rest;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+import org.apache.metron.api.helper.service.PcapServiceCli;
+import org.apache.metron.pcapservice.ConfigurationUtil;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
-import org.apache.metron.api.helper.service.PcapServiceCli;
 
 
 public class PcapService {
 
-	public static void main(String[] args) throws IOException {
+  private static final Logger LOG = Logger.getLogger(PcapService.class);
+  public static void main(String[] args) throws IOException {
 
-		PcapServiceCli cli = new PcapServiceCli(args);
-		cli.parse();
-		
-		Server server = new Server(cli.getPort());
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath("/");
-		ServletHolder h = new ServletHolder(new HttpServletDispatcher());
-		h.setInitParameter("javax.ws.rs.Application", "org.apache.metron.pcapservice.rest.JettyServiceRunner");
-		context.addServlet(h, "/*");
-		server.setHandler(context);
-		try {
-			server.start();
-			server.join();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    PcapServiceCli cli = new PcapServiceCli(args);
+    cli.parse();
+    ConfigurationUtil.setPcapOutputPath(cli.getPcapHdfsPath());
+    LOG.info("Pcap location set to " + cli.getPcapHdfsPath());
+    ConfigurationUtil.setTempQueryOutputPath(cli.getQueryHdfsPath());
+    LOG.info("Query temp location set to " + cli.getQueryHdfsPath());
+    Server server = new Server(cli.getPort());
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    ServletHolder h = new ServletHolder(new HttpServletDispatcher());
+    h.setInitParameter("javax.ws.rs.Application", "org.apache.metron.pcapservice.rest.JettyServiceRunner");
+    context.addServlet(h, "/*");
+    server.setHandler(context);
+    try {
+      server.start();
+      server.join();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

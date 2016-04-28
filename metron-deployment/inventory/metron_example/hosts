@@ -32,6 +32,9 @@ node8
 [hadoop_client]
 node9
 
+[pcap_server]
+node9
+
 #3rd ambari_slave
 [enrichment]
 node1

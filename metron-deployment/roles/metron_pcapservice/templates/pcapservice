@@ -28,8 +28,8 @@ SCRIPTNAME=/etc/init.d/$NAME
 LOGFILE="/var/log/metron_pcapservice.log"
 EXTRA_ARGS="${@:2}"
 DAEMON_PATH="/"
-DAEMON="/usr/bin/java"
-DAEMONOPTS="-cp {{ pcapservice_jar_dst }} org.apache.metron.pcapservice.rest.PcapService -port {{ pcapservice_port }}"
+DAEMON="/usr/bin/yarn jar"
+DAEMONOPTS="{{ pcapservice_jar_dst }} org.apache.metron.pcapservice.rest.PcapService -port {{ pcapservice_port }} -query_hdfs_path {{ query_hdfs_path }} -pcap_hdfs_path {{ pcap_hdfs_path }}"
 
 case "$1" in
   start)
