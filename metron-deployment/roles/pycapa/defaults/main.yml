@@ -22,3 +22,5 @@ pycapa_log: /var/log/pycapa.log
 pycapa_topic: pcap
 pycapa_sniff_interface: "{{ sniff_interface }}"
 python27_home: /opt/rh/python27/root
+
+install_pycapa_service: True
