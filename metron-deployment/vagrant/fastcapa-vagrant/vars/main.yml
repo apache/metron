@@ -24,3 +24,15 @@ kafka_broker_url: source:9092
 zookeeper_url: source:2181
 pcap_replay_interface: eth1
 kafka_broker_home: /usr/hdp/current/kafka-broker/
+
+# dummy variables for pycapa's dependence on ambari_gather_facts
+cluster_name: dummy
+namenode_host: dummy
+core_site_tag: dummy
+hdfs_url: dummy
+kafka_broker_hosts: dummy
+kafka_broker_tag: dummy
+kafka_broker_port: dummy
+zookeeper_hosts: dummy
+zookeeper_tag: dummy
+zookeeper_port: dummy
