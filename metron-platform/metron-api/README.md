@@ -8,10 +8,11 @@ packet data is of a form which `libpcap` based tools can read.
 
 You can start the service either via the init.d script installed,
 `/etc/init.d/pcapservice` or directly via the `yarn jar` command:
-`yarn jar $METRON_HOME/lib/Metron-Pcap_Service-0.1BETA.jar org.apache.metron.pcapservice.rest.PcapService -port $SERVICE_PORT -query_hdfs_path $QUERY_PATH -pcap_hdfs_path $PCAP_PATH`
+`yarn jar $METRON_HOME/lib/metron-api-$METRON_VERSION.jar org.apache.metron.pcapservice.rest.PcapService -port $SERVICE_PORT -query_hdfs_path $QUERY_PATH -pcap_hdfs_path $PCAP_PATH`
 
 where
 * `METRON_HOME` is the location of the metron installation
+* `METRON_VERSION` is the version of the metron installation
 * `SERVICE_PORT` is the port to bind the REST service to.
 * `QUERY_PATH` is the temporary location to store query results.  They are deleted after the service reads them.
 * `PCAP_PATH` is the path to the packet data on HDFS
