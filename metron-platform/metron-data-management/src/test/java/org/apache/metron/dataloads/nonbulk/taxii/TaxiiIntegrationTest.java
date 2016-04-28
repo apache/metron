@@ -20,10 +20,13 @@ package org.apache.metron.dataloads.nonbulk.taxii;
 
 import com.google.common.base.Splitter;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -64,6 +67,29 @@ public class TaxiiIntegrationTest {
     */
     @Multiline
     static String taxiiConnectionConfig;
+
+    private String connectionConfig = "connection.json";
+    private String extractorJson = "extractor.json";
+    private String enrichmentJson = "enrichment_config.json";
+    private String log4jProperty = "log4j";
+    private String beginTime = "04/14/2016 12:00:00";
+    private String timeInteval = "10";
+
+    @Test
+    public void testCommandLine() throws Exception {
+        Configuration conf = HBaseConfiguration.create();
+
+        String[] argv = {"-c connection.json", "-e extractor.json", "-n enrichment_config.json", "-l log4j", "-p 10", "-b 04/14/2016 12:00:00"};
+        String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
+
+        CommandLine cli = TaxiiLoader.TaxiiOptions.parse(new PosixParser(), otherArgs);
+        Assert.assertEquals(extractorJson,TaxiiLoader.TaxiiOptions.EXTRACTOR_CONFIG.get(cli).trim());
+        Assert.assertEquals(connectionConfig, TaxiiLoader.TaxiiOptions.CONNECTION_CONFIG.get(cli).trim());
+        Assert.assertEquals(beginTime,TaxiiLoader.TaxiiOptions.BEGIN_TIME.get(cli).trim());
+        Assert.assertEquals(enrichmentJson,TaxiiLoader.TaxiiOptions.ENRICHMENT_CONFIG.get(cli).trim());
+        Assert.assertEquals(timeInteval,TaxiiLoader.TaxiiOptions.TIME_BETWEEN_POLLS.get(cli).trim());
+        Assert.assertEquals(log4jProperty, TaxiiLoader.TaxiiOptions.LOG4J_PROPERTIES.get(cli).trim());
+    }
 
     @Test
     public void testTaxii() throws Exception {

@@ -43,6 +43,29 @@ public class CSVExtractor implements Extractor {
   private CSVParser parser;
   private LookupConverter converter = LookupConverters.ENRICHMENT.getConverter();
 
+  public int getTypeColumn() {
+    return typeColumn;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public int getIndicatorColumn() {
+    return indicatorColumn;
+  }
+
+  public Map<String, Integer> getColumnMap() {
+    return columnMap;
+  }
+
+  public CSVParser getParser() {
+    return parser;
+  }
+
+  public LookupConverter getConverter() {
+    return converter;
+  }
   @Override
   public Iterable<LookupKV> extract(String line) throws IOException {
     if(line.trim().startsWith("#")) {
