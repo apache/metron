@@ -54,11 +54,14 @@ configurations:
       dfs.journalnode.edits.dir: '{{ journalnode_edits_dir | default("/hadoop/hdfs/journalnode") }}'
   - mapred-site:
       mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path | default("/hadoop/mapreduce/jhs") }}'
+      mapreduce.map.memory.mb : '{{ mapred_map_mem_mb }}'
+      mapreduce.reduce.memory.mb : '{{ mapred_reduce_mem_mb }}'
   - yarn-site:
       yarn.nodemanager.local-dirs : '{{ nodemanager_local_dirs| default("/hadoop/yarn/local") }}'
       yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path | default("/hadoop/yarn/timeline") }}'
       yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path| default("/hadoop/yarn/timeline") }}'
       yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs| default("/hadoop/yarn/log") }}'
+      yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}'
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
       storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'

@@ -47,8 +47,10 @@
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 		<global_opencsv_version>3.7</global_opencsv_version>
+		<global_java_version>1.8</global_java_version>
 		<global_solr_version>5.2.1</global_solr_version>
 		<global_mockito_version>1.10.19</global_mockito_version>
+		<global_shade_version>2.4.3</global_shade_version>
 	</properties>
 	<licenses>
 		<license>
@@ -58,11 +60,13 @@
 		</license>
 	</licenses>
 	<modules>
+
 		<module>metron-common</module>
 		<module>metron-enrichment</module>
 		<module>metron-elasticsearch</module>
 		<module>metron-solr</module>
 		<module>metron-parsers</module>
+		<module>metron-pcap-backend</module>
 		<module>metron-data-management</module>
 		<module>metron-pcap</module>
 		<module>metron-integration-test</module>
@@ -103,7 +107,7 @@
 					<version>2.18</version>
 					<configuration>
 						<!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-						<argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
+						<argLine>-Xmx2048m</argLine>
 						<skip>true</skip>
 						<!-- Show 100% of the lines from the stack trace (doesn't work) -->
 						<trimStackTrace>false</trimStackTrace>
@@ -173,8 +177,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>${global_java_version}</source>
+					<target>${global_java_version}</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -238,7 +242,7 @@
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.3</version>
 				<configuration>
-					<targetJdk>1.7</targetJdk>
+          <targetJdk>${global_java_version}</targetJdk>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -127,7 +127,7 @@ public class ComponentRunner {
         long start = System.currentTimeMillis();
         while(true) {
             long duration = System.currentTimeMillis() - start;
-            if(duration > maxTimeMS) {
+            if(maxTimeMS > 0 && duration > maxTimeMS) {
                 throw new RuntimeException("Took too long to complete: " + duration + " > " + maxTimeMS);
             }
             ReadinessState state = successState.process(this);

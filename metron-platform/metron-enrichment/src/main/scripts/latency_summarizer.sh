@@ -26,7 +26,7 @@ if [ -e /usr/libexec/bigtop-detect-javahome ]; then
 elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
   . /usr/lib/bigtop-utils/bigtop-detect-javahome
 fi
-export METRON_VERSION=0.1BETA
+export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export TOPOLOGIES_JAR=Metron-Topologies-$METRON_VERSION.jar
 java -cp $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.metron.enrichment.cli.LatencySummarizer "$@"
