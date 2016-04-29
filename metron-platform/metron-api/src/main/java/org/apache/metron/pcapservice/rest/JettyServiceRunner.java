@@ -17,12 +17,13 @@
  */
 package org.apache.metron.pcapservice.rest;
 
+import org.apache.metron.pcapservice.PcapReceiverImplRestEasy;
+
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
-import org.apache.metron.pcapservice.PcapReceiverImplRestEasy;
 
 public class JettyServiceRunner extends Application  {
 	
@@ -31,7 +32,7 @@ public class JettyServiceRunner extends Application  {
 		
 	public  JettyServiceRunner() {     
 		// initialize restful services   
-		services.add(new PcapReceiverImplRestEasy());  
+		services.add(new PcapReceiverImplRestEasy());
 	}
 	@Override
 	public  Set getSingletons() {

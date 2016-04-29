@@ -19,6 +19,7 @@ package org.apache.metron.dataloads.bulk;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -100,25 +101,29 @@ public class HDFSDataPrunerTest {
 
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testThrowsIsDirectory() throws Exception {
 
         FileSystem testFS = mock(FileSystem.class);
-        when(testFS.isDirectory((Path) any())).thenThrow(new IOException("Test Exception"));
+        when(testFS.isDirectory( any())).thenThrow(new IOException("Test Exception"));
 
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
+        try {
+            filter.accept(new Path("foo"));
+            Assert.fail("Expected Runtime exception, but did not receive one.");
+        }
+        catch(RuntimeException e) {
 
-        filter.accept(new Path("foo"));
-
+        }
     }
 
     @Test
-    public void testIgnoresDirectoies() throws Exception {
+    public void testIgnoresDirectories() throws Exception {
 
         FileSystem testFS = mock(FileSystem.class);
-        when(testFS.isDirectory((Path) any())).thenReturn(true);
+        when(testFS.isDirectory( any())).thenReturn(true);
 
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
         pruner.fileSystem = testFS;
@@ -127,19 +132,23 @@ public class HDFSDataPrunerTest {
 
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testThrowBadFile() throws Exception {
 
         FileSystem testFS = mock(FileSystem.class);
-        when(testFS.isDirectory((Path) any())).thenReturn(false);
-        when(testFS.getFileStatus((Path) any())).thenThrow(new IOException("Test Exception"));
+        when(testFS.isDirectory( any())).thenReturn(false);
+        when(testFS.getFileStatus( any())).thenThrow(new IOException("Test Exception"));
 
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
 
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
-
-        filter.accept(new Path("foo"));
+        try {
+            filter.accept(new Path("foo"));
+            Assert.fail("Expected Runtime exception, but did not receive one.");
+        }
+        catch(RuntimeException e) {
+        }
 
     }
 

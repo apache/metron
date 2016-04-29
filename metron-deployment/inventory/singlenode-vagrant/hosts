@@ -36,6 +36,9 @@ node1
 [sensors]
 node1
 
+[pcap_server]
+node1
+
 [mysql]
 node1
 
@@ -46,3 +49,4 @@ web
 sensors
 mysql
 hadoop_client
+pcap_server

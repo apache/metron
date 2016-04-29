@@ -41,7 +41,7 @@ Ensure that an SSH key has been generated and stored at `~/.ssh/id_rsa.pub`.  In
 1. Ensure that Metron's streaming topology uber-jar has been built.
 
   ```
-  cd ../../metron-streaming
+  cd ../../metron-platform
   mvn clean package -DskipTests
   ```
 

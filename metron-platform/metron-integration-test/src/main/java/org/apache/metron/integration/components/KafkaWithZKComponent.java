@@ -100,12 +100,15 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     return "localhost:" + brokerPort;
   }
 
+  public <K,V> KafkaProducer<K, V> createProducer(Class<K> keyClass, Class<V> valueClass) {
+    return createProducer(new HashMap<>(), keyClass, valueClass);
+  }
   public KafkaProducer<String, byte[]> createProducer()
   {
-    return createProducer(new HashMap<String, Object>());
+    return createProducer(String.class, byte[].class);
   }
 
-  public KafkaProducer<String, byte[]> createProducer(Map<String, Object> properties)
+  public <K,V> KafkaProducer<K,V> createProducer(Map<String, Object> properties, Class<K> keyClass, Class<V> valueClass)
   {
     Map<String, Object> producerConfig = new HashMap<>();
     producerConfig.put("bootstrap.servers", getBrokerList());

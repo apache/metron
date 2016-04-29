@@ -1,0 +1,68 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# discovery: used by a TAXII Client to discover available TAXII Service
+#
+- id: discovery
+  type: discovery
+  address: /services/discovery
+  description: Discovery service for Apache Metron
+  advertised_services:
+    - inbox
+    - collection
+    - poll
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0
+
+#
+# inbox: used by a TAXII Client to push information to a TAXII Server
+#
+- id: inbox
+  type: inbox
+  address: /services/inbox
+  description: Inbox for Apache Metron
+  destination_collection_required: yes
+  accept_all_content: yes
+  supported_content:
+    - urn:stix.mitre.org:xml:1.1.1
+  authentication_required: no
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0
+
+#
+# collection_management: used by a TAXII Client to request information about
+# available data collections or request a subscription.
+#
+- id: collection
+  type: collection_management
+  address: /services/collection
+  description: Collection management service for Apache Metron
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0
+
+#
+# poll: used by a TAXII Client to request information from a TAXII Server
+#
+- id: poll
+  type: poll
+  address: /services/poll
+  description: Poll service for Apache Metron
+  subscription_required: no
+  authentication_required: no
+  protocol_bindings:
+    - urn:taxii.mitre.org:protocol:http:1.0

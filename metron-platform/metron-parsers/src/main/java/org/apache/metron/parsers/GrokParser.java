@@ -24,6 +24,7 @@ import oi.thekraken.grok.api.Match;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -129,7 +130,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         }
       }
       if (timestampField != null) {
-        message.put("timestamp", formatTimestamp(message.get(timestampField)));
+        message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
       }
       message.remove(patternLabel);
       messages.add(message);
@@ -142,7 +143,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @Override
   public boolean validate(JSONObject message) {
-    Object timestampObject = message.get("timestamp");
+    Object timestampObject = message.get(Constants.Fields.TIMESTAMP.getName());
     if (timestampObject instanceof Long) {
       Long timestamp = (Long) timestampObject;
       if (timestamp > 0) {

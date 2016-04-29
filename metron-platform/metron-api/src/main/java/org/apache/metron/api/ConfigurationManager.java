@@ -23,10 +23,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.configuration.CombinedConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.DefaultConfigurationBuilder;
+import org.apache.commons.configuration.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -71,7 +68,7 @@ public class ConfigurationManager {
       try {
         configuration = builder.getConfiguration(true);
         configurationsCache.put(fielPath, configuration);
-      } catch (ConfigurationException e) {
+      } catch (ConfigurationException|ConfigurationRuntimeException e) {
         LOGGER.info("Exception in loading property files.", e);
       }
     }

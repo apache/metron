@@ -27,8 +27,6 @@ hbase_master: [HBASE_MASTER]
 hbase_slave: [HBASE_REGIONSERVER]
 hadoop_clients: [HDFS_CLIENT, YARN_CLIENT, MAPREDUCE2_CLIENT, SPARK_CLIENT, ZOOKEEPER_CLIENT, HBASE_CLIENT]
 
-metron_services: ["HDFS","YARN","MAPREDUCE2","ZOOKEEPER", "HBASE", "STORM", "KAFKA"]
-
 master_1_components: "{{ hadoop_master | union(hadoop_clients) }}"
 master_1_host:
   - "{{groups.ambari_slave[0]}}"
@@ -56,11 +54,14 @@ configurations:
       dfs.journalnode.edits.dir: '{{ journalnode_edits_dir | default("/hadoop/hdfs/journalnode") }}'
   - mapred-site:
       mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path | default("/hadoop/mapreduce/jhs") }}'
+      mapreduce.map.memory.mb : '{{ mapred_map_mem_mb }}'
+      mapreduce.reduce.memory.mb : '{{ mapred_reduce_mem_mb }}'
   - yarn-site:
       yarn.nodemanager.local-dirs : '{{ nodemanager_local_dirs| default("/hadoop/yarn/local") }}'
       yarn.timeline-service.leveldb-timeline-store.path: '{{ timeline_ldb_store_path | default("/hadoop/yarn/timeline") }}'
       yarn.timeline-service.leveldb-state-store.path: '{{ timeline_ldb_state_path| default("/hadoop/yarn/timeline") }}'
       yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs| default("/hadoop/yarn/log") }}'
+      yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}'
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
       storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'

@@ -17,6 +17,3 @@
 ---
 dependencies:
   - ambari_gather_facts
-  - epel
-  - python-pip
-  - kafka-client

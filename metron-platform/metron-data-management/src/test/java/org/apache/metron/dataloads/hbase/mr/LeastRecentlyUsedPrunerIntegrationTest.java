@@ -18,11 +18,15 @@
 package org.apache.metron.dataloads.hbase.mr;
 
 import com.google.common.collect.Iterables;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.bulk.LeastRecentlyUsedPruner;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -31,6 +35,8 @@ import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
+import org.apache.metron.dataloads.bulk.ThreatIntelBulkLoader;
+import org.apache.metron.dataloads.nonbulk.taxii.TaxiiLoader;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,11 +54,14 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     /** The test table. */
     private HTable testTable;
     private HTable atTable;
-    String tableName = "malicious_domains";
-    String cf = "cf";
-    String atTableName = "access_trackers";
-    String atCF= "cf";
-    Configuration config = null;
+    private String tableName = "malicious_domains";
+    private String cf = "cf";
+    private String atTableName = "access_trackers";
+    private String atCF= "cf";
+    private String beginTime = "04/14/2016 12:00:00";
+    private String timeFormat = "georgia";
+    private Configuration config = null;
+
     @Before
     public void setup() throws Exception {
         Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
@@ -72,6 +81,23 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         }
         return keys;
     }
+
+    @Test
+    public void testCommandLine() throws Exception {
+        Configuration conf = HBaseConfiguration.create();
+
+        String[] argv = {"-a 04/14/2016 12:00:00", "-f cf", "-t malicious_domains", "-u access_trackers",  "-v georgia", "-z cf"};
+        String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
+
+        CommandLine cli = LeastRecentlyUsedPruner.BulkLoadOptions.parse(new PosixParser(), otherArgs);
+        Assert.assertEquals(cf, LeastRecentlyUsedPruner.BulkLoadOptions.COLUMN_FAMILY.get(cli).trim());
+        Assert.assertEquals(tableName,LeastRecentlyUsedPruner.BulkLoadOptions.TABLE.get(cli).trim());
+        Assert.assertEquals(atTableName,LeastRecentlyUsedPruner.BulkLoadOptions.ACCESS_TABLE.get(cli).trim());
+        Assert.assertEquals(atCF,LeastRecentlyUsedPruner.BulkLoadOptions.ACCESS_COLUMN_FAMILY.get(cli).trim());
+        Assert.assertEquals(beginTime, LeastRecentlyUsedPruner.BulkLoadOptions.AS_OF_TIME.get(cli).trim());
+        Assert.assertEquals(timeFormat, LeastRecentlyUsedPruner.BulkLoadOptions.AS_OF_TIME_FORMAT.get(cli).trim());
+    }
+
     @Test
     public void test() throws Exception {
         long ts = System.currentTimeMillis();

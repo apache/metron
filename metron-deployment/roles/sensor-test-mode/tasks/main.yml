@@ -15,42 +15,9 @@
 #  limitations under the License.
 #
 ---
-#
-# load example pcap data to replay
-#
-- name: Install example pcap file
-  copy: src=example.pcap dest={{ pcap_path }}/
-
-- name: Start the pcap-replay service
-  service: name=pcap-replay state=restarted
-
-#
-# configure yaf to generate a flow record for every packet
-#
-- name: Stop running instances of yaf
-  become: True
-  service: name=yaf state=stopped
-
-- name: Configure yaf to generate a flow record for every network packet
-  become: True
-  service: name=yaf state=started args="--idle-timeout 0"
-
-#
-# configure snort to alert on every packet
-#
-- name: Configure snort to use a set of test rules
-  become: True
-  lineinfile:
-    dest: /etc/snort/snort.conf
-    line: "include $RULE_PATH/test.rules"
-
-- name: Create a snort alert for testing that alerts on every packet
-  become: True
-  lineinfile:
-    dest: /etc/snort/rules/test.rules
-    line: "alert tcp any any -> any any (msg:'snort test alert'; sid:999158; )"
-    create: yes
-
-- name: Restart snort
-  become: True
-  service: name=snortd state=restarted
+- include: pcap.yml
+  when: pcap_replay
+- include: yaf.yml
+  when: install_yaf
+- include: snort.yml
+  when: install_snort

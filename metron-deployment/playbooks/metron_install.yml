@@ -87,10 +87,16 @@
   tags:
     - enrichment
 
+- hosts: pcap_server
+  become: true
+  roles:
+    - { role: metron_pcapservice, when: install_elasticsearch | default(True) == True }
+  tags:
+    - pcap_service
+
 - hosts: web
   become: true
   roles:
     - { role: metron_ui, when: install_elasticsearch | default(True) == True }
-    - { role: metron_pcapservice, when: install_elasticsearch | default(True) == True }
   tags:
     - web

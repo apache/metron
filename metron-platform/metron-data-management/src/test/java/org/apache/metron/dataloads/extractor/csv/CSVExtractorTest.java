@@ -23,10 +23,16 @@ import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class CSVExtractorTest {
 
@@ -46,6 +52,22 @@ public class CSVExtractorTest {
    */
   @Multiline
   static String testCSVConfig;
+
+
+  @Test
+  public void testInitialize() throws Exception {
+    CSVExtractor ex = new CSVExtractor();
+    ExtractorHandler handler = ExtractorHandler.load(testCSVConfig);
+    ex.initialize(handler.getConfig());
+
+    Assert.assertEquals(0, (int)ex.getColumnMap().get("host") );
+    Assert.assertEquals(2, (int)ex.getColumnMap().get("meta") );
+    Assert.assertEquals(0, ex.getTypeColumn() );
+    Assert.assertEquals(0, ex.getIndicatorColumn());
+    Assert.assertEquals("threat", ex.getType() );
+    Assert.assertEquals(',', ex.getParser().getSeparator());
+
+  }
 
   @Test
   public void testCSVExtractor() throws Exception {
