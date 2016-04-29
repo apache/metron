@@ -14,16 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Submit Metron Parser topologies
-  command: "{{ metron_directory }}/bin/start_parser_topology.sh {{ item }}"
-  with_items:
-      - "{{ storm_parser_topologies }}"
-
-- name: Submit Solr Metron Enrichment topology
-  command: "{{ metron_directory }}/bin/start_solr_topology.sh"
-  when: install_solr | default(False) == True
-
-- name: Submit Elasticsearch Metron Enrichment topology
-  command: "{{ metron_directory }}/bin/start_elasticsearch_topology.sh"
-  when: install_elasticsearch | default(False) == True
+check process yaf
+  with pidfile /var/run/yaf.pid
+  start program = "/etc/init.d/yaf start"
+  stop program = "/etc/init.d/yaf stop"
+  if does not exist then restart
+  group yaf
+  group sensors
+  group metron

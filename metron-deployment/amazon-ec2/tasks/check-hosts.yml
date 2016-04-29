@@ -16,5 +16,5 @@
 #
 ---
 - name: Wait for connectivity to host(s)
-  local_action: wait_for host={{ inventory_hostname }} state=started timeout=300 delay=10
+  local_action: wait_for host={{ inventory_hostname }} state=started port=22 timeout=300 delay=10
   become: False

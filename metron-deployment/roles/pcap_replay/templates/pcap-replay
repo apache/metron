@@ -22,17 +22,15 @@
 # processname: pcap-replay
 #
 
-DAEMON_PATH="{{ pcap_path }}"
+DAEMON_PATH="{{ pcap_replay_home }}"
 PCAPIN=`ls $DAEMON_PATH/*.pcap 2> /dev/null`
 IFACE="{{ pcap_replay_interface }}"
 EXTRA_ARGS="${@:2}"
-DAEMON="{{ tcpreplay_prefix }}/bin/tcpreplay"
-DAEMONOPTS="--intf1=$IFACE --loop=0 $EXTRA_ARGS $PCAPIN"
-
 NAME=pcap-replay
 DESC="Replay packet capture data"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
+LOGFILE=/var/log/$NAME.log
 
 case "$1" in
   start)
@@ -44,7 +42,9 @@ case "$1" in
     else
       # kick-off the daemon
       cd $DAEMON_PATH
-      PID=`$DAEMON $DAEMONOPTS > /dev/null 2>&1 & echo $!`
+      DAEMON="{{ tcpreplay_prefix }}/bin/tcpreplay"
+      DAEMONOPTS="--intf1=$IFACE --loop=0 $EXTRA_ARGS $PCAPIN"
+      PID=`$DAEMON $DAEMONOPTS > $LOGFILE 2>&1 & echo $!`
       if [ -z $PID ]; then
           printf "%s\n" "Fail"
       else

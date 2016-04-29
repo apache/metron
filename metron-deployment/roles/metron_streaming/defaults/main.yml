@@ -59,10 +59,6 @@ bro_topic: bro
 yaf_topic: yaf
 snort_topic: snort
 enrichments_topic: enrichments
-storm_parser_topologies:
-    - "bro"
-    - "snort"
-    - "yaf"
 
 hdfs_retention_days: 30
 hdfs_bro_purge_cronjob: "{{ metron_directory }}/bin/prune_hdfs_files.sh -f {{ hdfs_url }} -g '/apps/metron/enrichment/indexed/bro_doc/*enrichment-*' -s $(date -d '{{ hdfs_retention_days }} days ago' +%m/%d/%Y) -n 1 >> /var/log/bro-purge/cron-hdfs-bro-purge.log 2>&1"

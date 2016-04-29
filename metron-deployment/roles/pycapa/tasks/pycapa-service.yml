@@ -20,6 +20,3 @@
 
 - name: Install service script
   template: src=pycapa dest=/etc/init.d/pycapa mode=0755
-
-- name: Start pycapa
-  service: name=pycapa state=restarted

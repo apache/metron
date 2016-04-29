@@ -15,59 +15,13 @@
 #  limitations under the License.
 #
 ---
-- name: Add Elasticsearch GPG key.
-  rpm_key:
-    key: https://packages.elastic.co/GPG-KEY-elasticsearch
-    state: present
+- include: elasticsearch.yml
 
-- name: Add Elasticsearch repository.
-  copy:
-    src: elasticsearch.repo
-    dest: /etc/yum.repos.d/elasticsearch.repo
-    mode: 0644
-
-- name: Install Elasticsearch.
-  yum:
-    name: elasticsearch
-    state: installed
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
-
-- name: Create Data Directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: 0755
-    owner: elasticsearch
-    group: elasticsearch
-  when: elasticsearch_data_dir is defined
-  with_items:
-     - '{{ elasticsearch_data_dir.split(",") }}'
-
-- name: Configure Elasticsearch.
-  lineinfile: >
-    dest=/etc/elasticsearch/elasticsearch.yml
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-    state=present
-  with_items:
-    - { regexp: '#cluster\.name', line: 'cluster.name: metron' }
-    - { regexp: '#network\.host:', line: 'network.host: _{{
-    elasticsearch_network_interface  }}:ipv4_' }
-    - { regexp: '#discovery\.zen\.ping\.unicast\.hosts',
-    line: 'discovery.zen.ping.unicast.hosts: [ {{ es_hosts }} ]'}
-    - { regexp: '#path\.data', line: 'path.data: {{     elasticsearch_data_dir }}' }
-
-- name: Start Elasticsearch.
-  service: name=elasticsearch state=started enabled=yes
-
-- include: configure_index.yml
+- include: create-indices.yml
+  run_once: yes
 
 - name: Create Logrotate Script for Elasticsearch
   template:
     src: "metron-elasticsearch-logrotate.yml"
     dest: "/etc/logrotate.d/metron-elasticsearch"
     mode: 0644
-
