@@ -17,8 +17,10 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.metron.common.configuration.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +32,17 @@ public class ThreatIntelSplitterBolt extends EnrichmentSplitterBolt {
 
   @Override
   protected Map<String, List<String>> getFieldMap(String sensorType) {
-    return configurations.getSensorEnrichmentConfig(sensorType).getThreatIntelFieldMap();
+    if (sensorType != null) {
+      SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sensorType);
+      if (config != null) {
+        return config.getThreatIntelFieldMap();
+      } else {
+        LOG.error("Unable to retrieve sensor config: " + sensorType);
+      }
+    } else {
+      LOG.error("Trying to retrieve a field map with sensor type of null");
+    }
+    return new HashMap<>();
   }
 
   @Override

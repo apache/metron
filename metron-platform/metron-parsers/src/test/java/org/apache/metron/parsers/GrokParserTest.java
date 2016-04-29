@@ -55,7 +55,6 @@ public abstract class GrokParserTest {
       grokParser.withDateFormat(getDateFormat());
     }
     grokParser.withTimestampField(getTimestampField());
-    grokParser.withMetronHDFSHome(metronHdfsHome);
     grokParser.init();
     byte[] rawMessage = getRawMessage().getBytes();
     List<JSONObject> parsedList = grokParser.parse(rawMessage);

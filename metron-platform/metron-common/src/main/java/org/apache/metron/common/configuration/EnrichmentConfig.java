@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +97,14 @@ public class EnrichmentConfig {
     }
     @Override
     public SensorEnrichmentConfig readConfig(String sensor) throws Exception {
-      return SensorEnrichmentConfig.fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(sensor, client));
+      SensorEnrichmentConfig sensorEnrichmentConfig = new SensorEnrichmentConfig();
+      try {
+        sensorEnrichmentConfig = SensorEnrichmentConfig.fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(sensor, client));
+      }catch (KeeperException.NoNodeException e) {
+        sensorEnrichmentConfig.setIndex(sensor);
+        sensorEnrichmentConfig.setBatchSize(1);
+      }
+      return sensorEnrichmentConfig;
     }
 
     @Override
@@ -125,6 +133,8 @@ public class EnrichmentConfig {
         fieldMap = config.getThreatIntelFieldMap();
         if(fieldMap!= null) {
           fieldList = fieldMap.get(Constants.SIMPLE_HBASE_THREAT_INTEL);
+        } else {
+          fieldMap = new HashMap<>();
         }
         if(fieldList == null) {
           fieldList = new ArrayList<>();
@@ -140,6 +150,8 @@ public class EnrichmentConfig {
         fieldMap = config.getEnrichmentFieldMap();
         if(fieldMap!= null) {
           fieldList = fieldMap.get(Constants.SIMPLE_HBASE_ENRICHMENT);
+        } else {
+          fieldMap = new HashMap<>();
         }
         if(fieldList == null) {
           fieldList = new ArrayList<>();

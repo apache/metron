@@ -19,26 +19,26 @@ package org.apache.metron.parsers.integration;
 
 import org.apache.metron.TestConstants;
 
-public class BluecoatIntegrationTest extends ParserIntegrationTest {
+public class SquidIntegrationTest extends ParserIntegrationTest {
 
   @Override
   public String getFluxPath() {
-    return "./src/main/flux/bluecoat/test.yaml";
+    return "./src/main/flux/squid/test.yaml";
   }
 
   @Override
   public String getSampleInputPath() {
-    return TestConstants.SAMPLE_DATA_INPUT_PATH + "BluecoatSyslog.txt";
+    return TestConstants.SAMPLE_DATA_INPUT_PATH + "SquidExampleOutput";
   }
 
   @Override
   public String getSampleParsedPath() {
-    return TestConstants.SAMPLE_DATA_PARSED_PATH + "BluecoatParsed";
+    return TestConstants.SAMPLE_DATA_PARSED_PATH + "SquidExampleParsed";
   }
 
   @Override
   public String getSensorType() {
-    return "bluecoat";
+    return "squid";
   }
 
   @Override
