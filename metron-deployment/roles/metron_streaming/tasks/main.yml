@@ -19,7 +19,7 @@
   file: path="{{ metron_directory }}/{{ item.name }}"  state=directory mode=0755
   with_items:
       - { name: 'lib'}
-      - { name: 'scripts'}
+      - { name: 'bin'}
       - { name: 'config'}
 
 
@@ -53,8 +53,13 @@
     src: "{{ metron_common_bundle_path }}"
     dest: "{{ metron_directory }}"
 
+- name: Copy Metron Pcap bundle
+  copy:
+    src: "{{ metron_pcap_bundle_path }}"
+    dest: "{{ metron_directory }}"
+
 - name: Unbundle Metron bundles
-  shell: cd {{ metron_directory }} && tar xzvf metron-solr*.tar.gz && tar xzvf metron-elasticsearch*.tar.gz && tar xzvf metron-enrichment*.tar.gz && tar xzvf metron-parsers*.tar.gz && tar xzvf metron-data-management*.tar.gz && tar xzvf metron-common*.tar.gz && rm *.tar.gz
+  shell: cd {{ metron_directory }} && tar xzvf metron-solr*.tar.gz && tar xzvf metron-elasticsearch*.tar.gz && tar xzvf metron-enrichment*.tar.gz && tar xzvf metron-parsers*.tar.gz && tar xzvf metron-data-management*.tar.gz && tar xzvf metron-common*.tar.gz && tar xzvf metron-pcap-backend*.tar.gz && rm *.tar.gz
 
 - name: Add *-site.xml files to topology jars
   shell: cd {{ item.config_path }} && jar -uf {{ metron_directory }}/lib/{{ item.jar_name }} {{ item.file_name }}
@@ -65,6 +70,11 @@
       - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_elasticsearch_jar_name }}", file_name: "hbase-site.xml" }
       - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_elasticsearch_jar_name }}", file_name: "core-site.xml" }
       - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_elasticsearch_jar_name }}", file_name: "hdfs-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_pcap_jar_name }}", file_name: "core-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_pcap_jar_name }}", file_name: "hdfs-site.xml" }
+      - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "hbase-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "core-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "hdfs-site.xml" }
 
 - name: Get Default mysql passowrd
   include_vars: "../roles/mysql_server/defaults/main.yml"
@@ -75,6 +85,16 @@
 
 - include: grok_upload.yml
   run_once: true
+
+- name: Configure Metron Pcap Topology
+  lineinfile: >
+    dest={{ metron_pcap_properties_config_path }}
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+  with_items:
+    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
+    - { regexp: "kafka.pcap.out=", line: "kafka.pcap.out={{ pcap_hdfs_path }}" }
+    - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
 
 - name: Configure Metron Parser Topologies
   lineinfile:
@@ -97,9 +117,7 @@
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
     - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
-    - { regexp: "bolt.hbase.table.name=", line: "bolt.hbase.table.name={{ pcap_hbase_table }}" }
     - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
     - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }
@@ -125,9 +143,7 @@
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
     - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
-    - { regexp: "bolt.hbase.table.name=", line: "bolt.hbase.table.name={{ pcap_hbase_table }}" }
     - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
     - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }

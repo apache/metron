@@ -15,11 +15,4 @@
 #  limitations under the License.
 #
 ---
-- name: Check for hbase-site
-  stat: path=/etc/hbase/conf/hbase-site.xml
-  register: hbase_site
-
-- include: config-hbase.yml
-  when: not hbase_site.stat.exists
-
 - include: pcapservice.yml

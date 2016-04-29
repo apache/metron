@@ -73,58 +73,6 @@ public class PcapsResponse {
     this.pcaps.add(pcaps);
   }
 
-  /**
-   * Gets the partial response key.
-   * 
-   * @return the partial response key
-   */
-  public String getLastRowKey() {
-    return lastRowKey;
-  }
-
-  /**
-   * Sets the partial response key.
-   * 
-   * @param lastRowKey
-   *          the last row key
-   */
-  public void setLastRowKey(String lastRowKey) {
-    this.lastRowKey = lastRowKey;
-  }
-
-  /**
-   * Gets the status.
-   * 
-   * @return the status
-   */
-  public Status getStatus() {
-    return status;
-  }
-
-  /**
-   * Sets the status.
-   * 
-   * @param status
-   *          the new status
-   */
-  public void setStatus(Status status) {
-    this.status = status;
-  }
-
-  /**
-   * Checks if is resonse size within limit.
-   * 
-   * @param maxResultSize
-   *          the max result size
-   * @return true, if is resonse size within limit
-   */
-  public boolean isResonseSizeWithinLimit(long maxResultSize) {
-    // System.out.println("isResonseSizeWithinLimit() : getResponseSize() < (input|default result size - maximum packet size ) ="+
-    // getResponseSize()+ " < " + ( maxResultSize
-    // -ConfigurationUtil.getMaxRowSize()));
-    return getResponseSize() < (maxResultSize - ConfigurationUtil
-        .getMaxRowSize());
-  }
 
   /**
    * Gets the response size.
@@ -147,6 +95,9 @@ public class PcapsResponse {
    *           Signals that an I/O exception has occurred.
    */
   public byte[] getPcaps() throws IOException {
+    if(pcaps == null) {
+      return new byte[] {};
+    }
     if (pcaps.size() == 1) {
       return pcaps.get(0);
     }

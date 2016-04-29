@@ -26,8 +26,8 @@ if [ -e /usr/libexec/bigtop-detect-javahome ]; then
 elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
   . /usr/lib/bigtop-utils/bigtop-detect-javahome
 fi
-export METRON_VERSION=0.1BETA
+export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-export PARSERS_JAR=metron-parsers-$METRON_VERSION.jar
-export ZK_HOME=${ZK_HOME:-/usr/hdp/current/hbase-client}
-java -cp $METRON_HOME/lib/$PARSERS_JAR org.apache.metron.common.cli.ConfigurationsUtils "$@"
+export PARSERS_JAR=${project.artifactId}-$METRON_VERSION.jar
+export ZK_HOME=${ZK_HOME:-/usr/hdp/current/zookeeper-client}
+java -cp $METRON_HOME/lib/$PARSERS_JAR:$ZK_HOME/lib/* org.apache.metron.common.cli.ConfigurationsUtils "$@"

@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.bro;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -85,38 +86,38 @@ public class BasicBroParser extends BasicParser {
             }
             payload.put("original_string", originalString);
 
-            replaceKey(payload, "timestamp", new String[]{ "ts" });
+            replaceKey(payload, Constants.Fields.TIMESTAMP.getName(), new String[]{ "ts" });
 
             long timestamp = 0L;
-            if (payload.containsKey("timestamp")) {
+            if (payload.containsKey(Constants.Fields.TIMESTAMP.getName())) {
                 try {
-                    String broTimestamp = payload.get("timestamp").toString();
+                    String broTimestamp = payload.get(Constants.Fields.TIMESTAMP.getName()).toString();
                     String convertedTimestamp = broTimestamp.replace(".","");
                     convertedTimestamp = convertedTimestamp.substring(0,13);
                     timestamp = Long.parseLong(convertedTimestamp);
-                    payload.put("timestamp", timestamp);
+                    payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
                     payload.put("bro_timestamp",broTimestamp);
-                    _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get("timestamp")));
+                    _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get(Constants.Fields.TIMESTAMP.getName())));
                 } catch (NumberFormatException nfe) {
                     _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
-                    payload.put("timestamp", 0);
+                    payload.put(Constants.Fields.TIMESTAMP.getName(), 0);
                 }
             }
 
-            boolean ipSrcReplaced = replaceKey(payload, "ip_src_addr", new String[]{"source_ip", "id.orig_h"});
+            boolean ipSrcReplaced = replaceKey(payload, Constants.Fields.SRC_ADDR.getName(), new String[]{"source_ip", "id.orig_h"});
             if (!ipSrcReplaced) {
-                replaceKeyArray(payload, "ip_src_addr", new String[]{ "tx_hosts" });
+                replaceKeyArray(payload, Constants.Fields.SRC_ADDR.getName(), new String[]{ "tx_hosts" });
             }
 
-            boolean ipDstReplaced = replaceKey(payload, "ip_dst_addr", new String[]{"dest_ip", "id.resp_h"});
+            boolean ipDstReplaced = replaceKey(payload, Constants.Fields.DST_ADDR.getName(), new String[]{"dest_ip", "id.resp_h"});
             if (!ipDstReplaced) {
-                replaceKeyArray(payload, "ip_dst_addr", new String[]{ "rx_hosts" });
+                replaceKeyArray(payload, Constants.Fields.DST_ADDR.getName(), new String[]{ "rx_hosts" });
             }
 
-            replaceKey(payload, "ip_src_port", new String[]{"source_port", "id.orig_p"});
-            replaceKey(payload, "ip_dst_port", new String[]{"dest_port", "id.resp_p"});
+            replaceKey(payload, Constants.Fields.SRC_PORT.getName(), new String[]{"source_port", "id.orig_p"});
+            replaceKey(payload, Constants.Fields.DST_PORT.getName(), new String[]{"dest_port", "id.resp_p"});
 
-            payload.put("protocol", key);
+            payload.put(Constants.Fields.PROTOCOL.getName(), key);
             _LOG.debug("[Metron] Returning parsed message: " + payload);
             messages.add(payload);
             return messages;

@@ -17,8 +17,10 @@
 ---
 metron_version: 0.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
-pcapservice_jar_name: metron-api-{{ metron_version }}-jar-with-dependencies.jar
+pcapservice_jar_name: metron-api-{{ metron_version }}.jar
 pcapservice_jar_src: "{{ playbook_dir }}/../../metron-platform/metron-api/target/{{ pcapservice_jar_name }}"
 pcapservice_jar_dst: "{{ metron_directory }}/lib/{{ pcapservice_jar_name }}"
 pcapservice_port: 8081
 hbase_config_path: "/etc/hbase/conf"
+query_hdfs_path: "/tmp"
+pcap_hdfs_path: "/apps/metron/pcap"

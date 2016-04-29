@@ -20,7 +20,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/main/scripts</directory>
-      <outputDirectory>/scripts</outputDirectory>
+      <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -28,6 +28,7 @@
       </excludes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
+      <filtered>true</filtered>
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/flux</directory>

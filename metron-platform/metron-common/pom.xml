@@ -149,6 +149,7 @@
             <artifactId>json-schema-validator</artifactId>
             <version>${global_json_schema_validator_version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
@@ -217,7 +218,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
                 <configuration>
-                    <targetJdk>1.7</targetJdk>
+                  <targetJdk>${global_java_version}</targetJdk>
                 </configuration>
             </plugin>
         </plugins>
@@ -229,15 +230,15 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.7</source>
+                    <source>${global_java_version}</source>
                     <compilerArgument>-Xlint:unchecked</compilerArgument>
-                    <target>1.7</target>
+                    <target>${global_java_version}</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>${global_shade_version}</version>
                 <configuration>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <artifactSet>
