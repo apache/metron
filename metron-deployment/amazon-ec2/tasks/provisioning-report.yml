@@ -27,9 +27,10 @@
 - set_fact:
     Success:
       - "Apache Metron deployed successfully"
-      - "   Metron  @  http://{{ groups.web[0] }}:5000"
-      - "   Ambari  @  http://{{ groups.ambari_master[0] }}:{{ ambari_port }}"
-      - "   Sensors @  {{ groups.sensors[0] }} on {{ sniff_interface }}"
+      - "   Metron          @ http://{{ groups.web[0] }}:5000"
+      - "   Ambari          @ http://{{ groups.ambari_master[0] }}:{{ ambari_port }}"
+      - "   Sensor Status   @ http://{{ groups.sensors[0] }}:2812"
+      - "   Topology Status @ http://{{ groups.enrichment[0] }}:2812"
       - For additional information, see https://metron.incubator.apache.org/'
 
 - debug: var=Success

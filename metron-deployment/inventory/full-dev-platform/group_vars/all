@@ -66,7 +66,7 @@ install_pycapa: False
 install_bro: True
 install_snort: True
 install_yaf: True
-pcap_replay: True
+install_pcap_replay: True
 sniff_interface: eth1
 pcap_replay_interface: "{{ sniff_interface }}"
 storm_parser_topologies:

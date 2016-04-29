@@ -50,8 +50,8 @@ pycapa_home: "/opt/pycapa"
 snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
 
-#PCAP Replay
-pcap_replay: True
+# pcap-replay
+install_pcap_replay: True
 pcap_replay_interface: eth1
 
 #data directories - only required to override defaults

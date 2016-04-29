@@ -15,11 +15,8 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: install_pcap_replay
+- name: Deploy service definitions to monit
+  template: src=metron-topologies dest=/etc/monit.d/metron-topologies
 
-- include: yaf.yml
-  when: install_yaf
-  
-- include: snort.yml
-  when: install_snort
+- name: Start monit
+  service: name=monit state=restarted

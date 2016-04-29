@@ -1,0 +1,30 @@
+
+# pcap topology
+check program pcap-topology with path "{{ monit_home }}/status_pcap_topology.sh"
+  start program "{{ metron_directory }}/bin/start_pcap_topology.sh"
+  stop program "{{ monit_home }}/stop_pcap_topology.sh"
+  if status != 0 then start
+
+# yaf topology
+check program yaf-topology with path "{{ monit_home }}/status_yaf_topology.sh"
+  start program "{{ monit_home }}/start_yaf_topology.sh"
+  stop program "{{ monit_home }}/stop_yaf_topology.sh"
+  if status != 0 then start
+
+# bro topology
+check program bro-topology with path "{{ monit_home }}/status_bro_topology.sh"
+  start program "{{ monit_home }}/start_bro_topology.sh"
+  stop program "{{ monit_home }}/stop_bro_topology.sh"
+  if status != 0 then start
+
+# snort topology
+check program snort-topology with path "{{ monit_home }}/status_snort_topology.sh"
+  start program "{{ monit_home }}/start_snort_topology.sh"
+  stop program "{{ monit_home }}/stop_snort_topology.sh"
+  if status != 0 then start
+
+# enrichment topology
+check program enrichment-topology with path "{{ monit_home }}/status_enrichment_topology.sh"
+  start program "{{ monit_home }}/start_enrichment_topology.sh"
+  stop program "{{ monit_home }}/stop_enrichment_topology.sh"
+  if status != 0 then start

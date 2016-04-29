@@ -73,11 +73,12 @@
     - { role: tap_interface, when: install_tap | default(False) == True }
     - { role: pycapa, when: install_pycapa | default(True) == True }
     - { role: bro, when: install_bro | default(True) == True }
-    - { role: flume,  when: install_snort | default(True) == True }
-    - { role: snort , when: install_snort | default(True) == True }
+    - { role: flume, when: install_snort | default(True) == True }
+    - { role: snort, when: install_snort | default(True) == True }
     - { role: yaf, when: install_yaf | default(True) == True }
-    - { role: pcap_replay , when: (pcap_replay | default(False)) or (sensor_test_mode | default(False)) == True }
+    - { role: pcap_replay, when: install_pcap_replay | default(False) == True }
     - { role: sensor-test-mode, when: sensor_test_mode | default(False) == True }
+    - monit-sensors
   tags:
       - sensors
 
@@ -85,6 +86,7 @@
   become: true
   roles:
     - role: metron_streaming
+    - role: monit-topologies
   tags:
     - enrichment
 
