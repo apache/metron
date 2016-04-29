@@ -259,7 +259,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Xmx2048m -XX:MaxPermSize=256m -XX:-UseSplitVerifier</argLine>
+                    <argLine>-Xmx2048m -XX:-UseSplitVerifier</argLine>
                     <skip>true</skip>
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
