@@ -73,6 +73,8 @@
       - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_pcap_jar_name }}", file_name: "core-site.xml" }
       - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_pcap_jar_name }}", file_name: "hdfs-site.xml" }
       - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "hbase-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "core-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "hdfs-site.xml" }
 
 - name: Get Default mysql passowrd
   include_vars: "../roles/mysql_server/defaults/main.yml"

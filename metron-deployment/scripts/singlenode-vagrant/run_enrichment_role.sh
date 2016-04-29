@@ -17,4 +17,4 @@
 # limitations under the License.
 #
 
-run_enrichment_role.sh enrichment
+./run_ansible_role.sh enrichment
