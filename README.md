@@ -24,12 +24,12 @@ information critical for investigation
 
 3. **Efficient information storage** based on how the information will be used:
 
-- Logs and telemetry are stored such that they can be efficiently mined and
+   - Logs and telemetry are stored such that they can be efficiently mined and
 analyzed for concise security visibility
-- The ability to extract and reconstruct full packets helps an analyst answer 
+   - The ability to extract and reconstruct full packets helps an analyst answer 
 questions such as who the true attacker was, what data was leaked, and where 
 that data was sent
-- Long-term storage not only increases visibility over time, but also enables 
+   - Long-term storage not only increases visibility over time, but also enables 
 advanced analytics such as machine learning techniques to be used to create 
 models on the information.  Incoming data can then be scored against these 
 stored models for advanced anomaly detection.  
