@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.integration;
 
 import org.apache.metron.TestConstants;
+import org.json.simple.JSONObject;
 
 public class SquidIntegrationTest extends ParserIntegrationTest {
 

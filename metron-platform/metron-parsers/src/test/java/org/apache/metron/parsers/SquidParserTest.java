@@ -23,21 +23,21 @@ public class SquidParserTest extends GrokParserTest {
 
   @Override
   public String getRawMessage() {
-    return "1461576382    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html";
+    return "1461576382.642    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html";
   }
 
   /**
    * {
    *   "elapsed":161,
-   *   "start_time":1461576382,
    *   "code":200,
-   *   "original_string":"1461576382    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html",
+   *   "original_string":"1461576382.642    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html",
    *   "method":"GET",
    *   "bytes":103701,
    *   "action":"TCP_MISS",
    *   "ip_src_addr":"127.0.0.1",
-   *   "url":"http://www.cnn.com/",
-   *   "timestamp":1461576382
+   *   "ip_dst_addr":"199.27.79.73",
+   *   "url":"cnn.com",
+   *   "timestamp":1461576382642
    * }
    */
   @Multiline
@@ -70,6 +70,6 @@ public class SquidParserTest extends GrokParserTest {
 
   @Override
   public String getTimestampField() {
-    return "start_time";
+    return "timestamp";
   }
 }

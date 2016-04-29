@@ -98,7 +98,13 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     for (int i = 0; i < outputMessages.size(); i++) {
       String sampleParsedMessage = new String(sampleParsedMessages.get(i));
       String outputMessage = new String(outputMessages.get(i));
-      assertJSONEqual(sampleParsedMessage, outputMessage);
+      try {
+        assertJSONEqual(sampleParsedMessage, outputMessage);
+      } catch (Throwable t) {
+        System.out.println("expected: " + sampleParsedMessage);
+        System.out.println("actual: " + outputMessage);
+        throw t;
+      }
     }
     runner.stop();
 
@@ -108,7 +114,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     ObjectMapper mapper = new ObjectMapper();
     Map m1 = mapper.readValue(doc1, Map.class);
     Map m2 = mapper.readValue(doc2, Map.class);
-    Assert.assertEquals(m1.size(), m2.size());
     for(Object k : m1.keySet()) {
       Object v1 = m1.get(k);
       Object v2 = m2.get(k);
@@ -124,6 +129,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals("value mismatch for " + k ,v1, v2);
       }
     }
+    Assert.assertEquals(m1.size(), m2.size());
   }
 
 }
