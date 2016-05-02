@@ -17,6 +17,8 @@
  */
 package org.apache.metron.parsers;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.hadoop.conf.Configuration;
@@ -43,23 +45,17 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(GrokParser.class);
 
-  private transient Grok grok;
-  private String grokHdfsPath;
-  private String patternLabel;
-  private String[] timeFields = new String[0];
-  private String timestampField;
-  private String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
-  private TimeZone timeZone = TimeZone.getTimeZone("UTC");
+  protected transient Grok grok;
+  protected String grokHdfsPath;
+  protected String patternLabel;
+  protected String[] timeFields = new String[0];
+  protected String timestampField;
+  protected String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
+  protected TimeZone timeZone = TimeZone.getTimeZone("UTC");
 
-  private String metronHdfsHome = "/apps/metron";
   public GrokParser(String grokHdfsPath, String patterLabel) {
     this.grokHdfsPath = grokHdfsPath;
     this.patternLabel = patterLabel;
-  }
-
-  public GrokParser withMetronHDFSHome(String home) {
-    this.metronHdfsHome= home;
-    return this;
   }
 
   public GrokParser withTimestampField(String timestampField) {
@@ -86,7 +82,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     InputStream is = getClass().getResourceAsStream(streamName);
     if(is == null) {
       FileSystem fs = FileSystem.get(new Configuration());
-      Path path = new Path((metronHdfsHome != null && metronHdfsHome.length() > 0?metronHdfsHome + "/":"") + streamName);
+      Path path = new Path(streamName);
       if(fs.exists(path)) {
         return fs.open(path);
       }
@@ -134,7 +130,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         }
       }
       if (timestampField != null) {
-        message.put(Constants.Fields.TIMESTAMP.getName(), message.get(timestampField));
+        message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
       }
       message.remove(patternLabel);
       messages.add(message);
@@ -162,6 +158,17 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     sdf.setTimeZone(timeZone);
     Date date = sdf.parse(datetime);
     return date.getTime();
+  }
+
+  protected long formatTimestamp(Object value) {
+    if (value == null) {
+      throw new RuntimeException(patternLabel + " pattern does not include field " + timestampField);
+    }
+    if (value instanceof Number) {
+      return ((Number) value).longValue();
+    } else {
+      return Long.parseLong(Joiner.on("").join(Splitter.on('.').split(value + "")));
+    }
   }
 
 }

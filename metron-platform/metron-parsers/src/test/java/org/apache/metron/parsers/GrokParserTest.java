@@ -20,68 +20,43 @@ package org.apache.metron.parsers;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import junit.framework.Assert;
-import org.adrianwalker.multilinestring.Multiline;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GrokParserTest {
-
-  public String expectedRaw = "2016-01-28 15:29:48.512|2016-01-28 15:29:48.512|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
-
-  /**
-   * {
-   * "roct":0,
-   * "end_reason":"idle",
-   * "ip_dst_addr":"10.0.2.15",
-   * "iflags":"AS",
-   * "rpkt":0,
-   * "original_string":"2016-01-28 15:29:48.512|2016-01-28 15:29:48.512|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle",
-   * "tag":0,
-   * "risn":0,
-   * "ip_dst_port":39468,
-   * "ruflags":0,
-   * "app":0,
-   * "protocol":6
-   * ,"isn":"22efa001",
-   * "uflags":0,"duration":"0.000",
-   * "oct":44,
-   * "ip_src_port":80,
-   * "end_time":"2016-01-28 15:29:48.512",
-   * "riflags":0,"start_time":"2016-01-28 15:29:48.512",
-   * "rtt":"0.000",
-   * "rtag":0,
-   * "pkt":1,
-   * "ip_src_addr":"216.21.170.221"
-   * }
-   */
-  @Multiline
-  private String expectedParsedString;
+public abstract class GrokParserTest {
 
   private JSONObject expectedParsed;
 
   @Before
   public void parseJSON() throws ParseException {
     JSONParser jsonParser = new JSONParser();
-    expectedParsed = (JSONObject) jsonParser.parse(expectedParsedString);
+    expectedParsed = (JSONObject) jsonParser.parse(getExpectedParsedString());
   }
 
   @Test
   public void test() throws IOException, ParseException {
-    String metronHdfsHome = "../metron-parsers/src/main/";
-    String grokHdfsPath = "/patterns/yaf";
-    String patternLabel = "YAF_DELIMITED";
-    GrokParser grokParser = new GrokParser(grokHdfsPath, patternLabel);
-    grokParser.withMetronHDFSHome(metronHdfsHome);
+    String metronHdfsHome = "";
+    GrokParser grokParser = new GrokParser(getGrokPath(), getGrokPatternLabel());
+    String[] timeFields = getTimeFields();
+    if (timeFields != null) {
+      grokParser.withTimeFields(getTimeFields());
+    }
+    String dateFormat = getDateFormat();
+    if (dateFormat != null) {
+      grokParser.withDateFormat(getDateFormat());
+    }
+    grokParser.withTimestampField(getTimestampField());
     grokParser.init();
-    byte[] rawMessage = expectedRaw.getBytes();
+    byte[] rawMessage = getRawMessage().getBytes();
     List<JSONObject> parsedList = grokParser.parse(rawMessage);
     Assert.assertEquals(1, parsedList.size());
     compare(expectedParsed, parsedList.get(0));
@@ -111,4 +86,12 @@ public class GrokParserTest {
     if (actualDifferences.size() > 0) Assert.fail("Expected and Actual JSON values don't match: " + actualDifferences);
     return true;
   }
+
+  public abstract String getRawMessage();
+  public abstract String getExpectedParsedString();
+  public abstract String getGrokPath();
+  public abstract String getGrokPatternLabel();
+  public abstract String[] getTimeFields();
+  public abstract String getDateFormat();
+  public abstract String getTimestampField();
 }

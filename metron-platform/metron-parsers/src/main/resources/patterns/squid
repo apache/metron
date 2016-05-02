@@ -1,0 +1,2 @@
+WDOM [^(?:http:\/\/|www\.|https:\/\/)]([^\/]+)
+SQUID_DELIMITED %{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} http:\/\/\www.%{WDOM:url}\/ - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}

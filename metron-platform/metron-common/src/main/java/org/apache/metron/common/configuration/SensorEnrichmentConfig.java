@@ -28,8 +28,8 @@ import java.util.Map;
 public class SensorEnrichmentConfig {
 
   private String index;
-  private Map<String, List<String>> enrichmentFieldMap;
-  private Map<String, List<String>> threatIntelFieldMap;
+  private Map<String, List<String>> enrichmentFieldMap = new HashMap<>();
+  private Map<String, List<String>> threatIntelFieldMap = new HashMap<>();
   private Map<String, List<String>> fieldToEnrichmentTypeMap = new HashMap<>();
   private Map<String, List<String>> fieldToThreatIntelTypeMap = new HashMap<>();
   private int batchSize;

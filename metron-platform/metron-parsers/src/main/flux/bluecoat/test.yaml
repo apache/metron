@@ -14,27 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "yaf-test"
+name: "bluecoat-test"
 config:
     topology.workers: 1
 
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.GrokParser"
-        constructorArgs:
-            - "../metron-parsers/src/main/resources/patterns/yaf"
-            - "YAF_DELIMITED"
-        configMethods:
-            -   name: "withTimestampField"
-                args:
-                    - "start_time"
-            -   name: "withTimeFields"
-                args:
-                    - ["start_time", "end_time"]
-            -   name: "withDateFormat"
-                args:
-                    - "yyyy-MM-dd HH:mm:ss.S"
+        className: "org.apache.metron.parsers.bluecoat.BasicBluecoatParser"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:
@@ -49,14 +36,14 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "yaf"
+            - "bluecoat"
             # zk root
             - ""
             # id
-            - "yaf"
+            - "bluecoat"
         properties:
             -   name: "ignoreZkOffsets"
-                value: false
+                value: true
             -   name: "startOffsetTime"
                 value: -2
             -   name: "socketTimeoutMs"
@@ -73,7 +60,7 @@ bolts:
         className: "org.apache.metron.parsers.bolt.ParserBolt"
         constructorArgs:
             - "${kafka.zk}"
-            - "yaf"
+            - "bluecoat"
             - ref: "parser"
             - ref: "writer"
 
