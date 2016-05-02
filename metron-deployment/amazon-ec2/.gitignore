@@ -2,3 +2,4 @@
 *.secret
 *.log
 *.retry
+.metron-env

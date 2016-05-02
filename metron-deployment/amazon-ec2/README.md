@@ -3,18 +3,40 @@ Apache Metron on Amazon EC2
 
 This project fully automates the provisioning of Apache Metron on Amazon EC2 infrastructure.  Starting with only your Amazon EC2 credentials, this project will create a fully-functioning, end-to-end, multi-node cluster running Apache Metron.
 
+Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
+
 Getting Started
 ---------------
 
 ### Prerequisites
 
-The host that will drive the provisioning process will need to have [Ansible](https://github.com/ansible/ansible), Python and PIP installed.  In most cases, a development laptop serves this purpose just fine.  Also, install the Python library `boto` and its dependencies.  
+The computer used to deploy Apache Metron will need to have [Ansible](https://github.com/ansible/ansible), Python, Maven, SSH, and Git installed.  Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
-```
-pip install boto six
-```
+1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
-Ensure that an SSH key has been generated and stored at `~/.ssh/id_rsa.pub`.  In most cases this key will already exist and no further action will be needed.
+  ```
+  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  ```
+
+2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
+
+  ```  
+  brew install ansible brew-pip maven git
+  ```
+
+3. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.  
+
+  ```
+  $ cat ~/.ssh/id_rsa.pub
+  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChv5GJxPjR39UJV7VY17ivbLVlxFrH7UHwh1Jsjem4d1eYiAtde5N2y65/HRNxWbhYli9ED8k0/MRP92ejewucEbrPNq5mytPqdC4IvZ98Ln2GbqTDwvlP3T7xa/wYFOpFsOmXXql8216wSrnrS4f3XK7ze34S6/VmY+lsBYnr3dzyj8sG/mexpJgFS/w83mWJV0e/ryf4Hd7P6DZ5fO+nmTXfKNK22ga4ctcnbZ+toYcPL+ODCh8598XCKVo97XjwF5OxN3vl1p1HHguo3cHB4H1OIaqX5mUt59gFIZcAXUME89PO6NUiZDd3RTstpf125nQVkQAHu2fvW96/f037 nick@localhost
+  ```
+
+  If this file does not exist, run the following command at a terminal and accept all defaults.  Only the public key, not the private key, will be uploaded to Amazon and configured on each host to enable SSH connectivity.  While it is possible to create and use an alternative key those details will not be covered.  
+
+  ```
+  ssh-keygen -t rsa
+  ```
+
 
 ### Create User
 
@@ -29,28 +51,26 @@ Ensure that an SSH key has been generated and stored at `~/.ssh/id_rsa.pub`.  In
 
 3. Create an access key for the user by clicking on `Security Credentials > Create Access Key`.  Save the provided access key values in a safe place.  These values cannot be retrieved from the web console at a later time.
 
-4. Use the access key by exporting its values to the shell's environment.  This allows Ansible to authenticate with Amazon EC2.  For example:
+### Deploy Metron
+
+1. Use the Amazon access key by exporting its values via the shell's environment.  This allows Ansible to authenticate with Amazon EC2.  For example:
 
   ```
   export AWS_ACCESS_KEY_ID="AKIAI6NRFEO27E5FFELQ"
   export AWS_SECRET_ACCESS_KEY="vTDydWJQnAer7OWauUS150i+9Np7hfCXrrVVP6ed"
   ```
 
-### Deploy Metron
+  Notice: You must replace the access key values above with values from your own access key.
 
-1. Ensure that Metron's streaming topology uber-jar has been built.
-
-  ```
-  cd ../../metron-platform
-  mvn clean package -DskipTests
-  ```
-
-2. Start the Metron playbook.  A full Metron deployment can consume up to 60 minutes.  Grab a coffee, relax and practice mindfulness meditation.  If the playbook fails mid-stream for any reason, simply re-run it.  
+2. Start the Apache Metron deployment process.  When prompted provide a unique name for your Metron environment or accept the default.  
 
   ```
-  export EC2_INI_PATH=conf/ec2.ini
-  ansible-playbook -i ec2.py playbook.yml
+  $ ./run.sh
+  Metron Environment [metron-test]: my-metron-env
+  ...
   ```
+
+  The process is likely to take between 70-90 minutes.  Fortunately, everything is fully automated and you should feel free to grab a coffee.
 
 ### Explore Metron
 
