@@ -1,0 +1,56 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Configure Metron UI
+  lineinfile:
+    dest="{{ metron_ui_directory }}/config.json"
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: '"elasticsearch":', line: '"elasticsearch": { "url": "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}" },' }
+    - { regexp: '"pcap":', line: '  "pcap": { "url": "http://{{ groups.pcap_server[0] }}:{{ pcapservice_port }}/pcapGetter","mock": false }' }
+
+- name: Install Node dependencies
+  npm:
+    name: pm2
+    path: "{{ metron_ui_directory }}"
+    global: true
+
+- name: Install Metron UI
+  npm:
+    path: "{{ metron_ui_directory }}"
+    production: no
+
+- name: Ensure Metron UI is stopped before installing service
+  shell: pm2 stop all
+  args:
+    creates: /etc/init.d/pm2-init.sh
+  ignore_errors: True
+
+- name: Configure Metron UI as a service
+  shell: "{{ item }}"
+  args:
+    creates: /etc/init.d/pm2-init.sh
+  with_items:
+    - "pm2 start {{ metron_ui_directory }}/lib/metron-ui.js --name metron"
+    - pm2 save
+    - pm2 startup centos
+    - su -c 'chmod +x /etc/init.d/pm2-init.sh; chkconfig --add pm2-init.sh'
+
+- name: Start Metron UI
+  service: name=pm2-init.sh state=restarted
