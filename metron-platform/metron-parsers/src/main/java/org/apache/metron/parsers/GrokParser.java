@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
@@ -53,41 +55,23 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
   protected TimeZone timeZone = TimeZone.getTimeZone("UTC");
 
-  public GrokParser(String grokHdfsPath, String patterLabel) {
-    this.grokHdfsPath = grokHdfsPath;
-    this.patternLabel = patterLabel;
-  }
-
-  public GrokParser withTimestampField(String timestampField) {
-    this.timestampField = timestampField;
-    return this;
-  }
-
-  public GrokParser withTimeFields(String... timeFields) {
-    this.timeFields = timeFields;
-    return this;
-  }
-
-  public GrokParser withDateFormat(String dateFormat) {
-    this.dateFormat = dateFormat;
-    return this;
-  }
-
-  public GrokParser withTimeZone(String timeZone) {
-    this.timeZone = TimeZone.getTimeZone(timeZone);
-    return this;
+  @Override
+  public void configure(Map<String, Object> parserConfig) {
+    this.grokHdfsPath = (String) parserConfig.get("grokHdfsPath");
+    this.patternLabel = (String) parserConfig.get("patternLabel");
+    this.timestampField = (String) parserConfig.get("timestampField");
+    this.timeFields = (String[]) parserConfig.get("timeFields");
+    this.timeZone = TimeZone.getTimeZone((String) parserConfig.get("timeZone"));
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    InputStream is = getClass().getResourceAsStream(streamName);
-    if(is == null) {
-      FileSystem fs = FileSystem.get(new Configuration());
-      Path path = new Path(streamName);
-      if(fs.exists(path)) {
-        return fs.open(path);
-      }
+    FileSystem fs = FileSystem.get(new Configuration());
+    Path path = new Path(streamName);
+    if(fs.exists(path)) {
+      return fs.open(path);
+    } else {
+      return getClass().getResourceAsStream(streamName);
     }
-    return is;
   }
 
   @Override

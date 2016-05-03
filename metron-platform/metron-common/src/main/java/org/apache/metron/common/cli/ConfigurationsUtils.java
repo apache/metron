@@ -32,6 +32,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.zookeeper.KeeperException;
 
@@ -122,6 +123,10 @@ public class ConfigurationsUtils {
 
   public static SensorEnrichmentConfig readSensorEnrichmentConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(Constants.ZOOKEEPER_SENSOR_ROOT + "/" + sensorType, client)), SensorEnrichmentConfig.class);
+  }
+
+  public static SensorParserConfig readSensorParserConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(Constants.ZOOKEEPER_PARSER_ROOT + "/" + sensorType, client)), SensorParserConfig.class);
   }
 
   public static byte[] readGlobalConfigBytesFromZookeeper(CuratorFramework client) throws Exception {

@@ -18,9 +18,11 @@
 package org.apache.metron.parsers.interfaces;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MessageParser<T> {
 
+	void configure(Map<String, Object> parserConfig);
 	void init();
 	List<T> parse(byte[] rawMessage);
 	boolean validate(T message);

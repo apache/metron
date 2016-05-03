@@ -20,94 +20,95 @@ package org.apache.metron.parsers.integration;
 import org.apache.metron.common.Constants;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.utils.TestUtils;
+import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
+import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class ParserIntegrationTest extends BaseIntegrationTest {
+public class ParserIntegrationTest extends BaseIntegrationTest {
 
-  public abstract String getFluxPath();
-  public abstract String getSampleInputPath();
-  public abstract String getSampleParsedPath();
-  public abstract String getSensorType();
-  public abstract String getFluxTopicProperty();
+  private String configRoot = "../metron-parsers/src/main/config/zookeeper/parsers";
+  private String sampleDataRoot = "../metron-integration-test/src/main/resources/sample/data";
+  private String testSensorType;
 
   @Test
   public void test() throws Exception {
 
-    final String kafkaTopic = getSensorType();
+    for (String name: new File(configRoot).list()) {
+      final String sensorType = name;
+      if (testSensorType != null && !testSensorType.equals(sensorType)) continue;
 
-    final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleInputPath());
+      final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleDataPath(sensorType, TestDataType.RAW));
 
-    final Properties topologyProperties = new Properties();
-    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
-    }});
+      final Properties topologyProperties = new Properties();
+      final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
+        add(new KafkaWithZKComponent.Topic(sensorType, 1));
+      }});
 
-    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
-    FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
-            .withTopologyLocation(new File(getFluxPath()))
-            .withTopologyName("test")
-            .withTopologyProperties(topologyProperties)
-            .build();
+      topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
-    UnitTestHelper.verboseLogging();
-    ComponentRunner runner = new ComponentRunner.Builder()
-            .withComponent("kafka", kafkaComponent)
-            .withComponent("storm", fluxComponent)
-            .withMillisecondsBetweenAttempts(5000)
-            .withNumRetries(10)
-            .build();
-    runner.start();
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(kafkaTopic, inputMessages);
-    List<byte[]> outputMessages =
-            runner.process(new Processor<List<byte[]>>() {
-              List<byte[]> messages = null;
+      ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
+              .withSensorType(sensorType)
+              .withZookeeperUrl(kafkaComponent.getZookeeperConnect())
+              .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
-              public ReadinessState process(ComponentRunner runner) {
-                KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
-                List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                if (outputMessages.size() == inputMessages.size()) {
-                  messages = outputMessages;
-                  return ReadinessState.READY;
-                } else {
-                  return ReadinessState.NOT_READY;
+      UnitTestHelper.verboseLogging();
+      ComponentRunner runner = new ComponentRunner.Builder()
+              .withComponent("kafka", kafkaComponent)
+              .withComponent("storm", parserTopologyComponent)
+              .withMillisecondsBetweenAttempts(5000)
+              .withNumRetries(10)
+              .build();
+      runner.start();
+      kafkaComponent.writeMessages(sensorType, inputMessages);
+      List<byte[]> outputMessages =
+              runner.process(new Processor<List<byte[]>>() {
+                List<byte[]> messages = null;
+
+                public ReadinessState process(ComponentRunner runner) {
+                  KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
+                  List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                  if (outputMessages.size() == inputMessages.size()) {
+                    messages = outputMessages;
+                    return ReadinessState.READY;
+                  } else {
+                    return ReadinessState.NOT_READY;
+                  }
                 }
-              }
 
-              public List<byte[]> getResult() {
-                return messages;
-              }
-            });
-    List<byte[]> sampleParsedMessages = TestUtils.readSampleData(getSampleParsedPath());
-    Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());
-    for (int i = 0; i < outputMessages.size(); i++) {
-      String sampleParsedMessage = new String(sampleParsedMessages.get(i));
-      String outputMessage = new String(outputMessages.get(i));
-      try {
-        assertJSONEqual(sampleParsedMessage, outputMessage);
-      } catch (Throwable t) {
-        System.out.println("expected: " + sampleParsedMessage);
-        System.out.println("actual: " + outputMessage);
-        throw t;
+                public List<byte[]> getResult() {
+                  return messages;
+                }
+              });
+      List<byte[]> sampleParsedMessages = TestUtils.readSampleData(getSampleDataPath(sensorType, TestDataType.PARSED));
+      Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());
+      for (int i = 0; i < outputMessages.size(); i++) {
+        String sampleParsedMessage = new String(sampleParsedMessages.get(i));
+        String outputMessage = new String(outputMessages.get(i));
+        try {
+          assertJSONEqual(sampleParsedMessage, outputMessage);
+        } catch (Throwable t) {
+          System.out.println("expected: " + sampleParsedMessage);
+          System.out.println("actual: " + outputMessage);
+          throw t;
+        }
       }
+      runner.stop();
     }
-    runner.stop();
-
   }
 
   public static void assertJSONEqual(String doc1, String doc2) throws IOException {
@@ -130,6 +131,28 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
       }
     }
     Assert.assertEquals(m1.size(), m2.size());
+  }
+
+  private String getSampleDataPath(String sensorType, TestDataType testDataType) throws FileNotFoundException {
+    File sensorSampleDataPath = new File(sampleDataRoot, sensorType);
+    if (sensorSampleDataPath.exists() && sensorSampleDataPath.isDirectory()) {
+      File sampleDataPath = new File(sensorSampleDataPath, testDataType.getDirectoryName());
+      if (sampleDataPath.exists() && sampleDataPath.isDirectory()) {
+        File[] children = sampleDataPath.listFiles();
+        if (children != null && children.length > 0) {
+          return children[0].getAbsolutePath();
+        }
+      }
+    }
+    throw new FileNotFoundException("Could not find data in " + sampleDataRoot + "/" + sensorType + "/" + testDataType.getDirectoryName());
+  }
+
+  public static void main(String[] args) throws Exception {
+    ParserIntegrationTest parserIntegrationTest = new ParserIntegrationTest();
+    if (args.length > 0) {
+      parserIntegrationTest.testSensorType = args[0];
+    }
+    parserIntegrationTest.test();
   }
 
 }

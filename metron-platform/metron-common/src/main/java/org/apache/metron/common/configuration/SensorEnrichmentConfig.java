@@ -27,26 +27,12 @@ import java.util.Map;
 
 public class SensorEnrichmentConfig {
 
-  private String parserClassName;
-  private String sensorTopic;
   private String index;
   private Map<String, List<String>> enrichmentFieldMap = new HashMap<>();
   private Map<String, List<String>> threatIntelFieldMap = new HashMap<>();
   private Map<String, List<String>> fieldToEnrichmentTypeMap = new HashMap<>();
   private Map<String, List<String>> fieldToThreatIntelTypeMap = new HashMap<>();
   private int batchSize;
-
-  public String getParserClassName() {
-    return parserClassName;
-  }
-
-  public void setParserClassName(String parserClassName) {
-    this.parserClassName = parserClassName;
-  }
-
-  public String getSensorTopic() { return sensorTopic; }
-
-  public void setSensorTopic(String sensorTopic) { this.sensorTopic = sensorTopic; }
 
   public String getIndex() {
     return index;

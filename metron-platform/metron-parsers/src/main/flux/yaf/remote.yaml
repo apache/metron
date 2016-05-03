@@ -22,7 +22,7 @@ components:
     -   id: "parser"
         className: "org.apache.metron.parsers.GrokParser"
         constructorArgs:
-            - "/patterns/yaf"
+            - "/apps/metron/patterns/yaf"
             - "YAF_DELIMITED"
         configMethods:
             -   name: "withTimestampField"
