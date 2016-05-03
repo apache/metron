@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -90,12 +91,13 @@ public class HDFSDataPrunerTest {
         Long prunedCount = pruner.prune();
         assertTrue("Should have pruned 45 files- pruned: " + prunedCount, 45 == prunedCount);
 
-        //Verify first five files remain
         File[] filesLeft = dataPath.listFiles();
         File[] filesList = new File[filesLeft.length];
         for (int i = 0; i < 5; i++) {
             filesList[i] = new File(dataPath.getPath() + "//file-" + String.format("%02d", i));
         }
+
+        Arrays.sort(filesLeft);
         assertArrayEquals("First four files should have been left behind", filesLeft, filesList);
 
 
