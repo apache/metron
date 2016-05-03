@@ -15,6 +15,19 @@
 #  limitations under the License.
 #
 ---
-- include: dependencies.yml
-- include: copy-source.yml
-- include: metron-ui.yml
+- name: Install yum repositories
+  yum: name=epel-release update_cache=yes
+
+- name: Install Metron UI dependencies
+  yum:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+      - libpcap-devel
+      - wireshark
+      - nodejs
+      - npm
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
