@@ -59,7 +59,14 @@
     password: "{{ ambari_password }}"
     cluster_name: "{{ cluster_name }}"
     cluster_state: started
-    wait_for_complete: "{{ item }}"
-    with_items:
-      - False
-      - True
+    wait_for_complete: False
+
+- name: Start the ambari cluster - wait
+  ambari_cluster_state:
+    host: "{{ groups.ambari_master[0] }}"
+    port: "{{ ambari_port }}"
+    username: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    cluster_name: "{{ cluster_name }}"
+    cluster_state: started
+    wait_for_complete: True

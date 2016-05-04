@@ -69,6 +69,7 @@
 - hosts: sensors
   become: true
   roles:
+    - ambari_gather_facts
     - { role: tap_interface, when: install_tap | default(False) == True }
     - { role: pycapa, when: install_pycapa | default(True) == True }
     - { role: bro, when: install_bro | default(True) == True }
