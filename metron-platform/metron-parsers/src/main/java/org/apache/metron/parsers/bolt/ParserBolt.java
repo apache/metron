@@ -79,6 +79,7 @@ public class ParserBolt extends ConfiguredBolt {
       collector.ack(tuple);
     } catch (Throwable ex) {
       ErrorUtils.handleError(collector, ex, Constants.ERROR_STREAM);
+      collector.fail(tuple);
     }
   }
 
