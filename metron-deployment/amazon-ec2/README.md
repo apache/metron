@@ -10,7 +10,13 @@ Getting Started
 
 ### Prerequisites
 
-The computer used to deploy Apache Metron will need to have [Ansible](https://github.com/ansible/ansible), Python, Maven, SSH, and Git installed.  Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+The host used to deploy Apache Metron will need the following software tools installed.  The following versions are known to work as of the time of this writing, but by no means are these the only working versions.
+
+  - Ansible 2.0.0.2
+  - Python 2.7.11
+  - Maven 3.3.9  
+
+Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
 1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
@@ -37,19 +43,22 @@ The computer used to deploy Apache Metron will need to have [Ansible](https://gi
   ssh-keygen -t rsa
   ```
 
+### Amazon Web Services
 
-### Create User
+If you already have an Amazon Web Services account that you have used to deploy EC2 hosts, then you should be able to skip the next few steps.
 
-1. Use Amazon's [Identity and Access Management](https://console.aws.amazon.com/iam/) tool to create a user account by navigating to `Users > Create New User`.  
+1. Head over to [Amazon Web Services](http://aws.amazon.com/) and create an account.  As part of the account creation process you will need to provide a credit card to cover any charges that may apply.
 
-2. Grant the user permission by clicking on `Permissions > Attach Policy` and add the following policies.
+2. Create a set of user credentials through [Amazon's Identity and Access Management (IAM) ](https://console.aws.amazon.com/iam/) dashboard.  On the IAM dashboard menu click "Users" and then "Create New User". Provide a name and ensure that "Generate an access key for each user" remains checked.  Download the credentials and keep them for later use.
 
-  ```
-  AmazonEC2FullAccess
-  AmazonVPCFullAccess
-  ```
+3.  While still in [Amazon's Identity and Access Management (IAM) ](https://console.aws.amazon.com/iam/) dashboard, click on the user that was previously created.  Click the "Permissions" tab and then the "Attach Policy" button.  Attach the following policies to the user.
 
-3. Create an access key for the user by clicking on `Security Credentials > Create Access Key`.  Save the provided access key values in a safe place.  These values cannot be retrieved from the web console at a later time.
+  - AmazonEC2FullAccess
+  - AmazonVPCFullAccess
+
+4. Apache Metron uses the [official, open source CentOS 6](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) Amazon Machine Image (AMI).  If you have never used this AMI before then you will need to accept Amazon's terms and conditions.  Navigate to the [web page for this AMI](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) and click the "Continue" button.  Choose the "Manual Launch" tab then click the "Accept Software Terms" button.
+
+Having successfully created your Amazon Web Services account, hopefully you will find that the most difficult tasks are behind us.  
 
 ### Deploy Metron
 
