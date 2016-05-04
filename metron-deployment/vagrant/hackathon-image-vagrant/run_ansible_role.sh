@@ -17,4 +17,4 @@
 # limitations under the License.
 #
 
-./run_ansible_role.sh enrichment
+vagrant --ansible-tags="$@" provision
