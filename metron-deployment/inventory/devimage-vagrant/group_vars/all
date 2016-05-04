@@ -84,3 +84,4 @@ solr_replication_factor: 1
 elasticsearch_transport_port: 9300
 elasticsearch_network_interface: eth1
 elasticsearch_web_port: 9200
+
