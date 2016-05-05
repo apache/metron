@@ -15,31 +15,19 @@
 #  limitations under the License.
 #
 ---
-# tasks file for ambari_master
-- name: Install ambari server
+- name: Install yum repositories
+  yum: name=epel-release update_cache=yes
+
+- name: Install Metron UI dependencies
   yum:
-    name: ambari-server
-    state: present
-    update_cache: yes
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+      - libpcap-devel
+      - wireshark
+      - nodejs
+      - npm
   register: result
   until: result.rc == 0
   retries: 5
   delay: 10
-
-- name: Set Ambari Server Max Memory
-  replace:
-    dest: /var/lib/ambari-server/ambari-env.sh
-    regexp:  "\ -Xmx2048m\ "
-    replace: " -Xmx{{ ambari_server_mem }}m "
-    backup: no
-
-- name: Setup ambari server
-  shell: ambari-server setup -s && touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
-  register: ambari_server_setup
-  failed_when: ambari_server_setup.stderr
-
-- name: start ambari server
-  service:
-    name: ambari-server
-    state: started
-
