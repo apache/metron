@@ -57,14 +57,13 @@ Now that the hard part is done, start the Metron deployment process.
   ```
 
   Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
-<<<<<<< f0007a1ed6d9797fdd76a89d7eb9e36646e683fb:metron-deployment/vagrant/full-dev-platform/README.md
 
   ```
   vagrant provision
   ```
-  
+
   In addition to re-running the entire provisioning play book, you may now re-run an individual Ansible tag or a collection of tags in the following ways.
-  
+
   ```
   ./run_ansible_role.sh web
   ```
@@ -73,22 +72,22 @@ Now that the hard part is done, start the Metron deployment process.
   vagrant --ansible-tags="web" provision
   ```
   Will re-run the web role on the Vagrant image. This will re-install (if necessary) and start the UI.
-   
+
   A collection of tags is specified as a comma separated list.
-  
+
   ```
   ./run_ansbile_role.sh "sensors,enrichment"
-  
+
   ```
-  
+
   Tags are listed in the playbooks, some frequently used tags:
   + hdp-install - Install HDP
   + hdp-deploy - Deploy and Start HDP Services (will start all Hadoop Services)
   + sensors - Deploy and Start Sensors.
   + enrichment - Deploy and Start Enrichment Topology.
-  
+
   Note: there is a convienence script, ```./run_enrichment_role.sh```,  which runs the enrichment tag.
-  
+
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
@@ -101,4 +100,3 @@ Connecting to the host through SSH is as simple as running the following command
    ```
    vagrant ssh
    ```
-

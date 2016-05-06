@@ -58,6 +58,7 @@ install_pcap_replay: True
 install_tap: True
 sensor_test_mode: True
 pcap_replay_interface: tap0
+pcap_replay_home: /opt/pcap-replay
 sniff_interface: tap0
 
 # data directories
