@@ -41,5 +41,5 @@
 - name: start ambari server
   service:
     name: ambari-server
-    state: started
+    state: restarted
 
