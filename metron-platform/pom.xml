@@ -51,6 +51,7 @@
 		<global_solr_version>5.2.1</global_solr_version>
 		<global_mockito_version>1.10.19</global_mockito_version>
 		<global_shade_version>2.4.3</global_shade_version>
+    <global_antlr_version>4.5</global_antlr_version>
 	</properties>
 	<licenses>
 		<license>

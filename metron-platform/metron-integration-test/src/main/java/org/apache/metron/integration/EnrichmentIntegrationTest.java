@@ -354,7 +354,9 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
             ) {
       //if we have any threat intel messages, we want to tag is_alert to true
       Assert.assertTrue(keyPatternExists("threatintels.", indexedDoc));
+      Assert.assertTrue(indexedDoc.containsKey("threat.triage.level"));
       Assert.assertEquals(indexedDoc.get("is_alert"), "true");
+      Assert.assertEquals((double)indexedDoc.get("threat.triage.level"), 10d, 1e-7);
     }
     else {
       //For YAF this is the case, but if we do snort later on, this will be invalid.

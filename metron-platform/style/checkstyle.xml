@@ -19,11 +19,17 @@
 
 <module name="Checker">
   <property name="localeLanguage" value="en"/>
-
+  <module name="TreeWalker">
+    <module name="FileContentsHolder"/>
+  </module>
+  <module name="SuppressionCommentFilter"/>
+  <module name="SuppressionFilter">
+    <property name="file" value="style/suppressions.xml"/>
+  </module>
   <!-- Verify that EVERY source file has the appropriate license -->
   <module name="Header">
     <property name="headerFile" value="style/LICENSE.java"/>
-    <property name="fileExtensions" value="java"/>
+    <property name="fileExtensions" value="java, g4"/>
   </module>
   <module name="Header">
     <property name="headerFile" value="style/LICENSE.config"/>

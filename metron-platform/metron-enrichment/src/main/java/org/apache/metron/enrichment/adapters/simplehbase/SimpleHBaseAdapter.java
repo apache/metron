@@ -64,7 +64,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
     List<String> enrichmentTypes = value.getConfig()
-                                        .getFieldToEnrichmentTypeMap()
+                                        .getEnrichment().getFieldToTypeMap()
                                         .get(EnrichmentUtils.toTopLevelField(value.getField()));
     if(enrichmentTypes != null && value.getValue() != null) {
       try {

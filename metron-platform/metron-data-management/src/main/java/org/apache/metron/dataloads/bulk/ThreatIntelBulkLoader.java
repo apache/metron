@@ -32,7 +32,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.hbase.mr.BulkLoadMapper;
-import org.apache.metron.common.configuration.EnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.common.utils.JSONUtils;
@@ -238,10 +238,10 @@ public class ThreatIntelBulkLoader  {
     if(BulkLoadOptions.CONVERTER.has(cli)) {
       converterClass = BulkLoadOptions.CONVERTER.get(cli);
     }
-    EnrichmentConfig enrichmentConfig = null;
+    SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(BulkLoadOptions.ENRICHMENT_CONFIG.has(cli)) {
-      enrichmentConfig = JSONUtils.INSTANCE.load( new File(BulkLoadOptions.ENRICHMENT_CONFIG.get(cli))
-              , EnrichmentConfig.class
+      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(BulkLoadOptions.ENRICHMENT_CONFIG.get(cli))
+              , SensorEnrichmentUpdateConfig.class
       );
     }
 
@@ -252,8 +252,8 @@ public class ThreatIntelBulkLoader  {
     if(!jobRet) {
       System.exit(1);
     }
-    if(enrichmentConfig != null) {
-        enrichmentConfig.updateSensorConfigs();
+    if(sensorEnrichmentUpdateConfig != null) {
+        sensorEnrichmentUpdateConfig.updateSensorConfigs();
     }
     System.exit(0);
   }

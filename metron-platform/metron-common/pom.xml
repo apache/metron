@@ -47,6 +47,11 @@
             <version>${global_json_simple_version}</version>
         </dependency>
         <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>${global_antlr_version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
             <version>${global_storm_version}</version>
@@ -235,6 +240,22 @@
                     <target>${global_java_version}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${global_antlr_version}</version>
+                <configuration>
+                  <outputDirectory>${basedir}/src/main/java</outputDirectory>
+                </configuration>
+                <executions>
+                  <execution>
+                    <goals>
+                      <goal>antlr4</goal>
+                    </goals>
+                  </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
