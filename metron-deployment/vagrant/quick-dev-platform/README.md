@@ -31,7 +31,7 @@ Now that the hard part is done, start the Metron deployment process.
 2. Deploy Metron
 
   ```
-  cd metron-deployment/vagrant/devimage-vagrant
+  cd metron-deployment/vagrant/quick-dev-platform
   ./launch_dev_image.sh
   ```
 

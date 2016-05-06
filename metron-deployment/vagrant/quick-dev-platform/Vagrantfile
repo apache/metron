@@ -53,7 +53,7 @@ hosts = [{
 Vagrant.configure(2) do |config|
 
   # all hosts built on centos 6
-  config.vm.box = "bento/centos-6.7"
+  config.vm.box = "metron/hdp-base"
   config.ssh.insert_key = true
 
   # enable the hostmanager plugin
@@ -81,12 +81,14 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  # provisioning
-  config.vm.provision :ansible do |ansible|
-    ansible.playbook = "../../playbooks/metron_full_install.yml"
-    ansible.sudo = true
-    ansible.tags = ansibleTags.split(",") if ansibleTags != ''
-    ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
-    ansible.inventory_path = "../../inventory/singlenode-vagrant"
+  if ansibleSkipTags != '' or ansibleTags != ''
+    config.vm.provision :ansible do |ansible|
+        ansible.playbook = "../../playbooks/metron_full_install.yml"
+        ansible.sudo = true
+        ansible.tags = ansibleTags.split(",") if ansibleTags != ''
+        ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
+        ansible.inventory_path = "../../inventory/full-dev-platform"
+    end
   end
+
 end
