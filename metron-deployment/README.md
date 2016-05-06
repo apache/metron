@@ -88,7 +88,7 @@ run this:
 - Hostmanager plugin for vagrant - Run `vagrant plugin install vagrant-hostmanager` on the machine where Vagrant is
 installed
 
-Navigate to `incubator-metron/metron-deployment/vagrant/singlenode-vagrant` and run `vagrant up`.  This also provides a good
+Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.  This also provides a good
 example of how to run a full end-to-end Metron install.
 
 

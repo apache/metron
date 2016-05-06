@@ -52,7 +52,7 @@ Now that the hard part is done, start the Metron deployment process.
 2. Deploy Metron
 
   ```
-  cd metron-deployment/vagrant/singlenode-vagrant
+  cd metron-deployment/vagrant/full-dev-platform
   vagrant up
   ```
 
