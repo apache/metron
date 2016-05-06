@@ -71,7 +71,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
       Map<String, Object> stormConf = new HashMap<>();
       stormConf.put(Config.TOPOLOGY_DEBUG, true);
       stormCluster = new LocalCluster();
-      stormCluster.submitTopology("parserTopology", stormConf, topologyBuilder.createTopology());
+      stormCluster.submitTopology(sensorType, stormConf, topologyBuilder.createTopology());
     } catch (Exception e) {
       throw new UnableToStartException("Unable to start parser topology for sensorType: " + sensorType, e);
     }
