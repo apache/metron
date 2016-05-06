@@ -22,6 +22,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import junit.framework.Assert;
+import org.apache.metron.common.configuration.ConfigType;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.common.configuration.Configurations;
 import org.json.simple.JSONObject;
@@ -91,7 +92,7 @@ public class SplitBoltTest extends BaseEnrichmentBoltTest {
     StandAloneSplitBolt splitBolt = spy(new StandAloneSplitBolt("zookeeperUrl"));
     splitBolt.setCuratorFramework(client);
     splitBolt.setTreeCache(cache);
-    doCallRealMethod().when(splitBolt).reloadCallback(anyString(), any(Configurations.Type.class));
+    doCallRealMethod().when(splitBolt).reloadCallback(anyString(), any(ConfigType.class));
     splitBolt.prepare(new HashMap(), topologyContext, outputCollector);
     splitBolt.declareOutputFields(declarer);
     verify(declarer, times(1)).declareStream(eq("message"), argThat(new FieldsMatcher("key", "message")));

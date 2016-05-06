@@ -21,28 +21,5 @@ import org.apache.metron.TestConstants;
 
 public class SnortIntegrationTest extends ParserIntegrationTest {
 
-  @Override
-  public String getFluxPath() {
-    return "./src/main/flux/snort/test.yaml";
-  }
 
-  @Override
-  public String getSampleInputPath() {
-    return TestConstants.SAMPLE_DATA_INPUT_PATH + "SnortOutput";
-  }
-
-  @Override
-  public String getSampleParsedPath() {
-    return TestConstants.SAMPLE_DATA_PARSED_PATH + "SnortParsed";
-  }
-
-  @Override
-  public String getSensorType() {
-    return "snort";
-  }
-
-  @Override
-  public String getFluxTopicProperty() {
-    return "spout.kafka.topic.snort";
-  }
 }

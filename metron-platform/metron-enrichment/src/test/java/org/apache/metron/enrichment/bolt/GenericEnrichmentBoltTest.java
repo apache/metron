@@ -80,7 +80,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
    {
    "field1": "value1",
    "field2": "value2",
-   "source.type": "yaf"
+   "source.type": "test"
    }
    */
   @Multiline
@@ -106,7 +106,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
    {
    "field1.enrichedField1": "enrichedValue1",
    "field2.enrichedField2": "enrichedValue2",
-   "source.type": "yaf"
+   "source.type": "test"
    }
    */
   @Multiline

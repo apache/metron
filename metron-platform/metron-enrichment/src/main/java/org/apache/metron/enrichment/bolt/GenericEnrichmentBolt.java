@@ -29,6 +29,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.common.configuration.ConfigType;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.common.configuration.SensorEnrichmentConfig;
@@ -61,7 +63,7 @@ import java.util.concurrent.TimeUnit;
  **/
 
 @SuppressWarnings({"rawtypes", "serial"})
-public class GenericEnrichmentBolt extends ConfiguredBolt {
+public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
@@ -114,8 +116,9 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     this.invalidateCacheOnReload= cacheInvalidationOnReload;
     return this;
   }
+
   @Override
-  public void reloadCallback(String name, Configurations.Type type) {
+  public void reloadCallback(String name, ConfigType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();

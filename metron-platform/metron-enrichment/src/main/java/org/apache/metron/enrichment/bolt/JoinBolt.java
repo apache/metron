@@ -29,6 +29,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Sets;
 import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public abstract class JoinBolt<V> extends ConfiguredBolt {
+public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(JoinBolt.class);

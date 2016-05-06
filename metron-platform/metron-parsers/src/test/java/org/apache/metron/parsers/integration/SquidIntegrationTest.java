@@ -22,28 +22,5 @@ import org.json.simple.JSONObject;
 
 public class SquidIntegrationTest extends ParserIntegrationTest {
 
-  @Override
-  public String getFluxPath() {
-    return "./src/main/flux/squid/test.yaml";
-  }
 
-  @Override
-  public String getSampleInputPath() {
-    return TestConstants.SAMPLE_DATA_INPUT_PATH + "SquidExampleOutput";
-  }
-
-  @Override
-  public String getSampleParsedPath() {
-    return TestConstants.SAMPLE_DATA_PARSED_PATH + "SquidExampleParsed";
-  }
-
-  @Override
-  public String getSensorType() {
-    return "squid";
-  }
-
-  @Override
-  public String getFluxTopicProperty() {
-    return "spout.kafka.topic.yaf";
-  }
 }

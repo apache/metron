@@ -203,9 +203,9 @@
 						<exclude>**/*.json</exclude>
 						<exclude>**/*.log</exclude>
 						<exclude>**/src/main/resources/patterns/**</exclude>
-						<exclude>**/src/main/resources/sample/data/SampleIndexed/**</exclude>
-						<exclude>**/src/main/resources/sample/data/SampleInput/**</exclude>
-						<exclude>**/src/main/resources/sample/data/SampleParsed/**</exclude>
+						<exclude>**/src/main/sample/data/SampleIndexed/**</exclude>
+						<exclude>**/src/main/sample/data/SampleInput/**</exclude>
+						<exclude>**/src/main/sample/data/SampleParsed/**</exclude>
 						<exclude>**/dependency-reduced-pom.xml</exclude>
 					</excludes>
 				</configuration>

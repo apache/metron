@@ -17,11 +17,16 @@
  */
 package org.apache.metron.parsers.integration;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import org.apache.metron.test.TestDataType;
+import org.apache.metron.test.utils.SampleDataUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
@@ -29,46 +34,71 @@ import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class ParserIntegrationTest extends BaseIntegrationTest {
 
   private String configRoot = "../metron-parsers/src/main/config/zookeeper/parsers";
-  private String sampleDataRoot = "../metron-integration-test/src/main/resources/sample/data";
   private String testSensorType;
+  private List<String> sensorTypeList;
+  private Map<String, List<ParserValidation>> sensorValidations;
+
+  @Before
+  public void configureValidations() {
+    sensorValidations = new HashMap<>();
+    sensorValidations.put("bluecoat", new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }});
+    sensorValidations.put("bro", new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }});
+    sensorValidations.put("snort", new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }});
+    sensorValidations.put("squid", new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }});
+    sensorValidations.put("yaf", new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }});
+  }
 
   @Test
   public void test() throws Exception {
 
     for (String name: new File(configRoot).list()) {
-      final String sensorType = name;
+      final String sensorType = FilenameUtils.removeExtension(name);
       if (testSensorType != null && !testSensorType.equals(sensorType)) continue;
-
-      final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleDataPath(sensorType, TestDataType.RAW));
+      System.out.println();
+      System.out.println("Running Parser Integration test for sensorType " + sensorType);
+      final List<byte[]> inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
 
       final Properties topologyProperties = new Properties();
       final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
         add(new KafkaWithZKComponent.Topic(sensorType, 1));
       }});
-
       topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
+
+      ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
+              .withTopologyProperties(topologyProperties)
+              .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+              .withParserConfigsPath(TestConstants.PARSER_CONFIGS_PATH);
 
       ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
               .withSensorType(sensorType)
-              .withZookeeperUrl(kafkaComponent.getZookeeperConnect())
+              .withTopologyProperties(topologyProperties)
               .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
       UnitTestHelper.verboseLogging();
       ComponentRunner runner = new ComponentRunner.Builder()
               .withComponent("kafka", kafkaComponent)
+              .withComponent("config", configUploadComponent)
               .withComponent("storm", parserTopologyComponent)
               .withMillisecondsBetweenAttempts(5000)
               .withNumRetries(10)
@@ -94,57 +124,24 @@ public class ParserIntegrationTest extends BaseIntegrationTest {
                   return messages;
                 }
               });
-      List<byte[]> sampleParsedMessages = TestUtils.readSampleData(getSampleDataPath(sensorType, TestDataType.PARSED));
-      Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());
-      for (int i = 0; i < outputMessages.size(); i++) {
-        String sampleParsedMessage = new String(sampleParsedMessages.get(i));
-        String outputMessage = new String(outputMessages.get(i));
-        try {
-          assertJSONEqual(sampleParsedMessage, outputMessage);
-        } catch (Throwable t) {
-          System.out.println("expected: " + sampleParsedMessage);
-          System.out.println("actual: " + outputMessage);
-          throw t;
+      List<ParserValidation> validations = sensorValidations.get(sensorType);
+      if (validations == null || validations.isEmpty()) {
+        System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
+        dumpParsedMessages(outputMessages);
+      } else {
+        for (ParserValidation validation : validations) {
+          System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
+          validation.validate(sensorType, outputMessages);
         }
       }
       runner.stop();
     }
   }
 
-  public static void assertJSONEqual(String doc1, String doc2) throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    Map m1 = mapper.readValue(doc1, Map.class);
-    Map m2 = mapper.readValue(doc2, Map.class);
-    for(Object k : m1.keySet()) {
-      Object v1 = m1.get(k);
-      Object v2 = m2.get(k);
-
-      if(v2 == null) {
-        Assert.fail("Unable to find key: " + k + " in output");
-      }
-      if(k.equals("timestamp")) {
-        //TODO: Take the ?!?@ timestamps out of the reference file.
-        Assert.assertEquals(v1.toString().length(), v2.toString().length());
-      }
-      else if(!v2.equals(v1)) {
-        Assert.assertEquals("value mismatch for " + k ,v1, v2);
-      }
+  public void dumpParsedMessages(List<byte[]> outputMessages) {
+    for(byte[] outputMessage: outputMessages) {
+      System.out.println(new String(outputMessage));
     }
-    Assert.assertEquals(m1.size(), m2.size());
-  }
-
-  private String getSampleDataPath(String sensorType, TestDataType testDataType) throws FileNotFoundException {
-    File sensorSampleDataPath = new File(sampleDataRoot, sensorType);
-    if (sensorSampleDataPath.exists() && sensorSampleDataPath.isDirectory()) {
-      File sampleDataPath = new File(sensorSampleDataPath, testDataType.getDirectoryName());
-      if (sampleDataPath.exists() && sampleDataPath.isDirectory()) {
-        File[] children = sampleDataPath.listFiles();
-        if (children != null && children.length > 0) {
-          return children[0].getAbsolutePath();
-        }
-      }
-    }
-    throw new FileNotFoundException("Could not find data in " + sampleDataRoot + "/" + sensorType + "/" + testDataType.getDirectoryName());
   }
 
   public static void main(String[] args) throws Exception {

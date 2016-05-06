@@ -33,17 +33,11 @@ public class Configurations implements Serializable {
 
   private static final Logger LOG = Logger.getLogger(Configurations.class);
 
-  public enum Type {
-    GLOBAL, SENSOR, OTHER
-  }
-
-  public static final String GLOBAL_CONFIG_NAME = "global";
-
-  private ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
+  protected ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.get(GLOBAL_CONFIG_NAME);
+    return (Map<String, Object>) configurations.get(ConfigType.GLOBAL.getName());
   }
 
   public void updateGlobalConfig(byte[] data) throws IOException {
@@ -57,24 +51,7 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    configurations.put(GLOBAL_CONFIG_NAME, globalConfig);
-  }
-
-  public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
-    return (SensorEnrichmentConfig) configurations.get(sensorType);
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, byte[] data) throws IOException {
-    updateSensorEnrichmentConfig(sensorType, new ByteArrayInputStream(data));
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, InputStream io) throws IOException {
-    SensorEnrichmentConfig sensorEnrichmentConfig = JSONUtils.INSTANCE.load(io, SensorEnrichmentConfig.class);
-    updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfig);
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig) {
-    configurations.put(sensorType, sensorEnrichmentConfig);
+    configurations.put(ConfigType.GLOBAL.getName(), globalConfig);
   }
 
   @SuppressWarnings("unchecked")

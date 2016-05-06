@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.metron.parsers.integration.components;
 
 import backtype.storm.Config;
@@ -10,20 +27,21 @@ import org.apache.metron.parsers.topology.ParserTopologyBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class ParserTopologyComponent implements InMemoryComponent {
 
-  private String zookeeperUrl;
+  private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
   private LocalCluster stormCluster;
 
   public static class Builder {
-    String zookeeperUrl;
+    Properties topologyProperties;
     String brokerUrl;
     String sensorType;
-    public Builder withZookeeperUrl(String zookeeperUrl) {
-      this.zookeeperUrl = zookeeperUrl;
+    public Builder withTopologyProperties(Properties topologyProperties) {
+      this.topologyProperties = topologyProperties;
       return this;
     }
     public Builder withBrokerUrl(String brokerUrl) {
@@ -36,12 +54,12 @@ public class ParserTopologyComponent implements InMemoryComponent {
     }
 
     public ParserTopologyComponent build() {
-      return new ParserTopologyComponent(zookeeperUrl, brokerUrl, sensorType);
+      return new ParserTopologyComponent(topologyProperties, brokerUrl, sensorType);
     }
   }
 
-  public ParserTopologyComponent(String zookeeperUrl, String brokerUrl, String sensorType) {
-    this.zookeeperUrl = zookeeperUrl;
+  public ParserTopologyComponent(Properties topologyProperties, String brokerUrl, String sensorType) {
+    this.topologyProperties = topologyProperties;
     this.brokerUrl = brokerUrl;
     this.sensorType = sensorType;
   }
@@ -49,7 +67,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
   @Override
   public void start() throws UnableToStartException {
     try {
-      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(zookeeperUrl, brokerUrl, sensorType, SpoutConfig.Offset.BEGINNING, 1, 1);
+      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk"), brokerUrl, sensorType, SpoutConfig.Offset.BEGINNING, 1, 1);
       Map<String, Object> stormConf = new HashMap<>();
       stormConf.put(Config.TOPOLOGY_DEBUG, true);
       stormCluster = new LocalCluster();

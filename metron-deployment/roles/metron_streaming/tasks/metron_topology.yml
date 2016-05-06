@@ -16,7 +16,7 @@
 #
 ---
 - name: Submit Metron Parser topologies
-  command: "{{ metron_directory }}/bin/start_parser_topology.sh {{ item }}"
+  command: "{{ metron_directory }}/bin/start_parser_topology.sh -k {{ kafka_broker_url }} -z {{ zookeeper_url }} -s {{ item }}"
   with_items:
       - "{{ storm_parser_topologies }}"
 

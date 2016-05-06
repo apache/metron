@@ -21,28 +21,5 @@ import org.apache.metron.TestConstants;
 
 public class YafIntegrationTest extends ParserIntegrationTest {
 
-  @Override
-  public String getFluxPath() {
-    return "./src/main/flux/yaf/test.yaml";
-  }
 
-  @Override
-  public String getSampleInputPath() {
-    return TestConstants.SAMPLE_DATA_INPUT_PATH + "YafExampleOutput";
-  }
-
-  @Override
-  public String getSampleParsedPath() {
-    return TestConstants.SAMPLE_DATA_PARSED_PATH + "YafExampleParsed";
-  }
-
-  @Override
-  public String getSensorType() {
-    return "yaf";
-  }
-
-  @Override
-  public String getFluxTopicProperty() {
-    return "spout.kafka.topic.yaf";
-  }
 }

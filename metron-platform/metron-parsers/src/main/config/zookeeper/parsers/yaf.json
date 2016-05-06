@@ -1,9 +1,9 @@
 {
   "parserClassName":"org.apache.metron.parsers.GrokParser",
-  "sourceTopic":"yaf",
+  "sensorTopic":"yaf",
   "parserConfig":
   {
-    "grokHdfsPath":"/apps/metron/patterns/yaf",
+    "grokPath":"/patterns/yaf",
     "patternLabel":"YAF_DELIMITED",
     "timestampField":"start_time",
     "timeFields": ["start_time", "end_time"],
