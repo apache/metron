@@ -68,8 +68,8 @@ public class CSVExtractor implements Extractor {
   }
   @Override
   public Iterable<LookupKV> extract(String line) throws IOException {
-    if(line.trim().startsWith("#")) {
-      //comment
+    if(line.trim().isEmpty() || line.trim().startsWith("#")) {
+      //skip empty lines and comment lines (starting with #)
       return Collections.emptyList();
     }
     String[] tokens = parser.parseLine(line);
