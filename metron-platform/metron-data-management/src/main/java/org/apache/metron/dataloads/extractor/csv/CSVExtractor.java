@@ -85,7 +85,7 @@ public class CSVExtractor implements Extractor {
 
   private boolean ignore(String line) {
     if(null == line) {
-      return false;
+      return true;
     }
     String trimmedLine = line.trim();
     return trimmedLine.startsWith("#") || isEmpty(trimmedLine);

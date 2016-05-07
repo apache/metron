@@ -89,5 +89,9 @@ public class CSVExtractorTest {
       Iterable<LookupKV> results = handler.getExtractor().extract("");
       Assert.assertEquals(0, Iterables.size(results));
     }
+    {
+      Iterable<LookupKV> results = handler.getExtractor().extract(null);
+      Assert.assertEquals(0, Iterables.size(results));
+    }
   }
 }
