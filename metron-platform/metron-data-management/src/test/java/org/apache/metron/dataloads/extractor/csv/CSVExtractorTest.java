@@ -53,7 +53,6 @@ public class CSVExtractorTest {
   @Multiline
   static String testCSVConfig;
 
-
   @Test
   public void testInitialize() throws Exception {
     CSVExtractor ex = new CSVExtractor();
@@ -90,6 +89,16 @@ public class CSVExtractorTest {
     {
       Iterable<LookupKV> results = handler.getExtractor().extract("#google.com,1.0,foo");
       Assert.assertEquals(0, Iterables.size(results));
+    }
+    {
+    	//Test an empty line
+        Iterable<LookupKV> results = handler.getExtractor().extract("");
+        Assert.assertEquals(0, Iterables.size(results));
+    }
+    {
+    	//Test only a blank spaces on line
+        Iterable<LookupKV> results = handler.getExtractor().extract("  ");
+        Assert.assertEquals(0, Iterables.size(results));
     }
   }
 }
