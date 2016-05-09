@@ -1,3 +1,4 @@
+
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -15,11 +16,16 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: install_pcap_replay
+- name: Install monit
+  yum:
+    name: monit
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
-- include: yaf.yml
-  when: install_yaf
-  
-- include: snort.yml
-  when: install_snort
+- name: Deploy monit configuration
+  template: src=monit.conf dest=/etc/monit.conf
+
+- name: Start monit
+  service: name=monit state=restarted

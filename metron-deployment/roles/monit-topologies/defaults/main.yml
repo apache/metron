@@ -15,11 +15,4 @@
 #  limitations under the License.
 #
 ---
-- include: pcap.yml
-  when: install_pcap_replay
-
-- include: yaf.yml
-  when: install_yaf
-  
-- include: snort.yml
-  when: install_snort
+monit_home: /usr/local/monit

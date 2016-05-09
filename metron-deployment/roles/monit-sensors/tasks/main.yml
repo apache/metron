@@ -1,0 +1,82 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Deploy service definitions to monit
+  template: src=metron-sensors dest=/etc/monit.d/metron-sensors
+
+- name: Monit pycapa
+  blockinfile:
+    dest: /etc/monit.d/metron-sensors
+    block: |
+      check process pycapa with pidfile /var/run/pycapa.pid
+        start program = "/etc/init.d/pycapa start"
+        stop program = "/etc/init.d/pycapa stop"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK pycapa"
+  when: install_pycapa
+
+- name: Monit yaf
+  blockinfile:
+    dest: /etc/monit.d/metron-sensors
+    block: |
+      check process yaf with pidfile /var/run/yaf.pid
+        start program = "/etc/init.d/yaf start"
+        stop program = "/etc/init.d/yaf stop"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK yaf"
+  when: install_yaf
+
+- name: Monit snort
+  blockinfile:
+    dest: /etc/monit.d/metron-sensors
+    block: |
+      check process snort matching snort
+        start program = "/etc/init.d/snortd start"
+        stop program = "/etc/init.d/snortd stop"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK snort"
+  when: install_snort
+
+- name: Monit snort-flume
+  blockinfile:
+    dest: /etc/monit.d/metron-sensors
+    block: |
+      check process snort-flume matching "tail -F {{ snort_alert_csv_path }}"
+        start program = "/etc/init.d/flume-agent start snort"
+        stop program = "/etc/init.d/flume-agent stop snort"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK snort-flume"
+  when: install_snort
+
+- name: Monit bro
+  blockinfile:
+    dest: /etc/monit.d/metron-sensors
+    block: |
+      check process bro matching bro
+        start program = "/usr/local/bro/bin/broctl start"
+        stop program = "/usr/local/bro/bin/broctl stop"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK bro"
+  when: install_bro
+
+- name: Monit pcap-replay
+  blockinfile:
+    dest: /etc/monit.d/metron-sensors
+    block: |
+      check process pcap-replay with pidfile /var/run/pcap-replay.pid
+        start program = "/etc/init.d/pcap-replay start"
+        stop program = "/etc/init.d/pcap-replay stop"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK pcap-replay"
+  when: install_pcap_replay
+
+- name: Start monit
+  service: name=monit state=restarted
