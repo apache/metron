@@ -22,3 +22,4 @@
     src: "metron-pcapservice-logrotate.yml"
     dest: "/etc/logrotate.d/metron-pcapservice"
     mode: 0644
+
