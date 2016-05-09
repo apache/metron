@@ -191,12 +191,5 @@ public class ConfigurationsUtils {
       out.println(type + " Config: " + name + "\n" + data);
     });
   }
-  public static void dumpConfigs(String zookeeperUrl) throws Exception {
-    try (CuratorFramework client = getClient(zookeeperUrl)) {
-      client.start();
-      dumpConfigs(System.out, client);
-    }
-  }
-
 
 }
