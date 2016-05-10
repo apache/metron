@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 
 public class CacheKey {
   private String field;

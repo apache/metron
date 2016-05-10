@@ -18,7 +18,7 @@
 package org.apache.metron.enrichment.bolt;
 
 import backtype.storm.task.TopologyContext;
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.MessageUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -48,6 +48,10 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   public Set<String> getStreamIds(JSONObject message) {
     Set<String> streamIds = new HashSet<>();
     String sourceType = MessageUtils.getSensorType(message);
+    if(sourceType == null) {
+      String errorMessage = "Unable to find source type for message: " + message;
+      throw new IllegalStateException(errorMessage);
+    }
     Map<String, List<String>>  fieldMap = getFieldMap(sourceType);
     if(fieldMap != null) {
       for (String enrichmentType : getFieldMap(sourceType).keySet()) {
@@ -83,8 +87,8 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   public Map<String, List<String>> getFieldMap(String sourceType) {
     if(sourceType != null) {
       SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
-      if (config != null) {
-        return config.getEnrichmentFieldMap();
+      if (config != null && config.getEnrichment() != null) {
+        return config.getEnrichment().getFieldMap();
       }
       else {
         LOG.error("Unable to retrieve a sensor enrichment config of " + sourceType);

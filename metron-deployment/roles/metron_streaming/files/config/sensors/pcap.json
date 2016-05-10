@@ -1,19 +1,23 @@
 {
   "index": "pcap",
   "batchSize": 5,
-  "enrichmentFieldMap":
-  {
-    "geo": ["ip_src_addr", "ip_dst_addr"],
-    "host": ["ip_src_addr", "ip_dst_addr"]
+  "enrichment" : {
+    "fieldMap":
+      {
+      "geo": ["ip_src_addr", "ip_dst_addr"],
+      "host": ["ip_src_addr", "ip_dst_addr"]
+    }
   },
-  "threatIntelFieldMap":
-  {
-    "hbaseThreatIntel": ["ip_dst_addr", "ip_src_addr"]
-  },
-  "fieldToThreatIntelTypeMap":
-  {
-    "ip_dst_addr" : [ "malicious_ip" ]
+  "threatIntel" : {
+    "fieldMap":
+      {
+      "hbaseThreatIntel": ["ip_dst_addr", "ip_src_addr"]
+    },
+    "fieldToTypeMap":
+      {
+      "ip_dst_addr" : [ "malicious_ip" ]
     ,"ip_src_addr" : [ "malicious_ip" ]
+    }
   }
 }
 
