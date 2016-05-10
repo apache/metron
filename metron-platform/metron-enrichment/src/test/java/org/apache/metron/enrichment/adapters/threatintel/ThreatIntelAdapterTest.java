@@ -20,7 +20,7 @@ package org.apache.metron.enrichment.adapters.threatintel;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -62,29 +62,33 @@ public class ThreatIntelAdapterTest {
   private EnrichmentLookup lookup;
 
   /**
-   * {
-   * "10.0.2.3":"alert"
-   * }
+    {
+    "10.0.2.3":"alert"
+    }
    */
   @Multiline
   private String expectedMessageString;
 
   /**
-   * {
-   * "index": "bro",
-   * "batchSize": 5,
-   * "enrichmentFieldMap": {
-   * "geo": ["ip_dst_addr", "ip_src_addr"],
-   * "host": ["host"]
-   * },
-   * "threatIntelFieldMap": {
-   * "hbaseThreatIntel": ["ip_dst_addr", "ip_src_addr"]
-   * },
-   * "fieldToThreatIntelTypeMap": {
-   * "ip_dst_addr" : [ "10.0.2.3" ],
-   * "ip_src_addr" : [ "malicious_ip" ]
-   * }
-   * }
+    {
+      "index": "bro",
+      "batchSize": 5,
+      "enrichment": {
+        "fieldMap": {
+          "geo": ["ip_dst_addr", "ip_src_addr"],
+          "host": ["host"]
+        }
+      },
+      "threatIntel" : {
+        "fieldMap": {
+          "hbaseThreatIntel": ["ip_dst_addr", "ip_src_addr"]
+        },
+        "fieldToTypeMap": {
+          "ip_dst_addr" : [ "10.0.2.3" ],
+          "ip_src_addr" : [ "malicious_ip" ]
+        }
+      }
+    }
    */
   @Multiline
   private static String sourceConfigStr;

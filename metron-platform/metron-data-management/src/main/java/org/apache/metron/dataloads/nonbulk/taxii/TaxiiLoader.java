@@ -31,7 +31,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
-import org.apache.metron.common.configuration.EnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
 import javax.annotation.Nullable;
@@ -176,12 +176,12 @@ public class TaxiiLoader {
     }
     ExtractorHandler handler = ExtractorHandler.load(FileUtils.readFileToString(new File(TaxiiOptions.EXTRACTOR_CONFIG.get(cli))));
     Extractor e = handler.getExtractor();
-    EnrichmentConfig enrichmentConfig = null;
+    SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(TaxiiOptions.ENRICHMENT_CONFIG.has(cli)) {
-      enrichmentConfig = JSONUtils.INSTANCE.load( new File(TaxiiOptions.ENRICHMENT_CONFIG.get(cli))
-              , EnrichmentConfig.class
+      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(TaxiiOptions.ENRICHMENT_CONFIG.get(cli))
+              , SensorEnrichmentUpdateConfig.class
       );
-      enrichmentConfig.updateSensorConfigs();
+      sensorEnrichmentUpdateConfig.updateSensorConfigs();
     }
 
     Timer timer = new Timer();

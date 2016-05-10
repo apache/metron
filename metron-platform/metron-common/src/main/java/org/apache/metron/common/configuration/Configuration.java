@@ -18,7 +18,6 @@
 package org.apache.metron.common.configuration;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.cli.ConfigurationsUtils;
 
 import java.nio.file.Path;
 import java.util.Map;

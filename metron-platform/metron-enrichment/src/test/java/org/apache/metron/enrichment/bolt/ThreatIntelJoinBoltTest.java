@@ -17,8 +17,12 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import junit.framework.Assert;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -78,12 +82,37 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     alertMessage = (JSONObject) parser.parse(alertMessageString);
   }
 
-  @Test
-  public void test() throws IOException {
+  /**
+    {
+    "riskLevelRules" : {
+        "enrichedField1 == 'enrichedValue1'" : 10
+                          }
+   ,"aggregator" : "MAX"
+   }
+   */
+  @Multiline
+  private static String threatTriageConfigStr;
+
+  public void test(String threatTriageConfig, boolean badConfig) throws IOException {
     ThreatIntelJoinBolt threatIntelJoinBolt = new ThreatIntelJoinBolt("zookeeperUrl");
     threatIntelJoinBolt.setCuratorFramework(client);
     threatIntelJoinBolt.setTreeCache(cache);
-    threatIntelJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
+    SensorEnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(new FileInputStream(sampleSensorEnrichmentConfigPath), SensorEnrichmentConfig.class);
+    boolean withThreatTriage = threatTriageConfig != null;
+    if(withThreatTriage) {
+      try {
+        enrichmentConfig.getThreatIntel().setTriageConfig(JSONUtils.INSTANCE.load(threatTriageConfig, ThreatTriageConfig.class));
+        if(badConfig) {
+          Assert.fail(threatTriageConfig + "\nThis should not parse!");
+        }
+      }
+      catch(JsonMappingException pe) {
+        if(!badConfig) {
+          throw pe;
+        }
+      }
+    }
+    threatIntelJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, enrichmentConfig);
     threatIntelJoinBolt.withMaxCacheSize(100);
     threatIntelJoinBolt.withMaxTimeRetain(10000);
     threatIntelJoinBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
@@ -101,5 +130,35 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     streamMessageMap.put("message", alertMessage);
     joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap);
     Assert.assertTrue(joinedMessage.containsKey("is_alert") && "true".equals(joinedMessage.get("is_alert")));
+    if(withThreatTriage && !badConfig) {
+      Assert.assertTrue(joinedMessage.containsKey("threat.triage.level") && Math.abs(10d - (Double) joinedMessage.get("threat.triage.level")) < 1e-10);
+    }
+    else {
+      Assert.assertFalse(joinedMessage.containsKey("threat.triage.level"));
+    }
+  }
+  /**
+    {
+    "riskLevelRules" : {
+        "enrichedField1 == 'enrichedValue1" : 10
+                          }
+   ,"aggregator" : "MAX"
+   }
+   */
+  @Multiline
+  private static String badRuleThreatTriageConfigStr;
+
+
+  @Test
+  public void testWithTriage() throws IOException {
+    test(threatTriageConfigStr, false);
+  }
+  @Test
+  public void testWithBadTriageRule() throws IOException {
+    test(badRuleThreatTriageConfigStr, true);
+  }
+  @Test
+  public void testWithoutTriage() throws IOException {
+    test(null, false);
   }
 }
