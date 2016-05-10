@@ -23,16 +23,10 @@ import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 public class CSVExtractorTest {
 
@@ -89,6 +83,18 @@ public class CSVExtractorTest {
     }
     {
       Iterable<LookupKV> results = handler.getExtractor().extract("#google.com,1.0,foo");
+      Assert.assertEquals(0, Iterables.size(results));
+    }
+    {
+      Iterable<LookupKV> results = handler.getExtractor().extract("");
+      Assert.assertEquals(0, Iterables.size(results));
+    }
+    {
+      Iterable<LookupKV> results = handler.getExtractor().extract(" ");
+      Assert.assertEquals(0, Iterables.size(results));
+    }
+    {
+      Iterable<LookupKV> results = handler.getExtractor().extract(null);
       Assert.assertEquals(0, Iterables.size(results));
     }
   }
