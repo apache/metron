@@ -40,7 +40,8 @@
   shell: pm2 stop all
   args:
     creates: /etc/init.d/pm2-init.sh
-  ignore_errors: True
+  register: pm2_result
+  failed_when: pm2_result.rc != 0 and ("No process found" not in pm2_result.stderr)
 
 - name: Configure Metron UI as a service
   shell: "{{ item }}"
