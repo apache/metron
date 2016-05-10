@@ -134,8 +134,7 @@ public class GrokWebSphereParser extends BasicParser {
 			if (null == value || "".equals(value.toString())) {
 				keyIter.remove();
 			}
-		}
-		
+		}	
 	}
 
 	//Converts the data string to an epoch timestamp
