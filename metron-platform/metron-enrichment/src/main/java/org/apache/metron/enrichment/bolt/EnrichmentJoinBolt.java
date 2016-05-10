@@ -87,7 +87,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
   public Map<String, List<String>> getFieldMap(String sourceType) {
     if(sourceType != null) {
       SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
-      if (config != null) {
+      if (config != null && config.getEnrichment() != null) {
         return config.getEnrichment().getFieldMap();
       }
       else {
