@@ -16,6 +16,24 @@ As with the Singlenode Full Image, the computer used to deploy Apache Metron wil
  - Python 2.7.11
  - Maven 3.3.9
 
+### Ensure vagrant hostmanager is installed
+
+To check and make sure you have the plugin installed execute the following:
+
+ ```
+ vagrant plugin list
+ ```
+
+If you have it installed you should see the following listed in the output:
+
+  ```
+  vagrant-hostmanager (1.8.1)
+  ```
+If it is not installed, you can install it with the following command:
+
+  ```
+  vagrant plugin install vagrant-hostmanager
+  ```
 
 ### Launch the Metron Development Image
 
@@ -23,7 +41,7 @@ Start the image with the following commands:
 
   ```
   cd metron-deployment/vagrant/codelab-platform
-  ./launch_dev_image.sh
+  ./launch_image.sh
   ```
 
 ### Work with Metron
@@ -36,8 +54,8 @@ As you build out new capabilities for Metron, you will need to re-deploy the Sto
 
 Remember Navigate to the following resources to explore your newly minted Apache Metron environment.
 
- - [Metron](http://node1:8080)
- - [Ambari](http://node1:5000)
+ - [Metron](http://node1:5000)
+ - [Ambari](http://node1:8080)
 
 Connecting to the host through SSH is as simple as running the following command.
 
