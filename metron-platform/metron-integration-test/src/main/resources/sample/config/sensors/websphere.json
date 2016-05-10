@@ -1,0 +1,22 @@
+{
+  "index": "websphere",
+  "batchSize": 1,
+  "enrichmentFieldMap":
+  {
+    "geo": ["ip_src_addr"],
+    "host": ["ip_src_addr"],
+  },
+  "threatIntelFieldMap":
+  {
+    "hbaseThreatIntel": ["ip_src_addr"]
+  },
+  "fieldToThreatIntelTypeMap":
+  {
+    "ip_src_addr" : ["malicious_ip"],
+  },
+  "fieldToEnrichmentTypeMap":
+  {
+    "ip_src_addr" : ["playful_classification"],
+  }
+}
+
