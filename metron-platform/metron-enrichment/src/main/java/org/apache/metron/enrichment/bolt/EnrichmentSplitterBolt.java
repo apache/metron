@@ -21,7 +21,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.common.utils.MessageUtils;
@@ -127,7 +127,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
         if(sensorType != null) {
             SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sensorType);
             if (config != null) {
-                return config.getEnrichmentFieldMap();
+                return config.getEnrichment().getFieldMap();
             } else {
                 LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
             }

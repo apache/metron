@@ -16,25 +16,21 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.configuration;
+package org.apache.metron.common.configuration.enrichment;
 
 import com.google.common.base.Joiner;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class EnrichmentConfig {
-  public static enum Type {
-     THREAT_INTEL
-    ,ENRICHMENT
-  }
+public class SensorEnrichmentUpdateConfig {
 
-  protected static final Logger _LOG = LoggerFactory.getLogger(EnrichmentConfig.class);
+  protected static final Logger _LOG = LoggerFactory.getLogger(SensorEnrichmentUpdateConfig.class);
   public static class FieldList {
     Type type;
     Map<String, List<String>> fieldToEnrichmentTypes;
@@ -130,7 +126,7 @@ public class EnrichmentConfig {
       Map<String, List<String> > fieldToTypeMap = null;
       List<String> fieldList = null;
       if(kv.getValue().type == Type.THREAT_INTEL) {
-        fieldMap = config.getThreatIntelFieldMap();
+        fieldMap = config.getThreatIntel().getFieldMap();
         if(fieldMap!= null) {
           fieldList = fieldMap.get(Constants.SIMPLE_HBASE_THREAT_INTEL);
         } else {
@@ -140,14 +136,14 @@ public class EnrichmentConfig {
           fieldList = new ArrayList<>();
           fieldMap.put(Constants.SIMPLE_HBASE_THREAT_INTEL, fieldList);
         }
-        fieldToTypeMap = config.getFieldToThreatIntelTypeMap();
+        fieldToTypeMap = config.getThreatIntel().getFieldToTypeMap();
         if(fieldToTypeMap == null) {
           fieldToTypeMap = new HashMap<>();
-          config.setFieldToThreatIntelTypeMap(fieldToTypeMap);
+          config.getThreatIntel().setFieldToTypeMap(fieldToTypeMap);
         }
       }
       else if(kv.getValue().type == Type.ENRICHMENT) {
-        fieldMap = config.getEnrichmentFieldMap();
+        fieldMap = config.getEnrichment().getFieldMap();
         if(fieldMap!= null) {
           fieldList = fieldMap.get(Constants.SIMPLE_HBASE_ENRICHMENT);
         } else {
@@ -157,10 +153,10 @@ public class EnrichmentConfig {
           fieldList = new ArrayList<>();
           fieldMap.put(Constants.SIMPLE_HBASE_ENRICHMENT, fieldList);
         }
-        fieldToTypeMap = config.getFieldToEnrichmentTypeMap();
+        fieldToTypeMap = config.getEnrichment().getFieldToTypeMap();
         if(fieldToTypeMap == null) {
           fieldToTypeMap = new HashMap<>();
-          config.setFieldToEnrichmentTypeMap(fieldToTypeMap);
+          config.getEnrichment().setFieldToTypeMap(fieldToTypeMap);
         }
       }
       if(fieldToTypeMap == null  || fieldMap == null) {

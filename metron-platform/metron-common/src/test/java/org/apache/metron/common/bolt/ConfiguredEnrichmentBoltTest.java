@@ -25,8 +25,9 @@ import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.ConfigType;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -124,12 +125,12 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     enrichmentFieldMap.put("enrichmentTest", new ArrayList<String>() {{
       add("enrichmentField");
     }});
-    testSensorConfig.setEnrichmentFieldMap(enrichmentFieldMap);
+    testSensorConfig.getEnrichment().setFieldMap(enrichmentFieldMap);
     Map<String, List<String>> threatIntelFieldMap = new HashMap<>();
     threatIntelFieldMap.put("threatIntelTest", new ArrayList<String>() {{
       add("threatIntelField");
     }});
-    testSensorConfig.setThreatIntelFieldMap(threatIntelFieldMap);
+    testSensorConfig.getThreatIntel().setFieldMap(threatIntelFieldMap);
     sampleConfigurations.updateSensorEnrichmentConfig(sensorType, testSensorConfig);
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
@@ -146,5 +147,22 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     configuredBolt.cleanup();
   }
 
+  private void waitForConfigUpdate(final String expectedConfigUpdate) {
+    waitForConfigUpdate(new HashSet<String>() {{ add(expectedConfigUpdate); }});
+  }
 
+  private void waitForConfigUpdate(Set<String> expectedConfigUpdates) {
+    int count = 0;
+    while (!configsUpdated.equals(expectedConfigUpdates)) {
+      if (count++ > 5) {
+        Assert.fail("ConfiguredBolt was not updated in time");
+        return;
+      }
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
 }

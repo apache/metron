@@ -19,7 +19,7 @@ package org.apache.metron.integration.utils;
 
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 
@@ -53,4 +53,5 @@ public class SampleUtil {
     }
     return configurations;
   }
+
 }

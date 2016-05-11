@@ -159,6 +159,7 @@
                     </systemProperties>
                 </configuration>
             </plugin>
+
             <!-- Normally, dependency report takes time, skip it -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

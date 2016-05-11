@@ -16,3 +16,10 @@
 #
 ---
 - include: pcapservice.yml
+
+- name: Create Logrotate Script for metron_pcapservice
+  template:
+    src: "metron-pcapservice-logrotate.yml"
+    dest: "/etc/logrotate.d/metron-pcapservice"
+    mode: 0644
+
