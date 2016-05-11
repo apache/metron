@@ -164,7 +164,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("es.ip", "localhost");
       setProperty("index.date.format", dateFormat);
       setProperty("index.hdfs.output", hdfsDir);
-      setProperty("storm.topology.enrichment.workers", 1);
+      setProperty("storm.topology.enrichment.workers", "1");
     }};
     setAdditionalProperties(topologyProperties);
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{

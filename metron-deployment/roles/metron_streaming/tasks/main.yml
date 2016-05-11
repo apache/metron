@@ -130,7 +130,8 @@
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
     - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }
-    - { regexp: "storm.topology.enrichment.workers=", line: "storm.topology.enrichment.workers={{ storm_topology_enrichment_workers }}" }
+    - { regexp: "storm.topology.enrichment.workers=", 
+          line: "storm.topology.enrichment.workers={{ storm_topology_enrichment_workers if storm_topology_enrichment_workers is defined else 1 }}" }
 
 - name: Configure Metron Elasticsearch topology
   lineinfile: >
@@ -157,7 +158,8 @@
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
     - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }
-    - { regexp: "storm.topology.enrichment.workers=", line: "storm.topology.enrichment.workers={{ storm_topology_enrichment_workers }}" }
+    - { regexp: "storm.topology.enrichment.workers=", 
+          line: "storm.topology.enrichment.workers={{ storm_topology_enrichment_workers if storm_topology_enrichment_workers is defined else 1 }}" }
 
 - include: source_config.yml
   run_once: true
