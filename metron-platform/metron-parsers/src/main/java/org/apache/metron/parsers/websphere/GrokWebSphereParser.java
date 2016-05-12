@@ -67,6 +67,7 @@ public class GrokWebSphereParser extends GrokParser {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void removeEmptyFields(JSONObject json) {
 		Iterator<Object> keyIter = json.keySet().iterator();
 		while (keyIter.hasNext()) {
@@ -81,32 +82,55 @@ public class GrokWebSphereParser extends GrokParser {
 	//Extracts the appropriate fields from login messages
 	@SuppressWarnings("unchecked")
 	private void parseLoginMessage(JSONObject json) {
-		String message = (String) json.get("message");
-		String parts[] = message.split(":");
-		json.put("username", parts[0].substring(5, parts[0].length()-1));
-		json.put("ip_src_addr", parts[1].substring(2, parts[1].length()-1));
 		json.put("event_subtype", "login");
-		json.remove("message");
+		String message = (String) json.get("message");
+		if (message.contains(":")){
+			String parts[] = message.split(":");
+			String user = parts[0];
+			String ip_src_addr = parts[1];
+			if (user.contains("user(") && user.contains(")")) {	
+				user = user.substring(user.indexOf("user(") + "user(".length());
+				user = user.substring(0, user.indexOf(")"));
+				json.put("username", user);
+			}
+			if (ip_src_addr.contains("[") && ip_src_addr.contains("]")) {
+				ip_src_addr = ip_src_addr.substring(ip_src_addr.indexOf("[") + 1);
+				ip_src_addr = ip_src_addr.substring(0, ip_src_addr.indexOf("]"));
+				json.put("ip_src_addr", ip_src_addr);
+			}
+			json.remove("message");
+		}
 	}
 
 	//Extracts the appropriate fields from logout messages
 	@SuppressWarnings("unchecked")
 	private void parseLogoutMessage(JSONObject json) {
-		String message = (String) json.get("message");
-		String parts[] = message.split("'");
-		json.put("ip_src_addr", parts[0].substring(1, parts[0].lastIndexOf("]")));
-		json.put("username", parts[1]);
-		json.put("security_domain", parts[3]);
 		json.put("event_subtype", "logout");
-		json.remove("message");
+		String message = (String) json.get("message");
+		if (message.matches(".*'.*'.*'.*'.*")) {
+			String parts[] = message.split("'");
+			String ip_src_addr = parts[0];
+			if (ip_src_addr.contains("[") && ip_src_addr.contains("]")) {
+				ip_src_addr = ip_src_addr.substring(ip_src_addr.indexOf("[") + 1);
+				ip_src_addr = ip_src_addr.substring(0, ip_src_addr.indexOf("]"));
+				json.put("ip_src_addr", ip_src_addr);
+			}
+			json.put("username", parts[1]);
+			json.put("security_domain", parts[3]);
+			json.remove("message");
+		}
 	}
-	
+
 	//Extracts the appropriate fields from RBM messages
 	@SuppressWarnings("unchecked")
 	private void parseRBMMessage(JSONObject json) {
 		String message = (String) json.get("message");
-		json.put("process", message.substring(0, message.indexOf("(")));
-		json.put("message", message.substring(message.indexOf(":") + 2));
+		if (message.contains("(")) {
+			json.put("process", message.substring(0, message.indexOf("(")));
+			if (message.contains(":")) {
+				json.put("message", message.substring(message.indexOf(":") + 2));	
+			}
+		}
 	}
 
 	//Extracts the appropriate fields from other messages
@@ -115,7 +139,9 @@ public class GrokWebSphereParser extends GrokParser {
 		String message = (String) json.get("message");
 		if (message.contains("(")) {
 			json.put("process", message.substring(0, message.indexOf("(")));
-			json.put("message", message.substring(message.indexOf(":") + 2));	
+			if (message.contains(":")) {
+				json.put("message", message.substring(message.indexOf(":") + 2));	
+			}
 		}
 	}
 }
