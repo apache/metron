@@ -15,21 +15,11 @@
 #  limitations under the License.
 #
 ---
-- include: ../../playbooks/metron_full_install.yml
-
-- hosts: packer
-  become: true
-  roles:
-    - role: ambari_gather_facts
-  tasks:
-    - include: tasks/cleanup.yml
-  tags:
-    - packer-cleanup
-
-- hosts: packer
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: hadoop_setup
-  tags:
-    - packer-cleanup
+- name: "Kill topologies"
+  shell: "storm kill {{ item }}"
+  register: result
+  with_items:
+    - enrichment
+    - "{{ storm_parser_topologies }}"
+  failed_when: result.rc != 0 and ("NotAliveException" not in result.stdout)
+  changed_when: result.rc == 0

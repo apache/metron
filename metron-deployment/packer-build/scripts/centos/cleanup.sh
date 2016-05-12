@@ -37,3 +37,4 @@ for ndev in `ls -1 /etc/sysconfig/network-scripts/ifcfg-*`; do
 done
 
 rm -f VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?;
+echo "127.0.0.1   localhost" > /etc/hosts

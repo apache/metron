@@ -15,21 +15,17 @@
 #  limitations under the License.
 #
 ---
-- include: ../../playbooks/metron_full_install.yml
+- name: "Delete topics"
+  shell: "/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --delete --topic {{ item }}"
+  register: result
+  with_items:
+    - bro
+    - yaf
+    - snort
+    - enrichments
+    - pcap
+  failed_when: result.rc != 0 and ("does not exist" not in result.stderr)
+  changed_when: result.rc == 0
 
-- hosts: packer
-  become: true
-  roles:
-    - role: ambari_gather_facts
-  tasks:
-    - include: tasks/cleanup.yml
-  tags:
-    - packer-cleanup
 
-- hosts: packer
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: hadoop_setup
-  tags:
-    - packer-cleanup
+

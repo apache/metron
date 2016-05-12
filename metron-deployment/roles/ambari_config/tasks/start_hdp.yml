@@ -15,35 +15,28 @@
 #  limitations under the License.
 #
 ---
-#start cluster
-- include: ../../roles/ambari_config/tasks/start_hdp.yml
-
-#deactivate storm topologies - yaf,enrichment,bro,snort
-- include: stop_storm.yml
-
-#delete kafka topics - yaf,enrichments,bro,snort
-- include: clear_topics.yml
-
-#delete es indices
-- name: Delete ES Indices
-  uri:
-    method: DELETE
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/b*,s*,y*"
-
-#stop cluster
-- name: Stop the ambari cluster
+#
+# Workaround for Kafka not starting
+# Fire off async start followed by
+# Sync start -execution will pause until
+# final start completes.
+#
+- name: Start the ambari cluster - no wait
   ambari_cluster_state:
     host: "{{ groups.ambari_master[0] }}"
     port: "{{ ambari_port }}"
     username: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     cluster_name: "{{ cluster_name }}"
-    cluster_state: stopped
-    wait_for_complete: true
+    cluster_state: started
+    wait_for_complete: False
 
-#remove secondary nn, mr2, yarn
-- include: remove_services.yml
-
-#start cluster
-- include: ../../roles/ambari_config/tasks/start_hdp.yml
-
+- name: Start the ambari cluster - wait
+  ambari_cluster_state:
+    host: "{{ groups.ambari_master[0] }}"
+    port: "{{ ambari_port }}"
+    username: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    cluster_name: "{{ cluster_name }}"
+    cluster_state: started
+    wait_for_complete: True

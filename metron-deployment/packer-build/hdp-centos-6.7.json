@@ -89,7 +89,8 @@
       "sftp_command": "/usr/libexec/openssh/sftp-server",
       "user" : "vagrant",
       "host_alias" : "node1",
-      "groups" : ["packer","ambari_master","ambari_slave","hadoop_client","enrichment","search","web","sensors","mysql","pcap_server"]
+      "groups" : ["packer","ambari_master","ambari_slave"],
+      "extra_arguments": [ "--tags", "ambari", "--skip-tags","packer-cleanup" ]
     },
     {
       "type": "shell",
@@ -108,7 +109,7 @@
     }
   ],
   "variables": {
-    "box_basename": "metron-centos-6.7",
+    "box_basename": "hdp-centos-6.7",
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "cpus": "1",
     "git_revision": "__unknown_git_revision__",
@@ -123,9 +124,9 @@
     "metadata": "floppy/dummy_metadata.json",
     "mirror": "http://mirrors.kernel.org/centos",
     "mirror_directory": "6.7/isos/x86_64",
-    "name": "metron-centos-6.7",
+    "name": "hdp-centos-6.7",
     "no_proxy": "{{env `no_proxy`}}",
-    "template": "metron-centos-6.7",
+    "template": "hdp-centos-6.7",
     "version": "2.1.TIMESTAMP"
   }
 }
