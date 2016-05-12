@@ -18,178 +18,62 @@
 
 package org.apache.metron.parsers.websphere;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.GrokParser;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.Match;
-import oi.thekraken.grok.api.exception.GrokException;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Iterator;
 
-public class GrokWebSphereParser extends BasicParser {
+public class GrokWebSphereParser extends GrokParser {
 
 	private static final long serialVersionUID = 4860439408055777358L;
-	protected transient Grok  grok;
-	protected transient InputStream pattern_url;
-	protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MMM dd HH:mm:ss");
-	protected static final Logger LOGGER = LoggerFactory.getLogger(GrokWebSphereParser.class);
 
-	public static final String PREFIX = "stream2file";
-	public static final String SUFFIX = ".tmp";
-
-	public static File stream2file(InputStream in) throws IOException {
-		final File tempFile = File.createTempFile(PREFIX, SUFFIX);
-		tempFile.deleteOnExit();
-		try (FileOutputStream out = new FileOutputStream(tempFile)) {
-			IOUtils.copy(in, out);
-		}
-		return tempFile;
+	public GrokWebSphereParser(String grokHdfsPath, String patternLabel) {
+		super(grokHdfsPath, patternLabel);
 	}
 
-	public GrokWebSphereParser() throws Exception {
-		pattern_url = getClass().getClassLoader().getResourceAsStream(
-				"patterns/websphere");
-		File file = stream2file(pattern_url);
-		grok = Grok.create(file.getPath());
-		grok.compile("%{WEBSPHERE}");
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-	}
-
-	public GrokWebSphereParser(String filepath) throws Exception {
-		grok = Grok.create(filepath);
-		grok.compile("%{WEBSPHERE}");
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-	}
-
-	public GrokWebSphereParser(String filepath, String pattern) throws Exception {
-		grok = Grok.create(filepath);
-		grok.compile("%{" + pattern + "}");
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-	}
-
-	//Set up the Grok pattern if it is not set in the constructor
 	@Override
-	public void init() {
-		pattern_url = getClass().getClassLoader().getResourceAsStream(
-				"patterns/websphere");
-		File file = new File("test");
-		try {
-			file = stream2file(pattern_url);
-			grok = Grok.create(file.getPath());
-			grok.compile("%{WEBSPHERE}");
-		} catch (GrokException e) {
-			LOGGER.error(e.toString());
-		} catch (IOException e) {
-			LOGGER.error(e.toString());
-		}
-	}
-
-	//Parses the incoming telemetry message
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<JSONObject> parse(byte[] rawMessage) {
-
-		String toParse = "";
-		JSONObject toReturn;
-		List<JSONObject> messages = new ArrayList<>();
-
-		try {
-			toParse = new String(rawMessage, "UTF-8");
-			LOGGER.info("Received message: " + toParse);
-			
-			if (grok == null) {
-				init();
+	protected long formatTimestamp(Object value) {
+		long epochTimestamp = System.currentTimeMillis();
+		if (value != null) {
+			try {
+				epochTimestamp = toEpoch(Calendar.getInstance().get(Calendar.YEAR)  + " " + value);
+			} catch (ParseException e) {
+				//default to current time
 			}
+		}
+		return epochTimestamp;
+	}
 
-			Match gm = grok.match(toParse);			
-			gm.captures();
-			
-			toReturn = new JSONObject();
-			toReturn.putAll(gm.toMap());
-
-			cleanJSON(toReturn);
-			messages.add(toReturn);
-			return messages;
-
-		} catch (Exception e) {
-			LOGGER.error("Failed to parse: " + toParse);
-			LOGGER.error(e.toString());
-			return null;
+	@Override
+	protected void postParse(JSONObject message) {
+		removeEmptyFields(message);
+		message.remove("timestamp_string");
+		if (message.containsKey("message")) {
+			String messageValue = (String) message.get("message");
+			if (messageValue.contains("logged into")) {
+				parseLoginMessage(message);
+			}
+			else if (messageValue.contains("logged out")) {
+				parseLogoutMessage(message);
+			}
+			else if (messageValue.contains("rbm(")) {
+				parseRBMMessage(message);
+			}
+			else {
+				parseOtherMessage(message);
+			}
 		}
 	}
 
-	//Ensures that the JSON has the appropriate fields
-	@SuppressWarnings("unchecked")
-	private void cleanJSON(JSONObject json) throws ParseException {
-		
-		//Add original string and epoch timestamp
-		json.put("original_string", json.get("WEBSPHERE"));
-		json.remove("WEBSPHERE");
-		addEpochTimestamp(json);
-		parseMessageField(json);
-		json.remove("UNWANTED");
-		
-		// Remove keys for which the value was "" or null
+	private void removeEmptyFields(JSONObject json) {
 		Iterator<Object> keyIter = json.keySet().iterator();
 		while (keyIter.hasNext()) {
 			Object key = keyIter.next();
 			Object value = json.get(key);
 			if (null == value || "".equals(value.toString())) {
 				keyIter.remove();
-			}
-		}	
-	}
-
-	//Converts the data string to an epoch timestamp
-	@SuppressWarnings("unchecked")
-	private void addEpochTimestamp(JSONObject json) throws ParseException {
-		long epochTimestamp = 0;
-
-		if (json.containsKey("timestamp_string")) {
-			int year = Calendar.getInstance().get(Calendar.YEAR);
-			String timestampString = year + " " + json.get("timestamp_string");
-			Date date = dateFormat.parse(timestampString);
-			epochTimestamp = date.getTime();
-		}
-		else {
-			epochTimestamp = System.currentTimeMillis();
-		}
-
-		json.put("timestamp", epochTimestamp);
-		json.remove("timestamp_string");
-	}
-
-	//Handles the specific parses of different message types
-	private void parseMessageField(JSONObject json) {
-
-		if (json.containsKey("message")) {
-			String message = (String) json.get("message");
-			if (message.contains("logged into")) {
-				parseLoginMessage(json);
-			}
-			else if (message.contains("logged out")) {
-				parseLogoutMessage(json);
-			}
-			else if (message.contains("rbm(")) {
-				parseRBMMessage(json);
-			}
-			else {
-				parseOtherMessage(json);
 			}
 		}
 	}

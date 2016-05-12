@@ -24,12 +24,18 @@ import org.json.simple.JSONObject;
 import org.junit.Test;
 
 public class GrokWebSphereParserTest {
+
+	private final String grokPath = "../metron-parsers/src/main/resources/patterns/websphere";
+	private final String grokLabel = "WEBSPHERE";
+	private final String dateFormat = "yyyy MMM dd HH:mm:ss";
+	private final String timestampField = "timestamp_string";
 	
 	@Test
 	public void testParseLoginLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser();
+		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] user(rick007): "
 				+ "[120.43.200.6]: User logged into 'cohlOut'.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
@@ -52,7 +58,8 @@ public class GrokWebSphereParserTest {
 	public void tetsParseLogoutLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser();
+		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201]: "
 				+ "User 'hjpotter' logged out from 'default'.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
@@ -74,7 +81,8 @@ public class GrokWebSphereParserTest {
 	public void tetsParseRBMLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser();
+		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbm(RBM-Settings): "
 				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
@@ -95,7 +103,8 @@ public class GrokWebSphereParserTest {
 	public void tetsParseOtherLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser();
+		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans(191): (admin:default:system:*): "
 				+ "ntp-service 'NTP Service' - Operational state down";
 		List<JSONObject> result = parser.parse(testString.getBytes());
