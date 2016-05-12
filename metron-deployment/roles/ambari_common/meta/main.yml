@@ -17,6 +17,5 @@
 ---
 dependencies:
   - libselinux-python
-  - yum-update
   - epel
   - ntp
