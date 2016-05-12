@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.pcap.filter.query;
+package org.apache.metron.pcap.filter;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.query.VariableResolver;

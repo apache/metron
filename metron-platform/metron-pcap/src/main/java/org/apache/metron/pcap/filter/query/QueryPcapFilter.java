@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,6 +24,7 @@ import org.apache.metron.common.query.PredicateProcessor;
 import org.apache.metron.common.query.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.filter.PcapFieldResolver;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
@@ -43,8 +44,11 @@ public class QueryPcapFilter implements PcapFilter {
 
     @Override
     public String queryToString(String fields) {
-      return fields.replaceAll("\\w", "_")
-              .replace(".", "-");
+      return (fields == null ? "" :
+              fields.trim().replaceAll("\\s", "_")
+                      .replace(".", "-")
+                      .replace("'", "")
+      );
     }
   }
 

@@ -27,7 +27,7 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
-import org.apache.metron.pcap.filter.query.PcapFieldResolver;
+import org.apache.metron.pcap.filter.PcapFieldResolver;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class FixedPcapFilter implements PcapFilter {
 
     @Override
     public String queryToString(EnumMap<Constants.Fields, String> fields) {
-      return Joiner.on("_").join(fields.values());
+      return (fields == null ? "" : Joiner.on("_").join(fields.values()));
     }
   }
 
@@ -102,11 +102,7 @@ public class FixedPcapFilter implements PcapFilter {
   }
 
   private boolean areMatch(Integer filter, String input) {
-    if (filter != null) {
-      return areMatch(filter.toString(), input);
-    } else {
-      return true;
-    }
+    return filter == null || areMatch(filter.toString(), input);
   }
 
   private boolean areMatch(String filter, String input) {

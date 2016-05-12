@@ -97,15 +97,17 @@ public class PcapReceiverImplRestEasy {
     }
     return false;
   }
-	  /*
-	   * (non-Javadoc)
-	   *
-	   * @see
-	   * com.cisco.opensoc.hbase.client.IPcapReceiver#getPcapsByIdentifiers(java.lang
-	   * .String, java.lang.String, java.lang.String, java.lang.String,
-	   * java.lang.String, long, long, boolean,
-	   * javax.servlet.http.HttpServletResponse)
-	   */
+
+  /**
+   * Enable filtering PCAP results by query filter string and start/end packet TS
+   *
+   * @param query Filter results based on this query
+   * @param startTime Only return packets originating after this start time
+   * @param endTime Only return packets originating before this end time
+   * @param servlet_response
+   * @return REST response
+   * @throws IOException
+   */
   @GET
   @Path("/pcapGetter/getPcapsByQuery")
   public Response getPcapsByIdentifiers(
@@ -155,18 +157,23 @@ public class PcapReceiverImplRestEasy {
     return Response
             .ok(response.getPcaps(), MediaType.APPLICATION_OCTET_STREAM)
             .status(200).build();
-
   }
 
-	  /*
-	   * (non-Javadoc)
-	   * 
-	   * @see
-	   * com.cisco.opensoc.hbase.client.IPcapReceiver#getPcapsByIdentifiers(java.lang
-	   * .String, java.lang.String, java.lang.String, java.lang.String,
-	   * java.lang.String, long, long, boolean,
-	   * javax.servlet.http.HttpServletResponse)
-	   */
+  /**
+   * Enable filtering PCAP results by fixed properties and start/end packet TS
+   *
+   * @param srcIp filter value
+   * @param dstIp filter value
+   * @param protocol filter value
+   * @param srcPort filter value
+   * @param dstPort filter value
+   * @param startTime filter value
+   * @param endTime filter value
+   * @param includeReverseTraffic Indicates if filter should check swapped src/dest addresses and IPs
+   * @param servlet_response
+   * @return REST response
+   * @throws IOException
+   */
   @GET
   @Path("/pcapGetter/getPcapsByIdentifiers")
   public Response getPcapsByIdentifiers(

@@ -31,14 +31,14 @@ public class QueryParserTest {
     PredicateProcessor processor = new PredicateProcessor();
     try {
       processor.validate("'foo'");
-      Assert.fail("Invalid rule found to be valid.");
+      Assert.fail("Invalid rule found to be valid - lone value.");
     }
     catch(ParseException e) {
 
     }
     try {
       processor.validate("enrichedField1 == 'enrichedValue1");
-      Assert.fail("Invalid rule found to be valid.");
+      Assert.fail("Invalid rule found to be valid - unclosed single quotes.");
     }
     catch(ParseException e) {
 
@@ -67,7 +67,9 @@ public class QueryParserTest {
     Assert.assertTrue(run("foo== foo", v -> variableMap.get(v)));
     Assert.assertTrue(run("empty== ''", v -> variableMap.get(v)));
     Assert.assertTrue(run("spaced == 'metron is great'", v -> variableMap.get(v)));
+    Assert.assertTrue(run(null, v -> variableMap.get(v)));
     Assert.assertTrue(run("", v -> variableMap.get(v)));
+    Assert.assertTrue(run(" ", v -> variableMap.get(v)));
   }
 
   @Test

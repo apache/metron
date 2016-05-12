@@ -29,7 +29,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class PredicateProcessor {
   public boolean parse(String rule, VariableResolver resolver) {
-    if (isEmpty(rule)) {
+    if (rule == null || isEmpty(rule.trim())) {
       return true;
     }
     ANTLRInputStream input = new ANTLRInputStream(rule);
