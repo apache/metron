@@ -39,103 +39,72 @@ import org.junit.Test;
 import java.io.File;
 import java.util.*;
 
-public class ParserIntegrationTest extends BaseIntegrationTest {
-
-  private String configRoot = "../metron-parsers/src/main/config/zookeeper/parsers";
-  private String testSensorType = System.getProperty("sensorType");
-  private List<String> sensorTypeList;
-  private Map<String, List<ParserValidation>> sensorValidations;
-
-  @Before
-  public void configureValidations() {
-    sensorValidations = new HashMap<>();
-    sensorValidations.put("bluecoat", new ArrayList<ParserValidation>() {{
-      add(new SampleDataValidation());
-    }});
-    sensorValidations.put("bro", new ArrayList<ParserValidation>() {{
-      add(new SampleDataValidation());
-    }});
-    sensorValidations.put("snort", new ArrayList<ParserValidation>() {{
-      add(new SampleDataValidation());
-    }});
-    sensorValidations.put("squid", new ArrayList<ParserValidation>() {{
-      add(new SampleDataValidation());
-    }});
-    sensorValidations.put("yaf", new ArrayList<ParserValidation>() {{
-      add(new SampleDataValidation());
-    }});
-  }
+public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void test() throws Exception {
+    final String sensorType = getSensorType();
+    final List<byte[]> inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
 
-    for (String name : new File(configRoot).list()) {
-      final String sensorType = FilenameUtils.removeExtension(name);
-      if (testSensorType != null && !testSensorType.equals(sensorType)) continue;
+    final Properties topologyProperties = new Properties();
+    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
+      add(new KafkaWithZKComponent.Topic(sensorType, 1));
+    }});
+    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
+
+    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
+            .withTopologyProperties(topologyProperties)
+            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            .withParserConfigsPath(TestConstants.PARSER_CONFIGS_PATH);
+
+    ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
+            .withSensorType(sensorType)
+            .withTopologyProperties(topologyProperties)
+            .withBrokerUrl(kafkaComponent.getBrokerList()).build();
+
+    UnitTestHelper.verboseLogging();
+    ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("kafka", kafkaComponent)
+            .withComponent("config", configUploadComponent)
+            .withComponent("storm", parserTopologyComponent)
+            .withMillisecondsBetweenAttempts(5000)
+            .withNumRetries(10)
+            .build();
+    runner.start();
+    kafkaComponent.writeMessages(sensorType, inputMessages);
+    List<byte[]> outputMessages =
+            runner.process(new Processor<List<byte[]>>() {
+              List<byte[]> messages = null;
+
+              public ReadinessState process(ComponentRunner runner) {
+                KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
+                List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                if (outputMessages.size() == inputMessages.size()) {
+                  messages = outputMessages;
+                  return ReadinessState.READY;
+                } else {
+                  return ReadinessState.NOT_READY;
+                }
+              }
+
+              public List<byte[]> getResult() {
+                return messages;
+              }
+            });
+    List<ParserValidation> validations = getValidations();
+    if (validations == null || validations.isEmpty()) {
+      System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
       System.out.println();
-      System.out.println("Running Parser Integration test for sensorType " + sensorType);
-      final List<byte[]> inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
-
-      final Properties topologyProperties = new Properties();
-      final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-        add(new KafkaWithZKComponent.Topic(sensorType, 1));
-      }});
-      topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
-
-      ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
-              .withTopologyProperties(topologyProperties)
-              .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-              .withParserConfigsPath(TestConstants.PARSER_CONFIGS_PATH);
-
-      ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
-              .withSensorType(sensorType)
-              .withTopologyProperties(topologyProperties)
-              .withBrokerUrl(kafkaComponent.getBrokerList()).build();
-
-      UnitTestHelper.verboseLogging();
-      ComponentRunner runner = new ComponentRunner.Builder()
-              .withComponent("kafka", kafkaComponent)
-              .withComponent("config", configUploadComponent)
-              .withComponent("storm", parserTopologyComponent)
-              .withMillisecondsBetweenAttempts(5000)
-              .withNumRetries(10)
-              .build();
-      runner.start();
-      kafkaComponent.writeMessages(sensorType, inputMessages);
-      List<byte[]> outputMessages =
-              runner.process(new Processor<List<byte[]>>() {
-                List<byte[]> messages = null;
-
-                public ReadinessState process(ComponentRunner runner) {
-                  KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
-                  List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                  if (outputMessages.size() == inputMessages.size()) {
-                    messages = outputMessages;
-                    return ReadinessState.READY;
-                  } else {
-                    return ReadinessState.NOT_READY;
-                  }
-                }
-
-                public List<byte[]> getResult() {
-                  return messages;
-                }
-              });
-      List<ParserValidation> validations = sensorValidations.get(sensorType);
-      if (validations == null || validations.isEmpty()) {
-        System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
-        System.out.println();
-        dumpParsedMessages(outputMessages);
-        System.out.println();
-        Assert.fail();
-      } else {
-        for (ParserValidation validation : validations) {
-          System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
-          validation.validate(sensorType, outputMessages);
-        }
+      dumpParsedMessages(outputMessages);
+      System.out.println();
+      Assert.fail();
+    } else {
+      for (ParserValidation validation : validations) {
+        System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
+        validation.validate(sensorType, outputMessages);
       }
-      runner.stop();
     }
+    runner.stop();
   }
 
   public void dumpParsedMessages(List<byte[]> outputMessages) {
@@ -143,5 +112,8 @@ public class ParserIntegrationTest extends BaseIntegrationTest {
       System.out.println(new String(outputMessage));
     }
   }
+
+  abstract String getSensorType();
+  abstract List<ParserValidation> getValidations();
 
 }
