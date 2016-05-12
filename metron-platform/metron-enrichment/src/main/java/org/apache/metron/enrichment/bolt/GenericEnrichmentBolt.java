@@ -28,14 +28,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
-import org.apache.metron.common.configuration.ConfigType;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +116,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   }
 
   @Override
-  public void reloadCallback(String name, ConfigType type) {
+  public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();

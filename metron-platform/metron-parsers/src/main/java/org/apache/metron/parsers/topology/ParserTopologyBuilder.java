@@ -19,7 +19,7 @@ package org.apache.metron.parsers.topology;
 
 import backtype.storm.topology.TopologyBuilder;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.utils.ReflectionUtils;

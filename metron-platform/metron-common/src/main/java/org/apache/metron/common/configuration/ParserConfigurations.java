@@ -43,6 +43,6 @@ public class ParserConfigurations extends Configurations {
   }
 
   private String getKey(String sensorType) {
-    return ConfigType.PARSER.getName() + "." + sensorType;
+    return ConfigurationType.PARSER.getName() + "." + sensorType;
   }
 }

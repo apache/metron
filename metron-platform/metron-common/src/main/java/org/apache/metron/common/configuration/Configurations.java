@@ -19,7 +19,6 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
@@ -38,10 +37,11 @@ public class Configurations implements Serializable {
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.get(ConfigType.GLOBAL.getName());
+    return (Map<String, Object>) configurations.get(ConfigurationType.GLOBAL.getName());
   }
 
   public void updateGlobalConfig(byte[] data) throws IOException {
+    if (data == null) throw new IllegalStateException("global config data cannot be null");
     updateGlobalConfig(new ByteArrayInputStream(data));
   }
 
@@ -52,22 +52,7 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    configurations.put(ConfigType.GLOBAL.getName(), globalConfig);
-  }
-
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> getConfig(String name) {
-    return (Map<String, Object>) configurations.get(name);
-  }
-
-  public void updateConfig(String name, byte[] data) throws IOException {
-    if (data == null) throw new IllegalStateException("config data cannot be null");
-    Map<String, Object> config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(data), new TypeReference<Map<String, Object>>() {});
-    updateConfig(name, config);
-  }
-
-  public void updateConfig(String name, Map<String, Object> config) {
-    configurations.put(name, config);
+    configurations.put(ConfigurationType.GLOBAL.getName(), globalConfig);
   }
 
   @Override

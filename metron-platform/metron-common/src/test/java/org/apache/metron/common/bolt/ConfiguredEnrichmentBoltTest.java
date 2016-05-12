@@ -22,12 +22,9 @@ import backtype.storm.tuple.Tuple;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.common.Constants;
 import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.ConfigType;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.*;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
-import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +56,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     }
 
     @Override
-    public void reloadCallback(String name, ConfigType type) {
+    public void reloadCallback(String name, ConfigurationType type) {
       configsUpdated.add(name);
     }
   }
@@ -70,7 +67,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     this.zookeeperUrl = testZkServer.getConnectString();
     byte[] globalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
     ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, zookeeperUrl);
-    enrichmentConfigurationTypes.add(Constants.GLOBAL_CONFIG_NAME);
+    enrichmentConfigurationTypes.add(ConfigurationType.GLOBAL.getName());
     Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
     for (String sensorType : sensorEnrichmentConfigs.keySet()) {
       ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), zookeeperUrl);
@@ -107,13 +104,13 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
-    waitForConfigUpdate(Constants.GLOBAL_CONFIG_NAME);
+    waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
     Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.configurations.getGlobalConfig());
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
-    waitForConfigUpdate(Constants.GLOBAL_CONFIG_NAME);
+    waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
     Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.configurations);
 
     configsUpdated = new HashSet<>();
@@ -135,34 +132,6 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
     Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.configurations);
-
-    configsUpdated = new HashSet<>();
-    String someConfigType = "someConfig";
-    Map<String, Object> someConfig = new HashMap<>();
-    someConfig.put("someField", "someValue");
-    sampleConfigurations.updateConfig(someConfigType, someConfig);
-    ConfigurationsUtils.writeConfigToZookeeper(someConfigType, someConfig, zookeeperUrl);
-    waitForConfigUpdate(someConfigType);
-    Assert.assertEquals("Add new misc config", sampleConfigurations, configuredBolt.configurations);
     configuredBolt.cleanup();
-  }
-
-  private void waitForConfigUpdate(final String expectedConfigUpdate) {
-    waitForConfigUpdate(new HashSet<String>() {{ add(expectedConfigUpdate); }});
-  }
-
-  private void waitForConfigUpdate(Set<String> expectedConfigUpdates) {
-    int count = 0;
-    while (!configsUpdated.equals(expectedConfigUpdates)) {
-      if (count++ > 5) {
-        Assert.fail("ConfiguredBolt was not updated in time");
-        return;
-      }
-      try {
-        Thread.sleep(500);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
   }
 }

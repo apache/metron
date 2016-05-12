@@ -178,6 +178,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
       payload.get(bytes);
       messages.add(bytes);
     }
+    consumer.close();
     return messages;
   }
 

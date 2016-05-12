@@ -22,14 +22,18 @@ import backtype.storm.tuple.Tuple;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.cli.ConfigurationsUtils;
-import org.apache.metron.common.configuration.*;
-import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
 
@@ -51,7 +55,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     }
 
     @Override
-    public void reloadCallback(String name, ConfigType type) {
+    public void reloadCallback(String name, ConfigurationType type) {
       configsUpdated.add(name);
     }
   }
@@ -62,7 +66,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     this.zookeeperUrl = testZkServer.getConnectString();
     byte[] globalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
     ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, zookeeperUrl);
-    parserConfigurationTypes.add(Constants.GLOBAL_CONFIG_NAME);
+    parserConfigurationTypes.add(ConfigurationType.GLOBAL.getName());
     Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
     for (String sensorType : sensorEnrichmentConfigs.keySet()) {
       ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), zookeeperUrl);
@@ -99,13 +103,13 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
-    waitForConfigUpdate(Constants.GLOBAL_CONFIG_NAME);
+    waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
     Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.configurations.getGlobalConfig());
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
-    waitForConfigUpdate(Constants.GLOBAL_CONFIG_NAME);
+    waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
     Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.configurations);
 
     configsUpdated = new HashSet<>();
@@ -120,15 +124,6 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
     Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.configurations);
-
-    configsUpdated = new HashSet<>();
-    String someConfigType = "someConfig";
-    Map<String, Object> someConfig = new HashMap<>();
-    someConfig.put("someField", "someValue");
-    sampleConfigurations.updateConfig(someConfigType, someConfig);
-    ConfigurationsUtils.writeConfigToZookeeper(someConfigType, someConfig, zookeeperUrl);
-    waitForConfigUpdate(someConfigType);
-    Assert.assertEquals("Add new misc config", sampleConfigurations, configuredBolt.configurations);
     configuredBolt.cleanup();
   }
 }

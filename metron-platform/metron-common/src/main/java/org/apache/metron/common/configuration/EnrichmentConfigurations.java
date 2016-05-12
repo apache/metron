@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.configuration;
 
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
@@ -43,6 +44,6 @@ public class EnrichmentConfigurations extends Configurations {
     }
 
     private String getKey(String sensorType) {
-        return ConfigType.ENRICHMENT.getName() + "." + sensorType;
+        return ConfigurationType.ENRICHMENT.getName() + "." + sensorType;
     }
 }

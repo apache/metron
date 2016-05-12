@@ -17,7 +17,9 @@
  */
 package org.apache.metron.integration.components;
 
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 
@@ -57,6 +59,20 @@ public class ConfigUploadComponent implements InMemoryComponent {
     } catch (Exception e) {
       throw new UnableToStartException(e.getMessage(), e);
     }
+  }
+
+  public SensorParserConfig getSensorParserConfig(String sensorType) {
+    SensorParserConfig sensorParserConfig = new SensorParserConfig();
+    CuratorFramework client = ConfigurationsUtils.getClient(topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY));
+    client.start();
+    try {
+      sensorParserConfig = ConfigurationsUtils.readSensorParserConfigFromZookeeper(sensorType, client);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      client.close();
+    }
+    return sensorParserConfig;
   }
 
   @Override

@@ -19,9 +19,8 @@ package org.apache.metron.common.bolt;
 
 import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.cli.ConfigurationsUtils;
-import org.apache.metron.common.configuration.ConfigType;
-import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 
 import java.io.IOException;
@@ -53,20 +52,13 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt {
   public void updateConfig(String path, byte[] data) throws IOException {
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
-      ConfigType type;
-      if (path.startsWith(Constants.ZOOKEEPER_ENRICHMENT_ROOT)) {
-        return;
-      } else if (path.startsWith(Constants.ZOOKEEPER_PARSER_ROOT)) {
+      if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
         configurations.updateSensorParserConfig(name, data);
-        type = ConfigType.PARSER;
-      } else if (Constants.ZOOKEEPER_GLOBAL_ROOT.equals(path)) {
+        reloadCallback(name, ConfigurationType.PARSER);
+      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
         configurations.updateGlobalConfig(data);
-        type = ConfigType.GLOBAL;
-      } else {
-        configurations.updateConfig(name, data);
-        type = ConfigType.OTHER;
+        reloadCallback(name, ConfigurationType.GLOBAL);
       }
-      reloadCallback(name, type);
     }
   }
 }

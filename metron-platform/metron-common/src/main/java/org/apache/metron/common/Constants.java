@@ -17,16 +17,10 @@
  */
 package org.apache.metron.common;
 
-import org.apache.metron.common.configuration.ConfigType;
-
 public class Constants {
 
-  public static final String GLOBAL_CONFIG_NAME = "global";
   public static final String ZOOKEEPER_ROOT = "/metron";
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
-  public static final String ZOOKEEPER_GLOBAL_ROOT = ZOOKEEPER_TOPOLOGY_ROOT + "/" + GLOBAL_CONFIG_NAME;
-  public static final String ZOOKEEPER_ENRICHMENT_ROOT = ZOOKEEPER_TOPOLOGY_ROOT + "/" + ConfigType.ENRICHMENT.getName();
-  public static final String ZOOKEEPER_PARSER_ROOT = ZOOKEEPER_TOPOLOGY_ROOT + "/" + ConfigType.PARSER.getName();
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
   public static final String SENSOR_TYPE = "source.type";
   public static final String ENRICHMENT_TOPIC = "enrichments";

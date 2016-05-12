@@ -24,6 +24,7 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.integration.utils.SampleUtil;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -38,7 +39,6 @@ import java.util.Properties;
 public class SolrEnrichmentIntegrationTest extends EnrichmentIntegrationTest {
 
   private String collection = "metron";
-  private String solrZookeeperUrl;
 
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
@@ -50,7 +50,7 @@ public class SolrEnrichmentIntegrationTest extends EnrichmentIntegrationTest {
               public Void apply(@Nullable SolrComponent solrComponent) {
                 topologyProperties.setProperty("solr.zk", solrComponent.getZookeeperUrl());
                 try {
-                  String testZookeeperUrl = topologyProperties.getProperty("kafka.zk");
+                  String testZookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
                   Configurations configurations = SampleUtil.getSampleConfigs();
                   Map<String, Object> globalConfig = configurations.getGlobalConfig();
                   globalConfig.put("solr.zookeeper", solrComponent.getZookeeperUrl());

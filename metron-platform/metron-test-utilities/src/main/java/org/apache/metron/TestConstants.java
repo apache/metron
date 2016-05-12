@@ -24,6 +24,6 @@ public class TestConstants {
   public final static String ENRICHMENTS_CONFIGS_PATH = "../metron-enrichment/src/main/config/zookeeper/";
   public final static String SAMPLE_DATA_PATH = "../metron-integration-test/src/main/sample/data/";
   public final static String SAMPLE_DATA_INPUT_PATH = "../metron-integration-test/src/main/sample/data/yaf/raw/";
-  public final static String SAMPLE_DATA_PARSED_PATH = "../metron-integration-test/src/main/sample/data/yaf/parsed/";
-  public final static String SAMPLE_DATA_INDEXED_PATH = "../metron-integration-test/src/main/sample/data/yaf/indexed/";
+  public final static String SAMPLE_DATA_PARSED_PATH = "../metron-integration-test/src/main/sample/data/test/parsed/";
+  public final static String SAMPLE_DATA_INDEXED_PATH = "../metron-integration-test/src/main/sample/data/test/indexed/";
 }

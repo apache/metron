@@ -59,6 +59,7 @@ import java.util.Set;
 import java.util.Stack;
 
 public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
+
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
@@ -67,9 +68,10 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     put("orientation", "north");
   }};
   private String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
+  protected String testSensorType = "test";
   protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
-  private String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "YafExampleParsed";
-  private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "YafIndexed";
+  private String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
+  private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
 
 
   public static class Provider implements TableProvider, Serializable {
@@ -222,7 +224,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
-      Assert.assertEquals(new File(hdfsDir).list()[0], "yaf");
+      Assert.assertEquals(new File(hdfsDir).list()[0], testSensorType);
       validateAll(docsFromDisk);
     }
     finally {

@@ -29,9 +29,7 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.ConfigType;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ConfigurationType;
 
 import java.io.IOException;
 import java.util.Map;
@@ -57,7 +55,7 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     this.cache = cache;
   }
 
-  public void reloadCallback(String name, ConfigType type) {
+  public void reloadCallback(String name, ConfigurationType type) {
   }
 
   @Override

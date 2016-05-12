@@ -83,32 +83,6 @@ public class ConfigurationsUtilsTest {
 
   }
 
-  @Test
-  public void testCmdLine() throws Exception {
-    {
-      String[] args = {"-z", zookeeperUrl, "-p", TestConstants.SAMPLE_CONFIG_PATH};
-      ConfigurationsUtils.main(args);
-      byte[] actualGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-      Assert.assertTrue(Arrays.equals(expectedGlobalConfig, actualGlobalConfigBytes));
-    }
-    {
-      String[] args = {"-z", zookeeperUrl, "-p", TestConstants.PARSER_CONFIGS_PATH};
-      ConfigurationsUtils.main(args);
-      for (String sensorType : expectedSensorParserConfigMap.keySet()) {
-        byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(sensorType, client);
-        Assert.assertTrue(Arrays.equals(expectedSensorParserConfigMap.get(sensorType), actualSensorParserConfigBytes));
-      }
-    }
-    {
-      String[] args = {"-z", zookeeperUrl, "-p", TestConstants.ENRICHMENTS_CONFIGS_PATH};
-      ConfigurationsUtils.main(args);
-      for (String sensorType : expectedSensorEnrichmentConfigMap.keySet()) {
-        byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client);
-        Assert.assertTrue(Arrays.equals(expectedSensorEnrichmentConfigMap.get(sensorType), actualSensorEnrichmentConfigBytes));
-      }
-    }
-  }
-
   @After
   public void tearDown() throws IOException {
     client.close();

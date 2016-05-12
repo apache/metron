@@ -17,35 +17,32 @@
  */
 package org.apache.metron.parsers.integration;
 
+import junit.framework.Assert;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 
 public class ParserIntegrationTest extends BaseIntegrationTest {
 
   private String configRoot = "../metron-parsers/src/main/config/zookeeper/parsers";
-  private String testSensorType;
+  private String testSensorType = System.getProperty("sensorType");
   private List<String> sensorTypeList;
   private Map<String, List<ParserValidation>> sensorValidations;
 
@@ -72,7 +69,7 @@ public class ParserIntegrationTest extends BaseIntegrationTest {
   @Test
   public void test() throws Exception {
 
-    for (String name: new File(configRoot).list()) {
+    for (String name : new File(configRoot).list()) {
       final String sensorType = FilenameUtils.removeExtension(name);
       if (testSensorType != null && !testSensorType.equals(sensorType)) continue;
       System.out.println();
@@ -127,7 +124,10 @@ public class ParserIntegrationTest extends BaseIntegrationTest {
       List<ParserValidation> validations = sensorValidations.get(sensorType);
       if (validations == null || validations.isEmpty()) {
         System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
+        System.out.println();
         dumpParsedMessages(outputMessages);
+        System.out.println();
+        Assert.fail();
       } else {
         for (ParserValidation validation : validations) {
           System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
@@ -139,17 +139,9 @@ public class ParserIntegrationTest extends BaseIntegrationTest {
   }
 
   public void dumpParsedMessages(List<byte[]> outputMessages) {
-    for(byte[] outputMessage: outputMessages) {
+    for (byte[] outputMessage : outputMessages) {
       System.out.println(new String(outputMessage));
     }
-  }
-
-  public static void main(String[] args) throws Exception {
-    ParserIntegrationTest parserIntegrationTest = new ParserIntegrationTest();
-    if (args.length > 0) {
-      parserIntegrationTest.testSensorType = args[0];
-    }
-    parserIntegrationTest.test();
   }
 
 }
