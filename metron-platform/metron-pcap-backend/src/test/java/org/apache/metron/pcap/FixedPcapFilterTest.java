@@ -19,16 +19,14 @@
 package org.apache.metron.pcap;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.*;
 import org.apache.metron.common.Constants;
-import org.apache.metron.pcap.mr.PcapFilter;
-import org.apache.metron.pcap.mr.PcapJob;
+import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.EnumMap;
 
-public class PcapFilterTest {
+public class FixedPcapFilterTest {
   @Test
   public void testTrivialEquality() throws Exception {
     Configuration config = new Configuration();
@@ -39,9 +37,9 @@ public class PcapFilterTest {
       put(Constants.Fields.DST_PORT, "1");
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
     }};
-    PcapJob.addToConfig(fields, config);
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -52,7 +50,8 @@ public class PcapFilterTest {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
   }
 
@@ -66,9 +65,9 @@ public class PcapFilterTest {
       put(Constants.Fields.DST_PORT, "1");
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "true");
     }};
-    PcapJob.addToConfig(fields, config);
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -79,10 +78,12 @@ public class PcapFilterTest {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -93,10 +94,12 @@ public class PcapFilterTest {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -107,7 +110,8 @@ public class PcapFilterTest {
           }};
         }
       };
-      Assert.assertFalse(filter.apply(null));
+      filter.configure(config);
+      Assert.assertFalse(filter.test(null));
     }
   }
 @Test
@@ -119,9 +123,9 @@ public void testMissingDstAddr() throws Exception {
     put(Constants.Fields.DST_PORT, "1");
     put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
   }};
-  PcapJob.addToConfig(fields, config);
+  new FixedPcapFilter.Configurator().addToConfig(fields, config);
   {
-    PcapFilter filter = new PcapFilter(config) {
+    FixedPcapFilter filter = new FixedPcapFilter() {
       @Override
       protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
         return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -132,10 +136,12 @@ public void testMissingDstAddr() throws Exception {
         }};
       }
     };
-    Assert.assertTrue(filter.apply(null));
+    filter.configure(config);
+    Assert.assertTrue(filter.test(null));
   }
+  new FixedPcapFilter.Configurator().addToConfig(fields, config);
   {
-    PcapFilter filter = new PcapFilter(config) {
+    FixedPcapFilter filter = new FixedPcapFilter() {
       @Override
       protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
         return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -146,7 +152,8 @@ public void testMissingDstAddr() throws Exception {
         }};
       }
     };
-    Assert.assertFalse(filter.apply(null));
+    filter.configure(config);
+    Assert.assertFalse(filter.test(null));
   }
 }
   @Test
@@ -158,9 +165,9 @@ public void testMissingDstAddr() throws Exception {
       put(Constants.Fields.DST_ADDR, "dst_ip");
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
     }};
-    PcapJob.addToConfig(fields, config);
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -171,10 +178,12 @@ public void testMissingDstAddr() throws Exception {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -185,10 +194,12 @@ public void testMissingDstAddr() throws Exception {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -199,7 +210,8 @@ public void testMissingDstAddr() throws Exception {
           }};
         }
       };
-      Assert.assertFalse(filter.apply(null));
+      filter.configure(config);
+      Assert.assertFalse(filter.test(null));
     }
   }
   @Test
@@ -211,9 +223,9 @@ public void testMissingDstAddr() throws Exception {
       put(Constants.Fields.DST_PORT, "1");
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
     }};
-    PcapJob.addToConfig(fields, config);
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -224,7 +236,8 @@ public void testMissingDstAddr() throws Exception {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
   }
   @Test
@@ -236,9 +249,9 @@ public void testMissingDstAddr() throws Exception {
       put(Constants.Fields.DST_PORT, "1");
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
     }};
-    PcapJob.addToConfig(fields, config);
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -249,10 +262,12 @@ public void testMissingDstAddr() throws Exception {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
+    new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
-      PcapFilter filter = new PcapFilter(config) {
+      FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
@@ -263,7 +278,8 @@ public void testMissingDstAddr() throws Exception {
           }};
         }
       };
-      Assert.assertTrue(filter.apply(null));
+      filter.configure(config);
+      Assert.assertTrue(filter.test(null));
     }
   }
 }
