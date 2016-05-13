@@ -33,6 +33,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.log4j.Logger;
+import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
@@ -42,7 +43,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PcapJob {
   private static final Logger LOG = Logger.getLogger(PcapJob.class);
@@ -64,12 +65,20 @@ public class PcapJob {
 
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
-      if(Long.compareUnsigned(key.get() ,start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
-        boolean send = PcapHelper.toPacketInfo(value.copyBytes()).stream().filter(filter).collect(Collectors.toList()).size() > 0;
+      if (Long.compareUnsigned(key.get(), start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
+        // It is assumed that the passed BytesWritable value is always a *single* PacketInfo object. Passing more than 1
+        // object will result in the whole set being passed through if any pass the filter. We cannot serialize PacketInfo
+        // objects back to byte arrays, otherwise we could support more than one packet.
+        // Note: short-circuit findAny() func on stream
+        boolean send = filteredPacketInfo(value).findAny().isPresent();
         if (send) {
           context.write(key, value);
         }
       }
+    }
+
+    private Stream<PacketInfo> filteredPacketInfo(BytesWritable value) throws IOException {
+      return PcapHelper.toPacketInfo(value.copyBytes()).stream().filter(filter);
     }
   }
 

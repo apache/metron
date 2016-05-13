@@ -15,35 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common;
 
-package org.apache.metron.pcap.filter;
-
-import org.apache.metron.common.Creator;
-import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
-import org.apache.metron.pcap.filter.query.QueryPcapFilter;
-
-public enum PcapFilters implements Creator<PcapFilter> {
-  FIXED(new Creator<PcapFilter>() {
-    @Override
-    public PcapFilter create() {
-      return new FixedPcapFilter();
-    }
-  }),
-  QUERY(new Creator<PcapFilter>() {
-    @Override
-    public PcapFilter create() {
-      return new QueryPcapFilter();
-    }
-  });
-
-  Creator<PcapFilter> creator;
-
-  PcapFilters(Creator<PcapFilter> creator) {
-    this.creator = creator;
-  }
-
-  public PcapFilter create() {
-    return creator.create();
-  }
-
+public interface Creator<T> {
+  T create();
 }

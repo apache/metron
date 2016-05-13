@@ -15,35 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.pcap.filter;
 
-import org.apache.metron.common.Creator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
+import org.junit.Assert;
+import org.junit.Test;
 
-public enum PcapFilters implements Creator<PcapFilter> {
-  FIXED(new Creator<PcapFilter>() {
-    @Override
-    public PcapFilter create() {
-      return new FixedPcapFilter();
-    }
-  }),
-  QUERY(new Creator<PcapFilter>() {
-    @Override
-    public PcapFilter create() {
-      return new QueryPcapFilter();
-    }
-  });
+import static org.hamcrest.CoreMatchers.instanceOf;
 
-  Creator<PcapFilter> creator;
+public class PcapFiltersTest {
 
-  PcapFilters(Creator<PcapFilter> creator) {
-    this.creator = creator;
-  }
-
-  public PcapFilter create() {
-    return creator.create();
+  @Test
+  public void creates_pcap_filters() throws Exception {
+    Assert.assertThat("filter type should be Fixed", PcapFilters.FIXED.create(), instanceOf(FixedPcapFilter.class));
+    Assert.assertThat("filter type should be Query", PcapFilters.QUERY.create(), instanceOf(QueryPcapFilter.class));
   }
 
 }
