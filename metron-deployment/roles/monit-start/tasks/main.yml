@@ -19,11 +19,15 @@
 - name: Start monit
   service: name=monit state=restarted
 
-- name: Unmonitor all services
-  shell: monit unmonitor all
+- name: Reload monit definitions
+  shell: monit reload
 
-- name : Wait for unmonitor action to complete
-  wait_for: timeout=30
+- name: Stop all services
+  shell: monit stop all
+  register: result
+  until: result.rc == 0
+  retries: 20
+  delay: 10
 
 - name: Find the services installed on the host
   shell: monit summary | tail -n +3 | awk -F"'" '{print $2}'
@@ -33,6 +37,14 @@
 - set_fact:
     installed_services_to_start: "{{ services_to_start | intersect(installed_services.stdout_lines) }}"
 
-- name: Start metron services
+- name: Start Metron services
+  debug:
+    msg: "Attemping to start: {{ installed_services_to_start }}"
+
+- name: Wait for metron services to start
   shell: "monit start {{ item }}"
   with_items: "{{ installed_services_to_start }}"
+  register: result
+  until: result.rc == 0
+  retries: 20
+  delay: 10
