@@ -27,8 +27,12 @@ Now that the hard part is done, start the Metron deployment process.
   cd metron-platform
   mvn clean package -DskipTests
   ```
+2. Install Vagrant Hostmanager.
 
-2. Deploy Metron
+  ```
+  vagrant plugin install vagrant-hostmanager
+
+3. Deploy Metron
 
   ```
   cd metron-deployment/vagrant/quick-dev-platform
