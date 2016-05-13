@@ -15,13 +15,30 @@
 #  limitations under the License.
 #
 
-#Ambari variables
+# which services should be started?
+services_to_start:
+  - mysql
+  - elasticsearch
+  - pcap-service
+  - metron-ui
+  - yaf
+  - snort
+  - snort-logs
+  - bro
+  - pcap-replay
+  - yaf-parser
+  - bro-parser
+  - snort-parser
+  - enrichment
+
+# ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
 hdp_host_group: "{{ groups.ambari_slave }}"
 ambari_port: 8080
 ambari_user: admin
 ambari_password: admin
 cluster_type: single_node_vm
+ambari_server_mem: 512
 
 # hbase
 pcap_hbase_table: pcap
@@ -29,7 +46,7 @@ tracker_hbase_table: access_tracker
 threatintel_hbase_table: threatintel
 enrichment_hbase_table: enrichment
 
-# metron variables
+# metron
 metron_version: 0.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
@@ -41,8 +58,9 @@ pycapa_repo: "https://github.com/OpenSOC/pycapa.git"
 pycapa_home: "/opt/pycapa"
 snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
+threat_intel_bulk_load: False
 
-#data directories - only required to override defaults
+# data directories - only required to override defaults
 zookeeper_data_dir: "/data1/hadoop/zookeeper"
 namenode_checkpoint_dir: "/data1/hadoop/hdfs/namesecondary"
 namenode_name_dir: "/data1/hadoop/hdfs/namenode"
@@ -57,25 +75,18 @@ storm_local_dir: "/data1/hadoop/storm"
 kafka_log_dirs: "/data1/kafka-log"
 elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
 
-ambari_server_mem: 512
-threat_intel_bulk_load: False
-
 # sensors
 sensor_test_mode: True
 install_pycapa: False
 install_bro: True
 install_snort: True
 install_yaf: True
-pcap_replay: True
+install_pcap_replay: True
 sniff_interface: eth1
 pcap_replay_interface: "{{ sniff_interface }}"
-storm_parser_topologies:
-    - "bro"
-    - "snort"
-    - "yaf"
 pcapservice_port: 8081
 
-#Search
+# search
 install_elasticsearch: True
 install_solr: False
 solr_collection_name: Metron

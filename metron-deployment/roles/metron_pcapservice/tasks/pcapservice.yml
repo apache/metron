@@ -28,6 +28,3 @@
 
 - name: Install service script
   template: src=pcapservice dest=/etc/init.d/pcapservice mode=0755
-
-- name: Start pcapservice
-  service: name=pcapservice state=restarted

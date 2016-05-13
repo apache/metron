@@ -16,7 +16,7 @@
 #
 ---
 - name: Create pcap directory
-  file: path={{ pcap_path }} state=directory mode=0755
+  file: path={{ pcap_replay_home }} state=directory mode=0755
 
 - name: Install init.d service script
   template: src=pcap-replay dest=/etc/init.d/pcap-replay mode=0755
