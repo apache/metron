@@ -16,11 +16,5 @@
 #
 ---
 - include: mysql.yml
-
-#
-# mysql must be running for the following steps
-#
-- service: name=mysqld state=started
 - include: mysql-password.yml
 - include: geoip.yml
-- service: name=mysqld state=stopped

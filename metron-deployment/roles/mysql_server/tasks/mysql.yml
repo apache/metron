@@ -46,3 +46,15 @@
   until: result.rc == 0
   retries: 5
   delay: 10
+
+#
+# mysql must be running for the 'mysql_client' role to function properly.  that
+# role grants access to mysql clients connecting from external hosts (think
+# storm topologies doing geoip enrichment).
+#
+# ideally the logic in 'mysql_client' would be moved to 'mysql_server' so that
+# mysql could be started, access granted, and then shutdown after this is
+# complete.
+#
+- name: Start MySQL
+  service: name=mysqld state=started
