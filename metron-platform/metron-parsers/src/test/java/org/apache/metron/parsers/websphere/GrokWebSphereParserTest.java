@@ -31,10 +31,6 @@ import org.junit.Test;
 public class GrokWebSphereParserTest {
 
 	private Map<String, Object> parserConfig;
-	private final String grokPath = "../metron-parsers/src/main/resources/patterns/websphere";
-	private final String grokLabel = "WEBSPHERE";
-	private final String dateFormat = "yyyy MMM dd HH:mm:ss";
-	private final String timestampField = "timestamp_string";
 
 	@Before
 	public void setup() {
