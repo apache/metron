@@ -30,7 +30,3 @@
     dest: /etc/snort/rules/test.rules
     line: "alert tcp any any -> any any (msg:'snort test alert'; sid:999158; )"
     create: yes
-
-- name: Restart snort
-  become: True
-  service: name=snortd state=restarted

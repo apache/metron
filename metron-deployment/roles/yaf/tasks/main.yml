@@ -17,3 +17,4 @@
 ---
 - include: fixbuf.yml
 - include: yaf.yml
+- include: nic.yml

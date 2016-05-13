@@ -27,6 +27,8 @@
     - role: pcap_replay
     - { role: pycapa, install_pycapa_service: False }
     - { role: sensor-test-mode, pcap_replay: True, install_yaf: False, install_snort: False }
+    - service: name=pcap-replay state=started
+    - service: name=pycapa state=started
 
 #
 # the 'sink' consumes network traffic
@@ -38,6 +40,7 @@
   roles:
     - role: librdkafka
     - role: fastcapa
+    - service: name=fastcapa state=started
 
 #
 # validate the environment - needs to run on `source` node

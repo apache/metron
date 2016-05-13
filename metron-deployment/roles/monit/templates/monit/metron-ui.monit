@@ -14,18 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Start bro
-  shell: "{{ bro_home }}/bin/broctl deploy"
-
-- name: Bro Cronjob
-  cron:
-    name: Bro Cron
-    minute: "{{ bro_crontab_minutes }}"
-    job: "{{ item }}"
-  with_items:
-    - "{{ bro_crontab_job }}"
-    - "{{ bro_clean_job }}"
+check process metron-ui matching "node /usr/metron/{{ metron_version }}/metron-ui/lib/metron-ui.js"
+  start program = "/etc/init.d/pm2-init.sh start"
+  stop program = "/etc/init.d/pm2-init.sh stop"
+  if does not exist then restart
+  group web
+  group metron

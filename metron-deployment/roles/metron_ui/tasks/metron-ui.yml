@@ -51,7 +51,7 @@
     - "pm2 start {{ metron_ui_directory }}/lib/metron-ui.js --name metron"
     - pm2 save
     - pm2 startup centos
-    - su -c 'chmod +x /etc/init.d/pm2-init.sh; chkconfig --add pm2-init.sh'
+    - su -c 'chmod +x /etc/init.d/pm2-init.sh'
 
-- name: Start Metron UI
-  service: name=pm2-init.sh state=restarted
+- name: Stop Metron UI
+  service: name=pm2-init.sh state=stopped
