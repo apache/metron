@@ -22,59 +22,7 @@
       - { name: 'bin'}
       - { name: 'config'}
 
-
-- name: Copy Metron Solr bundle
-  copy:
-    src: "{{ metron_solr_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Elasticsearch bundle
-  copy:
-    src: "{{ metron_elasticsearch_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Enrichment bundle
-  copy:
-    src: "{{ metron_enrichment_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Parsers bundle
-  copy:
-    src: "{{ metron_parsers_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron DataLoads bundle
-  copy:
-    src: "{{ metron_data_management_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Common bundle
-  copy:
-    src: "{{ metron_common_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Pcap bundle
-  copy:
-    src: "{{ metron_pcap_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Unbundle Metron bundles
-  shell: cd {{ metron_directory }} && tar xzvf metron-solr*.tar.gz && tar xzvf metron-elasticsearch*.tar.gz && tar xzvf metron-enrichment*.tar.gz && tar xzvf metron-parsers*.tar.gz && tar xzvf metron-data-management*.tar.gz && tar xzvf metron-common*.tar.gz && tar xzvf metron-pcap-backend*.tar.gz && rm *.tar.gz
-
-- name: Add *-site.xml files to topology jars
-  shell: cd {{ item.config_path }} && jar -uf {{ metron_directory }}/lib/{{ item.jar_name }} {{ item.file_name }}
-  with_items:
-      - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_solr_jar_name }}", file_name: "hbase-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_solr_jar_name }}", file_name: "core-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_solr_jar_name }}", file_name: "hdfs-site.xml" }
-      - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_elasticsearch_jar_name }}", file_name: "hbase-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_elasticsearch_jar_name }}", file_name: "core-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_elasticsearch_jar_name }}", file_name: "hdfs-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_pcap_jar_name }}", file_name: "core-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_pcap_jar_name }}", file_name: "hdfs-site.xml" }
-      - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "hbase-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "core-site.xml" }
-      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_parsers_jar_name }}", file_name: "hdfs-site.xml" }
+- include: copy_bundles.yml
 
 - name: Get Default mysql passowrd
   include_vars: "../roles/mysql_server/defaults/main.yml"
@@ -86,76 +34,7 @@
 - include: grok_upload.yml
   run_once: true
 
-- name: Configure Metron Pcap Topology
-  lineinfile: >
-    dest={{ metron_pcap_properties_config_path }}
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-  with_items:
-    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "kafka.pcap.out=", line: "kafka.pcap.out={{ pcap_hdfs_path }}" }
-    - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
-
-- name: Configure Metron Parser Topologies
-  lineinfile:
-    dest: "{{ metron_parsers_properties_config_path }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
-
-- name: Configure Metron Solr topology
-  lineinfile: >
-    dest={{ metron_solr_properties_config_path }}
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-  with_items:
-    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
-    - { regexp: "es.ip=", line: "es.ip={{ groups.search[0] }}" }
-    - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
-    - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
-    - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
-    - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
-    - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
-    - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }
-    - { regexp: "threat.intel.simple.hbase.cf=", line: "threat.intel.simple.hbase.cf=t" }
-    - { regexp: "enrichment.simple.hbase.table=", line: "enrichment.simple.hbase.table={{ enrichment_hbase_table }}" }
-    - { regexp: "enrichment.simple.hbase.cf=", line: "enrichment.simple.hbase.cf=t" }
-    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
-    - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
-    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
-    - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
-    - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
-    - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }
-
-- name: Configure Metron Elasticsearch topology
-  lineinfile: >
-    dest={{ metron_elasticsearch_properties_config_path }}
-    regexp="{{ item.regexp }}"
-    line="{{ item.line }}"
-  with_items:
-    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
-    - { regexp: "es.ip=", line: "es.ip={{ groups.search[0] }}" }
-    - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
-    - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
-    - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
-    - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
-    - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
-    - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }
-    - { regexp: "threat.intel.simple.hbase.cf=", line: "threat.intel.simple.hbase.cf=t" }
-    - { regexp: "enrichment.simple.hbase.table=", line: "enrichment.simple.hbase.table={{ enrichment_hbase_table }}" }
-    - { regexp: "enrichment.simple.hbase.cf=", line: "enrichment.simple.hbase.cf=t" }
-    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
-    - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
-    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
-    - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
-    - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
-    - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }
+- include: topologies.yml
 
 - include: source_config.yml
   run_once: true
@@ -163,8 +42,6 @@
 - include: threat_intel.yml
   run_once: true
   when: threat_intel_bulk_load == True
-
-- include: metron_topology.yml
 
 - include: hdfs_purge.yml
 

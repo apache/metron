@@ -1,0 +1,60 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Create temporary directories
+  file:
+    path: "/tmp/geoip"
+    state: directory
+    mode: 0755
+
+- name: Install Mysql Community Release Repo Def
+  get_url:
+    dest: /tmp/{{ mysql_rpm_version }}.rpm
+    url: "{{ mysql_yum_repo_url }}"
+
+- name: Install Mysql Community Release Repo
+  yum:
+    pkg: /tmp/{{ mysql_rpm_version }}.rpm
+    state: installed
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
+
+- name: Install MySQL
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "mysql-community-server"
+    - "MySQL-python"
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
+
+#
+# mysql must be running for the 'mysql_client' role to function properly.  that
+# role grants access to mysql clients connecting from external hosts (think
+# storm topologies doing geoip enrichment).
+#
+# ideally the logic in 'mysql_client' would be moved to 'mysql_server' so that
+# mysql could be started, access granted, and then shutdown after this is
+# complete.
+#
+- name: Start MySQL
+  service: name=mysqld state=started

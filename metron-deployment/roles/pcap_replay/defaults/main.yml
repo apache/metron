@@ -16,6 +16,6 @@
 #
 ---
 pcap_replay_interface: eth0
-pcap_path: /opt/pcap-replay
+pcap_replay_home: /opt/pcap-replay
 tcpreplay_version: 4.1.1
 tcpreplay_prefix: /opt
