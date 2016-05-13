@@ -36,6 +36,6 @@ public class SampleDataUtils {
         }
       }
     }
-    throw new FileNotFoundException("Could not find data in " + TestConstants.SAMPLE_DATA_PATH + "/" + sensorType + "/" + testDataType.getDirectoryName());
+    throw new FileNotFoundException("Could not find data in " + TestConstants.SAMPLE_DATA_PATH + sensorType + "/" + testDataType.getDirectoryName());
   }
 }

@@ -52,7 +52,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected List<String> timeFields = new ArrayList<>();
   protected String timestampField;
   protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
-  protected TimeZone timeZone = TimeZone.getTimeZone("UTC");
   protected String patternsCommonDir = "/patterns/common";
 
   @Override
@@ -66,11 +65,13 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     }
     String dateFormatParam = (String) parserConfig.get("dateFormat");
     if (dateFormatParam != null) {
-      this.dateFormat = dateFormatParam;
+      this.dateFormat = new SimpleDateFormat(dateFormatParam);
     }
     String timeZoneParam = (String) parserConfig.get("timeZone");
     if (timeZoneParam != null) {
-      this.timeZone = TimeZone.getTimeZone(timeZoneParam);
+      dateFormat.setTimeZone(TimeZone.getTimeZone(timeZoneParam));
+    } else {
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
   }
 
@@ -203,7 +204,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       LOG.debug("Grok perser converting timestamp to epoch: " + datetime);
     }
 
-    dateFormat.setTimeZone(timeZone);
     Date date = dateFormat.parse(datetime);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Grok perser converted timestamp to epoch: " + date);
