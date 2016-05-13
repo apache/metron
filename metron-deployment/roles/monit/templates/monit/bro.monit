@@ -16,7 +16,7 @@
 #
 check process bro
   with pidfile {{ bro_pid_file }}
-  start program = "/usr/local/bro/bin/broctl start"
+  start program = "/usr/local/bro/bin/broctl deploy"
   stop program = "/usr/local/bro/bin/broctl stop"
   restart program = "/usr/local/bro/bin/broctl restart"
   if does not exist then restart
