@@ -31,7 +31,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.enrichment.configuration.Enrichment;
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.json.simple.JSONObject;

@@ -16,7 +16,5 @@
 #
 ---
 dependencies:
-  - yum-update
   - epel
   - ntp
-

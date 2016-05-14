@@ -28,6 +28,8 @@ import org.apache.metron.enrichment.lookup.LookupKey;
 import java.io.IOException;
 import java.util.*;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 public class CSVExtractor implements Extractor {
   public static final String COLUMNS_KEY="columns";
   public static final String INDICATOR_COLUMN_KEY="indicator_column";
@@ -68,8 +70,7 @@ public class CSVExtractor implements Extractor {
   }
   @Override
   public Iterable<LookupKV> extract(String line) throws IOException {
-    if(line.trim().startsWith("#")) {
-      //comment
+    if(ignore(line)) {
       return Collections.emptyList();
     }
     String[] tokens = parser.parseLine(line);
@@ -80,6 +81,14 @@ public class CSVExtractor implements Extractor {
       values.put(kv.getKey(), tokens[kv.getValue()]);
     }
     return Arrays.asList(new LookupKV(key, converter.toValue(values)));
+  }
+
+  private boolean ignore(String line) {
+    if(null == line) {
+      return true;
+    }
+    String trimmedLine = line.trim();
+    return trimmedLine.startsWith("#") || isEmpty(trimmedLine);
   }
 
   private String getType(String[] tokens) {

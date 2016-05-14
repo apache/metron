@@ -19,7 +19,4 @@
 # load example pcap data to replay
 #
 - name: Install example pcap file
-  copy: src=example.pcap dest={{ pcap_path }}/
-
-- name: Start the pcap-replay service
-  service: name=pcap-replay state=restarted
+  copy: src=example.pcap dest={{ pcap_replay_home }}/

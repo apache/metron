@@ -21,7 +21,7 @@ import junit.framework.Assert;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.TestConstants;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -74,17 +74,6 @@ public class ConfigurationsUtilsTest {
 
   }
 
-  @Test
-  public void testCmdLine() throws Exception {
-    String[] args = {"-z", zookeeperUrl, "-p", TestConstants.SAMPLE_CONFIG_PATH};
-    ConfigurationsUtils.main(args);
-    byte[] readGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-    Assert.assertTrue(Arrays.equals(testGlobalConfig, readGlobalConfigBytes));
-    for(String sensorType: testSensorConfigMap.keySet()) {
-      byte[] readSensorConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client);
-      Assert.assertTrue(Arrays.equals(testSensorConfigMap.get(sensorType), readSensorConfigBytes));
-    }
-  }
 
   @After
   public void tearDown() throws IOException {

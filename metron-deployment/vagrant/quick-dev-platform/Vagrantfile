@@ -1,0 +1,94 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+require 'getoptlong'
+
+ansibleTags=''
+ansibleSkipTags=''
+
+begin
+   opts = GetoptLong.new(
+     [ '--ansible-tags', GetoptLong::OPTIONAL_ARGUMENT ],
+     [ '--ansible-skip-tags', GetoptLong::OPTIONAL_ARGUMENT ]
+   )
+
+   opts.quiet = TRUE
+
+   opts.each do |opt, arg|
+     case opt
+       when '--ansible-tags'
+         ansibleTags=arg
+       when '--ansible-skip-tags'
+         ansibleSkipTags=arg
+     end
+   end
+rescue Exception => ignored
+#Ignore to allow other opts to be passed to Vagrant
+end
+
+puts " Running with ansible-tags: " + ansibleTags.split(",").to_s if ansibleTags != ''
+puts " Running with ansible-skip-tags: " + ansibleSkipTags.split(",").to_s if ansibleSkipTags != ''
+
+hosts = [{
+    hostname: "node1",
+    ip: "192.168.66.121",
+    memory: "8192",
+    cpus: 4,
+    promisc: 2  # enables promisc on the 'Nth' network interface
+}]
+
+Vagrant.configure(2) do |config|
+
+  # all hosts built on centos 6
+  config.vm.box = "metron/hdp-base"
+  config.ssh.insert_key = true
+
+  # enable the hostmanager plugin
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+
+  # host definition
+  hosts.each_with_index do |host, index|
+    config.vm.define host[:hostname] do |node|
+
+      # host settings
+      node.vm.hostname = host[:hostname]
+      node.vm.network "private_network", ip: host[:ip]
+
+      # vm settings
+      node.vm.provider "virtualbox" do |vb|
+        vb.memory = host[:memory]
+        vb.cpus = host[:cpus]
+
+        # enable promisc mode on the network interface
+        if host.has_key?(:promisc)
+          vb.customize ["modifyvm", :id, "--nicpromisc#{host[:promisc]}", "allow-all"]
+        end
+      end
+    end
+  end
+
+  if ansibleSkipTags != '' or ansibleTags != ''
+    config.vm.provision :ansible do |ansible|
+        ansible.playbook = "../../playbooks/metron_full_install.yml"
+        ansible.sudo = true
+        ansible.tags = ansibleTags.split(",") if ansibleTags != ''
+        ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
+        ansible.inventory_path = "../../inventory/full-dev-platform"
+    end
+  end
+
+end

@@ -1,25 +1,51 @@
 {
   "index": "yaf",
   "batchSize": 5,
-  "enrichmentFieldMap":
-  {
-    "geo": ["ip_src_addr", "ip_dst_addr"],
-    "host": ["ip_src_addr", "ip_dst_addr"],
-    "hbaseEnrichment" : ["ip_src_addr", "ip_dst_addr"]
+  "enrichment": {
+    "fieldMap": {
+      "geo": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "host": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "hbaseEnrichment": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ]
+    }
+  ,"fieldToTypeMap": {
+      "ip_src_addr": [
+        "playful_classification"
+      ],
+      "ip_dst_addr": [
+        "playful_classification"
+      ]
+    }
   },
-  "threatIntelFieldMap":
-  {
-    "hbaseThreatIntel": ["ip_src_addr", "ip_dst_addr"]
-  },
-  "fieldToThreatIntelTypeMap":
-  {
-    "ip_src_addr" : ["malicious_ip"],
-    "ip_dst_addr" : ["malicious_ip"]
-  },
-  "fieldToEnrichmentTypeMap":
-  {
-    "ip_src_addr" : ["playful_classification"],
-    "ip_dst_addr" : ["playful_classification"]
+  "threatIntel": {
+    "fieldMap": {
+      "hbaseThreatIntel": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ]
+    },
+    "fieldToTypeMap": {
+      "ip_src_addr": [
+        "malicious_ip"
+      ],
+      "ip_dst_addr": [
+        "malicious_ip"
+      ]
+    },
+    "triageConfig" : {
+      "riskLevelRules" : {
+        "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'" : 10
+      },
+      "aggregator" : "MAX"
+    }
   }
 }
 
