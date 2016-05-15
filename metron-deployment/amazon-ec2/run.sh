@@ -20,10 +20,9 @@
 # Builds Metron platform jars, instantiates hosts, and deploys Metron to those
 # hosts on Amazon EC2
 #
-
 LOGFILE="./ansible.log"
 DEPLOYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-EXTRA_VARS="-v"
+EXTRA_ARGS="-v ${@:1}"
 NOW=`date`
 DEFAULT_ENV="metron-test"
 DEFAULT_ENV_FILE="./.metron-env"
@@ -56,8 +55,7 @@ echo "$ENV" > $DEFAULT_ENV_FILE
 
 # log information about the host platform
 echo "=============================================================" >> $LOGFILE
-echo "Launching Metron @ $NOW"... >> $LOGFILE
-echo "Metron Environment: $ENV" >> $LOGFILE
+echo "Launching Metron[$ENV] @ $NOW"... >> $LOGFILE
 $DEPLOYDIR/../scripts/platform-info.sh >> $LOGFILE
 
 # build metron
@@ -67,4 +65,4 @@ mvn package -DskipTests
 # deploy metron
 cd $DEPLOYDIR
 export EC2_INI_PATH=conf/ec2.ini
-ansible-playbook -i ec2.py playbook.yml --extra-vars="env=$ENV" $EXTRA_VARS
+ansible-playbook -i ec2.py playbook.yml --extra-vars="env=$ENV" $EXTRA_ARGS

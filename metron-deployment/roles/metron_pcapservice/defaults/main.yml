@@ -24,3 +24,6 @@ pcapservice_port: 8081
 hbase_config_path: "/etc/hbase/conf"
 query_hdfs_path: "/tmp"
 pcap_hdfs_path: "/apps/metron/pcap"
+metron_pcapservice_logrotate_frequency: daily
+metron_pcapservice_logrotate_retention: 30
+

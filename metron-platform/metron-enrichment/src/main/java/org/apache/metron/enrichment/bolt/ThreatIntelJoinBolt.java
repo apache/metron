@@ -17,7 +17,12 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import com.google.common.base.Joiner;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +43,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   public Map<String, List<String>> getFieldMap(String sourceType) {
     SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
     if(config != null) {
-      return config.getThreatIntelFieldMap();
+      return config.getThreatIntel().getFieldMap();
     }
     else {
       LOG.error("Unable to retrieve sensor config: " + sourceType);
@@ -49,12 +54,54 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   @Override
   public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
     JSONObject ret = super.joinMessages(streamMessageMap);
-    for(Object key : ret.keySet()) {
-      if(key.toString().startsWith("threatintels") && !key.toString().endsWith(".ts")) {
-        ret.put("is_alert" , "true");
-        break;
+    boolean isAlert = ret.containsKey("is_alert");
+    if(!isAlert) {
+      for (Object key : ret.keySet()) {
+        if (key.toString().startsWith("threatintels") && !key.toString().endsWith(".ts")) {
+          isAlert = true;
+          break;
+        }
       }
     }
+    if(isAlert) {
+      ret.put("is_alert" , "true");
+      String sourceType = MessageUtils.getSensorType(ret);
+      SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+      ThreatTriageConfig triageConfig = null;
+      if(config != null) {
+        triageConfig = config.getThreatIntel().getTriageConfig();
+        if(LOG.isDebugEnabled()) {
+          LOG.debug(sourceType + ": Found sensor enrichment config.");
+        }
+      }
+      else {
+        LOG.debug(sourceType + ": Unable to find threat config.");
+      }
+      if(triageConfig != null) {
+        if(LOG.isDebugEnabled()) {
+          LOG.debug(sourceType + ": Found threat triage config: " + triageConfig);
+        }
+
+        if(LOG.isDebugEnabled() && (triageConfig.getRiskLevelRules() == null || triageConfig.getRiskLevelRules().isEmpty())) {
+          LOG.debug(sourceType + ": Empty rules!");
+        }
+
+        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(triageConfig);
+        Double triageLevel = threatTriageProcessor.apply(ret);
+        if(LOG.isDebugEnabled()) {
+          String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules().entrySet());
+          LOG.debug("Marked " + sourceType + " as triage level " + triageLevel + " with rules " + rules);
+        }
+        if(triageLevel != null && triageLevel > 0) {
+          ret.put("threat.triage.level", triageLevel);
+        }
+      }
+      else {
+        LOG.debug(sourceType + ": Unable to find threat triage config!");
+      }
+
+    }
+
     return ret;
   }
 }

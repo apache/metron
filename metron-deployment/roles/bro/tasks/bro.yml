@@ -42,3 +42,15 @@
     dest: "{{ bro_home }}/etc/node.cfg"
     regexp: '^interface=.*$'
     line: 'interface={{ sniff_interface }}'
+
+- name: Install bro configuration
+  shell: "{{ bro_home }}/bin/broctl install"
+
+- name: Bro Cronjob
+  cron:
+    name: Bro Cron
+    minute: "{{ bro_crontab_minutes }}"
+    job: "{{ item }}"
+  with_items:
+    - "{{ bro_crontab_job }}"
+    - "{{ bro_clean_job }}"

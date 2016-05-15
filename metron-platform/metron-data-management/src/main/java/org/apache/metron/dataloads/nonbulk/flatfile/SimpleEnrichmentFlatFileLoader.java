@@ -31,7 +31,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat;
-import org.apache.metron.common.configuration.EnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -239,10 +239,10 @@ public class SimpleEnrichmentFlatFileLoader {
     );
     boolean lineByLine = !handler.getInputFormatHandler().getClass().equals(WholeFileFormat.class);
     Extractor e = handler.getExtractor();
-    EnrichmentConfig enrichmentConfig = null;
+    SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(LoadOptions.ENRICHMENT_CONFIG.has(cli)) {
-      enrichmentConfig = JSONUtils.INSTANCE.load( new File(LoadOptions.ENRICHMENT_CONFIG.get(cli))
-              , EnrichmentConfig.class
+      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(LoadOptions.ENRICHMENT_CONFIG.get(cli))
+              , SensorEnrichmentUpdateConfig.class
       );
     }
     HbaseConverter converter = new EnrichmentConverter();
@@ -254,8 +254,8 @@ public class SimpleEnrichmentFlatFileLoader {
     for (File f : inputFiles) {
       loader.loadFile(f, e, table, LoadOptions.HBASE_CF.get(cli), converter, lineByLine);
     }
-    if(enrichmentConfig != null) {
-      enrichmentConfig.updateSensorConfigs();
+    if(sensorEnrichmentUpdateConfig != null) {
+      sensorEnrichmentUpdateConfig.updateSensorConfigs();
     }
   }
 }

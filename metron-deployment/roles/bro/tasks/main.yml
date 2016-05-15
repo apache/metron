@@ -19,4 +19,4 @@
 - include: librdkafka.yml
 - include: bro.yml
 - include: bro-plugin-kafka.yml
-- include: start-bro.yml
+- include: nic.yml

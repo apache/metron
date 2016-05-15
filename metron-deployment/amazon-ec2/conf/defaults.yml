@@ -15,6 +15,22 @@
 #  limitations under the License.
 #
 ---
+# which services should be started?
+services_to_start:
+  - mysql
+  - elasticsearch
+  - pcap-service
+  - metron-ui
+  - yaf
+  - snort
+  - snort-logs
+  - bro
+  - pcap-replay
+  - yaf-parser
+  - bro-parser
+  - snort-parser
+  - enrichment
+
 # ec2
 env: metron-test
 region: us-west-2
@@ -45,17 +61,21 @@ retention_in_gb: 25
 
 # metron variables
 metron_version: 0.1BETA
+metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
 
 # sensors
-sensor_test_mode: True
-sniff_interface: tap0
-snort_alert_csv_path: "/var/log/snort/alert.csv"
-pcap_replay: True
-pcap_replay_interface: tap0
+install_snort: True
+install_pycapa: True
+install_bro: True
+install_yaf: True
+install_pcap_replay: True
 install_tap: True
-pcap_path: /opt/pcap-replay
+sensor_test_mode: True
+pcap_replay_interface: tap0
+pcap_replay_home: /opt/pcap-replay
+sniff_interface: tap0
 
 # data directories
 zookeeper_data_dir: "/data1/hadoop/zookeeper"
@@ -72,7 +92,7 @@ storm_local_dir: "/data1/hadoop/storm"
 kafka_log_dirs: "/data2/kafka-log"
 elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
 
-#Search
+# search
 install_elasticsearch: True
 install_solr: False
 elasticsearch_transport_port: 9300

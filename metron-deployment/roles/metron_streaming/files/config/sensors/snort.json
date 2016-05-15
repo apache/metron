@@ -1,18 +1,28 @@
 {
   "index": "snort",
   "batchSize": 1,
-  "enrichmentFieldMap":
-  {
-    "geo": ["ip_dst_addr", "ip_src_addr"],
-    "host": ["host"]
+  "enrichment" : {
+    "fieldMap":
+      {
+      "geo": ["ip_dst_addr", "ip_src_addr"],
+      "host": ["host"]
+    }
   },
- "threatIntelFieldMap":
-  {
-    "hbaseThreatIntel": ["ip_src_addr", "ip_dst_addr"]
-  },
-  "fieldToThreatIntelTypeMap":
-  {
-    "ip_src_addr" : ["malicious_ip"],
-    "ip_dst_addr" : ["malicious_ip"]
+  "threatIntel" : {
+    "fieldMap":
+      {
+      "hbaseThreatIntel": ["ip_src_addr", "ip_dst_addr"]
+    },
+    "fieldToTypeMap":
+      {
+      "ip_src_addr" : ["malicious_ip"],
+      "ip_dst_addr" : ["malicious_ip"]
+    },
+    "triageConfig" : {
+      "riskLevelRules" : {
+        "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))" : 10
+      },
+      "aggregator" : "MAX"
+    }
   }
 }

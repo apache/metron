@@ -26,7 +26,7 @@ import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.integration.utils.SampleUtil;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
 import javax.annotation.Nullable;

@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.common.configuration.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class ThreatIntelSplitterBolt extends EnrichmentSplitterBolt {
     if (sensorType != null) {
       SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sensorType);
       if (config != null) {
-        return config.getThreatIntelFieldMap();
+        return config.getThreatIntel().getFieldMap();
       } else {
         LOG.error("Unable to retrieve sensor config: " + sensorType);
       }

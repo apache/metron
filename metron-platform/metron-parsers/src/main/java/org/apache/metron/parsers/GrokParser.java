@@ -50,13 +50,13 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected String patternLabel;
   protected String[] timeFields = new String[0];
   protected String timestampField;
-  protected String dateFormat = "yyyy-MM-dd HH:mm:ss.S z";
+  protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
   protected TimeZone timeZone = TimeZone.getTimeZone("UTC");
   protected String patternsCommonDir = "/patterns/common";
 
-  public GrokParser(String grokHdfsPath, String patterLabel) {
+  public GrokParser(String grokHdfsPath, String patternLabel) {
     this.grokHdfsPath = grokHdfsPath;
-    this.patternLabel = patterLabel;
+    this.patternLabel = patternLabel;
   }
 
   public GrokParser withTimestampField(String timestampField) {
@@ -76,7 +76,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   }
 
   public GrokParser withDateFormat(String dateFormat) {
-    this.dateFormat = dateFormat;
+    this.dateFormat = new SimpleDateFormat(dateFormat);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Grok parser settting date format: " + dateFormat);
     }
@@ -179,6 +179,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
       }
       message.remove(patternLabel);
+      postParse(message);
       messages.add(message);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Grok parser parsed message: " + message);
@@ -213,17 +214,18 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     return false;
   }
 
-  private long toEpoch(String datetime) throws ParseException {
+  protected void postParse(JSONObject message) {}
+
+  protected long toEpoch(String datetime) throws ParseException {
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Grok perser converting timestamp to epoch: " + datetime);
     }
 
-    SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-    sdf.setTimeZone(timeZone);
-    Date date = sdf.parse(datetime);
+    dateFormat.setTimeZone(timeZone);
+    Date date = dateFormat.parse(datetime);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok perser converted timestamp to epoch: " + sdf.parse(datetime));
+      LOG.debug("Grok perser converted timestamp to epoch: " + date);
     }
 
     return date.getTime();
@@ -232,7 +234,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected long formatTimestamp(Object value) {
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok perser formatting timestamp" + value);
+      LOG.debug("Grok parser formatting timestamp" + value);
     }
 
 

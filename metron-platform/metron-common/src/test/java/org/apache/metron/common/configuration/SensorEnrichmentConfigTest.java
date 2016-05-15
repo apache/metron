@@ -21,7 +21,7 @@ import junit.framework.Assert;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.apache.metron.TestConstants;
-import org.apache.metron.common.cli.ConfigurationsUtils;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.junit.Test;
 
 import java.io.IOException;

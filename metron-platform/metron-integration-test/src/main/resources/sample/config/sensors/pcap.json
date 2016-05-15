@@ -1,13 +1,24 @@
 {
   "index": "pcap",
   "batchSize": 5,
-  "enrichmentFieldMap":
-  {
-    "geo": ["ip_src_addr", "ip_dst_addr"],
-    "host": ["ip_src_addr", "ip_dst_addr"]
+  "enrichment": {
+    "fieldMap": {
+      "geo": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "host": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ]
+    }
   },
-  "threatIntelFieldMap":
-  {
-    "ip": ["ip_src_addr", "ip_dst_addr"]
+  "threatIntel": {
+    "fieldMap": {
+      "ip": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ]
+    }
   }
 }

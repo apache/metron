@@ -16,16 +16,6 @@
 #
 ---
 - include: daq.yml
-
 - include: snort.yml
-
 - include: flume.yml
-
-- name: Turn on promiscuous mode for {{ sniff_interface }}
-  shell: "ip link set {{ sniff_interface }} promisc on"
-
-- name: Start snort
-  service: name=snortd state=restarted
-
-- name: Start flume service to consume snort alerts
-  service: name=flume-agent state=restarted args=snort
+- include: nic.yml

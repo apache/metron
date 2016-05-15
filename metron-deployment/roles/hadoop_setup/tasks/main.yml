@@ -18,20 +18,24 @@
 #must run on hadoop host
 - name: Create HBase tables
   shell: echo "create '{{ item }}','t'" | hbase shell -n
-  ignore_errors: yes
   with_items:
     - "{{ pcap_hbase_table }}"
     - "{{ tracker_hbase_table }}"
     - "{{ threatintel_hbase_table }}"
     - "{{ enrichment_hbase_table }}"
+  register: hbase_result
+  failed_when: hbase_result.rc != 0 and ("Table already exists" not in hbase_result.stdout)
+  changed_when: ("Table already exists" not in hbase_result.stdout)
 
-#if kafka topic
 - name: Create Kafka topics
   shell: "{{ kafka_home }}/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --create --topic {{ item }} --partitions {{ num_partitions }} --replication-factor 1 --config retention.bytes={{ retention_in_gb * 1024 * 1024 * 1024}}"
-  ignore_errors: yes
   with_items:
     - "{{ pycapa_topic }}"
     - "{{ bro_topic }}"
     - "{{ yaf_topic }}"
     - "{{ snort_topic }}"
     - "{{ enrichments_topic }}"
+  register: kafka_result
+  failed_when: kafka_result.rc != 0 and ("already exists" not in kafka_result.stderr)
+  changed_when: ("already exists" not in kafka_result.stderr)
+
