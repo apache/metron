@@ -16,7 +16,7 @@
 
 name: "enrichment"
 config:
-    topology.workers: 1
+    topology.workers: "${storm.topology.enrichment.workers}" 
 
 components:
 # Enrichment
