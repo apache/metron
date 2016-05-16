@@ -53,7 +53,35 @@ public class GrokArubaParserTest {
 		Assert.assertEquals(parsedJSON.get("session_id"), "R011cf48e-04-57231aa3");
 		Assert.assertEquals(parsedJSON.get("message_id"), "5983679670");
 		Assert.assertEquals(parsedJSON.get("type"), "RADIUS_IN");
-		Assert.assertEquals(parsedJSON.get("result_timestamp"), "2016-04-29 04:26:13.002367-04");
+		Assert.assertEquals(parsedJSON.get("request_timestamp"), "2016-04-29 04:26:13.002367-04");
+	}
+	
+	//Tests a malformed Aruba message; parser should return null
+	@Test
+	public void testParseMalformedLine() throws Exception {
+		//Set up parser, attempt to parse message
+		GrokArubaParser parser = new GrokArubaParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat);
+		String testString = "<143>2016-04-29 04:27:31,823  110.137.3.2 CPPM_Session_Detail 473964876 1 0 "
+				+ "id=5983679670,session_id=R011cf48e-04-57231aa3,type=RADIUS_IN,atr_name=Radius:IETF:User-Name,"
+				+ "attr_value=ac81125d02ea,timestamp=2016-04-29 04:26:13.002367-04";
+		List<JSONObject> result = parser.parse(testString.getBytes());
+		
+		//Result should be null due to malformed message
+		Assert.assertEquals(result, null);
+	}
+	
+	//Tests a blank Aruba message; parser should return null
+	@Test
+	public void testParseEmptyLine() throws Exception {
+		//Set up parser, attempt to parse message
+		GrokArubaParser parser = new GrokArubaParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat);
+		String testString = "";
+		List<JSONObject> result = parser.parse(testString.getBytes());
+		
+		//Result should be null due to malformed message
+		Assert.assertEquals(result, null);
 	}
 
 }
