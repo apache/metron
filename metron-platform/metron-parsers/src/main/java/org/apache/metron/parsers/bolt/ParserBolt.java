@@ -23,6 +23,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -33,7 +34,7 @@ import org.json.simple.JSONObject;
 import java.util.List;
 import java.util.Map;
 
-public class ParserBolt extends ConfiguredBolt {
+public class ParserBolt extends ConfiguredParserBolt {
 
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
