@@ -39,12 +39,12 @@ public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
 
     @Override
     public String getSensorType() {
-        return "websphere";
+        return "activedirectory";
     }
 
     @Override
     public String getFluxTopicProperty() {
-        return "spout.kafka.topic.websphere";
+        return "spout.kafka.topic.activedirectory";
     }
 
 }
