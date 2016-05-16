@@ -1,3 +1,4 @@
+#!/bin/sh -eux
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,50 +15,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
+case "$PACKER_BUILDER_TYPE" in
 
+virtualbox-iso|virtualbox-ovf)
+    major_version="`sed 's/^.\+ release \([.0-9]\+\).*/\1/' /etc/redhat-release | awk -F. '{print $1}'`";
 
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
+    if [ "$major_version" -ge 6 ]; then
+        # Fix slow DNS:
+        # Add 'single-request-reopen' so it is included when /etc/resolv.conf is
+        # generated
+        # https://access.redhat.com/site/solutions/58625 (subscription required)
+        echo 'RES_OPTIONS="single-request-reopen"' >>/etc/sysconfig/network;
+        echo "192.168.66.121 node1"  >>/etc/hosts;
+        service network restart;
+        echo 'Slow DNS fix applied (single-request-reopen)';
+    fi
+    ;;
 
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+esac
