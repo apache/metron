@@ -1,0 +1,11 @@
+{
+  "index": "websphere",
+  "batchSize": 5,
+  "enrichment": {
+    "fieldMap": {
+    },
+  "fieldToTypeMap": {
+    }
+  }
+}
+
