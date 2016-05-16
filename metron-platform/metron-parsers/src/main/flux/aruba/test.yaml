@@ -25,12 +25,9 @@ components:
             - "../metron-parsers/src/main/resources/patterns/aruba"
             - "ARUBA"
         configMethods:
-            -   name: "withTimestampField"
-                args:
-                    - "timestamp_string"
             -   name: "withDateFormat"
                 args:
-                    - "yyyy MMM dd HH:mm:ss"
+                    - "yyyy-MM-dd HH:mm:ss"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:
