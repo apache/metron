@@ -26,7 +26,6 @@
   become: true
   roles:
     - role: metron_common
-    - role: monit
   tags:
     - metron-prereqs
 
@@ -106,6 +105,8 @@
 - hosts: metron
   become: true
   roles:
-    - monit-start
+    - role: ambari_gather_facts
+    - role: monit
+    - role: monit-start
   tags:
     - start

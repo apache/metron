@@ -49,8 +49,6 @@
   run_once: true
   when: threat_intel_bulk_load == True
 
-- include: metron_topology.yml
-
 - include: hdfs_purge.yml
 
 - include: es_purge.yml
