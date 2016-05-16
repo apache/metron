@@ -28,12 +28,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredBolt;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
  **/
 
 @SuppressWarnings({"rawtypes", "serial"})
-public class GenericEnrichmentBolt extends ConfiguredBolt {
+public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
@@ -114,8 +114,9 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     this.invalidateCacheOnReload= cacheInvalidationOnReload;
     return this;
   }
+
   @Override
-  public void reloadCallback(String name, Configurations.Type type) {
+  public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();

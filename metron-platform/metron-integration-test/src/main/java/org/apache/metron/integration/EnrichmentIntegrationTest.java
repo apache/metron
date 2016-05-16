@@ -26,10 +26,12 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.Constants;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
+import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.integration.components.FluxTopologyComponent;
@@ -57,6 +59,7 @@ import java.util.Set;
 import java.util.Stack;
 
 public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
+
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
@@ -65,9 +68,10 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     put("orientation", "north");
   }};
   private String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
+  protected String testSensorType = "test";
   protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
-  private String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "YafExampleParsed";
-  private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "YafIndexed";
+  private String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
+  private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
 
 
   public static class Provider implements TableProvider, Serializable {
@@ -140,7 +144,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   @Test
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
-    final Configurations configurations = SampleUtil.getSampleConfigs();
+    final EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
     final String dateFormat = "yyyy.MM.dd.HH";
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
@@ -170,6 +174,11 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     }});
 
+    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
+            .withTopologyProperties(topologyProperties)
+            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
+
     //create MockHBaseTables
     final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
     final MockHTable threatIntelTable = (MockHTable)MockHTable.Provider.addToCache(threatIntelTableName, cf);
@@ -194,6 +203,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
+            .withComponent("config", configUploadComponent)
             .withComponent("search", searchComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(10000)
@@ -214,7 +224,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
-      Assert.assertEquals(new File(hdfsDir).list()[0], "yaf");
+      Assert.assertEquals(new File(hdfsDir).list()[0], testSensorType);
       validateAll(docsFromDisk);
     }
     finally {
