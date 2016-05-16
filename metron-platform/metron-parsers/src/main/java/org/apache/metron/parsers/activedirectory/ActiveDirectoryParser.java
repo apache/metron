@@ -80,7 +80,6 @@ public class ActiveDirectoryParser extends BasicParser {
             }
         }
 
-
         SimpleDateFormat dateFormatLong = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
         BufferedReader br = null;
         String currentLine;
