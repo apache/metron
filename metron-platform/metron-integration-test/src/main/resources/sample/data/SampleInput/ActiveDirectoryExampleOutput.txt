@@ -1,0 +1,23 @@
+04/11/2016 17:00:03.182
+dcName=wewewew.google.com
+admonEventType=Update
+Names:
+objectCategory=CN=ms-DS-Az-Role,CN=Schema,CN=Configuration,DC=google,DC=com
+name=CRA3
+distinguishedName=CN=CRA,CN=AzRoleObjectContainer-f2c06b86-f897-4ca4-ac5e-2762c25c5da4,CN=f2c06b86-f897-4ca4-ac5e-2762c25c5da4,CN=636cb236-cdb1-443b-bfb3-7683dd85b2f4,CN=Authorization,CN=Corporate,OU=Zones,OU=UNIX,DC=google,DC=com
+cn=CRA
+Object Details:
+objectGUID=dd4fb895-3672-4f0c-bd73-f41f05205f37
+whenChanged=05:00.03 PM, Mon 04/11/2016
+whenCreated=04:59.49 PM, Mon 04/11/2016
+objectClass=top|msDS-AzRole
+Event Details:
+uSNChanged=1645647639
+uSNCreated=1645647635
+instanceType=4
+Additional Details:
+msDS-AzApplicationData=ptype=g
+msDS-TasksForAzRole=CN=role-Unix Sysadmin,CN=AzTaskObjectContainer-636cb236-cdb1-443b-bfb3-7683dd85b2f4,CN=636cb236-cdb1-443b-bfb3-7683dd85b2f4,CN=Authorization,CN=Corporate,OU=Zones,OU=UNIX,DC=google,DC=com
+msDS-MembersForAzRole=CN=PAWS_ENVPR_DDEPROD_ADM,OU=Bigdata,OU=Groups,DC=google,DC=com
+dSCorePropagationData=16010101000000.0Z
+showInAdvancedViewOnly=TRUE
