@@ -24,16 +24,17 @@ package org.apache.metron.parsers.mcafeeepo;
  * Created by rzf350 and vbz083 on 4/26/2016.
  */
 public class McAfeeEpoParser extends BasicParser {
-    private static final Logger _LOG = LoggerFactory.getLogger(BasicBluecoatParser.class);
+    private static final Logger _LOG = LoggerFactory.getLogger(McAfeeEpoParser.class);
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Override
     public void init() {
-
     }
 
     @SuppressWarnings({ "unchecked", "unused" })
     public List<JSONObject> parse(byte[] msg) {
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+
 
         String message = "";
         List<JSONObject> messages = new ArrayList<>();
@@ -42,15 +43,24 @@ public class McAfeeEpoParser extends BasicParser {
         try {
             message = new String(msg, "UTF-8");
 
-
-            String[] parts = message.split("<|>|\", |\" ");
+            String[] parts = message.split("<|>|\", |\" |\"\n");
             payload.put("original_string", message);
             payload.put("priority", parts[1]);
 
+            for(int i = 3; i < parts.length; i++){
+                String[] keypair = parts[i].split("=\"");
+                if(keypair[0].equals("src_ip"))
+                    keypair[0] = "ip_src_addr";
+                if(keypair[0].equals("dest_ip"))
+                    keypair[0] = "ip_dst_addr";
 
-
-
-
+                if(keypair[0].equals("timestamp")){
+                    String timestamp = keypair[1];
+                    payload.put(keypair[0], df.parse(timestamp).getTime());
+                } else if(!keypair[1].equals("NULL")){
+                    payload.put(keypair[0], keypair[1]);
+                }
+            }
 
             messages.add(payload);
             return messages;

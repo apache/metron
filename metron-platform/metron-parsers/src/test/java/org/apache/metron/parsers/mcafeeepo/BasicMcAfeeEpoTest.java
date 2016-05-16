@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class BasicMcAfeeEpoTest {
 
-    private BasicBluecoatParser bmap = new BasicBluecoatParser();
+    private McAfeeEpoParser bmap = new McAfeeEpoParser();
 
     public BasicMcAfeeEpoTest() throws Exception {
         super();
@@ -28,16 +28,49 @@ public class BasicMcAfeeEpoTest {
         List<JSONObject> result = bmap.parse(testString.getBytes());
 
         JSONObject jo = result.get(0);
-        System.out.println(jo.toJSONString());
 
 
-        /*
-        assertEquals(jo.get("event_type"), "authentication failure");
-        assertEquals(jo.get("event_code"), "250017");
-        assertEquals(jo.get("realm"), "AD_ldap");
-        assertEquals(jo.get("priority"), "29");
-        assertEquals(jo.get("designated_host"), "10.118.29.228");
-        */
+
+        assertEquals(jo.get("priority"), "13");
+
+
+        assertEquals(jo.get("timestamp"), 1460384415693L);
+        assertEquals(jo.get("AutoID"), "136424372");
+        assertEquals(jo.get("signature"), "WRITE_DENIED");
+        assertEquals(jo.get("threat_type"), "none");
+        assertEquals(jo.get("signature_id"), "20719");
+        assertEquals(jo.get("category"), "cc.file.block");
+        assertEquals(jo.get("severity_id"), "3");
+        assertEquals(jo.get("event_description"), "File Write Denied");
+        assertEquals(jo.get("detected_timestamp"), "2016-04-11 13:29:09.0");
+        assertEquals(jo.get("file_name"), "c:\\windows\\system32\\folder\\file");
+        assertEquals(jo.get("vendor_action"), "deny write");
+        assertEquals(jo.get("threat_handled"), "1");
+        assertEquals(jo.get("logon_user"), "NT AUTHORITY\\NETWORK SERVICE");
+        assertEquals(jo.get("user"), "abc123");
+        assertEquals(jo.get("dest_nt_domain"), "APL");
+        assertEquals(jo.get("dest_dns"), "IMCAVA12345");
+        assertEquals(jo.get("dest_nt_host"), "IMCAVA12345");
+        assertEquals(jo.get("fqdn"), "IMCAVA12345.something.website.com");
+        assertEquals(jo.get("ip_dst_addr"), "100.170.200.100");
+        assertEquals(jo.get("dest_mac"), "000000000000");
+        assertEquals(jo.get("os"), "Windows 7");
+        assertEquals(jo.get("sp"), "Service Pack 1");
+        assertEquals(jo.get("os_version"), "6.1");
+        assertEquals(jo.get("os_build"), "7601");
+        assertEquals(jo.get("timezone"), "Eastern Standard Time");
+        assertEquals(jo.get("ip_src_addr"), "200.23.55.70");
+        assertEquals(jo.get("is_laptop"), "1");
+        assertEquals(jo.get("product"), "Solidifier");
+        assertEquals(jo.get("product_version"), "6.1.3.436");
+        assertEquals(jo.get("vse_dat_version"), "8130.0000");
+        assertEquals(jo.get("vse_engine64_version"), "5800.7501");
+        assertEquals(jo.get("vse_engine_version"), "5800.7501");
+        assertEquals(jo.get("vse_hotfix"), "5");
+        assertEquals(jo.get("vse_product_version"), "8.8.0.1385");
+
+
+
 
         System.out.println(result);
     }
