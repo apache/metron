@@ -1,10 +1,10 @@
-<13> BNY387S1 02/05/2016 09:54:39 AM
+<13> ABC 02/05/2016 09:54:39 AM
 LogName=Security
 SourceName=Microsoft Windows security auditing.
 EventCode=4624
 EventType=0
 Type=Information
-ComputerName=BNY387S1.cof.ds.capitalone.com
+ComputerName=ABC.google.com
 TaskCategory=Logon
 OpCode=Info
 RecordNumber=112720121
@@ -31,9 +31,9 @@ Logon Type:			3
 
 New Logon:
 
-	Security ID:		COF\BNY387L02$
+	Security ID:		COF\ABC
 
-	Account Name:		BNY387L02$
+	Account Name:		ABC
 
 	Account Domain:		COF
 
@@ -55,7 +55,7 @@ Network Information:
 
 	Workstation Name:
 
-	Source Network Address:	10.136.56.211
+	Source Network Address:	10.0.0.0
 
 	Source Port:		64340
 
