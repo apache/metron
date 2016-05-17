@@ -17,7 +17,7 @@
 #
 
 # should output one of 'redhat' 'centos' 'oraclelinux'
-distro="`rpm -qf --queryformat '%{NAME}' /etc/redhat-release | cut -f 1 -d '-'`" 
+distro="`rpm -qf --queryformat '%{NAME}' /etc/redhat-release | cut -f 1 -d '-'`"
 
 if [ "$distro" != 'redhat' ]; then
   yum -y clean all;
@@ -38,3 +38,4 @@ done
 
 rm -f VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?;
 echo "127.0.0.1   localhost" > /etc/hosts
+
