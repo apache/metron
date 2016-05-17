@@ -1,0 +1,106 @@
+<13> BNY387S1 02/05/2016 09:54:39 AM
+LogName=Security
+SourceName=Microsoft Windows security auditing.
+EventCode=4624
+EventType=0
+Type=Information
+ComputerName=BNY387S1.cof.ds.capitalone.com
+TaskCategory=Logon
+OpCode=Info
+RecordNumber=112720121
+Keywords=Audit Success
+Message=An account was successfully logged on.
+
+
+
+Subject:
+
+	Security ID:		NULL SID
+
+	Account Name:		-
+
+	Account Domain:		-
+
+	Logon ID:		0x0
+
+
+
+Logon Type:			3
+
+
+
+New Logon:
+
+	Security ID:		COF\BNY387L02$
+
+	Account Name:		BNY387L02$
+
+	Account Domain:		COF
+
+	Logon ID:		0x4e149e04
+
+	Logon GUID:		{89C4AB77-51D6-D17B-3EAD-BC8676D1A4D2}
+
+
+
+Process Information:
+
+	Process ID:		0x0
+
+	Process Name:		-
+
+
+
+Network Information:
+
+	Workstation Name:
+
+	Source Network Address:	10.136.56.211
+
+	Source Port:		64340
+
+
+
+Detailed Authentication Information:
+
+	Logon Process:		Kerberos
+
+	Authentication Package:	Kerberos
+
+	Transited Services:	-
+
+	Package Name (NTLM only):	-
+
+	Key Length:		0
+
+
+
+This event is generated when a logon session is created. It is generated on the computer that was accessed.
+
+
+
+The subject fields indicate the account on the local system which requested the logon. This is most commonly a service such as the Server service, or a local process such as Winlogon.exe or Services.exe.
+
+
+
+The logon type field indicates the kind of logon that occurred. The most common types are 2 (interactive) and 3 (network).
+
+
+
+The New Logon fields indicate the account for whom the new logon was created, i.e. the account that was logged on.
+
+
+
+The network fields indicate where a remote logon request originated. Workstation name is not always available and may be left blank in some cases.
+
+
+
+The authentication information fields provide detailed information about this specific logon request.
+
+	- Logon GUID is a unique identifier that can be used to correlate this event with a KDC event.
+
+	- Transited services indicate which intermediate services have participated in this logon request.
+
+	- Package name indicates which sub-protocol was used among the NTLM protocols.
+
+	- Key length indicates the length of the generated session key. This will be 0 if no session key was requested.
