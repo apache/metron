@@ -1,5 +1,5 @@
 {
-  "index": "websphere",
+  "index": "airmagnet",
   "batchSize": 5,
   "enrichment": {
     "fieldMap": {

@@ -27,10 +27,10 @@ components:
         configMethods:
             -   name: "withTimestampField"
                 args:
-                    - "timestamp_string"
+                    - "TIMESTAMP"
             -   name: "withDateFormat"
                 args:
-                    - "yyyy MMM dd HH:mm:ss"
+                    - "MMM dd HH:mm:ss"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:
