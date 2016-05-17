@@ -20,7 +20,7 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.windowssylog.WindowsSyslogParser"
+        className: "org.apache.metron.parsers.windowssyslog.WindowsSyslogParser"
         #constructorArgs:
         #    - "../metron-parsers/src/main/resources/patterns/websphere"
         #    - "WEBSPHERE"

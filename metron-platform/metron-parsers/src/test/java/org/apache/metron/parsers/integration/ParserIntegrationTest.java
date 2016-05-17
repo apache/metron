@@ -30,7 +30,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
     final String kafkaTopic = getSensorType();
 
-    final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleInputPath());
+    final List<byte[]> inputMessages = readSampleData(getSampleInputPath());
 
     final Properties topologyProperties = new Properties();
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
@@ -93,7 +95,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 return messages;
               }
             });
-    List<byte[]> sampleParsedMessages = TestUtils.readSampleData(getSampleParsedPath());
+    List<byte[]> sampleParsedMessages = readSampleData(getSampleParsedPath());
     Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());
     for (int i = 0; i < outputMessages.size(); i++) {
       String sampleParsedMessage = new String(sampleParsedMessages.get(i));
@@ -130,6 +132,16 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
       }
     }
     Assert.assertEquals(m1.size(), m2.size());
+  }
+
+  public List<byte[]> readSampleData(String samplePath) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(samplePath));
+    List<byte[]> ret = new ArrayList<>();
+    for (String line = null; (line = br.readLine()) != null; ) {
+      ret.add(line.getBytes());
+    }
+    br.close();
+    return ret;
   }
 
 }
