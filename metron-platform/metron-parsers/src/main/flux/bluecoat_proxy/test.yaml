@@ -23,7 +23,7 @@ components:
         className: "org.apache.metron.parsers.bluecoat_proxy.GrokBluecoatProxyParser"
         constructorArgs:
             - "../metron-parsers/src/main/resources/patterns/bluecoat_proxy"
-            - "WEBSPHERE"
+            - "BLUECOAT"
         configMethods:
             -   name: "withTimestampField"
                 args:
@@ -45,11 +45,11 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "bluecoat"
+            - "bluecoat_proxy"
             # zk root
             - ""
             # id
-            - "bluecoat"
+            - "bluecoat_proxy"
         properties:
             -   name: "ignoreZkOffsets"
                 value: false

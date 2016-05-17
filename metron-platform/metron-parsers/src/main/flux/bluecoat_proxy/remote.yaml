@@ -22,7 +22,7 @@ components:
     -   id: "parser"
         className: "org.apache.metron.parsers.bluecoat_proxy.GrokBluecoatProxyParser"
         constructorArgs:
-            - "/patterns/blueoat"
+            - "/patterns/blueoat_proxy"
             - "BLUECOAT"
         configMethods:
             -   name: "withTimestampField"
@@ -45,11 +45,11 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "bluecoat"
+            - "bluecoat_proxy"
             # zk root
             - ""
             # id
-            - "bluecoat"
+            - "bluecoat_proxy"
         properties:
             -   name: "ignoreZkOffsets"
                 value: true
