@@ -210,9 +210,9 @@ public class ActiveDirectoryParser extends BasicParser {
     protected void cleanJSON(JSONObject parsedJSON, String sourceType) {
         removeEmptyAndNullKeys(parsedJSON);
         removeUnwantedKey(parsedJSON);
-        addIngestTimestamp(parsedJSON);
+        //addIngestTimestamp(parsedJSON);
         timestampCheck(sourceType, parsedJSON);
-        addSourceType(parsedJSON, sourceType);
+        //addSourceType(parsedJSON, sourceType);
     }
 
     /**

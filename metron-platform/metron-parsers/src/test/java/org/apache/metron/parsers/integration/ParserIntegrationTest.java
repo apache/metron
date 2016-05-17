@@ -30,7 +30,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
     final String kafkaTopic = getSensorType();
 
-    final List<byte[]> inputMessages = TestUtils.readSampleData(getSampleInputPath());
+    final List<byte[]> inputMessages = readSampleData(getSampleInputPath());
 
     final Properties topologyProperties = new Properties();
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
@@ -96,12 +98,14 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 return messages;
               }
             });
-    List<byte[]> sampleParsedMessages = TestUtils.readSampleData(getSampleParsedPath());
+    List<byte[]> sampleParsedMessages = readSampleData(getSampleParsedPath());
     Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());
     for (int i = 0; i < outputMessages.size(); i++) {
       String sampleParsedMessage = new String(sampleParsedMessages.get(i));
       String outputMessage = new String(outputMessages.get(i));
       try {
+        System.out.println("expectedTRY: " + sampleParsedMessage);
+        System.out.println("actualTRY: " + outputMessage);
         assertJSONEqual(sampleParsedMessage, outputMessage);
       } catch (Throwable t) {
         System.out.println("expected: " + sampleParsedMessage);
@@ -117,7 +121,13 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     ObjectMapper mapper = new ObjectMapper();
     Map m1 = mapper.readValue(doc1, Map.class);
     Map m2 = mapper.readValue(doc2, Map.class);
+    for(Object i : m2.keySet()) {
+      System.out.println("i: "+i);
+
+    }
     for(Object k : m1.keySet()) {
+      System.out.println("k: "+k);
+
       Object v1 = m1.get(k);
       Object v2 = m2.get(k);
 
@@ -129,10 +139,22 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals(v1.toString().length(), v2.toString().length());
       }
       else if(!v2.equals(v1)) {
+        System.out.println("v1: "+v1);
+        System.out.println("v2: "+v2);
         Assert.assertEquals("value mismatch for " + k ,v1, v2);
       }
     }
     Assert.assertEquals(m1.size(), m2.size());
+  }
+
+  public List<byte[]> readSampleData(String samplePath) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(samplePath));
+    List<byte[]> ret = new ArrayList<>();
+    for (String line = null; (line = br.readLine()) != null; ) {
+      ret.add(line.getBytes());
+    }
+    br.close();
+    return ret;
   }
 
 }

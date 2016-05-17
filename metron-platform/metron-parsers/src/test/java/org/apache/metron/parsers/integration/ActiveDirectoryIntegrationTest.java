@@ -18,7 +18,14 @@
 
 package org.apache.metron.parsers.integration;
 
+        import org.apache.commons.lang.ArrayUtils;
         import org.apache.metron.TestConstants;
+
+        import java.io.BufferedReader;
+        import java.io.FileReader;
+        import java.io.IOException;
+        import java.util.ArrayList;
+        import java.util.List;
 
 public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
 
@@ -30,6 +37,19 @@ public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
     @Override
     public String getSampleInputPath() {
         return TestConstants.SAMPLE_DATA_INPUT_PATH + "ActiveDirectoryExampleOutput.txt";
+    }
+
+    @Override
+    public List<byte[]> readSampleData(String samplePath) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(samplePath));
+        List<byte[]> ret = new ArrayList<>();
+        byte[] entireAD = "".getBytes();
+        for (String line = null; (line = br.readLine()) != null; ) {
+            entireAD = ArrayUtils.addAll(entireAD,line.getBytes());
+        }
+        br.close();
+        ret.add(entireAD);
+        return ret;
     }
 
     @Override
