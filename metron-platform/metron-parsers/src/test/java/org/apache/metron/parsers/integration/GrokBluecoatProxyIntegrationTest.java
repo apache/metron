@@ -29,7 +29,7 @@ public class GrokBluecoatProxyIntegrationTest extends ParserIntegrationTest {
 
 	  @Override
 	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "GrokBluecoatExampleOutput.txt";
+	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "GrokBluecoatProxyExampleOutput.txt";
 	  }
 
 	  @Override
