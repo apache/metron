@@ -42,16 +42,16 @@ public class ActiveDirectoryParserTest {
         ActiveDirectoryParser parser = new ActiveDirectoryParser();
         //parser.withDateFormat(dateFormat).withTimestampField(timestampField);
         String testString = "<13> KDCRDNLBSTS07 04/18/2016 13:27:45.338\n" +
-                "dcName=KDC3PCOFGC27.cof.ds.capitalone.com\n" +
+                "dcName=ABC.google.com\n" +
                 "admonEventType=Update\n" +
                 "Names:\n" +
-                "\tobjectCategory=CN=Group,CN=Schema,CN=Configuration,DC=ds,DC=capitalone,DC=com\n" +
+                "\tobjectCategory=CN=Group,CN=Schema,CN=Configuration,DC=google,DC=com\n" +
                 "\n" +
                 "\tname=DL UG COF Technology Associates\n" +
                 "\n" +
                 "\tdisplayName=#Technology Associates\n" +
                 "\n" +
-                "\tdistinguishedName=CN=DL UG COF Technology Associates,OU=Mail Enabled Groups,OU=Exchange,DC=cof,DC=ds,DC=capitalone,DC=com\n" +
+                "\tdistinguishedName=CN=DL UG COF Technology Associates,OU=Mail Enabled Groups,OU=Exchange,DC=google,DC=com\n" +
                 "\n" +
                 "\tcn=DL UG COF Technology Associates\n" +
                 "\n" +
@@ -141,17 +141,12 @@ public class ActiveDirectoryParserTest {
         assertEquals(json.get("timestamp").toString(), Long.toString(1461000465338l));
         assertEquals(json.get("simpleMachineName"), "KDCRDNLBSTS07");
         assertEquals(json.get("priority"), Integer.toString(13));
-        assertEquals(json.get("dcName"), "KDC3PCOFGC27.cof.ds.capitalone.com");
+        assertEquals(json.get("dcName"), "ABC.google.com");
         assertEquals(json.get("admonEventType"), "Update");
-        assertEquals(((JSONObject) json.get("names")).get("objectCategory"), "CN=Group,"
-                + "CN=Schema,CN=Configuration,DC=ds,"
-                + "DC=capitalone,DC=com");
+        assertEquals(((JSONObject) json.get("names")).get("objectCategory"), "CN=Group,CN=Schema,CN=Configuration,DC=google,DC=com");
         assertEquals(((JSONObject) json.get("names")).get("name"), "DL UG COF Technology Associates");
         assertEquals(((JSONObject) json.get("names")).get("displayName"), "#Technology Associates");
-        assertEquals(((JSONObject) json.get("names")).get("distinguishedName"), "CN=DL UG COF"
-                + " Technology Associates,OU=Mail Enabled"
-                + " Groups,OU=Exchange,DC=cof,DC=ds,"
-                + "DC=capitalone,DC=com");
+        assertEquals(((JSONObject) json.get("names")).get("distinguishedName"), "CN=DL UG COF Technology Associates,OU=Mail Enabled Groups,OU=Exchange,DC=google,DC=com");
         assertEquals(((JSONObject) json.get("names")).get("cn"), "DL UG COF Technology "
                 + "Associates");
         assertEquals(((JSONObject) json.get("object")).get("sAMAccountType"), "268435457");

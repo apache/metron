@@ -1,14 +1,14 @@
 <13> KDCRDNLBSTS07 04/18/2016 13:27:45.338
-dcName=KDC3PCOFGC27.cof.ds.capitalone.com
+dcName=ABC.google.com
 admonEventType=Update
 Names:
-	objectCategory=CN=Group,CN=Schema,CN=Configuration,DC=ds,DC=capitalone,DC=com
+	objectCategory=CN=Group,CN=Schema,CN=Configuration,DC=google,DC=com
 
 	name=DL UG COF Technology Associates
 
 	displayName=#Technology Associates
 
-	distinguishedName=CN=DL UG COF Technology Associates,OU=Mail Enabled Groups,OU=Exchange,DC=cof,DC=ds,DC=capitalone,DC=com
+	distinguishedName=CN=DL UG COF Technology Associates,OU=Mail Enabled Groups,OU=Exchange,DC=google,DC=com
 
 	cn=DL UG COF Technology Associates
 
