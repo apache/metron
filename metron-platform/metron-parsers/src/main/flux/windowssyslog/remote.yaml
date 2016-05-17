@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "windowssylog"
+name: "windowssyslog"
 config:
     topology.workers: 1
 
@@ -45,11 +45,11 @@ components:
             # zookeeper hosts
             - ref: "zkHosts"
             # topic name
-            - "windowssylog"
+            - "windowssyslog"
             # zk root
             - ""
             # id
-            - "windowssylog"
+            - "windowssyslog"
         properties:
             -   name: "ignoreZkOffsets"
                 value: true

@@ -57,7 +57,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(kafkaTopic, 1));
     }});
-    System.out.println("expected: " + "hello2");
 
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
@@ -74,7 +73,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
             .withNumRetries(10)
             .build();
     runner.start();
-    System.out.println("expected: " + "hello3");
 
     fluxComponent.submitTopology();
     kafkaComponent.writeMessages(kafkaTopic, inputMessages);
@@ -97,7 +95,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 return messages;
               }
             });
-    System.out.println("expected: " + "hello4");
 
     List<byte[]> sampleParsedMessages = readSampleData(getSampleParsedPath());
     Assert.assertEquals(sampleParsedMessages.size(), outputMessages.size());

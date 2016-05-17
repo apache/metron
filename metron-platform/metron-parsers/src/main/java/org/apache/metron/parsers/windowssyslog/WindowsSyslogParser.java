@@ -137,9 +137,9 @@ public class WindowsSyslogParser extends BasicParser {
 	protected void cleanJSON(JSONObject parsedJSON, String sourceType) {
 		removeEmptyAndNullKeys(parsedJSON);
 		removeUnwantedKey(parsedJSON);
-		addIngestTimestamp(parsedJSON);
+		//addIngestTimestamp(parsedJSON);
 		timestampCheck(sourceType, parsedJSON);
-		addSourceType(parsedJSON, sourceType);
+		//addSourceType(parsedJSON, sourceType);
 	}
 
 
@@ -175,7 +175,7 @@ public class WindowsSyslogParser extends BasicParser {
 	private void timestampCheck(String sourceType, JSONObject parsedJSON) {
 		if (!parsedJSON.containsKey("timestamp")) {
 			parsedJSON.put("timestamp", System.currentTimeMillis());
-			parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
+			//parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
 		}
 		else {
 			if (parsedJSON.get("timestamp") instanceof String){
