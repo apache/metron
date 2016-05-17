@@ -18,209 +18,84 @@
 
 package org.apache.metron.parsers.bluecoat_proxy;
 
-import static org.junit.Assert.assertEquals;
-import java.util.List;
-
 import org.apache.metron.parsers.websphere.GrokWebSphereParser;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
 public class GrokBluecoatProxyParserTest {
 
-	private final String grokPath = "../metron-parsers/src/main/resources/patterns/websphere";
-	private final String grokLabel = "WEBSPHERE";
-	private final String dateFormat = "yyyy MMM dd HH:mm:ss";
-	private final String timestampField = "timestamp_string";
-	
+	private final String grokPath = "../metron-parsers/src/main/resources/patterns/bluecoat_proxy";
+	private final String grokLabel = "BLUECOAT";
+	private final String dateFormat = "yyyy-MM-dd HH:mm:ss";
+	private final String timestampField = "timestamp";
+
 	@Test
-	public void testParseLoginLine() throws Exception {
+	public void testParseLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser(grokPath, grokLabel);
 		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] user(rick007): "
-				+ "[120.43.200.6]: User logged into 'cohlOut'.";
+		String testString = "2016-05-16 15:17:26 283 101.215.31.19 200 TCP_NC_MISS 375 1046" +
+				" GET http www.saavnarnia.com 80 /stats.php" +
+				" ?ev=site:player:progressing:300&songid=RT6VpBOP&_t=1463411845618" +
+				" qam351 ORG\\GR%20GG%20COF%20USR%20Companyweb - www.saavnarnia.com" +
+				" text/html;%20charset=UTF-8" +
+				" http://www.saavnarnia.com/s/album/hindi/Greatest-Hits-Of-Coke-Studio-@-MTV-Vol.-1-2013/i9JkxZIt6Zk_" +
+				" \"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML," +
+				" like Gecko) Chrome/49.200.263.110 Safari/537.36\" OBSERVED \"Entertainment;Audio/Video Clips\" - 170.237.230.7 Certificate";
 		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "133");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460742448000");
-		assertEquals(parsedJSON.get("hostname"), "ABCXML1413");
-		assertEquals(parsedJSON.get("security_domain"), "rojOut");
-		assertEquals(parsedJSON.get("event_code"), "0x81000033");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "notice");
-		assertEquals(parsedJSON.get("event_subtype"), "login");
-		assertEquals(parsedJSON.get("username"), "rick007");
-		assertEquals(parsedJSON.get("ip_src_addr"), "120.43.200.6");
-	}
-	
-	@Test
-	public void tetsParseLogoutLine() throws Exception {
-		
-		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201]: "
-				+ "User 'hjpotter' logged out from 'default'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460743347000");
-		assertEquals(parsedJSON.get("hostname"), "PHIXML3RWD");
-		assertEquals(parsedJSON.get("event_code"), "0x81000019");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("ip_src_addr"), "14.122.2.201");
-		assertEquals(parsedJSON.get("username"), "hjpotter");
-		assertEquals(parsedJSON.get("security_domain"), "default");
-	}
-	
-	@Test
-	public void tetsParseRBMLine() throws Exception {
-		
-		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbm(RBM-Settings): "
-				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "131");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460741795000");
-		assertEquals(parsedJSON.get("hostname"), "ROBXML3QRS");
-		assertEquals(parsedJSON.get("event_code"), "0x80800018");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "error");
-		assertEquals(parsedJSON.get("process"), "rbm");
-		assertEquals(parsedJSON.get("message"), "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.");
-	}
-	
-	@Test
-	public void tetsParseOtherLine() throws Exception {
-		
-		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans(191): (admin:default:system:*): "
-				+ "ntp-service 'NTP Service' - Operational state down";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460740654000");
-		assertEquals(parsedJSON.get("hostname"), "SAGPXMLQA333");
-		assertEquals(parsedJSON.get("event_code"), "0x8240001c");
-		assertEquals(parsedJSON.get("event_type"), "audit");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("process"), "trans");
-		assertEquals(parsedJSON.get("message"), "(admin:default:system:*): ntp-service 'NTP Service' - Operational state down");
-	}
-	
-	@Test
-	public void testParseMalformedLoginLine() throws Exception {
-		
-		//Set up parser, attempt to parse malformed message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
-				+ "[120.43.200. User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
 		JSONObject parsedJSON = result.get(0);
 
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "133");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460742448000");
-		assertEquals(parsedJSON.get("hostname"), "ABCXML1413");
-		assertEquals(parsedJSON.get("security_domain"), "rojOut");
-		assertEquals(parsedJSON.get("event_code"), "0x81000033");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "notice");
-		assertEquals(parsedJSON.get("event_subtype"), "login");
-		assertEquals(parsedJSON.get("username"), null);
-		assertEquals(parsedJSON.get("ip_src_addr"), null);
+		assertEquals(parsedJSON.get("csauthtype"), "Certificate");
+		assertEquals(parsedJSON.get("ip_dst_port"), 80);
+		assertEquals(parsedJSON.get("csusername"), "qam351");
+		assertEquals(parsedJSON.get("http_uripath"), "/stats.php");
+		assertEquals(parsedJSON.get("rscontenttype"), "text/html;%20charset=UTF-8");
+		assertEquals(parsedJSON.get("protocol"), "http");
+		assertEquals(parsedJSON.get("http_method"), "GET");
+		assertEquals(parsedJSON.get("original_string"), "2016-05-16 15:17:26 283 101.215.31.19 200 TCP_NC_MISS 375 1046 GET http www.saavnarnia.com 80 /stats.php ?ev=site:player:progressing:300&songid=RT6VpBOP&_t=1463411845618 qam351 ORG\\GR%20GG%20COF%20USR%20Companyweb - www.saavnarnia.com text/html;%20charset=UTF-8 http://www.saavnarnia.com/s/album/hindi/Greatest-Hits-Of-Coke-Studio-@-MTV-Vol.-1-2013/i9JkxZIt6Zk_ \"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.200.263.110 Safari/537.36\" OBSERVED \"Entertainment;Audio/Video Clips\" - 170.237.230.7 Certificate");
+		assertEquals(parsedJSON.get("csauthgroup"), "ORG\\GR%20GG%20COF%20USR%20Companyweb");
+		assertEquals(parsedJSON.get("csbytes"), 1046);
+		assertEquals(parsedJSON.get("proxy_ip_addr"), "170.237.230.7");
+		assertEquals(parsedJSON.get("ip_src_addr"), "101.215.31.19");
+		assertEquals(parsedJSON.get("http_uriquery"), "?ev=site:player:progressing:300&songid=RT6VpBOP&_t=1463411845618");
+		assertEquals(parsedJSON.get("timestamp"), 1463411846000L);
+		assertEquals(parsedJSON.get("scbytes"), 375);
+		assertEquals(parsedJSON.get("cshost"), "www.saavnarnia.com");
+		assertEquals(parsedJSON.get("scfilterresult"), "OBSERVED");
+		assertEquals(parsedJSON.get("time_taken"), 283);
+		assertEquals(parsedJSON.get("saction"), "TCP_NC_MISS");
+		assertEquals(parsedJSON.get("http_referer"), "http://www.saavnarnia.com/s/album/hindi/Greatest-Hits-Of-Coke-Studio-@-MTV-Vol.-1-2013/i9JkxZIt6Zk_");
+		assertEquals(parsedJSON.get("cscategories"), "Entertainment;Audio/Video Clips");
+		assertEquals(parsedJSON.get("http_status"), 200);
+		assertEquals(parsedJSON.get("http_useragent"), "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.200.263.110 Safari/537.36");
+		assertEquals(parsedJSON.get("ssupliername"),"www.saavnarnia.com");
 	}
 	
 	@Test
-	public void tetsParseMalformedLogoutLine() throws Exception {
-		
+	public void testMalformedLine() throws Exception {
 		//Set up parser, attempt to parse malformed message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201: "
-				+ "User 'hjpotter' logged out from 'default.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460743347000");
-		assertEquals(parsedJSON.get("hostname"), "PHIXML3RWD");
-		assertEquals(parsedJSON.get("event_code"), "0x81000019");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("ip_src_addr"), null);
-		assertEquals(parsedJSON.get("username"), null);
-		assertEquals(parsedJSON.get("security_domain"), null);
+		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser(grokPath, grokLabel);
+		String testString = "2016-05-16  15:17:26 283 101.215.31.19 200 TCP_NC_MISS 375 1046" +
+				" GET http www.saavnarnia.com 80 /stats.php" +
+				" ?ev=site:player:progressing:300&songid=RT6VpBOP&_t=1463411845618" +
+				" qam351 ORG\\GR%20GG%20COF%20USR%20Companyweb - www.saavnarnia.com" +
+				" text/html;%20charset=UTF-8" +
+				" http://www.saavnarnia.com/s/album/hindi/Greatest-Hits-Of-Coke-Studio-@-MTV-Vol.-1-2013/i9JkxZIt6Zk_" +
+				" \"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML," +
+				" like Gecko) Chrome/49.200.263.110 Safari/537.36\" OBSERVED \"Entertainment;Audio/Video Clips\" - 170.237.230.7 Certificate";		List<JSONObject> result = parser.parse(testString.getBytes());
+		assertEquals(null, result);
 	}
-	
-	@Test
-	public void tetsParseMalformedRBMLine() throws Exception {
-		
-		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbmRBM-Settings): "
-				+ "trans3502888135)[request] gtid3502888135) RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "131");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460741795000");
-		assertEquals(parsedJSON.get("hostname"), "ROBXML3QRS");
-		assertEquals(parsedJSON.get("event_code"), "0x80800018");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "error");
-		assertEquals(parsedJSON.get("process"), null);
-		assertEquals(parsedJSON.get("message"), "rbmRBM-Settings): trans3502888135)[request] gtid3502888135) RBM: Resource access denied.");
-	}
-	
-	@Test
-	public void tetsParseMalformedOtherLine() throws Exception {
-		
-		//Set up parser, parse message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans 191)  admindefaultsystem*): "
-				+ "ntp-service 'NTP Service' - Operational state down:";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
-		
-		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460740654000");
-		assertEquals(parsedJSON.get("hostname"), "SAGPXMLQA333");
-		assertEquals(parsedJSON.get("event_code"), "0x8240001c");
-		assertEquals(parsedJSON.get("event_type"), "audit");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("process"), null);
-		assertEquals(parsedJSON.get("message"), "trans 191)  admindefaultsystem*): "
-				+ "ntp-service 'NTP Service' - Operational state down:");
-	}
-	
 	
 	@Test
 	public void testParseEmptyLine() throws Exception {
 		
 		//Set up parser, attempt to parse malformed message
-		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser(grokPath, grokLabel);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
 		assertEquals(null, result);
