@@ -20,17 +20,7 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.mcafeepo.GrokMcAfeeEpoParser"
-        constructorArgs:
-            - "../metron-parsers/src/main/resources/patterns/mcafeeepo"
-            - "WEBSPHERE"
-        configMethods:
-            -   name: "withTimestampField"
-                args:
-                    - "timestamp_string"
-            -   name: "withDateFormat"
-                args:
-                    - "yyyy-MM-dd HH:mm:ss.SSS"
+        className: "org.apache.metron.parsers.mcafeeepo.McAfeeEpoParser"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:

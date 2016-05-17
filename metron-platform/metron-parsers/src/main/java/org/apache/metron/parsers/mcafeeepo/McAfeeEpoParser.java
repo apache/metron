@@ -21,7 +21,7 @@ package org.apache.metron.parsers.mcafeeepo;
         import java.util.regex.Pattern;
 
 /**
- * Created by rzf350 and vbz083 on 4/26/2016.
+ * Created by bnp617 on 4/26/2016.
  */
 public class McAfeeEpoParser extends BasicParser {
     private static final Logger _LOG = LoggerFactory.getLogger(McAfeeEpoParser.class);
@@ -43,7 +43,7 @@ public class McAfeeEpoParser extends BasicParser {
         try {
             message = new String(msg, "UTF-8");
 
-            String[] parts = message.split("<|>|\", |\" |\"\n");
+            String[] parts = message.split("<|>|\", |\" |\"$");
             payload.put("original_string", message);
             payload.put("priority", parts[1]);
 
@@ -57,7 +57,7 @@ public class McAfeeEpoParser extends BasicParser {
                 if(keypair[0].equals("timestamp")){
                     String timestamp = keypair[1];
                     payload.put(keypair[0], df.parse(timestamp).getTime());
-                } else if(!keypair[1].equals("NULL")){
+                } else if(!keypair[1].equals("NULL") && !keypair[1].equals("_")){
                     payload.put(keypair[0], keypair[1]);
                 }
             }
