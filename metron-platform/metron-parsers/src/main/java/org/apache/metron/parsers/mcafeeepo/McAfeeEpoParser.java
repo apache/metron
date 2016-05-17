@@ -50,11 +50,20 @@ public class McAfeeEpoParser extends BasicParser {
             message = new String(msg, "UTF-8");
 
             String[] parts = message.split("<|>|\", |\" |\"$");
+            if(parts.length < 2){
+                _LOG.error("Failed to parse: " + message);
+                return null;
+            }
             payload.put("original_string", message);
             payload.put("priority", parts[1]);
 
             for(int i = 3; i < parts.length; i++){
                 String[] keypair = parts[i].split("=\"");
+                if(keypair.length != 2){
+
+                    _LOG.error("Failed to parse: " + message);
+                    return null;
+                }
                 if(keypair[0].equals("src_ip"))
                     keypair[0] = "ip_src_addr";
                 if(keypair[0].equals("dest_ip"))

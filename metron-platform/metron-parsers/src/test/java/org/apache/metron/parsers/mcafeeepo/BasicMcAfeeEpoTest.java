@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 
 public class BasicMcAfeeEpoTest {
@@ -87,6 +88,20 @@ public class BasicMcAfeeEpoTest {
 
 
         System.out.println(result);
+    }
+
+    @Test
+    public void testEmpty() {
+        String testString = "";
+        List<JSONObject> result = bmap.parse(testString.getBytes());
+        assertNull(result);
+    }
+
+    @Test
+    public void testMalformed() {
+        String testString = "<13> computer.website.com \"2016-04-11 14:20:15\" timestamp=\"2016-04-11 14:20:15.693\", AutoID=";
+        List<JSONObject> result = bmap.parse(testString.getBytes());
+        assertNull(result);
     }
 
 
