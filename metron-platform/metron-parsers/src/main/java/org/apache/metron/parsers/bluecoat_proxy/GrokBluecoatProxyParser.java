@@ -38,11 +38,13 @@ public class GrokBluecoatProxyParser extends GrokParser {
 
     @Override
     protected void postParse(JSONObject message) {
+        LOGGER.debug("Entered with postParse: " + message.toJSONString());
         removeEmptyFields(message);
     }
 
     @SuppressWarnings("unchecked")
     private void removeEmptyFields(JSONObject json) {
+        LOGGER.debug("removing unnecessary fields");
         Iterator<Object> keyIter = json.keySet().iterator();
         while (keyIter.hasNext()) {
             Object key = keyIter.next();
@@ -55,12 +57,14 @@ public class GrokBluecoatProxyParser extends GrokParser {
 
     @Override
     protected long formatTimestamp(Object value) {
+        LOGGER.debug("Formatting timestamp");
         long epochTimestamp = System.currentTimeMillis();
         if (value != null) {
             try {
                 epochTimestamp = toEpoch(value.toString());
             } catch (ParseException e) {
                 //default to current time
+                LOGGER.debug("Unable to format time correctly. Using current system time");
             }
         }
         return epochTimestamp;
