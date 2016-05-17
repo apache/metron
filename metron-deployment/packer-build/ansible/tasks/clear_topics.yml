@@ -27,5 +27,3 @@
   failed_when: result.rc != 0 and ("does not exist" not in result.stderr)
   changed_when: result.rc == 0
 
-
-
