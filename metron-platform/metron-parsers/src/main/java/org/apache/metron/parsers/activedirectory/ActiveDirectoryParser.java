@@ -181,6 +181,7 @@ public class ActiveDirectoryParser extends BasicParser {
         jsonMain.put("additional", jsonAdditional);
 
         cleanJSON(jsonMain, "ActiveDirectory");
+        System.out.println("jsonMain: " + jsonMain);
         return jsonMain;
     }
 
@@ -280,11 +281,13 @@ public class ActiveDirectoryParser extends BasicParser {
     private void convertTimezoneToUTC(String sourceType, JSONObject parsedJSON) {
         parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
         long newTimestamp = (long) parsedJSON.get("timestamp");
-        if (TIMEZONE_OFFSET != 24) {
+        if (TIMEZONE_OFFSET != 24)
+        {
             newTimestamp = newTimestamp + (TIMEZONE_OFFSET * 3600000);
             parsedJSON.put("timestamp", newTimestamp);
         }
-        else {
+        else
+        {
             long timeDifference = (long) parsedJSON.get("ingest_timestamp") - (long) parsedJSON.get("device_generated_timestamp");
             long estimateOffset = timeDifference/3600000;
             newTimestamp = newTimestamp + (estimateOffset * 3600000);

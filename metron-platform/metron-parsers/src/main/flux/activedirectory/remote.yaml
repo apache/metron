@@ -20,17 +20,17 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.websphere.ActiveDirectoryParser"
-        constructorArgs:
-            - "/patterns/activedirectory"
-            - "ACTIVEDIRECTORY"
-        configMethods:
-            -   name: "withTimestampField"
-                args:
-                    - "timestamp_string"
-            -   name: "withDateFormat"
-                args:
-                    - "yyyy MMM dd HH:mm:ss"
+        className: "org.apache.metron.parsers.activedirectory.ActiveDirectoryParser"
+        #constructorArgs:
+        #    - "../metron-parsers/src/main/resources/patterns/activedirectory"
+        #    - "ACTIVEDIRECTORY"
+        #configMethods:
+        #    -   name: "withTimestampField"
+        #        args:
+        #            - "timestamp_string"
+        #    -   name: "withDateFormat"
+        #       args:
+        #           - "yyyy MMM dd HH:mm:ss"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:

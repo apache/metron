@@ -29,7 +29,7 @@ public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
 
     @Override
     public String getSampleInputPath() {
-        return TestConstants.SAMPLE_DATA_INPUT_PATH + "ActiveDirectoryOutput.txt";
+        return TestConstants.SAMPLE_DATA_INPUT_PATH + "ActiveDirectoryExampleOutput.txt";
     }
 
     @Override

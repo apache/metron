@@ -81,6 +81,9 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
               public ReadinessState process(ComponentRunner runner) {
                 KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
                 List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                System.out.println("outputMessages.size(): "+outputMessages.size());
+                System.out.println("inputMessages.size(): "+inputMessages.size());
+
                 if (outputMessages.size() == inputMessages.size()) {
                   messages = outputMessages;
                   return ReadinessState.READY;
