@@ -21,16 +21,6 @@ config:
 components:
     -   id: "parser"
         className: "org.apache.metron.parsers.mcafeeepo.McAfeeEpoParser"
-        constructorArgs:
-            - "/patterns/mcafeeepo"
-            - "MCAFEEEPO"
-        configMethods:
-            -   name: "withTimestampField"
-                args:
-                    - "timestamp_string"
-            -   name: "withDateFormat"
-                args:
-                    - "yyyy-MM-dd HH:mm:ss.SSS"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:
