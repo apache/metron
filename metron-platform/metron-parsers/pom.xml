@@ -129,6 +129,16 @@
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.capitalone.cyberlake</groupId>
+            <artifactId>OpenSOC-Topologies</artifactId>
+            <version>0.0.28-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.capitalone.cyberlake</groupId>
+            <artifactId>OpenSOC-Topologies</artifactId>
+            <version>0.0.28-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>
