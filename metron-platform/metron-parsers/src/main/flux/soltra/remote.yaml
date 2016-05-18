@@ -59,7 +59,7 @@ bolts:
         className: "org.apache.metron.parsers.bolt.ParserBolt"
         constructorArgs:
             - "${kafka.zk}"
-            - "bluecoat"
+            - "soltra"
             - ref: "parser"
             - ref: "writer"
 

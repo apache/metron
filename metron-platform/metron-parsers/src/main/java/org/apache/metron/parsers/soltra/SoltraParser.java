@@ -82,14 +82,13 @@ public class SoltraParser extends BasicParser {
 
 			// put metron standard fields
 //			payload.put("original_string", message);
+			payload.put("original_string", "");
 			payload.put("timestamp", formatDate((String)topLevel.get("timestamp")));
 
 
 
 //			cleanJSON(payload, "Soltra");
 
-
-			
 			messages.add(payload);
 			return messages;
 		} catch (org.json.simple.parser.ParseException e1) {
@@ -205,7 +204,6 @@ public class SoltraParser extends BasicParser {
 			if(behavior != null){
 				if(behavior.containsKey("ttp:Malware")){
 					JSONObject malware = (JSONObject)((JSONObject)behavior.get("ttp:Malware")).get("ttp:Malware_Instance");
-					payload.put("Description", malware.get("ttp:Description"));
 					payload.put("Malware_Identity", malware.get("id"));
 				}
 			}
