@@ -84,6 +84,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
                 List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
                 if (outputMessages.size() == inputMessages.size()) {
+
                   messages = outputMessages;
                   return ReadinessState.READY;
                 } else {
@@ -104,8 +105,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
       try {
         assertJSONEqual(sampleParsedMessage, outputMessage);
       } catch (Throwable t) {
-        System.out.println("expected: " + sampleParsedMessage);
-        System.out.println("actual: " + outputMessage);
         throw t;
       }
     }
