@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class GrokAirMagnetParserTest {
 
@@ -37,7 +38,7 @@ public class GrokAirMagnetParserTest {
 
         //Set up parser, parse message
         GrokAirMagnetParser parser = new GrokAirMagnetParser(grokPath, grokLabel);
-        //parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+        parser.withDateFormat(dateFormat).withTimestampField(timestampField);
         String testString = "<116>Apr 27 00:18:57 TYRION-ABC04013 TYRION-ABC04013 Alert: Device unprotected by WPA-TKIP from sensor MORBDGANS33, " +
                 "Location: /Branches/FRA/ACS/ACS, Description: AP CISCO-LINKSYS:5A:62:D1 (SSID : Neisha-guest) is not using WPA-TKIP (Temporal Key Integrity Protocol) protection.  " +
                 "WLAN traffic encrypted with TKIP defeats packet forgery, and replay attack.  TKIP is immune to the weakness introduced by crackable WEP IV key and attacks stemming " +
@@ -47,7 +48,6 @@ public class GrokAirMagnetParserTest {
                 "vulnerabilities such as packet forgery, replay, and WEP key recovery., Source MAC: 58:6D:8F:5A:62:D1-gn, Channel: 1";
         List<JSONObject> result = parser.parse(testString.getBytes());
         JSONObject parsedJSON = result.get(0);
-        //parser.postParse(parsedJSON);
 
         //Compare fields
         assertEquals(parsedJSON.get("hostname"), "TYRION-ABC04013");
@@ -62,7 +62,7 @@ public class GrokAirMagnetParserTest {
         assertEquals(parsedJSON.get("wifi_channel"), 1);
         assertEquals(parsedJSON.get("location"), "/Branches/FRA/ACS/ACS");
         assertEquals(parsedJSON.get("priority"), 116);
-        assertEquals(parsedJSON.get("timestamp"), "1461730737000");
+        assertEquals(parsedJSON.get("timestamp"), 1461716337000L);
     }
 
     @Test
@@ -70,23 +70,16 @@ public class GrokAirMagnetParserTest {
 
         //Set up parser, attempt to parse malformed message
         GrokAirMagnetParser parser = new GrokAirMagnetParser(grokPath, grokLabel);
-        //parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-        String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
-                + "[120.43.200. User logged into 'cohlOut'.";
+        parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+        String testString = "<116>Apr 27 00:18:57 TYRION-ABC04013 TYRION-ABC04013 Alert: Device unprotected by WPA-TKIP from sensor MORBDGANS33, " +
+                "Description: AP CISCO-LINKSYS:5A:62:D1 (SSID : Neisha-guest) is not using WPA-TKIP (Temporal Key Integrity Protocol) protection.  " +
+                "WLAN traffic encrypted with TKIP defeats packet forgery, and replay attack.  TKIP is immune to the weakness introduced by crackable WEP IV key and attacks stemming " +
+                "from key reuse.  The latest IEEE 802.11i pre-standard draft includes TKIP as one of the recommended data privacy protocols along with CCMP and WRAP.  Wi-Fi Alliance " +
+                "also recommends TKIP in its WPA (Wireless Protected Access) standard.  Some WLAN equipment vendors have added TKIP support in their latest firmware and driver.  " +
+                "Unlike AES based CCMP encryption, TKIP typically does not require hardware upgrade.  Please consider configuring this WLAN device to enable TKIP to prevent security " +
+                "vulnerabilities such as packet forgery, replay, and WEP key recovery., Source MAC: 58:6D:8F:5A:62:D1-gn, Channel: 1";
         List<JSONObject> result = parser.parse(testString.getBytes());
-        JSONObject parsedJSON = result.get(0);
-
-        //Compare fields
-        assertEquals(parsedJSON.get("priority") + "", "133");
-        assertEquals(parsedJSON.get("timestamp") + "", "1460742448000");
-        assertEquals(parsedJSON.get("hostname"), "ABCXML1413");
-        assertEquals(parsedJSON.get("security_domain"), "rojOut");
-        assertEquals(parsedJSON.get("event_code"), "0x81000033");
-        assertEquals(parsedJSON.get("event_type"), "auth");
-        assertEquals(parsedJSON.get("severity"), "notice");
-        assertEquals(parsedJSON.get("event_subtype"), "login");
-        assertEquals(parsedJSON.get("username"), null);
-        assertEquals(parsedJSON.get("ip_src_addr"), null);
+        assertNull(result);
     }
 
 }
