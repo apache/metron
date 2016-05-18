@@ -14,13 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "fireeye-test"
+name: "fireeye"
 config:
     topology.workers: 1
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.fireeye.BasicFireEyeParser"
+        className: "org.apache.metron.parsers.cef.CEFParser"
+        configMethods:
+            -   name: "withDateFormat"
+                args:
+                    - "MMM dd yyyy HH:mm:ss Z"
+            -   name: "withTimeZone"
+                args:
+                    - "UTC"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:
@@ -47,16 +54,6 @@ components:
                 value: -2
 
 spouts:
-    -   id: "testingSpout"
-        className: "org.apache.metron.test.spouts.GenericInternalTestSpout"
-        parallelism: 1
-        configMethods:
-            -   name: "withFilename"
-                args:
-                    - "SampleInput/YafExampleOutput"
-            -   name: "withRepeating"
-                args:
-                    - false
     -   id: "kafkaSpout"
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
