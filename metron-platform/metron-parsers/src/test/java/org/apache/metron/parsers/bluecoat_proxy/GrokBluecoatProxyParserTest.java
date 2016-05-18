@@ -18,7 +18,6 @@
 
 package org.apache.metron.parsers.bluecoat_proxy;
 
-import org.apache.metron.parsers.websphere.GrokWebSphereParser;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
