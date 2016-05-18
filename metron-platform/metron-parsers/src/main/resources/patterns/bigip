@@ -1,0 +1,48 @@
+# Priority
+PRIORITY \d+
+
+# Timestamp - month, day, and time
+MONTH \w{3}
+DAY \d{1,2}
+DATE %{MONTH:UNWANTED}\s{1,2}%{DAY:UNWANTED}
+TIME \d{1,2}:\d{1,2}:\d{1,2}
+TIMESTAMP %{DATE:UNWANTED} %{TIME:UNWANTED}
+
+# Process
+PROCESSNAME \w+
+PROCESSID \d+
+PROCESS %{PROCESSNAME:process}\[%{PROCESSID:process_id}\]:
+
+IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
+IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])
+IPADDR %{IPV6:UNWANTED}|%{IPV4:UNWANTED}
+
+LOGCODE \d{8}
+
+VPNSESSIONID \w{8}
+
+USERID [A-Za-z]{3}\d{3}
+
+BYTES \d+
+
+# Log start - the first part of the log line
+LOGSTART <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{HOSTNAME:hostname} %{WORD:severity}
+
+# Message - the rest of the log body, requires further parsing
+MESSAGE .*
+
+# BigIp - the entire log message
+BIGIP %{LOGSTART:UNWANTED} %{MESSAGE:message}
+
+# Make a good comment you scrub
+COMMON %{PROCESS:UNWANTED} %{LOGCODE:big_ip_log_code}:5: %{VPNSESSIONID:vpn_session_id}:
+
+NEWSESSION %{COMMON:UNWANTED}.*%{IPADDR:ip_src_addr}.*VIP %{IPADDR:ip_vip}
+
+LOGIN %{COMMON:UNWANTED} session.logon.euid is %{USERID:user_id}
+
+STATISTICS %{COMMON:UNWANTED}.*bytes in: %{BYTES:bytesIn}, bytes out: %{BYTES:bytesOut}
+
+ACCESSPOLICYRESULT %{COMMON:UNWANTED} Access policy result: %{MESSAGE:access_policy_result}
+
+SESSION %{COMMON:UNWANTED} %{MESSAGE:message}
