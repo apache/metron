@@ -83,8 +83,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
               public ReadinessState process(ComponentRunner runner) {
                 KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
                 List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                System.out.println("outputMessages.size(): "+outputMessages.size());
-                System.out.println("inputMessages.size(): "+inputMessages.size());
 
                 if (outputMessages.size() == inputMessages.size()) {
                   messages = outputMessages;
@@ -104,12 +102,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
       String sampleParsedMessage = new String(sampleParsedMessages.get(i));
       String outputMessage = new String(outputMessages.get(i));
       try {
-        System.out.println("expectedTRY: " + sampleParsedMessage);
-        System.out.println("actualTRY: " + outputMessage);
         assertJSONEqual(sampleParsedMessage, outputMessage);
       } catch (Throwable t) {
-        System.out.println("expected: " + sampleParsedMessage);
-        System.out.println("actual: " + outputMessage);
         throw t;
       }
     }
@@ -121,12 +115,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     ObjectMapper mapper = new ObjectMapper();
     Map m1 = mapper.readValue(doc1, Map.class);
     Map m2 = mapper.readValue(doc2, Map.class);
-    for(Object i : m2.keySet()) {
-      System.out.println("i: "+i);
-
-    }
     for(Object k : m1.keySet()) {
-      System.out.println("k: "+k);
 
       Object v1 = m1.get(k);
       Object v2 = m2.get(k);
@@ -139,8 +128,6 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals(v1.toString().length(), v2.toString().length());
       }
       else if(!v2.equals(v1)) {
-        System.out.println("v1: "+v1);
-        System.out.println("v2: "+v2);
         Assert.assertEquals("value mismatch for " + k ,v1, v2);
       }
     }

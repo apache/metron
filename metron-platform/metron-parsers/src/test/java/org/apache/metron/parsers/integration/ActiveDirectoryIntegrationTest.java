@@ -44,7 +44,10 @@ public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
         BufferedReader br = new BufferedReader(new FileReader(samplePath));
         List<byte[]> ret = new ArrayList<>();
         byte[] entireAD = "".getBytes();
+        byte[] newLine = "\n".getBytes();
+
         for (String line = null; (line = br.readLine()) != null; ) {
+            entireAD = ArrayUtils.addAll(entireAD,newLine);
             entireAD = ArrayUtils.addAll(entireAD,line.getBytes());
         }
         br.close();

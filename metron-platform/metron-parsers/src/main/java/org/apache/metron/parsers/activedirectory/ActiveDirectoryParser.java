@@ -181,7 +181,6 @@ public class ActiveDirectoryParser extends BasicParser {
         jsonMain.put("additional", jsonAdditional);
 
         cleanJSON(jsonMain, "ActiveDirectory");
-        System.out.println("jsonMain: " + jsonMain);
         return jsonMain;
     }
 
@@ -257,7 +256,7 @@ public class ActiveDirectoryParser extends BasicParser {
     private void timestampCheck(String sourceType, JSONObject parsedJSON) {
         if (!parsedJSON.containsKey("timestamp")) {
             parsedJSON.put("timestamp", System.currentTimeMillis());
-            parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
+            //parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
         }
         else {
             if (parsedJSON.get("timestamp") instanceof String){
