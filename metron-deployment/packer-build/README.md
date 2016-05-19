@@ -16,7 +16,7 @@ Prerequisites
 Build Both Images
 ---------------------- 
   Navigate to <your-project-directory>/metron-deployment/packer-build
-  Execute bin/bento
+  Execute bin/bento build
   
   Packer will build both images and export .box files to the ./builds directory.
   
@@ -24,9 +24,9 @@ Build Single Images
 ---------------------- 
  Navigate to *your-project-directory*/metron-deployment/packer-build
  * HDP Centos 
- ```bin/bento hdp-centos-6.7.json```
+ ```bin/bento build hdp-centos-6.7.json```
  * Full Metron
- ```bin/bento metron-centos-6.7.json```
+ ```bin/bento build metron-centos-6.7.json```
 
 Using Your New Box File
 ---------------------- 
