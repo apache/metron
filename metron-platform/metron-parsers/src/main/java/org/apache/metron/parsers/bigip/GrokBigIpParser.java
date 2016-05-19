@@ -62,27 +62,27 @@ public class GrokBigIpParser extends GrokParser {
 		if (message.containsKey("message")) {
 			String messageValue = (String) message.get("message");
 			if (messageValue.contains("New session")) {
-				parseMessage(message, "session", BIGIP_NEWSESSION_PATTERN);
+				parseMessage(message, "session", BIGIP_NEWSESSION_PATTERN, true);
 			}
 			else if (messageValue.contains("session.logon")) {
-				parseMessage(message, "login", BIGIP_LOGIN_PATTERN);
+				parseMessage(message, "login", BIGIP_LOGIN_PATTERN, true);
 			}
 			else if (messageValue.contains("Session statistics")) {
-				parseMessage(message, "statistics", BIGIP_STATISTICS_PATTERN);
+				parseMessage(message, "statistics", BIGIP_STATISTICS_PATTERN, true);
 			}
 			else if (messageValue.contains("Access policy result")) {
-				parseMessage(message, "access policy result", BIGIP_ACCESSPOLICYRESULT_PATTERN);
+				parseMessage(message, "access policy result", BIGIP_ACCESSPOLICYRESULT_PATTERN, true);
 			}
 			else {
 				Pattern pattern = Pattern.compile("\\d{8}:5: \\w{8}:");
 				Matcher matcher = pattern.matcher(messageValue);
 				// Other session messsages match this regex (contain a log code and session id)
 				if (matcher.find()){
-					parseMessage(message, "session", BIGIP_SESSION_PATTERN);
+					parseMessage(message, "session", BIGIP_SESSION_PATTERN, false);
 				}
 				// System messages do not contain a log code and session id
 				else{
-					parseMessage(message, "system", BIGIP_SYSTEM_PATTERN);
+					parseMessage(message, "system", BIGIP_SYSTEM_PATTERN, false);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ public class GrokBigIpParser extends GrokParser {
 
 	//Extracts the appropriate fields from login messages
 	@SuppressWarnings("unchecked")
-	private void parseMessage(JSONObject json, String messageType, String pattern) {
+	private void parseMessage(JSONObject json, String messageType, String pattern, boolean removeMessage) {
 		json.put("big_ip_message_type", messageType);
 		try {
 			grok.compile("%{" + pattern + "}");
@@ -113,6 +113,14 @@ public class GrokBigIpParser extends GrokParser {
 			LOG.debug("Error parsing Big IP log", e.toString());
 		}
 		json.remove(pattern);
+		if (removeMessage){
+			json.remove("message");
+		}
+		try {
+			grok.compile("%{" + "BIGIP" + "}");
+		} catch (GrokException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

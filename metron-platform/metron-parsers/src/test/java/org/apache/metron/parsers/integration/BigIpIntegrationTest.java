@@ -15,36 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.parsers.integration;
 
 import org.apache.metron.TestConstants;
 
 public class BigIpIntegrationTest extends ParserIntegrationTest {
-	
-	  @Override
-	  public String getFluxPath() {
-	    return "./src/main/flux/bigip/test.yaml";
-	  }
 
-	  @Override
-	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "BigIpOutput";
-	  }
+	@Override
+	public String getFluxPath() {
+		return "./src/main/flux/bigip/test.yaml";
+	}
 
-	  @Override
-	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "BigIpParsed";
-	  }
+	@Override
+	public String getSampleInputPath() {
+		return TestConstants.SAMPLE_DATA_INPUT_PATH + "BigIpOutput.txt";
+	}
 
-	  @Override
-	  public String getSensorType() {
-	    return "bigip";
-	  }
+	@Override
+	public String getSampleParsedPath() {
+		return TestConstants.SAMPLE_DATA_PARSED_PATH + "BigIpParsed.txt";
+	}
 
-	  @Override
-	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.bigip";
-	  }
+	@Override
+	public String getSensorType() {
+		return "bigip";
+	}
 
+	@Override
+	public String getFluxTopicProperty() {
+		return "spout.kafka.topic.bigip";
+	}
 }

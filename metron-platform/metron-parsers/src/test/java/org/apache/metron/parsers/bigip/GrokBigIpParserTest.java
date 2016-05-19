@@ -167,7 +167,6 @@ public class GrokBigIpParserTest {
 		String testString = "<182>Mar 31 13:59:34 vdcbigaion01p info logger: [ssl_acc] 10.24.248.20 - admin [31/Mar/2016:13:59:34 +0000] \"/iControl/iControlPortal.cgi\" 200 670";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
-
 		//Compare fields
 		assertEquals(parsedJSON.get("priority").toString(), "182");
 		assertEquals(parsedJSON.get("timestamp").toString(), "1459432774000");
