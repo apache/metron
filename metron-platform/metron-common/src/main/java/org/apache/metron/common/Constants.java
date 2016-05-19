@@ -17,6 +17,9 @@
  */
 package org.apache.metron.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Constants {
 
   public static final String ZOOKEEPER_ROOT = "/metron";
@@ -25,9 +28,11 @@ public class Constants {
   public static final String SENSOR_TYPE = "source.type";
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String ERROR_STREAM = "error";
+  public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
+  public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
 
   public static enum Fields {
-    SRC_ADDR("ip_src_addr")
+     SRC_ADDR("ip_src_addr")
     ,SRC_PORT("ip_src_port")
     ,DST_ADDR("ip_dst_addr")
     ,DST_PORT("ip_dst_port")
@@ -35,16 +40,29 @@ public class Constants {
     ,TIMESTAMP("timestamp")
     ,INCLUDES_REVERSE_TRAFFIC("includes_reverse_traffic")
     ;
+    private static Map<String, Fields> nameToField;
+
+    static {
+      nameToField = new HashMap<>();
+      for (Fields f : Fields.values()) {
+        nameToField.put(f.getName(), f);
+      }
+    }
+
     private String name;
+
     Fields(String name) {
       this.name = name;
     }
+
     public String getName() {
       return name;
     }
+
+    public static Fields fromString(String fieldName) {
+      return nameToField.get(fieldName);
+    }
   }
 
-  public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
-  public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
 }
 
