@@ -93,7 +93,7 @@ public class CEFParser extends BasicParser {
 				return null;
 			}
 			
-			payload.put("original_string", message);
+			payload.put("original_string", message.replace("\\=", "="));
 			String[] parts = message.split("\\|");
 
 			// Add the standard CEF fields
@@ -113,10 +113,10 @@ public class CEFParser extends BasicParser {
 			while (findNextEquals(fields) !=  findLastEquals(fields)) {
 
 				// Extract the key-value pairs
-				key = fields.substring(0, findNextEquals(fields));
+				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
 				value = fields.substring(0, findNextEquals(fields));
-				value = value.substring(0, value.lastIndexOf(" "));
+				value = value.substring(0, value.lastIndexOf(" ")).trim().replace("\\=", "=");
 				fields = fields.substring(value.length() + 1);
 
 				// Place in JSON, accounting for custom field names
@@ -135,7 +135,7 @@ public class CEFParser extends BasicParser {
 
 			// Handle last remaining key-value pair
 			key = fields.substring(0, findNextEquals(fields));
-			value = fields.substring(findNextEquals(fields) + 1);
+			value = fields.substring(findNextEquals(fields) + 1).replace("\\=", "=");
 			if (payload.containsKey(key+"Label")) {
 				payload.put(payload.get(key+"Label"), value);	
 				payload.remove(key+"Label");

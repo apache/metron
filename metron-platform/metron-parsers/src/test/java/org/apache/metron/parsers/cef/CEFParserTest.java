@@ -126,11 +126,7 @@ public class CEFParserTest {
 		assertEquals(parsedJSON.get("ServiceName"), "servers_svc");
 		assertEquals(parsedJSON.get("ApplicationName"), "server_app");
 		assertEquals(parsedJSON.get("Description"), "QA");	
-		
-		String other = "<14>CEF:0|Imperva Inc.|SecureSphere|10.0.0.2_0|DOM - Insecure Login.do Page Rate Limit US - Source IP|FRA - Login Login.do Page Rate Limit US - Source IP|High|act=alert dst=122.7.194.4 dpt=8083 duser=kathleen src=107.197.93.42 spt=5514 proto=TCP rt=${Event.createTime} cat=Alert cs1=FRA - Login Login.do Page Rate Limit US - Source IP cs1Label=Policy cs2=Login cs2Label=ServerGroup cs3=login_svc cs3Label=ServiceName cs4=login_app cs4Label=ApplicationName cs5=NA cs5Label=Description";
-		result = parser.parse(other.getBytes());
-		parsedJSON = result.get(0);
-		System.out.println(parsedJSON);
+	
 	}
 	
 	
