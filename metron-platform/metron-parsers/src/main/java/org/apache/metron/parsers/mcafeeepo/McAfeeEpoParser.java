@@ -57,6 +57,7 @@ public class McAfeeEpoParser extends BasicParser {
             payload.put("original_string", message);
             payload.put("priority", parts[1]);
 
+            String timestamp = "";
             for(int i = 3; i < parts.length; i++){
                 String[] keypair = parts[i].split("=\"");
                 if(keypair.length != 2){
@@ -70,14 +71,34 @@ public class McAfeeEpoParser extends BasicParser {
                     keypair[0] = "ip_dst_addr";
 
                 if(keypair[0].equals("timestamp")){
-                    String timestamp = keypair[1];
-                    int missingZeros = "yyyy-MM-dd HH:mm:ss.SSS".length() - timestamp.length();
-                    timestamp += new String(new char[missingZeros]).replace("\0", "0"); // add on the missing zeros
-                    payload.put(keypair[0], df.parse(timestamp).getTime());
+                    timestamp = keypair[1];
+
                 } else if(!keypair[1].equals("NULL") && !keypair[1].equals("_")){
                     payload.put(keypair[0], keypair[1]);
                 }
             }
+
+            //No standard way to go between the timezone field value and a timezone, so they have to be done manually
+            String timezone = (String)payload.get("timezone");
+            if(timezone != null){
+                switch(timezone){
+                    case "Eastern Standard Time": df.setTimeZone(TimeZone.getTimeZone("EST"));;break;
+                    case "Central Standard Time": df.setTimeZone(TimeZone.getTimeZone("US/Central"));;break;
+                    case "Pacific Standard Time": df.setTimeZone(TimeZone.getTimeZone("PST"));;break;
+                    case "GMT Standard Time": df.setTimeZone(TimeZone.getTimeZone("GMT"));;break;
+                    case "India Standard Time": df.setTimeZone(TimeZone.getTimeZone("IST"));;break;
+                    case "Est": df.setTimeZone(TimeZone.getTimeZone("EST"));;break;
+                    case "CST": df.setTimeZone(TimeZone.getTimeZone("US/Central"));;break;
+                    case "China Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
+                    case "Malay Peninsula Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
+                }
+            }else{
+                df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));
+            }
+
+            int missingZeros = "yyyy-MM-dd HH:mm:ss.SSS".length() - timestamp.length();
+            timestamp += new String(new char[missingZeros]).replace("\0", "0"); // add on the missing zeros
+            payload.put("timestamp", df.parse(timestamp).getTime());
 
             messages.add(payload);
             return messages;
