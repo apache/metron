@@ -40,7 +40,7 @@ public class CEFParserTest {
 		
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
-		
+
 		assertEquals(parsedJSON.get("priority"), "161");
 		assertEquals(parsedJSON.get("device_vendor"), "FireEye");
 		assertEquals(parsedJSON.get("device_product"), "CMS");
@@ -52,7 +52,7 @@ public class CEFParserTest {
 		assertEquals(parsedJSON.get("fileHash"), "481e959d8qrstbeaf67a30eff7e989c5");
 		assertEquals(parsedJSON.get("filePath"), "/3qZjLW6xPpz5C8dn-files_doc_5D6D7B.zip");
 		assertEquals(parsedJSON.get("deviceHostName"), "SERVER003");
-		assertEquals(parsedJSON.get("link"), "https://server0003/emps/eanalysis?e_id\\=129555927&type\\=attch");
+		assertEquals(parsedJSON.get("link"), "https://server0003/emps/eanalysis?e_id=129555927&type=attch");
 		assertEquals(parsedJSON.get("dst_username"), "RickUser72@hotmail.com");
 		assertEquals(parsedJSON.get("vlan"), "0");
 		assertEquals(parsedJSON.get("externalId"), "1377069887");

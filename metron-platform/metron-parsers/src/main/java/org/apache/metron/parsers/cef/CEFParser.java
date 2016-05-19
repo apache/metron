@@ -116,9 +116,13 @@ public class CEFParser extends BasicParser {
 				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
 				value = fields.substring(0, findNextEquals(fields));
-				value = value.substring(0, value.lastIndexOf(" ")).trim().replace("\\=", "=");
+				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
+				//Trim and remove escaped equals characters from values and keys
+				key = key.replace("\\=", "=").trim();
+				value = value.replace("\\=", "=").trim();
+				
 				// Place in JSON, accounting for custom field names
 				if (payload.containsKey(key+"Label")) {
 					payload.put(payload.get(key+"Label"), value);	
@@ -134,8 +138,8 @@ public class CEFParser extends BasicParser {
 			}
 
 			// Handle last remaining key-value pair
-			key = fields.substring(0, findNextEquals(fields));
-			value = fields.substring(findNextEquals(fields) + 1).replace("\\=", "=");
+			key = fields.substring(0, findNextEquals(fields)).replace("\\=", "=").trim();
+			value = fields.substring(findNextEquals(fields) + 1).replace("\\=", "=").trim();
 			if (payload.containsKey(key+"Label")) {
 				payload.put(payload.get(key+"Label"), value);	
 				payload.remove(key+"Label");
