@@ -40,7 +40,6 @@ public class GrokBigIpParser extends GrokParser {
 	private final static String BIGIP_LOGIN_PATTERN = "LOGIN";
 	private final static String BIGIP_ACCESSPOLICYRESULT_PATTERN = "ACCESSPOLICYRESULT";
 	private final static String BIGIP_SESSION_PATTERN = "SESSION";
-	private final static String BIGIP_SYSTEM_PATTERN = "SYSTEM";
 
 	@Override
 	protected long formatTimestamp(Object value) {
@@ -59,6 +58,7 @@ public class GrokBigIpParser extends GrokParser {
 	protected void postParse(JSONObject message) {
 		removeEmptyFields(message);
 		message.remove("timestamp_string");
+		// identify the log type and parse the message field accordingly
 		if (message.containsKey("message")) {
 			String messageValue = (String) message.get("message");
 			if (messageValue.contains("New session")) {
@@ -82,7 +82,8 @@ public class GrokBigIpParser extends GrokParser {
 				}
 				// System messages do not contain a log code and session id
 				else{
-					parseMessage(message, "system", BIGIP_SYSTEM_PATTERN, false);
+					// System messages do not need to be parsed a second time
+					message.put("big_ip_message_type", "system");
 				}
 			}
 		}
@@ -100,11 +101,12 @@ public class GrokBigIpParser extends GrokParser {
 		}
 	}
 
-	//Extracts the appropriate fields from login messages
+	//Extracts the appropriate fields from messages
 	@SuppressWarnings("unchecked")
 	private void parseMessage(JSONObject json, String messageType, String pattern, boolean removeMessage) {
 		json.put("big_ip_message_type", messageType);
 		try {
+			// compile the grok object to parse the message field according to log type
 			grok.compile("%{" + pattern + "}");
 			Match gm = grok.match((String) json.get("message"));
 			gm.captures();
@@ -117,6 +119,7 @@ public class GrokBigIpParser extends GrokParser {
 			json.remove("message");
 		}
 		try {
+			// recompile the grok object for the next log
 			grok.compile("%{" + "BIGIP" + "}");
 		} catch (GrokException e) {
 			e.printStackTrace();

@@ -28,7 +28,6 @@ import static org.junit.Assert.assertEquals;
 
 public class GrokBigIpParserTest {
 
-	//TODO Malform the malformed lines
 	private final String grokPath = "../metron-parsers/src/main/resources/patterns/bigip";
 	private final String grokLabel = "BIGIP";
 	private final String dateFormat = "yyyy MMM dd HH:mm:ss";
@@ -167,6 +166,7 @@ public class GrokBigIpParserTest {
 		String testString = "<182>Mar 31 13:59:34 vdcbigaion01p info logger: [ssl_acc] 10.24.248.20 - admin [31/Mar/2016:13:59:34 +0000] \"/iControl/iControlPortal.cgi\" 200 670";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
 		//Compare fields
 		assertEquals(parsedJSON.get("priority").toString(), "182");
 		assertEquals(parsedJSON.get("timestamp").toString(), "1459432774000");
@@ -189,7 +189,7 @@ public class GrokBigIpParserTest {
 	}
 	@Test
 	public void testParseMalformedLoginLine() throws Exception {
-		
+
 		//Set up parser, attempt to parse malformed message
 		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
 		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
@@ -200,7 +200,7 @@ public class GrokBigIpParserTest {
 	
 	@Test
 	public void testParseMalformedSessionStatisticsLine() throws Exception {
-		
+
 		//Set up parser, attempt to parse malformed message
 		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
 		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
@@ -211,8 +211,8 @@ public class GrokBigIpParserTest {
 	
 	@Test
 	public void testParseMalformedAccessPolicyResultLine() throws Exception {
-		
-		//Set up parser, parse message
+
+		//Set up parser, attempt to parse malformed message
 		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
 		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<141>Mar 31 13:59:32 vdcbigaion02p notice apd[26861]: 90329102:5: 01030c62: Access policy result:";
@@ -231,8 +231,8 @@ public class GrokBigIpParserTest {
 	
 	@Test
 	public void testParseMalformedOtherSessionLine() throws Exception {
-		
-		//Set up parser, parse message
+
+		//Set up parser, attempt to parse malformed message
 		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
 		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "Mar 31 13:59:31 mfugjchwna38k notice apd[6848]: 90329115:5: 090faa3e: Following rule 'fallback' from item 'clog1220' to terminalout 'Out'";
@@ -243,7 +243,7 @@ public class GrokBigIpParserTest {
 	@Test
 	public void testParseMalformedSystemLine() throws Exception {
 
-		//Set up parser, parse message
+		//Set up parser, attempt to parse malformed message
 		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
 		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<182>Mar 31 13:59:34 vdcbigaion01p info logger: [ssl_acc] 10.24.248.20 - admin [31/Mar/2016:13:59:34 +0000] \"/iControl/iControlPortal.cgi\" 200 670";
@@ -261,11 +261,10 @@ public class GrokBigIpParserTest {
 
 	}
 	
-	
 	@Test
 	public void testParseEmptyLine() throws Exception {
 		
-		//Set up parser, attempt to parse malformed message
+		//Set up parser, attempt to parse empty message
 		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
