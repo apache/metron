@@ -5,8 +5,8 @@
     <description></description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 14 Jan 2016 09:36:37 -0800</pubDate>
-    <lastBuildDate>Thu, 14 Jan 2016 09:36:37 -0800</lastBuildDate>
+    <pubDate>Fri, 20 May 2016 12:48:56 -0400</pubDate>
+    <lastBuildDate>Fri, 20 May 2016 12:48:56 -0400</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
@@ -21,7 +21,7 @@ the Metron website.&lt;/p&gt;
 
 &lt;p&gt;Please join me to welcome Debo.&lt;/p&gt;
 </description>
-        <pubDate>Fri, 08 Jan 2016 08:23:00 -0800</pubDate>
+        <pubDate>Fri, 08 Jan 2016 11:23:00 -0500</pubDate>
         <link>/news/2016/01/08/debo-committer/</link>
         <guid isPermaLink="true">/news/2016/01/08/debo-committer/</guid>
         
@@ -37,7 +37,7 @@ the Metron website.&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;/img/logo.png&quot; alt=&quot;metron logo&quot; title=&quot;metron logo&quot; /&gt;&lt;/p&gt;
 
 </description>
-        <pubDate>Sat, 12 Dec 2015 04:00:00 -0800</pubDate>
+        <pubDate>Sat, 12 Dec 2015 07:00:00 -0500</pubDate>
         <link>/news/2015/12/12/new-logo/</link>
         <guid isPermaLink="true">/news/2015/12/12/new-logo/</guid>
         
@@ -48,9 +48,9 @@ the Metron website.&lt;/p&gt;
     
       <item>
         <title>Metron accepted into Apache Incubator</title>
-        <description>&lt;p&gt;Congratulations! Metron accepted into the Apache Incubator. &lt;/p&gt;
+        <description>&lt;p&gt;Congratulations! Metron accepted into the Apache Incubator.&lt;/p&gt;
 </description>
-        <pubDate>Sun, 06 Dec 2015 12:48:00 -0800</pubDate>
+        <pubDate>Sun, 06 Dec 2015 15:48:00 -0500</pubDate>
         <link>/news/2015/12/06/metron-incubator/</link>
         <guid isPermaLink="true">/news/2015/12/06/metron-incubator/</guid>
         

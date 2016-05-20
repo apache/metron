@@ -1,80 +1,131 @@
-<!DOCTYPE HTML>
-<html lang="en-US">
-<head>
-  <meta charset="UTF-8">
-  <title>Metron Architecture</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="generator" content="Jekyll v2.4.0">
-  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic,900">
-  <link rel="stylesheet" href="/css/screen.css">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <!--[if lt IE 9]>
-  <script src="/js/html5shiv.min.js"></script>
-  <script src="/js/respond.min.js"></script>
-  <![endif]-->
+<!DOCTYPE html>
+
+<html lang="en-US" prefix="og: http://ogp.me/ns#" ng-app="hortonWorksApp"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
+        
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+        <link rel="profile" href="http://gmpg.org/xfn/11">
+        <title>Metron Architecture</title>
+
+        <style type="text/css">
+            img.wp-smiley,
+            img.emoji {
+                display: inline !important;
+                border: none !important;
+                box-shadow: none !important;
+                height: 1em !important;
+                width: 1em !important;
+                margin: 0 .07em !important;
+                vertical-align: -0.1em !important;
+                background: none !important;
+                padding: 0 !important;
+            }
+        </style>
+    <link rel="stylesheet" id="default-css" href="/css/default.css" type="text/css" media="all">
+    <link rel="stylesheet" id="legacy-css" href="/css/legacy.css" type="text/css" media="all">
+    <link rel="stylesheet" id="gravityforms-css" href="/css/gravityforms.css" type="text/css" media="all">
+    <link rel="stylesheet" id="selectboxit-css" href="/css/selectBoxIt.css" type="text/css" media="all">
+    <link href='http://fonts.googleapis.com/css?family=Roboto%20Condensed' rel='stylesheet' type='text/css'>
+
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/jquery-migrate.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.mobile.custom.min.js"></script>
+    <script type="text/javascript" src="/js/isotope.pkgd.min.js"></script>
+    <script type="text/javascript" src="/js/navigation.js"></script>
+    <script type="text/javascript" src="/js/slider.js"></script>
+    <script type="text/javascript" src="/js/jquery.classyloader.js"></script>
+    <script type="text/javascript" src="/js/hero-slider.js"></script>
+    <script type="text/javascript" src="/js/footer.js"></script>
+    <script type="text/javascript" src="/js/top-form.js"></script>
+    <script type="text/javascript" src="/js/local6.js"></script>
+    <script type="text/javascript" src="/js/select-list.js"></script>
+    <script type="text/javascript" src="/js/legacy.js"></script>
+    <script type="text/javascript" src="/js/local.js"></script>
+    <script type="text/javascript" src="/js/paralax-scroll.js"></script>
+    <script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.selectBoxIt.min.js"></script>
+    <script type="text/javascript" src="/js/scroll-slider.js"></script>
+    <script type="text/javascript" src="/js/charts-animate.js"></script>
+    <script type="text/javascript" src="/js/dotdotdot.js"></script>
+    <script type="text/javascript" src="/js/products_scroll.js"></script>
+    <script type="text/javascript" src="/js/parallax.min.js"></script>
+    <script type="text/javascript" src="/js/parallax.js"></script>
+    <script type="text/javascript" src="/js/shb0wjr.js"></script>  
+
+    <script>
+    window.lsfDataLayer = window.lsfDataLayer || [];
+    </script>
+    
+    <style>
+      body {
+        font-family: "roboto-condensed", sans-serif;
+      }
+    </style>
+
+    <!-- Angular js files -->
+    <script src="/js/angular.min.js"></script>
+    <script src="/js/angular-animate.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/pressReleaseController.js"></script>
+    <script src="/js/eventCtrl.js"></script>
+    <!-- End Angular js files -->
+    <link rel="stylesheet" type="text/css" href="/css/prettify.css">
+    <script type="text/javascript" async="" src="/js/munchkin-beta.js"></script>
+    <link type="text/css" href="/css/jquery-ui-insightera-custom-1.8.css" rel="stylesheet">
+    <style id="style-1-cropbar-clipper">
+    /* Copyright 2014 Evernote Corporation. All rights reserved. */
+    
+    .en-markup-crop-options {
+        top: 18px !important;
+        left: 50% !important;
+        margin-left: -100px !important;
+        width: 200px !important;
+        border: 2px rgba(255, 255, 255, .38) solid !important;
+        border-radius: 4px !important;
+    }
+    
+    .en-markup-crop-options div div:first-of-type {
+        margin-left: 0px !important;
+    }
+    </style>
 </head>
 
 
 <body class="wrap">
-  <header role="banner">
-  <nav class="mobile-nav show-on-mobiles">
-    <ul>
-  <li class="">
-    <a href="/">Home</a>
-  </li>
-  <li class="current">
-    <a href="/docs/">Doc<span class="show-on-mobiles">s</span>
-                        <span class="hide-on-mobiles">umentation</span></a>
-  </li>
-  <li class="">
-    <a href="/talks/">Talks</a>
-  </li>
-  <li class="">
-    <a href="/news/">News</a>
-  </li>
-  <li class="">
-    <a href="/help/">Help</a>
-  </li>
-  <li class="">
-    <a href="/develop/">Develop</a>
-  </li>
+  <header>
+    <div class="main-navigation" style="height: 85px;">
+        <div class="main-nav fixed">
+            <div class="wrapper">
+                <div class="logo">
+                    <a href=""><img src="/img/logo.png" alt="Logo"></a>
+                </div>
+                <nav>
+                    <div class="toggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="menu-wrapper" style="height: auto; display: block;">
+                        <ul class="main-menu">
+    <li class="products-menu"><a href="/">Home</a>
+    </li>
+    <li class="solutions-menu"><a href="/about/">About</a>
+    </li>
+    <li class="services-menu"><a href="/documentation/">Documentation</a>
+    </li>
+    <li class="services-menu"><a href="/community/">Community</a>
+    </li>
+    <li class="training-menu"><a href="/news/">News</a>
+    </li>
+    <li>
+        <button class="button-default button-green trigger-top-form"> <a href="https://github.com/apache/incubator-metron/releases" target="new">Download </a></button>
+    </li>
 </ul>
 
-  </nav>
-  <div class="grid">
-    <div class="unit one-third center-on-mobiles">
-      <h1>
-        <a href="/">
-          <span class="sr-only">Apache Metron</span>
-          <img src="/img/logo.png" width="289" alt="Metron Logo" class="logo">
-        </a>
-      </h1>
+                    </div>
+                </nav>
+            </div>
+        </div>
     </div>
-    <nav class="main-nav unit two-thirds hide-on-mobiles">
-      <ul>
-  <li class="">
-    <a href="/">Home</a>
-  </li>
-  <li class="current">
-    <a href="/docs/">Doc<span class="show-on-mobiles">s</span>
-                        <span class="hide-on-mobiles">umentation</span></a>
-  </li>
-  <li class="">
-    <a href="/talks/">Talks</a>
-  </li>
-  <li class="">
-    <a href="/news/">News</a>
-  </li>
-  <li class="">
-    <a href="/help/">Help</a>
-  </li>
-  <li class="">
-    <a href="/develop/">Develop</a>
-  </li>
-</ul>
-
-    </nav>
-  </div>
 </header>
 
 
@@ -95,14 +146,22 @@
 </section>
 
 
-  <footer role="contentinfo">
-  <p>The contents of this website are &copy;&nbsp;2016
-     <a href="https://www.apache.org/">Apache Software Foundation</a>
-     under the terms of the <a
-      href="https://www.apache.org/licenses/LICENSE-2.0.html">
-      Apache&nbsp;License&nbsp;v2</a>. Apache Metron and its logo are trademarks
-      of the Apache Software Foundation.</p>
-</footer>
+  </section>
+<section class="hero-second-level darken">
+
+    <div class="v-middle-wrapper">
+        <div class="v-middle-inner">
+            <div class="v-middle text-center">
+                <p><img src="/img/incubator_logo.png"></p>
+              
+                      
+            <p>The contents of this website are © 2016 Apache Software Foundation under the terms of<br /> the Apache License v2. Apache Metron and its logo are trademarks of the Apache Software Foundation.</p>
+        
+                               
+            </div>
+        </div>
+    </div>
+</section>
 
   <script>
   var anchorForId = function (id) {
