@@ -82,18 +82,18 @@ public class McAfeeEpoParser extends BasicParser {
             String timezone = (String)payload.get("timezone");
             if(timezone != null){
                 switch(timezone){
-                    case "Eastern Standard Time": df.setTimeZone(TimeZone.getTimeZone("EST"));;break;
-                    case "Central Standard Time": df.setTimeZone(TimeZone.getTimeZone("US/Central"));;break;
-                    case "Pacific Standard Time": df.setTimeZone(TimeZone.getTimeZone("PST"));;break;
-                    case "GMT Standard Time": df.setTimeZone(TimeZone.getTimeZone("GMT"));;break;
-                    case "India Standard Time": df.setTimeZone(TimeZone.getTimeZone("IST"));;break;
-                    case "Est": df.setTimeZone(TimeZone.getTimeZone("EST"));;break;
+                    case "Eastern Standard Time": df.setTimeZone(TimeZone.getTimeZone("EST"));break;
+                    case "Central Standard Time": df.setTimeZone(TimeZone.getTimeZone("US/Central"));break;
+                    case "Pacific Standard Time": df.setTimeZone(TimeZone.getTimeZone("PST"));break;
+                    case "GMT Standard Time": df.setTimeZone(TimeZone.getTimeZone("GMT"));break;
+                    case "India Standard Time": df.setTimeZone(TimeZone.getTimeZone("IST"));break;
+                    case "Est": df.setTimeZone(TimeZone.getTimeZone("EST"));break;
                     case "CST": df.setTimeZone(TimeZone.getTimeZone("US/Central"));;break;
                     case "China Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
                     case "Malay Peninsula Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
                 }
             }else{
-                df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));
+                df.setTimeZone(TimeZone.getTimeZone("UTC"));
             }
 
             int missingZeros = "yyyy-MM-dd HH:mm:ss.SSS".length() - timestamp.length();

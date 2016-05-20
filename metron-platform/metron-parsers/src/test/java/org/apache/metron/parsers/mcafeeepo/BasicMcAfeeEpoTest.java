@@ -49,7 +49,7 @@ public class BasicMcAfeeEpoTest {
         assertEquals(jo.get("priority"), "13");
 
 
-        assertEquals(jo.get("timestamp"), 1460384415690L);
+        assertEquals(jo.get("timestamp"), 1460402415690L);
         assertEquals(jo.get("AutoID"), "136424372");
         assertEquals(jo.get("signature"), "WRITE_DENIED");
         assertEquals(jo.get("threat_type"), "none");
