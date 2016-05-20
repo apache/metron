@@ -104,8 +104,8 @@ public class GrokBigIpParserTest {
 		assertEquals(parsedJSON.get("big_ip_log_code").toString(), "90329521");
 		assertEquals(parsedJSON.get("vpn_session_id").toString(), "690fe490");
 		assertEquals(parsedJSON.get("big_ip_message_type").toString(), "statistics");
-		assertEquals(parsedJSON.get("bytesIn").toString(), "3032");
-		assertEquals(parsedJSON.get("bytesOut").toString(), "469");
+		assertEquals(parsedJSON.get("bytes_in").toString(), "3032");
+		assertEquals(parsedJSON.get("bytes_out").toString(), "469");
 		assertEquals(parsedJSON.get("original_string").toString(), "<141>Mar 31 13:59:37 mfugjchwna38k notice mdd[6456]: 90329521:5: 690fe490: Session statistics - bytes in: 3032, bytes out: 469");
 	}
 	

@@ -52,7 +52,7 @@ NEWSESSION %{COMMON:UNWANTED}.*%{IPADDR:ip_src_addr}.*VIP %{IPADDR:ip_vip}
 LOGIN %{COMMON:UNWANTED} session.logon.euid is %{USERID:user_id}
 
 # Session statistics log type pattern
-STATISTICS %{COMMON:UNWANTED}.*bytes in: %{BYTES:bytesIn}, bytes out: %{BYTES:bytesOut}
+STATISTICS %{COMMON:UNWANTED}.*bytes in: %{BYTES:bytes_in}, bytes out: %{BYTES:bytes_out}
 
 # Access policy result log type pattern
 ACCESSPOLICYRESULT %{COMMON:UNWANTED} Access policy result: %{MESSAGE:access_policy_result}
