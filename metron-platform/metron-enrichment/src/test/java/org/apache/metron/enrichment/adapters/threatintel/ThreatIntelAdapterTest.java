@@ -101,7 +101,7 @@ public class ThreatIntelAdapterTest {
     final MockHTable trackerTable = (MockHTable) MockHTable.Provider.addToCache(atTableName, cf);
     final MockHTable threatIntelTable = (MockHTable) MockHTable.Provider.addToCache(threatIntelTableName, cf);
     EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey("10.0.2.3", "10.0.2.3"), new EnrichmentValue(new HashMap<String, String>())));
+      add(new LookupKV<>(new EnrichmentKey("10.0.2.3", "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
     }});
 
     BloomAccessTracker bat = new BloomAccessTracker(threatIntelTableName, 100, 0.03);

@@ -47,7 +47,7 @@ public class SimpleHBaseAdapterTest {
   private final String hbaseTableName = "enrichments";
   private EnrichmentLookup lookup;
   private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
-  private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
+  private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
 

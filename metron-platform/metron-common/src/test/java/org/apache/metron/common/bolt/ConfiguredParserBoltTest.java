@@ -97,20 +97,20 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     StandAloneConfiguredParserBolt configuredBolt = new StandAloneConfiguredParserBolt(zookeeperUrl);
     configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
     waitForConfigUpdate(parserConfigurationTypes);
-    Assert.assertEquals(sampleConfigurations, configuredBolt.configurations);
+    Assert.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
-    Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.configurations.getGlobalConfig());
+    Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig());
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
-    Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.configurations);
+    Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();
     String sensorType = "testSensorConfig";
@@ -123,7 +123,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     sampleConfigurations.updateSensorParserConfig(sensorType, testSensorConfig);
     ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
-    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.configurations);
+    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.getConfigurations());
     configuredBolt.cleanup();
   }
 }

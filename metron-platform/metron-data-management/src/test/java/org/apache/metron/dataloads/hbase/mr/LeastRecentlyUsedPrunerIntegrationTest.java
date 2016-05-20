@@ -112,7 +112,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         for(LookupKey k : goodKeysHalf) {
             testTable.put(converter.toPut(cf, (EnrichmentKey) k
                                             , new EnrichmentValue(
-                                                  new HashMap<String, String>() {{
+                                                  new HashMap<String, Object>() {{
                                                     put("k", "dummy");
                                                     }}
                                                   )
@@ -123,7 +123,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         pat.persist(true);
         for(LookupKey k : goodKeysOtherHalf) {
             testTable.put(converter.toPut(cf, (EnrichmentKey) k
-                                            , new EnrichmentValue(new HashMap<String, String>() {{
+                                            , new EnrichmentValue(new HashMap<String, Object>() {{
                                                     put("k", "dummy");
                                                     }}
                                                                   )
@@ -139,7 +139,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         pat.persist(true);
         {
             testTable.put(converter.toPut(cf, (EnrichmentKey) badKey.get(0)
-                    , new EnrichmentValue(new HashMap<String, String>() {{
+                    , new EnrichmentValue(new HashMap<String, Object>() {{
                         put("k", "dummy");
                     }}
                     )

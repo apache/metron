@@ -41,7 +41,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   @Override
   public Map<String, List<String>> getFieldMap(String sourceType) {
-    SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+    SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
     if(config != null) {
       return config.getThreatIntel().getFieldMap();
     }
@@ -66,7 +66,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     if(isAlert) {
       ret.put("is_alert" , "true");
       String sourceType = MessageUtils.getSensorType(ret);
-      SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
       ThreatTriageConfig triageConfig = null;
       if(config != null) {
         triageConfig = config.getThreatIntel().getTriageConfig();

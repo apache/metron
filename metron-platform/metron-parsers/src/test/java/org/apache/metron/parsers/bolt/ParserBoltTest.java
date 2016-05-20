@@ -17,6 +17,14 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import backtype.storm.task.OutputCollector;
+import backtype.storm.tuple.Tuple;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
+import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -24,12 +32,14 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.common.interfaces.MessageWriter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -47,12 +57,40 @@ public class ParserBoltTest extends BaseBoltTest {
   private MessageWriter<JSONObject> writer;
 
   @Mock
+  private BulkMessageWriter<JSONObject> batchWriter;
+
+  @Mock
   private MessageFilter<JSONObject> filter;
+
+  @Mock
+  private Tuple t1;
+
+  @Mock
+  private Tuple t2;
+
+  @Mock
+  private Tuple t3;
+
+  @Mock
+  private Tuple t4;
+
+  @Mock
+  private Tuple t5;
 
   @Test
   public void test() throws Exception {
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, writer);
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, writer) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig();
+          }
+        };
+      }
+    };
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -73,7 +111,7 @@ public class ParserBoltTest extends BaseBoltTest {
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
     when(parser.validate(eq(messages.get(1)))).thenReturn(false);
     parserBolt.execute(tuple);
-    verify(writer, times(1)).write(eq(sensorType), any(Configurations.class), eq(tuple), eq(finalMessage1));
+    verify(writer, times(1)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage1));
     verify(outputCollector, times(1)).ack(tuple);
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
     when(parser.validate(eq(messages.get(1)))).thenReturn(true);
@@ -81,11 +119,181 @@ public class ParserBoltTest extends BaseBoltTest {
     when(filter.emitTuple(messages.get(1))).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(tuple);
-    verify(writer, times(1)).write(eq(sensorType), any(Configurations.class), eq(tuple), eq(finalMessage2));
+    verify(writer, times(1)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
     verify(outputCollector, times(2)).ack(tuple);
-    doThrow(new Exception()).when(writer).write(eq(sensorType), any(Configurations.class), eq(tuple), eq(finalMessage2));
+    doThrow(new Exception()).when(writer).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
     parserBolt.execute(tuple);
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
+  }
+
+  @Test
+  public void testImplicitBatchOfOne() throws Exception {
+
+    String sensorType = "yaf";
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig() {
+              @Override
+              public Map<String, Object> getParserConfig() {
+                return new HashMap<String, Object>() {{
+                }};
+              }
+            };
+          }
+        };
+      }
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any());
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(filter.emitTuple(any())).thenReturn(true);
+    parserBolt.withMessageFilter(filter);
+    parserBolt.execute(t1);
+    verify(outputCollector, times(1)).ack(t1);
+  }
+  @Test
+  public void testBatchOfOne() throws Exception {
+
+    String sensorType = "yaf";
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig() {
+              @Override
+              public Map<String, Object> getParserConfig() {
+                return new HashMap<String, Object>() {{
+                  put(ParserWriterConfiguration.BATCH_CONF, "1");
+                }};
+              }
+            };
+          }
+        };
+      }
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any());
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(filter.emitTuple(any())).thenReturn(true);
+    parserBolt.withMessageFilter(filter);
+    parserBolt.execute(t1);
+    verify(outputCollector, times(1)).ack(t1);
+  }
+  @Test
+  public void testBatchOfFive() throws Exception {
+
+    String sensorType = "yaf";
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig() {
+              @Override
+              public Map<String, Object> getParserConfig() {
+                return new HashMap<String, Object>() {{
+                  put(ParserWriterConfiguration.BATCH_CONF, 5);
+                }};
+              }
+            };
+          }
+        };
+      }
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any());
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(filter.emitTuple(any())).thenReturn(true);
+    parserBolt.withMessageFilter(filter);
+    writeNonBatch(outputCollector, parserBolt, t1);
+    writeNonBatch(outputCollector, parserBolt, t2);
+    writeNonBatch(outputCollector, parserBolt, t3);
+    writeNonBatch(outputCollector, parserBolt, t4);
+    parserBolt.execute(t5);
+    verify(outputCollector, times(1)).ack(t1);
+    verify(outputCollector, times(1)).ack(t2);
+    verify(outputCollector, times(1)).ack(t3);
+    verify(outputCollector, times(1)).ack(t4);
+    verify(outputCollector, times(1)).ack(t5);
+
+
+  }
+  @Test
+  public void testBatchOfFiveWithError() throws Exception {
+
+    String sensorType = "yaf";
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig() {
+              @Override
+              public Map<String, Object> getParserConfig() {
+                return new HashMap<String, Object>() {{
+                  put(ParserWriterConfiguration.BATCH_CONF, 5);
+                }};
+              }
+            };
+          }
+        };
+      }
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any());
+
+    doThrow(new Exception()).when(batchWriter).write(any(), any(), any(), any());
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(filter.emitTuple(any())).thenReturn(true);
+    parserBolt.withMessageFilter(filter);
+    writeNonBatch(outputCollector, parserBolt, t1);
+    writeNonBatch(outputCollector, parserBolt, t2);
+    writeNonBatch(outputCollector, parserBolt, t3);
+    writeNonBatch(outputCollector, parserBolt, t4);
+    parserBolt.execute(t5);
+    verify(outputCollector, times(0)).ack(t1);
+    verify(outputCollector, times(1)).fail(t1);
+    verify(outputCollector, times(0)).ack(t2);
+    verify(outputCollector, times(1)).fail(t2);
+    verify(outputCollector, times(0)).ack(t3);
+    verify(outputCollector, times(1)).fail(t3);
+    verify(outputCollector, times(0)).ack(t4);
+    verify(outputCollector, times(1)).fail(t4);
+    verify(outputCollector, times(0)).ack(t5);
+    verify(outputCollector, times(1)).fail(t5);
+
+
+  }
+  private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {
+    bolt.execute(t);
+    verify(collector, times(0)).ack(t);
   }
 
 }
