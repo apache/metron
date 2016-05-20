@@ -24,6 +24,8 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -38,7 +40,7 @@ public class ParserBolt extends ConfiguredParserBolt {
 
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
-  private MessageFilter<JSONObject> filter = new GenericMessageFilter();
+  private MessageFilter<JSONObject> filter;
   private MessageWriter<JSONObject> writer;
   private String sensorType;
 
@@ -59,8 +61,20 @@ public class ParserBolt extends ConfiguredParserBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
+    if(getSensorParserConfig() == null) {
+      filter = new GenericMessageFilter(null);
+    }
+    else if(filter == null) {
+      filter = Filters.get(getSensorParserConfig().getFilterClassName()
+              , getSensorParserConfig().getParserConfig()
+      );
+    }
     parser.init();
     writer.init();
+  }
+
+  protected SensorParserConfig getSensorParserConfig() {
+    return getConfigurations().getSensorParserConfig(sensorType);
   }
 
   @SuppressWarnings("unchecked")

@@ -26,8 +26,17 @@ import java.util.Map;
 public class SensorParserConfig {
 
   private String parserClassName;
+  private String filterClassName;
   private String sensorTopic;
   private Map<String, Object> parserConfig;
+
+  public String getFilterClassName() {
+    return filterClassName;
+  }
+
+  public void setFilterClassName(String filterClassName) {
+    this.filterClassName = filterClassName;
+  }
 
   public String getParserClassName() {
     return parserClassName;
@@ -62,26 +71,36 @@ public class SensorParserConfig {
   }
 
   @Override
+  public String toString() {
+    return "SensorParserConfig{" +
+            "parserClassName='" + parserClassName + '\'' +
+            ", filterClassName='" + filterClassName + '\'' +
+            ", sensorTopic='" + sensorTopic + '\'' +
+            ", parserConfig=" + parserConfig +
+            '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
     SensorParserConfig that = (SensorParserConfig) o;
 
-    if (getParserClassName() != null ? !getParserClassName().equals(that.getParserClassName()) : that.getParserClassName() != null) return false;
-    if (getSensorTopic() != null ? !getSensorTopic().equals(that.getSensorTopic()) : that.getSensorTopic() != null) return false;
+    if (getParserClassName() != null ? !getParserClassName().equals(that.getParserClassName()) : that.getParserClassName() != null)
+      return false;
+    if (getFilterClassName() != null ? !getFilterClassName().equals(that.getFilterClassName()) : that.getFilterClassName() != null)
+      return false;
+    if (getSensorTopic() != null ? !getSensorTopic().equals(that.getSensorTopic()) : that.getSensorTopic() != null)
+      return false;
     return getParserConfig() != null ? getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() == null;
-  }
 
-  @Override
-  public String toString() {
-    return "{parserClassName=" + parserClassName + ", sensorTopic=" + sensorTopic +
-            ", parserConfig=" + parserConfig + "}";
   }
 
   @Override
   public int hashCode() {
     int result = getParserClassName() != null ? getParserClassName().hashCode() : 0;
+    result = 31 * result + (getFilterClassName() != null ? getFilterClassName().hashCode() : 0);
     result = 31 * result + (getSensorTopic() != null ? getSensorTopic().hashCode() : 0);
     result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
     return result;
