@@ -1,3 +1,4 @@
+#!/bin/sh -eux
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,50 +15,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
+SSHD_CONFIG="/etc/ssh/sshd_config"
 
+# ensure that there is a trailing newline before attempting to concatenate
+sed -i -e '$a\' "$SSHD_CONFIG"
 
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
+USEDNS="UseDNS no"
+if grep -q -E "^[[:space:]]*UseDNS" "$SSHD_CONFIG"; then
+    sed -i "s/^\s*UseDNS.*/${USEDNS}/" "$SSHD_CONFIG"
+else
+    echo "$USEDNS" >>"$SSHD_CONFIG"
+fi
 
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+GSSAPI="GSSAPIAuthentication no"
+if grep -q -E "^[[:space:]]*GSSAPIAuthentication" "$SSHD_CONFIG"; then
+    sed -i "s/^\s*GSSAPIAuthentication.*/${GSSAPI}/" "$SSHD_CONFIG"
+else
+    echo "$GSSAPI" >>"$SSHD_CONFIG"
+fi

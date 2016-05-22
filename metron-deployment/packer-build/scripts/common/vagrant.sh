@@ -1,3 +1,4 @@
+#!/bin/sh -eux
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,50 +15,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
+# set a default HOME_DIR environment variable if not set
+HOME_DIR="${HOME_DIR:-/home/vagrant}";
 
-
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+pubkey_url="https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub";
+mkdir -p $HOME_DIR/.ssh;
+if command -v wget >/dev/null 2>&1; then
+    wget --no-check-certificate "$pubkey_url" -O $HOME_DIR/.ssh/authorized_keys;
+elif command -v curl >/dev/null 2>&1; then
+    curl --insecure --location "$pubkey_url" > $HOME_DIR/.ssh/authorized_keys;
+elif command -v fetch >/dev/null 2>&1; then
+    fetch -am -o $HOME_DIR/.ssh/authorized_keys "$pubkey_url";
+else
+    echo "Cannot download vagrant public key";
+    exit 1;
+fi
+chown -R vagrant $HOME_DIR/.ssh;
+chmod -R go-rwsx $HOME_DIR/.ssh;

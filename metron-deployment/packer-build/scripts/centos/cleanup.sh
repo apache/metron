@@ -1,3 +1,4 @@
+#!/bin/sh -eux
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,50 +15,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
+# should output one of 'redhat' 'centos' 'oraclelinux'
+distro="`rpm -qf --queryformat '%{NAME}' /etc/redhat-release | cut -f 1 -d '-'`"
 
+if [ "$distro" != 'redhat' ]; then
+  yum -y clean all;
+fi
 
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
+# Clean up network interface persistence
+rm -f /etc/udev/rules.d/70-persistent-net.rules;
+mkdir -p /etc/udev/rules.d/70-persistent-net.rules;
+rm -f /lib/udev/rules.d/75-persistent-net-generator.rules;
+rm -rf /dev/.udev/;
 
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
+for ndev in `ls -1 /etc/sysconfig/network-scripts/ifcfg-*`; do
+    if [ "`basename $ndev`" != "ifcfg-lo" ]; then
+        sed -i '/^HWADDR/d' "$ndev";
+        sed -i '/^UUID/d' "$ndev";
+    fi
+done
 
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
+rm -f VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?;
+echo "127.0.0.1   localhost" > /etc/hosts
 
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
