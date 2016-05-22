@@ -1,3 +1,4 @@
+#!/bin/bash -eux
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,50 +15,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
-
-
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+sed -i -e '/Defaults\s\+env_reset/a Defaults\texempt_group=sudo' /etc/sudoers
+sed -i -e 's/%sudo  ALL=(ALL:ALL) ALL/%sudo  ALL=NOPASSWD:ALL/g' /etc/sudoers

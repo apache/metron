@@ -15,49 +15,14 @@
 #  limitations under the License.
 #
 ---
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
+- name: "List Storm Topologies"
+  shell: storm list | grep ACTIVE | awk '{print $1}'
+  register: topologies
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
-
-
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+- name: "Kill Storm Topologies"
+  shell: "storm kill {{ item }}"
+  register: result
+  with_items:
+    - "{{ topologies.stdout_lines }}"
+  failed_when: result.rc != 0 and ("NotAliveException" not in result.stdout)
+  changed_when: result.rc == 0

@@ -15,49 +15,21 @@
 #  limitations under the License.
 #
 ---
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
+- include: ../../playbooks/metron_full_install.yml
 
 - hosts: packer
   become: true
+  roles:
+    - role: ambari_gather_facts
   tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
+    - include: tasks/cleanup.yml
   tags:
-    - packer
+    - packer-cleanup
 
-
-- hosts: ambari_*
+- hosts: packer
   become: true
   roles:
-    - role: ambari_common
+    - role: ambari_gather_facts
+    - role: hadoop_setup
   tags:
-    - ambari-prereqs
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+    - packer-cleanup

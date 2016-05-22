@@ -1,3 +1,4 @@
+#!/bin/sh -eux
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,50 +15,30 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
 
-- hosts: packer
-  become: true
-  tasks:
-    - include_vars: ../inventory/full-dev-platform/group_vars/all
-  tags:
-    - packer
+case "$PACKER_BUILDER_TYPE" in
+  qemu) exit 0 ;;
+esac
 
+set +e
+swapuuid="`/sbin/blkid -o value -l -s UUID -t TYPE=swap`";
+case "$?" in
+	2|0) ;;
+	*) exit 1 ;;
+esac
+set -e
 
-- hosts: ambari_*
-  become: true
-  roles:
-    - role: ambari_common
-  tags:
-    - ambari-prereqs
-    - hdp-install
+if [ "x${swapuuid}" != "x" ]; then
+    # Whiteout the swap partition to reduce box size
+    # Swap is disabled till reboot
+    swappart="`readlink -f /dev/disk/by-uuid/$swapuuid`";
+    /sbin/swapoff "$swappart";
+    dd if=/dev/zero of="$swappart" bs=1M || echo "dd exit code $? is suppressed";
+    /sbin/mkswap -U "$swapuuid" "$swappart";
+fi
 
-- hosts: ambari_master
-  become: true
-  roles:
-    - role:  ambari_master
-  tags:
-    - ambari-server
-    - hdp-install
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: ambari_slave
-  tags:
-    - ambari-agent
-    - hdp-install
-
-- hosts: ambari_master
-  become: true
-  roles:
-    - role: ambari_config
-  tags:
-    - hdp-install
-    - hdp-deploy
+dd if=/dev/zero of=/EMPTY bs=1M || echo "dd exit code $? is suppressed";
+rm -f /EMPTY;
+# Block until the empty file has been removed, otherwise, Packer
+# will try to kill the box while the disk is still full and that's bad
+sync;

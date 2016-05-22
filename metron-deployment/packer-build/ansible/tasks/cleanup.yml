@@ -15,36 +15,35 @@
 #  limitations under the License.
 #
 ---
-- include_vars: "{{ cluster_type }}.yml"
+- include: ../../roles/ambari_config/tasks/start_hdp.yml
 
-- name: Install python-requests
-  yum:
-    name: python-requests
-    state: installed
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
+- name: Stop Monit
+  service:
+    name: monit
+    state: stopped
+  register: command_result
+  failed_when: "command_result|failed and 'no service or tool found for: monit' not in command_result.msg"
 
-- name : check if ambari-server is up on {{ ambari_host }}:{{ambari_port}}
-  wait_for :
-    host: "{{ ambari_host }}"
-    port: "{{ ambari_port }}"
-    delay: 120
-    timeout: 300
+- include: stop_storm.yml
 
-- name: Deploy cluster with Ambari; http://{{ groups.ambari_master[0] }}:{{ ambari_port }}
+- include: clear_topics.yml
+
+- name: Delete ES Indices
+  uri:
+    method: DELETE
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/b*,s*,y*"
+
+- name: Stop the ambari cluster
   ambari_cluster_state:
     host: "{{ groups.ambari_master[0] }}"
     port: "{{ ambari_port }}"
     username: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     cluster_name: "{{ cluster_name }}"
-    cluster_state: present
-    blueprint_name: "{{ blueprint_name }}"
-    configurations: "{{ configurations }}"
-    wait_for_complete: True
-    blueprint_var: "{{ blueprint }}"
+    cluster_state: stopped
+    wait_for_complete: true
 
-- include: start_hdp.yml
+- include: remove_services.yml
+
+- include: ../../roles/ambari_config/tasks/start_hdp.yml
 
