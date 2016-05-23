@@ -21,7 +21,6 @@ import org.json.simple.JSONObject;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -111,6 +110,154 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("virtualSystemName"), "");
         assertEquals(json.get("deviceName"), "");
         assertEquals(json.get("futureUse5"), "");
+    }
+
+    @Test
+    public void assertTrafficTuple() {
+
+        String testString = "<14>Jan  5 12:51:34 PAN1.exampleCustomer.com 1,2015/01/05 12:51:33,0011C103117,TRAFFIC,end,1,2015/01/05 12:51:33,10.0.0.53,10.1.0.174," +
+                "0.0.0.0,0.0.0.0,EX-EasyAV2,,,mssql-db,vsys1,v_external,v_internal,ethernet1/2,ethernet1/1,LOG-Default,2015/01/05 12:51:33,33621086,1,54266,40004," +
+                "0,0,0x401c,tcp,allow,5325,3299,2026,25,2015/01/05 12:51:01,30,any,0,17754932075,0x0,10.0.0.0-10.255.255.255,10.0.0.0-10.255.255.255,0,11,14";
+
+        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+
+        JSONObject json = result.get(0);
+
+        //Compare all the fields
+        assertEquals(json.get("timestamp"),1451998294000L);
+        assertEquals(json.get("priority"), "14");
+        assertEquals(json.get("hostname"), "PAN1.exampleCustomer.com");
+        assertEquals(json.get("futureUse"), "1");
+        assertEquals(json.get("receiveTime"), "2015/01/05 12:51:33");
+        assertEquals(json.get("serialNumber"), "0011C103117");
+        assertEquals(json.get("type"), "TRAFFIC");
+        assertEquals(json.get("subtype"), "end");
+        assertEquals(json.get("futureUse2"), "1");
+        assertEquals(json.get("generatedTime"), "2015/01/05 12:51:33");
+        assertEquals(json.get("ipSrcAddr"), "10.0.0.53");
+        assertEquals(json.get("ipDstAddr"), "10.1.0.174");
+        assertEquals(json.get("natSourceIp"), "0.0.0.0");
+        assertEquals(json.get("natDestinationIp"), "0.0.0.0");
+        assertEquals(json.get("ruleName"), "EX-EasyAV2");
+        assertEquals(json.get("srcUserName"), "");
+        assertEquals(json.get("dstUserName"), "");
+        assertEquals(json.get("application"), "mssql-db");
+        assertEquals(json.get("virtualSystem"), "vsys1");
+        assertEquals(json.get("sourceZone"), "v_external");
+        assertEquals(json.get("destinationZone"), "v_internal");
+        assertEquals(json.get("ingressInterface"), "ethernet1/2");
+        assertEquals(json.get("egressInterface"), "ethernet1/1");
+        assertEquals(json.get("logForwardingProfile"), "LOG-Default");
+        assertEquals(json.get("futureUse3"), "2015/01/05 12:51:33");
+        assertEquals(json.get("sessionId"), "33621086");
+        assertEquals(json.get("repeatCount"), "1");
+        assertEquals(json.get("ipSrcPort"), "54266");
+        assertEquals(json.get("ipDstPort"), "40004");
+        assertEquals(json.get("natSourcePort"), "0");
+        assertEquals(json.get("natDestinationPort"), "0");
+        assertEquals(json.get("flags"), "0x401c");
+        assertEquals(json.get("protocol"), "tcp");
+        assertEquals(json.get("action"), "allow");
+        assertEquals(json.get("bytes"), "5325");
+        assertEquals(json.get("bytesSent"), "3299");
+        assertEquals(json.get("bytesReceived"), "2026");
+        assertEquals(json.get("packets"), "25");
+        assertEquals(json.get("startTime"), "2015/01/05 12:51:01");
+        assertEquals(json.get("elapsedTime"), "30");
+        assertEquals(json.get("category"), "any");
+        assertEquals(json.get("futureUse4"), "0");
+        assertEquals(json.get("sequenceNumber"), "17754932075");
+        assertEquals(json.get("actionFlags"), "0x0");
+        assertEquals(json.get("sourceLocation"), "10.0.0.0-10.255.255.255");
+        assertEquals(json.get("destinationLocation"), "10.0.0.0-10.255.255.255");
+        assertEquals(json.get("futureUse5"), "0");
+        assertEquals(json.get("packetsSent"), "11");
+        assertEquals(json.get("packetsReceived"), "14");
+        assertEquals(json.get("sessionEndReason"), "");
+        assertEquals(json.get("deviceGroupHierarchyLevel1"), "");
+        assertEquals(json.get("deviceGroupHierarchyLevel2"), "");
+        assertEquals(json.get("deviceGroupHierarchyLevel3"), "");
+        assertEquals(json.get("deviceGroupHierarchyLevel4"), "");
+        assertEquals(json.get("virtualSystemName"), "");
+        assertEquals(json.get("deviceName"), "");
+        assertEquals(json.get("actionSource"), "");
+    }
+
+    @Test
+    public void assertConfigTuple() {
+
+        String testString = "<14>Mar 24 18:36:14 PAN1.exampleCustomer.com 1,2016/03/24 18:36:14,003001112668,CONFIG,0,0,2016/03/24 18:36:14,10.255.255.255,,set," +
+                "HarryPotter,Web,Succeeded, config mgt-config users HarryPotter preferences saved-log-query traffic Change-Mar25,8071,0x0,0,0,0,0,,SUNKUPAN1";
+
+        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+
+        JSONObject json = result.get(0);
+
+        //Compare all the fields
+        assertEquals(json.get("timestamp"), 1458844574000L);
+        assertEquals(json.get("priority"), "14");
+        assertEquals(json.get("hostname"), "PAN1.exampleCustomer.com");
+        assertEquals(json.get("futureUse"), "1");
+        assertEquals(json.get("receiveTime"), "2016/03/24 18:36:14");
+        assertEquals(json.get("serialNumber"), "003001112668");
+        assertEquals(json.get("type"), "CONFIG");
+        assertEquals(json.get("subtype"), "0");
+        assertEquals(json.get("futureUse2"), "0");
+        assertEquals(json.get("generatedTime"), "2016/03/24 18:36:14");
+        assertEquals(json.get("host"), "10.255.255.255");
+        assertEquals(json.get("virtualSystem"), "");
+        assertEquals(json.get("command"), "set");
+        assertEquals(json.get("admin"), "HarryPotter");
+        assertEquals(json.get("client"), "Web");
+        assertEquals(json.get("result"), "Succeeded");
+        assertEquals(json.get("configurationPath"), " config mgt-config users HarryPotter preferences saved-log-query traffic Change-Mar25");
+        assertEquals(json.get("sequenceNumber"), "8071");
+        assertEquals(json.get("actionFlags"), "0x0");
+        assertEquals(json.get("deviceGroupHierarchyLevel1"), "0");
+        assertEquals(json.get("deviceGroupHierarchyLevel2"), "0");
+        assertEquals(json.get("deviceGroupHierarchyLevel3"), "0");
+        assertEquals(json.get("deviceGroupHierarchyLevel4"), "0");
+        assertEquals(json.get("virtualSystemName"), "");
+        assertEquals(json.get("deviceName"), "SUNKUPAN1");
+    }
+
+    @Test
+    public void assertSystemTuple() {
+
+        String testString = "<14>Mar 25 00:00:56 PAN1.exampleCustomer.com 1,2016/03/25 00:00:56,003002112674,SYSTEM,general,0,2016/03/25 00:00:56,,general,,0,0," +
+                "general,informational,User HarryPotter logged in via Web from 10.255.255.255 using http,156324,0x0,0,0,0,0,,SUNKUPAN1";
+
+        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+
+        JSONObject json = result.get(0);
+
+        //Compare all the fields
+        assertEquals(json.get("timestamp"), 1458864056000L);
+        assertEquals(json.get("priority"), "14");
+        assertEquals(json.get("hostname"), "PAN1.exampleCustomer.com");
+        assertEquals(json.get("futureUse"), "1");
+        assertEquals(json.get("receiveTime"), "2016/03/25 00:00:56");
+        assertEquals(json.get("serialNumber"), "003002112674");
+        assertEquals(json.get("type"), "SYSTEM");
+        assertEquals(json.get("subtype"), "general");
+        assertEquals(json.get("futureUse2"), "0");
+        assertEquals(json.get("generatedTime"), "2016/03/25 00:00:56");
+        assertEquals(json.get("virtualSystem"), "");
+        assertEquals(json.get("eventId"), "general");
+        assertEquals(json.get("object"), "");
+        assertEquals(json.get("futureUse3"), "0");
+        assertEquals(json.get("futureUse4"), "0");
+        assertEquals(json.get("module"), "general");
+        assertEquals(json.get("severity"), "informational");
+        assertEquals(json.get("description"), "User HarryPotter logged in via Web from 10.255.255.255 using http");
+        assertEquals(json.get("sequenceNumber"), "156324");
+        assertEquals(json.get("actionFlags"), "0x0");
+        assertEquals(json.get("deviceGroupHierarchyLevel1"), "0");
+        assertEquals(json.get("deviceGroupHierarchyLevel2"), "0");
+        assertEquals(json.get("deviceGroupHierarchyLevel3"), "0");
+        assertEquals(json.get("deviceGroupHierarchyLevel4"), "0");
+        assertEquals(json.get("virtualSystemName"), "");
+        assertEquals(json.get("deviceName"), "SUNKUPAN1");
     }
 
     @Test

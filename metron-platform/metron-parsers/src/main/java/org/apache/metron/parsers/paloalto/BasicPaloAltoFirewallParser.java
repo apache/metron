@@ -19,13 +19,10 @@ package org.apache.metron.parsers.paloalto;
 
 
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.ise.ParseException;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -37,7 +34,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
             (BasicPaloAltoFirewallParser.class);
 
     private static final long serialVersionUID = 3147090149725343999L;
-    private static final String[] TRAFFIC_FIELDS = {"receiveTime",
+    private static final String[] TRAFFIC_FIELDS = {
+            "receiveTime",
             "serialNumber",
             "type",
             "subtype",
@@ -91,7 +89,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
             "deviceName",
             "actionSource"};
 
-    private static final String[] THREAT_FIELDS = {"receiveTime",
+    private static final String[] THREAT_FIELDS = {
+            "receiveTime",
             "serialNumber",
             "type",
             "subtype",
@@ -152,7 +151,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
             "deviceName",
             "futureUse5"};
 
-    private static final String[] CONFIG_FIELDS = {"receiveTime",
+    private static final String[] CONFIG_FIELDS = {
+            "receiveTime",
             "serialNumber",
             "type",
             "subtype",
@@ -174,7 +174,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
             "virtualSystemName",
             "deviceName"};
 
-    private static final String[] SYSTEM_FIELDS = {"receiveTime",
+    private static final String[] SYSTEM_FIELDS = {
+            "receiveTime",
             "serialNumber",
             "type",
             "subtype",
@@ -205,7 +206,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
     @SuppressWarnings({"unchecked", "unused"})
     public List<JSONObject> parse(byte[] msg) {
-
         JSONObject outputMessage = new JSONObject();
         String toParse = "";
         List<JSONObject> messages = new ArrayList<>();
@@ -229,7 +229,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
         ArrayList<String> tokens = new ArrayList<>(Arrays.asList(message.split(",")));
         String lastValue = message.substring(message.lastIndexOf(",")+1);
-        tokens.add(lastValue);
+        if (lastValue == "")
+            tokens.add(lastValue);
         //populate common objects
         parseFirstField(tokens.get(0), outputMessage);
 
