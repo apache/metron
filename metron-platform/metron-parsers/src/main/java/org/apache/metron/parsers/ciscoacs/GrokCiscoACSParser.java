@@ -20,15 +20,10 @@ package org.apache.metron.parsers.ciscoacs;
 
 import org.apache.metron.parsers.GrokParser;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,51 +32,66 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import oi.thekraken.grok.api.Match;
-import oi.thekraken.grok.api.exception.GrokException;
+
+
+import org.apache.metron.parsers.GrokParser;
+import org.json.simple.JSONObject;
+
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Iterator;
+
 
 public class GrokCiscoACSParser  extends GrokParser {
+
+    protected DateFormat dateFormat;
+
+    protected String DATE_FORMAT;
+    protected int TIMEZONE_OFFSET;
 
     private static final long serialVersionUID = 1297186928520950925L;
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GrokCiscoACSParser.class);
 
-    /**
-     * Creates an ArubaParser object with the default filepath and pattern.
-     * The default filepath being DEFAULT_FILE_PATH.
-     * The default pattern being DEFAULT_PATTERN.
-     * Same as calling ArubaParser("") or ArubaParser(null).
-     * @throws GrokException
-     */
-    public ArubaParser() throws GrokException {
-        this("");
+    public GrokCiscoACSParser(String grokHdfsPath, String patternLabel) {
+        super(grokHdfsPath, patternLabel);
     }
 
-    /**
-     * Creates an ArubaParser object with the given file path and
-     * default pattern. The default pattern being DEFAULT_PATTERN.
-     * If filepath is given as null or as an empty string, DEFAULT_FILE_PATH
-     * will be used.
-     * @throws GrokException
-     */
-    public ArubaParser(String filepath) throws GrokException {
-        this(filepath, "");
+    @Override
+    protected long formatTimestamp(Object value) {
+        long epochTimestamp = System.currentTimeMillis();
+        if (value != null) {
+            try {
+                epochTimestamp = toEpoch(Calendar.getInstance().get(Calendar.YEAR)  + " " + value);
+            } catch (ParseException e) {
+                //default to current time
+            }
+        }
+        return epochTimestamp;
     }
 
-    /**
-     * Creates an ArubaParser object with the given filepath and pattern.
-     * If filepath is given as null or as an empty string, DEFAULT_FILE_PATH
-     * will be used.
-     * @throws IOException
-     * @throws GrokException
-     */
-    public ArubaParser(String filepath, String pattern) throws GrokException {
-        this.DATE_FORMAT = ParserConfig.getArubaDateFormat();
-        this.DEFAULT_FILE_PATH = ParserConfig.getArubaDefaultFilePath();
-        this.DEFAULT_PATTERN = ParserConfig.getArubaDefaultPattern();
-        this.TIMEZONE_OFFSET = ParserConfig.getArubaTimezoneOffset();
-
-        setupParser(filepath, pattern);
+    @SuppressWarnings("unchecked")
+    private void removeEmptyFields(JSONObject json) {
+        Iterator<Object> keyIter = json.keySet().iterator();
+        while (keyIter.hasNext()) {
+            Object key = keyIter.next();
+            Object value = json.get(key);
+            if (null == value || "".equals(value.toString())) {
+                keyIter.remove();
+            }
+        }
     }
+
+    @Override
+    protected void postParse(JSONObject message) {
+        removeEmptyFields(message);
+        message.remove("timestamp_string");
+        if (message.containsKey("message")) {
+            String messageValue = (String) message.get("message");
+            System.out.println("messageValue: "+messageValue);
+        }
+    }
+
 
     /**
      * Parse the message. A single line is parsed at a time.
@@ -89,7 +99,7 @@ public class GrokCiscoACSParser  extends GrokParser {
      * @return JSONObject containing the elements parsed from the message.
      */
     @Override
-    public JSONObject parse(byte[] raw_message) {
+    public List<JSONObject> parse(byte[] raw_message) {
         JSONObject toReturn = new JSONObject();
 
         try {
@@ -101,13 +111,13 @@ public class GrokCiscoACSParser  extends GrokParser {
 
             // Move the whole message into the tag "original_string"
             // for consistency between parsers
-            if (toReturn.containsKey(DEFAULT_PATTERN)) {
-                toReturn.put("original_string", toParse);
-                toReturn.remove(DEFAULT_PATTERN);
-            } else {
-                LOGGER.error("Line was not able to be parsed as an Aruba message.");
-                return toReturn;
-            }
+            //if (toReturn.containsKey(DEFAULT_PATTERN)) {
+            //    toReturn.put("original_string", toParse);
+            //    toReturn.remove(DEFAULT_PATTERN);
+            //} else {
+            //    LOGGER.error("Line was not able to be parsed as an Aruba message.");
+            //    return toReturn;
+            //}
 
             // Convert time to epoch time/timestamp
             if (toReturn.containsKey("timestamp")) {
@@ -167,9 +177,9 @@ public class GrokCiscoACSParser  extends GrokParser {
                 while(i.hasNext()) {
                     Map.Entry me = (Map.Entry)i.next();
                     if (me.getValue() != null || me.getValue().toString().length() != 0) {
-                        toReturn.put(ParserUtils.cleanseFieldName(me.getKey().toString()), me.getValue().toString()); // add the field and value
+                        toReturn.put((me.getKey().toString()), me.getValue().toString()); // add the field and value
                     } else {
-                        toReturn.put(ParserUtils.cleanseFieldName(me.getKey().toString()), "EMPTY_FIELD");   // there was no value for this field
+                        toReturn.put((me.getKey().toString()), "EMPTY_FIELD");   // there was no value for this field
                     }
                 }
 
@@ -180,7 +190,108 @@ public class GrokCiscoACSParser  extends GrokParser {
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("UnsupportedEncodingException when trying to create String");
         }
-        cleanJSON(toReturn, "Aruba");
-        return toReturn;
+        cleanJSON(toReturn, "ciscoasa");
+        ArrayList<JSONObject> toReturnList = new ArrayList<JSONObject>();
+        toReturnList.add(toReturn);
+        return toReturnList;
+    }
+
+    /**
+     * Adds the current timestamp so we know when the file was ingested
+     * @param parsedJSON the json that the parser created
+     */
+    private void addIngestTimestamp(JSONObject parsedJSON){
+        parsedJSON.put("ingest_timestamp", System.currentTimeMillis());
+    }
+
+    /**
+     * Adds the source type of the log
+     * @param parsedJSON the json that the parser created
+     * @param sourceType The source type of the log
+     */
+    private void addSourceType(JSONObject parsedJSON, String sourceType) {
+        parsedJSON.put("source_type", sourceType);
+    }
+
+    /**
+     * Cleans the json created by the parser
+     * @param parsedJSON the json that the parser created
+     * @param sourceType The source type of the log
+     */
+    protected void cleanJSON(JSONObject parsedJSON, String sourceType) {
+        removeEmptyAndNullKeys(parsedJSON);
+        removeUnwantedKey(parsedJSON);
+        //addIngestTimestamp(parsedJSON);
+        timestampCheck(sourceType, parsedJSON);
+        //addSourceType(parsedJSON, sourceType);
+    }
+
+
+    /**
+     * Removes the 'UNWANTED' key from the json
+     * @param parsedJSON the json the parser created
+     */
+    private void removeUnwantedKey(JSONObject parsedJSON) {
+        parsedJSON.remove("UNWANTED");
+
+    }
+
+    /**
+     * Removes empty and null keys from the json
+     * @param parsedJSON the json the parser created
+     */
+    private void removeEmptyAndNullKeys(JSONObject parsedJSON) {
+        Iterator<Object> keyIter = parsedJSON.keySet().iterator();
+        while (keyIter.hasNext()) {
+            Object key = keyIter.next();
+            Object value = parsedJSON.get(key);
+            // if the value is null or an empty string, remove that key.
+            if (null == value || "".equals(value.toString())) {
+                keyIter.remove();
+            }
+        }
+    }
+
+    /**
+     * Checks if a timestamp key exists. If it does not, it creates one.
+     * @param parsedJSON the json the parser created
+     */
+    private void timestampCheck(String sourceType, JSONObject parsedJSON) {
+        if (!parsedJSON.containsKey("timestamp")) {
+            parsedJSON.put("timestamp", System.currentTimeMillis());
+            //parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
+        }
+        else {
+            if (parsedJSON.get("timestamp") instanceof String){
+                long longTimestamp = 0;
+                try {
+                    longTimestamp = Long.parseLong( (String) parsedJSON.get("timestamp"));
+                } catch (NumberFormatException e) {
+                    LOGGER.error("Unable to parse a long from the timestamp field.", e);
+                }
+                parsedJSON.put("timestamp", longTimestamp);
+            }
+            convertTimezoneToUTC(sourceType, parsedJSON);
+        }
+    }
+
+    /**
+     * Checks if a timestamp key exists. If it does not, it creates one.
+     * Converts the timezone to UTC based on the value in the timezone map
+     * @param parsedJSON the json the parser created
+     */
+    private void convertTimezoneToUTC(String sourceType, JSONObject parsedJSON) {
+        parsedJSON.put("device_generated_timestamp", parsedJSON.get("timestamp"));
+        long newTimestamp = (long) parsedJSON.get("timestamp");
+        if (TIMEZONE_OFFSET != 24) {
+            newTimestamp = newTimestamp + (TIMEZONE_OFFSET * 3600000);
+            parsedJSON.put("timestamp", newTimestamp);
+        }
+        else {
+            long timeDifference = (long) parsedJSON.get("ingest_timestamp") - (long) parsedJSON.get("device_generated_timestamp");
+            long estimateOffset = timeDifference/3600000;
+            newTimestamp = newTimestamp + (estimateOffset * 3600000);
+            parsedJSON.put("timestamp", newTimestamp);
+        }
     }
 }
