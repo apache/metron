@@ -1,0 +1,27 @@
+# Months - only three-letter code is used
+MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
+
+# Days - two digit number is used
+DAY \d{1,2}
+
+# Time - two digit hour, minute, and second
+TIME \d{2}:\d{2}:\d{2}
+
+# Timestamp - month, day, and time
+TIMESTAMP %{MONTH:UNWANTED}\s+%{DAY:UNWANTED} %{TIME:UNWANTED}
+
+# Generic word field
+WORD \w+
+
+# Priority
+PRIORITY \d+
+
+# Message - the message body of the log
+MESSAGE .*
+
+TAG .*?
+
+MSG  %{TAG:tag}: %{MESSAGE:message}
+
+# RFC3164 - the entire log message
+RFC3164 <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{TAG:hostname} %{TAG:tag}: %{MESSAGE:message}
