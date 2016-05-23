@@ -47,6 +47,7 @@ configurations:
       hbase_master_heapsize: 512
       hbase_regionserver_xmn_max: 512
   - hdfs-site:
+      dfs.replication: 1
       dfs.namenode.checkpoint.dir: '{{ namenode_checkpoint_dir  }}'
       dfs.namenode.name.dir: '{{ namenode_name_dir }}'
       dfs.datanode.data.dir: '{{ datanode_data_dir }}'
