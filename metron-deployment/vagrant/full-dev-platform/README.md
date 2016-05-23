@@ -92,7 +92,7 @@ vagrant --ansible-tags="web" provision
 A collection of tags is specified as a comma separated list.
 
 ```
-./run_ansbile_role.sh "sensors,enrichment"
+./run_ansible_role.sh "sensors,enrichment"
 
 ```
 
