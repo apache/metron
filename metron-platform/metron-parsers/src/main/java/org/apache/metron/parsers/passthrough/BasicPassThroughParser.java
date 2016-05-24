@@ -48,7 +48,7 @@ public class BasicPassThroughParser extends BasicParser {
 			message = new String(msg, "UTF-8");
 
 			payload.put("original_string", message);
-            payload.put("is_parsed", false);
+            payload.put("is_parsed", "false");
 
 			Date date = new Date();
 		    long epoch = date.getTime();
