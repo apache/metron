@@ -46,11 +46,11 @@ vagrant ssh source
 sudo service pcap-replay status
 ```
 
-Use `tcpdump` to ensure that the raw packet data is being sent over the private network.  Enter 'CTRL-C' to kill the `tcpdump` process once you are able to see that packets are being sent.
+Use `tcpdump` to ensure that the raw packet data is being sent over the private network.  Enter 'CTRL-C' to kill the `tcpdump` process once you are able to see that packets are being sent. Interface name will depend on OS version and settings.
 
 ```
 sudo yum -y install tcpdump
-sudo tcpdump -i enp0s8
+sudo tcpdump -i [eth1|enp0s8]
 ```
 
 ### `sink`

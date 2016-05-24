@@ -67,7 +67,7 @@
   lineinfile:
     dest: /etc/snort/snort.conf
     regexp: "^ipvar HOME_NET.*$"
-    line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}"
+    line: "ipvar HOME_NET {{ snort_ipv4_address }}"
 
 - name: Configure alerting
   lineinfile:

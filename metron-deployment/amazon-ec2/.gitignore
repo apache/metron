@@ -3,3 +3,4 @@
 *.log
 *.retry
 .metron-env
+.ec2-region

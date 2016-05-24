@@ -33,14 +33,31 @@ services_to_start:
 
 # ec2
 env: metron-test
-region: us-west-2
+#region: us-west-2
 instance_type: m4.xlarge
-image: ami-05cf2265
+# centos 7
+regions_map:
+    us-east-1: ami-6d1c2007
+    us-west-1: ami-af4333cf
+    us-west-2: ami-d2c924b2
+    eu-west-1: ami-7abd0209
+    eu-central-1: ami-9bf712f4
+    ap-northeast-1: ami-eec1c380
+    ap-northeast-2: ami-c74789a9
+    ap-southeast-1: ami-f068a193
+    ap-southeast-2: ami-fedafc9d
+    sa-east-1: ami-26b93b4a
+image: "{{ regions_map[region] }}"
 volume_type: standard
 key_name: metron-key
 xvda_vol_size: 50
 xvdb_vol_size: 100
 xvdc_vol_size: 100
+
+# HDP
+hdp_version: 2.3.2.0
+hdp_repo_def: "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/{{ hdp_version }}/hdp.repo"
+rhel_hdp_utils_install_url: "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7/hdp-util.repo"
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
@@ -48,6 +65,10 @@ ambari_port: 8080
 ambari_user: admin
 ambari_password: admin
 cluster_type: small_cluster
+ambari_version: 2.2.2.0
+rhel_ambari_install_url: "http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/{{ ambari_version }}/ambari.repo"
+local_tmp_keygen_file: "/tmp/id_rsa.tmp"
+dest_tmp_keygen_file: "/tmp/id_rsa.tmp"
 
 # hbase
 pcap_hbase_table: pcap
@@ -64,6 +85,7 @@ metron_version: 0.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
+snort_ipv4_address: "{{ ansible_eth0.ipv4.address }}"
 
 # sensors
 install_snort: True

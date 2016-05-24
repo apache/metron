@@ -26,10 +26,10 @@ Example: Replay data at a rate of 10 packets per second.
 service pcap-replay start --pps 10
 ```
 
-All nodes on the same subnet with their network interface set to promiscuous mode will then be able to capture the network traffic being replayed.  To validate, simply run something like the following.
+All nodes on the same subnet with their network interface set to promiscuous mode will then be able to capture the network traffic being replayed.  To validate, simply run something like the following. Interface name will depend on OS version and settings.
 
 ```
-tcpdump -i eth1
+tcpdump -i [eth1|enp0s8]
 ```
 
 Data

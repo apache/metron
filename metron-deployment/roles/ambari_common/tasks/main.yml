@@ -16,14 +16,18 @@
 #
 ---
 - name: Check OS Version
-  fail: msg="Ambari HDP deployment supports CentOS 6 only."
-  when: (ansible_distribution != "CentOS" or ansible_distribution_major_version != "6")
+  fail: msg="Ambari HDP deployment supports CentOS 7 only."
+  when: (ansible_distribution != "CentOS" or ansible_distribution_major_version != "7")
 
 - include: passwd_less_ssh.yml
 
 - name: Ensure iptables is stopped and is not running at boot time.
   ignore_errors: yes
   service: name=iptables state=stopped enabled=no
+
+- name: Ensure firewalld is stopped and is not running at boot time.
+  ignore_errors: yes
+  service: name=firewalld state=stopped enabled=no
 
 #
 # ambari uses socket.getfqdn() to find the hostname. with 'localhost.localdomain'

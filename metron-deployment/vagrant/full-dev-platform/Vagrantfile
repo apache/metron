@@ -52,8 +52,8 @@ hosts = [{
 
 Vagrant.configure(2) do |config|
 
-  # all hosts built on centos 6
-  config.vm.box = "bento/centos-6.7"
+  # all hosts built on centos 7
+  config.vm.box = "bento/centos-7.2"
   config.ssh.insert_key = true
 
   # enable the hostmanager plugin

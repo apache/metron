@@ -31,6 +31,11 @@ services_to_start:
   - snort-parser
   - enrichment
 
+# HDP
+hdp_version: 2.3.2.0
+hdp_repo_def: "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/{{ hdp_version }}/hdp.repo"
+rhel_hdp_utils_install_url: "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7/hdp-util.repo"
+
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
 hdp_host_group: "{{ groups.ambari_slave }}"
@@ -39,6 +44,10 @@ ambari_user: admin
 ambari_password: admin
 cluster_type: single_node_vm
 ambari_server_mem: 512
+ambari_version: 2.2.2.0
+rhel_ambari_install_url: "http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/{{ ambari_version }}/ambari.repo"
+local_tmp_keygen_file: "/tmp/id_rsa.tmp"
+dest_tmp_keygen_file: "/tmp/id_rsa.tmp"
 
 # hbase
 pcap_hbase_table: pcap
@@ -58,6 +67,7 @@ pycapa_repo: "https://github.com/OpenSOC/pycapa.git"
 pycapa_home: "/opt/pycapa"
 snort_version: "2.9.8.0-1"
 snort_alert_csv_path: "/var/log/snort/alert.csv"
+snort_ipv4_address: "{{ ansible_enp0s3.ipv4.address }}"
 threat_intel_bulk_load: False
 
 # data directories - only required to override defaults
@@ -82,7 +92,7 @@ install_bro: True
 install_snort: True
 install_yaf: True
 install_pcap_replay: True
-sniff_interface: eth1
+sniff_interface: enp0s8
 pcap_replay_interface: "{{ sniff_interface }}"
 pcapservice_port: 8081
 
@@ -93,5 +103,5 @@ solr_collection_name: Metron
 solr_number_shards: 1
 solr_replication_factor: 1
 elasticsearch_transport_port: 9300
-elasticsearch_network_interface: eth1
+elasticsearch_network_interface: enp0s8
 elasticsearch_web_port: 9200

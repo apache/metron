@@ -50,5 +50,7 @@
   template: src=yaf dest=/etc/init.d/yaf mode=0755
 
 - name: Register the service with systemd
-  shell: systemctl enable pcap-replay
+  shell: systemctl enable yaf
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+...
+

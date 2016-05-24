@@ -53,5 +53,10 @@
     - pm2 startup centos
     - su -c 'chmod +x /etc/init.d/pm2-init.sh'
 
+- name: Register the service with systemd
+  shell: systemctl enable pm2-init.sh
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+
 - name: Stop Metron UI
-  service: name=pm2-init.sh state=stopped
+  service: name=pm2-init state=stopped
+...

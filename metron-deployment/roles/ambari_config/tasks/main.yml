@@ -30,8 +30,9 @@
   wait_for :
     host: "{{ ambari_host }}"
     port: "{{ ambari_port }}"
-    delay: 120
-    timeout: 300
+    delay: 5
+    connect_timeout: 10
+    timeout: 420
 
 - name: Deploy cluster with Ambari; http://{{ groups.ambari_master[0] }}:{{ ambari_port }}
   ambari_cluster_state:

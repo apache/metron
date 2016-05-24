@@ -26,6 +26,8 @@ EXTRA_ARGS="-v ${@:1}"
 NOW=`date`
 DEFAULT_ENV="metron-test"
 DEFAULT_ENV_FILE="./.metron-env"
+DEFAULT_EC2_REGION="us-east-1"
+DEFAULT_EC2_REGION_FILE="./.ec2-region"
 
 # ensure aws access key is defined
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then
@@ -46,23 +48,35 @@ else
   ENV=$DEFAULT_ENV
 fi
 
+if [ -f $DEFAULT_EC2_REGION_FILE ]; then
+  EC2_REGION=`cat $DEFAULT_EC2_REGION_FILE`
+else
+  EC2_REGION=$DEFAULT_EC2_REGION
+fi
+
 # prompt the user for an environment name
 read -p "Metron Environment [$ENV]: " INPUT
 [ -n "$INPUT" ] && ENV=$INPUT
 
+read -p "EC2 Region [$EC2_REGION]: " INPUT
+[ -n "$INPUT" ] && EC2_REGION=$INPUT
+
 # store the environment name for the next run
 echo "$ENV" > $DEFAULT_ENV_FILE
+echo "$EC2_REGION" > $DEFAULT_EC2_REGION_FILE
 
 # log information about the host platform
 echo "=============================================================" >> $LOGFILE
-echo "Launching Metron[$ENV] @ $NOW"... >> $LOGFILE
+echo "Launching Metron[$ENV][$EC2_REGION] @ $NOW"... >> $LOGFILE
 $DEPLOYDIR/../scripts/platform-info.sh >> $LOGFILE
 
 # build metron
-cd ../../metron-platform
-mvn package -DskipTests
+#cd ../../metron-platform
+echo "UNCOMMENT MVN PACKAGE LINE BEFORE CHECKING IN!"
+#mvn package -DskipTests
 
 # deploy metron
 cd $DEPLOYDIR
 export EC2_INI_PATH=conf/ec2.ini
-ansible-playbook -i ec2.py playbook.yml --extra-vars="env=$ENV" $EXTRA_ARGS
+ansible-playbook -i ec2.py playbook.yml --extra-vars="env=$ENV region=$EC2_REGION" $EXTRA_ARGS
+

@@ -16,7 +16,7 @@ The host used to deploy Apache Metron will need the following software tools ins
   - Python 2.7.11
   - Maven 3.3.9  
 
-Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project. Also, install the Python library `boto` and its dependencies.
 
 1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
@@ -30,7 +30,13 @@ Any platform that supports these tools is suitable, but the following instructio
   brew install ansible brew-pip maven git
   ```
 
-3. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.  
+3. With Pip installed, now you can install the 'boto' library.
+
+  ```
+  pip install boto
+  ```
+
+4. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.  
 
   ```
   $ cat ~/.ssh/id_rsa.pub

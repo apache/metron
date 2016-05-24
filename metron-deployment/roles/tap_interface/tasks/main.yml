@@ -15,21 +15,13 @@
 #  limitations under the License.
 #
 ---
-- name: Install tunctl
-  yum:
-    name: tunctl
-    state: installed
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
-
-- name: Create {{ tap_if }}
-  command: tunctl -p
+- name: Add tuntap
+  command: ip tuntap add {{ tap_if }} mode tap
 
 - name: Bring up {{ tap_if }} on {{ tap_ip }}
   command: ifconfig {{ tap_if }} {{ tap_ip }} up
 
 - name:  Put {{ tap_if }} in PROMISC
   command: ip link set {{ tap_if }} promisc on
+...
 

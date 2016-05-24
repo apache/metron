@@ -22,7 +22,7 @@ fastcapa_portmask: "0x01"
 fastcapa_topic: pcap
 kafka_broker_url: source:9092
 zookeeper_url: source:2181
-pcap_replay_interface: eth1
+pcap_replay_interface: enp0s8
 kafka_broker_home: /usr/hdp/current/kafka-broker/
 
 # dummy variables for pycapa's dependence on ambari_gather_facts

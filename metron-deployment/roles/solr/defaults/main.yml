@@ -15,7 +15,6 @@
 #  limitations under the License.
 #
 ---
-rhel_hdp_utils_install_url: http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6/hdp-util.repo
 solr_install_path: /opt/lucidworks-hdpsearch/solr
 solr_user: solr
 solr_collection_name: Metron
