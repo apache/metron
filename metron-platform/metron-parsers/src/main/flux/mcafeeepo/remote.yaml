@@ -20,7 +20,7 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.mcafeeepo.McAfeeEpoParser"
+        className: "org.apache.metron.parsers.mcafeeepo.BasicMcAfeeEpoParser"
     -   id: "writer"
         className: "org.apache.metron.parsers.writer.KafkaWriter"
         constructorArgs:

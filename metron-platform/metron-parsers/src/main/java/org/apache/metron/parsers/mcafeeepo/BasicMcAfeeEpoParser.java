@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
-public class McAfeeEpoParser extends BasicParser {
-    private static final Logger _LOG = LoggerFactory.getLogger(McAfeeEpoParser.class);
+public class BasicMcAfeeEpoParser extends BasicParser {
+    private static final Logger _LOG = LoggerFactory.getLogger(BasicMcAfeeEpoParser.class);
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Override
