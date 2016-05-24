@@ -83,7 +83,12 @@ public class GeoAdapterTest {
 
   @Test
   public void testEnrich() throws Exception {
-    GeoAdapter geo = new GeoAdapter();
+    GeoAdapter geo = new GeoAdapter() {
+      @Override
+      public boolean initializeAdapter() {
+        return true;
+      }
+    };
     geo.setStatement(statetment);
     JSONObject actualMessage = geo.enrich(new CacheKey("dummy", ip, null));
     Assert.assertNotNull(actualMessage.get("locID"));

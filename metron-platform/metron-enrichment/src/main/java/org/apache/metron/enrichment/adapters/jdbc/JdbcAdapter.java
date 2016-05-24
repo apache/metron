@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.adapters.jdbc;
 
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,27 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
   private JdbcConfig config;
   private String host;
 
+  protected boolean isConnectionClosed() {
+    boolean isClosed = statement == null || connection == null;
+    if(!isClosed) {
+      try {
+        isClosed = statement.isClosed() || connection.isClosed();
+      } catch (SQLException e) {
+        _LOG.error("Unable to maintain open JDBC connection: " + e.getMessage(), e);
+        isClosed = true;
+      }
+    }
+    return isClosed;
+  }
+
+  protected boolean resetConnectionIfNecessary() {
+    if(isConnectionClosed())
+    {
+      this.cleanup();
+      return this.initializeAdapter();
+    }
+    return true;
+  }
   public void setStatement(Statement statement) {
     this.statement = statement;
   }
@@ -47,6 +69,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
     this.host = config.getHost();
     return this;
   }
+
 
   @Override
   public boolean initializeAdapter() {
@@ -64,9 +87,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
               ResultSet.CONCUR_READ_ONLY);
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
       _LOG.error("[Metron] JDBC connection failed....", e);
-
       return false;
     }
   }
@@ -74,10 +95,19 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
   @Override
   public void cleanup() {
     try {
-      if (statement != null) statement.close();
-      if (connection != null) connection.close();
+      if (statement != null) {
+        statement.close();
+      }
     } catch (SQLException e) {
-      e.printStackTrace();
+      _LOG.error("[Metron] JDBC statement close failed....", e);
+    }
+    try {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+    catch(SQLException e) {
+      _LOG.error("[Metron] JDBC connection close failed....", e);
     }
   }
 }
