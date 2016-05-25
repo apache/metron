@@ -24,6 +24,9 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.MappingHandler;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.field.mapping.FieldMapping;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -61,18 +64,32 @@ public class ParserBolt extends ConfiguredParserBolt {
     this.collector = collector;
     parser.init();
     writer.init();
+    SensorParserConfig config = getConfigurations().getSensorParserConfig(sensorType);
+    if(config != null) {
+      config.init();
+    }
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
+    SensorParserConfig sensorParserConfig = configurations.getSensorParserConfig(sensorType);
     try {
       List<JSONObject> messages = parser.parse(originalMessage);
       for(JSONObject message: messages) {
         if (parser.validate(message)) {
           if (filter != null && filter.emitTuple(message)) {
             message.put(Constants.SENSOR_TYPE, sensorType);
+            List<MappingHandler> fieldMappings = sensorParserConfig == null?null:sensorParserConfig.getFieldMappings();
+            if (fieldMappings != null) {
+              for (MappingHandler handler: fieldMappings) {
+                if(handler != null) {
+                  Map<String, Object> currentValue = handler.map(message, sensorParserConfig.getParserConfig() );
+                  message.putAll(currentValue);
+                }
+              }
+            }
             writer.write(sensorType, configurations, tuple, message);
           }
         }

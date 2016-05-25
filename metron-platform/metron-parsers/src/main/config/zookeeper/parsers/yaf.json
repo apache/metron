@@ -1,6 +1,12 @@
 {
   "parserClassName":"org.apache.metron.parsers.GrokParser",
   "sensorTopic":"yaf",
+  "fieldMappings" : [
+                    {
+                      "input" : "protocol"
+                     ,"mapping": "IP_PROTOCOL"
+                    }
+                    ],
   "parserConfig":
   {
     "grokPath":"/patterns/yaf",
