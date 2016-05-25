@@ -26,6 +26,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.AbstractMessageFilter;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
+import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,7 +48,7 @@ public class FiltersTest {
       Map<String, Object> config = new HashMap<String, Object>() {{
         put("filter.query", "exists(foo)");
       }};
-      AbstractMessageFilter filter = Filters.get("QUERY", config);
+      MessageFilter<JSONObject> filter = Filters.get("QUERY", config);
       Assert.assertTrue(filter.emitTuple(new JSONObject(ImmutableMap.of("foo", 1))));
       Assert.assertFalse(filter.emitTuple(new JSONObject(ImmutableMap.of("bar", 1))));
     }

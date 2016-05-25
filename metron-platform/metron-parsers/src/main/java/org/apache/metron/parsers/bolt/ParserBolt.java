@@ -42,12 +42,10 @@ public class ParserBolt extends ConfiguredParserBolt {
   private MessageParser<JSONObject> parser;
   private MessageFilter<JSONObject> filter;
   private MessageWriter<JSONObject> writer;
-  private String sensorType;
 
   public ParserBolt(String zookeeperUrl, String sensorType, MessageParser<JSONObject> parser, MessageWriter<JSONObject> writer) {
-    super(zookeeperUrl);
+    super(zookeeperUrl, sensorType);
     this.parser = parser;
-    this.sensorType = sensorType;
     this.writer = writer;
   }
 
@@ -62,7 +60,7 @@ public class ParserBolt extends ConfiguredParserBolt {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     if(getSensorParserConfig() == null) {
-      filter = new GenericMessageFilter(null);
+      filter = new GenericMessageFilter();
     }
     else if(filter == null) {
       filter = Filters.get(getSensorParserConfig().getFilterClassName()
@@ -73,9 +71,6 @@ public class ParserBolt extends ConfiguredParserBolt {
     writer.init();
   }
 
-  protected SensorParserConfig getSensorParserConfig() {
-    return getConfigurations().getSensorParserConfig(sensorType);
-  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -86,8 +81,8 @@ public class ParserBolt extends ConfiguredParserBolt {
       for(JSONObject message: messages) {
         if (parser.validate(message)) {
           if (filter != null && filter.emitTuple(message)) {
-            message.put(Constants.SENSOR_TYPE, sensorType);
-            writer.write(sensorType, configurations, tuple, message);
+            message.put(Constants.SENSOR_TYPE, getSensorType());
+            writer.write(getSensorType(), configurations, tuple, message);
           }
         }
       }

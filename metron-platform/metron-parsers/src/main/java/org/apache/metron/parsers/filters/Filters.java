@@ -18,6 +18,10 @@
 
 package org.apache.metron.parsers.filters;
 
+import org.apache.metron.common.utils.ReflectionUtils;
+import org.apache.metron.parsers.interfaces.MessageFilter;
+import org.json.simple.JSONObject;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -27,40 +31,28 @@ public enum Filters {
   ,QUERY(QueryFilter.class)
   ,DEFAULT(GenericMessageFilter.class)
   ;
-  Class<? extends AbstractMessageFilter> clazz;
-  Filters(Class<? extends AbstractMessageFilter> clazz) {
+  Class<? extends MessageFilter> clazz;
+  Filters(Class<? extends MessageFilter> clazz) {
     this.clazz = clazz;
   }
-  public static AbstractMessageFilter get(String filterName, Map<String, Object> config) {
+  public static MessageFilter<JSONObject> get(String filterName, Map<String, Object> config) {
     if(filterName == null || filterName.trim().isEmpty()) {
-      return new GenericMessageFilter(config);
+      return new GenericMessageFilter();
     }
-    Class<? extends AbstractMessageFilter> filterClass;
+    Class<? extends MessageFilter> filterClass;
     try {
       Filters f = Filters.valueOf(filterName);
       filterClass = f.clazz;
     }
     catch(Exception ex) {
       try {
-        filterClass = (Class<? extends AbstractMessageFilter>) Class.forName(filterName);
+        filterClass = (Class<? extends MessageFilter>) Class.forName(filterName);
       } catch (ClassNotFoundException e) {
         throw new IllegalStateException("Unable to find class " + filterName, e);
       }
     }
-    Constructor<?> cons = null;
-    try {
-      cons = filterClass.getConstructor(Map.class);
-    } catch (NoSuchMethodException e) {
-      throw new IllegalStateException("Unable to find constructor for class " + filterName, e);
-    }
-    try {
-      return (AbstractMessageFilter) cons.newInstance(config);
-    } catch (InstantiationException e) {
-      throw new IllegalStateException("Unable to instantiate class " + filterName, e);
-    } catch (IllegalAccessException e) {
-      throw new IllegalStateException("Unable to instantiate class " + filterName, e);
-    } catch (InvocationTargetException e) {
-      throw new IllegalStateException("Unable to instantiate class " + filterName, e);
-    }
+    MessageFilter<JSONObject> filter = ReflectionUtils.createInstance(filterClass);
+    filter.configure(config);
+    return filter;
   }
 }
