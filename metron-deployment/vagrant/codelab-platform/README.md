@@ -41,7 +41,7 @@ Start the image with the following commands:
 
   ```
   cd metron-deployment/vagrant/codelab-platform
-  ./launch_image.sh
+  ./run.sh
   ```
 
 ### Work with Metron
