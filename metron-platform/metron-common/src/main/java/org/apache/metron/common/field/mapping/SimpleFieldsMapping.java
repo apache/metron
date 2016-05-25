@@ -18,21 +18,19 @@
 
 package org.apache.metron.common.field.mapping;
 
-import org.apache.metron.common.utils.ReflectionUtils;
+import java.util.Collections;
+import java.util.Map;
 
-public enum FieldMappings {
-  IP_PROTOCOL(new IPProtocolMapping())
-  ;
-  FieldMapping mapping;
-  FieldMappings(FieldMapping mapping) {
-    this.mapping = mapping;
+public abstract class SimpleFieldsMapping implements FieldMapping {
+
+  @Override
+  public Map<String, Object> map(Map<String, Object> input, String outputField, Map<String, Object> fieldMappingConfig, Map<String, Object> sensorConfig) {
+    Iterable<Object> values = (input == null || input.values() == null && input.values().isEmpty())
+                 ? Collections.EMPTY_LIST
+                 : input.values();
+                 ;
+    return map(values, outputField);
   }
-  public static FieldMapping get(String mapping) {
-    try {
-      return FieldMappings.valueOf(mapping).mapping;
-    }
-    catch(Exception ex) {
-      return ReflectionUtils.createInstance(mapping);
-    }
-  }
+
+  public abstract Map<String, Object> map(Iterable<Object> input, String outputField);
 }

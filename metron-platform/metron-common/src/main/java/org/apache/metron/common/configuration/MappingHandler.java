@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.metron.common.configuration;
 
 import com.google.common.collect.ImmutableList;
@@ -81,5 +99,38 @@ public class MappingHandler implements Serializable {
       }
       return mapping.map(in, getOutput(), config, sensorConfig);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "MappingHandler{" +
+            "input=" + input +
+            ", output='" + output + '\'' +
+            ", mapping=" + mapping +
+            ", config=" + config +
+            '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    MappingHandler that = (MappingHandler) o;
+
+    if (getInput() != null ? !getInput().equals(that.getInput()) : that.getInput() != null) return false;
+    if (getOutput() != null ? !getOutput().equals(that.getOutput()) : that.getOutput() != null) return false;
+    if (getMapping() != null ? !getMapping().equals(that.getMapping()) : that.getMapping() != null) return false;
+    return getConfig() != null ? getConfig().equals(that.getConfig()) : that.getConfig() == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getInput() != null ? getInput().hashCode() : 0;
+    result = 31 * result + (getOutput() != null ? getOutput().hashCode() : 0);
+    result = 31 * result + (getMapping() != null ? getMapping().hashCode() : 0);
+    result = 31 * result + (getConfig() != null ? getConfig().hashCode() : 0);
+    return result;
   }
 }
