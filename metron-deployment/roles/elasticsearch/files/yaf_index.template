@@ -2,12 +2,15 @@
    "template": "yaf_index*",
    "mappings": {
       "yaf_doc": {
+         "_timestamp": {
+            "enabled": true
+         },
          "properties": {
             "timestamp": {
                "type": "date",
-               "format": "dateOptionalTime"
+               "format": "epoch_millis"
             },
-            "location_point": {
+            "enrichments:geo:ip_dst_addr:location_point": {
                "type": "geo_point"
             },
             "end-time": {

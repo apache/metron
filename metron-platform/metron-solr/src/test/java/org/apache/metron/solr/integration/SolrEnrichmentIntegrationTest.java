@@ -19,6 +19,7 @@ package org.apache.metron.solr.integration;
 
 import com.google.common.base.Function;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.integration.EnrichmentIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
@@ -39,6 +40,11 @@ import java.util.Properties;
 public class SolrEnrichmentIntegrationTest extends EnrichmentIntegrationTest {
 
   private String collection = "metron";
+  private FieldNameConverter fieldNameConverter = fieldName -> fieldName;
+  @Override
+  public FieldNameConverter getFieldNameConverter() {
+    return fieldNameConverter;
+  }
 
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
