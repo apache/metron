@@ -66,7 +66,7 @@ public class GeoAdapterTest {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
     MockitoAnnotations.initMocks(this);
-    when(statetment.executeQuery("select IPTOLOCID(\"CacheKey{field='dummy', value='72.163.4.161'}\") as ANS")).thenReturn(resultSet);
+    when(statetment.executeQuery("select IPTOLOCID(\"" + ip + "\") as ANS")).thenReturn(resultSet);
     when(statetment.executeQuery("select * from location where locID = 1")).thenReturn(resultSet1);
     when(resultSet.next()).thenReturn(Boolean.TRUE, Boolean.FALSE);
     when(resultSet.getString("ANS")).thenReturn("1");

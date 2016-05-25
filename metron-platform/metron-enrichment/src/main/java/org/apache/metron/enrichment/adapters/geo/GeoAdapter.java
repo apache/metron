@@ -51,7 +51,7 @@ public class GeoAdapter extends JdbcAdapter {
               || !ipvalidator.isValidInet4Address(value.getValue())) {
         return new JSONObject();
       }
-      String locidQuery = "select IPTOLOCID(\"" + value
+      String locidQuery = "select IPTOLOCID(\"" + value.getValue()
               + "\") as ANS";
       ResultSet resultSet = statement.executeQuery(locidQuery);
       String locid = null;
