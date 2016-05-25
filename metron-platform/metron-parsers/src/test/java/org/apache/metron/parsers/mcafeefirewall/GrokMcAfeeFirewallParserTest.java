@@ -34,7 +34,7 @@ public class GrokMcAfeeFirewallParserTest {
 	private final String timestampField = "timestamp_string";
 	
 	@Test
-	public void testParseReaLine() throws Exception {
+	public void testParseRealLine() throws Exception {
 		
 		//Set up parser, parse message
 		GrokMcAfeeFirewallParser parser = new GrokMcAfeeFirewallParser(grokPath, grokLabel);
@@ -66,6 +66,17 @@ public class GrokMcAfeeFirewallParserTest {
 		GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
+		assertEquals(null, result);
+	}
+
+	@Test
+	public void TestParseMalformedLine() throws Exception {
+
+		//Set up parser, parse message
+		GrokMcAfeeFirewallParser parser = new GrokMcAfeeFirewallParser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		String testString = "<188>Apr 15 16:35:41 GMT mabm011q AclLog: mabm011q matched Outbound ACL rule (COM Baseline Firewall/#3) 60.210.64.70 -> 200.60.213.21:443 (ssl/SSL/TLS (HTTPS))";
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		assertEquals(null, result);
 	}
 		
