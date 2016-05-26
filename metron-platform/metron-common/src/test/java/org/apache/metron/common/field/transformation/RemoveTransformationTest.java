@@ -58,7 +58,7 @@ public class RemoveTransformationTest {
    {
     "fieldTransformations" : [
           {
-            "input" : "field1"
+            "output" : "field1"
           , "transformation" : "REMOVE"
           , "config" : {
               "condition" : "exists(field2) and field2 == 'foo'"
@@ -78,7 +78,9 @@ public class RemoveTransformationTest {
         put("field1", "foo");
       }});
       handler.transformAndUpdate(input, new HashMap<>());
+      //no removal happened because field2 does not exist
       Assert.assertTrue(input.containsKey("field1"));
+      Assert.assertFalse(input.containsKey("field2"));
     }
     {
       JSONObject input = new JSONObject(new HashMap<String, Object>() {{
@@ -86,15 +88,19 @@ public class RemoveTransformationTest {
         put("field2", "bar");
       }});
       handler.transformAndUpdate(input, new HashMap<>());
+      //no removal happened because field2 != bar
       Assert.assertTrue(input.containsKey("field1"));
+      Assert.assertTrue(input.containsKey("field2"));
     }
     {
       JSONObject input = new JSONObject(new HashMap<String, Object>() {{
         put("field1", "bar");
         put("field2", "foo");
       }});
+      //removal of field1 happens because field2 exists and is 'bar'
       handler.transformAndUpdate(input, new HashMap<>());
-      Assert.assertEquals("bar", input.get("field1"));
+      Assert.assertFalse(input.containsKey("field1"));
+      Assert.assertTrue(input.containsKey("field2"));
     }
   }
 }
