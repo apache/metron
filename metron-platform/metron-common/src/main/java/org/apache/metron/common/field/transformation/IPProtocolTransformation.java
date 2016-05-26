@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.mapping;
+package org.apache.metron.common.field.transformation;
 
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class IPProtocolMapping extends SimpleFieldMapping {
+public class IPProtocolTransformation extends SimpleFieldTransformation {
 
   private final static Map<Integer, String> PROTOCOLS = new HashMap<>();
 

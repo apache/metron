@@ -1,10 +1,10 @@
 {
   "parserClassName":"org.apache.metron.parsers.GrokParser",
   "sensorTopic":"yaf",
-  "fieldMappings" : [
+  "fieldTransformations" : [
                     {
                       "input" : "protocol"
-                     ,"mapping": "IP_PROTOCOL"
+                     ,"transformation": "IP_PROTOCOL"
                     }
                     ],
   "parserConfig":

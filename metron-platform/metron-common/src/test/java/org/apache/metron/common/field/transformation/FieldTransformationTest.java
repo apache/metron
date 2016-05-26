@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.mapping;
+package org.apache.metron.common.field.transformation;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -24,31 +24,37 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.configuration.MappingHandler;
+import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
-public class FieldMappingTest {
-  public static class TestMapping implements FieldMapping {
+public class FieldTransformationTest {
+  public static class TestTransformation implements FieldTransformation {
 
     @Override
-    public Map<String, Object> map(Map<String, Object> input, String outputField, Map<String, Object> fieldMappingConfig, Map<String, Object> sensorConfig) {
-      return ImmutableMap.of(outputField, Joiner.on(fieldMappingConfig.get("delim").toString()).join(input.entrySet()));
+    public Map<String, Object> map( Map<String, Object> input
+                                  , List<String> outputField
+                                  , Map<String, Object> fieldMappingConfig
+                                  , Map<String, Object> sensorConfig
+                                  )
+    {
+      return ImmutableMap.of(outputField.get(0), Joiner.on(fieldMappingConfig.get("delim").toString()).join(input.entrySet()));
     }
   }
 
  /**
    {
-    "fieldMappings" : [
+    "fieldTransformations" : [
           {
             "input" : [ "field1", "field2" ]
           , "output" : "output"
-          , "mapping" : "org.apache.metron.common.field.mapping.FieldMappingTest$TestMapping"
+          , "transformation" : "org.apache.metron.common.field.transformation.FieldTransformationTest$TestTransformation"
           , "config" : {
                 "delim" : ","
                       }
@@ -61,10 +67,10 @@ public class FieldMappingTest {
 
   /**
    {
-    "fieldMappings" : [
+    "fieldTransformations" : [
           {
             "input" : "protocol"
-          , "mapping" : "IP_PROTOCOL"
+          , "transformation" : "IP_PROTOCOL"
           }
                       ]
    }
@@ -74,9 +80,9 @@ public class FieldMappingTest {
 
   /**
    {
-    "fieldMappings" : [
+    "fieldTransformations" : [
           {
-           "mapping" : "IP_PROTOCOL"
+           "transformation" : "IP_PROTOCOL"
           }
                       ]
    }
@@ -86,7 +92,7 @@ public class FieldMappingTest {
 
   /**
    {
-    "fieldMappings" : [
+    "fieldTransformations" : [
           {
             "input" : "protocol"
           }
@@ -99,9 +105,9 @@ public class FieldMappingTest {
   @Test
   public void testValidSerde_simple() throws IOException {
     SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(config));
-    Assert.assertEquals(1, c.getFieldMappings().size());
-    Assert.assertEquals(IPProtocolMapping.class, c.getFieldMappings().get(0).getMapping().getClass());
-    Assert.assertEquals(ImmutableList.of("protocol"), c.getFieldMappings().get(0).getInput());
+    Assert.assertEquals(1, c.getFieldTransformations().size());
+    Assert.assertEquals(IPProtocolTransformation.class, c.getFieldTransformations().get(0).getTransformation().getClass());
+    Assert.assertEquals(ImmutableList.of("protocol"), c.getFieldTransformations().get(0).getInput());
   }
 
   @Test(expected = IllegalStateException.class)
@@ -117,11 +123,11 @@ public class FieldMappingTest {
   @Test
   public void testComplexMapping() throws IOException {
     SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(complexConfig));
-    MappingHandler handler = Iterables.getFirst(c.getFieldMappings(), null);
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
 
     Assert.assertNotNull(handler);
     Assert.assertEquals(ImmutableMap.of("output", "field1=value1,field2=value2")
-                       ,handler.map(new JSONObject(ImmutableMap.of("field1", "value1"
+                       ,handler.transform(new JSONObject(ImmutableMap.of("field1", "value1"
                                                                   ,"field2", "value2"
                                                                   )
                                                   )
@@ -132,11 +138,11 @@ public class FieldMappingTest {
   @Test
   public void testSimpleMapping() throws IOException {
     SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(config));
-    MappingHandler handler = Iterables.getFirst(c.getFieldMappings(), null);
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
 
     Assert.assertNotNull(handler);
     Assert.assertEquals(ImmutableMap.of("protocol", "TCP")
-                       ,handler.map(new JSONObject(ImmutableMap.of("protocol", 6)), c.getParserConfig())
+                       ,handler.transform(new JSONObject(ImmutableMap.of("protocol", 6)), c.getParserConfig())
                        );
   }
 }

@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.mapping;
+package org.apache.metron.common.field.transformation;
 
 import com.google.common.collect.Iterables;
 
+import java.util.List;
 import java.util.Map;
 
-public abstract class SimpleFieldMapping implements FieldMapping {
+public abstract class SimpleFieldTransformation implements FieldTransformation {
   @Override
   public Map<String, Object> map (Map<String, Object> input
-                                , String outputField
+                                , List<String> outputField
                                 , Map<String, Object> fieldMappingConfig
                                 , Map<String, Object> sensorConfig
                                 )
@@ -34,7 +35,7 @@ public abstract class SimpleFieldMapping implements FieldMapping {
                  ? null
                  : Iterables.getFirst(input.values(), null)
                  ;
-    return map(value, outputField);
+    return map(value, outputField.get(0));
   }
 
   public abstract Map<String, Object> map(Object input, String outputField);

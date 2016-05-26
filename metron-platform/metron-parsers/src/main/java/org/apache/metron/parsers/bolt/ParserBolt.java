@@ -23,7 +23,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
-import org.apache.metron.common.configuration.MappingHandler;
+import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
@@ -66,29 +66,30 @@ public class ParserBolt extends ConfiguredParserBolt {
     if(config != null) {
       config.init();
     }
+    else {
+      throw new IllegalStateException("Unable to retrieve a parser config for " + sensorType);
+    }
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
-    SensorParserConfig sensorParserConfig = configurations.getSensorParserConfig(sensorType);
+    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(sensorType);
     try {
-      List<JSONObject> messages = parser.parse(originalMessage);
-      for(JSONObject message: messages) {
-        if (parser.validate(message)) {
-          if (filter != null && filter.emitTuple(message)) {
-            message.put(Constants.SENSOR_TYPE, sensorType);
-            List<MappingHandler> fieldMappings = sensorParserConfig == null?null:sensorParserConfig.getFieldMappings();
-            if (fieldMappings != null) {
-              for (MappingHandler handler: fieldMappings) {
-                if(handler != null) {
-                  Map<String, Object> currentValue = handler.map(message, sensorParserConfig.getParserConfig() );
-                  message.putAll(currentValue);
+      if(sensorParserConfig != null) {
+        List<JSONObject> messages = parser.parse(originalMessage);
+        for (JSONObject message : messages) {
+          if (parser.validate(message)) {
+            if (filter != null && filter.emitTuple(message)) {
+              message.put(Constants.SENSOR_TYPE, sensorType);
+              for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+                if (handler != null) {
+                  handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                 }
               }
+              writer.write(sensorType, configurations, tuple, message);
             }
-            writer.write(sensorType, configurations, tuple, message);
           }
         }
       }

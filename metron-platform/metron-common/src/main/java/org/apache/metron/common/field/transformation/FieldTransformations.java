@@ -16,21 +16,24 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.mapping;
+package org.apache.metron.common.field.transformation;
 
-import java.util.Collections;
-import java.util.Map;
+import org.apache.metron.common.utils.ReflectionUtils;
 
-public abstract class SimpleFieldsMapping implements FieldMapping {
-
-  @Override
-  public Map<String, Object> map(Map<String, Object> input, String outputField, Map<String, Object> fieldMappingConfig, Map<String, Object> sensorConfig) {
-    Iterable<Object> values = (input == null || input.values() == null && input.values().isEmpty())
-                 ? Collections.EMPTY_LIST
-                 : input.values();
-                 ;
-    return map(values, outputField);
+public enum FieldTransformations {
+  IP_PROTOCOL(new IPProtocolTransformation())
+  ,REMOVE(new RemoveTransformation())
+  ;
+  FieldTransformation mapping;
+  FieldTransformations(FieldTransformation mapping) {
+    this.mapping = mapping;
   }
-
-  public abstract Map<String, Object> map(Iterable<Object> input, String outputField);
+  public static FieldTransformation get(String mapping) {
+    try {
+      return FieldTransformations.valueOf(mapping).mapping;
+    }
+    catch(Exception ex) {
+      return ReflectionUtils.createInstance(mapping);
+    }
+  }
 }

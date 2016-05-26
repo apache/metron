@@ -16,23 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.mapping;
+package org.apache.metron.common.field.transformation;
 
-import org.apache.metron.common.utils.ReflectionUtils;
+import java.util.List;
+import java.util.Map;
 
-public enum FieldMappings {
-  IP_PROTOCOL(new IPProtocolMapping())
-  ;
-  FieldMapping mapping;
-  FieldMappings(FieldMapping mapping) {
-    this.mapping = mapping;
-  }
-  public static FieldMapping get(String mapping) {
-    try {
-      return FieldMappings.valueOf(mapping).mapping;
-    }
-    catch(Exception ex) {
-      return ReflectionUtils.createInstance(mapping);
-    }
-  }
+public interface FieldTransformation {
+  Map<String, Object> map( Map<String, Object> input
+                         , List<String> outputField
+                         , Map<String, Object> fieldMappingConfig
+                         , Map<String, Object> sensorConfig
+                         );
 }

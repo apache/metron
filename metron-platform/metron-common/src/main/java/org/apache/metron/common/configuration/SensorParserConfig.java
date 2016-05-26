@@ -31,14 +31,14 @@ public class SensorParserConfig {
   private String parserClassName;
   private String sensorTopic;
   private Map<String, Object> parserConfig = new HashMap<>();
-  private List< MappingHandler> fieldMappings = new ArrayList<>();
+  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
-  public List< MappingHandler> getFieldMappings() {
-    return fieldMappings;
+  public List<FieldTransformer> getFieldTransformations() {
+    return fieldTransformations;
   }
 
-  public void setFieldMappings(List<MappingHandler> fieldMappings) {
-    this.fieldMappings = fieldMappings;
+  public void setFieldTransformations(List<FieldTransformer> fieldTransformations) {
+    this.fieldTransformations = fieldTransformations;
   }
 
   public String getParserClassName() {
@@ -72,7 +72,7 @@ public class SensorParserConfig {
   }
 
   public void init() {
-    for(MappingHandler h : getFieldMappings()) {
+    for(FieldTransformer h : getFieldTransformations()) {
       h.initAndValidate();
     }
   }
@@ -88,7 +88,7 @@ public class SensorParserConfig {
             "parserClassName='" + parserClassName + '\'' +
             ", sensorTopic='" + sensorTopic + '\'' +
             ", parserConfig=" + parserConfig +
-            ", fieldMappings=" + fieldMappings +
+            ", fieldTransformations=" + fieldTransformations +
             '}';
   }
 
@@ -105,7 +105,7 @@ public class SensorParserConfig {
       return false;
     if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
       return false;
-    return getFieldMappings() != null ? getFieldMappings().equals(that.getFieldMappings()) : that.getFieldMappings() == null;
+    return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
 
   }
 
@@ -114,7 +114,7 @@ public class SensorParserConfig {
     int result = getParserClassName() != null ? getParserClassName().hashCode() : 0;
     result = 31 * result + (getSensorTopic() != null ? getSensorTopic().hashCode() : 0);
     result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
-    result = 31 * result + (getFieldMappings() != null ? getFieldMappings().hashCode() : 0);
+    result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
     return result;
   }
 }
