@@ -256,6 +256,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
         for(; count < numFields; count++)
             outputMessage.put(fields[count],"");
+        removeEmptyFields(outputMessage);
     }
 
     private void parseFirstField(String firstField, JSONObject outputMessage) {
@@ -309,5 +310,16 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
         return date.getTime();
     }
 
+    @SuppressWarnings("unchecked")
+    private void removeEmptyFields(JSONObject json) {
+        Iterator<Object> keyIter = json.keySet().iterator();
+        while (keyIter.hasNext()) {
+            Object key = keyIter.next();
+            Object value = json.get(key);
+            if (null == value || "".equals(value.toString())) {
+                keyIter.remove();
+            }
+        }
+    }
 
 }

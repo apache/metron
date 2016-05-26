@@ -62,7 +62,6 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("natDestinationIp"), "0.0.0.0");
         assertEquals(json.get("ruleName"), "EX-Allow");
         assertEquals(json.get("srcUserName"), "example\\user.name");
-        assertEquals(json.get("dstUserName"), "");
         assertEquals(json.get("application"), "web-browsing");
         assertEquals(json.get("virtualSystem"), "vsys1");
         assertEquals(json.get("sourceZone"), "internal");
@@ -90,26 +89,7 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("sourceLocation"), "10.0.0.0-10.255.255.255");
         assertEquals(json.get("destinationLocation"), "US");
         assertEquals(json.get("futureUse4"), "0");
-        assertEquals(json.get("contentType"), "");
         assertEquals(json.get("pcapId"), "1200568889751109656");
-        assertEquals(json.get("fileDigest"), "");
-        assertEquals(json.get("cloud"), "");
-        assertEquals(json.get("urlIndex"), "");
-        assertEquals(json.get("userAgent"), "");
-        assertEquals(json.get("fileType"), "");
-        assertEquals(json.get("xForwardedFor"), "");
-        assertEquals(json.get("referrer"), "");
-        assertEquals(json.get("sender"), "");
-        assertEquals(json.get("subject"), "");
-        assertEquals(json.get("recipient"), "");
-        assertEquals(json.get("reportId"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel1"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel2"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel3"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel4"), "");
-        assertEquals(json.get("virtualSystemName"), "");
-        assertEquals(json.get("deviceName"), "");
-        assertEquals(json.get("futureUse5"), "");
     }
 
     @Test
@@ -139,8 +119,6 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("natSourceIp"), "0.0.0.0");
         assertEquals(json.get("natDestinationIp"), "0.0.0.0");
         assertEquals(json.get("ruleName"), "EX-EasyAV2");
-        assertEquals(json.get("srcUserName"), "");
-        assertEquals(json.get("dstUserName"), "");
         assertEquals(json.get("application"), "mssql-db");
         assertEquals(json.get("virtualSystem"), "vsys1");
         assertEquals(json.get("sourceZone"), "v_external");
@@ -173,14 +151,6 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("futureUse5"), "0");
         assertEquals(json.get("packetsSent"), "11");
         assertEquals(json.get("packetsReceived"), "14");
-        assertEquals(json.get("sessionEndReason"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel1"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel2"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel3"), "");
-        assertEquals(json.get("deviceGroupHierarchyLevel4"), "");
-        assertEquals(json.get("virtualSystemName"), "");
-        assertEquals(json.get("deviceName"), "");
-        assertEquals(json.get("actionSource"), "");
     }
 
     @Test
@@ -205,7 +175,6 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("futureUse2"), "0");
         assertEquals(json.get("generatedTime"), "2016/03/24 18:36:14");
         assertEquals(json.get("host"), "10.255.255.255");
-        assertEquals(json.get("virtualSystem"), "");
         assertEquals(json.get("command"), "set");
         assertEquals(json.get("admin"), "HarryPotter");
         assertEquals(json.get("client"), "Web");
@@ -217,7 +186,6 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("deviceGroupHierarchyLevel2"), "0");
         assertEquals(json.get("deviceGroupHierarchyLevel3"), "0");
         assertEquals(json.get("deviceGroupHierarchyLevel4"), "0");
-        assertEquals(json.get("virtualSystemName"), "");
         assertEquals(json.get("deviceName"), "SUNKUPAN1");
     }
 
@@ -242,9 +210,7 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("subtype"), "general");
         assertEquals(json.get("futureUse2"), "0");
         assertEquals(json.get("generatedTime"), "2016/03/25 00:00:56");
-        assertEquals(json.get("virtualSystem"), "");
         assertEquals(json.get("eventId"), "general");
-        assertEquals(json.get("object"), "");
         assertEquals(json.get("futureUse3"), "0");
         assertEquals(json.get("futureUse4"), "0");
         assertEquals(json.get("module"), "general");
@@ -256,7 +222,6 @@ public class BasicPaloAltoFirewallParserTest {
         assertEquals(json.get("deviceGroupHierarchyLevel2"), "0");
         assertEquals(json.get("deviceGroupHierarchyLevel3"), "0");
         assertEquals(json.get("deviceGroupHierarchyLevel4"), "0");
-        assertEquals(json.get("virtualSystemName"), "");
         assertEquals(json.get("deviceName"), "SUNKUPAN1");
     }
 
