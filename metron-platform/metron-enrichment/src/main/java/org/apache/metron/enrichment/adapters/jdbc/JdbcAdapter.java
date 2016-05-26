@@ -19,7 +19,6 @@ package org.apache.metron.enrichment.adapters.jdbc;
 
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +26,7 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.sql.*;
 
-public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
-        Serializable {
+public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
 
   protected static final Logger _LOG = LoggerFactory
           .getLogger(JdbcAdapter.class);
