@@ -1,6 +1,23 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.metron.parsers.infoblox;
 
-import org.apache.metron.parsers.websphere.GrokWebSphereParser;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
@@ -22,7 +39,7 @@ public class GrokInfobloxParserTest {
     public void testParseLoginLine() throws Exception {
 
         //Set up parser, parse message
-        GrokWebSphereParser parser = new GrokWebSphereParser(grokPath, grokLabel);
+        GrokInfobloxParser parser = new GrokInfobloxParser(grokPath, grokLabel);
         parser.withDateFormat(dateFormat).withTimestampField(timestampField);
         String testString = "<30>Mar 31 13:48:57 10.26.9.26 named[19446]: client 10.26.65.240#59335 " +
                 "(stmt-filenet-nch-server.uscards.cof): query: stmt-filenet-nch-server.uscards.cof IN A + (10.26.9.25)";
