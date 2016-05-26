@@ -53,8 +53,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
   }
 
   protected boolean resetConnectionIfNecessary() {
-    if(isConnectionClosed())
-    {
+    if(isConnectionClosed()) {
       this.cleanup();
       return this.initializeAdapter();
     }
@@ -80,8 +79,9 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
       Class.forName(this.config.getClassName());
       connection = DriverManager.getConnection(this.config.getJdbcUrl());
       connection.setReadOnly(true);
-      if (!connection.isValid(0))
+      if (!connection.isValid(0)) {
         throw new Exception("Invalid connection string....");
+      }
       statement = connection.createStatement(
               ResultSet.TYPE_SCROLL_INSENSITIVE,
               ResultSet.CONCUR_READ_ONLY);
