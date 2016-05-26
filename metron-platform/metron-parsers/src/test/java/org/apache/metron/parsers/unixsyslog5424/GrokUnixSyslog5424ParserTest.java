@@ -92,6 +92,20 @@ public class GrokUnixSyslog5424ParserTest {
 
 	}
 
+	@Test
+	public void testParseMalformedLine() throws Exception {
+
+		//Set up parser, parse message
+		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser(grokPath, grokLabel);
+		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		String testString = "<166>2016-05-20T12:53:01.03Z Vpxa: [71237B90 verbose 'hostdstats'] Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
+		List<JSONObject> result = parser.parse(testString.getBytes());
+		JSONObject parsedJSON = result.get(0);
+
+		assertEquals(parsedJSON, null);
+
+	}
+
 	
 	@Test
 	public void testParseEmptyLine() throws Exception {
