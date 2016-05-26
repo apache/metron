@@ -1,0 +1,17 @@
+<30>Mar 31 13:48:57 10.26.9.26 named[19446]: client 10.26.65.240#59335 (stmt-filenet-nch-server.uscards.cof): query: stmt-filenet-nch-server.uscards.cof IN A + (10.26.9.25)
+<30>Mar 31 09:48:59 199.244.214.107 named[22289]: error (unexpected RCODE REFUSED) resolving '71.43.244.104.IN-ADDR.ARPA/PTR/IN': 208.78.70.34#53 
+<30>Mar 31 09:48:59 10.37.216.13 named[22628]: zone 
+<27>Mar 31 09:48:54 10.37.216.36 named[4018]: client 10.155.8.101#61440: update 'sharebuilder.com/IN' denied 
+<30>Mar 31 09:48:58 10.10.1.43 named[12172]: client 10.14.3.105#6714/key dhcp_updater_default: updating zone '218.10.in-addr.arpa/IN': adding an RR at '15.147.218.10.in-addr.arpa' PTR 
+<30>Mar 31 09:48:59 10.24.2.103 dhcpd[6947]: DHCPREQUEST for 10.116.73.20 from 00:1b:53:5c:6d:e2 (SEP001B535C6DE2) via 10.116.72.2 uid 01:00:1b:53:5c:6d:e2 (RENEW) 
+<30>Mar 31 09:48:55 10.24.2.108 dhcpd[8891]: DHCPREQUEST for 10.222.6.83 from 9c:1c:12:c2:3c:ea via eth2 
+<30>Mar 31 09:48:59 10.14.3.101 dhcpd[17697]: DHCPACK on 10.115.76.151 to 00:17:95:52:05:c4 (SEP0017955205C4) via eth2 relay 10.115.76.3 lease-duration 691084 (RENEW) uid 01:00:17:95:52:05:c4
+<30>Mar 11 10:09:34 10.14.3.101 dhcpd[31169]: DHCPINFORM from 10.220.226.157 via 10.220.226.1
+<30>Mar 11 10:09:34 10.14.3.101 dhcpd[31169]: r-l-e:10.120.46.24,Renewed,SEPA0CF5B810783,a0:cf:5b:81:07:83,1457708974,1458400174,,$
+<14>Mar 11 10:09:34 10.167.2.21 db_jnld: Resolved conflict for replicated delete of PTR "5.233" in zone "219.10.in-addr.arpa".
+<30>Mar 11 10:09:34 10.14.240.18 named[10176]: error (operation canceled) resolving '46.39.164.70.in-addr.arpa/PTR/IN': 192.36.148.17#53
+<30>Mar 11 10:09:33 10.9.98.23 named[30526]: client 10.10.1.42#8245: received notify for zone '222.10.in-addr.arpa’
+<28>Mar 11 10:09:33 199.244.214.106 named[20084]: checkhints: view 4: h.root-servers.net/AAAA (2001:500:1::53) missing from hints
+<30>Mar 11 10:09:37 10.9.98.18 named[20313]: client 10.73.78.5#53: updating zone 'hiberniabank.com/IN': update unsuccessful: BTX3HCS1R.HIBERNIABANK.COM: 'name in use' prerequisite not satisfied (NXDOMAIN)
+<30>Mar 11 10:09:34 10.24.2.108 dhcpd[32282]: DHCPACK to 172.31.10.173 (00:50:56:a1:3e:86) via eth2
+<27>Mar 11 10:09:34 10.9.98.23 named[30526]: client 10.73.78.54#32770: update forwarding '73.10.in-addr.arpa/IN' denied
