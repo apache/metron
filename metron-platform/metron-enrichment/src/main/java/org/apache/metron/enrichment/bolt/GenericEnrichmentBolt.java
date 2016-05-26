@@ -176,6 +176,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       else {
         throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
       }
+      boolean error = false;
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
         String value = (String) rawMessage.get(field);
@@ -186,14 +187,23 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
           if (value != null && value.length() != 0) {
             SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
             if(config == null) {
-              throw new RuntimeException("Unable to find " + config);
+              LOG.error("Unable to find " + config);
+              error = true;
+              continue;
             }
             CacheKey cacheKey= new CacheKey(field, value, config);
-            adapter.logAccess(cacheKey);
-            enrichedField = cache.getUnchecked(cacheKey);
-            if (enrichedField == null)
-              throw new Exception("[Metron] Could not enrich string: "
-                      + value);
+            try {
+              adapter.logAccess(cacheKey);
+              enrichedField = cache.getUnchecked(cacheKey);
+              if (enrichedField == null)
+                throw new Exception("[Metron] Could not enrich string: "
+                        + value);
+            }
+            catch(Exception e) {
+              LOG.error(e.getMessage(), e);
+              error = true;
+              continue;
+            }
           }
           if (!enrichedField.isEmpty()) {
             for (Object enrichedKey : enrichedField.keySet()) {
@@ -206,7 +216,10 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       }
 
       enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
-      if (!enrichedMessage.isEmpty()) {
+      if(error) {
+        throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
+      }
+      if (enrichedMessage != null && !enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage));
       }
     } catch (Exception e) {
