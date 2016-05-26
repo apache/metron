@@ -71,7 +71,8 @@ public class GrokCiscoACSParser  extends GrokParser {
     }
 
     @SuppressWarnings("unchecked")
-    private void removeEmptyFields(JSONObject json) {
+    private void removeEmptyFields(JSONObject json)
+    {
         Iterator<Object> keyIter = json.keySet().iterator();
         while (keyIter.hasNext()) {
             Object key = keyIter.next();
@@ -83,31 +84,32 @@ public class GrokCiscoACSParser  extends GrokParser {
     }
 
     @Override
-    protected void postParse(JSONObject message) {
+    protected void postParse(JSONObject message)
+    {
         removeEmptyFields(message);
         message.remove("timestamp_string");
         if (message.containsKey("message")) {
             String messageValue = (String) message.get("message");
-            System.out.println("messageValue: "+messageValue);
+            System.out.println("messageValue: " + messageValue);
+            //parse(messageValue.getBytes());
         }
     }
 
-
     /**
      * Parse the message. A single line is parsed at a time.
-     * @param raw_message The message being parsed in byte[] form.
+     * @param message The message being parsed in json form.
      * @return JSONObject containing the elements parsed from the message.
      */
-    @Override
-    public List<JSONObject> parse(byte[] raw_message) {
-        JSONObject toReturn = new JSONObject();
+
+    public List<JSONObject> parse(JSONObject message) {
+        JSONObject toReturn = message;
 
         try {
-            String toParse = new String(raw_message, "UTF-8");
-            Match gm = grok.match(toParse);
-            gm.captures();
+            //String toParse = new String(raw_message, "UTF-8");
+            //Match gm = grok.match(toParse);
+           // gm.captures();
 
-            toReturn.putAll(gm.toMap());
+            //toReturn.putAll(gm.toMap());
 
             // Move the whole message into the tag "original_string"
             // for consistency between parsers
@@ -187,9 +189,8 @@ public class GrokCiscoACSParser  extends GrokParser {
             }
         } catch (ParseException e) {
             LOGGER.error("ParseException when trying to parse date");
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.error("UnsupportedEncodingException when trying to create String");
         }
+
         cleanJSON(toReturn, "ciscoasa");
         ArrayList<JSONObject> toReturnList = new ArrayList<JSONObject>();
         toReturnList.add(toReturn);

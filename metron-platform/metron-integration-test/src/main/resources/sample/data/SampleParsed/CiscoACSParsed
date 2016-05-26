@@ -37,4 +37,4 @@ AuthenticationMethod: Lookup
 SelectedAccessService: TACACS
 SelectedCommandSet: Unrestricted
 IdentityGroup: IdentityGroup:AllGroups:HPNA-Device-Interaction
-Steps: 13005, 15008, 15004, 15012, 15041, 15006, 15013, 24210, 24212, 22037, 15044git
+Steps: 13005, 15008, 15004, 15012, 15041, 15006, 15013, 24210, 24212, 22037, 15044

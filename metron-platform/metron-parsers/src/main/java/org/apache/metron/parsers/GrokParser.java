@@ -106,6 +106,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   @Override
   public void init() {
     grok = new Grok();
+    System.out.println("hello");
+
     try {
       InputStream commonInputStream = openInputStream(patternsCommonDir);
       if (LOG.isDebugEnabled()) {
@@ -133,12 +135,16 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         LOG.debug("Grok parser set the following grok expression: " + grok.getNamedRegexCollectionById(patternLabel));
       }
 
+      System.out.println("patternLabel: "+patternLabel);
+
       String grokPattern = "%{" + patternLabel + "}";
 
       grok.compile(grokPattern);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Compiled grok pattern" + grokPattern);
       }
+
+      System.out.println("hello1");
 
     } catch (Throwable e) {
       LOG.error(e.getMessage(), e);
@@ -149,25 +155,35 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public List<JSONObject> parse(byte[] rawMessage) {
+
     if (grok == null) {
+      System.out.println("rawMessage: ");
       init();
     }
+
+    String rawM = new String(rawMessage);
+
+    System.out.println("rawMessage: "+ rawM);
+
     List<JSONObject> messages = new ArrayList<>();
     try {
       String originalMessage = new String(rawMessage, "UTF-8");
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok perser parsing message: " + originalMessage);
+        LOG.debug("Grok parser parsing message: " + originalMessage);
       }
       Match gm = grok.match(originalMessage);
       gm.captures();
       JSONObject message = new JSONObject();
       message.putAll(gm.toMap());
+      System.out.println("Message: ");
 
-      if (message.size() == 0)
+      if (message.size() == 0) {
+        System.out.println("Entered: ");
+
         throw new RuntimeException("Grok statement produced a null message. Original message was: "
                 + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
                 + grokHdfsPath);
-
+      }
       message.put("original_string", originalMessage);
       for (String timeField : timeFields) {
         String fieldValue = (String) message.get(timeField);
@@ -188,6 +204,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       LOG.error(e.getMessage(), e);
       return null;
     }
+    System.out.println("Messages: "+messages);
     return messages;
   }
 
@@ -219,13 +236,13 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected long toEpoch(String datetime) throws ParseException {
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok perser converting timestamp to epoch: " + datetime);
+      LOG.debug("Grok parser converting timestamp to epoch: " + datetime);
     }
 
     dateFormat.setTimeZone(timeZone);
     Date date = dateFormat.parse(datetime);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok perser converted timestamp to epoch: " + date);
+      LOG.debug("Grok parser converted timestamp to epoch: " + date);
     }
 
     return date.getTime();

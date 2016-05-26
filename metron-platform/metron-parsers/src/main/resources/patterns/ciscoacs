@@ -1,19 +1,21 @@
 PRIORITY <\d+>
 
-YEAR \d{4}
-MONTH \d{2}
+MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
 DAY \d{2}
+YEAR \d{4}
+
+ONESPACE \s
+TWOSPACE \s\s
+SPACE %{ONESPACE:UNWANTED}|%{TWOSPACE:UNWANTED}
 
 HOUR \d{2}
 MINUTE \d{2}
 SECOND \d{2}
 
-DATE %{YEAR:UNWANTED}-%{MONTH:UNWANTED}-%{DAY:UNWANTED}
+DATE %{MONTH:UNWANTED}%{SPACE:UNWANTED}%{DAY:UNWANTED} %{YEAR:UNWANTED}
 TIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}
-OFFSET \d+
 
 TIMESTAMP %{DATE:UNWANTED} %{TIME:UNWANTED}
-TIMESTAMPFULL %{TIMESTAMP:timestamp},%{OFFSET:UNWANTED}
 
 IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
 IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])
@@ -21,19 +23,34 @@ IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0
 # hostname can be a url or ip address
 HOSTNAME %{IPV6:UNWANTED}|%{IPV4:UNWANTED}|[-\w\.]+
 
-LOGSTART %{PRIORITY:UNWANTED}%{TIMESTAMPFULL:UNWANTED}\s+%{HOSTNAME:url}
+#LOGSTART %{PRIORITY:UNWANTED}%{TIMESTAMP:UNWANTED}\s+%{HOSTNAME:hostname}\s
 
-MESSAGETYPE [-\w]+
-MESSAGESUBTYPE [-\w]+
-MESSAGESUBTYPEFULL \s%{MESSAGESUBTYPE:message_subtype}\s
-MESSAGETYPEFULL %{MESSAGETYPE:message_type}%{MESSAGESUBTYPEFULL:UNWANTED}?
+CATEGORY [-\w\.]+
+MESSAGEID [-\w\.]+
+TOTALSEGMENTS [-\w\.]+
+SEGMENTNUMBER [-\w\.]+
+EVENTYEAR \d{2}
+TIMEZONE [-\w\.]+
+EVENTTIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}.%{TIMEZONE}\s-%{HOUR}:%{MINUTE}\s
+SEQUENCENUMBER [-\w\.]+
+MESSAGECODE [-\w\.]+
+SEVERITY [-\w\.]+
+MESSAGEONE %{CATEGORY:category}\s%{MESSAGEID:message_id}\s%{TOTALSEGMENTS:total_segments}\s%{SEGMENTNUMBER:segment_number}\s
+MESSAGETWO %{EVENTYEAR:category}\s%{EVENTTIME:message_id}\s%{SEQUENCENUMBER:total_segments}\s%{MESSAGECODE:segment_number}\s
+MESSAGETHREE %{SEVERITY:severity}\s
+MESSAGEFULL %{MESSAGEONE:UNWANTED}\s%{MESSAGETWO:UNWANTED}\s%{MESSAGETHREE:UNWANTED}\s
 
-MESSAGEHEX \d+
-UNKNOWNDIGITS \d+
-MESSAGENUMS %{MESSAGEHEX:message_hex} %{UNKNOWNDIGITS:unknown_1} %{UNKNOWNDIGITS:unknown_2}
+#MESSAGETYPE [-\w]+
+#MESSAGESUBTYPE [-\w]+
+#MESSAGESUBTYPEFULL \s%{MESSAGESUBTYPE:message_subtype}\s
+#MESSAGETYPEFULL %{MESSAGETYPE:message_type}%{MESSAGESUBTYPEFULL:UNWANTED}?
 
-MESSAGEFULL %{MESSAGETYPEFULL:UNWANTED}\s?%{MESSAGENUMS:UNWANTED}
+#MESSAGEHEX \d+
+#UNKNOWNDIGITS \d+
+#MESSAGENUMS %{MESSAGEHEX:message_hex} %{UNKNOWNDIGITS:unknown_1} %{UNKNOWNDIGITS:unknown_2}
+
+#MESSAGEFULL %{MESSAGETYPEFULL:UNWANTED}\s?%{MESSAGENUMS:UNWANTED}
 
 GREEDY .*
 
-CISCOACS %{LOGSTART:UNWANTED} %{MESSAGEFULL:UNWANTED} %{GREEDY:message}
+CISCOACS %{MESSAGEFULL:UNWANTED} : %{GREEDY:message}

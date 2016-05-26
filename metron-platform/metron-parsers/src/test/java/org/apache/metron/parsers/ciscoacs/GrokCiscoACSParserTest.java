@@ -20,109 +20,54 @@ package org.apache.metron.parsers.ciscoacs;
 
 import org.apache.metron.parsers.websphere.GrokWebSphereParser;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 public class GrokCiscoACSParserTest {
 
     private final String grokPath = "../metron-parsers/src/main/resources/patterns/ciscoacs";
     private final String grokLabel = "CISCOACS";
-    private final String dateFormat = "yyyy MMM dd HH:mm:ss";
+    private final String dateFormat = "MMM dd HH:mm:ss";
     private final String timestampField = "timestamp_string";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(GrokCiscoACSParserTest.class);
 
-        public GrokCiscoACSParserTest() throws Exception {
-            super();
-        }
-
-        @Override
-        public void testParseRealLine() {
-            // We are only testing the first line
-            String arubaStrings = getRealStrings()[0];
-
-            JSONObject parsed = parser.parse(arubaStrings.getBytes());
-            assertNotNull(parsed);
-            assertFalse(parsed.isEmpty());
-
-            JSONParser parser = new JSONParser();
-
-            Map<String,Object> json = null;
-            try {
-                json = (Map<String,Object>) parser.parse(parsed.toJSONString());
-            } catch (ParseException e) {
-                LOGGER.error("ParserException when trying to parse JSONObject");
-            }
-            // Ensure json is not null
-            if (null == json) {
-                LOGGER.error("JSON is null");
-                assertNotNull(json);
-            }
-
-            // Ensure json is not empty
-            if (json.isEmpty()) {
-                LOGGER.error("JSON is empty");
-                fail();
-            }
-
-            Iterator<Entry<String,Object>> iter = json.entrySet().iterator();
-
-            // ensure we dont have any null keys
-            while (iter.hasNext()) {
-                Entry<String,Object> entry = iter.next();
-                assertNotNull(entry);
-
-                String key = (String) entry.getKey();
-                assertNotNull(key);
-            }
-
-            try {
-                assertEquals(json.get("timestamp"), dateFormat.parse("2015-11-05 09:32:46").getTime() + (ParserConfig.getArubaTimezoneOffset() * 3600000));
-                assertEquals(json.get("device_generated_timestamp"), dateFormat.parse("2015-11-05 09:32:46").getTime());
-            } catch (java.text.ParseException e) {
-                LOGGER.error("ParserException - Unable to parse date");
-                fail();
-            }
-
-            assertEquals(json.get("ip_src_addr"), "10.0.0.140");
-            assertEquals(json.get("message_type"), "Aruba-ClearPass");
-            assertEquals(json.get("message_subtype"), "Session_Logs-Roadblock001");
-            assertEquals(json.get("message_hex"), "11553520");
-            assertEquals(json.get("unknown_1"), "2");
-            assertEquals(json.get("unknown_2"), "0");
-            assertEquals(json.get("Common_Username"), "host/MUSAVA198084.cof.ds.capitalone.com");
-            assertEquals(json.get("Common_Roles"), "[Machine Authenticated]");
-
-        }
-
-        @Override
-        public void testParserGeneratesCorrectSchema() {
-            for (String arubaString : getRealStrings()) {
-                JSONObject parsed = parser.parse(arubaString.getBytes());
-                JSONParser parser = new JSONParser();
-                Map<String,Object> json = null;
-
-                try {
-                    json = (Map<String,Object>) parser.parse(parsed.toJSONString());
-                } catch (ParseException e) {
-                    LOGGER.error("ParserException when trying to parse JSONObject");
-                    fail();
-                }
-
-                // Ensure schema is correct
-                assertTrue(isSchemaCorrect(parsed)); // checks if json contains keys original_string and timestamp
-                boolean hasUrlKey = json.containsKey("url");
-                boolean hasIpKey = json.containsKey("ip_src_addr");
-                assertTrue((hasUrlKey && !hasIpKey) || (!hasUrlKey && hasIpKey)); // contains key url xor ip_src_addr
-                assertTrue(json.containsKey("message_type")); // contains key type
-                if (json.containsKey("sub_type")) {
-                    assertTrue(!"".equals(json.get("message_subtype"))); // if  key sub_type exists, it is not ""
-                }
-
-                assertTrue(!json.containsKey("UNWANTED")); // does not contain UNWANTED
-            }
-        }
-
+    public GrokCiscoACSParserTest() throws Exception {
+        super();
     }
+
+    @Test
+    public void testParseLoginLine() throws Exception {
+
+        //Set up parser, parse message
+        GrokCiscoACSParser parser = new GrokCiscoACSParser(grokPath, grokLabel);
+        parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+        String testString = "<181>May 18 23:12:07 MDCNMSACS002 CSCOacs_Passed_Authentications 0093197809 2 0 2016-05-18 23:12:07.001 -04:00 1214019921 5202 NOTICE Device-Administration: Command Authorization succeeded, ACSVersion=acs-5.8.0.32-B.442.x86_64, ConfigVersionId=2097, Device IP Address=10.0.0.0, DestinationIPAddress=10.0.0.0, DestinationPort=49, UserName=hpna, CmdSet=[ CmdAV=dir CmdArgAV=cns: CmdArgAV=<cr> ], Protocol=Tacacs, MatchedCommandSet=Unrestricted, RequestLatency=5, Type=Authorization, Privilege-Level=15, Authen-Type=ASCII, Service=None, User=hpna, Port=tty2, Remote-Address=10.0.0.0, Authen-Method=None, Service-Argument=shell, AcsSessionID=MDCNMSACS002/242802909/91519025, AuthenticationIdentityS tore=Internal Users, AuthenticationMethod=Lookup, SelectedAccessService=TACACS, SelectedCommandSet=Unrestricted, IdentityGroup=IdentityGroup:All Groups:HPNA-Device-Interaction, Step=13005 , Step=15008 , Step=15004 , Step=15012 , Step=15041 , Step=15006 , Step=15013 , Step=24210 , Step=24212 , Step=22037 , Step=15044 ,";
+        List<JSONObject> result = parser.parse(testString.getBytes());
+        System.out.println("result: "+result);
+        JSONObject parsedJSON = result.get(0);
+
+        //Compare fields
+        assertEquals(parsedJSON.get("sourcetype") + "", "cisco_acs");
+        assertEquals(parsedJSON.get("priority") + "", "181");
+        assertEquals(parsedJSON.get("timestamp"), "May 19th 2016 03:12:07 UTC");
+        assertEquals(parsedJSON.get("hostname"), "ABCXML1413");
+        assertEquals(parsedJSON.get("security_domain"), "rojOut");
+        assertEquals(parsedJSON.get("event_code"), "0x81000033");
+        assertEquals(parsedJSON.get("event_type"), "auth");
+        assertEquals(parsedJSON.get("severity"), "notice");
+        assertEquals(parsedJSON.get("event_subtype"), "login");
+        assertEquals(parsedJSON.get("username"), "rick007");
+        assertEquals(parsedJSON.get("ip_src_addr"), "120.43.200.6");
+    }
+}
