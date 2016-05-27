@@ -1,0 +1,11 @@
+{
+  "index": "bluecoatcim",
+  "batchSize": 5,
+  "enrichment": {
+    "fieldMap": {
+      "geo": [],
+      "host": []
+    },
+  "fieldToTypeMap": {}
+  }
+}
