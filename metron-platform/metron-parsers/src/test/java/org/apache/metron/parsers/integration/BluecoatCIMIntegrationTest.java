@@ -43,6 +43,6 @@ public class BluecoatCIMIntegrationTest extends ParserIntegrationTest {
 
   @Override
   public String getFluxTopicProperty() {
-    return "spout.kafka.topic.yaf";
+    return "spout.kafka.topic.bluecoatcim";
   }
 }
