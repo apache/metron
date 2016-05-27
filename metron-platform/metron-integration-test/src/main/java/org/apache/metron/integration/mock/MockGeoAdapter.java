@@ -34,7 +34,7 @@ public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
   public static final String DEFAULT_LATITUDE = "test latitude";
   public static final String DEFAULT_LONGITUDE = "test longitude";
   public static final String DEFAULT_DMACODE= "test dmaCode";
-  public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LONGITUDE, DEFAULT_LATITUDE);
+  public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
 
   @Override
   public void logAccess(CacheKey value) {

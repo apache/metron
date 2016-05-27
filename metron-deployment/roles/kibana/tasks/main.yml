@@ -15,7 +15,6 @@
 #  limitations under the License.
 #
 ---
-metron_version: 0.1BETA
-metron_directory: /usr/metron/{{ metron_version }}
-metron_ui_directory: "{{ metron_directory }}/metron-ui"
-metron_temp_archive: /tmp/metron-ui.tar.gz
+- include: dependencies.yml
+- include: install_kibana.yml
+
