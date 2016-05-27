@@ -70,7 +70,7 @@ public class ParserBolt extends ConfiguredParserBolt {
     }
     parser.init();
     writer.init();
-    SensorParserConfig config = getConfigurations().getSensorParserConfig(getSensorType());
+    SensorParserConfig config = getSensorParserConfig();
     if(config != null) {
       config.init();
     }
@@ -84,7 +84,7 @@ public class ParserBolt extends ConfiguredParserBolt {
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
-    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(getSensorType());
+    SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
       if(sensorParserConfig != null) {
         List<JSONObject> messages = parser.parse(originalMessage);
