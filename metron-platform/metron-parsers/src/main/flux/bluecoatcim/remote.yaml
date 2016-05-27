@@ -20,7 +20,7 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.bluecoatcim.GrokBluecoatCIMParser"
+        className: "org.apache.metron.parsers.bluecoatcim.BasicBluecoatCIMParser"
         constructorArgs:
             - "/patterns/bluecoatcim"
             - "BLUECOATCIM"
