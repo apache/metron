@@ -38,11 +38,6 @@ public class GrokInfobloxParser extends GrokParser {
         formatTimestamp(message);
         fixTags(message);
 
-        // add dns result if necessary
-        if (!message.containsKey("dns_result") && "named".equals(message.get("process"))) {
-            message.put("dns_result", "success");
-        }
-
         // fix dns action type if necessary
         if (message.containsKey("dns_action_type") && "resolving".equals(message.get("dns_action_type"))) {
             message.put("dns_action_type", "query");
@@ -51,6 +46,11 @@ public class GrokInfobloxParser extends GrokParser {
         // fix dns_action_type if necessary
         if (message.containsKey("dns_action_type") && "zone".equals(message.get("dns_action_type"))) {
             message.put("dns_action_type", "zone_update");
+        }
+
+        // add dns result if necessary
+        if (!message.containsKey("dns_result") && "named".equals(message.get("process")) && !"zone_update".equals(message.get("dns_action_type"))) {
+            message.put("dns_result", "success");
         }
 
         // fix dst mac if necessary
