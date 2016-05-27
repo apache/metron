@@ -70,7 +70,7 @@ public class GeoAdapter extends JdbcAdapter {
         enriched.put("latitude", resultSet.getString("latitude"));
         enriched.put("longitude", resultSet.getString("longitude"));
         enriched.put("dmaCode", resultSet.getString("dmaCode"));
-        enriched.put("location_point", enriched.get("longitude") + "," + enriched.get("latitude"));
+        enriched.put("location_point", enriched.get("latitude") + "," + enriched.get("longitude"));
       }
       resultSet.close();
     } catch (Exception e) {

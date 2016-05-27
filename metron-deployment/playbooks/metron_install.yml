@@ -106,7 +106,7 @@
 - hosts: web
   become: true
   roles:
-    - { role: metron_ui, when: install_elasticsearch | default(True) == True }
+    - { role: kibana, when: install_elasticsearch | default(True) == True }
   tags:
     - web
 
