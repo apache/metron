@@ -271,7 +271,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
             String priorityNum = matcher.group(0);
             outputMessage.put("priority", priorityNum.substring(1, priorityNum.length()-1));
         }
-        //add date
+        //add timestamp
         String tempDate = tokens[0].substring(tokens[0].indexOf(">") +1) + " " + tokens[1] + " " + tokens[2];
         outputMessage.put("timestamp", this.formatTimestamp(tempDate));
 
