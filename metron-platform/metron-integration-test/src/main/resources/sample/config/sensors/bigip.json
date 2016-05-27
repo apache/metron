@@ -1,5 +1,5 @@
 {
-  "index": "websphere",
+  "index": "bigip",
   "batchSize": 5,
   "enrichment": {
     "fieldMap": {
