@@ -1,0 +1,36 @@
+#!/bin/sh -eux
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+case "$PACKER_BUILDER_TYPE" in
+
+virtualbox-iso|virtualbox-ovf)
+    major_version="`sed 's/^.\+ release \([.0-9]\+\).*/\1/' /etc/redhat-release | awk -F. '{print $1}'`";
+
+    if [ "$major_version" -ge 6 ]; then
+        # Fix slow DNS:
+        # Add 'single-request-reopen' so it is included when /etc/resolv.conf is
+        # generated
+        # https://access.redhat.com/site/solutions/58625 (subscription required)
+        echo 'RES_OPTIONS="single-request-reopen"' >>/etc/sysconfig/network;
+        echo "192.168.66.121 node1"  >>/etc/hosts;
+        service network restart;
+        echo 'Slow DNS fix applied (single-request-reopen)';
+    fi
+    ;;
+
+esac

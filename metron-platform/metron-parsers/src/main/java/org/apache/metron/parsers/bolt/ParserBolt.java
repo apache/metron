@@ -22,10 +22,11 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.Filters;
+import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -69,6 +70,13 @@ public class ParserBolt extends ConfiguredParserBolt {
     }
     parser.init();
     writer.init();
+    SensorParserConfig config = getConfigurations().getSensorParserConfig(sensorType);
+    if(config != null) {
+      config.init();
+    }
+    else {
+      throw new IllegalStateException("Unable to retrieve a parser config for " + sensorType);
+    }
   }
 
 
@@ -76,13 +84,21 @@ public class ParserBolt extends ConfiguredParserBolt {
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
+    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(sensorType);
     try {
-      List<JSONObject> messages = parser.parse(originalMessage);
-      for(JSONObject message: messages) {
-        if (parser.validate(message)) {
-          if (filter != null && filter.emitTuple(message)) {
-            message.put(Constants.SENSOR_TYPE, getSensorType());
-            writer.write(getSensorType(), configurations, tuple, message);
+      if(sensorParserConfig != null) {
+        List<JSONObject> messages = parser.parse(originalMessage);
+        for (JSONObject message : messages) {
+          if (parser.validate(message)) {
+            if (filter != null && filter.emitTuple(message)) {
+              message.put(Constants.SENSOR_TYPE, sensorType);
+              for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+                if (handler != null) {
+                  handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
+                }
+              }
+              writer.write(sensorType, configurations, tuple, message);
+            }
           }
         }
       }

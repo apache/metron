@@ -22,7 +22,7 @@ title: Apache Metron About
             <ul>
                 <li class="active"><a href="#evolution">Evolution</a></li>
                 <li class=""><a href="#architecture">Architecture</a></li>
-                <li class=""><a href="#corecapabilites">Core Capabilites </a></li>
+                <li class=""><a href="#corecapabilities">Core Capabilities </a></li>
                 <li class="" style="min-width:220px"><a href="#functionalThemes">Functional Themes</a></li>
             </ul>
         </div>
@@ -48,7 +48,7 @@ title: Apache Metron About
             <h2>Architecture</h2>
         </div>
         <div class="three-col-row architecture">
-            <div class="col-three">
+            <div class="col-three" style="cursor:default">
                 <div class="v-middle-wrapper">
                     <div class="v-middle-inner">
                         <div class="v-middle">
@@ -60,7 +60,7 @@ title: Apache Metron About
                     </div>
                 </div>
             </div>
-            <div class="col-three">
+            <div class="col-three" style="cursor:default">
                 <div class="v-middle-wrapper">
                     <div class="v-middle-inner">
                         <div class="v-middle">
@@ -72,7 +72,7 @@ title: Apache Metron About
                     </div>
                 </div>
             </div>
-            <div class="col-three">
+            <div class="col-three" style="cursor:default">
                 <div class="v-middle-wrapper">
                     <div class="v-middle-inner">
                         <div class="v-middle">
@@ -91,9 +91,9 @@ title: Apache Metron About
     </div>
 </section>
 
-<section  class="events-section darken" id="corecapabilites">
+<section  class="events-section darken" id="corecapabilities">
     <div class="text-center">
-        <h2>Core Capabilites</h2>
+        <h2>Core Capabilities</h2>
     </div>
     <div>
         <img class="v-middle img82" src="/img/metron_core_capabilities.png" alt="Metron Core Capabilities" style="margin:0 auto;left: 0px;">
@@ -111,7 +111,7 @@ title: Apache Metron About
         <img class="v-middle img82" src="/img/metron_functional_themes.png" alt="Metron Functional Themes" style="margin:0 auto;left: 0px;">
     </div>
     <div class="hover-btn text-center">
-            <a class="button-default" target="https://cwiki.apache.org/confluence/display/METRON/Metron+Core+Capabilities+and+Functional+Themes#MetronCoreCapabilitiesandFunctionalThemes-CoreFunctionalThemes" target="new">LEARN MORE</a>
+            <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Metron+Core+Capabilities+and+Functional+Themes#MetronCoreCapabilitiesandFunctionalThemes-CoreFunctionalThemes" target="new">LEARN MORE</a>
     </div>
 </section>
 
