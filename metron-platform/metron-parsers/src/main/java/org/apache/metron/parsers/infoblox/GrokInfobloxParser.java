@@ -25,9 +25,6 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Iterator;
 
-/**
- * Created by zra564 on 5/26/16.
- */
 public class GrokInfobloxParser extends GrokParser {
 
     public GrokInfobloxParser(String grokHdfsPath, String patternLabel) {
@@ -36,9 +33,9 @@ public class GrokInfobloxParser extends GrokParser {
 
     @Override
     protected void postParse(JSONObject message) {
-        System.out.println("in post");
         removeEmptyFields(message);
         fixTimestamp(message);
+        formatTimestamp(message);
         fixTags(message);
 
         // add dns result if necessary
@@ -67,10 +64,18 @@ public class GrokInfobloxParser extends GrokParser {
             message.put("src_mac", message.get("src_mac_addr"));
             message.remove("src_mac_addr");
         }
+
+        // format dns record types
+        if (message.containsKey("dns_record_type")) {
+            if (message.get("dns_record_type") != null) {
+                String dnt = message.get("dns_record_type").toString();
+                dnt = dnt.replace(" ", ",").replace("/", ",");
+                message.put("dns_record_type", dnt);
+            }
+        }
     }
 
     private void fixTags(JSONObject json) {
-        json.clear();
         JSONObject fixedJSON = new JSONObject();
         for (Object o : json.keySet()) {
             String key = (String) o;
@@ -90,7 +95,6 @@ public class GrokInfobloxParser extends GrokParser {
                 case "request_":
                 case "ack_":
                 case "inform_":
-                    System.out.println("key: " + key + ", tag: " + ", value: " + value);
                     isKnownTag = true;
                     break;
                 case "clientunknown_":
@@ -113,22 +117,24 @@ public class GrokInfobloxParser extends GrokParser {
             }
         }
         json.clear();
-//        json.putAll(fixedJSON);
+        json.putAll(fixedJSON);
     }
 
     private void fixTimestamp(JSONObject json) {
-        if (json.containsKey("timestamp") && null != json.get("timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("timestamp").toString()));
-        } else if (json.containsKey("unknown_timestamp") && null != json.get("unknown_timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("unknown_timestamp").toString()));
+        if (hasValidTimestamp(json, "unknown_timestamp")) {
+            json.put("timestamp", formatTimestamp(json.get("unknown_timestamp")));
             json.remove("unknwon_timestamp");
-        } else if (json.containsKey("dhcpdunknwon_timestamp") && null != json.get("dhcpdunknwon_timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("dhcpdunknwon_timestamp").toString()));
+        } else if (hasValidTimestamp(json, "dhcpunknown_timestamp")) {
+            json.put("timestamp", formatTimestamp(json.get("dhcpdunknwon_timestamp")));
             json.remove("unknwon_timestamp");
-        } else if (json.containsKey("dnsunknwon_timestamp") && null != json.get("dnsunknwon_timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("dnsunknwon_timestamp").toString()));
+        } else if (hasValidTimestamp(json, "dnsunknown_timestamp")) {
+            json.put("timestamp", formatTimestamp(json.get("dnsunknwon_timestamp")));
             json.remove("dnsunknwon_timestamp");
         }
+    }
+
+    private boolean hasValidTimestamp(JSONObject json, String key) {
+        return json.containsKey(key) && null != json.get(key) && !"".equals(json.get(key));
     }
 
     private void removeEmptyFields(JSONObject json) {
