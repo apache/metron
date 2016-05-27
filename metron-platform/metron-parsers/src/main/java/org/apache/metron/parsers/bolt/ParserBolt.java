@@ -70,12 +70,12 @@ public class ParserBolt extends ConfiguredParserBolt {
     }
     parser.init();
     writer.init();
-    SensorParserConfig config = getConfigurations().getSensorParserConfig(sensorType);
+    SensorParserConfig config = getConfigurations().getSensorParserConfig(getSensorType());
     if(config != null) {
       config.init();
     }
     else {
-      throw new IllegalStateException("Unable to retrieve a parser config for " + sensorType);
+      throw new IllegalStateException("Unable to retrieve a parser config for " + getSensorType());
     }
   }
 
@@ -84,20 +84,20 @@ public class ParserBolt extends ConfiguredParserBolt {
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
-    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(sensorType);
+    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(getSensorType());
     try {
       if(sensorParserConfig != null) {
         List<JSONObject> messages = parser.parse(originalMessage);
         for (JSONObject message : messages) {
           if (parser.validate(message)) {
             if (filter != null && filter.emitTuple(message)) {
-              message.put(Constants.SENSOR_TYPE, sensorType);
+              message.put(Constants.SENSOR_TYPE, getSensorType());
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
                 if (handler != null) {
                   handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                 }
               }
-              writer.write(sensorType, configurations, tuple, message);
+              writer.write(getSensorType(), configurations, tuple, message);
             }
           }
         }
