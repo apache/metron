@@ -40,7 +40,7 @@
   uri:
     url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_{{ item.sensor }}"
     method: PUT
-    body: "{{ item.file }}"
+    body: "{{ item.file }} | to_json "
     status_code: 200
   with_items:
     - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
