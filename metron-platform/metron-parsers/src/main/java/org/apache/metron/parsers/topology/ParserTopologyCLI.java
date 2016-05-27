@@ -195,7 +195,7 @@ public class ParserTopologyCLI {
       CommandLineParser parser = new PosixParser();
       CommandLine cmd = null;
       try {
-        cmd = ParserOptions.parse(parser, args)
+        cmd = ParserOptions.parse(parser, args);
       } catch (ParseException pe) {
         pe.printStackTrace();
         final HelpFormatter usageFormatter = new HelpFormatter();
