@@ -17,6 +17,13 @@ The query language supports the following:
     * `TO_LOWER`
     * `TO_UPPER`
     * `TRIM`
+    * `IS_IP` : Validates that the input fields are an IP address.  By default, if no second arg is set, it assumes `IPV4`, but you can specify the type by passing in either `IPV6` or `IPV4` to the second argument.
+   * `IS_DOMAIN` 
+   * `IS_EMAIL`
+   * `IS_URL`
+   * `IS_DATE`
+   * `IS_INTEGER`
+
 
 Example query:
 
@@ -74,7 +81,7 @@ structured like so:
 * `config` : A String to Object map for validation configuration.  This is optional if the validation function requires no configuration.
 * `validation` : The validation function to be used.  This is one of
    * `MQL` : Execute a Query Language statement.  Expects the query string in the `condition` field of the config.
-   * `IP` : Validates that the input fields are an IP addres.  By default, if no configuration is set, it assumes `IPV4`, but you can specify the type by passing in the config by passing in `type` with either `IPV6` or `IPV4`.
+   * `IP` : Validates that the input fields are an IP address.  By default, if no configuration is set, it assumes `IPV4`, but you can specify the type by passing in the config by passing in `type` with either `IPV6` or `IPV4`.
    * `DOMAIN` : Validates that the fields are all domains.
    * `EMAIL` : Validates that the fields are all email addresses
    * `URL` : Validates that the fields are all URLs
