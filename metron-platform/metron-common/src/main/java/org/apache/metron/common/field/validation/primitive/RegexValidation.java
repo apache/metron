@@ -51,7 +51,7 @@ public class RegexValidation implements FieldValidation {
       return false;
     }
     for(Object o : input.values()) {
-      if(o == null || !o.toString().matches(regex)) {
+      if(o != null && !o.toString().matches(regex)) {
         return false;
       }
     }

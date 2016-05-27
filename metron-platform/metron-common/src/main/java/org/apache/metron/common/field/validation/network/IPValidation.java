@@ -103,7 +103,7 @@ public class IPValidation implements FieldValidation, Predicate<List<String>> {
                         ) {
     IPType type = IPType.get(Config.TYPE.get(validationConfig, String.class));
     for(Object o : input.values()) {
-      if(o == null || !type.isValid(o.toString())) {
+      if(o != null && !type.isValid(o.toString())) {
         return false;
       }
     }

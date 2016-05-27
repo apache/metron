@@ -33,9 +33,18 @@ public abstract class SimpleValidation implements FieldValidation, Predicate<Lis
                         )
   {
     Predicate<String> predicate = getPredicate();
-    for(Object o : input.values()) {
-      if(o == null || !predicate.test(o.toString())){
-        return false;
+    if(isNonExistentOk()) {
+      for (Object o : input.values()) {
+        if (o != null && !predicate.test(o.toString())) {
+          return false;
+        }
+      }
+    }
+    else {
+      for (Object o : input.values()) {
+        if (o == null || !predicate.test(o.toString())) {
+          return false;
+        }
       }
     }
     return true;
@@ -58,5 +67,7 @@ public abstract class SimpleValidation implements FieldValidation, Predicate<Lis
   }
 
   public abstract Predicate<String> getPredicate();
-
+  protected boolean isNonExistentOk() {
+    return true;
+  }
 }

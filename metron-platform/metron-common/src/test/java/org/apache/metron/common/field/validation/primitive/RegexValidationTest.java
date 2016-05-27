@@ -79,9 +79,9 @@ public class RegexValidationTest extends BaseValidationTest {
   @Test
   public void negativeTest_multiple() throws IOException {
 
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field2", "foo")));
+    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field2", "foo")));
     Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 1, "field2", "foo")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field3", "foo")));
+    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field3", "foo")));
   }
 }
 

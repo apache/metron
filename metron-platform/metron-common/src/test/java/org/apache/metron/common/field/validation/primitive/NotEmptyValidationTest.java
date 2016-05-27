@@ -30,7 +30,7 @@ import org.junit.Test;
 import java.io.IOException;
 
 
-public class NotExistsValidationTest extends BaseValidationTest {
+public class NotEmptyValidationTest extends BaseValidationTest {
 
   /**
    {

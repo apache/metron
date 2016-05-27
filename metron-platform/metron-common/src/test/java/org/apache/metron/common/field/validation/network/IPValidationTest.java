@@ -79,12 +79,7 @@ public class IPValidationTest extends BaseValidationTest {
 
   @Test
   public void negativeTest_multiple() throws IOException {
-
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field2", "192.168.1.1")));
-    Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field2", "192.168.1.1")));
     Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field3", "192.168.1.1")));
-    Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field3", "192.168.1.1")));
   }
 }

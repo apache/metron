@@ -83,7 +83,7 @@ public class EmailValidationTest extends BaseValidationTest {
 
   @Test
   public void negativeTest_multiple() throws IOException {
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field2", "me@hotmail.edu")));
+    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "me@hotmail.edu")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field2", "me@hotmail.edu")));
     Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", "", "field2", "me@gmail.com")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field1", "", "field2", "me@gmail.com")));

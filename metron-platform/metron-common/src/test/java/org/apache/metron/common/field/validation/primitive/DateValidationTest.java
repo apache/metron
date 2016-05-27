@@ -85,11 +85,11 @@ public class DateValidationTest extends BaseValidationTest{
   @Test
   public void negativeTest_multiple() throws IOException {
 
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field2", "2014-06-02")));
+    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "2014-06-02")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field2", "2014-06-02")));
     Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "2014-06-02")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "2014-06-02")));
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field3", "2014-06-02")));
+    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field3", "2014-06-02")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field3", "2014-06-02")));
   }
 }

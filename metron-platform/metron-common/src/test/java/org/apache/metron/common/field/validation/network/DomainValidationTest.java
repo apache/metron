@@ -81,7 +81,7 @@ public class DomainValidationTest extends BaseValidationTest{
 
   @Test
   public void negativeTest_multiple() throws IOException {
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field2", "hotmail.edu")));
+    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "hotmail.edu")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field2", "hotmail.edu")));
     Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", "", "field2", "gmail.com")));
     Assert.assertFalse(run(validWithMultipleFields_MQL, ImmutableMap.of("field1", "", "field2", "gmail.com")));

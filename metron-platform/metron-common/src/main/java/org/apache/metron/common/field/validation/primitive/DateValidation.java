@@ -89,7 +89,7 @@ public class DateValidation implements FieldValidation, Predicate<List<String>> 
     SimpleDateFormat sdf = new SimpleDateFormat(format);
     for(Object o : input.values()) {
       if(o == null) {
-        return false;
+        return true;
       }
       try {
         Date d = sdf.parse(o.toString());

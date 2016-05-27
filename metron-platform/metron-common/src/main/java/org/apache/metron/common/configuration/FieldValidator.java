@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public class FieldValidator {
+
   public enum Config {
      FIELD_VALIDATIONS("fieldValidations")
     ,VALIDATION("validation")
@@ -106,11 +107,45 @@ public class FieldValidator {
   public static List<FieldValidator> readValidations(Map<String, Object> globalConfig) {
     List<FieldValidator> validators = new ArrayList<>();
     List<Object> validations = (List<Object>) Config.FIELD_VALIDATIONS.get(globalConfig, List.class);
-    for(Object o : validations) {
-      FieldValidator f = new FieldValidator(o);
-      f.getValidation().initialize(f.getConfig(), globalConfig);
-      validators.add(new FieldValidator(o));
+    if(validations != null) {
+      for (Object o : validations) {
+        FieldValidator f = new FieldValidator(o);
+        f.getValidation().initialize(f.getConfig(), globalConfig);
+        validators.add(new FieldValidator(o));
+      }
     }
     return validators;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    FieldValidator that = (FieldValidator) o;
+
+    if (getValidation() != null ? !getValidation().equals(that.getValidation()) : that.getValidation() != null)
+      return false;
+    if (getInput() != null ? !getInput().equals(that.getInput()) : that.getInput() != null) return false;
+    return getConfig() != null ? getConfig().equals(that.getConfig()) : that.getConfig() == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getValidation() != null ? getValidation().hashCode() : 0;
+    result = 31 * result + (getInput() != null ? getInput().hashCode() : 0);
+    result = 31 * result + (getConfig() != null ? getConfig().hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "FieldValidator{" +
+            "validation=" + validation +
+            ", input=" + input +
+            ", config=" + config +
+            '}';
+  }
+
 }

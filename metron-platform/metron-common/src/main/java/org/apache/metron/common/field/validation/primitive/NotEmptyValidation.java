@@ -27,4 +27,9 @@ public class NotEmptyValidation extends SimpleValidation {
   public Predicate<String> getPredicate() {
     return s -> !(s == null || s.trim().isEmpty());
   }
+
+  @Override
+  protected boolean isNonExistentOk() {
+    return false;
+  }
 }

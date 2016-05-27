@@ -63,21 +63,31 @@ public class Configurations implements Serializable {
     validations = FieldValidator.readValidations(getGlobalConfig());
   }
 
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
+
     Configurations that = (Configurations) o;
-    return configurations.equals(that.configurations);
+
+    if (validations != null ? !validations.equals(that.validations) : that.validations != null) return false;
+    return configurations != null ? configurations.equals(that.configurations) : that.configurations == null;
+
   }
 
   @Override
   public int hashCode() {
-    return configurations.hashCode();
+    int result = validations != null ? validations.hashCode() : 0;
+    result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+    return result;
   }
 
   @Override
   public String toString() {
-    return configurations.toString();
+    return "Configurations{" +
+            "validations=" + validations +
+            ", configurations=" + configurations +
+            '}';
   }
 }
