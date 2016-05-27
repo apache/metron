@@ -20,7 +20,7 @@
     src:  http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
     dest: /tmp/geoip
     copy: no
-    creates: /tmp/geopip/*/GeoLiteCity-Blocks.csv
+    creates: /tmp/geoip/*/GeoLiteCity-Blocks.csv
 
 - name: Copy to MySQL import directory
   shell: "cp /tmp/geoip/*/*.csv /var/lib/mysql-files/"
