@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +32,22 @@ public class SensorParserConfig {
   private String parserClassName;
   private String sensorTopic;
   private String writerClassName;
-  private Map<String, Object> parserConfig = new HashMap<>();
 
   public String getWriterClassName() {
     return writerClassName;
   }
   public void setWriterClassName(String classNames) {
     this.writerClassName = classNames;
+  }
+  private Map<String, Object> parserConfig = new HashMap<>();
+  private List<FieldTransformer> fieldTransformations = new ArrayList<>();
+
+  public List<FieldTransformer> getFieldTransformations() {
+    return fieldTransformations;
+  }
+
+  public void setFieldTransformations(List<FieldTransformer> fieldTransformations) {
+    this.fieldTransformations = fieldTransformations;
   }
 
   public String getParserClassName() {
@@ -65,8 +75,17 @@ public class SensorParserConfig {
   }
 
   public static SensorParserConfig fromBytes(byte[] config) throws IOException {
-    return JSONUtils.INSTANCE.load(new String(config), SensorParserConfig.class);
+    SensorParserConfig ret = JSONUtils.INSTANCE.load(new String(config), SensorParserConfig.class);
+    ret.init();
+    return ret;
   }
+
+  public void init() {
+    for(FieldTransformer h : getFieldTransformations()) {
+      h.initAndValidate();
+    }
+  }
+
 
   public String toJSON() throws JsonProcessingException {
     return JSONUtils.INSTANCE.toJSON(this, true);
@@ -74,11 +93,13 @@ public class SensorParserConfig {
 
   @Override
   public String toString() {
-    return "{" +
+    return "SensorParserConfig{" +
             "parserClassName='" + parserClassName + '\'' +
             ", sensorTopic='" + sensorTopic + '\'' +
             ", writerClassName='" + writerClassName + '\'' +
             ", parserConfig=" + parserConfig +
+            ", parserConfig=" + parserConfig +
+            ", fieldTransformations=" + fieldTransformations +
             '}';
   }
 
@@ -93,9 +114,13 @@ public class SensorParserConfig {
       return false;
     if (getSensorTopic() != null ? !getSensorTopic().equals(that.getSensorTopic()) : that.getSensorTopic() != null)
       return false;
-    if (writerClassName != null ? !writerClassName.equals(that.writerClassName) : that.writerClassName != null)
+    if (getWriterClassName() != null ? !getWriterClassName().equals(that.getWriterClassName()) : that.getWriterClassName() != null)
       return false;
-    return getParserConfig() != null ? getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() == null;
+    if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
+      return false;
+    if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
+      return false;
+    return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
 
   }
 
@@ -103,8 +128,10 @@ public class SensorParserConfig {
   public int hashCode() {
     int result = getParserClassName() != null ? getParserClassName().hashCode() : 0;
     result = 31 * result + (getSensorTopic() != null ? getSensorTopic().hashCode() : 0);
-    result = 31 * result + (writerClassName != null ? writerClassName.hashCode() : 0);
+    result = 31 * result + (getWriterClassName() != null ? getWriterClassName().hashCode() : 0);
     result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
+    result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
+    result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
     return result;
   }
 }

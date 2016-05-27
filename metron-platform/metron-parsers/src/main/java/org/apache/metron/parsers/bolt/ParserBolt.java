@@ -31,6 +31,8 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterComponent;
 import org.apache.metron.common.writer.WriterToBulkWriter;
+import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -112,21 +114,36 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
     };
     parser.configure(getConfigurations().getSensorParserConfig(sensorType).getParserConfig());
+    SensorParserConfig config = getConfigurations().getSensorParserConfig(sensorType);
+    if(config != null) {
+      config.init();
+    }
+    else {
+      throw new IllegalStateException("Unable to retrieve a parser config for " + sensorType);
+    }
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
+    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(sensorType);
     try {
-      List<JSONObject> messages = parser.parse(originalMessage);
       boolean ackTuple = true;
-      for(JSONObject message: messages) {
-        if (parser.validate(message)) {
-          if (filter != null && filter.emitTuple(message)) {
-            ackTuple = !isBulk;
-            message.put(Constants.SENSOR_TYPE, sensorType);
-            writerComponent.write(sensorType, tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
+      if(sensorParserConfig != null) {
+        List<JSONObject> messages = parser.parse(originalMessage);
+        for (JSONObject message : messages) {
+          if (parser.validate(message)) {
+            if (filter != null && filter.emitTuple(message)) {
+              ackTuple = !isBulk;
+              message.put(Constants.SENSOR_TYPE, sensorType);
+              for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+                if (handler != null) {
+                  handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
+                }
+              }
+              writerComponent.write(sensorType, tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
+            }
           }
         }
       }
