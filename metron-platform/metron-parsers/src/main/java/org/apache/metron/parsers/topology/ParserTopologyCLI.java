@@ -74,6 +74,20 @@ public class ParserTopologyCLI {
       o.setType(Number.class);
       return o;
     }),
+    SPOUT_NUM_TASKS("snt", code -> {
+      Option o = new Option(code, "spout_num_tasks", true, "Spout Num Tasks");
+      o.setArgName("NUM_TASKS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    PARSER_NUM_TASKS("pnt", code -> {
+      Option o = new Option(code, "parser_num_tasks", true, "Parser Num Tasks");
+      o.setArgName("PARSER_NUM_TASKS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
     NUM_WORKERS("nw", code -> {
       Option o = new Option(code, "num_workers", true, "Number of Workers");
       o.setArgName("NUM_WORKERS");
@@ -211,14 +225,18 @@ public class ParserTopologyCLI {
       String brokerUrl = ParserOptions.BROKER_URL.get(cmd);
       String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
       int spoutParallelism = Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
+      int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
       int parserParallelism = Integer.parseInt(ParserOptions.PARSER_PARALLISM.get(cmd, "1"));
+      int parserNumTasks= Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
       SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
               sensorType,
               offset,
               spoutParallelism,
-              parserParallelism);
+              spoutNumTasks,
+              parserParallelism,
+              parserNumTasks);
       Config stormConf = ParserOptions.getConfig(cmd);
 
       if (ParserOptions.TEST.has(cmd)) {
