@@ -26,6 +26,7 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.Constants;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -67,12 +68,11 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
     put("orientation", "north");
   }};
-  private String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
   protected String testSensorType = "test";
   protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
-  private String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
+  protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
+  protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
-
 
   public static class Provider implements TableProvider, Serializable {
     MockHTable.Provider  provider = new MockHTable.Provider();
@@ -218,14 +218,15 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<Map<String, Object>> docs = runner.process(getProcessor(inputMessages));
       Assert.assertEquals(inputMessages.size(), docs.size());
       List<Map<String, Object>> cleanedDocs = cleanDocs(docs);
-      validateAll(cleanedDocs);
+      validateAll(cleanedDocs, getFieldNameConverter());
 
 
       List<Map<String, Object>> docsFromDisk = readDocsFromDisk(hdfsDir);
       Assert.assertEquals(docsFromDisk.size(), docs.size()) ;
       Assert.assertEquals(new File(hdfsDir).list().length, 1);
       Assert.assertEquals(new File(hdfsDir).list()[0], testSensorType);
-      validateAll(docsFromDisk);
+      //we want the identity transformation when dealing with docs on disk.
+      validateAll(docsFromDisk, fieldName -> fieldName);
     }
     finally {
       cleanHdfsDir(hdfsDir);
@@ -245,17 +246,18 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return cleanedDocs;
   }
 
-  public static void validateAll(List<Map<String, Object>> docs) {
+  public static void validateAll(List<Map<String, Object>> docs, FieldNameConverter fnc) {
+
     for (Map<String, Object> doc : docs) {
-      baseValidation(doc);
-      hostEnrichmentValidation(doc);
-      geoEnrichmentValidation(doc);
-      threatIntelValidation(doc);
-      simpleEnrichmentValidation(doc);
+      baseValidation(doc, fnc);
+      hostEnrichmentValidation(doc, fnc);
+      geoEnrichmentValidation(doc, fnc);
+      threatIntelValidation(doc, fnc);
+      simpleEnrichmentValidation(doc, fnc);
     }
   }
 
-  public static void baseValidation(Map<String, Object> jsonDoc) {
+  public static void baseValidation(Map<String, Object> jsonDoc, FieldNameConverter fnc) {
     assertEnrichmentsExists("threatintels.", setOf("hbaseThreatIntel"), jsonDoc.keySet());
     assertEnrichmentsExists("enrichments.", setOf("geo", "host", "hbaseEnrichment" ), jsonDoc.keySet());
     for(Map.Entry<String, Object> kv : jsonDoc.entrySet()) {
@@ -270,49 +272,55 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static class EvaluationPayload {
     Map<String, Object> indexedDoc;
     String key;
-    public EvaluationPayload(Map<String, Object> indexedDoc, String key) {
+    FieldNameConverter fnc;
+    public EvaluationPayload(Map<String, Object> indexedDoc, String key, FieldNameConverter fnc) {
       this.indexedDoc = indexedDoc;
       this.key = key;
+      this.fnc = fnc;
     }
   }
 
   private static enum HostEnrichments implements Predicate<EvaluationPayload>{
+
     LOCAL_LOCATION(new Predicate<EvaluationPayload>() {
 
       @Override
       public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
-        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.local").equals("YES");
+
+        return evaluationPayload.indexedDoc.getOrDefault(evaluationPayload.fnc.convert("enrichments.host." + evaluationPayload.key + ".known_info.local"),"").equals("YES");
+
       }
     })
+
     ,UNKNOWN_LOCATION(new Predicate<EvaluationPayload>() {
 
       @Override
       public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
-        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.local").equals("UNKNOWN");
+        return evaluationPayload.indexedDoc.getOrDefault(evaluationPayload.fnc.convert("enrichments.host." + evaluationPayload.key + ".known_info.local"),"").equals("UNKNOWN");
       }
     })
     ,IMPORTANT(new Predicate<EvaluationPayload>() {
       @Override
       public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
-        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.asset_value").equals("important");
+        return evaluationPayload.indexedDoc.getOrDefault(evaluationPayload.fnc.convert("enrichments.host." + evaluationPayload.key + ".known_info.asset_value"),"").equals("important");
       }
     })
     ,PRINTER_TYPE(new Predicate<EvaluationPayload>() {
       @Override
       public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
-        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.type").equals("printer");
+        return evaluationPayload.indexedDoc.getOrDefault(evaluationPayload.fnc.convert("enrichments.host." + evaluationPayload.key + ".known_info.type"),"").equals("printer");
       }
     })
     ,WEBSERVER_TYPE(new Predicate<EvaluationPayload>() {
       @Override
       public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
-        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.type").equals("webserver");
+        return evaluationPayload.indexedDoc.getOrDefault(evaluationPayload.fnc.convert("enrichments.host." + evaluationPayload.key + ".known_info.type"),"").equals("webserver");
       }
     })
     ,UNKNOWN_TYPE(new Predicate<EvaluationPayload>() {
       @Override
       public boolean apply(@Nullable EvaluationPayload evaluationPayload) {
-        return evaluationPayload.indexedDoc.get("enrichments.host." + evaluationPayload.key + ".known_info.type").equals("unknown");
+        return evaluationPayload.indexedDoc.getOrDefault(evaluationPayload.fnc.convert("enrichments.host." + evaluationPayload.key + ".known_info.type"),"").equals("unknown");
       }
     })
     ;
@@ -340,46 +348,46 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
       }
     }
   }
-  private static void simpleEnrichmentValidation(Map<String, Object> indexedDoc) {
-    if(indexedDoc.get(SRC_IP).equals("10.0.2.3")
-            || indexedDoc.get(DST_IP).equals("10.0.2.3")
+  private static void simpleEnrichmentValidation(Map<String, Object> indexedDoc, FieldNameConverter fnc) {
+    if(indexedDoc.getOrDefault(fnc.convert(SRC_IP),"").equals("10.0.2.3")
+            || indexedDoc.getOrDefault(fnc.convert(DST_IP),"").equals("10.0.2.3")
             ) {
-      Assert.assertTrue(keyPatternExists("enrichments.hbaseEnrichment", indexedDoc));
-      if(indexedDoc.get(SRC_IP).equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation")
+      Assert.assertTrue(keyPatternExists(fnc.convert("enrichments.hbaseEnrichment"), indexedDoc));
+      if(indexedDoc.getOrDefault(fnc.convert(SRC_IP),"").equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation"))
                 , PLAYFUL_ENRICHMENT.get("orientation")
         );
       }
-      else if(indexedDoc.get(DST_IP).equals("10.0.2.3")) {
-        Assert.assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation")
+      else if(indexedDoc.getOrDefault(fnc.convert(DST_IP),"").equals("10.0.2.3")) {
+        Assert.assertEquals( indexedDoc.get(fnc.convert("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation"))
                 , PLAYFUL_ENRICHMENT.get("orientation")
         );
       }
     }
 
   }
-  private static void threatIntelValidation(Map<String, Object> indexedDoc) {
-    if(indexedDoc.get(SRC_IP).equals("10.0.2.3")
-    || indexedDoc.get(DST_IP).equals("10.0.2.3")
+  private static void threatIntelValidation(Map<String, Object> indexedDoc, FieldNameConverter fnc) {
+    if(indexedDoc.getOrDefault(fnc.convert(SRC_IP),"").equals("10.0.2.3")
+    || indexedDoc.getOrDefault(fnc.convert(DST_IP),"").equals("10.0.2.3")
             ) {
       //if we have any threat intel messages, we want to tag is_alert to true
-      Assert.assertTrue(keyPatternExists("threatintels.", indexedDoc));
-      Assert.assertTrue(indexedDoc.containsKey("threat.triage.level"));
-      Assert.assertEquals(indexedDoc.get("is_alert"), "true");
-      Assert.assertEquals((double)indexedDoc.get("threat.triage.level"), 10d, 1e-7);
+      Assert.assertTrue(keyPatternExists(fnc.convert("threatintels."), indexedDoc));
+      Assert.assertTrue(indexedDoc.containsKey(fnc.convert("threat.triage.level")));
+      Assert.assertEquals(indexedDoc.getOrDefault(fnc.convert("is_alert"),""), "true");
+      Assert.assertEquals((double)indexedDoc.get(fnc.convert("threat.triage.level")), 10d, 1e-7);
     }
     else {
       //For YAF this is the case, but if we do snort later on, this will be invalid.
-      Assert.assertNull(indexedDoc.get("is_alert"));
-      Assert.assertFalse(keyPatternExists("threatintels.", indexedDoc));
+      Assert.assertNull(indexedDoc.get(fnc.convert("is_alert")));
+      Assert.assertFalse(keyPatternExists(fnc.convert("threatintels."), indexedDoc));
     }
     //ip threat intels
-    if(keyPatternExists("threatintels.hbaseThreatIntel.", indexedDoc)) {
-      if(indexedDoc.get(SRC_IP).equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + SRC_IP + "." + MALICIOUS_IP_TYPE), "alert");
+    if(keyPatternExists(fnc.convert("threatintels.hbaseThreatIntel."), indexedDoc)) {
+      if(indexedDoc.getOrDefault(fnc.convert(SRC_IP),"").equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get(fnc.convert("threatintels.hbaseThreatIntel." + SRC_IP + "." + MALICIOUS_IP_TYPE)), "alert");
       }
-      else if(indexedDoc.get(DST_IP).equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + DST_IP + "." + MALICIOUS_IP_TYPE), "alert");
+      else if(indexedDoc.getOrDefault(fnc.convert(DST_IP),"").equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get(fnc.convert("threatintels.hbaseThreatIntel." + DST_IP + "." + MALICIOUS_IP_TYPE)), "alert");
       }
       else {
         Assert.fail("There was a threat intels that I did not expect: " + indexedDoc);
@@ -388,43 +396,43 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   }
 
-  private static void geoEnrichmentValidation(Map<String, Object> indexedDoc) {
+  private static void geoEnrichmentValidation(Map<String, Object> indexedDoc, FieldNameConverter fnc) {
     //should have geo enrichment on every message due to mock geo adapter
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP +".location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".city"), MockGeoAdapter.DEFAULT_CITY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".city"), MockGeoAdapter.DEFAULT_CITY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".country"), MockGeoAdapter.DEFAULT_COUNTRY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".country"), MockGeoAdapter.DEFAULT_COUNTRY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".location_point")), MockGeoAdapter.DEFAULT_LOCATION_POINT);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP +".location_point")), MockGeoAdapter.DEFAULT_LOCATION_POINT);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".longitude")), MockGeoAdapter.DEFAULT_LONGITUDE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP + ".longitude")), MockGeoAdapter.DEFAULT_LONGITUDE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".city")), MockGeoAdapter.DEFAULT_CITY);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP + ".city")), MockGeoAdapter.DEFAULT_CITY);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".latitude")), MockGeoAdapter.DEFAULT_LATITUDE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP + ".latitude")), MockGeoAdapter.DEFAULT_LATITUDE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".country")), MockGeoAdapter.DEFAULT_COUNTRY);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP + ".country")), MockGeoAdapter.DEFAULT_COUNTRY);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".dmaCode")), MockGeoAdapter.DEFAULT_DMACODE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP + ".dmaCode")), MockGeoAdapter.DEFAULT_DMACODE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + DST_IP + ".postalCode")), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+    Assert.assertEquals(indexedDoc.get(fnc.convert("enrichments.geo." + SRC_IP + ".postalCode")), MockGeoAdapter.DEFAULT_POSTAL_CODE);
   }
 
-  private static void hostEnrichmentValidation(Map<String, Object> indexedDoc) {
+  private static void hostEnrichmentValidation(Map<String, Object> indexedDoc, FieldNameConverter fnc) {
     boolean enriched = false;
     //important local printers
     {
       Set<String> ips = setOf("10.0.2.15", "10.60.10.254");
-      if (ips.contains(indexedDoc.get(SRC_IP))) {
+      if (ips.contains(indexedDoc.get(fnc.convert(SRC_IP)))) {
         //this is a local, important, printer
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, SRC_IP))
+                ).apply(new EvaluationPayload(indexedDoc, SRC_IP, fnc))
         );
         enriched = true;
       }
-      if (ips.contains(indexedDoc.get(DST_IP))) {
+      if (ips.contains(indexedDoc.get(fnc.convert(DST_IP)))) {
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP, fnc))
         );
         enriched = true;
       }
@@ -432,20 +440,20 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     //important local webservers
     {
       Set<String> ips = setOf("10.1.128.236");
-      if (ips.contains(indexedDoc.get(SRC_IP))) {
+      if (ips.contains(indexedDoc.get(fnc.convert(SRC_IP)))) {
         //this is a local, important, printer
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, SRC_IP))
+                ).apply(new EvaluationPayload(indexedDoc, SRC_IP, fnc))
         );
         enriched = true;
       }
-      if (ips.contains(indexedDoc.get(DST_IP))) {
+      if (ips.contains(indexedDoc.get(fnc.convert(DST_IP)))) {
         Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
-                ).apply(new EvaluationPayload(indexedDoc, DST_IP))
+                ).apply(new EvaluationPayload(indexedDoc, DST_IP, fnc))
         );
         enriched = true;
       }
@@ -472,6 +480,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
+  abstract public FieldNameConverter getFieldNameConverter();
   abstract public InMemoryComponent getSearchComponent(Properties topologyProperties) throws Exception;
   abstract public Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages);
   abstract public void setAdditionalProperties(Properties topologyProperties);

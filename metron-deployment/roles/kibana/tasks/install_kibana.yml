@@ -14,11 +14,32 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+---
+- name: Install Kibana
+  yum:
+    name: kibana
+    state: installed
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
 
-[elasticsearch-2.x]
-name=Elasticsearch repository for 2.x packages
-baseurl=https://packages.elastic.co/elasticsearch/2.x/centos
-gpgcheck=1
-gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
-enabled=1
+- name: Configure Kibana - remove stale entries
+  lineinfile: >
+    dest=/opt/kibana/config/kibana.yml
+    regexp="{{ item }}"
+    state=absent
+  with_items:
+    - '^server\.port:'
+    - '^elasticsearch\.url:'
 
+- name: Configure Kibana
+  lineinfile: >
+    dest=/opt/kibana/config/kibana.yml
+    regexp="{{ item.regexp }}"
+    insertafter="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: '^# *server\.port:', line: 'server.port: 5000' }
+    - { regexp: '^# *elasticsearch\.url:', line: 'elasticsearch.url: http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}' }

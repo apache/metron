@@ -15,12 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.interfaces;
+package org.apache.metron.elasticsearch.writer;
 
+import org.apache.metron.common.interfaces.FieldNameConverter;
 import java.io.Serializable;
-import java.util.Map;
 
-public interface MessageFilter<T> extends Configurable{
+public class ElasticsearchFieldNameConverter implements FieldNameConverter, Serializable {
 
-	boolean emitTuple(T message);
+    private static final long serialVersionUID = -3126840090749760299L;
+
+    @Override
+    public String convert(String originalField) {
+        return originalField.replace(".",":");
+    }
+
 }

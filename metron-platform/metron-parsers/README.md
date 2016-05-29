@@ -188,3 +188,46 @@ Grok parser adapters are designed primarly for someone who is not a Java coder f
 For more information on the Grok project please refer to the following link:
 
 https://github.com/thekrakken/java-grok
+
+#Starting the Parser Topology
+
+Starting a particular parser topology on a running Metron deployment is
+as easy as running the `start_parser_topology.sh` script located in
+`$METRON_HOME/bin`.  This utility will allow you to configure and start
+the running topology assuming that the sensor specific parser configuration
+exists within zookeeper.
+
+The usage for `start_parser_topology.sh` is as follows:
+
+```
+usage: start_parser_topology.sh
+ -e,--extra_options <JSON_FILE>               Extra options in the form of
+                                              a JSON file with a map for
+                                              content.
+ -h,--help                                    This screen
+ -k,--kafka <BROKER_URL>                      Kafka Broker URL
+ -mt,--message_timeout <TIMEOUT_IN_SECS>      Message Timeout in Seconds
+ -mtp,--max_task_parallelism <MAX_TASK>       Max task parallelism
+ -na,--num_ackers <NUM_ACKERS>                Number of Ackers
+ -nw,--num_workers <NUM_WORKERS>              Number of Workers
+ -pnt,--parser_num_tasks <PARSER_NUM_TASKS>   Parser Num Tasks
+ -pp,--parser_p <PARSER_PARALLELISM_HINT>     Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                    Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>           Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>       Spout Parallelism Hint
+ -t,--test <TEST>                             Run in Test Mode
+ -z,--zk <ZK_QUORUM>                          Zookeeper Quroum URL
+                                              (zk1:2181,zk2:2181,...
+```
+
+A small note on the extra options.  These options are intended to be Storm configuration options and will live in
+a JSON file which will be loaded into the Storm config.  For instance, if you wanted to set some storm property on
+the config called `topology.ticks.tuple.freq.secs` to 1000 and `storm.local.dir` to `/opt/my/path`
+you could create a file called `custom_config.json` containing 
+```
+{ 
+  "topology.ticks.tuple.freq.secs" : 1000,
+  "storm.local.dir" : "/opt/my/path"
+}
+```
+and pass `--extra_options custom_config.json` to `start_parser_topology.sh`.

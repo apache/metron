@@ -14,9 +14,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-check process metron-ui matching "node /usr/metron/{{ metron_version }}/metron-ui/lib/metron-ui.js"
-  start program = "/etc/init.d/pm2-init.sh start"
-  stop program = "/etc/init.d/pm2-init.sh stop"
-  if does not exist then restart
-  group web
-  group metron
+kibana_repo_url: http://packages.elastic.co/kibana/4.5/centos
+kibana_repo_key_url: http://packages.elastic.co/GPG-KEY-elasticsearch

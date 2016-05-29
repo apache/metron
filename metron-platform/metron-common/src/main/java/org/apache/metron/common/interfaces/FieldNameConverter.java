@@ -15,12 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.interfaces;
+package org.apache.metron.common.interfaces;
 
-import java.io.Serializable;
-import java.util.Map;
+public interface FieldNameConverter {
 
-public interface MessageFilter<T> extends Configurable{
+    String convert(String originalField);
 
-	boolean emitTuple(T message);
 }

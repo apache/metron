@@ -15,12 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.interfaces;
 
-import java.io.Serializable;
-import java.util.Map;
+package org.apache.metron.parsers.topology.config;
 
-public interface MessageFilter<T> extends Configurable{
+import backtype.storm.Config;
 
-	boolean emitTuple(T message);
+public class Arg {
+  private Config config;
+  private String arg;
+
+  public Arg(Config config, String arg) {
+    this.config = config;
+    this.arg = arg;
+  }
+
+  public Config getConfig() {
+    return config;
+  }
+
+  public String getArg() {
+    return arg;
+  }
 }

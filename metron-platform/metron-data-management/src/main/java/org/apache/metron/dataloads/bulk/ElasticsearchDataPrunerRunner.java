@@ -24,12 +24,14 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.configuration.Configuration;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -91,11 +93,15 @@ public class ElasticsearchDataPrunerRunner {
             configuration.update();
 
             Map<String, Object> globalConfiguration = configuration.getGlobalConfig();
-            ImmutableSettings.Builder builder = ImmutableSettings.settingsBuilder();
-            builder.put("cluster.name", globalConfiguration.get("es.clustername"));
-            builder.put("curatorFramework.transport.ping_timeout","500s");
-            client = new TransportClient(builder.build())
-                    .addTransportAddress(new InetSocketTransportAddress(globalConfiguration.get("es.ip").toString(), Integer.parseInt(globalConfiguration.get("es.port").toString())));
+
+            Settings.Builder settingsBuilder = Settings.settingsBuilder();
+            settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
+            settingsBuilder.put("curatorFramework.transport.ping_timeout","500s");
+            Settings settings = settingsBuilder.build();
+            client = TransportClient.builder().settings(settings).build()
+                    .addTransportAddress(
+                            new InetSocketTransportAddress(InetAddress.getByName(globalConfiguration.get("es.ip").toString()), Integer.parseInt(globalConfiguration.get("es.port").toString()) )
+                    );
 
             DataPruner pruner = new ElasticsearchDataPruner(startDate, numDays, configuration, client, indexPrefix);
 
