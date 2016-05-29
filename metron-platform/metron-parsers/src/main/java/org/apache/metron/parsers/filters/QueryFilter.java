@@ -15,27 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.parsers.filters;
 
+import com.google.common.collect.ImmutableList;
+import org.apache.metron.common.query.MapVariableResolver;
+import org.apache.metron.common.query.PredicateProcessor;
+import org.apache.metron.common.query.VariableResolver;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-public class GenericMessageFilter implements MessageFilter<JSONObject>{
+public class QueryFilter implements MessageFilter<JSONObject> {
+  public static final String QUERY_STRING_CONF = "filter.query";
+  private PredicateProcessor processor = new PredicateProcessor();
+  private String query;
 
-	private static final long serialVersionUID = 3626397212398318852L;
+  public QueryFilter()
+  {
 
-	public GenericMessageFilter() {
-	}
+  }
 
-	public boolean emitTuple(JSONObject message) {
-		return true;
-	}
+  @Override
+  public void configure(Map<String, Object> config) {
+    Object o = config.get(QUERY_STRING_CONF);
+    if(o instanceof String) {
+      query= o.toString();
+    }
 
-	@Override
-	public void configure(Map<String, Object> config) {
+    processor.validate(query, true);
+  }
 
-	}
+  @Override
+  public boolean emitTuple(JSONObject message) {
+    VariableResolver resolver = new MapVariableResolver(message);
+    return processor.parse(query, resolver);
+  }
 }
