@@ -18,74 +18,198 @@
 package org.apache.metron.parsers.topology;
 
 import backtype.storm.Config;
+import backtype.storm.ConfigValidation;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import com.google.common.base.Joiner;
+import org.apache.commons.cli.*;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
+import org.apache.metron.parsers.topology.config.Arg;
+import org.apache.metron.parsers.topology.config.ConfigHandlers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import java.util.function.Function;
 
 public class ParserTopologyCLI {
 
-  public static void main(String[] args) {
-    Options options = new Options();
-    {
-      Option o = new Option("h", "help", false, "This screen");
+  public enum ParserOptions {
+    HELP("h", code -> {
+      Option o = new Option(code, "help", false, "This screen");
       o.setRequired(false);
-      options.addOption(o);
-    }
-    {
-      Option o = new Option("z", "zk", true, "Zookeeper Quroum URL (zk1:2181,zk2:2181,...");
+      return o;
+    }),
+    ZK_QUORUM("z", code -> {
+      Option o = new Option(code, "zk", true, "Zookeeper Quroum URL (zk1:2181,zk2:2181,...");
       o.setArgName("ZK_QUORUM");
       o.setRequired(true);
-      options.addOption(o);
-    }
-    {
-      Option o = new Option("k", "kafka", true, "Kafka Broker URL");
+      return o;
+    }),
+    BROKER_URL("k", code -> {
+      Option o = new Option(code, "kafka", true, "Kafka Broker URL");
       o.setArgName("BROKER_URL");
       o.setRequired(true);
-      options.addOption(o);
-    }
-    {
-      Option o = new Option("s", "sensor", true, "Sensor Type");
+      return o;
+    }),
+    SENSOR_TYPE("s", code -> {
+      Option o = new Option(code, "sensor", true, "Sensor Type");
       o.setArgName("SENSOR_TYPE");
       o.setRequired(true);
-      options.addOption(o);
-    }
-    {
-      Option o = new Option("sp", "spout_p", true, "Spout Parallelism");
-      o.setArgName("SPOUT_PARALLELISM");
+      return o;
+    }),
+    SPOUT_PARALLELISM("sp", code -> {
+      Option o = new Option(code, "spout_p", true, "Spout Parallelism Hint");
+      o.setArgName("SPOUT_PARALLELISM_HINT");
       o.setRequired(false);
       o.setType(Number.class);
-      options.addOption(o);
-    }
-    {
-      Option o = new Option("pp", "parser_p", true, "Parser Parallelism");
-      o.setArgName("PARSER_PARALLELISM");
+      return o;
+    }),
+    PARSER_PARALLISM("pp", code -> {
+      Option o = new Option(code, "parser_p", true, "Parser Parallelism Hint");
+      o.setArgName("PARSER_PARALLELISM_HINT");
       o.setRequired(false);
       o.setType(Number.class);
-      options.addOption(o);
-    }
+      return o;
+    }),
+    SPOUT_NUM_TASKS("snt", code -> {
+      Option o = new Option(code, "spout_num_tasks", true, "Spout Num Tasks");
+      o.setArgName("NUM_TASKS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    PARSER_NUM_TASKS("pnt", code -> {
+      Option o = new Option(code, "parser_num_tasks", true, "Parser Num Tasks");
+      o.setArgName("PARSER_NUM_TASKS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    NUM_WORKERS("nw", code -> {
+      Option o = new Option(code, "num_workers", true, "Number of Workers");
+      o.setArgName("NUM_WORKERS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+      }, new ConfigHandlers.SetNumWorkersHandler()
+    )
+    ,NUM_ACKERS("na", code -> {
+      Option o = new Option(code, "num_ackers", true, "Number of Ackers");
+      o.setArgName("NUM_ACKERS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }, new ConfigHandlers.SetNumAckersHandler()
+    )
+    ,NUM_MAX_TASK_PARALLELISM("mtp", code -> {
+      Option o = new Option(code, "max_task_parallelism", true, "Max task parallelism");
+      o.setArgName("MAX_TASK");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }, new ConfigHandlers.SetMaxTaskParallelismHandler()
+    )
+    ,MESSAGE_TIMEOUT("mt", code -> {
+      Option o = new Option(code, "message_timeout", true, "Message Timeout in Seconds");
+      o.setArgName("TIMEOUT_IN_SECS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }, new ConfigHandlers.SetMessageTimeoutHandler()
+    )
+    ,EXTRA_OPTIONS("e", code -> {
+      Option o = new Option(code, "extra_options", true, "Extra options in the form of a JSON file with a map for content.");
+      o.setArgName("JSON_FILE");
+      o.setRequired(false);
+      o.setType(String.class);
+      return o;
+    }, new ConfigHandlers.LoadJSONHandler()
+    )
+    ,TEST("t", code ->
     {
       Option o = new Option("t", "test", true, "Run in Test Mode");
       o.setArgName("TEST");
       o.setRequired(false);
-      options.addOption(o);
+      return o;
+    })
+    ;
+    Option option;
+    String shortCode;
+    Function<Arg, Config> configHandler;
+    ParserOptions(String shortCode
+                 , Function<String, Option> optionHandler
+                 ) {
+      this(shortCode, optionHandler, arg -> arg.getConfig());
+                 }
+    ParserOptions(String shortCode
+                 , Function<String, Option> optionHandler
+                 , Function<Arg, Config> configHandler
+                 ) {
+      this.shortCode = shortCode;
+      this.option = optionHandler.apply(shortCode);
+      this.configHandler = configHandler;
     }
+
+    public boolean has(CommandLine cli) {
+      return cli.hasOption(shortCode);
+    }
+
+    public String get(CommandLine cli) {
+      return cli.getOptionValue(shortCode);
+    }
+    public String get(CommandLine cli, String def) {
+      return has(cli)?cli.getOptionValue(shortCode):def;
+    }
+
+    public static Config getConfig(CommandLine cli) {
+      Config config = new Config();
+      for(ParserOptions option : ParserOptions.values()) {
+        config = option.configHandler.apply(new Arg(config, option.get(cli)));
+      }
+      return config;
+    }
+
+    public static CommandLine parse(CommandLineParser parser, String[] args) throws ParseException {
+      try {
+        CommandLine cli = parser.parse(getOptions(), args);
+        if(HELP.has(cli)) {
+          printHelp();
+          System.exit(0);
+        }
+        return cli;
+      } catch (ParseException e) {
+        System.err.println("Unable to parse args: " + Joiner.on(' ').join(args));
+        e.printStackTrace(System.err);
+        printHelp();
+        throw e;
+      }
+    }
+
+    public static void printHelp() {
+      HelpFormatter formatter = new HelpFormatter();
+      formatter.printHelp( "ParserTopologyCLI", getOptions());
+    }
+
+    public static Options getOptions() {
+      Options ret = new Options();
+      for(ParserOptions o : ParserOptions.values()) {
+        ret.addOption(o.option);
+      }
+      return ret;
+    }
+  }
+
+  public static void main(String[] args) {
+    Options options = new Options();
+
     try {
       CommandLineParser parser = new PosixParser();
       CommandLine cmd = null;
       try {
-        cmd = parser.parse(options, args);
+        cmd = ParserOptions.parse(parser, args);
       } catch (ParseException pe) {
         pe.printStackTrace();
         final HelpFormatter usageFormatter = new HelpFormatter();
@@ -97,27 +221,32 @@ public class ParserTopologyCLI {
         usageFormatter.printHelp("ParserTopologyCLI", null, options, null, true);
         System.exit(0);
       }
-      String zookeeperUrl = cmd.getOptionValue("z");
-      String brokerUrl = cmd.getOptionValue("k");
-      String sensoryType = cmd.getOptionValue("s");
-      int spoutParallelism = Integer.parseInt(cmd.getOptionValue("sp", "1"));
-      int parserParallelism = Integer.parseInt(cmd.getOptionValue("pp", "1"));
+      String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);;
+      String brokerUrl = ParserOptions.BROKER_URL.get(cmd);
+      String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
+      int spoutParallelism = Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
+      int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
+      int parserParallelism = Integer.parseInt(ParserOptions.PARSER_PARALLISM.get(cmd, "1"));
+      int parserNumTasks= Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
       SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
-              sensoryType,
+              sensorType,
               offset,
               spoutParallelism,
-              parserParallelism);
-      if (cmd.hasOption("t")) {
-        Map<String, Object> stormConf = new HashMap<>();
+              spoutNumTasks,
+              parserParallelism,
+              parserNumTasks);
+      Config stormConf = ParserOptions.getConfig(cmd);
+
+      if (ParserOptions.TEST.has(cmd)) {
         stormConf.put(Config.TOPOLOGY_DEBUG, true);
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology(sensoryType, stormConf, builder.createTopology());
+        cluster.submitTopology(sensorType, stormConf, builder.createTopology());
         Utils.sleep(300000);
         cluster.shutdown();
       } else {
-        StormSubmitter.submitTopology(sensoryType, new HashMap<>(), builder.createTopology());
+        StormSubmitter.submitTopology(sensorType, stormConf, builder.createTopology());
       }
     } catch (Exception e) {
       e.printStackTrace();
