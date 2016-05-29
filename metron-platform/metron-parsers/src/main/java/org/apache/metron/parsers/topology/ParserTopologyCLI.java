@@ -61,15 +61,15 @@ public class ParserTopologyCLI {
       return o;
     }),
     SPOUT_PARALLELISM("sp", code -> {
-      Option o = new Option(code, "spout_p", true, "Spout Parallelism");
-      o.setArgName("SPOUT_PARALLELISM");
+      Option o = new Option(code, "spout_p", true, "Spout Parallelism Hint");
+      o.setArgName("SPOUT_PARALLELISM_HINT");
       o.setRequired(false);
       o.setType(Number.class);
       return o;
     }),
     PARSER_PARALLISM("pp", code -> {
-      Option o = new Option(code, "parser_p", true, "Parser Parallelism");
-      o.setArgName("PARSER_PARALLELISM");
+      Option o = new Option(code, "parser_p", true, "Parser Parallelism Hint");
+      o.setArgName("PARSER_PARALLELISM_HINT");
       o.setRequired(false);
       o.setType(Number.class);
       return o;
