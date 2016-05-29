@@ -23,6 +23,8 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
@@ -39,14 +41,12 @@ public class ParserBolt extends ConfiguredParserBolt {
 
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
-  private MessageFilter<JSONObject> filter = new GenericMessageFilter();
+  private MessageFilter<JSONObject> filter;
   private MessageWriter<JSONObject> writer;
-  private String sensorType;
 
   public ParserBolt(String zookeeperUrl, String sensorType, MessageParser<JSONObject> parser, MessageWriter<JSONObject> writer) {
-    super(zookeeperUrl);
+    super(zookeeperUrl, sensorType);
     this.parser = parser;
-    this.sensorType = sensorType;
     this.writer = writer;
   }
 
@@ -60,35 +60,44 @@ public class ParserBolt extends ConfiguredParserBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
+    if(getSensorParserConfig() == null) {
+      filter = new GenericMessageFilter();
+    }
+    else if(filter == null) {
+      filter = Filters.get(getSensorParserConfig().getFilterClassName()
+              , getSensorParserConfig().getParserConfig()
+      );
+    }
     parser.init();
     writer.init();
-    SensorParserConfig config = getConfigurations().getSensorParserConfig(sensorType);
+    SensorParserConfig config = getSensorParserConfig();
     if(config != null) {
       config.init();
     }
     else {
-      throw new IllegalStateException("Unable to retrieve a parser config for " + sensorType);
+      throw new IllegalStateException("Unable to retrieve a parser config for " + getSensorType());
     }
   }
+
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
-    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(sensorType);
+    SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
       if(sensorParserConfig != null) {
         List<JSONObject> messages = parser.parse(originalMessage);
         for (JSONObject message : messages) {
           if (parser.validate(message)) {
             if (filter != null && filter.emitTuple(message)) {
-              message.put(Constants.SENSOR_TYPE, sensorType);
+              message.put(Constants.SENSOR_TYPE, getSensorType());
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
                 if (handler != null) {
                   handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                 }
               }
-              writer.write(sensorType, configurations, tuple, message);
+              writer.write(getSensorType(), configurations, tuple, message);
             }
           }
         }

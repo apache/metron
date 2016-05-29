@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.parsers.interfaces;
 
 import java.io.Serializable;
 import java.util.Map;
 
-public interface MessageFilter<T> extends Configurable{
-
-	boolean emitTuple(T message);
+public interface Configurable extends Serializable {
+  void configure(Map<String, Object> config);
 }
