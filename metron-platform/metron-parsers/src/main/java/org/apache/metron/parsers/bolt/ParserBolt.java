@@ -95,18 +95,18 @@ public class ParserBolt extends ConfiguredParserBolt {
         for (JSONObject message : messages) {
           if (parser.validate(message)) {
             if(!isGloballyValid(message, fieldValidations)) {
-              message.put(Constants.SENSOR_TYPE, sensorType + ".invalid");
+              message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
               collector.emit(Constants.INVALID_STREAM, new Values(message));
             }
             else if (filter != null && filter.emitTuple(message)) {
               if (filter != null && filter.emitTuple(message)) {
-                message.put(Constants.SENSOR_TYPE, sensorType);
+                message.put(Constants.SENSOR_TYPE, getSensorType());
                 for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
                   if (handler != null) {
                     handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                   }
                 }
-                writer.write(sensorType, configurations, tuple, message);
+                writer.write(getSensorType(), configurations, tuple, message);
               }
             }
           }
