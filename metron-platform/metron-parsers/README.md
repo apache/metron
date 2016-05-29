@@ -201,21 +201,23 @@ The usage for `start_parser_topology.sh` is as follows:
 
 ```
 usage: start_parser_topology.sh
- -e,--extra_options <JSON_FILE>            Extra options in the form of a
-                                           JSON file with a map for
-                                           content.
- -h,--help                                 This screen
- -k,--kafka <BROKER_URL>                   Kafka Broker URL
- -mt,--message_timeout <TIMEOUT_IN_SECS>   Message Timeout in Seconds
- -mtp,--max_task_parallelism <MAX_TASK>    Max task parallelism
- -na,--num_ackers <NUM_ACKERS>             Number of Ackers
- -nw,--num_workers <NUM_WORKERS>           Number of Workers
- -pp,--parser_p <PARSER_PARALLELISM>       Parser Parallelism
- -s,--sensor <SENSOR_TYPE>                 Sensor Type
- -sp,--spout_p <SPOUT_PARALLELISM>         Spout Parallelism
- -t,--test <TEST>                          Run in Test Mode
- -z,--zk <ZK_QUORUM>                       Zookeeper Quroum URL
-                                           (zk1:2181,zk2:2181,...
+ -e,--extra_options <JSON_FILE>               Extra options in the form of
+                                              a JSON file with a map for
+                                              content.
+ -h,--help                                    This screen
+ -k,--kafka <BROKER_URL>                      Kafka Broker URL
+ -mt,--message_timeout <TIMEOUT_IN_SECS>      Message Timeout in Seconds
+ -mtp,--max_task_parallelism <MAX_TASK>       Max task parallelism
+ -na,--num_ackers <NUM_ACKERS>                Number of Ackers
+ -nw,--num_workers <NUM_WORKERS>              Number of Workers
+ -pnt,--parser_num_tasks <PARSER_NUM_TASKS>   Parser Num Tasks
+ -pp,--parser_p <PARSER_PARALLELISM_HINT>     Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                    Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>           Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>       Spout Parallelism Hint
+ -t,--test <TEST>                             Run in Test Mode
+ -z,--zk <ZK_QUORUM>                          Zookeeper Quroum URL
+                                              (zk1:2181,zk2:2181,...
 ```
 
 A small note on the extra options.  These options are intended to be Storm configuration options and will live in
