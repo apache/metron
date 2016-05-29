@@ -47,7 +47,7 @@ public class GeoAdapterTest {
    * "latitude":"test latitude",
    * "longitude":"test longitude",
    * "dmaCode":"test dma",
-   * "location_point":"test longitude,test latitude"
+   * "location_point":"test latitude,test longitude"
    * }
    */
   @Multiline

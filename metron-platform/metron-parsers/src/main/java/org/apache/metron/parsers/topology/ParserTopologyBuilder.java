@@ -35,6 +35,8 @@ import org.json.simple.JSONObject;
 import storm.kafka.KafkaSpout;
 import storm.kafka.ZkHosts;
 
+import java.util.Map;
+
 public class ParserTopologyBuilder {
 
   public static TopologyBuilder build(String zookeeperUrl,
@@ -42,7 +44,10 @@ public class ParserTopologyBuilder {
                          String sensorType,
                          SpoutConfig.Offset offset,
                          int spoutParallelism,
-                         int parserParallelism) throws Exception {
+                         int spoutNumTasks,
+                         int parserParallelism,
+                         int parserNumTasks
+                                     ) throws Exception {
     CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
     ParserConfigurations configurations = new ParserConfigurations();
@@ -54,7 +59,8 @@ public class ParserTopologyBuilder {
     ZkHosts zkHosts = new ZkHosts(zookeeperUrl);
     SpoutConfig spoutConfig = new SpoutConfig(zkHosts, sensorTopic, "", sensorTopic).from(offset);
     KafkaSpout kafkaSpout = new KafkaSpout(spoutConfig);
-    builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism);
+    builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
+           .setNumTasks(parserNumTasks);
     MessageParser<JSONObject> parser = ReflectionUtils.createInstance(sensorParserConfig.getParserClassName());
     parser.configure(sensorParserConfig.getParserConfig());
     ParserBolt parserBolt = null;
@@ -78,7 +84,9 @@ public class ParserTopologyBuilder {
         }
       }
     }
-    builder.setBolt("parserBolt", parserBolt, parserParallelism).shuffleGrouping("kafkaSpout");
+    builder.setBolt("parserBolt", parserBolt, parserParallelism)
+           .setNumTasks(spoutNumTasks)
+           .shuffleGrouping("kafkaSpout");
     return builder;
   }
 

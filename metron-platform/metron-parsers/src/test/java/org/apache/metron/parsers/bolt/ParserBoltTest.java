@@ -27,6 +27,8 @@ import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.test.bolt.BaseBoltTest;
@@ -40,6 +42,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -135,27 +138,62 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.execute(tuple);
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
   }
+@Test
+public void testImplicitBatchOfOne() throws Exception {
 
+  String sensorType = "yaf";
+
+  ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+    @Override
+    protected ParserConfigurations defaultConfigurations() {
+      return new ParserConfigurations() {
+        @Override
+        public SensorParserConfig getSensorParserConfig(String sensorType) {
+          return new SensorParserConfig() {
+            @Override
+            public Map<String, Object> getParserConfig() {
+              return new HashMap<String, Object>() {{
+              }};
+            }
+          };
+        }
+      };
+    }
+  };
+  parserBolt.setCuratorFramework(client);
+  parserBolt.setTreeCache(cache);
+  parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+  verify(parser, times(1)).init();
+  verify(batchWriter, times(1)).init(any(), any());
+  when(parser.validate(any())).thenReturn(true);
+  when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+  when(filter.emitTuple(any())).thenReturn(true);
+  parserBolt.withMessageFilter(filter);
+  parserBolt.execute(t1);
+  verify(outputCollector, times(1)).ack(t1);
+}
+
+  /**
+   {
+    "filterClassName" : "QUERY"
+   ,"parserConfig" : {
+    "filter.query" : "exists(field1)"
+    }
+   }
+   */
+  @Multiline
+  public static String sensorParserConfig;
   @Test
-  public void testImplicitBatchOfOne() throws Exception {
-
+  public void testFilter() throws Exception {
     String sensorType = "yaf";
-
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
-        return new ParserConfigurations() {
-          @Override
-          public SensorParserConfig getSensorParserConfig(String sensorType) {
-            return new SensorParserConfig() {
-              @Override
-              public Map<String, Object> getParserConfig() {
-                return new HashMap<String, Object>() {{
-                }};
-              }
-            };
-          }
-        };
+      protected SensorParserConfig getSensorParserConfig() {
+        try {
+          return SensorParserConfig.fromBytes(Bytes.toBytes(sensorParserConfig));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     };
     parserBolt.setCuratorFramework(client);
@@ -165,7 +203,6 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
-    when(filter.emitTuple(any())).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
@@ -306,4 +343,23 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(collector, times(0)).ack(t);
   }
 
+/*=======
+    verify(writer, times(1)).init();
+    byte[] sampleBinary = "some binary message".getBytes();
+    JSONParser jsonParser = new JSONParser();
+    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\" }");
+    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\" }");
+    List<JSONObject> messages = new ArrayList<JSONObject>() {{
+      add(sampleMessage1);
+      add(sampleMessage2);
+    }};
+    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\" }");
+    when(tuple.getBinary(0)).thenReturn(sampleBinary);
+    when(parser.parse(sampleBinary)).thenReturn(messages);
+    when(parser.validate(any(JSONObject.class))).thenReturn(true);
+    parserBolt.execute(tuple);
+    verify(writer, times(1)).write(eq(sensorType), any(Configurations.class), eq(tuple), eq(finalMessage1));
+    verify(outputCollector, times(1)).ack(tuple);
+  }
+>>>>>>> master*/
 }

@@ -67,7 +67,15 @@ public class ParserTopologyComponent implements InMemoryComponent {
   @Override
   public void start() throws UnableToStartException {
     try {
-      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk"), brokerUrl, sensorType, SpoutConfig.Offset.BEGINNING, 1, 1);
+      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
+                                                                   , brokerUrl
+                                                                   , sensorType
+                                                                   , SpoutConfig.Offset.BEGINNING
+                                                                   , 1
+                                                                   , 1
+                                                                   , 1
+                                                                   , 1
+                                                                   );
       Map<String, Object> stormConf = new HashMap<>();
       stormConf.put(Config.TOPOLOGY_DEBUG, true);
       stormCluster = new LocalCluster();

@@ -14,7 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- include: dependencies.yml
-- include: copy-source.yml
-- include: metron-ui.yml
+check process kibana matching "/opt/kibana/bin/../node/bin/node /opt/kibana/bin/../src/cli"
+  start program = "/etc/init.d/kibana start"
+  stop program = "/etc/init.d/kibana stop"
+  if does not exist then restart
+  group web
+  group metron

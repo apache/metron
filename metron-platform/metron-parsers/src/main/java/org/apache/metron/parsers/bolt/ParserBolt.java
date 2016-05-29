@@ -31,6 +31,8 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterComponent;
 import org.apache.metron.common.writer.WriterToBulkWriter;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
@@ -52,7 +54,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
   private MessageFilter<JSONObject> filter = new GenericMessageFilter();
-  private String sensorType;
   private transient Function<ParserConfigurations, WriterConfiguration> writerTransformer;
   private BulkMessageWriter<JSONObject> messageWriter;
   private BulkWriterComponent<JSONObject> writerComponent;
@@ -63,10 +64,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
                    , MessageWriter<JSONObject> writer
   )
   {
-    super(zookeeperUrl);
+    super(zookeeperUrl, sensorType);
     isBulk = false;
     this.parser = parser;
-    this.sensorType = sensorType;
     messageWriter = new WriterToBulkWriter<>(writer);
   }
 
@@ -76,11 +76,11 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
                    , BulkMessageWriter<JSONObject> writer
   )
   {
-    super(zookeeperUrl);
+    super(zookeeperUrl, sensorType);
     isBulk = true;
     this.parser = parser;
-    this.sensorType = sensorType;
     messageWriter = writer;
+
 
   }
 
@@ -94,6 +94,14 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
+    if(getSensorParserConfig() == null) {
+      filter = new GenericMessageFilter();
+    }
+    else if(filter == null) {
+      filter = Filters.get(getSensorParserConfig().getFilterClassName()
+              , getSensorParserConfig().getParserConfig()
+      );
+    }
     parser.init();
 
     if(isBulk) {
@@ -113,21 +121,22 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         return new HashSet<>();
       }
     };
-    parser.configure(getConfigurations().getSensorParserConfig(sensorType).getParserConfig());
-    SensorParserConfig config = getConfigurations().getSensorParserConfig(sensorType);
+    SensorParserConfig config = getSensorParserConfig();
     if(config != null) {
       config.init();
     }
     else {
-      throw new IllegalStateException("Unable to retrieve a parser config for " + sensorType);
+      throw new IllegalStateException("Unable to retrieve a parser config for " + getSensorType());
     }
+    parser.configure(config.getParserConfig());
   }
+
 
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
-    SensorParserConfig sensorParserConfig = getConfigurations().getSensorParserConfig(sensorType);
+    SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
       boolean ackTuple = true;
       if(sensorParserConfig != null) {
@@ -136,13 +145,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
           if (parser.validate(message)) {
             if (filter != null && filter.emitTuple(message)) {
               ackTuple = !isBulk;
-              message.put(Constants.SENSOR_TYPE, sensorType);
+              message.put(Constants.SENSOR_TYPE, getSensorType());
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
                 if (handler != null) {
                   handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                 }
               }
-              writerComponent.write(sensorType, tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
+              writerComponent.write(getSensorType(), tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
             }
           }
         }

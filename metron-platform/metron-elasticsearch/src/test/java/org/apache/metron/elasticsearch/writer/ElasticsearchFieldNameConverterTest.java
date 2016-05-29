@@ -15,12 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.interfaces;
 
-import java.io.Serializable;
-import java.util.Map;
+package org.apache.metron.elasticsearch.writer;
 
-public interface MessageFilter<T> extends Configurable{
+import org.junit.Test;
 
-	boolean emitTuple(T message);
+import static org.junit.Assert.*;
+
+public class ElasticsearchFieldNameConverterTest {
+
+    @Test
+    public void convert() throws Exception {
+        assertEquals("testfield:with:colons",new ElasticsearchFieldNameConverter().convert("testfield.with.colons"));
+    }
+
 }

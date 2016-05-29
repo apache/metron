@@ -38,7 +38,7 @@
 		<global_hadoop_version>2.7.1</global_hadoop_version>
 		<global_hbase_version>1.1.1</global_hbase_version>
 		<global_flume_version>1.5.2</global_flume_version>
-		<global_elasticsearch_version>1.7.4</global_elasticsearch_version>
+		<global_elasticsearch_version>2.3.3</global_elasticsearch_version>
 		<global_json_simple_version>1.1.1</global_json_simple_version>
 		<global_metrics_version>3.0.2</global_metrics_version>
 		<global_junit_version>4.4</global_junit_version>
@@ -51,6 +51,7 @@
 		<global_solr_version>5.2.1</global_solr_version>
 		<global_mockito_version>1.10.19</global_mockito_version>
 		<global_shade_version>2.4.3</global_shade_version>
+		<global_jackson_version>2.7.4</global_jackson_version>
 	</properties>
 	<licenses>
 		<license>
@@ -60,10 +61,8 @@
 		</license>
 	</licenses>
 	<modules>
-
 		<module>metron-common</module>
 		<module>metron-enrichment</module>
-		<module>metron-elasticsearch</module>
 		<module>metron-solr</module>
 		<module>metron-parsers</module>
 		<module>metron-pcap-backend</module>
@@ -73,6 +72,8 @@
 		<module>metron-test-utilities</module>
 		<module>metron-api</module>
 		<module>metron-hbase</module>
+		<module>elasticsearch-shaded</module>
+		<module>metron-elasticsearch</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>

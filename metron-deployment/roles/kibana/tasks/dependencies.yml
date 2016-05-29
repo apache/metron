@@ -15,19 +15,13 @@
 #  limitations under the License.
 #
 ---
-- name: Install yum repositories
-  yum: name=epel-release update_cache=yes
+- name: Load Elastic Public Signing Key
+  rpm_key:
+    state: present
+    key: "{{ kibana_repo_key_url }}"
 
-- name: Install Metron UI dependencies
-  yum:
-    pkg: "{{ item }}"
-    state: installed
-  with_items:
-      - libpcap-devel
-      - wireshark
-      - nodejs
-      - npm
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
+- name: Create kibana.repo
+  template:
+    src: kibana.repo.template
+    dest: /etc/yum.repos.d/kibana.repo
+    mode: 0644

@@ -14,11 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-[elasticsearch-2.x]
-name=Elasticsearch repository for 2.x packages
-baseurl=https://packages.elastic.co/elasticsearch/2.x/centos
+[kibana]
+name=Kibana installation repository
+baseurl={{ kibana_repo_url }}
 gpgcheck=1
-gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
+gpgkey={{ kibana_repo_key_url }}
 enabled=1
-
