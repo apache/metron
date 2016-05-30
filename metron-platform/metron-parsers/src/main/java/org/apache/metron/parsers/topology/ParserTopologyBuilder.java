@@ -53,6 +53,10 @@ public class ParserTopologyBuilder {
     ParserConfigurations configurations = new ParserConfigurations();
     ConfigurationsUtils.updateParserConfigsFromZookeeper(configurations, client);
     SensorParserConfig sensorParserConfig = configurations.getSensorParserConfig(sensorType);
+    if(sensorParserConfig == null) {
+      throw new IllegalStateException("Cannot find the parser configuration in zookeeper for " + sensorType + "." +
+              "  Please check that it exists in zookeeper by using the zk_load_configs.sh -m DUMP command.");
+    }
     client.close();
     String sensorTopic = sensorParserConfig.getSensorTopic() != null ? sensorParserConfig.getSensorTopic() : sensorType;
     TopologyBuilder builder = new TopologyBuilder();
