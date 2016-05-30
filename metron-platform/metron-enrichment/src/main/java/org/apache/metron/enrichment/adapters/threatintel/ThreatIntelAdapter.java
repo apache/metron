@@ -77,9 +77,11 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       try {
         for (Boolean isThreat :
                 lookup.exists(Iterables.transform(enrichmentTypes
-                                                 , new EnrichmentUtils.TypeToKey(value.getValue())
+                                                 , new EnrichmentUtils.TypeToKey(value.getValue()
+                                                                                , lookup.getTable()
+                                                                                , value.getConfig().getThreatIntel()
+                                                                                )
                                                  )
-                             , lookup.getTable()
                              , false
                              )
             )
