@@ -206,7 +206,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("search", searchComponent)
             .withComponent("storm", fluxComponent)
-            .withMillisecondsBetweenAttempts(10000)
+            .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
             .build();
     runner.start();
