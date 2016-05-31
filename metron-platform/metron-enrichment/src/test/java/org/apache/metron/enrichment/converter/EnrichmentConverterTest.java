@@ -39,7 +39,7 @@ public class EnrichmentConverterTest {
   public void testValueConversion() throws IOException {
     EnrichmentConverter converter = new EnrichmentConverter();
     EnrichmentKey k1 = new EnrichmentKey("type", "indicator");
-    EnrichmentValue v1 = new EnrichmentValue(new HashMap<String, String>() {{
+    EnrichmentValue v1 = new EnrichmentValue(new HashMap<String, Object>() {{
       put("k1", "v1");
       put("k2", "v2");
     }});

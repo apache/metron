@@ -25,6 +25,15 @@ import java.util.Map;
 public class EnrichmentConfig {
   private Map<String, List<String>> fieldMap = new HashMap<>();
   private Map<String, List<String>> fieldToTypeMap = new HashMap<>();
+  private Map<String, Object> config = new HashMap<>();
+
+  public Map<String, Object> getConfig() {
+    return config;
+  }
+
+  public void setConfig(Map<String, Object> config) {
+    this.config = config;
+  }
 
   public Map<String, List<String>> getFieldMap() {
     return fieldMap;
@@ -43,6 +52,15 @@ public class EnrichmentConfig {
   }
 
   @Override
+  public String toString() {
+    return "EnrichmentConfig{" +
+            "fieldMap=" + fieldMap +
+            ", fieldToTypeMap=" + fieldToTypeMap +
+            ", config=" + config +
+            '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -50,7 +68,9 @@ public class EnrichmentConfig {
     EnrichmentConfig that = (EnrichmentConfig) o;
 
     if (getFieldMap() != null ? !getFieldMap().equals(that.getFieldMap()) : that.getFieldMap() != null) return false;
-    return getFieldToTypeMap() != null ? getFieldToTypeMap().equals(that.getFieldToTypeMap()) : that.getFieldToTypeMap() == null;
+    if (getFieldToTypeMap() != null ? !getFieldToTypeMap().equals(that.getFieldToTypeMap()) : that.getFieldToTypeMap() != null)
+      return false;
+    return getConfig() != null ? getConfig().equals(that.getConfig()) : that.getConfig() == null;
 
   }
 
@@ -58,14 +78,7 @@ public class EnrichmentConfig {
   public int hashCode() {
     int result = getFieldMap() != null ? getFieldMap().hashCode() : 0;
     result = 31 * result + (getFieldToTypeMap() != null ? getFieldToTypeMap().hashCode() : 0);
+    result = 31 * result + (getConfig() != null ? getConfig().hashCode() : 0);
     return result;
-  }
-
-  @Override
-  public String toString() {
-    return "EnrichmentConfig{" +
-            "fieldMap=" + fieldMap +
-            ", fieldToTypeMap=" + fieldToTypeMap +
-            '}';
   }
 }

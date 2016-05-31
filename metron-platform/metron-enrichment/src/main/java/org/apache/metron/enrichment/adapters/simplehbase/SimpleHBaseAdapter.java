@@ -76,15 +76,17 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       try {
         for (LookupKV<EnrichmentKey, EnrichmentValue> kv :
                 lookup.get(Iterables.transform(enrichmentTypes
-                                              , new EnrichmentUtils.TypeToKey(value.getValue())
+                                              , new EnrichmentUtils.TypeToKey( value.getValue()
+                                                                             , lookup.getTable()
+                                                                             , value.getConfig().getEnrichment()
+                                                                             )
                                               )
-                          , lookup.getTable()
                           , false
                           )
             )
         {
           if (kv != null && kv.getValue() != null && kv.getValue().getMetadata() != null) {
-            for (Map.Entry<String, String> values : kv.getValue().getMetadata().entrySet()) {
+            for (Map.Entry<String, Object> values : kv.getValue().getMetadata().entrySet()) {
               enriched.put(kv.getKey().type + "." + values.getKey(), values.getValue());
             }
             _LOG.trace("Enriched type " + kv.getKey().type + " => " + enriched);
