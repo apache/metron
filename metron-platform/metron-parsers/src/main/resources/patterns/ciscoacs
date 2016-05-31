@@ -12,24 +12,36 @@ HOUR \d{2}
 MINUTE \d{2}
 SECOND \d{2}
 
-DATE %{MONTH:UNWANTED}%{SPACE:UNWANTED}%{DAY:UNWANTED} %{YEAR:UNWANTED}
-TIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}
+#DATE %{MONTH:UNWANTED}%{SPACE:UNWANTED}%{DAY:UNWANTED} %{YEAR:UNWANTED}
+#TIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}
 
-TIMESTAMP %{DATE:UNWANTED} %{TIME:UNWANTED}
+TIMESTAMP %{HOUR}:%{MINUTE:minute}:%{SECOND}
 
 IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
 IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])
 
+HOSTNAMEALPHABET [-\w\.]+
 # hostname can be a url or ip address
-HOSTNAME %{IPV6:UNWANTED}|%{IPV4:UNWANTED}|[-\w\.]+
+HOSTNAME %{IPV6:UNWANTED}|%{IPV4:UNWANTED}|%{HOSTNAMEALPHABET:UNWANTED}
 
 #LOGSTART %{PRIORITY:UNWANTED}%{TIMESTAMP:UNWANTED}\s+%{HOSTNAME:hostname}\s
+
+EVENTYEAR \d{4}
+EVENTMONTH \d{2}
+EVENTDAY \d{2}
+EVENTDATE %{EVENTYEAR:eventYear}-%{EVENTMONTH:eventMonth}-%{EVENTDAY:eventDay}
+
+EVENTHOUR \d{2}
+EVENTMINUTE \d{2}
+EVENTSECOND \d{2}
+EVENTMILLISECOND \d{3}
+
+EVENTTIMESTAMP %{EVENTHOUR:eventHour}:%{EVENTMINUTE:eventMinute}:%{EVENTSECOND:eventSecond}.%{EVENTMILLISECOND:eventMili}
 
 CATEGORY [-\w\.]+
 MESSAGEID [-\w\.]+
 TOTALSEGMENTS [-\w\.]+
 SEGMENTNUMBER [-\w\.]+
-EVENTYEAR \d{2}
 TIMEZONE [-\w\.]+
 EVENTTIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}.%{TIMEZONE}\s-%{HOUR}:%{MINUTE}\s
 SEQUENCENUMBER [-\w\.]+
