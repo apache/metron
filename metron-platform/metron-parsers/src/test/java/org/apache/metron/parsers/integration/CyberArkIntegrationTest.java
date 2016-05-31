@@ -23,7 +23,7 @@ import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdallomIntegrationTest extends ParserIntegrationTest {
+public class CyberArkIntegrationTest extends ParserIntegrationTest {
 
 	@Override
 	public String getSensorType() {
