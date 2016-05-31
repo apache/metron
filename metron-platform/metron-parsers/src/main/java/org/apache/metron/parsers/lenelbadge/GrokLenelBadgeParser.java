@@ -27,10 +27,6 @@ import java.util.Iterator;
 
 public class GrokLenelBadgeParser extends GrokParser {
 
-	public GrokLenelBadgeParser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
-
 	@Override
 	protected long formatTimestamp(Object value) {
 		long epochTimestamp = System.currentTimeMillis();
