@@ -31,10 +31,6 @@ import java.util.regex.Pattern;
 
 public class GrokBigIpParser extends GrokParser {
 
-	public GrokBigIpParser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
-
 	private final static String BIGIP_NEWSESSION_PATTERN = "NEWSESSION";
 	private final static String BIGIP_STATISTICS_PATTERN = "STATISTICS";
 	private final static String BIGIP_LOGIN_PATTERN = "LOGIN";

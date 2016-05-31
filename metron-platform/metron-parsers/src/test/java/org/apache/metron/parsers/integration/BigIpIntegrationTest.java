@@ -18,31 +18,21 @@
 package org.apache.metron.parsers.integration;
 
 import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BigIpIntegrationTest extends ParserIntegrationTest {
 
 	@Override
-	public String getFluxPath() {
-		return "./src/main/flux/bigip/test.yaml";
-	}
+	public String getSensorType() { return "bigip"; }
 
 	@Override
-	public String getSampleInputPath() {
-		return TestConstants.SAMPLE_DATA_INPUT_PATH + "BigIpOutput.txt";
+	List<ParserValidation> getValidations() {
+		return new ArrayList<ParserValidation>() {{
+			add(new SampleDataValidation());
+		}};
 	}
 
-	@Override
-	public String getSampleParsedPath() {
-		return TestConstants.SAMPLE_DATA_PARSED_PATH + "BigIpParsed.txt";
-	}
-
-	@Override
-	public String getSensorType() {
-		return "bigip";
-	}
-
-	@Override
-	public String getFluxTopicProperty() {
-		return "spout.kafka.topic.bigip";
-	}
 }

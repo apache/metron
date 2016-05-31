@@ -20,25 +20,35 @@ package org.apache.metron.parsers.bigip;
 
 import org.apache.metron.parsers.bigip.GrokBigIpParser;
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 public class GrokBigIpParserTest {
 
-	private final String grokPath = "../metron-parsers/src/main/resources/patterns/bigip";
-	private final String grokLabel = "BIGIP";
-	private final String dateFormat = "yyyy MMM dd HH:mm:ss";
-	private final String timestampField = "timestamp_string";
-	
+	private Map<String, Object> parserConfig;
+
+	@Before
+	public void setup() {
+		parserConfig = new HashMap<>();
+		parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/bigip");
+		parserConfig.put("patternLabel", "BIGIP");
+		parserConfig.put("timestampField", "timestamp_string");
+		parserConfig.put("dateFormat", "yyyy MMM dd HH:mm:ss");
+	}
+
+
 	@Test
 	public void testParseNewSessionLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Apr 19 19:24:29 mfugjchwna38k notice mdd4[6456]: 90329500:5: 37451372: New session from client IP 10.000.11.000 (ST=/CC=/C=) at VIP 240.61.45.23 Listener /Common/access.google.com_443 (Reputation=Unknown)";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -63,8 +73,8 @@ public class GrokBigIpParserTest {
 	public void testParseLoginLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:46:35 mfugjchwna38k notice apd[6848]: 90329113:5: 1d0bf7c7: session.logon.euid is ABC906";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -88,8 +98,8 @@ public class GrokBigIpParserTest {
 	public void testParseSessionStatisticsLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:59:37 mfugjchwna38k notice mdd[6456]: 90329521:5: 690fe490: Session statistics - bytes in: 3032, bytes out: 469";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -113,8 +123,8 @@ public class GrokBigIpParserTest {
 	public void testParseAccessPolicyResultLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:59:32 vdcbigaion02p notice apd[26861]: 90329102:5: 01030c62: Access policy result: Network_Access";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -137,8 +147,8 @@ public class GrokBigIpParserTest {
 	public void testParseOtherSessionLine() throws Exception {
 
 		//Set up parser, parse message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:59:31 mfugjchwna38k notice apd[6848]: 90329115:5: 090faa3e: Following rule 'fallback' from item 'clog1220' to terminalout 'Out'";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -161,8 +171,8 @@ public class GrokBigIpParserTest {
 	public void testParseSystemLine() throws Exception {
 
 		//Set up parser, parse message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<182>Mar 31 13:59:34 vdcbigaion01p info logger: [ssl_acc] 10.24.248.20 - admin [31/Mar/2016:13:59:34 +0000] \"/iControl/iControlPortal.cgi\" 200 670";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -181,8 +191,8 @@ public class GrokBigIpParserTest {
 	public void testParseMalformedNewSessionLine() throws Exception {
 
 		//Set up parser, attempt to parse malformed message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "141>Apr 19 19:24:29 mfugjchwna38k notice mdd4[6456]: 90329500:5: 37451372: New session from client IP 10.000.11.000 (ST=/CC=/C=) at VIP 123.45.678.90 Listener /Common/access.google.com_443 (Reputation=Unknown)";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		assertEquals(null, result);
@@ -191,8 +201,8 @@ public class GrokBigIpParserTest {
 	public void testParseMalformedLoginLine() throws Exception {
 
 		//Set up parser, attempt to parse malformed message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:46:35 mfugjchwna38k apd[6848]: 90329113:5: 1d0bf7c7: session.logon.euid is ABC906";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		assertEquals(null, result);
@@ -202,8 +212,8 @@ public class GrokBigIpParserTest {
 	public void testParseMalformedSessionStatisticsLine() throws Exception {
 
 		//Set up parser, attempt to parse malformed message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>\nMar 31 13:59:37 mfugjchwna38k notice mdd[6456]: 90329521:5: 690fe490: Session statistics - bytes in: 3032, bytes out: 469";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		assertEquals(null, result);
@@ -213,8 +223,8 @@ public class GrokBigIpParserTest {
 	public void testParseMalformedAccessPolicyResultLine() throws Exception {
 
 		//Set up parser, attempt to parse malformed message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:59:32 vdcbigaion02p notice apd[26861]: 90329102:5: 01030c62: Access policy result:";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -233,8 +243,8 @@ public class GrokBigIpParserTest {
 	public void testParseMalformedOtherSessionLine() throws Exception {
 
 		//Set up parser, attempt to parse malformed message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "Mar 31 13:59:31 mfugjchwna38k notice apd[6848]: 90329115:5: 090faa3e: Following rule 'fallback' from item 'clog1220' to terminalout 'Out'";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		assertEquals(null, result);
@@ -244,8 +254,8 @@ public class GrokBigIpParserTest {
 	public void testParseMalformedSystemLine() throws Exception {
 
 		//Set up parser, attempt to parse malformed message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "<182>Mar 31 13:59:34 vdcbigaion01p info logger: [ssl_acc] 10.24.248.20 - admin [31/Mar/2016:13:59:34 +0000] \"/iControl/iControlPortal.cgi\" 200 670";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -265,7 +275,8 @@ public class GrokBigIpParserTest {
 	public void testParseEmptyLine() throws Exception {
 		
 		//Set up parser, attempt to parse empty message
-		GrokBigIpParser parser = new GrokBigIpParser(grokPath, grokLabel);
+		GrokBigIpParser parser = new GrokBigIpParser();
+		parser.configure(parserConfig);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
 		assertEquals(null, result);
