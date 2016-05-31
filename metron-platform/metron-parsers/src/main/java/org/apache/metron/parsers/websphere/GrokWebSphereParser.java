@@ -29,10 +29,6 @@ public class GrokWebSphereParser extends GrokParser {
 
 	private static final long serialVersionUID = 4860439408055777358L;
 
-	public GrokWebSphereParser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
-
 	@Override
 	protected long formatTimestamp(Object value) {
 		long epochTimestamp = System.currentTimeMillis();

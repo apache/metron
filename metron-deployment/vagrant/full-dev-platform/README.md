@@ -1,7 +1,9 @@
-Apache Metron on Virtualbox
-===========================
+Full Development Platform
+=========================
 
-This project fully automates the provisioning of Apache Metron on single, virtualized host running on Virtualbox.  Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress your computer.   To work sufficiently this will require at least 8 GB of RAM and a fair amount of patience.
+This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running on Virtualbox.  
+
+Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
 Getting Started
 ---------------
@@ -16,15 +18,13 @@ The computer used to deploy Apache Metron will need to have the following compon
  - Python 2.7.11
  - Maven 3.3.9
 
-Any platform that supports these tools is suitable, but the following instructions cover installation on Mac OS X only.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+#### OS X
 
-1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
+Any platform that supports these tools is suitable, but the following instructions cover installation on Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
-  ```
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  ```
+1. Install Homebrew by following the instructions at [Homebrew](http://brew.sh/).
 
-2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
+2. Run the following command in a terminal to install all of the required tools.
 
   ```  
   brew cask install vagrant virtualbox
@@ -32,15 +32,7 @@ Any platform that supports these tools is suitable, but the following instructio
   pip install ansible==2.0.0.2
   ```
 
-3. Install Vagrant Hostmanager.
-
-  ```
-  vagrant plugin install vagrant-hostmanager
-  ```
-
-### Metron
-
-Now that the hard part is done, start the Metron deployment process.
+### Deploy Metron
 
 1. Build Metron
 
@@ -49,7 +41,13 @@ Now that the hard part is done, start the Metron deployment process.
   mvn clean package -DskipTests
   ```
 
-2. Deploy Metron
+2. Install Vagrant Hostmanager.
+
+  ```
+  vagrant plugin install vagrant-hostmanager
+  ```
+
+3. Deploy Metron
 
   ```
   cd metron-deployment/vagrant/full-dev-platform
@@ -62,41 +60,46 @@ Now that the hard part is done, start the Metron deployment process.
   vagrant provision
   ```
 
-  In addition to re-running the entire provisioning play book, you may now re-run an individual Ansible tag or a collection of tags in the following ways.
-
-  ```
-  ./run_ansible_role.sh web
-  ```
-  or
-  ```
-  vagrant --ansible-tags="web" provision
-  ```
-  Will re-run the web role on the Vagrant image. This will re-install (if necessary) and start the UI.
-
-  A collection of tags is specified as a comma separated list.
-
-  ```
-  ./run_ansbile_role.sh "sensors,enrichment"
-
-  ```
-
-  Tags are listed in the playbooks, some frequently used tags:
-  + hdp-install - Install HDP
-  + hdp-deploy - Deploy and Start HDP Services (will start all Hadoop Services)
-  + sensors - Deploy and Start Sensors.
-  + enrichment - Deploy and Start Enrichment Topology.
-
-  Note: there is a convienence script, ```./run_enrichment_role.sh```,  which runs the enrichment tag.
-
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
  - [Metron](http://node1:8080)
  - [Ambari](http://node1:5000)
+ - [Services](http://node1:2812)
 
 Connecting to the host through SSH is as simple as running the following command.
 
-   ```
-   vagrant ssh
-   ```
+```
+vagrant ssh
+```
+
+### Working with Metron
+
+In addition to re-running the entire provisioning play book, you may now re-run an individual Ansible tag or a collection of tags in the following ways.  The following commands will re-run the `web` role on the Vagrant image. This will install components (if necessary) and start the UI.
+
+```
+./run_ansible_role.sh web
+```
+or
+
+```
+vagrant --ansible-tags="web" provision
+```
+
+#### Using Tags
+
+A collection of tags is specified as a comma separated list.
+
+```
+./run_ansible_role.sh "sensors,enrichment"
+
+```
+
+Tags are listed in the playbooks, some frequently used tags:
++ `hdp-install` - Install HDP
++ `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
++ `sensors` - Deploy and Start Sensors.
++ `enrichment` - Deploy and Start Enrichment Topology.
+
+Note also that there is a convenience script `./run_enrichment_role.sh`  which executes Vagrant with the `enrichment` tag.

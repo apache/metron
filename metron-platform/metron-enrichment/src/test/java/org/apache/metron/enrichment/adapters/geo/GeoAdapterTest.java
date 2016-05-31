@@ -47,7 +47,7 @@ public class GeoAdapterTest {
    * "latitude":"test latitude",
    * "longitude":"test longitude",
    * "dmaCode":"test dma",
-   * "location_point":"test longitude,test latitude"
+   * "location_point":"test latitude,test longitude"
    * }
    */
   @Multiline
@@ -66,7 +66,7 @@ public class GeoAdapterTest {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
     MockitoAnnotations.initMocks(this);
-    when(statetment.executeQuery("select IPTOLOCID(\"CacheKey{field='dummy', value='72.163.4.161'}\") as ANS")).thenReturn(resultSet);
+    when(statetment.executeQuery("select IPTOLOCID(\"" + ip + "\") as ANS")).thenReturn(resultSet);
     when(statetment.executeQuery("select * from location where locID = 1")).thenReturn(resultSet1);
     when(resultSet.next()).thenReturn(Boolean.TRUE, Boolean.FALSE);
     when(resultSet.getString("ANS")).thenReturn("1");
@@ -83,7 +83,12 @@ public class GeoAdapterTest {
 
   @Test
   public void testEnrich() throws Exception {
-    GeoAdapter geo = new GeoAdapter();
+    GeoAdapter geo = new GeoAdapter() {
+      @Override
+      public boolean initializeAdapter() {
+        return true;
+      }
+    };
     geo.setStatement(statetment);
     JSONObject actualMessage = geo.enrich(new CacheKey("dummy", ip, null));
     Assert.assertNotNull(actualMessage.get("locID"));

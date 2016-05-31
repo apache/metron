@@ -46,16 +46,28 @@
   with_items:
      - '{{ elasticsearch_data_dir.split(",") }}'
 
+- name: Configure Elasticsearch - remove stale entries
+  lineinfile: >
+    dest=/etc/elasticsearch/elasticsearch.yml
+    regexp="{{ item }}"
+    state=absent
+  with_items:
+    - '^cluster\.name:'
+    - '^network\.host:'
+    - '^discovery\.zen\.ping\.unicast\.hosts:'
+    - '^path\.data'
+
 - name: Configure Elasticsearch
   lineinfile: >
     dest=/etc/elasticsearch/elasticsearch.yml
     regexp="{{ item.regexp }}"
+    insertafter="{{ item.regexp }}"
     line="{{ item.line }}"
     state=present
   with_items:
-    - { regexp: '#cluster\.name', line: 'cluster.name: metron' }
-    - { regexp: '#network\.host:', line: 'network.host: _{{
+    - { regexp: '^# *cluster\.name:', line: 'cluster.name: metron' }
+    - { regexp: '^# *network\.host:', line: 'network.host: _{{
     elasticsearch_network_interface  }}:ipv4_' }
-    - { regexp: '#discovery\.zen\.ping\.unicast\.hosts',
+    - { regexp: '^# *discovery\.zen\.ping\.unicast\.hosts:',
     line: 'discovery.zen.ping.unicast.hosts: [ {{ es_hosts }} ]'}
-    - { regexp: '#path\.data', line: 'path.data: {{     elasticsearch_data_dir }}' }
+    - { regexp: '^# *path\.data', line: 'path.data: {{     elasticsearch_data_dir }}' }

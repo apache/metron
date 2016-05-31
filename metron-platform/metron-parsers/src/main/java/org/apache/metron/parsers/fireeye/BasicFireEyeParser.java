@@ -31,6 +31,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,11 @@ public class BasicFireEyeParser extends BasicParser {
 		// grok = MetronGrok.create(file.getPath());
 		//
 		// grok.compile("%{FIREEYE_BASE}");
+	}
+
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
 	}
 
 	@Override

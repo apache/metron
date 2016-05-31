@@ -73,6 +73,11 @@ public class BasicSnortParser extends BasicParser {
   private String recordDelimiter = ",";
 
   @Override
+  public void configure(Map<String, Object> parserConfig) {
+
+  }
+
+  @Override
   public void init() {
 
   }

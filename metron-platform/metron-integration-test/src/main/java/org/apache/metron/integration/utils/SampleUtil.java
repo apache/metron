@@ -20,15 +20,32 @@ package org.apache.metron.integration.utils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.ParserConfigurations;
 
 import java.io.IOException;
 import java.util.Map;
 
 public class SampleUtil {
 
-  public static
-  Configurations getSampleConfigs() throws IOException {
+  public static Configurations getSampleConfigs() throws IOException {
     Configurations configurations = new Configurations();
+    configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));
+    return configurations;
+  }
+
+  public static ParserConfigurations getSampleParserConfigs() throws IOException {
+    ParserConfigurations configurations = new ParserConfigurations();
+    configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));
+    Map<String, byte[]> sensorParserConfigs = ConfigurationsUtils.readSensorParserConfigsFromFile(TestConstants.PARSER_CONFIGS_PATH);
+    for(String sensorType: sensorParserConfigs.keySet()) {
+      configurations.updateSensorParserConfig(sensorType, sensorParserConfigs.get(sensorType));
+    }
+    return configurations;
+  }
+
+  public static EnrichmentConfigurations getSampleEnrichmentConfigs() throws IOException {
+    EnrichmentConfigurations configurations = new EnrichmentConfigurations();
     configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));
     Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.SAMPLE_CONFIG_PATH);
     for(String sensorType: sensorEnrichmentConfigs.keySet()) {

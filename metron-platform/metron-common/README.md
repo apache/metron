@@ -68,18 +68,28 @@ The configuration is a complex JSON object with the following top level fields:
 ###The `enrichment` Configuration 
 
 
-| Field            | Description                                                                                                                                                                                                                      | Example                                                                   |
-|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| Field            | Description                                                                                                                                                                                                                   | Example                                                          |
+|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
 | `fieldToTypeMap` | In the case of a simple HBase enrichment (i.e. a key/value lookup), the mapping between fields and the enrichment types associated with those fields must be known.  This enrichment type is used as part of the HBase key. | `"fieldToTypeMap" : { "ip_src_addr" : [ "asset_enrichment" ] }`  |
-| `fieldMap`       | The map of enrichment bolts names to fields in the JSON messages.,Each field is sent to the enrichment referenced in the key.                                                                                                    | `"fieldMap": {"hbaseEnrichment": ["ip_src_addr","ip_dst_addr"]}` |
+| `fieldMap`       | The map of enrichment bolts names to fields in the JSON messages.,Each field is sent to the enrichment referenced in the key.                                                                                                 | `"fieldMap": {"hbaseEnrichment": ["ip_src_addr","ip_dst_addr"]}` |
+| `config`         | The general configuration for the enrichment                                                                                                                                                                                  | `"config": {"typeToColumnFamily": { "asset_enrichment","cf" } }` |
+
+The `config` map is intended to house enrichment specific configuration.
+For instance, for the `hbaseEnrichment`, the mappings between the
+enrichment types to the column families is specified.
 
 ###The `threatIntel` Configuration 
 
-| Field            | Description                                                                                                                                                                                                                                      | Example                                                                  |
-|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Field            | Description                                                                                                                                                                                                                                   | Example                                                                  |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
 | `fieldToTypeMap` | In the case of a simple HBase threat intel enrichment (i.e. a key/value lookup), the mapping between fields and the enrichment types associated with those fields must be known.  This enrichment type is used as part of the HBase key. | `"fieldToTypeMap" : { "ip_src_addr" : [ "malicious_ips" ] }`             |
 | `fieldMap`       | The map of threat intel enrichment bolts names to fields in the JSON messages. Each field is sent to the threat intel enrichment bolt referenced in the key.                                                                              | `"fieldMap": {"hbaseThreatIntel": ["ip_src_addr","ip_dst_addr"]}`        |
-| `triageConfig`   | The configuration of the threat triage scorer.  In the situation where a threat is detected, a score is assigned to the message and embedded in the indexed message.                                                                             | `"riskLevelRules" : { "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')" : 10 }` |
+| `triageConfig`   | The configuration of the threat triage scorer.  In the situation where a threat is detected, a score is assigned to the message and embedded in the indexed message.                                                                    | `"riskLevelRules" : { "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')" : 10 }` |
+| `config`         | The general configuration for the Threat Intel                                                                                                                                                                                                | `"config": {"typeToColumnFamily": { "malicious_ips","cf" } }`            |
+
+The `config` map is intended to house threat intel specific configuration.
+For instance, for the `hbaseThreatIntel` threat intel adapter, the mappings between the
+enrichment types to the column families is specified.
 
 The `triageConfig` field is also a complex field and it bears some description:
 
