@@ -1,0 +1,29 @@
+# Month - two digit number is used
+MONTH \d{2}
+
+# Day - two digit number is used
+DAY \d{2}
+
+# Year - full four digit year is listed
+YEAR \d{4}
+
+# Time - two digit hour, minute, and second
+TIME \d{2}:\d{2}:\d{2}
+
+# Timestamp - month, day, and time
+TIMESTAMP %{YEAR:UNWANTED}-%{MONTH:UNWANTED}-%{DAY:UNWANTED} %{TIME:UNWANTED}
+
+# Source
+SOURCE [^:]+
+
+# Priority
+PRIORITY \d+
+
+# Field - A data field in the message
+FIELD [^"]+
+
+# Log start - the first part of the log line
+LOGSTART <%{PRIORITY:priority}> %{SOURCE:UNWANTED} "%{TIMESTAMP:timestamp_string}"
+
+# Lenel Badge - a basic Lenel Badge log entry
+LENELBADGE %{LOGSTART:UNWANTED} PANEL_ID="%{FIELD:panel_id}", PANEL_EVT_ID="%{FIELD:panel_event_id}", BLDG_NUM="%{FIELD:building_number}", BLDG_NM="%{FIELD:building_name}", BLDG_USGE_DESC="%{FIELD:building_usage_description}", BLDG_DEPT_ID="%{FIELD:building_department_id}", BLDG_SPACE_PLANR_NM="%{FIELD:building_space_planner_name}", BLDG_STR_ADR_TXT="%{FIELD:building_street_address}", BLDG_CITY_NM="%{FIELD:building_city_name}", BLDG_ST_NM="%{FIELD:building_state_name}", BLDG_PSTL_CD="%{FIELD:building_postal_code}", CNTRY_NM="%{FIELD:building_country_name}", BADGE_ID="%{FIELD:badge_id}", BADGE_TYPE_DESC="%{FIELD:badge_type_description}", BADGE_STAT_DESC="%{FIELD:badge_status_description}", BADGE_HOLDR_FRST_NM="%{FIELD:badge_holder_first_name}", BADGE_HOLDR_MID_NM="%{FIELD:badge_holder_middle_name}", BADGE_HOLDR_LAST_NM="%{FIELD:badge_holder_last_name}", BADGE_HOLDR_TYPE_DESC="%{FIELD:badge_holder_type_description}", EMP_ENT_USER_ID="%{FIELD:user_id}", SUPVR_ENT_USER_ID="%{FIELD:supervisor_user_id}", SUPVR_FRST_NM="%{FIELD:supervisor_first_name}", SUPVR_MID_NM="%{FIELD:supervisor_middle_name}", SUPVR_LAST_NM="%{FIELD:supervisor_last_name}", EMP_DEPT_ID="%{FIELD:employee_department_id}", EMP_DEPT_NM="%{FIELD:employee_department_name}", PRSNL_TYPE_CD="%{FIELD:personnel_type_code}", REG_TEMP_TYPE_CD="%{FIELD:regular_temp_type_code}", FULL_TM_PART_TM_TYPE_CD="%{FIELD:full_time_part_time_type_code}", EVT_TYPE_DESC="%{FIELD:event_type_description}", EVT_TS="%{FIELD:UNWANTED}", EVT_LOCL_DT="%{FIELD:event_local_date}", EVT_LOCL_HOUR_NUM="%{FIELD:event_local_hour_num}", EVT_LOCL_WEEK_NUM="%{FIELD:event_local_week_num}", EVT_LOCL_DAY_NM="%{FIELD:event_local_day_name}", EVT_LOCL_DAY_HOL_IND="%{FIELD:event_local_day_holiday_indicator}", EMP_FRST_DLY_CMPS_SWIPE_IND="%{FIELD:emp_first_dly_cmps_swipe_ind}", EMP_FRST_UNQ_CMPS_SWIPE_IND="%{FIELD:emp_first_unq_cmps_swipe_ind}", WPSDW_PUBLN_ID="%{FIELD:wpsdw_publn_id}"

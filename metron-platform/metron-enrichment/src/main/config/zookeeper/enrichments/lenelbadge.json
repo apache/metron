@@ -1,0 +1,9 @@
+{
+  "index": "lenelbadge",
+  "batchSize": 5,
+  "enrichment": {
+    "fieldMap": {},
+  "fieldToTypeMap": {}
+  }
+}
+

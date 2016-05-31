@@ -1,0 +1,7 @@
+{
+  "index": "unixsyslog5424",
+  "batchSize": 5,
+  "enrichment": {
+  }
+}
+

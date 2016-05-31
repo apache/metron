@@ -24,7 +24,13 @@ import org.apache.metron.test.utils.SampleDataUtils;
 import org.apache.metron.test.utils.ValidationUtils;
 import org.junit.Assert;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import static org.apache.metron.integration.utils.TestUtils.readSampleData;
 
 public class SampleDataValidation implements ParserValidation {
 
@@ -35,7 +41,7 @@ public class SampleDataValidation implements ParserValidation {
 
   @Override
   public void validate(String sensorType, List<byte[]> actualMessages) throws Exception {
-    List<byte[]> expectedMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.PARSED));
+    List<byte[]> expectedMessages = readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.PARSED));
     Assert.assertEquals(expectedMessages.size(), actualMessages.size());
     for (int i = 0; i < actualMessages.size(); i++) {
       String expectedMessage = new String(expectedMessages.get(i));
@@ -49,4 +55,5 @@ public class SampleDataValidation implements ParserValidation {
       }
     }
   }
+
 }

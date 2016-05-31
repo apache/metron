@@ -1,0 +1,9 @@
+{
+  "parserClassName":"org.apache.metron.parsers.cef.CEFParser",
+  "sensorTopic":"fireeye",
+  "parserConfig":
+  {
+    "dateFormat":"MMM dd yyyy HH:mm:ss Z",
+    "timezone":"UTC"
+  }
+}
