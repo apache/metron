@@ -1,5 +1,5 @@
 {
-  "parserClassName":"org.apache.metron.parsers.websphere.GrokRFC3164Parser",
+  "parserClassName":"org.apache.metron.parsers.rfc3164.GrokRFC3164Parser",
   "sensorTopic":"rfc3164",
   "parserConfig":
   {
