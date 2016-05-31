@@ -102,7 +102,7 @@ public class CEFParser extends BasicParser {
 				return null;
 			}
 			
-			payload.put("original_string", message);
+			payload.put("original_string", message.replace("\\=", "="));
 			String[] parts = message.split("\\|");
 
 			// Add the standard CEF fields
@@ -122,12 +122,16 @@ public class CEFParser extends BasicParser {
 			while (findNextEquals(fields) !=  findLastEquals(fields)) {
 
 				// Extract the key-value pairs
-				key = fields.substring(0, findNextEquals(fields));
+				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
 				value = fields.substring(0, findNextEquals(fields));
 				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
+				//Trim and remove escaped equals characters from values and keys
+				key = key.replace("\\=", "=").trim();
+				value = value.replace("\\=", "=").trim();
+				
 				// Place in JSON, accounting for custom field names
 				if (payload.containsKey(key+"Label")) {
 					payload.put(payload.get(key+"Label"), value);	
@@ -143,8 +147,8 @@ public class CEFParser extends BasicParser {
 			}
 
 			// Handle last remaining key-value pair
-			key = fields.substring(0, findNextEquals(fields));
-			value = fields.substring(findNextEquals(fields) + 1);
+			key = fields.substring(0, findNextEquals(fields)).replace("\\=", "=").trim();
+			value = fields.substring(findNextEquals(fields) + 1).replace("\\=", "=").trim();
 			if (payload.containsKey(key+"Label")) {
 				payload.put(payload.get(key+"Label"), value);	
 				payload.remove(key+"Label");
@@ -416,7 +420,7 @@ public class CEFParser extends BasicParser {
 			json.remove("proto");
 		}
 		if (json.containsKey("request")) {
-			json.put("fileName", json.get("request"));
+			json.put("requestURL", json.get("request"));
 			json.remove("request");
 		}
 		if (json.containsKey("shost")) {
