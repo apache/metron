@@ -37,6 +37,7 @@ import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.dataloads.bulk.ThreatIntelBulkLoader;
 import org.apache.metron.dataloads.nonbulk.taxii.TaxiiLoader;
+import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -118,7 +119,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
                                                   )
                                           )
                          );
-            Assert.assertTrue(lookup.exists((EnrichmentKey)k, testTable, true));
+            Assert.assertTrue(lookup.exists((EnrichmentKey)k, new EnrichmentLookup.HBaseContext(testTable, cf), true));
         }
         pat.persist(true);
         for(LookupKey k : goodKeysOtherHalf) {
@@ -129,7 +130,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
                                                                   )
                                          )
                          );
-            Assert.assertTrue(lookup.exists((EnrichmentKey)k, testTable, true));
+            Assert.assertTrue(lookup.exists((EnrichmentKey)k, new EnrichmentLookup.HBaseContext(testTable, cf), true));
         }
         testUtil.flush();
         Assert.assertFalse(lookup.getAccessTracker().hasSeen(goodKeysHalf.get(0)));
@@ -153,10 +154,10 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         Job job = LeastRecentlyUsedPruner.createJob(config, tableName, cf, atTableName, atCF, ts);
         Assert.assertTrue(job.waitForCompletion(true));
         for(LookupKey k : goodKeys) {
-            Assert.assertTrue(lookup.exists((EnrichmentKey)k, testTable, true));
+            Assert.assertTrue(lookup.exists((EnrichmentKey)k, new EnrichmentLookup.HBaseContext(testTable, cf), true));
         }
         for(LookupKey k : badKey) {
-            Assert.assertFalse(lookup.exists((EnrichmentKey)k, testTable, true));
+            Assert.assertFalse(lookup.exists((EnrichmentKey)k, new EnrichmentLookup.HBaseContext(testTable, cf), true));
         }
 
     }
