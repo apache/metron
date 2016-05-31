@@ -1,10 +1,9 @@
 {
   "parserClassName":"org.apache.metron.parsers.cef.CEFParser",
-  "sensorTopic":"adallom",
+  "sensorTopic":"fireeye",
   "parserConfig":
   {
-    "dateFormat":"MM-dd'T'HH:mm:ss",
-    "timezone":"UTC",
-    "headerRegEx":"\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d"
+    "dateFormat":"MMM dd yyyy HH:mm:ss Z",
+    "timezone":"UTC"
   }
 }
