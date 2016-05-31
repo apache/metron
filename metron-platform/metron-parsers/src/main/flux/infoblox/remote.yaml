@@ -20,7 +20,7 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.websphere.GrokInfobloxParser"
+        className: "org.apache.metron.parsers.infoblox.GrokInfobloxParser"
         constructorArgs:
             - "/patterns/infoblox"
             - "INFOBLOX"

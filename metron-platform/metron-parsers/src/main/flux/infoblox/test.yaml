@@ -20,14 +20,14 @@ config:
 
 components:
     -   id: "parser"
-        className: "org.apache.metron.parsers.websphere.GrokInfobloxParser"
+        className: "org.apache.metron.parsers.infoblox.GrokInfobloxParser"
         constructorArgs:
             - "../metron-parsers/src/main/resources/patterns/infoblox"
             - "INFOBLOX"
         configMethods:
-            -   name: "withTimestampField"
-                args:
-                    - "timestamp"
+         #   -   name: "withTimestampField"
+          #      args:
+           #         - "timestamp"
             -   name: "withDateFormat"
                 args:
                     - "yyyy MMM dd HH:mm:ss"
