@@ -1,0 +1,10 @@
+{
+  "parserClassName":"org.apache.metron.parsers.aruba.GrokArubaParser",
+  "sensorTopic":"aruba",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/aruba",
+    "patternLabel":"ARUBA",
+    "dateFormat":"yyyy-MM-dd HH:mm:ss"
+  }
+}
