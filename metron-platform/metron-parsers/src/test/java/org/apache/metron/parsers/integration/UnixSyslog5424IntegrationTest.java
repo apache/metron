@@ -18,33 +18,23 @@
 
 package org.apache.metron.parsers.integration;
 
-import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class UnixSyslog5424IntegrationTest extends ParserIntegrationTest {
-	
-	  @Override
-	  public String getFluxPath() {
-	    return "./src/main/flux/unixsyslog5424/test.yaml";
-	  }
 
-	  @Override
-	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "UnixSyslog5424Output";
-	  }
+	@Override
+	public String getSensorType() {
+		return "unixsyslog5424";
+	}
 
-	  @Override
-	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "UnixSyslog5424Parsed";
-	  }
-
-	  @Override
-	  public String getSensorType() {
-	    return "unixsyslog5424";
-	  }
-
-	  @Override
-	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.unixsyslog5424";
-	  }
+	@Override
+	List<ParserValidation> getValidations() {
+		return new ArrayList<ParserValidation>() {{
+			add(new SampleDataValidation());
+		}};
+	}
 
 }

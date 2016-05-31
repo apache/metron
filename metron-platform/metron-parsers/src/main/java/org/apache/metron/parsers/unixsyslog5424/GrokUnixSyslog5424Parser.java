@@ -28,11 +28,6 @@ import java.util.Iterator;
 public class GrokUnixSyslog5424Parser extends GrokParser {
 
 
-
-	public GrokUnixSyslog5424Parser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
-
 	@Override
 	protected long formatTimestamp(Object value) {
 		long epochTimestamp = System.currentTimeMillis();

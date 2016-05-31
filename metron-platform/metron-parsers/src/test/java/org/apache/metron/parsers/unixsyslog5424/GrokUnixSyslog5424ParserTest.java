@@ -20,25 +20,36 @@ package org.apache.metron.parsers.unixsyslog5424;
 
 import org.apache.metron.parsers.websphere.GrokWebSphereParser;
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 public class GrokUnixSyslog5424ParserTest {
 
-	private final String grokPath = "../metron-parsers/src/main/resources/patterns/unixsyslog5424";
-	private final String grokLabel = "UNIXSYSLOG5424";
-	private final String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-	private final String timestampField = "timestamp_string";
-	
+
+	private Map<String, Object> parserConfig;
+
+	@Before
+	public void setup() {
+		parserConfig = new HashMap<>();
+		parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/unixsyslog5424");
+		parserConfig.put("patternLabel", "UNIXSYSLOG5424");
+		parserConfig.put("timestampField", "timestamp_string");
+		parserConfig.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS");
+	}
+
+
 	@Test
 	public void testParseRealLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
+		parser.configure(parserConfig);
 		String testString = "<166>2016-05-20T12:53:01.034Z vpcr07.abc.google.com Vpxa: [71237B90 verbose 'hostdstats'] Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -57,8 +68,8 @@ public class GrokUnixSyslog5424ParserTest {
 	public void testParseWithoutExtraInfo() throws Exception {
 
 		//Set up parser, parse message
-		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
+		parser.configure(parserConfig);
 		String testString = "<166>2016-05-20T12:53:01.034Z vpcr07.abc.google.com Vpxa: Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -76,8 +87,8 @@ public class GrokUnixSyslog5424ParserTest {
 	public void testParseShortTimestamp() throws Exception {
 
 		//Set up parser, parse message
-		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
+		parser.configure(parserConfig);
 		String testString = "<166>2016-05-20T12:53:01.03Z vpcr07.abc.google.com Vpxa: [71237B90 verbose 'hostdstats'] Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -96,13 +107,12 @@ public class GrokUnixSyslog5424ParserTest {
 	public void testParseMalformedLine() throws Exception {
 
 		//Set up parser, parse message
-		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
-		String testString = "<166>2016-05-20T12:53:01.03Z Vpxa: [71237B90 verbose 'hostdstats'] Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
+		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
+		parser.configure(parserConfig);
+		String testString = "<1662016-05-20T12:53:01.03Z Vpxa Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
 		List<JSONObject> result = parser.parse(testString.getBytes());
-		JSONObject parsedJSON = result.get(0);
 
-		assertEquals(parsedJSON, null);
+		assertEquals(result, null);
 
 	}
 
@@ -111,7 +121,8 @@ public class GrokUnixSyslog5424ParserTest {
 	public void testParseEmptyLine() throws Exception {
 		
 		//Set up parser, attempt to parse malformed message
-		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser(grokPath, grokLabel);
+		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
+		parser.configure(parserConfig);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
 		assertEquals(null, result);
