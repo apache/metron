@@ -106,10 +106,12 @@ public class WindowsSyslogParser extends BasicParser {
 
 			String messageFull = results.get(1);
 
-			String line2;
 			String []fields = messageFull.split("\n");
 			boolean logonType = false;
 			boolean securityID = false;
+			boolean subjectAccountName = false;
+			boolean newLogonAccountName = false;
+
 			for(int i = 0; i < fields.length; i++) {
 				if (fields[i].contains("Logon Type"))
 				{
@@ -125,7 +127,22 @@ public class WindowsSyslogParser extends BasicParser {
 					value = fields[i].substring(fields[i].indexOf("COF\\")+4,fields[i].length());
 					toReturn.put("security_id", value.replaceAll("\\s+",""));
 					securityID = true;
-					//toReturn.put("SecurityID", fields[i]);
+				}
+
+				if (fields[i].contains("Account Name") && subjectAccountName==true && newLogonAccountName==false)
+				{
+					String value = "";
+					value = fields[i].substring(fields[i].indexOf(":")+1,fields[i].length());
+					toReturn.put("newLogonAccountName", value.replaceAll("\\s+",""));
+					newLogonAccountName = true;
+				}
+
+				if (fields[i].contains("Account Name") && subjectAccountName==false)
+				{
+					String value = "";
+					value = fields[i].substring(fields[i].indexOf(":")+1,fields[i].length());
+					toReturn.put("subjectAccountName", value.replaceAll("\\s+",""));
+					subjectAccountName = true;
 				}
 			}
 			if(logonType == false)
@@ -135,6 +152,14 @@ public class WindowsSyslogParser extends BasicParser {
 			if(securityID == false)
 			{
 				toReturn.put("security_id", "");
+			}
+			if(subjectAccountName == false)
+			{
+				toReturn.put("subjectAccountName", "");
+			}
+			if(newLogonAccountName == false)
+			{
+				toReturn.put("newLogonAccountName", "");
 			}
 		}
 		catch (ParseException e) {
