@@ -46,6 +46,11 @@ public class SoltraParser extends BasicParser {
 
 	}
 
+	@Override
+	public void configure(Map<String, Object> config) {
+
+	}
+
 	public List<JSONObject> parse(byte[] msg) {
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -412,6 +417,7 @@ public class SoltraParser extends BasicParser {
 
 		return 0L;
 	}
+
 
 
 }
