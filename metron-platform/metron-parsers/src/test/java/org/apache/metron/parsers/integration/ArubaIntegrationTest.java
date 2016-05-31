@@ -18,33 +18,23 @@
 
 package org.apache.metron.parsers.integration;
 
-import org.apache.metron.TestConstants;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 
 public class ArubaIntegrationTest extends ParserIntegrationTest {
 	
-	  @Override
-	  public String getFluxPath() {
-	    return "./src/main/flux/aruba/test.yaml";
-	  }
+	@Override
+	public String getSensorType() {
+		return "aruba";
+	}
 
-	  @Override
-	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "ArubaOutput";
-	  }
-
-	  @Override
-	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "ArubaParsed";
-	  }
-
-	  @Override
-	  public String getSensorType() {
-	    return "aruba";
-	  }
-
-	  @Override
-	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.aruba";
-	  }
+	@Override
+	List<ParserValidation> getValidations() {
+		return new ArrayList<ParserValidation>() {{
+			add(new SampleDataValidation());
+		}};
+	}
 
 }

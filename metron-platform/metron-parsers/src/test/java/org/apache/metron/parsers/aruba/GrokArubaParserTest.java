@@ -18,26 +18,35 @@
 
 package org.apache.metron.parsers.aruba;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
 import junit.framework.Assert;
 
 public class GrokArubaParserTest {
 	
-	private final String grokPath = "../metron-parsers/src/main/resources/patterns/aruba";
-	private final String grokLabel = "ARUBA";
-	private final String dateFormat = "yyyy-MM-dd HH:mm:ss";
+	private Map<String, Object> parserConfig;
+	
+	@Before
+	public void setup() {
+		parserConfig = new HashMap<>();
+		parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/aruba");
+		parserConfig.put("patternLabel", "ARUBA");
+		parserConfig.put("dateFormat", "yyyy-MM-dd HH:mm:ss");
+	}
 	
 	//Tests a well-formed Aruba line
 	@Test
 	public void testParseSampleLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokArubaParser parser = new GrokArubaParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat);
+		GrokArubaParser parser = new GrokArubaParser();
+		parser.configure(parserConfig);
 		String testString = "<143>2016-04-29 04:27:31,823  110.137.3.2 CPPM_Session_Detail 473964876 1 0 "
 				+ "id=5983679670,session_id=R011cf48e-04-57231aa3,type=RADIUS_IN,attr_name=Radius:IETF:User-Name,"
 				+ "attr_value=ac81125d02ea,timestamp=2016-04-29 04:26:13.002367-04";
@@ -60,8 +69,8 @@ public class GrokArubaParserTest {
 	@Test
 	public void testParseMalformedLine() throws Exception {
 		//Set up parser, attempt to parse message
-		GrokArubaParser parser = new GrokArubaParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat);
+		GrokArubaParser parser = new GrokArubaParser();
+		parser.configure(parserConfig);
 		String testString = "<143>2016-04-29 04:27:31,823  110.137.3.2 CPPM_Session_Detail 473964876 1 0 "
 				+ "id=5983679670,session_id=R011cf48e-04-57231aa3,type=RADIUS_IN,atr_name=Radius:IETF:User-Name,"
 				+ "attr_value=ac81125d02ea,timestamp=2016-04-29 04:26:13.002367-04";
@@ -75,8 +84,8 @@ public class GrokArubaParserTest {
 	@Test
 	public void testParseEmptyLine() throws Exception {
 		//Set up parser, attempt to parse message
-		GrokArubaParser parser = new GrokArubaParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat);
+		GrokArubaParser parser = new GrokArubaParser();
+		parser.configure(parserConfig);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		

@@ -28,10 +28,6 @@ public class GrokArubaParser extends GrokParser {
 
 	private static final long serialVersionUID = 3975493065728576059L;
 
-	public GrokArubaParser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
-
 	//Removes empty fields, formats the timestamp, tags IPs
 	@Override
 	@SuppressWarnings("unchecked")
