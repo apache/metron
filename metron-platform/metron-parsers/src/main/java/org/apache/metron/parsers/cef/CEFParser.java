@@ -411,7 +411,7 @@ public class CEFParser extends BasicParser {
 			json.remove("proto");
 		}
 		if (json.containsKey("request")) {
-			json.put("fileName", json.get("request"));
+			json.put("requestURL", json.get("request"));
 			json.remove("request");
 		}
 		if (json.containsKey("shost")) {
