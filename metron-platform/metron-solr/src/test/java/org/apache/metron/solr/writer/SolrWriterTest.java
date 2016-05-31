@@ -19,6 +19,7 @@ package org.apache.metron.solr.writer;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.integration.utils.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
@@ -92,7 +93,7 @@ public class SolrWriterTest {
 
   @Test
   public void testWriter() throws Exception {
-    Configurations configurations = SampleUtil.getSampleConfigs();
+    EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
     JSONObject message1 = new JSONObject();
     message1.put("intField", 100);
     message1.put("doubleField", 100.0);

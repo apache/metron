@@ -28,8 +28,8 @@
   template: src=monit/enrichment-elasticsearch.monit dest={{ monit_config_home }}/enrichment-elasticsearch.monit
   when: ("enrichment" in group_names) and (install_elasticsearch | default(True))
 
-- name: Create monit definition for metron-ui
-  template: src=monit/metron-ui.monit dest={{ monit_config_home }}/metron-ui.monit
+- name: Create monit definition for kibana
+  template: src=monit/kibana.monit dest={{ monit_config_home }}/kibana.monit
   when: ("web" in group_names) and (install_elasticsearch | default(True))
 
 - name: Create monit definition for mysql
