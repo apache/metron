@@ -69,7 +69,7 @@ public class ConfigurationManagerIntegrationTest {
     zookeeperUrl = testZkServer.getConnectString();
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
-    File sensorDir = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), ConfigurationType.SENSOR.getDirectory());
+    File sensorDir = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), ConfigurationType.ENRICHMENT.getDirectory());
     sensors.addAll(Collections2.transform(
              Arrays.asList(sensorDir.list())
             ,s -> Iterables.getFirst(Splitter.on('.').split(s), "null")
@@ -114,9 +114,9 @@ public class ConfigurationManagerIntegrationTest {
     Assert.assertTrue("Global config does not exist", globalConfigFile.exists());
     validateConfig("global", ConfigurationType.GLOBAL, new String(Files.readAllBytes(Paths.get(globalConfigFile.toURI()))));
     for(String sensor : sensors) {
-      File sensorFile = new File(configDir, ConfigurationType.SENSOR.getDirectory() + "/" + sensor + ".json");
+      File sensorFile = new File(configDir, ConfigurationType.ENRICHMENT.getDirectory() + "/" + sensor + ".json");
       Assert.assertTrue(sensor + " config does not exist", sensorFile.exists());
-      validateConfig(sensor, ConfigurationType.SENSOR, new String(Files.readAllBytes(Paths.get(sensorFile.toURI()))));
+      validateConfig(sensor, ConfigurationType.ENRICHMENT, new String(Files.readAllBytes(Paths.get(sensorFile.toURI()))));
     }
   }
 
@@ -164,6 +164,7 @@ public class ConfigurationManagerIntegrationTest {
         }
       }
     });
+    Assert.assertEquals(true, foundGlobal.get());
     Assert.assertEquals(sensorsInZookeeper, sensors);
   }
 

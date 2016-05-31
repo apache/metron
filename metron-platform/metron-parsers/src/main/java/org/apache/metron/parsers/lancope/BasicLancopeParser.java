@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BasicLancopeParser extends BasicParser {
@@ -36,6 +37,11 @@ public class BasicLancopeParser extends BasicParser {
 
 	private static final Logger _LOG = LoggerFactory.getLogger(BasicLancopeParser
 					.class);
+
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
 
 	@Override
 	public void init() {

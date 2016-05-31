@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BasicIseParser extends BasicParser {
@@ -35,6 +36,11 @@ public class BasicIseParser extends BasicParser {
 	private static final Logger _LOG = LoggerFactory
 			.getLogger(BasicIseParser.class);
 	static final transient ISEParser _parser = new ISEParser("header=");
+
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
 
 	@Override
 	public void init() {
