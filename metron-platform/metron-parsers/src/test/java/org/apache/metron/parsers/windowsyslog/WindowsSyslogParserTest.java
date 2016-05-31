@@ -201,6 +201,8 @@ public class WindowsSyslogParserTest {
 		assertEquals(json.get("op_code"), "Info");
 		assertEquals(json.get("record_number"), "112720121");
 		assertEquals(json.get("keywords"), "Audit Success");
+		assertEquals(json.get("logon_type"), "3");
+		assertEquals(json.get("security_id"), "ABC");
 		assertEquals(json.get("message"), getRealLineMessageForTesting());
 
 	}

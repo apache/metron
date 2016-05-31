@@ -84,6 +84,7 @@ public class WindowsSyslogParser extends BasicParser {
 		}
 		try {
 			ArrayList<String> results = getWindowsSyslogString(fileName);
+
 			toReturn.put("original_string", results.get(0)  + results.get(1));
 
 			String windowsSyslogString = handleAndRemoveFirstLine(toReturn, results.get(0));
@@ -98,8 +99,42 @@ public class WindowsSyslogParser extends BasicParser {
 				String formattedKey = toStandardKeyConvention(fields[0]);
 				if (fields.length < 2) {
 					toReturn.put(formattedKey, "");
-				} else
+				} else {
 					toReturn.put(formattedKey, fields[1]);
+				}
+			}
+
+			String messageFull = results.get(1);
+
+			String line2;
+			String []fields = messageFull.split("\n");
+			boolean logonType = false;
+			boolean securityID = false;
+			for(int i = 0; i < fields.length; i++) {
+				if (fields[i].contains("Logon Type"))
+				{
+					String value = "";
+					value = fields[i].substring(fields[i].indexOf(":")+1,fields[i].length());
+					toReturn.put("logon_type", value.replaceAll("\\s+",""));
+					logonType = true;
+				}
+
+				if (fields[i].contains("Security ID") && fields[i].contains("COF\\"))
+				{
+					String value = "";
+					value = fields[i].substring(fields[i].indexOf("COF\\")+4,fields[i].length());
+					toReturn.put("security_id", value.replaceAll("\\s+",""));
+					securityID = true;
+					//toReturn.put("SecurityID", fields[i]);
+				}
+			}
+			if(logonType == false)
+			{
+				toReturn.put("logon_type", "");
+			}
+			if(securityID == false)
+			{
+				toReturn.put("security_id", "");
 			}
 		}
 		catch (ParseException e) {
