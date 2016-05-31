@@ -18,33 +18,23 @@
 
 package org.apache.metron.parsers.integration;
 
-import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CyberArkIntegrationTest extends ParserIntegrationTest {
-	
-	  @Override
-	  public String getFluxPath() {
-	    return "./src/main/flux/cyberark/test.yaml";
-	  }
 
-	  @Override
-	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "CyberArkOutput";
-	  }
+	@Override
+	public String getSensorType() {
+		return "adallom";
+	}
 
-	  @Override
-	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "CyberArkParsed";
-	  }
-
-	  @Override
-	  public String getSensorType() {
-	    return "cyberark";
-	  }
-
-	  @Override
-	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.cyberark";
-	  }
+	@Override
+	List<ParserValidation> getValidations() {
+		return new ArrayList<ParserValidation>() {{
+			add(new SampleDataValidation());
+		}};
+	}
 
 }
