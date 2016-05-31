@@ -24,27 +24,27 @@ public class GrokInfobloxIntegrationTest extends ParserIntegrationTest {
 	
 	  @Override
 	  public String getFluxPath() {
-	    return "./src/main/flux/websphere/test.yaml";
+	    return "./src/main/flux/infoblox/test.yaml";
 	  }
 
 	  @Override
 	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "WebsphereOutput.txt";
+	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "InfobloxExampleOutput";
 	  }
 
 	  @Override
 	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "WebsphereParsed";
+	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "GrokInfobloxParsed";
 	  }
 
 	  @Override
 	  public String getSensorType() {
-	    return "websphere";
+	    return "infoblox";
 	  }
 
 	  @Override
 	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.websphere";
+	    return "spout.kafka.topic.infoblox";
 	  }
 
 }
