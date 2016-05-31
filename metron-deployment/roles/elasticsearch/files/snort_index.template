@@ -1,0 +1,19 @@
+{
+   "template": "snort_index*",
+   "mappings": {
+      "snort_doc": {
+         "_timestamp": {
+            "enabled": true
+         },
+         "properties": {
+            "timestamp": {
+               "type": "date",
+               "format": "epoch_millis"
+            },
+            "enrichments:geo:ip_dst_addr:location_point": {
+               "type": "geo_point"
+            }
+         }
+      }
+   }
+}

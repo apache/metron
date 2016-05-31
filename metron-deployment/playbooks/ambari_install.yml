@@ -22,6 +22,14 @@
   tags:
     - ec2
 
+- hosts: packer
+  become: true
+  tasks:
+    - include_vars: ../inventory/full-dev-platform/group_vars/all
+  tags:
+    - packer
+
+
 - hosts: ambari_*
   become: true
   roles:

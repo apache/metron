@@ -19,7 +19,6 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
@@ -34,20 +33,15 @@ public class Configurations implements Serializable {
 
   private static final Logger LOG = Logger.getLogger(Configurations.class);
 
-  public enum Type {
-    GLOBAL, SENSOR, OTHER
-  }
-
-  public static final String GLOBAL_CONFIG_NAME = "global";
-
-  private ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
+  protected ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.get(GLOBAL_CONFIG_NAME);
+    return (Map<String, Object>) configurations.get(ConfigurationType.GLOBAL.getName());
   }
 
   public void updateGlobalConfig(byte[] data) throws IOException {
+    if (data == null) throw new IllegalStateException("global config data cannot be null");
     updateGlobalConfig(new ByteArrayInputStream(data));
   }
 
@@ -58,39 +52,7 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    configurations.put(GLOBAL_CONFIG_NAME, globalConfig);
-  }
-
-  public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
-    return (SensorEnrichmentConfig) configurations.get(sensorType);
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, byte[] data) throws IOException {
-    updateSensorEnrichmentConfig(sensorType, new ByteArrayInputStream(data));
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, InputStream io) throws IOException {
-    SensorEnrichmentConfig sensorEnrichmentConfig = JSONUtils.INSTANCE.load(io, SensorEnrichmentConfig.class);
-    updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfig);
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig) {
-    configurations.put(sensorType, sensorEnrichmentConfig);
-  }
-
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> getConfig(String name) {
-    return (Map<String, Object>) configurations.get(name);
-  }
-
-  public void updateConfig(String name, byte[] data) throws IOException {
-    if (data == null) throw new IllegalStateException("config data cannot be null");
-    Map<String, Object> config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(data), new TypeReference<Map<String, Object>>() {});
-    updateConfig(name, config);
-  }
-
-  public void updateConfig(String name, Map<String, Object> config) {
-    configurations.put(name, config);
+    configurations.put(ConfigurationType.GLOBAL.getName(), globalConfig);
   }
 
   @Override
