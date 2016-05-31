@@ -18,33 +18,23 @@
 
 package org.apache.metron.parsers.integration;
 
-import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GrokBluecoatProxyIntegrationTest extends ParserIntegrationTest {
-	
-	  @Override
-	  public String getFluxPath() {
-	    return "./src/main/flux/bluecoat_proxy/test.yaml";
-	  }
 
-	  @Override
-	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "GrokBluecoatProxyExampleOutput.txt";
-	  }
+	@Override
+	public String getSensorType() {
+		return "bluecoat_proxy";
+	}
 
-	  @Override
-	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "GrokBluecoatProxyParsed";
-	  }
-
-	  @Override
-	  public String getSensorType() {
-	    return "bluecoat_proxy";
-	  }
-
-	  @Override
-	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.bluecoat_proxy";
-	  }
+	@Override
+	List<ParserValidation> getValidations() {
+		return new ArrayList<ParserValidation>() {{
+			add(new SampleDataValidation());
+		}};
+	}
 
 }

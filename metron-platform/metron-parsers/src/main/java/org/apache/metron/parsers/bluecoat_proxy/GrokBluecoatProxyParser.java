@@ -32,10 +32,6 @@ public class GrokBluecoatProxyParser extends GrokParser {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GrokBluecoatProxyParser.class);
 
-    public GrokBluecoatProxyParser(String grokHdfsPath, String patternLabel) {
-        super(grokHdfsPath, patternLabel);
-    }
-
     @Override
     protected void postParse(JSONObject message) {
         LOGGER.debug("Entered with postParse: " + message.toJSONString());

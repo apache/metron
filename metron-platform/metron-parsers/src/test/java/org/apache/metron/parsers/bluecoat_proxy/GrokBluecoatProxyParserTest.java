@@ -19,25 +19,34 @@
 package org.apache.metron.parsers.bluecoat_proxy;
 
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 public class GrokBluecoatProxyParserTest {
 
-	private final String grokPath = "../metron-parsers/src/main/resources/patterns/bluecoat_proxy";
-	private final String grokLabel = "BLUECOAT";
-	private final String dateFormat = "yyyy-MM-dd HH:mm:ss";
-	private final String timestampField = "timestamp";
+	private Map<String, Object> parserConfig;
+
+	@Before
+	public void setup() {
+		parserConfig = new HashMap<>();
+		parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/bluecoat_proxy");
+		parserConfig.put("patternLabel", "BLUECOAT");
+		parserConfig.put("timestampField", "timestamp");
+		parserConfig.put("dateFormat", "yyyy-MM-dd HH:mm:ss");
+	}
 
 	@Test
 	public void testParseLine() throws Exception {
 		
 		//Set up parser, parse message
-		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser(grokPath, grokLabel);
-		parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser();
+		parser.configure(parserConfig);
 		String testString = "2016-05-16 15:17:26 283 101.215.31.19 200 TCP_NC_MISS 375 1046" +
 				" GET http www.saavnarnia.com 80 /stats.php" +
 				" ?ev=site:player:progressing:300&songid=RT6VpBOP&_t=1463411845618" +
@@ -78,7 +87,8 @@ public class GrokBluecoatProxyParserTest {
 	@Test
 	public void testMalformedLine() throws Exception {
 		//Set up parser, attempt to parse malformed message
-		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser(grokPath, grokLabel);
+		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser();
+		parser.configure(parserConfig);
 		String testString = "2016-05-16  15:17:26 283 101.215.31.19 200 TCP_NC_MISS 375 1046" +
 				" GET http www.saavnarnia.com 80 /stats.php" +
 				" ?ev=site:player:progressing:300&songid=RT6VpBOP&_t=1463411845618" +
@@ -94,7 +104,8 @@ public class GrokBluecoatProxyParserTest {
 	public void testParseEmptyLine() throws Exception {
 		
 		//Set up parser, attempt to parse malformed message
-		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser(grokPath, grokLabel);
+		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser();
+		parser.configure(parserConfig);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
 		assertEquals(null, result);
