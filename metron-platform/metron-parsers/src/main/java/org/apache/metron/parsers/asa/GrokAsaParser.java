@@ -186,7 +186,12 @@ public class GrokAsaParser extends BasicParser {
 
 		return timeInMillisSinceEpoch;
 	}
-	
+
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
+
 	@Override
 	public void init() {
 		// pattern_url = Resources.getResource("patterns/asa");

@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,33 +34,43 @@ import java.util.EnumMap;
 import java.util.List;
 
 public class PcapReceiverImplRestEasyTest {
-  public static class MockQueryHandler extends PcapJob {
+
+  public static class MockQueryHandler<R> extends PcapJob {
     Path basePath;
     Path baseOutputPath;
     long beginNS;
     long endNS;
-    EnumMap<Constants.Fields, String> fields;
+    R fields;
+    PcapFilterConfigurator<R> filterImpl;
+
     @Override
-    public List<byte[]> query( Path basePath
+    public <T> List<byte[]> query( Path basePath
             , Path baseOutputPath
             , long beginNS
             , long endNS
-            , EnumMap<Constants.Fields, String> fields
+            , T fields
             , Configuration conf
             , FileSystem fs
+            , PcapFilterConfigurator<T> filterImpl
     ) throws IOException, ClassNotFoundException, InterruptedException
     {
       this.basePath = basePath;
       this.baseOutputPath = baseOutputPath;
       this.beginNS = beginNS;
       this.endNS = endNS;
-      this.fields = fields;
+      this.fields = (R) fields;
+      this.filterImpl = (PcapFilterConfigurator<R>) filterImpl;
       return null;
     }
   }
-  final MockQueryHandler queryHandler = new MockQueryHandler();
-  PcapReceiverImplRestEasy restEndpoint = new PcapReceiverImplRestEasy() {{
-      this.queryUtil = queryHandler;
+
+  final MockQueryHandler<EnumMap<Constants.Fields, String>> fixedQueryHandler = new MockQueryHandler<EnumMap<Constants.Fields, String>>();
+  final MockQueryHandler<String> queryQueryHandler = new MockQueryHandler<String>();
+  PcapReceiverImplRestEasy fixedRestEndpoint = new PcapReceiverImplRestEasy() {{
+    this.queryUtil = fixedQueryHandler;
+  }};
+  PcapReceiverImplRestEasy queryRestEndpoint = new PcapReceiverImplRestEasy() {{
+      this.queryUtil = queryQueryHandler;
   }};
 
   @Before
@@ -69,7 +80,7 @@ public class PcapReceiverImplRestEasyTest {
   }
 
   @Test
-  public void testNormalPath() throws Exception {
+  public void testNormalFixedPath() throws Exception {
     String srcIp = "srcIp";
     String dstIp = "dstIp";
     String protocol = "protocol";
@@ -80,30 +91,43 @@ public class PcapReceiverImplRestEasyTest {
 
     {
       boolean includeReverseTraffic = false;
-      restEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
-      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryHandler.basePath);
-      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryHandler.baseOutputPath);
-      Assert.assertEquals(srcIp, queryHandler.fields.get(Constants.Fields.SRC_ADDR));
-      Assert.assertEquals(dstIp, queryHandler.fields.get(Constants.Fields.DST_ADDR));
-      Assert.assertEquals(srcPort, queryHandler.fields.get(Constants.Fields.SRC_PORT));
-      Assert.assertEquals(dstPort, queryHandler.fields.get(Constants.Fields.DST_PORT));
-      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), queryHandler.beginNS);
-      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryHandler.endNS);
-      Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(queryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+      fixedRestEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
+      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), fixedQueryHandler.basePath);
+      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), fixedQueryHandler.baseOutputPath);
+      Assert.assertEquals(srcIp, fixedQueryHandler.fields.get(Constants.Fields.SRC_ADDR));
+      Assert.assertEquals(dstIp, fixedQueryHandler.fields.get(Constants.Fields.DST_ADDR));
+      Assert.assertEquals(srcPort, fixedQueryHandler.fields.get(Constants.Fields.SRC_PORT));
+      Assert.assertEquals(dstPort, fixedQueryHandler.fields.get(Constants.Fields.DST_PORT));
+      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), fixedQueryHandler.beginNS);
+      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), fixedQueryHandler.endNS);
+      Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(fixedQueryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
     }
     {
       boolean includeReverseTraffic = true;
-      restEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
-      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryHandler.basePath);
-      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryHandler.baseOutputPath);
-      Assert.assertEquals(srcIp, queryHandler.fields.get(Constants.Fields.SRC_ADDR));
-      Assert.assertEquals(dstIp, queryHandler.fields.get(Constants.Fields.DST_ADDR));
-      Assert.assertEquals(srcPort, queryHandler.fields.get(Constants.Fields.SRC_PORT));
-      Assert.assertEquals(dstPort, queryHandler.fields.get(Constants.Fields.DST_PORT));
-      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), queryHandler.beginNS);
-      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryHandler.endNS);
-      Assert.assertEquals(includeReverseTraffic, Boolean.parseBoolean(queryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+      fixedRestEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
+      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), fixedQueryHandler.basePath);
+      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), fixedQueryHandler.baseOutputPath);
+      Assert.assertEquals(srcIp, fixedQueryHandler.fields.get(Constants.Fields.SRC_ADDR));
+      Assert.assertEquals(dstIp, fixedQueryHandler.fields.get(Constants.Fields.DST_ADDR));
+      Assert.assertEquals(srcPort, fixedQueryHandler.fields.get(Constants.Fields.SRC_PORT));
+      Assert.assertEquals(dstPort, fixedQueryHandler.fields.get(Constants.Fields.DST_PORT));
+      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), fixedQueryHandler.beginNS);
+      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), fixedQueryHandler.endNS);
+      Assert.assertEquals(includeReverseTraffic, Boolean.parseBoolean(fixedQueryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
     }
+  }
+
+  @Test
+  public void testNormalQueryPath() throws Exception {
+    long startTime = 100;
+    long endTime = 1000;
+    String query = "ip_src_addr == 'srcIp' and ip_src_port == '80' and ip_dst_addr == 'dstIp' and ip_dst_port == '100' and protocol == 'protocol'";
+    queryRestEndpoint.getPcapsByIdentifiers(query, startTime, endTime, null);
+    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryQueryHandler.basePath);
+    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryQueryHandler.baseOutputPath);
+    Assert.assertEquals(query, queryQueryHandler.fields);
+    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), queryQueryHandler.beginNS);
+    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryQueryHandler.endNS);
   }
 
   @Test
@@ -116,16 +140,16 @@ public class PcapReceiverImplRestEasyTest {
     long startTime = 100;
     long endTime = 1000;
     boolean includeReverseTraffic = false;
-    restEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
-    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryHandler.basePath);
-    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryHandler.baseOutputPath);
-    Assert.assertEquals(srcIp, queryHandler.fields.get(Constants.Fields.SRC_ADDR));
-    Assert.assertEquals(dstIp, queryHandler.fields.get(Constants.Fields.DST_ADDR));
-    Assert.assertEquals(srcPort, queryHandler.fields.get(Constants.Fields.SRC_PORT));
-    Assert.assertEquals(dstPort, queryHandler.fields.get(Constants.Fields.DST_PORT));
-    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), queryHandler.beginNS);
-    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryHandler.endNS);
-    Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(queryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+    fixedRestEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
+    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), fixedQueryHandler.basePath);
+    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), fixedQueryHandler.baseOutputPath);
+    Assert.assertEquals(srcIp, fixedQueryHandler.fields.get(Constants.Fields.SRC_ADDR));
+    Assert.assertEquals(dstIp, fixedQueryHandler.fields.get(Constants.Fields.DST_ADDR));
+    Assert.assertEquals(srcPort, fixedQueryHandler.fields.get(Constants.Fields.SRC_PORT));
+    Assert.assertEquals(dstPort, fixedQueryHandler.fields.get(Constants.Fields.DST_PORT));
+    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), fixedQueryHandler.beginNS);
+    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), fixedQueryHandler.endNS);
+    Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(fixedQueryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
   }
 
   @Test
@@ -138,60 +162,82 @@ public class PcapReceiverImplRestEasyTest {
     long startTime = 100;
     long endTime = 1000;
     boolean includeReverseTraffic = false;
-    restEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
-    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryHandler.basePath);
-    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryHandler.baseOutputPath);
-    Assert.assertEquals(srcIp, queryHandler.fields.get(Constants.Fields.SRC_ADDR));
-    Assert.assertEquals(dstIp, queryHandler.fields.get(Constants.Fields.DST_ADDR));
-    Assert.assertEquals(srcPort, queryHandler.fields.get(Constants.Fields.SRC_PORT));
-    Assert.assertEquals(dstPort, queryHandler.fields.get(Constants.Fields.DST_PORT));
-    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), queryHandler.beginNS);
-    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryHandler.endNS);
-    Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(queryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+    fixedRestEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
+    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), fixedQueryHandler.basePath);
+    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), fixedQueryHandler.baseOutputPath);
+    Assert.assertEquals(srcIp, fixedQueryHandler.fields.get(Constants.Fields.SRC_ADDR));
+    Assert.assertEquals(dstIp, fixedQueryHandler.fields.get(Constants.Fields.DST_ADDR));
+    Assert.assertEquals(srcPort, fixedQueryHandler.fields.get(Constants.Fields.SRC_PORT));
+    Assert.assertEquals(dstPort, fixedQueryHandler.fields.get(Constants.Fields.DST_PORT));
+    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(startTime), fixedQueryHandler.beginNS);
+    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), fixedQueryHandler.endNS);
+    Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(fixedQueryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
   }
 
   @Test
   public void testEmptyStartTime() throws Exception {
     String srcIp = "srcIp";
-    String dstIp = null;
+    String dstIp = "dstIp";
     String protocol = "protocol";
     String srcPort = "80";
     String dstPort = "100";
     long startTime = -1;
     long endTime = 1000;
-    boolean includeReverseTraffic = false;
-    restEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
-    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryHandler.basePath);
-    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryHandler.baseOutputPath);
-    Assert.assertEquals(srcIp, queryHandler.fields.get(Constants.Fields.SRC_ADDR));
-    Assert.assertEquals(dstIp, queryHandler.fields.get(Constants.Fields.DST_ADDR));
-    Assert.assertEquals(srcPort, queryHandler.fields.get(Constants.Fields.SRC_PORT));
-    Assert.assertEquals(dstPort, queryHandler.fields.get(Constants.Fields.DST_PORT));
-    Assert.assertEquals(0, queryHandler.beginNS);
-    Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryHandler.endNS);
-    Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(queryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+    {
+      boolean includeReverseTraffic = false;
+      fixedRestEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
+      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), fixedQueryHandler.basePath);
+      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), fixedQueryHandler.baseOutputPath);
+      Assert.assertEquals(srcIp, fixedQueryHandler.fields.get(Constants.Fields.SRC_ADDR));
+      Assert.assertEquals(dstIp, fixedQueryHandler.fields.get(Constants.Fields.DST_ADDR));
+      Assert.assertEquals(srcPort, fixedQueryHandler.fields.get(Constants.Fields.SRC_PORT));
+      Assert.assertEquals(dstPort, fixedQueryHandler.fields.get(Constants.Fields.DST_PORT));
+      Assert.assertEquals(0, fixedQueryHandler.beginNS);
+      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), fixedQueryHandler.endNS);
+      Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(fixedQueryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+    }
+    {
+      String query = "ip_src_addr == 'srcIp' and ip_src_port == '80' and ip_dst_addr == 'dstIp' and ip_dst_port == '100' and protocol == 'protocol'";
+      queryRestEndpoint.getPcapsByIdentifiers(query, startTime, endTime, null);
+      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryQueryHandler.basePath);
+      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryQueryHandler.baseOutputPath);
+      Assert.assertEquals(query, queryQueryHandler.fields);
+      Assert.assertEquals(0, queryQueryHandler.beginNS);
+      Assert.assertEquals(TimestampConverters.MILLISECONDS.toNanoseconds(endTime), queryQueryHandler.endNS);
+    }
   }
 
   @Test
   public void testEmptyEndTime() throws Exception {
     String srcIp = "srcIp";
-    String dstIp = null;
+    String dstIp = "dstIp";
     String protocol = "protocol";
     String srcPort = "80";
     String dstPort = "100";
     long startTime = -1;
     long endTime = -1;
-    boolean includeReverseTraffic = false;
-    restEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
-    Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryHandler.basePath);
-    Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryHandler.baseOutputPath);
-    Assert.assertEquals(srcIp, queryHandler.fields.get(Constants.Fields.SRC_ADDR));
-    Assert.assertEquals(dstIp, queryHandler.fields.get(Constants.Fields.DST_ADDR));
-    Assert.assertEquals(srcPort, queryHandler.fields.get(Constants.Fields.SRC_PORT));
-    Assert.assertEquals(dstPort, queryHandler.fields.get(Constants.Fields.DST_PORT));
-    Assert.assertEquals(0, queryHandler.beginNS);
-    Assert.assertTrue(queryHandler.endNS > 0);
-    Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(queryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+    {
+      boolean includeReverseTraffic = false;
+      fixedRestEndpoint.getPcapsByIdentifiers(srcIp, dstIp, protocol, srcPort, dstPort, startTime, endTime, includeReverseTraffic, null);
+      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), fixedQueryHandler.basePath);
+      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), fixedQueryHandler.baseOutputPath);
+      Assert.assertEquals(srcIp, fixedQueryHandler.fields.get(Constants.Fields.SRC_ADDR));
+      Assert.assertEquals(dstIp, fixedQueryHandler.fields.get(Constants.Fields.DST_ADDR));
+      Assert.assertEquals(srcPort, fixedQueryHandler.fields.get(Constants.Fields.SRC_PORT));
+      Assert.assertEquals(dstPort, fixedQueryHandler.fields.get(Constants.Fields.DST_PORT));
+      Assert.assertEquals(0, fixedQueryHandler.beginNS);
+      Assert.assertTrue(fixedQueryHandler.endNS > 0);
+      Assert.assertEquals(includeReverseTraffic, Boolean.getBoolean(fixedQueryHandler.fields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC)));
+    }
+    {
+      String query = "ip_src_addr == 'srcIp' and ip_src_port == '80' and ip_dst_addr == 'dstIp' and ip_dst_port == '100' and protocol == 'protocol'";
+      queryRestEndpoint.getPcapsByIdentifiers(query, startTime, endTime, null);
+      Assert.assertEquals(new Path(ConfigurationUtil.getPcapOutputPath()), queryQueryHandler.basePath);
+      Assert.assertEquals(new Path(ConfigurationUtil.getTempQueryOutputPath()), queryQueryHandler.baseOutputPath);
+      Assert.assertEquals(query, queryQueryHandler.fields);
+      Assert.assertEquals(0, queryQueryHandler.beginNS);
+      Assert.assertTrue(queryQueryHandler.endNS > 0);
+    }
   }
 
 }

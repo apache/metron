@@ -26,12 +26,18 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
-public class BasicPassThroughParser extends BasicParser {
+public class BasicPassThroughParser extends BasicParser{
 
 	private static final Logger _LOG = LoggerFactory.getLogger(BasicPassThroughParser.class);
-	
+
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
+
 	@Override
 	public void init() {
 

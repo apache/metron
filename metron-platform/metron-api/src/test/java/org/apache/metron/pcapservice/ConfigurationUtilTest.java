@@ -27,7 +27,6 @@ public class ConfigurationUtilTest {
 
   @Test
   public void test_getPcapOutputPath() {
-    Assert.assertEquals(ConfigurationUtil.getPcapOutputPath(), null);
     ConfigurationUtil.setPcapOutputPath("/foo");
     Assert.assertEquals(ConfigurationUtil.getPcapOutputPath(), "/foo");
   }
@@ -37,7 +36,6 @@ public class ConfigurationUtilTest {
    */
   @Test
   public void test_getTempQueryDir() {
-    Assert.assertEquals(ConfigurationUtil.getTempQueryOutputPath(), null);
     ConfigurationUtil.setTempQueryOutputPath("/tmp");
     Assert.assertEquals(ConfigurationUtil.getTempQueryOutputPath(), "/tmp");
   }

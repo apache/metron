@@ -27,11 +27,11 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.zookeeper.KeeperException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +69,25 @@ public class ConfigurationsUtils {
     writeToZookeeper(ConfigurationType.GLOBAL.getZookeeperRoot(), globalConfig, client);
   }
 
+  public static void writeSensorParserConfigToZookeeper(String sensorType, SensorParserConfig sensorParserConfig, String zookeeperUrl) throws Exception {
+    writeSensorParserConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorParserConfig), zookeeperUrl);
+  }
+
+  public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
+    CuratorFramework client = getClient(zookeeperUrl);
+    client.start();
+    try {
+      writeSensorParserConfigToZookeeper(sensorType, configData, client);
+    }
+    finally {
+      client.close();
+    }
+  }
+
+  public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    writeToZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
+  }
+
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig, String zookeeperUrl) throws Exception {
     writeSensorEnrichmentConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorEnrichmentConfig), zookeeperUrl);
   }
@@ -85,8 +104,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
-    ConfigurationType.SENSOR.deserialize(new String(configData));
-    writeToZookeeper(ConfigurationType.SENSOR.getZookeeperRoot()+ "/" + sensorType, configData, client);
+    writeToZookeeper(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
   public static void writeConfigToZookeeper(String name, Map<String, Object> config, String zookeeperUrl) throws Exception {
@@ -114,18 +132,42 @@ public class ConfigurationsUtils {
 
   public static void updateConfigsFromZookeeper(Configurations configurations, CuratorFramework client) throws Exception {
     configurations.updateGlobalConfig(readGlobalConfigBytesFromZookeeper(client));
-    List<String> sensorTypes = client.getChildren().forPath(Constants.ZOOKEEPER_SENSOR_ROOT);
+  }
+
+  public static void updateParserConfigsFromZookeeper(ParserConfigurations configurations, CuratorFramework client) throws Exception {
+    updateConfigsFromZookeeper(configurations, client);
+    List<String> sensorTypes = client.getChildren().forPath(ConfigurationType.PARSER.getZookeeperRoot());
+    for(String sensorType: sensorTypes) {
+      configurations.updateSensorParserConfig(sensorType, readSensorParserConfigBytesFromZookeeper(sensorType, client));
+    }
+  }
+
+  public static void updateEnrichmentConfigsFromZookeeper(EnrichmentConfigurations configurations, CuratorFramework client) throws Exception {
+    updateConfigsFromZookeeper(configurations, client);
+    List<String> sensorTypes = client.getChildren().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot());
     for(String sensorType: sensorTypes) {
       configurations.updateSensorEnrichmentConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client));
     }
   }
 
+  public static SensorEnrichmentConfig readSensorEnrichmentConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/" + sensorType, client)), SensorEnrichmentConfig.class);
+  }
+
+  public static SensorParserConfig readSensorParserConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + sensorType, client)), SensorParserConfig.class);
+  }
+
   public static byte[] readGlobalConfigBytesFromZookeeper(CuratorFramework client) throws Exception {
-    return readFromZookeeper(Constants.ZOOKEEPER_GLOBAL_ROOT, client);
+    return readFromZookeeper(ConfigurationType.GLOBAL.getZookeeperRoot(), client);
+  }
+
+  public static byte[] readSensorParserConfigBytesFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    return readFromZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + sensorType, client);
   }
 
   public static byte[] readSensorEnrichmentConfigBytesFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
-    return readFromZookeeper(Constants.ZOOKEEPER_SENSOR_ROOT + "/" + sensorType, client);
+    return readFromZookeeper(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/" + sensorType, client);
   }
 
   public static byte[] readConfigBytesFromZookeeper(String name, CuratorFramework client) throws Exception {
@@ -136,60 +178,99 @@ public class ConfigurationsUtils {
     return client.getData().forPath(path);
   }
 
-  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(rootFilePath), client);
-    Map<String, byte[]> sensorEnrichmentConfigs = readSensorEnrichmentConfigsFromFile(rootFilePath);
-    for(String sensorType: sensorEnrichmentConfigs.keySet()) {
-      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), client);
-    }
-  }
-
-  public static void uploadConfigsToZookeeper(String rootFilePath, String zookeeperUrl) throws Exception {
+  public static void uploadConfigsToZookeeper(String globalConfigPath, String parsersConfigPath, String enrichmentsConfigPath, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
-      uploadConfigsToZookeeper(rootFilePath, client);
+      uploadConfigsToZookeeper(globalConfigPath, parsersConfigPath, enrichmentsConfigPath, client);
     }
   }
 
-  public static byte[] readGlobalConfigFromFile(String rootFilePath) throws IOException {
-    return Files.readAllBytes(Paths.get(rootFilePath, Constants.GLOBAL_CONFIG_NAME + ".json"));
+  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
+    uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, client);
+  }
+
+  public static void uploadConfigsToZookeeper(String globalConfigPath, String parsersConfigPath, String enrichmentsConfigPath, CuratorFramework client) throws Exception {
+    if (globalConfigPath != null) {
+      byte[] globalConfig = readGlobalConfigFromFile(globalConfigPath);
+      if (globalConfig.length > 0) {
+        ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfigPath), client);
+      }
+    }
+    if (parsersConfigPath != null) {
+      Map<String, byte[]> sensorParserConfigs = readSensorParserConfigsFromFile(parsersConfigPath);
+      for (String sensorType : sensorParserConfigs.keySet()) {
+        ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, sensorParserConfigs.get(sensorType), client);
+      }
+    }
+    if (enrichmentsConfigPath != null) {
+      Map<String, byte[]> sensorEnrichmentConfigs = readSensorEnrichmentConfigsFromFile(enrichmentsConfigPath);
+      for (String sensorType : sensorEnrichmentConfigs.keySet()) {
+        ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), client);
+      }
+    }
+  }
+
+  public static byte[] readGlobalConfigFromFile(String rootPath) throws IOException {
+    byte[] globalConfig = new byte[0];
+    File configPath = new File(rootPath, ConfigurationType.GLOBAL.getName() + ".json");
+    if (configPath.exists()) {
+      globalConfig = Files.readAllBytes(configPath.toPath());
+    }
+    return globalConfig;
+  }
+
+  public static Map<String, byte[]> readSensorParserConfigsFromFile(String rootPath) throws IOException {
+    return readSensorConfigsFromFile(rootPath, ConfigurationType.PARSER);
   }
 
   public static Map<String, byte[]> readSensorEnrichmentConfigsFromFile(String rootPath) throws IOException {
-    Map<String, byte[]> sensorEnrichmentConfigs = new HashMap<>();
-    for(File file: new File(rootPath, Constants.SENSORS_CONFIG_NAME).listFiles()) {
-      if(file.getName().endsWith(".json")) {
-        sensorEnrichmentConfigs.put(FilenameUtils.removeExtension(file.getName()), Files.readAllBytes(file.toPath()));
+    return readSensorConfigsFromFile(rootPath, ConfigurationType.ENRICHMENT);
+  }
+
+  public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath, ConfigurationType configType) throws IOException {
+    Map<String, byte[]> sensorConfigs = new HashMap<>();
+    File configPath = new File(rootPath, configType.getDirectory());
+    if (configPath.exists()) {
+      File[] children = configPath.listFiles();
+      if (children != null) {
+        for (File file : children) {
+          sensorConfigs.put(FilenameUtils.removeExtension(file.getName()), Files.readAllBytes(file.toPath()));
+        }
       }
     }
-    return sensorEnrichmentConfigs;
+    return sensorConfigs;
   }
+
 
   public interface ConfigurationVisitor{
     void visit(ConfigurationType configurationType, String name, String data);
   }
+
   public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback) throws Exception {
-    //Output global configs
-    {
-      ConfigurationType configType = ConfigurationType.GLOBAL;
-      byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
-      callback.visit(configType, "global", new String(globalConfigData));
-    }
-    //Output sensor specific configs
-    {
-      ConfigurationType configType = ConfigurationType.SENSOR;
-      List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
-      for (String child : children) {
-        byte[] data = client.getData().forPath(configType.getZookeeperRoot() + "/" + child);
-        callback.visit(configType, child, new String(data));
+    visitConfigs(client, callback, ConfigurationType.GLOBAL);
+    visitConfigs(client, callback, ConfigurationType.PARSER);
+    visitConfigs(client, callback, ConfigurationType.ENRICHMENT);
+  }
+
+  public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback, ConfigurationType configType) throws Exception {
+    if (client.checkExists().forPath(configType.getZookeeperRoot()) != null) {
+      if (configType.equals(ConfigurationType.GLOBAL)) {
+        byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
+        callback.visit(configType, "global", new String(globalConfigData));
+      } else if (configType.equals(ConfigurationType.PARSER) || configType.equals(ConfigurationType.ENRICHMENT)) {
+        List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
+        for (String child : children) {
+          byte[] data = client.getData().forPath(configType.getZookeeperRoot() + "/" + child);
+          callback.visit(configType, child, new String(data));
+        }
       }
     }
   }
+
   public static void dumpConfigs(PrintStream out, CuratorFramework client) throws Exception {
     ConfigurationsUtils.visitConfigs(client, (type, name, data) -> {
       type.deserialize(data);
       out.println(type + " Config: " + name + "\n" + data);
     });
   }
-
 }

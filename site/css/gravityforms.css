@@ -1,0 +1,34 @@
+.gfield label {
+    position: relative;
+    top: auto;
+    left: auto;
+}
+
+.gfield input, .gfield textarea {
+    height: auto;
+    display: inline-block;
+}
+
+.gfield select {
+    display: inline-block;
+}
+
+.gfield input:focus ~ label, .gfield textarea:focus ~ label, .gfield textarea:valid ~ label, .gfield .used ~ label {
+    top: auto !important;
+    font-size: 14px !important;
+    color: #404041 !important;
+}
+
+.gform_page_footer input {
+    width: auto;
+    height: auto;
+    padding: 15px;
+}
+
+.gform_wrapper .chosen-container-multi .chosen-choices li.search-field input[type=text] {
+    height: 25px !important;
+}
+
+.body-content .gfield ul li {
+    line-height: normal;
+}
