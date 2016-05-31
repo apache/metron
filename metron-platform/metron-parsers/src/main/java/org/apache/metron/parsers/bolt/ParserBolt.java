@@ -20,9 +20,17 @@ package org.apache.metron.parsers.bolt;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
+import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterComponent;
+import org.apache.metron.common.writer.WriterToBulkWriter;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.common.configuration.FieldTransformer;
@@ -34,20 +42,46 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.common.interfaces.MessageWriter;
 import org.json.simple.JSONObject;
 
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
-public class ParserBolt extends ConfiguredParserBolt {
+public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
-  private MessageFilter<JSONObject> filter;
-  private MessageWriter<JSONObject> writer;
-
-  public ParserBolt(String zookeeperUrl, String sensorType, MessageParser<JSONObject> parser, MessageWriter<JSONObject> writer) {
+  private MessageFilter<JSONObject> filter = new GenericMessageFilter();
+  private transient Function<ParserConfigurations, WriterConfiguration> writerTransformer;
+  private BulkMessageWriter<JSONObject> messageWriter;
+  private BulkWriterComponent<JSONObject> writerComponent;
+  private boolean isBulk = false;
+  public ParserBolt( String zookeeperUrl
+                   , String sensorType
+                   , MessageParser<JSONObject> parser
+                   , MessageWriter<JSONObject> writer
+  )
+  {
     super(zookeeperUrl, sensorType);
+    isBulk = false;
     this.parser = parser;
-    this.writer = writer;
+    messageWriter = new WriterToBulkWriter<>(writer);
+  }
+
+  public ParserBolt( String zookeeperUrl
+                   , String sensorType
+                   , MessageParser<JSONObject> parser
+                   , BulkMessageWriter<JSONObject> writer
+  )
+  {
+    super(zookeeperUrl, sensorType);
+    isBulk = true;
+    this.parser = parser;
+    messageWriter = writer;
+
+
   }
 
   public ParserBolt withMessageFilter(MessageFilter<JSONObject> filter) {
@@ -69,7 +103,24 @@ public class ParserBolt extends ConfiguredParserBolt {
       );
     }
     parser.init();
-    writer.init();
+
+    if(isBulk) {
+      writerTransformer = config -> new ParserWriterConfiguration(config);
+    }
+    else {
+      writerTransformer = config -> new SingleBatchConfigurationFacade(new ParserWriterConfiguration(config));
+    }
+    try {
+      messageWriter.init(stormConf, writerTransformer.apply(getConfigurations()));
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to initialize message writer", e);
+    }
+    this.writerComponent = new BulkWriterComponent<JSONObject>(collector, isBulk, isBulk) {
+      @Override
+      protected Collection<Tuple> createTupleCollection() {
+        return new HashSet<>();
+      }
+    };
     SensorParserConfig config = getSensorParserConfig();
     if(config != null) {
       config.init();
@@ -77,6 +128,7 @@ public class ParserBolt extends ConfiguredParserBolt {
     else {
       throw new IllegalStateException("Unable to retrieve a parser config for " + getSensorType());
     }
+    parser.configure(config.getParserConfig());
   }
 
 
@@ -86,23 +138,27 @@ public class ParserBolt extends ConfiguredParserBolt {
     byte[] originalMessage = tuple.getBinary(0);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
+      boolean ackTuple = true;
       if(sensorParserConfig != null) {
         List<JSONObject> messages = parser.parse(originalMessage);
         for (JSONObject message : messages) {
           if (parser.validate(message)) {
             if (filter != null && filter.emitTuple(message)) {
+              ackTuple = !isBulk;
               message.put(Constants.SENSOR_TYPE, getSensorType());
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
                 if (handler != null) {
                   handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                 }
               }
-              writer.write(getSensorType(), configurations, tuple, message);
+              writerComponent.write(getSensorType(), tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
             }
           }
         }
       }
-      collector.ack(tuple);
+      if(ackTuple) {
+        collector.ack(tuple);
+      }
     } catch (Throwable ex) {
       ErrorUtils.handleError(collector, ex, Constants.ERROR_STREAM);
       collector.fail(tuple);
@@ -111,6 +167,6 @@ public class ParserBolt extends ConfiguredParserBolt {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
+    declarer.declareStream(Constants.ERROR_STREAM, new Fields("message"));
   }
 }

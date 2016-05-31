@@ -38,7 +38,7 @@ public class ExtractorTest {
             EnrichmentKey key = new EnrichmentKey();
             key.indicator = "dummy";
             key.type = "type";
-            Map<String, String> value = new HashMap<>();
+            Map<String, Object> value = new HashMap<>();
             value.put("indicator", "dummy");
             return Arrays.asList(new LookupKV(key, new EnrichmentValue(value)));
         }

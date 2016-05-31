@@ -26,9 +26,10 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 
 import java.io.IOException;
 
-public abstract class ConfiguredParserBolt extends ConfiguredBolt {
+public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigurations> {
 
   private static final Logger LOG = Logger.getLogger(ConfiguredEnrichmentBolt.class);
+
 
   protected final ParserConfigurations configurations = new ParserConfigurations();
   private String sensorType;
@@ -41,8 +42,9 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt {
     return getConfigurations().getSensorParserConfig(sensorType);
   }
 
-  public ParserConfigurations getConfigurations() {
-    return configurations;
+  @Override
+  protected ParserConfigurations defaultConfigurations() {
+    return new ParserConfigurations();
   }
 
   public String getSensorType() {
@@ -51,7 +53,7 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt {
   @Override
   public void loadConfig() {
     try {
-      ConfigurationsUtils.updateParserConfigsFromZookeeper(configurations, client);
+      ConfigurationsUtils.updateParserConfigsFromZookeeper(getConfigurations(), client);
     } catch (Exception e) {
       LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
     }
@@ -62,10 +64,10 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt {
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
       if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
-        configurations.updateSensorParserConfig(name, data);
+        getConfigurations().updateSensorParserConfig(name, data);
         reloadCallback(name, ConfigurationType.PARSER);
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        configurations.updateGlobalConfig(data);
+        getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }
     }

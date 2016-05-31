@@ -50,10 +50,10 @@ public class SimpleHBaseAdapterTest {
   private EnrichmentLookup lookup;
   private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
   private static final String CF1_CLASSIFICATION_TYPE = "cf1";
-  private static final Map<String, String> CF1_ENRICHMENT = new HashMap<String, String>() {{
+  private static final Map<String, Object> CF1_ENRICHMENT = new HashMap<String, Object>() {{
     put("key", "value");
   }};
-  private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
+  private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
 
