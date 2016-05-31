@@ -15,10 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Create Source Config Directory
-  file:
-    path: "{{ zookeeper_config_path }}"
-    state: directory
 
 - name: Copy Elasticsearch Global Config File
   template:
@@ -33,14 +29,6 @@
     dest: "{{ zookeeper_global_config_path }}"
     mode: 0644
   when: install_solr | default(False) == True
-
-- name: Copy Sensor Config Files
-  copy:
-    src: "{{ item }}"
-    dest: "{{ zookeeper_config_path }}"
-    mode: 0644
-  with_items:
-    - ../roles/metron_streaming/files/config/
 
 - name: Load Config
   shell: "{{ metron_directory }}/bin/zk_load_configs.sh --mode PUSH -i {{ zookeeper_config_path }} -z {{ zookeeper_url }} && touch {{ zookeeper_config_path }}/configured"

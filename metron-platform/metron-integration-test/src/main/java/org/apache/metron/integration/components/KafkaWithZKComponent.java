@@ -44,6 +44,7 @@ import java.util.*;
 
 public class KafkaWithZKComponent implements InMemoryComponent {
 
+  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
 
   public static class Topic {
     public int numPartitions;
@@ -177,6 +178,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
       payload.get(bytes);
       messages.add(bytes);
     }
+    consumer.close();
     return messages;
   }
 

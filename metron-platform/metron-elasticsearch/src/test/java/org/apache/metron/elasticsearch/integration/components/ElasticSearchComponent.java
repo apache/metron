@@ -24,16 +24,13 @@ import org.elasticsearch.ElasticsearchTimeoutException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthAction;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.ElasticsearchClient;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
@@ -103,30 +100,30 @@ public class ElasticSearchComponent implements InMemoryComponent {
         } catch (IOException e) {
             throw new UnableToStartException("Unable to clean log or data directories", e);
         }
-        ImmutableSettings.Builder immutableSettings = ImmutableSettings.settingsBuilder()
+
+        Settings.Builder settingsBuilder = Settings.settingsBuilder()
                 .put("node.http.enabled", true)
                 .put("http.port", httpPort)
-                .put("cluster.name", "metron")
                 .put("path.logs",logDir.getAbsolutePath())
                 .put("path.data",dataDir.getAbsolutePath())
-                .put("gateway.type", "none")
-                .put("index.store.type", "memory")
+                .put("path.home", indexDir.getAbsoluteFile())
                 .put("index.number_of_shards", 1)
                 .put("node.mode", "network")
                 .put("index.number_of_replicas", 1);
+
         if(extraElasticSearchSettings != null) {
-            immutableSettings = immutableSettings.put(extraElasticSearchSettings);
+
+            settingsBuilder = settingsBuilder.put(extraElasticSearchSettings);
+
         }
-        Settings settings = immutableSettings.build();
-        node = NodeBuilder.nodeBuilder().settings(settings).node();
+
+        node = NodeBuilder.nodeBuilder().settings(settingsBuilder).clusterName("metron").node();
         node.start();
-        settings = ImmutableSettings.settingsBuilder()
-					.put("cluster.name", "metron").build();
-		client = new TransportClient(settings)
-					.addTransportAddress(new InetSocketTransportAddress("localhost",
-							9300));
+
+        client = node.client();
 
         waitForCluster(client, ClusterHealthStatus.YELLOW, new TimeValue(60000));
+
     }
 
     public static void waitForCluster(ElasticsearchClient client, ClusterHealthStatus status, TimeValue timeout) throws UnableToStartException {
@@ -179,7 +176,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
     }
 
     public void stop() {
-        node.stop();
+        node.close();
         node = null;
         client = null;
     }

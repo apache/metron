@@ -122,7 +122,7 @@ public class ThreatIntelAdapterTest {
     Assert.assertEquals(expectedMessage, actualMessage);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testInitializeAdapter() {
 
     String cf = "cf";
@@ -145,7 +145,7 @@ public class ThreatIntelAdapterTest {
 
     ThreatIntelAdapter tia = new ThreatIntelAdapter(config);
     tia.initializeAdapter();
-
+    Assert.assertFalse(tia.isInitialized());
   }
 
 
