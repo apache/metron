@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.unixsyslog5424.GrokUnixSyslog5424Parser",
+  "sensorTopic":"unixsyslog5424",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/unixsyslog5424",
+    "patternLabel":"UNIXSYSLOG5424",
+    "timestampField":"timestamp_string",
+    "dateFormat":"yyyy-MM-dd'T'HH:mm:ss.SSS"
+  }
+}
