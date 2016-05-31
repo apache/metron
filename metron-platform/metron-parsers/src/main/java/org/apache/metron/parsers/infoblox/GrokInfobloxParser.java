@@ -27,10 +27,6 @@ import java.util.Iterator;
 
 public class GrokInfobloxParser extends GrokParser {
 
-    public GrokInfobloxParser(String grokHdfsPath, String patternLabel) {
-        super(grokHdfsPath, patternLabel);
-    }
-
     @Override
     protected void postParse(JSONObject message) {
         removeEmptyFields(message);
