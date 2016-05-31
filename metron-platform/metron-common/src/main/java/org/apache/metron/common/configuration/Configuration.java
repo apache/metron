@@ -48,10 +48,6 @@ public class Configuration extends Configurations {
         } else {
 
             updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(configFileRoot.toAbsolutePath().toString()));
-            Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(configFileRoot.toAbsolutePath().toString());
-            for(String sensorType: sensorEnrichmentConfigs.keySet()) {
-                updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfigs.get(sensorType));
-            }
 
         }
 

@@ -65,18 +65,23 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
   @Override
   public JSONObject enrich(CacheKey value) {
+    if(!isInitialized()) {
+      initializeAdapter();
+    }
     JSONObject enriched = new JSONObject();
     List<String> enrichmentTypes = value.getConfig()
                                         .getThreatIntel().getFieldToTypeMap()
                                         .get(EnrichmentUtils.toTopLevelField(value.getField()));
-    if(enrichmentTypes != null) {
+    if(isInitialized() && enrichmentTypes != null) {
       int i = 0;
       try {
         for (Boolean isThreat :
                 lookup.exists(Iterables.transform(enrichmentTypes
-                                                 , new EnrichmentUtils.TypeToKey(value.getValue())
+                                                 , new EnrichmentUtils.TypeToKey(value.getValue()
+                                                                                , lookup.getTable()
+                                                                                , value.getConfig().getThreatIntel()
+                                                                                )
                                                  )
-                             , lookup.getTable()
                              , false
                              )
             )
@@ -89,11 +94,16 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
         }
       }
       catch(IOException e) {
+        _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
+        initializeAdapter();
         throw new RuntimeException("Unable to retrieve value", e);
       }
     }
-    //throw new RuntimeException("Unable to retrieve value " + value);
     return enriched;
+  }
+
+  public boolean isInitialized() {
+    return lookup != null && lookup.getTable() != null;
   }
 
   @Override
@@ -117,7 +127,8 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       );
       lookup = new EnrichmentLookup(config.getProvider().getTable(hbaseConfig, hbaseTable), config.getHBaseCF(), accessTracker);
     } catch (IOException e) {
-      throw new IllegalStateException("Unable to initialize ThreatIntelAdapter", e);
+      _LOG.error("Unable to initialize ThreatIntelAdapter", e);
+      return false;
     }
 
     return true;

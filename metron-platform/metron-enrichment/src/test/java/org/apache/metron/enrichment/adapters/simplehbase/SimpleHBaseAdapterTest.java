@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.adapters.simplehbase;
 
 
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.bolt.CacheKey;
@@ -43,17 +44,22 @@ import java.util.Map;
 public class SimpleHBaseAdapterTest {
 
   private String cf = "cf";
+  private String cf1 = "cf1";
   private String atTableName = "tracker";
   private final String hbaseTableName = "enrichments";
   private EnrichmentLookup lookup;
   private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
+  private static final String CF1_CLASSIFICATION_TYPE = "cf1";
+  private static final Map<String, String> CF1_ENRICHMENT = new HashMap<String, String>() {{
+    put("key", "value");
+  }};
   private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
     put("orientation", "north");
   }};
 
   /**
     {
-    "10.0.2.3.orientation":"north"
+    "playful_classification.orientation":"north"
     }
    */
   @Multiline
@@ -65,19 +71,37 @@ public class SimpleHBaseAdapterTest {
       "batchSize": 5,
       "enrichment": {
         "fieldMap": {
-          "geo": ["ip_dst_addr", "ip_src_addr"],
-          "host": ["host"]
+           "hbaseEnrichment" : [ "ip_dst_addr" ]
         },
       "fieldToTypeMap": {
-        "ip_dst_addr" : [ "10.0.2.3" ],
-        "ip_src_addr" : [ "10.3.30.120" ]
+        "ip_dst_addr" : [ "playful_classification", "cf1" ]
         }
       }
    }
    */
   @Multiline
   private String sourceConfigStr;
-
+  /**
+    {
+      "index": "bro",
+      "batchSize": 5,
+      "enrichment": {
+        "fieldMap": {
+           "hbaseEnrichment" : [ "ip_dst_addr" ]
+        },
+      "fieldToTypeMap": {
+        "ip_dst_addr" : [ "playful_classification", "cf1" ]
+        },
+      "config" : {
+          "typeToColumnFamily" : {
+                        "cf1" : "cf1"
+                                 }
+                }
+      }
+   }
+   */
+  @Multiline
+  private String sourceConfigWithCFStr;
   private JSONObject expectedMessage;
 
   @Before
@@ -85,8 +109,14 @@ public class SimpleHBaseAdapterTest {
     final MockHTable trackerTable = (MockHTable) MockHTable.Provider.addToCache(atTableName, cf);
     final MockHTable hbaseTable = (MockHTable) MockHTable.Provider.addToCache(hbaseTableName, cf);
     EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey("10.0.2.3", "10.0.2.3")
+      add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
                       , new EnrichmentValue(PLAYFUL_ENRICHMENT)
+              )
+      );
+    }});
+    EnrichmentHelper.INSTANCE.load(hbaseTable, cf1, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
+      add(new LookupKV<>(new EnrichmentKey(CF1_CLASSIFICATION_TYPE, "10.0.2.4")
+                      , new EnrichmentValue(CF1_ENRICHMENT)
               )
       );
     }});
@@ -109,6 +139,29 @@ public class SimpleHBaseAdapterTest {
     Assert.assertEquals(expectedMessage, actualMessage);
   }
 
+  @Test
+  public void testMultiColumnFamilies() throws Exception {
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
+    sha.lookup = lookup;
+    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigWithCFStr, SensorEnrichmentConfig.class);
+    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
+    Assert.assertEquals(actualMessage, new JSONObject());
+    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
+    Assert.assertNotNull(actualMessage);
+    Assert.assertEquals(new JSONObject(ImmutableMap.of("cf1.key", "value")), actualMessage);
+  }
+
+  @Test
+  public void testMultiColumnFamiliesWrongCF() throws Exception {
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
+    sha.lookup = lookup;
+    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
+    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
+    Assert.assertEquals(actualMessage, new JSONObject());
+    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
+    Assert.assertNotNull(actualMessage);
+    Assert.assertEquals(new JSONObject(new HashMap<String, Object>()), actualMessage);
+  }
   @Test(expected = Exception.class)
   public void testInitializeAdapter() {
     SimpleHBaseConfig config = new SimpleHBaseConfig();

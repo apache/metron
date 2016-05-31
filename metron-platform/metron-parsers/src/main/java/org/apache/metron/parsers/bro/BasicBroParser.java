@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BasicBroParser extends BasicParser {
@@ -34,6 +35,11 @@ public class BasicBroParser extends BasicParser {
     protected static final Logger _LOG = LoggerFactory
             .getLogger(BasicBroParser.class);
     private JSONCleaner cleaner = new JSONCleaner();
+
+    @Override
+    public void configure(Map<String, Object> parserConfig) {
+
+    }
 
     @Override
     public void init() {
