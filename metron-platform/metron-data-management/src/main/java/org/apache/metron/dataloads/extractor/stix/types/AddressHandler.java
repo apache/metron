@@ -69,7 +69,7 @@ public class AddressHandler extends AbstractObjectTypeHandler<Address> {
       final String indicatorType = typeStr + ":" + category;
       LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
               , new EnrichmentValue(
-              new HashMap<String, String>() {{
+              new HashMap<String, Object>() {{
                 put("source-type", "STIX");
                 put("indicator-type", indicatorType);
                 put("source", type.toXMLString());
