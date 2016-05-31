@@ -20,11 +20,7 @@ package org.apache.metron.parsers.cef;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,20 +44,33 @@ public class CEFParser extends BasicParser {
 		//Nothing to do to initialize the CEF parser
 	}
 
+	@Override
+	public void configure(Map<String, Object> config) {
+		withDateFormat((String) config.get("dateFormat"));
+		withTimeZone((String) config.get("timezone"));
+		withHeaderTimestampRegex((String) config.get("headerRegEx"));
+	}
+
 	//For specifying the date format that the parser will use
 	public CEFParser withDateFormat(String dateFormat) {
+		if (dateFormat == null) {
+			throw new IllegalArgumentException("DateFormat must be specified in parser config file");
+		}
 		this.dateFormatString = dateFormat;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("CEF parser settting date format: " + dateFormat);
+			LOG.debug("CEF parser setting date format: " + dateFormat);
 		}
 		return this;
 	}
 
 	//For setting the timezone of the parser
 	public CEFParser withTimeZone(String timeZone) {
+		if (timeZone == null) {
+			timeZone = "UTC";
+		}
 		this.timeZone = TimeZone.getTimeZone(timeZone);
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("CEF parser settting timezone: " + timeZone);
+			LOG.debug("CEF parser setting timezone: " + timeZone);
 		}
 		return this;
 	}
@@ -70,7 +79,7 @@ public class CEFParser extends BasicParser {
 	public CEFParser withHeaderTimestampRegex(String headerRegex) {
 		this.headerTimestampRegex = headerRegex;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("CEF parser settting header regular expression: " + headerRegex);
+			LOG.debug("CEF parser setting header regular expression: " + headerRegex);
 		}
 		return this;
 	}
@@ -507,4 +516,5 @@ public class CEFParser extends BasicParser {
 			json.remove("slong");
 		}
 	}
+
 }

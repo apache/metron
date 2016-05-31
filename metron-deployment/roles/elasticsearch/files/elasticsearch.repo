@@ -15,9 +15,10 @@
 #  limitations under the License.
 #
 
-[elasticsearch-1.7]
-name=Elasticsearch repository for 1.7.x packages
-baseurl=http://packages.elastic.co/elasticsearch/1.7/centos
+[elasticsearch-2.x]
+name=Elasticsearch repository for 2.x packages
+baseurl=https://packages.elastic.co/elasticsearch/2.x/centos
 gpgcheck=1
-gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch
+gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
 enabled=1
+

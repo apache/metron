@@ -20,12 +20,15 @@ package org.apache.metron.parsers.cef;
 
 import static org.junit.Assert.assertEquals;
 import java.util.List;
+
+import com.google.common.collect.ImmutableMap;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
 public class CEFParserTest {
 	
 	private CEFParser parser = new CEFParser();
+
 	
 	//Tests a CEF message from a FireEye device
 	@Test
@@ -35,12 +38,14 @@ public class CEFParserTest {
 				+ "cs4=https://server0003/emps/eanalysis?e_id\\=129555927&type\\=attch duser=RickUser72@hotmail.com cn1Label=vlan cn1=0 externalId=1377069887 "
 				+ "dvc=101.4.103.75 act=notified msg=5d777dfe-e4b9-4700-99e1-477ee8eab15b@msn.com flexString1Label=sname flexString1=Archive";
 		
-		parser = parser.withDateFormat("MMM dd yyyy HH:mm:ss Z");
-		parser = parser.withTimeZone("UTC");
+		parser.configure(ImmutableMap.of("dateFormat", "MMM dd yyyy HH:mm:ss Z"
+										,"timezone" , "UTC"
+										)
+		                );
 		
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
-
+		
 		assertEquals(parsedJSON.get("priority"), "161");
 		assertEquals(parsedJSON.get("device_vendor"), "FireEye");
 		assertEquals(parsedJSON.get("device_product"), "CMS");
@@ -52,7 +57,7 @@ public class CEFParserTest {
 		assertEquals(parsedJSON.get("fileHash"), "481e959d8qrstbeaf67a30eff7e989c5");
 		assertEquals(parsedJSON.get("filePath"), "/3qZjLW6xPpz5C8dn-files_doc_5D6D7B.zip");
 		assertEquals(parsedJSON.get("deviceHostName"), "SERVER003");
-		assertEquals(parsedJSON.get("link"), "https://server0003/emps/eanalysis?e_id=129555927&type=attch");
+		assertEquals(parsedJSON.get("link"), "https://server0003/emps/eanalysis?e_id\\=129555927&type\\=attch");
 		assertEquals(parsedJSON.get("dst_username"), "RickUser72@hotmail.com");
 		assertEquals(parsedJSON.get("vlan"), "0");
 		assertEquals(parsedJSON.get("externalId"), "1377069887");
@@ -71,9 +76,12 @@ public class CEFParserTest {
 				+ "reason= cs1Label=\"Affected User Name\" cs1= cs2Label=\"Safe Name\" cs2=RFCConfig cs3Label=\"Device Type\" "
 				+ "cs3= cs4Label=\"Database\" cs4= cs5Label=\"Other info\" cs5= cn1Label=\"Request Id\" cn1= cn2Label=\"Ticket Id\" "
 				+ "cn2=  msg=";
-		
-		parser = parser.withHeaderTimestampRegex("\\w\\w\\w \\d\\d \\d\\d:\\d\\d:\\d\\d").withDateFormat("MMM dd HH:mm:ss");
-		parser = parser.withTimeZone("UTC");
+
+		parser.configure(ImmutableMap.of("dateFormat", "MMM dd HH:mm:ss",
+						                 "timezone" , "UTC",
+										 "headerRegEx" , "\\w\\w\\w \\d\\d \\d\\d:\\d\\d:\\d\\d"
+										)
+						);
 		
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -99,9 +107,11 @@ public class CEFParserTest {
 				+ "act=alert dst=17.43.200.42 dpt=88 duser=${Alert.username} src=10.31.45.69 spt=34435 proto=TCP rt=31 March 2016 13:04:55 "
 				+ "cat=Alert cs1= cs1Label=Policy cs2=ABC-Secure cs2Label=ServerGroup cs3=servers_svc cs3Label=ServiceName cs4=server_app "
 				+ "cs4Label=ApplicationName cs5=QA cs5Label=Description";
-		
-		parser = parser.withDateFormat("dd MMMMM yyyy HH:mm:ss");
-		parser = parser.withTimeZone("UTC");
+
+		parser.configure(ImmutableMap.of("dateFormat", "dd MMMMM yyyy HH:mm:ss",
+										 "timezone" , "UTC"
+										)
+						);
 		
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -125,8 +135,7 @@ public class CEFParserTest {
 		assertEquals(parsedJSON.get("ServerGroup"), "ABC-Secure");
 		assertEquals(parsedJSON.get("ServiceName"), "servers_svc");
 		assertEquals(parsedJSON.get("ApplicationName"), "server_app");
-		assertEquals(parsedJSON.get("Description"), "QA");	
-	
+		assertEquals(parsedJSON.get("Description"), "QA");
 	}
 	
 	
@@ -138,10 +147,12 @@ public class CEFParserTest {
 				+ "start=1459517280810 end=1459517280810 audits=[\"AVPR-4oIPeFmuZ3CKKrg\",\"AVPR-wx80cd9PUpAu2aj\",\"AVPR-6XGPeFmuZ3CKKvx\","
 				+ "\"AVPSALn_qE4Kgs_8_yK9\",\"AVPSASW3gw_f3aEvgEmi\"] services=[\"APPID_SXC\"] users=[\"lvader@hotmail.com\"] "
 						+ "cs6=https://abcd-remote.console.arc.com/#/alerts/56fe779ee4b0459f4e9a484a cs6Label=consoleUrl";
-		
-		parser = parser.withHeaderTimestampRegex("\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d");
-		parser = parser.withDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-		parser = parser.withTimeZone("UTC");
+
+		parser.configure(ImmutableMap.of("dateFormat", "yyyy-MM-dd'T'HH:mm:ss",
+										 "timezone" , "UTC",
+										 "headerRegEx" , "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d"
+										)
+						);
 		
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
@@ -186,10 +197,12 @@ public class CEFParserTest {
 				+ "start=1459517280810 end=1459517280810 audits=[\"AVPR-4oIPeFmuZ3CKKrg\",\"AVPR-wx80cd9PUpAu2aj\",\"AVPR-6XGPeFmuZ3CKKvx\","
 				+ "\"AVPSALn_qE4Kgs_8_yK9\",\"AVPSASW3gw_f3aEvgEmi\"] services=[\"APPID_SXC\"] users=[\"lvader@hotmail.com\"] "
 						+ "cs6=https://abcd-remote.console.arc.com/#/alerts/56fe779ee4b0459f4e9a484a cs6Label=consoleUrl";
-		
-		parser = parser.withHeaderTimestampRegex("\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d");
-		parser = parser.withDateFormat("MM-dd'T'HH:mm:ss");
-		parser = parser.withTimeZone("UTC");
+
+		parser.configure(ImmutableMap.of("dateFormat", "yyyy-MM-dd'T'HH:mm:ss",
+                     "timezone" , "UTC",
+										 "headerRegEx" , "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d"
+										)
+						);
 		
 		List<JSONObject> result = parser.parse(testString.getBytes());	
 		JSONObject parsedJSON = result.get(0);

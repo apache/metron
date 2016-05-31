@@ -25,7 +25,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import kafka.consumer.ConsumerIterator;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
@@ -42,6 +43,8 @@ import org.apache.metron.integration.utils.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.PcapMerger;
+import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.scheme.TimestampScheme;
@@ -51,7 +54,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.*;
 
 public class PcapTopologyIntegrationTest {
@@ -195,7 +201,7 @@ public class PcapTopologyIntegrationTest {
     //Assert.assertEquals(0, numFiles(outDir));
     Assert.assertNotNull(topologiesDir);
     Assert.assertNotNull(targetDir);
-    Path pcapFile = new Path("../metron-integration-test/src/main/resources/sample/data/SampleInput/PCAPExampleOutput");
+    Path pcapFile = new Path("../metron-integration-test/src/main/sample/data/SampleInput/PCAPExampleOutput");
     final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile, withHeaders));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
@@ -221,7 +227,6 @@ public class PcapTopologyIntegrationTest {
                                      }
                                    }
             );
-    //.withExistingZookeeper("localhost:2000");
 
 
     final MRComponent mr = new MRComponent().withBasePath(baseDir.getAbsolutePath());
@@ -274,6 +279,22 @@ public class PcapTopologyIntegrationTest {
                         , new EnumMap<>(Constants.Fields.class)
                         , new Configuration()
                         , FileSystem.get(new Configuration())
+                        , new FixedPcapFilter.Configurator()
+                );
+        Assert.assertEquals(results.size(), 2);
+      }
+      {
+        // Ensure that only two pcaps are returned when we look at 4 and 5
+        // test with empty query filter
+        List<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(4, pcapEntries)
+                        , getTimestamp(5, pcapEntries)
+                        , ""
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
                 );
         Assert.assertEquals(results.size(), 2);
       }
@@ -289,6 +310,22 @@ public class PcapTopologyIntegrationTest {
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
+                        , new FixedPcapFilter.Configurator()
+                );
+        Assert.assertEquals(results.size(), 0);
+      }
+      {
+        // ensure that none get returned since that destination IP address isn't in the dataset
+        // test with query filter
+        List<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(1, pcapEntries)
+                        , "ip_dst_addr == '207.28.210.1'"
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
                 );
         Assert.assertEquals(results.size(), 0);
       }
@@ -304,6 +341,22 @@ public class PcapTopologyIntegrationTest {
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
+                        , new FixedPcapFilter.Configurator()
+                );
+        Assert.assertEquals(results.size(), 0);
+      }
+      {
+        //same with protocol as before with the destination addr
+        //test with query filter
+        List<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(1, pcapEntries)
+                        , "protocol == 'foo'"
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
                 );
         Assert.assertEquals(results.size(), 0);
       }
@@ -317,6 +370,22 @@ public class PcapTopologyIntegrationTest {
                         , new EnumMap<>(Constants.Fields.class)
                         , new Configuration()
                         , FileSystem.get(new Configuration())
+                        , new FixedPcapFilter.Configurator()
+                );
+        Assert.assertEquals(results.size(), pcapEntries.size());
+      }
+      {
+        //make sure I get them all.
+        //with query filter
+        List<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , ""
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
                 );
         Assert.assertEquals(results.size(), pcapEntries.size());
       }
@@ -331,6 +400,34 @@ public class PcapTopologyIntegrationTest {
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
+                        , new FixedPcapFilter.Configurator()
+                );
+        Assert.assertTrue(results.size() > 0);
+        Assert.assertEquals(results.size()
+                , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
+                          @Override
+                          public boolean apply(@Nullable JSONObject input) {
+                            Object prt = input.get(Constants.Fields.DST_PORT.getName());
+                            return prt != null && prt.toString().equals("22");
+                          }
+                        }, withHeaders)
+                )
+        );
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PcapMerger.merge(baos, results);
+        Assert.assertTrue(baos.toByteArray().length > 0);
+      }
+      {
+        //test with query filter
+        List<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , "ip_dst_port == '22'"
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
                 );
         Assert.assertTrue(results.size() > 0);
         Assert.assertEquals(results.size()

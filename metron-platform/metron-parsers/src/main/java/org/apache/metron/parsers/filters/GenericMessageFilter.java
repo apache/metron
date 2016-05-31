@@ -21,14 +21,21 @@ import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
+import java.util.Map;
 
-public class GenericMessageFilter implements MessageFilter<JSONObject>,
-				Serializable {
+public class GenericMessageFilter implements MessageFilter<JSONObject>{
 
 	private static final long serialVersionUID = 3626397212398318852L;
+
+	public GenericMessageFilter() {
+	}
 
 	public boolean emitTuple(JSONObject message) {
 		return true;
 	}
 
+	@Override
+	public void configure(Map<String, Object> config) {
+
+	}
 }

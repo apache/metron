@@ -19,8 +19,11 @@ package org.apache.metron;
 
 public class TestConstants {
 
-  public final static String SAMPLE_CONFIG_PATH = "../metron-integration-test/src/main/resources/sample/config/";
-  public final static String SAMPLE_DATA_INPUT_PATH = "../metron-integration-test/src/main/resources/sample/data/SampleInput/";
-  public final static String SAMPLE_DATA_PARSED_PATH = "../metron-integration-test/src/main/resources/sample/data/SampleParsed/";
-  public final static String SAMPLE_DATA_INDEXED_PATH = "../metron-integration-test/src/main/resources/sample/data/SampleIndexed/";
+  public final static String SAMPLE_CONFIG_PATH = "../metron-integration-test/src/main/config/zookeeper/";
+  public final static String PARSER_CONFIGS_PATH = "../metron-parsers/src/main/config/zookeeper/";
+  public final static String ENRICHMENTS_CONFIGS_PATH = "../metron-enrichment/src/main/config/zookeeper/";
+  public final static String SAMPLE_DATA_PATH = "../metron-integration-test/src/main/sample/data/";
+  public final static String SAMPLE_DATA_INPUT_PATH = "../metron-integration-test/src/main/sample/data/yaf/raw/";
+  public final static String SAMPLE_DATA_PARSED_PATH = "../metron-integration-test/src/main/sample/data/test/parsed/";
+  public final static String SAMPLE_DATA_INDEXED_PATH = "../metron-integration-test/src/main/sample/data/test/indexed/";
 }

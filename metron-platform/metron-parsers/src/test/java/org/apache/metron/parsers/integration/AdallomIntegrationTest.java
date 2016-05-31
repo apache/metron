@@ -18,33 +18,23 @@
 
 package org.apache.metron.parsers.integration;
 
-import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdallomIntegrationTest extends ParserIntegrationTest {
-	
-	  @Override
-	  public String getFluxPath() {
-	    return "./src/main/flux/adallom/test.yaml";
-	  }
 
-	  @Override
-	  public String getSampleInputPath() {
-	    return TestConstants.SAMPLE_DATA_INPUT_PATH + "AdallomOutput";
-	  }
+	@Override
+	public String getSensorType() {
+		return "adallom";
+	}
 
-	  @Override
-	  public String getSampleParsedPath() {
-	    return TestConstants.SAMPLE_DATA_PARSED_PATH + "AdallomParsed";
-	  }
-
-	  @Override
-	  public String getSensorType() {
-	    return "adallom";
-	  }
-
-	  @Override
-	  public String getFluxTopicProperty() {
-	    return "spout.kafka.topic.adallom";
-	  }
+	@Override
+	List<ParserValidation> getValidations() {
+		return new ArrayList<ParserValidation>() {{
+			add(new SampleDataValidation());
+		}};
+	}
 
 }

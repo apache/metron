@@ -22,8 +22,8 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import junit.framework.Assert;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
-import org.apache.metron.common.configuration.Configurations;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 
@@ -35,11 +35,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class SplitBoltTest extends BaseEnrichmentBoltTest {
 
@@ -91,7 +87,7 @@ public class SplitBoltTest extends BaseEnrichmentBoltTest {
     StandAloneSplitBolt splitBolt = spy(new StandAloneSplitBolt("zookeeperUrl"));
     splitBolt.setCuratorFramework(client);
     splitBolt.setTreeCache(cache);
-    doCallRealMethod().when(splitBolt).reloadCallback(anyString(), any(Configurations.Type.class));
+    doCallRealMethod().when(splitBolt).reloadCallback(anyString(), any(ConfigurationType.class));
     splitBolt.prepare(new HashMap(), topologyContext, outputCollector);
     splitBolt.declareOutputFields(declarer);
     verify(declarer, times(1)).declareStream(eq("message"), argThat(new FieldsMatcher("key", "message")));
