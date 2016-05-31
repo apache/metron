@@ -57,7 +57,7 @@ public class PcapHelperTest {
 
   @Test
   public void testLittleEndianHeaderization() throws Exception {
-    String pcapSampleFiles = "../metron-integration-test/src/main/resources/sample/data/SampleInput/PCAPExampleOutput";
+    String pcapSampleFiles = "../metron-integration-test/src/main/sample/data/SampleInput/PCAPExampleOutput";
     List<byte[]> pcaps = readSamplePackets(pcapSampleFiles);
     for(byte[] pcap : pcaps)
     {

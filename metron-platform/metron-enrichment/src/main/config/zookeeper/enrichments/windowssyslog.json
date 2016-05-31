@@ -1,0 +1,12 @@
+{
+  "index": "windowssyslog",
+  "batchSize": 5,
+  "enrichment": {
+    "fieldMap": {
+
+    },
+    "fieldToTypeMap": {
+
+    }
+  }
+}

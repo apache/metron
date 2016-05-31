@@ -26,8 +26,7 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.sql.*;
 
-public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
-        Serializable {
+public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
 
   protected static final Logger _LOG = LoggerFactory
           .getLogger(JdbcAdapter.class);
@@ -38,6 +37,26 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
   private JdbcConfig config;
   private String host;
 
+  protected boolean isConnectionClosed() {
+    boolean isClosed = statement == null || connection == null;
+    if(!isClosed) {
+      try {
+        isClosed = statement.isClosed() || connection.isClosed();
+      } catch (SQLException e) {
+        _LOG.error("Unable to maintain open JDBC connection: " + e.getMessage(), e);
+        isClosed = true;
+      }
+    }
+    return isClosed;
+  }
+
+  protected boolean resetConnectionIfNecessary() {
+    if(isConnectionClosed()) {
+      this.cleanup();
+      return this.initializeAdapter();
+    }
+    return true;
+  }
   public void setStatement(Statement statement) {
     this.statement = statement;
   }
@@ -48,6 +67,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
     return this;
   }
 
+
   @Override
   public boolean initializeAdapter() {
     try {
@@ -57,16 +77,15 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
       Class.forName(this.config.getClassName());
       connection = DriverManager.getConnection(this.config.getJdbcUrl());
       connection.setReadOnly(true);
-      if (!connection.isValid(0))
+      if (!connection.isValid(0)) {
         throw new Exception("Invalid connection string....");
+      }
       statement = connection.createStatement(
               ResultSet.TYPE_SCROLL_INSENSITIVE,
               ResultSet.CONCUR_READ_ONLY);
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
       _LOG.error("[Metron] JDBC connection failed....", e);
-
       return false;
     }
   }
@@ -74,10 +93,19 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>,
   @Override
   public void cleanup() {
     try {
-      if (statement != null) statement.close();
-      if (connection != null) connection.close();
+      if (statement != null) {
+        statement.close();
+      }
     } catch (SQLException e) {
-      e.printStackTrace();
+      _LOG.error("[Metron] JDBC statement close failed....", e);
+    }
+    try {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+    catch(SQLException e) {
+      _LOG.error("[Metron] JDBC connection close failed....", e);
     }
   }
 }

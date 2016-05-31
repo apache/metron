@@ -1,0 +1,9 @@
+{
+"parserClassName":"org.apache.metron.parsers.windowssyslog.WindowsSyslogParser",
+"sensorTopic":"windowssyslog",
+"parserConfig":
+{
+  "dateFormat":"MM/dd/yyyy HH:mm:ss a",
+  "timezoneOffset" : 0
+}
+}

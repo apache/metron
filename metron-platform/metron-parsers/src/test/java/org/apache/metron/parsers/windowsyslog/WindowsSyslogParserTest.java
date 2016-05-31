@@ -32,10 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -57,6 +54,7 @@ public class WindowsSyslogParserTest {
 	public void testParseLine() throws Exception {
 		//Set up parser, parse message
 		WindowsSyslogParser parser = new WindowsSyslogParser();
+		parser.configure(new HashMap<>());
 		//parser.withDateFormat(dateFormat).withTimestampField(timestampField);
 		String testString = "<13> ABC 02/05/2016 09:54:39 AM\n" +
 				"LogName=Security\n" +

@@ -44,16 +44,44 @@ public class WindowsSyslogParser extends BasicParser {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(WindowsSyslogParser.class);
 
-	public WindowsSyslogParser() {
-		this.TIMEZONE_OFFSET = 0;
-		this.DATE_FORMAT = "MM/dd/yyyy HH:mm:ss a";
-		this.dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-	}
 
+
+	@Override
+	public void configure(Map<String, Object> config) {
+		withDateFormat((String) config.get("dateFormat"));
+		Object timezoneOffset = config.get("timezoneOffset");
+		if(timezoneOffset == null || ! (timezoneOffset instanceof Integer)) {
+			withTimezoneOffset(0);
+		}
+		else {
+			withTimezoneOffset((Integer)timezoneOffset);
+		}
+	}
 	@Override
 	public void init() {
 
+	}
+
+	public WindowsSyslogParser withDateFormat(String dateFormat) {
+		if(dateFormat == null) {
+			this.dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss a", Locale.US);
+		}
+		else {
+			this.dateFormat = new SimpleDateFormat(dateFormat, Locale.US);
+		}
+		this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return this;
+	}
+
+	public WindowsSyslogParser withTimezoneOffset(Integer offset) {
+		if(offset == null) {
+			TIMEZONE_OFFSET = 0;
+		}
+		else {
+			TIMEZONE_OFFSET = offset;
+		}
+
+		return this;
 	}
 
 	@Override
@@ -373,4 +401,6 @@ public class WindowsSyslogParser extends BasicParser {
 		}
 		return sb.toString();
 	}
+
+
 }

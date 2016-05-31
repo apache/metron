@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.integration;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections.Buffer;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.metron.TestConstants;
@@ -27,6 +28,7 @@ import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
@@ -42,16 +44,6 @@ import java.util.Map;
 import java.util.Properties;
 
 public class WindowsSyslogIntegrationTest extends ParserIntegrationTest {
-
-    @Override
-    public String getFluxPath() {
-        return "./src/main/flux/windowssyslog/test.yaml";
-    }
-
-    @Override
-    public String getSampleInputPath() {
-        return TestConstants.SAMPLE_DATA_INPUT_PATH + "WindowsSyslogExampleOutput.txt";
-    }
 
     @Override
     public List<byte[]> readSampleData(String samplePath) throws IOException {
@@ -70,18 +62,14 @@ public class WindowsSyslogIntegrationTest extends ParserIntegrationTest {
     }
 
     @Override
-    public String getSampleParsedPath() {
-        return TestConstants.SAMPLE_DATA_PARSED_PATH + "WindowsSyslogParsed";
-    }
-
-    @Override
     public String getSensorType() {
         return "windowssyslog";
     }
 
     @Override
-    public String getFluxTopicProperty() {
-        return "spout.kafka.topic.windowssyslog";
+    List<ParserValidation> getValidations() {
+        return ImmutableList.of(new SampleDataValidation());
     }
+
 
 }
