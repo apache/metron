@@ -1,0 +1,49 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- include: ../../roles/ambari_config/tasks/start_hdp.yml
+
+- name: Stop Monit
+  service:
+    name: monit
+    state: stopped
+  register: command_result
+  failed_when: "command_result|failed and 'no service or tool found for: monit' not in command_result.msg"
+
+- include: stop_storm.yml
+
+- include: clear_topics.yml
+
+- name: Delete ES Indices
+  uri:
+    method: DELETE
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/b*,s*,y*"
+
+- name: Stop the ambari cluster
+  ambari_cluster_state:
+    host: "{{ groups.ambari_master[0] }}"
+    port: "{{ ambari_port }}"
+    username: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    cluster_name: "{{ cluster_name }}"
+    cluster_state: stopped
+    wait_for_complete: true
+
+- include: remove_services.yml
+
+- include: ../../roles/ambari_config/tasks/start_hdp.yml
+
