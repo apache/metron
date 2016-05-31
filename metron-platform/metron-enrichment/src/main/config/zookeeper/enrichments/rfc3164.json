@@ -1,0 +1,6 @@
+{
+  "index": "rfc4164",
+  "batchSize": 5,
+  "enrichment": {
+  }
+}

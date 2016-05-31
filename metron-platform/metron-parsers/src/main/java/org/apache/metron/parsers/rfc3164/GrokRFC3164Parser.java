@@ -28,9 +28,6 @@ import java.util.Iterator;
 public class GrokRFC3164Parser extends GrokParser {
 
 
-	public GrokRFC3164Parser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
 
 	@Override
 	protected long formatTimestamp(Object value) {
