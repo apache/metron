@@ -19,6 +19,9 @@ package org.apache.metron.parsers;
 
 import org.adrianwalker.multilinestring.Multiline;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SquidParserTest extends GrokParserTest {
 
   @Override
@@ -59,8 +62,8 @@ public class SquidParserTest extends GrokParserTest {
   }
 
   @Override
-  public String[] getTimeFields() {
-    return new String[0];
+  public List<String> getTimeFields() {
+    return new ArrayList<>();
   }
 
   @Override
