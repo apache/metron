@@ -34,12 +34,7 @@ public abstract class BaseIntegrationTest {
               @Nullable
               @Override
               public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-                topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
-                try {
-                  ConfigurationsUtils.uploadConfigsToZookeeper(TestConstants.SAMPLE_CONFIG_PATH, kafkaWithZKComponent.getZookeeperConnect());
-                } catch (Exception e) {
-                  throw new IllegalStateException(e);
-                }
+                topologyProperties.setProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY, kafkaWithZKComponent.getZookeeperConnect());
                 return null;
               }
             });
