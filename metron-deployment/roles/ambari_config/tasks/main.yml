@@ -45,28 +45,6 @@
     configurations: "{{ configurations }}"
     wait_for_complete: True
     blueprint_var: "{{ blueprint }}"
-#
-# Workaround for Kafka not starting
-# Fire off async start followed by
-# Sync start -execution will pause until
-# final start completes.
-#
-- name: Start the ambari cluster - no wait
-  ambari_cluster_state:
-    host: "{{ groups.ambari_master[0] }}"
-    port: "{{ ambari_port }}"
-    username: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    cluster_name: "{{ cluster_name }}"
-    cluster_state: started
-    wait_for_complete: False
 
-- name: Start the ambari cluster - wait
-  ambari_cluster_state:
-    host: "{{ groups.ambari_master[0] }}"
-    port: "{{ ambari_port }}"
-    username: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    cluster_name: "{{ cluster_name }}"
-    cluster_state: started
-    wait_for_complete: True
+- include: start_hdp.yml
+

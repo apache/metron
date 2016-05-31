@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
 
@@ -90,6 +91,10 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String PktsSent = "pkts_sent";
   public static final String PktsReceived = "pkts_received";
 
+  @Override
+  public void configure(Map<String, Object> parserConfig) {
+
+  }
 
   @Override
   public void init() {

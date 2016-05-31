@@ -41,7 +41,7 @@ Start the image with the following commands:
 
   ```
   cd metron-deployment/vagrant/codelab-platform
-  ./launch_image.sh
+  ./run.sh
   ```
 
 ### Work with Metron
@@ -56,6 +56,7 @@ Remember Navigate to the following resources to explore your newly minted Apache
 
  - [Metron](http://node1:5000)
  - [Ambari](http://node1:8080)
+ - [Services](http://node1:2812)
 
 Connecting to the host through SSH is as simple as running the following command.
 

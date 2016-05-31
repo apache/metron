@@ -18,14 +18,14 @@
 package org.apache.metron.common.interfaces;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 
 import java.util.List;
 import java.util.Map;
 
 public interface BulkMessageWriter<T> extends AutoCloseable {
 
-  void init(Map stormConf, Configurations configuration) throws Exception;
-  void write(String sensorType, Configurations configurations, List<Tuple> tuples, List<T> messages) throws Exception;
+  void init(Map stormConf, EnrichmentConfigurations configuration) throws Exception;
+  void write(String sensorType, EnrichmentConfigurations configurations, List<Tuple> tuples, List<T> messages) throws Exception;
 
 }
