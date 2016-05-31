@@ -35,7 +35,6 @@ public class GrokInfobloxParser extends GrokParser {
     protected void postParse(JSONObject message) {
         removeEmptyFields(message);
         fixTimestamp(message);
-        formatTimestamp(message);
         fixTags(message);
 
         // fix dns action type if necessary
@@ -79,7 +78,7 @@ public class GrokInfobloxParser extends GrokParser {
         JSONObject fixedJSON = new JSONObject();
         for (Object o : json.keySet()) {
             String key = (String) o;
-            Object value = json.get(key).toString();
+            Object value = json.get(key);
 
             String tag = key.substring(0, (key).indexOf("_") + 1);
             boolean isKnownTag = false;
@@ -121,20 +120,23 @@ public class GrokInfobloxParser extends GrokParser {
     }
 
     private void fixTimestamp(JSONObject json) {
-        if (hasValidTimestamp(json, "unknown_timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("unknown_timestamp")));
+        if (hasValidTimestampString(json, "unknown_timestamp")) {
+            json.put("timestamp", (Long) formatTimestamp(json.get("unknown_timestamp")));
             json.remove("unknwon_timestamp");
-        } else if (hasValidTimestamp(json, "dhcpunknown_timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("dhcpdunknwon_timestamp")));
+        } else if (hasValidTimestampString(json, "dhcpunknown_timestamp")) {
+            json.put("timestamp", (Long) formatTimestamp(json.get("dhcpdunknwon_timestamp")));
             json.remove("unknwon_timestamp");
-        } else if (hasValidTimestamp(json, "dnsunknown_timestamp")) {
-            json.put("timestamp", formatTimestamp(json.get("dnsunknwon_timestamp")));
+        } else if (hasValidTimestampString(json, "dnsunknown_timestamp")) {
+            json.put("timestamp", (Long) formatTimestamp(json.get("dnsunknwon_timestamp")));
             json.remove("dnsunknwon_timestamp");
+        } else if (hasValidTimestampString(json, "timestamp")) {
+            json.put("timestamp", (Long) formatTimestamp(json.get("timestamp")));
         }
     }
 
-    private boolean hasValidTimestamp(JSONObject json, String key) {
-        return json.containsKey(key) && null != json.get(key) && !"".equals(json.get(key));
+    private boolean hasValidTimestampString(JSONObject json, String key) {
+        return json.containsKey(key) && null != json.get(key) && !"".equals(json.get(key)) &&
+                (json.get(key) instanceof String);
     }
 
     private void removeEmptyFields(JSONObject json) {
