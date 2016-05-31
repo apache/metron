@@ -37,8 +37,9 @@ public class ConfigurationsUtilsTest {
   private TestingServer testZkServer;
   private String zookeeperUrl;
   private CuratorFramework client;
-  private byte[] testGlobalConfig;
-  private Map<String, byte[]> testSensorConfigMap;
+  private byte[] expectedGlobalConfig;
+  private Map<String, byte[]> expectedSensorParserConfigMap;
+  private Map<String, byte[]> expectedSensorEnrichmentConfigMap;
 
   @Before
   public void setup() throws Exception {
@@ -46,23 +47,31 @@ public class ConfigurationsUtilsTest {
     zookeeperUrl = testZkServer.getConnectString();
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
-    testGlobalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
-    testSensorConfigMap = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.SAMPLE_CONFIG_PATH);
+    expectedGlobalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
+    expectedSensorParserConfigMap = ConfigurationsUtils.readSensorParserConfigsFromFile(TestConstants.PARSER_CONFIGS_PATH);
+    expectedSensorEnrichmentConfigMap = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
   }
 
   @Test
   public void test() throws Exception {
-    Assert.assertTrue(testGlobalConfig.length > 0);
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(testGlobalConfig, zookeeperUrl);
-    byte[] readGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-    Assert.assertTrue(Arrays.equals(testGlobalConfig, readGlobalConfigBytes));
+    Assert.assertTrue(expectedGlobalConfig.length > 0);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(expectedGlobalConfig, zookeeperUrl);
+    byte[] actualGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
+    Assert.assertTrue(Arrays.equals(expectedGlobalConfig, actualGlobalConfigBytes));
 
-    Assert.assertTrue(testSensorConfigMap.size() > 0);
+    Assert.assertTrue(expectedSensorParserConfigMap.size() > 0);
     String testSensorType = "yaf";
-    byte[] testSensorConfigBytes = testSensorConfigMap.get(testSensorType);
-    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(testSensorType, testSensorConfigBytes, zookeeperUrl);
-    byte[] readSensorConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(testSensorType, client);
-    Assert.assertTrue(Arrays.equals(testSensorConfigBytes, readSensorConfigBytes));
+    byte[] expectedSensorParserConfigBytes = expectedSensorParserConfigMap.get(testSensorType);
+    ConfigurationsUtils.writeSensorParserConfigToZookeeper(testSensorType, expectedSensorParserConfigBytes, zookeeperUrl);
+    byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(testSensorType, client);
+    Assert.assertTrue(Arrays.equals(expectedSensorParserConfigBytes, actualSensorParserConfigBytes));
+
+    Assert.assertTrue(expectedSensorEnrichmentConfigMap.size() > 0);
+    byte[] expectedSensorEnrichmentConfigBytes = expectedSensorEnrichmentConfigMap.get(testSensorType);
+    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(testSensorType, expectedSensorEnrichmentConfigBytes, zookeeperUrl);
+    byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(testSensorType, client);
+    Assert.assertTrue(Arrays.equals(expectedSensorEnrichmentConfigBytes, actualSensorEnrichmentConfigBytes));
+
     String name = "testConfig";
     Map<String, Object> testConfig = new HashMap<>();
     testConfig.put("stringField", "value");
@@ -73,7 +82,6 @@ public class ConfigurationsUtilsTest {
     Assert.assertTrue(Arrays.equals(JSONUtils.INSTANCE.toJSON(testConfig), readConfigBytes));
 
   }
-
 
   @After
   public void tearDown() throws IOException {

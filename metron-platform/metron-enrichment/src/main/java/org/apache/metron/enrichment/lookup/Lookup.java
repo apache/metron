@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.lookup;
 
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.enrichment.lookup.handler.Handler;
+import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
 
 import java.io.IOException;
 
@@ -68,24 +69,24 @@ public class Lookup<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> implements Han
   }
 
   @Override
-  public Iterable<Boolean> exists(Iterable<KEY_T> key, CONTEXT_T context, boolean logAccess) throws IOException {
+  public Iterable<Boolean> exists(Iterable<KeyWithContext<KEY_T, CONTEXT_T>> key, boolean logAccess) throws IOException {
     if(logAccess) {
-      for (KEY_T k : key) {
-        accessTracker.logAccess(k);
+      for (KeyWithContext<KEY_T, CONTEXT_T> k : key) {
+        accessTracker.logAccess(k.getKey());
       }
     }
-    return lookupHandler.exists(key, context, logAccess);
+    return lookupHandler.exists(key, logAccess);
   }
 
 
   @Override
-  public Iterable<RESULT_T> get(Iterable<KEY_T> key, CONTEXT_T context, boolean logAccess) throws IOException {
+  public Iterable<RESULT_T> get(Iterable<KeyWithContext<KEY_T, CONTEXT_T>> key, boolean logAccess) throws IOException {
     if(logAccess) {
-      for (KEY_T k : key) {
-        accessTracker.logAccess(k);
+      for (KeyWithContext<KEY_T, CONTEXT_T> k : key) {
+        accessTracker.logAccess(k.getKey());
       }
     }
-    return lookupHandler.get(key, context, logAccess);
+    return lookupHandler.get(key, logAccess);
   }
 
   @Override

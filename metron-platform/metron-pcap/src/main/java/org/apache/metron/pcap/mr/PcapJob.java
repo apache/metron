@@ -18,12 +18,12 @@
 
 package org.apache.metron.pcap.mr;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -33,40 +33,52 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.Constants;
+import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.metron.pcap.filter.PcapFilter;
+import org.apache.metron.pcap.filter.PcapFilterConfigurator;
+import org.apache.metron.pcap.filter.PcapFilters;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class PcapJob {
   private static final Logger LOG = Logger.getLogger(PcapJob.class);
-
   public static class PcapMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
     public static final String START_TS_CONF = "start_ts";
     public static final String END_TS_CONF = "end_ts";
     PcapFilter filter;
     long start;
     long end;
+
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
       super.setup(context);
-      filter = new PcapFilter(context.getConfiguration());
+      filter = PcapFilters.valueOf(context.getConfiguration().get(PcapFilterConfigurator.PCAP_FILTER_NAME_CONF)).create();
+      filter.configure(context.getConfiguration());
       start = Long.parseUnsignedLong(context.getConfiguration().get(START_TS_CONF));
       end = Long.parseUnsignedLong(context.getConfiguration().get(END_TS_CONF));
     }
 
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
-      if(Long.compareUnsigned(key.get() ,start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
-        boolean send = Iterables.size(Iterables.filter(PcapHelper.toPacketInfo(value.copyBytes()), filter)) > 0;
+      if (Long.compareUnsigned(key.get(), start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
+        // It is assumed that the passed BytesWritable value is always a *single* PacketInfo object. Passing more than 1
+        // object will result in the whole set being passed through if any pass the filter. We cannot serialize PacketInfo
+        // objects back to byte arrays, otherwise we could support more than one packet.
+        // Note: short-circuit findAny() func on stream
+        boolean send = filteredPacketInfo(value).findAny().isPresent();
         if (send) {
           context.write(key, value);
         }
       }
+    }
+
+    private Stream<PacketInfo> filteredPacketInfo(BytesWritable value) throws IOException {
+      return PcapHelper.toPacketInfo(value.copyBytes()).stream().filter(filter);
     }
   }
 
@@ -154,26 +166,23 @@ public class PcapJob {
     return ret;
   }
 
-  private static String queryToString(EnumMap<Constants.Fields, String> fields) {
-    return Joiner.on("_").join(fields.values());
-  }
-
-  public List<byte[]> query(Path basePath
+  public <T> List<byte[]> query(Path basePath
                             , Path baseOutputPath
                             , long beginNS
                             , long endNS
-                            , EnumMap<Constants.Fields, String> fields
+                            , T fields
                             , Configuration conf
                             , FileSystem fs
+                            , PcapFilterConfigurator<T> filterImpl
                             ) throws IOException, ClassNotFoundException, InterruptedException {
-    String fileName = Joiner.on("_").join(beginNS, endNS, queryToString(fields), UUID.randomUUID().toString());
+    String fileName = Joiner.on("_").join(beginNS, endNS, filterImpl.queryToString(fields), UUID.randomUUID().toString());
     if(LOG.isDebugEnabled()) {
       DateFormat format = SimpleDateFormat.getDateTimeInstance( SimpleDateFormat.LONG
                                                               , SimpleDateFormat.LONG
                                                               );
       String from = format.format(new Date(Long.divideUnsigned(beginNS, 1000000)));
       String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
-      LOG.debug("Executing query " + queryToString(fields) + " on timerange " + from + " to " + to);
+      LOG.debug("Executing query " + filterImpl.queryToString(fields) + " on timerange " + from + " to " + to);
     }
     Path outputPath =  new Path(baseOutputPath, fileName);
     Job job = createJob( basePath
@@ -183,6 +192,7 @@ public class PcapJob {
                        , fields
                        , conf
                        , fs
+                       , filterImpl
                        );
     boolean completed = job.waitForCompletion(true);
     if(completed) {
@@ -194,24 +204,21 @@ public class PcapJob {
   }
 
 
-  public static void addToConfig(EnumMap<Constants.Fields, String> fields, Configuration conf) {
-    for(Map.Entry<Constants.Fields, String> kv : fields.entrySet()) {
-      conf.set(kv.getKey().getName(), kv.getValue());
-    }
-  }
 
-  public Job createJob( Path basePath
+
+  public <T> Job createJob( Path basePath
                       , Path outputPath
                       , long beginNS
                       , long endNS
-                      , EnumMap<Constants.Fields, String> fields
+                      , T fields
                       , Configuration conf
                       , FileSystem fs
+                      , PcapFilterConfigurator<T> filterImpl
                       ) throws IOException
   {
     conf.set(PcapMapper.START_TS_CONF, Long.toUnsignedString(beginNS));
     conf.set(PcapMapper.END_TS_CONF, Long.toUnsignedString(endNS));
-    addToConfig(fields, conf);
+    filterImpl.addToConfig(fields, conf);
     Job job = new Job(conf);
     job.setJarByClass(PcapJob.class);
     job.setMapperClass(PcapJob.PcapMapper.class);

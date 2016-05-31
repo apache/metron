@@ -18,12 +18,20 @@
 
 package org.apache.metron.common.query;
 
-import org.antlr.v4.runtime.*;
-import org.apache.metron.common.query.generated.*;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.apache.metron.common.query.generated.PredicateLexer;
+import org.apache.metron.common.query.generated.PredicateParser;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 
 public class PredicateProcessor {
   public boolean parse(String rule, VariableResolver resolver) {
+    if (rule == null || isEmpty(rule.trim())) {
+      return true;
+    }
     ANTLRInputStream input = new ANTLRInputStream(rule);
     PredicateLexer lexer = new PredicateLexer(input);
     lexer.removeErrorListeners();
