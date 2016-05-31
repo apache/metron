@@ -28,9 +28,6 @@ import java.util.Iterator;
 public class GrokMcAfeeFirewallParser extends GrokParser {
 
 
-	public GrokMcAfeeFirewallParser(String grokHdfsPath, String patternLabel) {
-		super(grokHdfsPath, patternLabel);
-	}
 
 	@Override
 	protected long formatTimestamp(Object value) {
