@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.lookup;
 
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
@@ -25,41 +26,65 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
+import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 
-public class EnrichmentLookup extends Lookup<HTableInterface, EnrichmentKey, LookupKV<EnrichmentKey,EnrichmentValue>> implements AutoCloseable {
+public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, EnrichmentKey, LookupKV<EnrichmentKey,EnrichmentValue>> implements AutoCloseable {
 
-  public static class Handler implements org.apache.metron.enrichment.lookup.handler.Handler<HTableInterface,EnrichmentKey,LookupKV<EnrichmentKey,EnrichmentValue>> {
+  public static class HBaseContext {
+    private HTableInterface table;
+    private String columnFamily;
+    public HBaseContext(HTableInterface table, String columnFamily) {
+      this.table = table;
+      this.columnFamily = columnFamily;
+    }
+
+    public HTableInterface getTable() { return table; }
+    public String getColumnFamily() { return columnFamily; }
+  }
+
+  public static class Handler implements org.apache.metron.enrichment.lookup.handler.Handler<HBaseContext,EnrichmentKey,LookupKV<EnrichmentKey,EnrichmentValue>> {
     String columnFamily;
     HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
     public Handler(String columnFamily) {
       this.columnFamily = columnFamily;
     }
-    @Override
-    public boolean exists(EnrichmentKey key, HTableInterface table, boolean logAccess) throws IOException {
-      return table.exists(converter.toGet(columnFamily, key));
+
+    private String getColumnFamily(HBaseContext context) {
+      return context.getColumnFamily() == null?columnFamily:context.getColumnFamily();
     }
 
     @Override
-    public LookupKV<EnrichmentKey, EnrichmentValue> get(EnrichmentKey key, HTableInterface table, boolean logAccess) throws IOException {
-      return converter.fromResult(table.get(converter.toGet(columnFamily, key)), columnFamily);
+    public boolean exists(EnrichmentKey key, HBaseContext context, boolean logAccess) throws IOException {
+      return context.getTable().exists(converter.toGet(getColumnFamily(context), key));
     }
 
-    private List<Get> keysToGets(Iterable<EnrichmentKey> keys) {
+    @Override
+    public LookupKV<EnrichmentKey, EnrichmentValue> get(EnrichmentKey key, HBaseContext context, boolean logAccess) throws IOException {
+      return converter.fromResult(context.getTable().get(converter.toGet(getColumnFamily(context), key)), getColumnFamily(context));
+    }
+
+    private List<Get> keysToGets(Iterable<KeyWithContext<EnrichmentKey, HBaseContext>> keys) {
       List<Get> ret = new ArrayList<>();
-      for(EnrichmentKey key : keys) {
-        ret.add(converter.toGet(columnFamily, key));
+      for(KeyWithContext<EnrichmentKey, HBaseContext> key : keys) {
+        ret.add(converter.toGet(getColumnFamily(key.getContext()), key.getKey()));
       }
       return ret;
     }
 
     @Override
-    public Iterable<Boolean> exists(Iterable<EnrichmentKey> key, HTableInterface table, boolean logAccess) throws IOException {
+    public Iterable<Boolean> exists(Iterable<KeyWithContext<EnrichmentKey, HBaseContext>> key, boolean logAccess) throws IOException {
       List<Boolean> ret = new ArrayList<>();
+      if(Iterables.isEmpty(key)) {
+        return Collections.emptyList();
+      }
+      HTableInterface table = Iterables.getFirst(key, null).getContext().getTable();
       for(boolean b : table.existsAll(keysToGets(key))) {
         ret.add(b);
       }
@@ -67,14 +92,19 @@ public class EnrichmentLookup extends Lookup<HTableInterface, EnrichmentKey, Loo
     }
 
     @Override
-    public Iterable<LookupKV<EnrichmentKey, EnrichmentValue>> get( Iterable<EnrichmentKey> keys
-                                                                 , HTableInterface table
+    public Iterable<LookupKV<EnrichmentKey, EnrichmentValue>> get( Iterable<KeyWithContext<EnrichmentKey, HBaseContext>> keys
                                                                  , boolean logAccess
                                                                  ) throws IOException
     {
+      if(Iterables.isEmpty(keys)) {
+        return Collections.emptyList();
+      }
+      HTableInterface table = Iterables.getFirst(keys, null).getContext().getTable();
       List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
+      Iterator<KeyWithContext<EnrichmentKey, HBaseContext>> keyWithContextIterator = keys.iterator();
       for(Result result : table.get(keysToGets(keys))) {
-        ret.add(converter.fromResult(result, columnFamily));
+        HBaseContext context = keyWithContextIterator.next().getContext();
+        ret.add(converter.fromResult(result, getColumnFamily(context)));
       }
       return ret;
     }

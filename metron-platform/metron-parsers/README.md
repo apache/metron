@@ -1,8 +1,13 @@
-#metron-parsers
+#Parsers
 
-##Module Description
+Parsers are pluggable components which are used to transform raw data
+(textual or raw bytes) into JSON messages suitable for downstream
+enrichment and indexing.  
 
-This module provides a list of parsers that can be used with the Metron framework.  There are two types of parsers.  First type is a Java parser.  This kind of parser is optimized for speed and performance and is built for use with higher velicity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  The second type of parser provided with the system is a Grok parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.
+There are two types of parsers:
+*  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and
+is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
+* A Grok parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.
 
 ##Message Format
 
@@ -39,6 +44,109 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 "additional-field 1": xxx,
 }
 
+}
+```
+
+##Parser Configuration
+
+The configuration for the various parser topologies is defined by JSON
+documents stored in zookeeper.
+
+The document is structured in the following way
+
+* `parserClassName` : The fully qualified classname for the parser to be used.
+* `sensorTopic` : The kafka topic to send the parsed messages to.
+* `parserConfig` : A JSON Map representing the parser implementation specific configuration.
+* `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
+
+The `fieldTransformations` is a complex object which defines a
+transformation which can be done to a message.  This transformation can 
+* Modify existing fields to a message
+* Add new fields given the values of existing fields of a message
+* Remove existing fields of a message
+
+###`fieldTransformation` configuration
+
+The format of a `fieldTransformation` is as follows:
+* `input` : An array of fields or a single field representing the input.  This is optional; if unspecified, then the whole message is passed as input.
+* `output` : The outputs to produce from the transformation.  If unspecified, it is assumed to be the same as inputs.
+* `transformation` : The fully qualified classname of the transformation to be used.  This is either a class which implements `FieldTransformation` or a member of the `FieldTransformations` enum.
+* `config` : A String to Object map of transformation specific configuration.
+ 
+The currently implemented fieldTransformations are:
+* `REMOVE` : This transformation removes the specified input fields.  If you want a conditional removal, you can pass a Metron Query Language statement to define the conditions under which you want to remove the fields. 
+
+Consider the following simple configuration which will remove `field1`
+unconditionally:
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "input" : "field1"
+          , "mapping" : "REMOVE"
+          }
+                      ]
+}
+```
+
+Consider the following simple sensor parser configuration which will remove `field1`
+whenever `field2` exists and whose corresponding equal to 'foo':
+```
+{
+...
+  "fieldTransformations" : [
+          {
+            "input" : "field1"
+          , "mapping" : "REMOVE"
+          , "config" : {
+              "condition" : "exists(field2) and field2 == 'foo'"
+                       }
+          }
+                      ]
+}
+```
+
+* `IP_PROTOCOL` : This transformation maps IANA protocol numbers to consistent string representations.
+
+Consider the following sensor parser config to map the `protocol` field
+to a textual representation of the protocol:
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "input" : "protocol"
+          , "transformation" : "IP_PROTOCOL"
+          }
+                      ]
+}
+```
+
+This transformation would transform `{ "protocol" : 6, "source.type" : "bro", ... }` 
+into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
+
+###An Example Configuration for a Sensor
+Consider the following example configuration for the `yaf` sensor:
+
+```
+{
+  "parserClassName":"org.apache.metron.parsers.GrokParser",
+  "sensorTopic":"yaf",
+  "fieldTransformations" : [
+                    {
+                      "input" : "protocol"
+                     ,"transformation": "IP_PROTOCOL"
+                    }
+                    ],
+  "parserConfig":
+  {
+    "grokPath":"/patterns/yaf",
+    "patternLabel":"YAF_DELIMITED",
+    "timestampField":"start_time",
+    "timeFields": ["start_time", "end_time"],
+    "dateFormat":"yyyy-MM-dd HH:mm:ss.S"
+  }
 }
 ```
 
@@ -80,3 +188,46 @@ Grok parser adapters are designed primarly for someone who is not a Java coder f
 For more information on the Grok project please refer to the following link:
 
 https://github.com/thekrakken/java-grok
+
+#Starting the Parser Topology
+
+Starting a particular parser topology on a running Metron deployment is
+as easy as running the `start_parser_topology.sh` script located in
+`$METRON_HOME/bin`.  This utility will allow you to configure and start
+the running topology assuming that the sensor specific parser configuration
+exists within zookeeper.
+
+The usage for `start_parser_topology.sh` is as follows:
+
+```
+usage: start_parser_topology.sh
+ -e,--extra_options <JSON_FILE>               Extra options in the form of
+                                              a JSON file with a map for
+                                              content.
+ -h,--help                                    This screen
+ -k,--kafka <BROKER_URL>                      Kafka Broker URL
+ -mt,--message_timeout <TIMEOUT_IN_SECS>      Message Timeout in Seconds
+ -mtp,--max_task_parallelism <MAX_TASK>       Max task parallelism
+ -na,--num_ackers <NUM_ACKERS>                Number of Ackers
+ -nw,--num_workers <NUM_WORKERS>              Number of Workers
+ -pnt,--parser_num_tasks <PARSER_NUM_TASKS>   Parser Num Tasks
+ -pp,--parser_p <PARSER_PARALLELISM_HINT>     Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                    Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>           Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>       Spout Parallelism Hint
+ -t,--test <TEST>                             Run in Test Mode
+ -z,--zk <ZK_QUORUM>                          Zookeeper Quroum URL
+                                              (zk1:2181,zk2:2181,...
+```
+
+A small note on the extra options.  These options are intended to be Storm configuration options and will live in
+a JSON file which will be loaded into the Storm config.  For instance, if you wanted to set some storm property on
+the config called `topology.ticks.tuple.freq.secs` to 1000 and `storm.local.dir` to `/opt/my/path`
+you could create a file called `custom_config.json` containing 
+```
+{ 
+  "topology.ticks.tuple.freq.secs" : 1000,
+  "storm.local.dir" : "/opt/my/path"
+}
+```
+and pass `--extra_options custom_config.json` to `start_parser_topology.sh`.

@@ -24,12 +24,13 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.metron.common.bolt.ConfiguredBolt;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 
 import java.util.Map;
 import java.util.Set;
 
 public abstract class SplitBolt<T> extends
-        ConfiguredBolt {
+        ConfiguredEnrichmentBolt {
 
   protected OutputCollector collector;
 
