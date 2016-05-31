@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class BasicMcAfeeEpoParser extends BasicParser {
@@ -35,6 +36,10 @@ public class BasicMcAfeeEpoParser extends BasicParser {
 
     @Override
     public void init() {
+    }
+
+    @Override
+    public void configure(Map<String, Object> config) {
     }
 
     @SuppressWarnings({ "unchecked", "unused" })
@@ -108,4 +113,6 @@ public class BasicMcAfeeEpoParser extends BasicParser {
             return null;
         }
     }
+
+
 }
