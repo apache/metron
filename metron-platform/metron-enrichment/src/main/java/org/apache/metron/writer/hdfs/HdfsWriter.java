@@ -18,7 +18,7 @@
 package org.apache.metron.writer.hdfs;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
@@ -62,13 +62,13 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConfig, Configurations configurations) {
+  public void init(Map stormConfig, EnrichmentConfigurations configurations) {
     this.stormConfig = stormConfig;
   }
 
   @Override
-  public void write( String sourceType
-                   , Configurations configurations
+  public void write(String sourceType
+                   , EnrichmentConfigurations configurations
                    , List<Tuple> tuples
                    , List<JSONObject> messages
                    ) throws Exception

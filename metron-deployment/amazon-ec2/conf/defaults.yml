@@ -20,7 +20,7 @@ services_to_start:
   - mysql
   - elasticsearch
   - pcap-service
-  - metron-ui
+  - kibana
   - yaf
   - snort
   - snort-logs

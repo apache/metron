@@ -47,7 +47,7 @@ public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
    * {
    * "ip_src_addr": "ip1",
    * "ip_dst_addr": "ip2",
-   * "source.type": "yaf",
+   * "source.type": "test",
    * "enrichedField": "enrichedValue"
    * }
    */

@@ -17,7 +17,10 @@
 #
 ---
 - name: Start monit
-  service: name=monit state=restarted
+  service:
+    name: monit
+    state: started
+    enabled: true
 
 - name: Reload monit definitions
   shell: monit reload
