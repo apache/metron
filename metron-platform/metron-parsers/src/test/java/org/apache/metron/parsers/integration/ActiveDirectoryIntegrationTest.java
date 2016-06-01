@@ -18,26 +18,17 @@
 
 package org.apache.metron.parsers.integration;
 
-        import org.apache.commons.lang.ArrayUtils;
-        import org.apache.metron.TestConstants;
-
-        import java.io.BufferedReader;
-        import java.io.FileReader;
-        import java.io.IOException;
-        import java.util.ArrayList;
-        import java.util.List;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
-
-    @Override
-    public String getFluxPath() {
-        return "./src/main/flux/activedirectory/test.yaml";
-    }
-
-    @Override
-    public String getSampleInputPath() {
-        return TestConstants.SAMPLE_DATA_INPUT_PATH + "ActiveDirectoryExampleOutput.txt";
-    }
 
     @Override
     public List<byte[]> readSampleData(String samplePath) throws IOException {
@@ -56,18 +47,14 @@ public class ActiveDirectoryIntegrationTest extends ParserIntegrationTest {
     }
 
     @Override
-    public String getSampleParsedPath() {
-        return TestConstants.SAMPLE_DATA_PARSED_PATH + "ActiveDirectoryParsed";
-    }
-
-    @Override
     public String getSensorType() {
         return "activedirectory";
     }
 
     @Override
-    public String getFluxTopicProperty() {
-        return "spout.kafka.topic.activedirectory";
+    List<ParserValidation> getValidations() {
+        return ImmutableList.of(new SampleDataValidation());
     }
+
 
 }

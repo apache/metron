@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class ActiveDirectoryParserTest {
 
         //Set up parser, parse message
         ActiveDirectoryParser parser = new ActiveDirectoryParser();
+        parser.configure(new HashMap<>());
         //parser.withDateFormat(dateFormat).withTimestampField(timestampField);
         String testString = "<13> KDCRDNLBSTS07 04/18/2016 13:27:45.338\n" +
                 "dcName=ABC.google.com\n" +

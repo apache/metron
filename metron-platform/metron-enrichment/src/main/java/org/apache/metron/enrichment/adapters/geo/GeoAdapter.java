@@ -24,6 +24,7 @@ import org.json.simple.JSONObject;
 
 import java.net.InetAddress;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class GeoAdapter extends JdbcAdapter {
 
@@ -34,10 +35,15 @@ public class GeoAdapter extends JdbcAdapter {
 
   }
 
+
   @SuppressWarnings("unchecked")
   @Override
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
+    if(!resetConnectionIfNecessary()) {
+      _LOG.error("Enrichment failure, cannot maintain a connection to JDBC.  Please check connection.  In the meantime, I'm not enriching.");
+      return enriched;
+    }
     try {
       InetAddress addr = InetAddress.getByName(value.getValue());
       if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
@@ -45,7 +51,7 @@ public class GeoAdapter extends JdbcAdapter {
               || !ipvalidator.isValidInet4Address(value.getValue())) {
         return new JSONObject();
       }
-      String locidQuery = "select IPTOLOCID(\"" + value
+      String locidQuery = "select IPTOLOCID(\"" + value.getValue()
               + "\") as ANS";
       ResultSet resultSet = statement.executeQuery(locidQuery);
       String locid = null;
@@ -64,7 +70,7 @@ public class GeoAdapter extends JdbcAdapter {
         enriched.put("latitude", resultSet.getString("latitude"));
         enriched.put("longitude", resultSet.getString("longitude"));
         enriched.put("dmaCode", resultSet.getString("dmaCode"));
-        enriched.put("location_point", enriched.get("longitude") + "," + enriched.get("latitude"));
+        enriched.put("location_point", enriched.get("latitude") + "," + enriched.get("longitude"));
       }
       resultSet.close();
     } catch (Exception e) {

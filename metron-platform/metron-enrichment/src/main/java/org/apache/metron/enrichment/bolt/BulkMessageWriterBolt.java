@@ -25,6 +25,7 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
@@ -34,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class BulkMessageWriterBolt extends ConfiguredBolt {
+public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);

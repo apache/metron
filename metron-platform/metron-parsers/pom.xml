@@ -32,11 +32,6 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-pcap</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${global_hadoop_version}</version>
@@ -90,6 +85,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20160212</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${global_junit_version}</version>
@@ -100,7 +100,16 @@
             <artifactId>guava</artifactId>
             <version>${global_hbase_guava_version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.2.3</version>
+        </dependency>
         <dependency>
             <groupId>io.thekraken</groupId>
             <artifactId>grok</artifactId>
@@ -127,6 +136,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-integration-test</artifactId>
             <version>${project.parent.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>2.2.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -165,8 +180,8 @@
                 <version>3.1</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -183,6 +198,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson.core</pattern>
+                                    <shadedPattern>com.fasterxml.jackson.core.metron.parsers</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <artifactSet>
                                 <excludes>
                                     <exclude>storm:storm-core:*</exclude>

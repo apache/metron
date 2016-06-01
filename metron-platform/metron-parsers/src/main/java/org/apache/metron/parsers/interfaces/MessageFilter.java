@@ -17,8 +17,10 @@
  */
 package org.apache.metron.parsers.interfaces;
 
-public interface MessageFilter<T> {
+import java.io.Serializable;
+import java.util.Map;
+
+public interface MessageFilter<T> extends Configurable{
 
 	boolean emitTuple(T message);
-
 }

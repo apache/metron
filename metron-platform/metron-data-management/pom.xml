@@ -25,6 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <httpcore.version>4.3.2</httpcore.version>
+        <lucene.test.version>5.5.0</lucene.test.version>
     </properties>
     <dependencies>
         <dependency>
@@ -167,13 +168,13 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-test-framework</artifactId>
-            <version>4.10.4</version>
+            <version>${lucene.test.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>4.10.4</version>
+            <version>${lucene.test.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>

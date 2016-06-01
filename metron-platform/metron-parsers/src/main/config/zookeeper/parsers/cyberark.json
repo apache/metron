@@ -1,0 +1,10 @@
+{
+  "parserClassName":"org.apache.metron.parsers.cef.CEFParser",
+  "sensorTopic":"cyberark",
+  "parserConfig":
+  {
+    "dateFormat":"MMM dd HH:mm:ss",
+    "timezone":"UTC",
+    "headerRegEx":"\\w\\w\\w \\d\\d \\d\\d:\\d\\d:\\d\\d"
+  }
+}

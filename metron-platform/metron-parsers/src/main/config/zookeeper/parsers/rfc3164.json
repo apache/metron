@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.rfc3164.GrokRFC3164Parser",
+  "sensorTopic":"rfc3164",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/rfc3164",
+    "patternLabel":"RFC3164",
+    "timestampField":"timestamp_string",
+    "dateFormat":"yyyy MMM dd HH:mm:ss"
+  }
+}

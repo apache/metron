@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,16 +37,49 @@ public class ActiveDirectoryParser extends BasicParser {
     private static final long serialVersionUID = -2198315298358794599L;
     private static final Logger LOGGER = LoggerFactory
             .getLogger(ActiveDirectoryParser.class);
+
+    protected DateFormat dateFormat;
+
+    protected String DATE_FORMAT;
     protected int TIMEZONE_OFFSET;
 
-
-    public ActiveDirectoryParser() throws IOException {
-        super();
+    @Override
+    public void configure(Map<String, Object> config) {
+        withDateFormat((String) config.get("dateFormat"));
+        Object timezoneOffset = config.get("timezoneOffset");
+        if(timezoneOffset == null || ! (timezoneOffset instanceof Integer)) {
+            withTimezoneOffset(0);
+        }
+        else {
+            withTimezoneOffset((Integer)timezoneOffset);
+        }
     }
 
     @Override
     public void init() {
 
+    }
+
+    public ActiveDirectoryParser withDateFormat(String dateFormat) {
+        if(dateFormat == null) {
+            this.dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS", Locale.US);
+        }
+        else {
+            this.dateFormat = new SimpleDateFormat(dateFormat, Locale.US);
+        }
+        this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return this;
+    }
+
+    public ActiveDirectoryParser withTimezoneOffset(Integer offset) {
+        if(offset == null) {
+            TIMEZONE_OFFSET = 0;
+        }
+        else {
+            TIMEZONE_OFFSET = offset;
+        }
+
+        return this;
     }
 
     @Override

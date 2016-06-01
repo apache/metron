@@ -27,10 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class GrokParserTest {
 
@@ -44,17 +41,14 @@ public abstract class GrokParserTest {
 
   @Test
   public void test() throws IOException, ParseException {
-    String metronHdfsHome = "";
-    GrokParser grokParser = new GrokParser(getGrokPath(), getGrokPatternLabel());
-    String[] timeFields = getTimeFields();
-    if (timeFields != null) {
-      grokParser.withTimeFields(getTimeFields());
-    }
-    String dateFormat = getDateFormat();
-    if (dateFormat != null) {
-      grokParser.withDateFormat(getDateFormat());
-    }
-    grokParser.withTimestampField(getTimestampField());
+    Map<String, Object> parserConfig = new HashMap<>();
+    parserConfig.put("grokPath", getGrokPath());
+    parserConfig.put("patternLabel", getGrokPatternLabel());
+    parserConfig.put("timestampField", getTimestampField());
+    parserConfig.put("dateFormat", getDateFormat());
+    parserConfig.put("timeFields", getTimeFields());
+    GrokParser grokParser = new GrokParser();
+    grokParser.configure(parserConfig);
     grokParser.init();
     byte[] rawMessage = getRawMessage().getBytes();
     List<JSONObject> parsedList = grokParser.parse(rawMessage);
@@ -91,7 +85,7 @@ public abstract class GrokParserTest {
   public abstract String getExpectedParsedString();
   public abstract String getGrokPath();
   public abstract String getGrokPatternLabel();
-  public abstract String[] getTimeFields();
+  public abstract List<String> getTimeFields();
   public abstract String getDateFormat();
   public abstract String getTimestampField();
 }
