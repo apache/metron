@@ -114,7 +114,6 @@ public class ActiveDirectoryParser extends BasicParser {
             }
         }
 
-        SimpleDateFormat dateFormatLong = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
         BufferedReader br = null;
         String currentLine;
         String[] mapValues;
@@ -151,8 +150,8 @@ public class ActiveDirectoryParser extends BasicParser {
                 jsonMain.put("priority", mapValues[0].substring(1, mapValues[0].length() -1));
                 jsonMain.put("simpleMachineName", mapValues[1]);
                 try {
-                    Date test = dateFormatLong.parse(mapValues[2]);
-                    jsonMain.put("timestamp", dateFormatLong.parse(mapValues[2]).getTime());
+                    Date test = dateFormat.parse(mapValues[2]);
+                    jsonMain.put("timestamp", dateFormat.parse(mapValues[2]).getTime());
                 } catch (ParseException e) {
                     LOGGER.error("Unable to parse date", e);
                 }
