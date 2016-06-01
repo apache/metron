@@ -41,7 +41,6 @@ public class BasicCheckPointSyslogParserTest {
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
-        //assertEquals(parsedJSON.get("timestamp"), 1459469861000L);
         assertEquals(parsedJSON.get("priority"), "133");
         assertEquals(parsedJSON.get("processName"), "xpand");
         assertEquals(parsedJSON.get("processId"), "22939");
@@ -56,7 +55,6 @@ public class BasicCheckPointSyslogParserTest {
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
-        //assertEquals(parsedJSON.get("timestamp"), 1459469861000L);
         assertEquals(parsedJSON.get("priority"), "86");
         assertEquals(parsedJSON.get("processName"), "cp_radius_helper_1");
         assertEquals(parsedJSON.get("message"), "Non-local user 'socbackup' given role 'radius-group-any' (if that exists)");
