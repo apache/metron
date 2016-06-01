@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.ironport.GrokIronportParser",
+  "sensorTopic":"ironport",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/ironport",
+    "patternLabel":"IRONPORT",
+    "timestampField":"timestamp_string",
+    "dateFormat":"yyyy MMM dd HH:mm:ss"
+  }
+}
