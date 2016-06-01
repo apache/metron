@@ -30,6 +30,9 @@ import java.util.regex.Pattern;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
 
+    private String dateFormatString;
+    private TimeZone timeZone;
+
     private static final Logger _LOG = LoggerFactory.getLogger
             (BasicPaloAltoFirewallParser.class);
 
@@ -295,8 +298,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
     protected long toEpoch(String datetime) throws java.text.ParseException {
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy MMM dd HH:mm:ss");
-        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatString);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Parser converting timestamp to epoch: " + datetime);
         }
@@ -320,6 +322,36 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
                 keyIter.remove();
             }
         }
+    }
+
+    //For specifying the date format that the parser will use
+   public BasicPaloAltoFirewallParser withDateFormat(String dateFormat) {
+     if (dateFormat == null) {
+       throw new IllegalArgumentException("DateFormat must be specified in parser config file");
+     }
+     this.dateFormatString = dateFormat;
+      if (LOG.isDebugEnabled()) {
+       LOG.debug("Palo Alto parser setting date format: " + dateFormat);
+      }
+     return this;
+    }
+
+    //For setting the timezone of the parser
+    public BasicPaloAltoFirewallParser withTimeZone(String timeZone) {
+      if (timeZone == null) {
+        timeZone = "UTC";
+      }
+      this.timeZone = TimeZone.getTimeZone(timeZone);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("CEF parser setting timezone: " + timeZone);
+      }
+      return this;
+    }
+
+    @Override
+    public void configure(Map<String, Object> config) {
+      withDateFormat((String) config.get("dateFormat"));
+      withTimeZone((String) config.get("timeZone"));
     }
 
 }

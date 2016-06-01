@@ -21,7 +21,7 @@ import org.json.simple.JSONObject;
 import org.junit.Test;
 
 import java.util.List;
-
+import com.google.common.collect.ImmutableMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -29,12 +29,13 @@ public class BasicPaloAltoFirewallParserTest {
 
     private BasicPaloAltoFirewallParser basicPaloAltoFirewallParser = new BasicPaloAltoFirewallParser();
 
-    public BasicPaloAltoFirewallParserTest() throws Exception {
-        super();        
-    }
-
     @Test
     public void assertThreatTuple() {
+
+        basicPaloAltoFirewallParser.configure(ImmutableMap.of("dateFormat", "yyyy MMM dd HH:mm:ss"
+                                                             ,"timezone" , "UTC"
+                                                             )
+                                             );
 
         String testString = "<11>Jan  5 05:38:59 PAN1.exampleCustomer.com 1,2015/01/05 05:38:58,0006C110285,THREAT,vulnerability,1,2015/01/05 05:38:58,10.0.0.115," +
                 "216.0.10.198,0.0.0.0,0.0.0.0,EX-Allow,example\\user.name,,web-browsing,vsys1,internal,external,ethernet1/2,ethernet1/1,LOG-Default," +
@@ -94,6 +95,11 @@ public class BasicPaloAltoFirewallParserTest {
 
     @Test
     public void assertTrafficTuple() {
+
+        basicPaloAltoFirewallParser.configure(ImmutableMap.of("dateFormat", "yyyy MMM dd HH:mm:ss"
+                                                             ,"timezone" , "UTC"
+                                                             )
+                                             );
 
         String testString = "<14>Jan  5 12:51:34 PAN1.exampleCustomer.com 1,2015/01/05 12:51:33,0011C103117,TRAFFIC,end,1,2015/01/05 12:51:33,10.0.0.53,10.1.0.174," +
                 "0.0.0.0,0.0.0.0,EX-EasyAV2,,,mssql-db,vsys1,v_external,v_internal,ethernet1/2,ethernet1/1,LOG-Default,2015/01/05 12:51:33,33621086,1,54266,40004," +
@@ -156,6 +162,11 @@ public class BasicPaloAltoFirewallParserTest {
     @Test
     public void assertConfigTuple() {
 
+        basicPaloAltoFirewallParser.configure(ImmutableMap.of("dateFormat", "yyyy MMM dd HH:mm:ss"
+                                                             ,"timezone" , "UTC"
+                                                             )
+                                             );
+
         String testString = "<14>Mar 24 18:36:14 PAN1.exampleCustomer.com 1,2016/03/24 18:36:14,003001112668,CONFIG,0,0,2016/03/24 18:36:14,10.255.255.255,,set," +
                 "HarryPotter,Web,Succeeded, config mgt-config users HarryPotter preferences saved-log-query traffic Change-Mar25,8071,0x0,0,0,0,0,,SUNKUPAN1";
 
@@ -191,6 +202,11 @@ public class BasicPaloAltoFirewallParserTest {
 
     @Test
     public void assertSystemTuple() {
+
+        basicPaloAltoFirewallParser.configure(ImmutableMap.of("dateFormat", "yyyy MMM dd HH:mm:ss"
+                                                             ,"timezone" , "UTC"
+                                                             )
+                                             );
 
         String testString = "<14>Mar 25 00:00:56 PAN1.exampleCustomer.com 1,2016/03/25 00:00:56,003002112674,SYSTEM,general,0,2016/03/25 00:00:56,,general,,0,0," +
                 "general,informational,User HarryPotter logged in via Web from 10.255.255.255 using http,156324,0x0,0,0,0,0,,SUNKUPAN1";

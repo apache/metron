@@ -1,0 +1,9 @@
+{
+"parserClassName":"org.apache.metron.parsers.paloalto.BasicPaloAltoFirewallParser",
+"sensorTopic":"paloalto",
+"parserConfig":
+  {
+    "dateFormat":"yyyy MMM dd HH:mm:ss",
+    "timeZone":"UTC"
+  }
+}
