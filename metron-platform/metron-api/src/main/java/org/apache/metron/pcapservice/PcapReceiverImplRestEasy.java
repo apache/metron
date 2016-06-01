@@ -17,28 +17,28 @@
  */
 package org.apache.metron.pcapservice;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.log4j.Logger;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
+import org.apache.metron.pcap.filter.query.QueryPcapFilter;
+import org.apache.metron.pcap.mr.PcapJob;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.log4j.Logger;
-
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.utils.timestamp.TimestampConverters;
-import org.apache.metron.pcap.mr.PcapJob;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.List;
 
 @Path("/")
 public class PcapReceiverImplRestEasy {
@@ -98,18 +98,84 @@ public class PcapReceiverImplRestEasy {
     return false;
   }
 
-	  /*
-	   * (non-Javadoc)
-	   * 
-	   * @see
-	   * com.cisco.opensoc.hbase.client.IPcapReceiver#getPcapsByIdentifiers(java.lang
-	   * .String, java.lang.String, java.lang.String, java.lang.String,
-	   * java.lang.String, long, long, boolean,
-	   * javax.servlet.http.HttpServletResponse)
-	   */
+  /**
+   * Enable filtering PCAP results by query filter string and start/end packet TS
+   *
+   * @param query Filter results based on this query
+   * @param startTime Only return packets originating after this start time
+   * @param endTime Only return packets originating before this end time
+   * @param servlet_response
+   * @return REST response
+   * @throws IOException
+   */
+  @GET
+  @Path("/pcapGetter/getPcapsByQuery")
+  public Response getPcapsByIdentifiers(
+          @QueryParam ("query") String query,
+          @DefaultValue("-1") @QueryParam ("startTime")long startTime,
+          @DefaultValue("-1") @QueryParam ("endTime")long endTime,
+          @Context HttpServletResponse servlet_response)
+
+          throws IOException {
+    PcapsResponse response = new PcapsResponse();
+    try {
+      if (startTime < 0) {
+        startTime = 0L;
+      }
+      if (endTime < 0) {
+        endTime = System.currentTimeMillis();
+      }
+      if(query == null) {
+        return Response.serverError().status(Response.Status.NO_CONTENT)
+                .entity("Query is null").build();
+      }
+      //convert to nanoseconds since the epoch
+      startTime = TimestampConverters.MILLISECONDS.toNanoseconds(startTime);
+      endTime = TimestampConverters.MILLISECONDS.toNanoseconds(endTime);
+      if(LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Query received: " + query);
+      }
+      response.setPcaps(getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
+              , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
+              , startTime
+              , endTime
+              , query
+              , CONFIGURATION.get()
+              , FileSystem.get(CONFIGURATION.get())
+              , new QueryPcapFilter.Configurator()
+              )
+      );
+
+    } catch (Exception e) {
+      LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
+              e);
+      throw new WebApplicationException("Unable to fetch Pcaps via MR job", e);
+    }
+
+    // return http status '200 OK' along with the complete pcaps response file,
+    // and headers
+    return Response
+            .ok(response.getPcaps(), MediaType.APPLICATION_OCTET_STREAM)
+            .status(200).build();
+  }
+
+  /**
+   * Enable filtering PCAP results by fixed properties and start/end packet TS
+   *
+   * @param srcIp filter value
+   * @param dstIp filter value
+   * @param protocol filter value
+   * @param srcPort filter value
+   * @param dstPort filter value
+   * @param startTime filter value
+   * @param endTime filter value
+   * @param includeReverseTraffic Indicates if filter should check swapped src/dest addresses and IPs
+   * @param servlet_response
+   * @return REST response
+   * @throws IOException
+   */
   @GET
   @Path("/pcapGetter/getPcapsByIdentifiers")
-
   public Response getPcapsByIdentifiers(
           @QueryParam ("srcIp") String srcIp,
           @QueryParam ("dstIp") String dstIp,
@@ -174,6 +240,7 @@ public class PcapReceiverImplRestEasy {
                                     , query
                                     , CONFIGURATION.get()
                                     , FileSystem.get(CONFIGURATION.get())
+                                    , new FixedPcapFilter.Configurator()
                                     )
                      );
 

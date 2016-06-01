@@ -31,14 +31,14 @@ public class QueryParserTest {
     PredicateProcessor processor = new PredicateProcessor();
     try {
       processor.validate("'foo'");
-      Assert.fail("Invalid rule found to be valid.");
+      Assert.fail("Invalid rule found to be valid - lone value.");
     }
     catch(ParseException e) {
 
     }
     try {
       processor.validate("enrichedField1 == 'enrichedValue1");
-      Assert.fail("Invalid rule found to be valid.");
+      Assert.fail("Invalid rule found to be valid - unclosed single quotes.");
     }
     catch(ParseException e) {
 
@@ -67,6 +67,9 @@ public class QueryParserTest {
     Assert.assertTrue(run("foo== foo", v -> variableMap.get(v)));
     Assert.assertTrue(run("empty== ''", v -> variableMap.get(v)));
     Assert.assertTrue(run("spaced == 'metron is great'", v -> variableMap.get(v)));
+    Assert.assertTrue(run(null, v -> variableMap.get(v)));
+    Assert.assertTrue(run("", v -> variableMap.get(v)));
+    Assert.assertTrue(run(" ", v -> variableMap.get(v)));
   }
 
   @Test
@@ -82,7 +85,10 @@ public class QueryParserTest {
     Assert.assertFalse(run("('casey' == foo) and (FALSE == TRUE)", v -> variableMap.get(v)));
     Assert.assertFalse(run("'casey' == foo and FALSE", v -> variableMap.get(v)));
     Assert.assertTrue(run("'casey' == foo and true", v -> variableMap.get(v)));
+    Assert.assertTrue(run("true", v -> variableMap.get(v)));
+    Assert.assertTrue(run("TRUE", v -> variableMap.get(v)));
   }
+
   @Test
   public void testList() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
@@ -98,6 +104,7 @@ public class QueryParserTest {
     Assert.assertFalse(run("foo not in [ 'casey', 'david' ]", v -> variableMap.get(v)));
     Assert.assertFalse(run("foo not in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
   }
+
   @Test
   public void testExists() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
@@ -123,6 +130,7 @@ public class QueryParserTest {
     Assert.assertTrue(run("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
     Assert.assertFalse(run("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
   }
+
   @Test
   public void testLogicalFunctions() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
@@ -149,4 +157,5 @@ public class QueryParserTest {
     Assert.assertFalse(run("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
     Assert.assertTrue(run("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
   }
+
 }

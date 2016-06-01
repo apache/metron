@@ -17,32 +17,21 @@
  */
 package org.apache.metron.parsers.integration;
 
-import org.apache.metron.TestConstants;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SnortIntegrationTest extends ParserIntegrationTest {
-
   @Override
-  public String getFluxPath() {
-    return "./src/main/flux/snort/test.yaml";
-  }
-
-  @Override
-  public String getSampleInputPath() {
-    return TestConstants.SAMPLE_DATA_INPUT_PATH + "SnortOutput";
-  }
-
-  @Override
-  public String getSampleParsedPath() {
-    return TestConstants.SAMPLE_DATA_PARSED_PATH + "SnortParsed";
-  }
-
-  @Override
-  public String getSensorType() {
+  String getSensorType() {
     return "snort";
   }
 
   @Override
-  public String getFluxTopicProperty() {
-    return "spout.kafka.topic.snort";
+  List<ParserValidation> getValidations() {
+    return new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }};
   }
 }

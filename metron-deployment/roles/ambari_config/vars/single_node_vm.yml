@@ -47,6 +47,7 @@ configurations:
       hbase_master_heapsize: 512
       hbase_regionserver_xmn_max: 512
   - hdfs-site:
+      dfs.replication: 1
       dfs.namenode.checkpoint.dir: '{{ namenode_checkpoint_dir  }}'
       dfs.namenode.name.dir: '{{ namenode_name_dir }}'
       dfs.datanode.data.dir: '{{ datanode_data_dir }}'
@@ -75,6 +76,7 @@ configurations:
       content: "{% raw %}\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport KAFKA_HEAP_OPTS=\"-Xms256M -Xmx256M\"\nexport KAFKA_JVM_PERFORMANCE_OPTS=\"-server -XX:+UseG1GC -XX:+DisableExplicitGC -Djava.awt.headless=true\"\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin\nexport PID_DIR={{kafka_pid_dir}}\nexport LOG_DIR={{kafka_log_dir}}\nexport KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}\n# Add kafka sink to classpath and related depenencies\nif [ -e \"/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\" ]; then\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*\nfi\nif [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then\n   . /etc/kafka/conf/kafka-ranger-env.sh\nfi{% endraw %}"
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs }}'
+      delete.topic.enable: "true"
 
 blueprint:
   stack_name: HDP

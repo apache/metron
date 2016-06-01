@@ -21,7 +21,7 @@ package org.apache.metron.common.spout.kafka;
 import storm.kafka.BrokerHosts;
 
 public class SpoutConfig extends storm.kafka.SpoutConfig {
-  private static enum Offset {
+  public static enum Offset {
     BEGINNING, END, WHERE_I_LEFT_OFF;
   }
   public SpoutConfig(BrokerHosts hosts, String topic, String zkRoot, String id) {
@@ -40,7 +40,8 @@ public class SpoutConfig extends storm.kafka.SpoutConfig {
     startOffsetTime = kafka.api.OffsetRequest.EarliestTime();
     return this;
   }
-  private void from(Offset offset) {
+
+  public SpoutConfig from(Offset offset) {
     if(offset == Offset.BEGINNING) {
       ignoreZkOffsets = true;
       startOffsetTime = kafka.api.OffsetRequest.EarliestTime();
@@ -53,5 +54,6 @@ public class SpoutConfig extends storm.kafka.SpoutConfig {
       ignoreZkOffsets = false;
       startOffsetTime = kafka.api.OffsetRequest.LatestTime();
     }
+    return this;
   }
 }
