@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
@@ -46,61 +47,42 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(GrokParser.class);
 
   protected transient Grok grok;
-  protected String grokHdfsPath;
+  protected String grokPath;
   protected String patternLabel;
-  protected String[] timeFields = new String[0];
+  protected List<String> timeFields = new ArrayList<>();
   protected String timestampField;
   protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
-  protected TimeZone timeZone = TimeZone.getTimeZone("UTC");
   protected String patternsCommonDir = "/patterns/common";
 
-  public GrokParser(String grokHdfsPath, String patternLabel) {
-    this.grokHdfsPath = grokHdfsPath;
-    this.patternLabel = patternLabel;
-  }
-
-  public GrokParser withTimestampField(String timestampField) {
-    this.timestampField = timestampField;
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser settting timestamp field: " + timestampField);
+  @Override
+  public void configure(Map<String, Object> parserConfig) {
+    this.grokPath = (String) parserConfig.get("grokPath");
+    this.patternLabel = (String) parserConfig.get("patternLabel");
+    this.timestampField = (String) parserConfig.get("timestampField");
+    List<String> timeFieldsParam = (List<String>) parserConfig.get("timeFields");
+    if (timeFieldsParam != null) {
+      this.timeFields = timeFieldsParam;
     }
-    return this;
-  }
-
-  public GrokParser withTimeFields(String... timeFields) {
-    this.timeFields = timeFields;
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser settting time fields: " + timeFields);
+    String dateFormatParam = (String) parserConfig.get("dateFormat");
+    if (dateFormatParam != null) {
+      this.dateFormat = new SimpleDateFormat(dateFormatParam);
     }
-    return this;
-  }
-
-  public GrokParser withDateFormat(String dateFormat) {
-    this.dateFormat = new SimpleDateFormat(dateFormat);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser settting date format: " + dateFormat);
+    String timeZoneParam = (String) parserConfig.get("timeZone");
+    if (timeZoneParam != null) {
+      dateFormat.setTimeZone(TimeZone.getTimeZone(timeZoneParam));
+    } else {
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-    return this;
-  }
-
-  public GrokParser withTimeZone(String timeZone) {
-    this.timeZone = TimeZone.getTimeZone(timeZone);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser settting timezone: " + timeZone);
-    }
-    return this;
   }
 
   public InputStream openInputStream(String streamName) throws IOException {
-    InputStream is = getClass().getResourceAsStream(streamName);
-    if(is == null) {
-      FileSystem fs = FileSystem.get(new Configuration());
-      Path path = new Path(streamName);
-      if(fs.exists(path)) {
-        return fs.open(path);
-      }
+    FileSystem fs = FileSystem.get(new Configuration());
+    Path path = new Path(streamName);
+    if(fs.exists(path)) {
+      return fs.open(path);
+    } else {
+      return getClass().getResourceAsStream(streamName);
     }
-    return is;
   }
 
   @Override
@@ -120,12 +102,12 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Loading parser-specific patterns from: " + grokHdfsPath);
+        LOG.debug("Loading parser-specific patterns from: " + grokPath);
       }
 
-      InputStream patterInputStream = openInputStream(grokHdfsPath);
+      InputStream patterInputStream = openInputStream(grokPath);
       if (patterInputStream == null) {
-        throw new RuntimeException("Grok parser unable to initialize grok parser: Unable to load " + grokHdfsPath
+        throw new RuntimeException("Grok parser unable to initialize grok parser: Unable to load " + grokPath
                 + " from either classpath or HDFS");
       }
       grok.addPatternFromReader(new InputStreamReader(patterInputStream));
@@ -166,11 +148,11 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       JSONObject message = new JSONObject();
       message.putAll(gm.toMap());
 
-      if (message.size() == 0) {
+      if (message.size() == 0)
         throw new RuntimeException("Grok statement produced a null message. Original message was: "
                 + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
-                + grokHdfsPath);
-      }
+                + grokPath);
+
       message.put("original_string", originalMessage);
       for (String timeField : timeFields) {
         String fieldValue = (String) message.get(timeField);
@@ -225,7 +207,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       LOG.debug("Grok parser converting timestamp to epoch: " + datetime);
     }
 
-    dateFormat.setTimeZone(timeZone);
     Date date = dateFormat.parse(datetime);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Grok parser converted timestamp to epoch: " + date);

@@ -53,10 +53,6 @@ public class GrokCiscoACSParser  extends GrokParser {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GrokCiscoACSParser.class);
 
-    public GrokCiscoACSParser(String grokHdfsPath, String patternLabel) {
-        super(grokHdfsPath, patternLabel);
-    }
-
     @Override
     protected long formatTimestamp(Object value) {
         long epochTimestamp = System.currentTimeMillis();

@@ -19,6 +19,18 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
+      <directory>${project.basedir}/src/main/config</directory>
+      <outputDirectory>/config</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+      <excludes>
+        <exclude>**/*.formatted</exclude>
+        <exclude>**/*.filtered</exclude>
+      </excludes>
+      <fileMode>0644</fileMode>
+      <lineEnding>unix</lineEnding>
+      <filtered>true</filtered>
+    </fileSet>
+    <fileSet>
       <directory>${project.basedir}/src/main/scripts</directory>
       <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>

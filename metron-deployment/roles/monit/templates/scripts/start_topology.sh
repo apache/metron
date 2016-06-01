@@ -22,4 +22,4 @@
 #
 export METRON_VERSION={{ metron_version }}
 export METRON_HOME={{ metron_directory }}
-$METRON_HOME/bin/start_parser_topology.sh {{ item }}
+$METRON_HOME/bin/start_parser_topology.sh -k {{ kafka_broker_url }} -z {{ zookeeper_url }} -s {{ item }}

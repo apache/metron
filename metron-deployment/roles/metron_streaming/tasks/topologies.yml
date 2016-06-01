@@ -25,15 +25,6 @@
     - { regexp: "kafka.pcap.out=", line: "kafka.pcap.out={{ pcap_hdfs_path }}" }
     - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
 
-- name: Configure Metron Parser Topologies
-  lineinfile:
-    dest: "{{ metron_parsers_properties_config_path }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
-    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
-
 - name: Configure Metron Solr topology
   lineinfile: >
     dest={{ metron_solr_properties_config_path }}

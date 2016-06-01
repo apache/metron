@@ -17,10 +17,11 @@
  */
 package org.apache.metron.parsers.interfaces;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
-public interface MessageParser<T> {
-
+public interface MessageParser<T> extends Configurable{
 	void init();
 	List<T> parse(byte[] rawMessage);
 	boolean validate(T message);
