@@ -106,7 +106,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   @Override
   public void init() {
     grok = new Grok();
-    System.out.println("hello");
 
     try {
       InputStream commonInputStream = openInputStream(patternsCommonDir);
@@ -135,16 +134,12 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         LOG.debug("Grok parser set the following grok expression: " + grok.getNamedRegexCollectionById(patternLabel));
       }
 
-      System.out.println("patternLabel: "+patternLabel);
-
       String grokPattern = "%{" + patternLabel + "}";
 
       grok.compile(grokPattern);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Compiled grok pattern" + grokPattern);
       }
-
-      System.out.println("hello1");
 
     } catch (Throwable e) {
       LOG.error(e.getMessage(), e);
@@ -157,13 +152,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   public List<JSONObject> parse(byte[] rawMessage) {
 
     if (grok == null) {
-      System.out.println("rawMessage: ");
       init();
     }
-
-    String rawM = new String(rawMessage);
-
-    System.out.println("rawMessage: "+ rawM);
 
     List<JSONObject> messages = new ArrayList<>();
     try {
@@ -175,11 +165,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       gm.captures();
       JSONObject message = new JSONObject();
       message.putAll(gm.toMap());
-      System.out.println("Message: ");
 
       if (message.size() == 0) {
-        System.out.println("Entered: ");
-
         throw new RuntimeException("Grok statement produced a null message. Original message was: "
                 + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
                 + grokHdfsPath);
@@ -195,9 +182,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
       }
       message.remove(patternLabel);
-      System.out.println("PostParse: "+message.toJSONString());
       postParse(message);
-      System.out.println("PostParse2: "+message.toJSONString());
       messages.add(message);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Grok parser parsed message: " + message);
@@ -206,7 +191,6 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       LOG.error(e.getMessage(), e);
       return null;
     }
-    System.out.println("Messages: "+messages);
     return messages;
   }
 
