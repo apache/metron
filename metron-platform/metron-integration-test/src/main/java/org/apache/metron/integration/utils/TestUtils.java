@@ -25,7 +25,7 @@ import java.util.List;
 
 public class TestUtils {
 
-  /*public static List<byte[]> readSampleData(String samplePath) throws IOException {
+  public static List<byte[]> readSampleData(String samplePath) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(samplePath));
     List<byte[]> ret = new ArrayList<>();
     for (String line = null; (line = br.readLine()) != null; ) {
@@ -33,5 +33,5 @@ public class TestUtils {
     }
     br.close();
     return ret;
-  }*/
+  }
 }

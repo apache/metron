@@ -233,7 +233,6 @@ public class ActiveDirectoryParserTest {
         List members = (ArrayList) ((JSONObject) json.get("additional")).get("member");
 
         for (int i = 0; i < test.length; i++) {
-            System.out.println("test["+i+"]: "+test[i]);
             assertEquals(test[i], members.get(i));
         }
     }
