@@ -67,7 +67,7 @@ public class GrokCiscoACSParserTest {
         //assertEquals(parsedJSON.get("event_type"), "auth");
         assertEquals(parsedJSON.get("severity"), "NOTICE");
         assertEquals(parsedJSON.get("category"), "CSCOacs_Passed_Authentications");
-        assertEquals(parsedJSON.get("username"), "rick007");
-        assertEquals(parsedJSON.get("ip_src_addr"), "120.43.200.6");
+        assertEquals(parsedJSON.get("messageID"), 93197809);
+        assertEquals(parsedJSON.get("totalSegments"), 2);
     }
 }
