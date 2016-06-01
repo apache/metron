@@ -140,7 +140,7 @@ public class ActiveDirectoryParserTest {
         testKeysNotNull(json);
 
         // Test the values in the json against the actual data from the file
-        assertEquals(json.get("timestamp").toString(), Long.toString(1461000465338l));
+        assertEquals(json.get("timestamp").toString(), Long.toString(1460986065338l));
         assertEquals(json.get("simpleMachineName"), "KDCRDNLBSTS07");
         assertEquals(json.get("priority"), Integer.toString(13));
         assertEquals(json.get("dcName"), "ABC.google.com");
