@@ -19,6 +19,9 @@ package org.apache.metron.parsers;
 
 import org.adrianwalker.multilinestring.Multiline;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class YafParserTest extends GrokParserTest {
 
   @Override
@@ -74,8 +77,11 @@ public class YafParserTest extends GrokParserTest {
   }
 
   @Override
-  public String[] getTimeFields() {
-    return new String[]{"start_time", "end_time"};
+  public List<String> getTimeFields() {
+    return new ArrayList<String>() {{
+      add("start_time");
+      add("end_time");
+    }};
   }
 
   @Override

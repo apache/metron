@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
@@ -34,7 +35,12 @@ public class BasicBluecoatParser extends BasicParser {
 
 	private static final Logger _LOG = LoggerFactory.getLogger(BasicBluecoatParser.class);
 	private SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy HH:mm:ss");
-	
+
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
+
 	@Override
 	public void init() {
 

@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.bolt;
 
 import backtype.storm.tuple.Values;
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.TestConstants;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
@@ -80,7 +81,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
    {
    "field1": "value1",
    "field2": "value2",
-   "source.type": "yaf"
+   "source.type": "test"
    }
    */
   @Multiline
@@ -106,7 +107,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
    {
    "field1.enrichedField1": "enrichedValue1",
    "field2.enrichedField2": "enrichedValue2",
-   "source.type": "yaf"
+   "source.type": "test"
    }
    */
   @Multiline
@@ -177,7 +178,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     when(tuple.getStringByField("key")).thenReturn(key);
     when(tuple.getValueByField("message")).thenReturn(originalMessage);
     genericEnrichmentBolt.execute(tuple);
-    verify(outputCollector, times(1)).emit(eq(enrichmentType), argThat(new EnrichedMessageMatcher(key, new JSONObject())));
+    verify(outputCollector, times(1)).emit(eq(enrichmentType), argThat(new EnrichedMessageMatcher(key, new JSONObject(ImmutableMap.of("source.type", "test")))));
     reset(enrichmentAdapter);
 
     SensorEnrichmentConfig sensorEnrichmentConfig = SensorEnrichmentConfig.

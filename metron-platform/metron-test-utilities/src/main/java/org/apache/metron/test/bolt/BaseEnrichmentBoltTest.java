@@ -29,16 +29,16 @@ import java.util.Set;
 
 public class BaseEnrichmentBoltTest extends BaseBoltTest {
 
-  public String sampleSensorEnrichmentConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "sensors/yaf.json";
+  public String sampleSensorEnrichmentConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "enrichments/test.json";
   protected Set<String> streamIds = new HashSet<>();
   protected String key = "someKey";
-  protected String sensorType = "yaf";
+  protected String sensorType = "test";
 
   /**
    * {
    * "ip_src_addr": "ip1",
    * "ip_dst_addr": "ip2",
-   * "source.type": "yaf"
+   * "source.type": "test"
    * }
    */
   @Multiline
@@ -48,7 +48,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "enrichments.geo.ip_src_addr": "ip1",
    * "enrichments.geo.ip_dst_addr": "ip2",
-   * "source.type": "yaf"
+   * "source.type": "test"
    * }
    */
   @Multiline
@@ -58,7 +58,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "enrichments.host.ip_src_addr": "ip1",
    * "enrichments.host.ip_dst_addr": "ip2",
-   * "source.type": "yaf"
+   * "source.type": "test"
    * }
    */
   @Multiline
@@ -68,7 +68,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
    * {
    * "enrichments.hbaseEnrichment.ip_src_addr": "ip1",
    * "enrichments.hbaseEnrichment.ip_dst_addr": "ip2",
-   * "source.type": "yaf"
+   * "source.type": "test"
    * }
    */
   @Multiline

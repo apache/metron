@@ -79,7 +79,7 @@ public class SensorEnrichmentUpdateConfigTest {
   @Test
   public void testThreatIntel() throws Exception {
 
-    SensorEnrichmentConfig broSc = (SensorEnrichmentConfig) ConfigurationType.SENSOR.deserialize(sourceConfigStr);
+    SensorEnrichmentConfig broSc = (SensorEnrichmentConfig) ConfigurationType.ENRICHMENT.deserialize(sourceConfigStr);
 
 
     SensorEnrichmentUpdateConfig config = JSONUtils.INSTANCE.load(threatIntelConfigStr, SensorEnrichmentUpdateConfig.class);
