@@ -1,0 +1,25 @@
+{
+  "index": "bigip",
+  "batchSize": 5,
+  "enrichment": {
+    "fieldMap": {
+      "geo": [
+        "ip_src_addr",
+        "ip_vip"
+      ],
+      "host": [
+        "ip_src_addr",
+        "ip_vip"
+      ]
+    },
+  "fieldToTypeMap": {
+      "ip_src_addr": [
+        "playful_classification"
+      ],
+      "ip_vip": [
+        "playful_classification"
+      ]
+    }
+  }
+}
+
