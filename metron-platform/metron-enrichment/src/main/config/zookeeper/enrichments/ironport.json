@@ -1,0 +1,7 @@
+{
+  "index": "websphere",
+  "batchSize": 5,
+  "enrichment": {
+  }
+}
+
