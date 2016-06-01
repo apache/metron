@@ -1,5 +1,5 @@
 {
-  "parserClassName":"org.apache.metron.parsers.bluecoat.BasicPassThroughParser",
+  "parserClassName":"org.apache.metron.parsers.passthrough.BasicPassThroughParser",
   "sensorTopic":"o365",
   "parserConfig": {}
 }
