@@ -1,0 +1,7 @@
+{
+  "index": "cisco_asa",
+  "batchSize": 5,
+  "enrichment": {
+  }
+}
+
