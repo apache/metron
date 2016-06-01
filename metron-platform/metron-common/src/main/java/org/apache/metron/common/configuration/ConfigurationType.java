@@ -28,18 +28,27 @@ import java.io.IOException;
 import java.util.Map;
 
 public enum ConfigurationType implements Function<String, Object> {
-  GLOBAL("."
-        ,Constants.ZOOKEEPER_GLOBAL_ROOT
-        , s -> {
+  GLOBAL("global"
+          ,"."
+          , s -> {
     try {
       return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
       });
     } catch (IOException e) {
       throw new RuntimeException("Unable to load " + s, e);
     }
-  })
-  , SENSOR(Constants.SENSORS_CONFIG_NAME
-          ,Constants.ZOOKEEPER_SENSOR_ROOT
+  }),
+  PARSER("parsers"
+          ,"parsers"
+          , s -> {
+    try {
+      return JSONUtils.INSTANCE.load(s, SensorParserConfig.class);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to load " + s, e);
+    }
+  }),
+  ENRICHMENT("enrichments"
+          ,"enrichments"
           , s -> {
     try {
       return JSONUtils.INSTANCE.load(s, SensorEnrichmentConfig.class);
@@ -47,14 +56,18 @@ public enum ConfigurationType implements Function<String, Object> {
       throw new RuntimeException("Unable to load " + s, e);
     }
   });
+  String name;
   String directory;
   String zookeeperRoot;
   Function<String,?> deserializer;
-  ConfigurationType(String directory, String zookeeperRoot, Function<String, ?> deserializer) {
+  ConfigurationType(String name, String directory, Function<String, ?> deserializer) {
+    this.name = name;
     this.directory = directory;
-    this.zookeeperRoot = zookeeperRoot;
+    this.zookeeperRoot = Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name;
     this.deserializer = deserializer;
   }
+
+  public String getName() { return name; }
 
   public String getDirectory() {
     return directory;
