@@ -19,26 +19,35 @@
 package org.apache.metron.parsers.airmagnet;
 
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class GrokAirMagnetParserTest {
 
-    private final String grokPath = "../metron-parsers/src/main/resources/patterns/airmagnet";
-    private final String grokLabel = "AIRMAGNET";
-    private final String dateFormat = "yyyy MMM dd HH:mm:ss";
-    private final String timestampField = "timestamp_string";
+    private Map<String, Object> parserConfig;
+
+    @Before
+    public void setup() {
+        parserConfig = new HashMap<>();
+        parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/airmagnet");
+        parserConfig.put("patternLabel", "AIRMAGNET");
+        parserConfig.put("timestampField", "timestamp_string");
+        parserConfig.put("dateFormat", "yyyy MMM dd HH:mm:ss");
+    }
 
     @Test
     public void testParse() throws Exception {
 
         //Set up parser, parse message
-        GrokAirMagnetParser parser = new GrokAirMagnetParser(grokPath, grokLabel);
-        parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+        GrokAirMagnetParser parser = new GrokAirMagnetParser();
+        parser.configure(parserConfig);
         String testString = "<116>Apr 27 00:18:57 TYRION-ABC04013 TYRION-ABC04013 Alert: Device unprotected by WPA-TKIP from sensor MORBDGANS33, " +
                 "Location: /Branches/FRA/ACS/ACS, Description: AP CISCO-LINKSYS:5A:62:D1 (SSID : Neisha-guest) is not using WPA-TKIP (Temporal Key Integrity Protocol) protection.  " +
                 "WLAN traffic encrypted with TKIP defeats packet forgery, and replay attack.  TKIP is immune to the weakness introduced by crackable WEP IV key and attacks stemming " +
@@ -69,8 +78,8 @@ public class GrokAirMagnetParserTest {
     public void testParseMalformed() throws Exception {
 
         //Set up parser, attempt to parse malformed message
-        GrokAirMagnetParser parser = new GrokAirMagnetParser(grokPath, grokLabel);
-        parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+        GrokAirMagnetParser parser = new GrokAirMagnetParser();
+        parser.configure(parserConfig);
         String testString = "<116>Apr 27 00:18:57 TYRION-ABC04013 TYRION-ABC04013 Alert: Device unprotected by WPA-TKIP from sensor MORBDGANS33, " +
                 "Description: AP CISCO-LINKSYS:5A:62:D1 (SSID : Neisha-guest) is not using WPA-TKIP (Temporal Key Integrity Protocol) protection.  " +
                 "WLAN traffic encrypted with TKIP defeats packet forgery, and replay attack.  TKIP is immune to the weakness introduced by crackable WEP IV key and attacks stemming " +

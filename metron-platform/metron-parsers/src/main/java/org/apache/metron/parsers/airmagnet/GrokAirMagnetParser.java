@@ -30,10 +30,6 @@ public class GrokAirMagnetParser extends GrokParser {
     private static final long serialVersionUID = 4860448408066888358L;
     private final String timestampField = "timestamp_string";
 
-    public GrokAirMagnetParser(String grokHdfsPath, String patternLabel) {
-        super(grokHdfsPath, patternLabel);
-    }
-
     @Override
     protected long formatTimestamp(Object value) {
         long epochTimestamp = System.currentTimeMillis();
