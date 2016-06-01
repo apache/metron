@@ -151,16 +151,14 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               collector.emit(Constants.INVALID_STREAM, new Values(message));
             }
             else if (filter != null && filter.emitTuple(message)) {
-              if (filter != null && filter.emitTuple(message)) {
-                ackTuple = !isBulk;
-                message.put(Constants.SENSOR_TYPE, getSensorType());
-                for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
-                  if (handler != null) {
-                    handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
-                  }
+              ackTuple = !isBulk;
+              message.put(Constants.SENSOR_TYPE, getSensorType());
+              for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+                if (handler != null) {
+                  handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
                 }
-                writerComponent.write(getSensorType(), tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
               }
+              writerComponent.write(getSensorType(), tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
             }
           }
         }
