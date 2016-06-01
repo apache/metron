@@ -173,11 +173,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   }
 
   private boolean isGloballyValid(JSONObject input, List<FieldValidator> validators) {
-    boolean ret = true;
     for(FieldValidator validator : validators) {
-      ret &= validator.isValid(input, getConfigurations().getGlobalConfig());
+      if(!validator.isValid(input, getConfigurations().getGlobalConfig())) {
+        return false;
+      }
     }
-    return ret;
+    return true;
   }
 
   @Override
