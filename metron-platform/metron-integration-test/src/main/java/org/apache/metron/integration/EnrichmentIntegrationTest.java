@@ -47,9 +47,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,6 +101,16 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  public static List<byte[]> readSampleData(String samplePath) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(samplePath));
+    List<byte[]> ret = new ArrayList<>();
+    for (String line = null; (line = br.readLine()) != null; ) {
+      ret.add(line.getBytes());
+    }
+    br.close();
+    return ret;
+  }
+
   public static List<Map<String, Object> > readDocsFromDisk(String hdfsDirStr) throws IOException {
     List<Map<String, Object>> ret = new ArrayList<>();
     File hdfsDir = new File(hdfsDirStr);
@@ -119,7 +127,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
         else {
           System.out.println("Processed " + f);
           if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
-            List<byte[]> data = TestUtils.readSampleData(f.getPath());
+            List<byte[]> data = readSampleData(f.getPath());
             Iterables.addAll(ret, Iterables.transform(data, new Function<byte[], Map<String, Object>>() {
               @Nullable
               @Override
@@ -140,13 +148,12 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
-
   @Test
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
     final String dateFormat = "yyyy.MM.dd.HH";
-    final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
+    final List<byte[]> inputMessages = readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
     final String threatIntelTableName = "threat_intel";

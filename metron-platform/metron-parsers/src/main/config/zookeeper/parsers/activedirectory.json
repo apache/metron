@@ -1,0 +1,9 @@
+{
+  "parserClassName":"org.apache.metron.parsers.activedirectory.ActiveDirectoryParser",
+  "sensorTopic":"activedirectory",
+  "parserConfig":
+  {
+    "dateFormat":"MM/dd/yyyy HH:mm:ss.SSS",
+    "timezoneOffset" : 0
+  }
+}

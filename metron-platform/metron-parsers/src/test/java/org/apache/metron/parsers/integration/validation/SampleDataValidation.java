@@ -17,17 +17,11 @@
  */
 package org.apache.metron.parsers.integration.validation;
 
-import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.ParserValidation;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.apache.metron.test.utils.ValidationUtils;
 import org.junit.Assert;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.metron.integration.utils.TestUtils.readSampleData;
