@@ -109,7 +109,7 @@ public class BasicCheckPointFirewallParser extends BasicParser {
         if(matcher.find())
         {
             String firewallName = matcher.group(0).trim();
-            outputMessage.put("firewallName", firewallName.substring(0, firewallName.length()-1));
+            outputMessage.put("firewallName", firewallName.substring(0, firewallName.length() - 1));
         }
 
         String[] initialTokens = message.split(patternToMatch);
@@ -223,5 +223,10 @@ public class BasicCheckPointFirewallParser extends BasicParser {
                 keyIter.remove();
             }
         }
+    }
+
+    @Override
+    public void configure(Map<String, Object> config) {
+
     }
 }
