@@ -195,7 +195,9 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
       }
       message.remove(patternLabel);
+      System.out.println("PostParse: "+message.toJSONString());
       postParse(message);
+      System.out.println("PostParse2: "+message.toJSONString());
       messages.add(message);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Grok parser parsed message: " + message);

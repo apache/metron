@@ -86,12 +86,15 @@ public class GrokCiscoACSParser  extends GrokParser {
     @Override
     protected void postParse(JSONObject message)
     {
+        System.out.println("inPostParse");
         removeEmptyFields(message);
         message.remove("timestamp_string");
-        if (message.containsKey("message")) {
-            String messageValue = (String) message.get("message");
+        if (message.containsKey("messageGreedy")) {
+            System.out.println("true");
+            String messageValue = (String) message.get("messageGreedy");
             System.out.println("messageValue: " + messageValue);
             //parse(messageValue.getBytes());
+            this.parseHelp(message);
         }
     }
 
@@ -100,9 +103,10 @@ public class GrokCiscoACSParser  extends GrokParser {
      * @param message The message being parsed in json form.
      * @return JSONObject containing the elements parsed from the message.
      */
-
-    public List<JSONObject> parse(JSONObject message) {
+    @SuppressWarnings("unchecked")
+    public List<JSONObject> parseHelp(JSONObject message) {
         JSONObject toReturn = message;
+        System.out.println("messageEnter: "+toReturn.toJSONString());
 
         try {
             //String toParse = new String(raw_message, "UTF-8");
@@ -137,10 +141,11 @@ public class GrokCiscoACSParser  extends GrokParser {
             }
 
             // sort out the fields within message
-            if (toReturn.containsKey("message")) {
+            if (toReturn.containsKey("messageGreedy")) {
 
+                System.out.println("inGreedy");
                 Pattern pattern = Pattern.compile("\\S[^=\\s]{1,}=");
-                Matcher matcher = pattern.matcher(toReturn.get("message").toString());
+                Matcher matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
 
                 // Check first occurrences
                 ArrayList<String> keys = new ArrayList<String>();
@@ -149,7 +154,7 @@ public class GrokCiscoACSParser  extends GrokParser {
                 }
                 //Check all occurrences
                 pattern = Pattern.compile(",\\S[^=\\s]{1,}=");
-                matcher = pattern.matcher(toReturn.get("message").toString());
+                matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
                 while (matcher.find()) {
                     if(matcher.group().toString().equals(",timestamp=")){
                         keys.add("log_timestamp1");
@@ -159,7 +164,7 @@ public class GrokCiscoACSParser  extends GrokParser {
                     }
                 }
 
-                String[] fields = ((String) toReturn.get("message")).split(",\\S[^=\\s]{1,}=");
+                String[] fields = ((String) toReturn.get("messageGreedy")).split(",\\S[^=\\s]{1,}=");
 
                 HashMap<String, String> pairs = new HashMap<String, String>();
                 for (int i = 0; (i < fields.length) && (i < keys.size()); i++) {
@@ -185,13 +190,15 @@ public class GrokCiscoACSParser  extends GrokParser {
                     }
                 }
 
-                toReturn.remove("message"); // remove message. If something goes wrong, the message is preserved within the original_string
+                System.out.println("toReturn: "+toReturn.toString());
+                toReturn.remove("messageGreedy"); // remove message. If something goes wrong, the message is preserved within the original_string
             }
         } catch (ParseException e) {
             LOGGER.error("ParseException when trying to parse date");
         }
 
-        cleanJSON(toReturn, "ciscoasa");
+        System.out.println("cleanJSON: "+toReturn.toJSONString());
+        cleanJSON(toReturn, "ciscoacs");
         ArrayList<JSONObject> toReturnList = new ArrayList<JSONObject>();
         toReturnList.add(toReturn);
         return toReturnList;

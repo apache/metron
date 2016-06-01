@@ -1,4 +1,4 @@
-PRIORITY <\d+>
+PRIORITY \d+
 
 MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
 DAY \d{2}
@@ -35,7 +35,7 @@ EVENTTIMESTAMP %{EVENTHOUR:eventHour}:%{EVENTMINUTE:eventMinute}:%{EVENTSECOND:e
 
 TIMEZONEHOUR [-\w\.]+
 TIMEZONEMINUTE [-\w\.]+
-TIMEZONE %{TIMEZONEHOUR}:%{TIMEZONEMINUTE}
+TIMEZONE %{TIMEZONEHOUR:timezoneHour}:%{TIMEZONEMINUTE:timezoneMinute}
 
 CATEGORY [-\w\.]+
 MESSAGEID [-\w\.]+
@@ -50,6 +50,4 @@ MESSAGETEXT (.*?)
 
 GREEDY .*
 
-CISCOACS %{MESSAGEFULL:UNWANTED} : %{GREEDY:message}
-
-CISCOACS %{PRIORITY}%{MONTH} %{DAY} %{TIMESTAMP} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGETEXT:messageText}, %{GREEDY:message}
+CISCOACS <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGETEXT:messageText}, %{GREEDY:messageGreedy}
