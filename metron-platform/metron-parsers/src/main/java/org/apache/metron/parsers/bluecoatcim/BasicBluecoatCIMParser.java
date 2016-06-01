@@ -37,6 +37,11 @@ public class BasicBluecoatCIMParser extends BasicParser {
 
 	}
 
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
+
 	@SuppressWarnings({ "unchecked", "unused" })
 	public List<JSONObject> parse(byte[] msg) {
 
