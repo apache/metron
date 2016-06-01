@@ -1,0 +1,5 @@
+{
+  "parserClassName":"org.apache.metron.parsers.passthrough.BasicPassThroughParser",
+  "sensorTopic":"cisco_asa",
+  "parserConfig": {}
+}

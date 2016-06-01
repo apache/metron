@@ -23,192 +23,335 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
 
-  private static final Logger _LOG = LoggerFactory.getLogger
-          (BasicPaloAltoFirewallParser.class);
+    private String dateFormatString;
+    private TimeZone timeZone;
 
-  private static final long serialVersionUID = 3147090149725343999L;
-  public static final String PaloAltoDomain = "palo_alto_domain";
-  public static final String ReceiveTime = "receive_time";
-  public static final String SerialNum = "serial_num";
-  public static final String Type = "type";
-  public static final String ThreatContentType = "threat_content_type";
-  public static final String ConfigVersion = "config_version";
-  public static final String GenerateTime = "generate_time";
-  public static final String SourceAddress = "source_address";
-  public static final String DestinationAddress = "destination_address";
-  public static final String NATSourceIP = "nat_source_ip";
-  public static final String NATDestinationIP = "nat_destination_ip";
-  public static final String Rule = "rule";
-  public static final String SourceUser = "source_user";
-  public static final String DestinationUser = "destination_user";
-  public static final String Application = "application";
-  public static final String VirtualSystem = "virtual_system";
-  public static final String SourceZone = "source_zone";
-  public static final String DestinationZone = "destination_zone";
-  public static final String InboundInterface = "inbound_interface";
-  public static final String OutboundInterface = "outbound_interface";
-  public static final String LogAction = "log_action";
-  public static final String TimeLogged = "time_logged";
-  public static final String SessionID = "session_id";
-  public static final String RepeatCount = "repeat_count";
-  public static final String SourcePort = "source_port";
-  public static final String DestinationPort = "destination_port";
-  public static final String NATSourcePort = "nats_source_port";
-  public static final String NATDestinationPort = "nats_destination_port";
-  public static final String Flags = "flags";
-  public static final String IPProtocol = "ip_protocol";
-  public static final String Action = "action";
+    private static final Logger _LOG = LoggerFactory.getLogger
+            (BasicPaloAltoFirewallParser.class);
 
-  //Threat
-  public static final String URL = "url";
-  public static final String HOST = "host";
-  public static final String ThreatContentName = "threat_content_name";
-  public static final String Category = "category";
-  public static final String Direction = "direction";
-  public static final String Seqno = "seqno";
-  public static final String ActionFlags = "action_flags";
-  public static final String SourceCountry = "source_country";
-  public static final String DestinationCountry = "destination_country";
-  public static final String Cpadding = "cpadding";
-  public static final String ContentType = "content_type";
+    private static final long serialVersionUID = 3147090149725343999L;
+    private static final String[] TRAFFIC_FIELDS = {
+            "receiveTime",
+            "serialNumber",
+            "type",
+            "subtype",
+            "futureUse2",
+            "generatedTime",
+            "ipSrcAddr",
+            "ipDstAddr",
+            "natSourceIp",
+            "natDestinationIp",
+            "ruleName",
+            "srcUserName",
+            "dstUserName",
+            "application",
+            "virtualSystem",
+            "sourceZone",
+            "destinationZone",
+            "ingressInterface",
+            "egressInterface",
+            "logForwardingProfile",
+            "futureUse3",
+            "sessionId",
+            "repeatCount",
+            "ipSrcPort",
+            "ipDstPort",
+            "natSourcePort",
+            "natDestinationPort",
+            "flags",
+            "protocol",
+            "action",
+            "bytes",
+            "bytesSent",
+            "bytesReceived",
+            "packets",
+            "startTime",
+            "elapsedTime",
+            "category",
+            "futureUse4",
+            "sequenceNumber",
+            "actionFlags",
+            "sourceLocation",
+            "destinationLocation",
+            "futureUse5",
+            "packetsSent",
+            "packetsReceived",
+            "sessionEndReason",
+            "deviceGroupHierarchyLevel1",
+            "deviceGroupHierarchyLevel2",
+            "deviceGroupHierarchyLevel3",
+            "deviceGroupHierarchyLevel4",
+            "virtualSystemName",
+            "deviceName",
+            "actionSource"};
 
-  //Traffic
-  public static final String Bytes = "content_type";
-  public static final String BytesSent = "content_type";
-  public static final String BytesReceived = "content_type";
-  public static final String Packets = "content_type";
-  public static final String StartTime = "content_type";
-  public static final String ElapsedTimeInSec = "content_type";
-  public static final String Padding = "content_type";
-  public static final String PktsSent = "pkts_sent";
-  public static final String PktsReceived = "pkts_received";
+    private static final String[] THREAT_FIELDS = {
+            "receiveTime",
+            "serialNumber",
+            "type",
+            "subtype",
+            "futureUse2",
+            "generatedTime",
+            "ipSrcAddr",
+            "ipDstAddr",
+            "natSourceIp",
+            "natDestinationIp",
+            "ruleName",
+            "srcUserName",
+            "dstUserName",
+            "application",
+            "virtualSystem",
+            "sourceZone",
+            "destinationZone",
+            "ingressInterface",
+            "egressInterface",
+            "logForwardingProfile",
+            "futureUse3",
+            "sessionId",
+            "repeatCount",
+            "ipSrcPort",
+            "ipDstPort",
+            "natSourcePort",
+            "natDestinationPort",
+            "flags",
+            "protocol",
+            "action",
+            "miscellaneous",
+            "threatId",
+            "category",
+            "severity",
+            "direction",
+            "sequenceNumber",
+            "actionFlags",
+            "sourceLocation",
+            "destinationLocation",
+            "futureUse4",
+            "contentType",
+            "pcapId",
+            "fileDigest",
+            "cloud",
+            "urlIndex",
+            "userAgent",
+            "fileType",
+            "xForwardedFor",
+            "referrer",
+            "sender",
+            "subject",
+            "recipient",
+            "reportId",
+            "deviceGroupHierarchyLevel1",
+            "deviceGroupHierarchyLevel2",
+            "deviceGroupHierarchyLevel3",
+            "deviceGroupHierarchyLevel4",
+            "virtualSystemName",
+            "deviceName",
+            "futureUse5"};
 
-  @Override
-  public void configure(Map<String, Object> parserConfig) {
+    private static final String[] CONFIG_FIELDS = {
+            "receiveTime",
+            "serialNumber",
+            "type",
+            "subtype",
+            "futureUse2",
+            "generatedTime",
+            "host",
+            "virtualSystem",
+            "command",
+            "admin",
+            "client",
+            "result",
+            "configurationPath",
+            "sequenceNumber",
+            "actionFlags",
+            "deviceGroupHierarchyLevel1",
+            "deviceGroupHierarchyLevel2",
+            "deviceGroupHierarchyLevel3",
+            "deviceGroupHierarchyLevel4",
+            "virtualSystemName",
+            "deviceName"};
 
-  }
+    private static final String[] SYSTEM_FIELDS = {
+            "receiveTime",
+            "serialNumber",
+            "type",
+            "subtype",
+            "futureUse2",
+            "generatedTime",
+            "virtualSystem",
+            "eventId",
+            "object",
+            "futureUse3",
+            "futureUse4",
+            "module",
+            "severity",
+            "description",
+            "sequenceNumber",
+            "actionFlags",
+            "deviceGroupHierarchyLevel1",
+            "deviceGroupHierarchyLevel2",
+            "deviceGroupHierarchyLevel3",
+            "deviceGroupHierarchyLevel4",
+            "virtualSystemName",
+            "deviceName"};
 
-  @Override
-  public void init() {
 
-  }
+    @Override
+    public void init() {
 
-  @SuppressWarnings({"unchecked", "unused"})
-  public List<JSONObject> parse(byte[] msg) {
-
-    JSONObject outputMessage = new JSONObject();
-    String toParse = "";
-    List<JSONObject> messages = new ArrayList<>();
-    try {
-
-      toParse = new String(msg, "UTF-8");
-      _LOG.debug("Received message: " + toParse);
-
-
-      parseMessage(toParse, outputMessage);
-      long timestamp = System.currentTimeMillis();
-      outputMessage.put("timestamp", System.currentTimeMillis());
-      outputMessage.put("ip_src_addr", outputMessage.remove("source_address"));
-      outputMessage.put("ip_src_port", outputMessage.remove("source_port"));
-      outputMessage.put("ip_dst_addr", outputMessage.remove("destination_address"));
-      outputMessage.put("ip_dst_port", outputMessage.remove("destination_port"));
-      outputMessage.put("protocol", outputMessage.remove("ip_protocol"));
-
-      outputMessage.put("original_string", toParse);
-      messages.add(outputMessage);
-      return messages;
-    } catch (Exception e) {
-      e.printStackTrace();
-      _LOG.error("Failed to parse: " + toParse);
-      return null;
     }
-  }
 
-  @SuppressWarnings("unchecked")
-  private void parseMessage(String message, JSONObject outputMessage) {
+    @SuppressWarnings({"unchecked", "unused"})
+    public List<JSONObject> parse(byte[] msg) {
+        JSONObject outputMessage = new JSONObject();
+        String toParse = "";
+        List<JSONObject> messages = new ArrayList<>();
+        try {
+            toParse = new String(msg, "UTF-8");
+            _LOG.debug("Received message: " + toParse);
 
-    String[] tokens = message.split(",");
+            parseMessage(toParse, outputMessage);
 
-    String type = tokens[3].trim();
+            outputMessage.put("original_string", toParse);
+            messages.add(outputMessage);
+            return messages;
+        } catch (Exception e) {
+            _LOG.error("Failed to parse: " + toParse);
+            return null;
+        }
+    }
 
-    //populate common objects
-    outputMessage.put(PaloAltoDomain, tokens[0].trim());
-    outputMessage.put(ReceiveTime, tokens[1].trim());
-    outputMessage.put(SerialNum, tokens[2].trim());
-    outputMessage.put(Type, type);
-    outputMessage.put(ThreatContentType, tokens[4].trim());
-    outputMessage.put(ConfigVersion, tokens[5].trim());
-    outputMessage.put(GenerateTime, tokens[6].trim());
-    outputMessage.put(SourceAddress, tokens[7].trim());
-    outputMessage.put(DestinationAddress, tokens[8].trim());
-    outputMessage.put(NATSourceIP, tokens[9].trim());
-    outputMessage.put(NATDestinationIP, tokens[10].trim());
-    outputMessage.put(Rule, tokens[11].trim());
-    outputMessage.put(SourceUser, tokens[12].trim());
-    outputMessage.put(DestinationUser, tokens[13].trim());
-    outputMessage.put(Application, tokens[14].trim());
-    outputMessage.put(VirtualSystem, tokens[15].trim());
-    outputMessage.put(SourceZone, tokens[16].trim());
-    outputMessage.put(DestinationZone, tokens[17].trim());
-    outputMessage.put(InboundInterface, tokens[18].trim());
-    outputMessage.put(OutboundInterface, tokens[19].trim());
-    outputMessage.put(LogAction, tokens[20].trim());
-    outputMessage.put(TimeLogged, tokens[21].trim());
-    outputMessage.put(SessionID, tokens[22].trim());
-    outputMessage.put(RepeatCount, tokens[23].trim());
-    outputMessage.put(SourcePort, tokens[24].trim());
-    outputMessage.put(DestinationPort, tokens[25].trim());
-    outputMessage.put(NATSourcePort, tokens[26].trim());
-    outputMessage.put(NATDestinationPort, tokens[27].trim());
-    outputMessage.put(Flags, tokens[28].trim());
-    outputMessage.put(IPProtocol, tokens[29].trim());
-    outputMessage.put(Action, tokens[30].trim());
+    @SuppressWarnings("unchecked")
+    private void parseMessage(String message, JSONObject outputMessage) {
 
+        ArrayList<String> tokens = new ArrayList<>(Arrays.asList(message.split(",")));
+        String lastValue = message.substring(message.lastIndexOf(",")+1);
+        if (lastValue == "")
+            tokens.add(lastValue);
+        //populate common objects
+        parseFirstField(tokens.get(0), outputMessage);
 
-    if ("THREAT".equals(type.toUpperCase())) {
-      outputMessage.put(URL, tokens[31].trim());
-      try {
-        URL url = new URL(tokens[31].trim());
-        outputMessage.put(HOST, url.getHost());
-      } catch (MalformedURLException e) {
+        String type = tokens.get(3).trim();
+        switch(type) {
+            case "TRAFFIC": parseTuple(tokens, outputMessage, TRAFFIC_FIELDS);
+                break;
+            case "THREAT":  parseTuple(tokens, outputMessage, THREAT_FIELDS);
+                break;
+            case "CONFIG":  parseTuple(tokens, outputMessage, CONFIG_FIELDS);
+                break;
+            case "SYSTEM":  parseTuple(tokens, outputMessage, SYSTEM_FIELDS);
+                break;
+        }
+    }
+
+    private void parseTuple(ArrayList<String> tokens, JSONObject outputMessage, String[] fields) {
+        int numFields = fields.length;
+        int numTokens = tokens.size() - 1;
+        int count;
+        for(count = 0; count < numTokens; count++)
+            outputMessage.put(fields[count],tokens.get(count+1));
+
+        for(; count < numFields; count++)
+            outputMessage.put(fields[count],"");
+        removeEmptyFields(outputMessage);
+    }
+
+    private void parseFirstField(String firstField, JSONObject outputMessage) {
+        //split first field by empty space
+        String[] tokens = firstField.split("\\s+");
+        //get priority inside of < >
+        Pattern pattern = Pattern.compile("<.*>");
+        Matcher matcher = pattern.matcher(tokens[0]);
+        //add priority
+        if(matcher.find())
+        {
+            String priorityNum = matcher.group(0);
+            outputMessage.put("priority", priorityNum.substring(1, priorityNum.length()-1));
+        }
+        //add timestamp
+        String tempDate = tokens[0].substring(tokens[0].indexOf(">") +1) + " " + tokens[1] + " " + tokens[2];
+        outputMessage.put("timestamp", this.formatTimestamp(tempDate));
+
+        //add hostname
+        outputMessage.put("hostname", tokens[3]);
+        //add future use
+        outputMessage.put("futureUse", tokens[4]);
+    }
+
+    protected long formatTimestamp(Object value) {
+        long epochTimestamp = System.currentTimeMillis();
+        if (value != null) {
+            try {
+                epochTimestamp = toEpoch(Calendar.getInstance().get(Calendar.YEAR)  + " " + value);
+            } catch (java.text.ParseException e) {
+                //default to current time
+            }
+        }
+        return epochTimestamp;
+    }
+
+    protected long toEpoch(String datetime) throws java.text.ParseException {
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatString);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Parser converting timestamp to epoch: " + datetime);
+        }
+
+        dateFormat.setTimeZone(timeZone);
+        Date date = dateFormat.parse(datetime);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Parser converted timestamp to epoch: " + date);
+        }
+
+        return date.getTime();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void removeEmptyFields(JSONObject json) {
+        Iterator<Object> keyIter = json.keySet().iterator();
+        while (keyIter.hasNext()) {
+            Object key = keyIter.next();
+            Object value = json.get(key);
+            if (null == value || "".equals(value.toString())) {
+                keyIter.remove();
+            }
+        }
+    }
+
+    //For specifying the date format that the parser will use
+   public BasicPaloAltoFirewallParser withDateFormat(String dateFormat) {
+     if (dateFormat == null) {
+       throw new IllegalArgumentException("DateFormat must be specified in parser config file");
+     }
+     this.dateFormatString = dateFormat;
+      if (LOG.isDebugEnabled()) {
+       LOG.debug("Palo Alto parser setting date format: " + dateFormat);
       }
-      outputMessage.put(ThreatContentName, tokens[32].trim());
-      outputMessage.put(Category, tokens[33].trim());
-      outputMessage.put(Direction, tokens[34].trim());
-      outputMessage.put(Seqno, tokens[35].trim());
-      outputMessage.put(ActionFlags, tokens[36].trim());
-      outputMessage.put(SourceCountry, tokens[37].trim());
-      outputMessage.put(DestinationCountry, tokens[38].trim());
-      outputMessage.put(Cpadding, tokens[39].trim());
-      outputMessage.put(ContentType, tokens[40].trim());
-
-    } else {
-      outputMessage.put(Bytes, tokens[31].trim());
-      outputMessage.put(BytesSent, tokens[32].trim());
-      outputMessage.put(BytesReceived, tokens[33].trim());
-      outputMessage.put(Packets, tokens[34].trim());
-      outputMessage.put(StartTime, tokens[35].trim());
-      outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
-      outputMessage.put(Category, tokens[37].trim());
-      outputMessage.put(Padding, tokens[38].trim());
-      outputMessage.put(Seqno, tokens[39].trim());
-      outputMessage.put(ActionFlags, tokens[40].trim());
-      outputMessage.put(SourceCountry, tokens[41].trim());
-      outputMessage.put(DestinationCountry, tokens[42].trim());
-      outputMessage.put(Cpadding, tokens[43].trim());
-      outputMessage.put(PktsSent, tokens[44].trim());
-      outputMessage.put(PktsReceived, tokens[45].trim());
+     return this;
     }
 
-  }
+    //For setting the timezone of the parser
+    public BasicPaloAltoFirewallParser withTimeZone(String timeZone) {
+      if (timeZone == null) {
+        timeZone = "UTC";
+      }
+      this.timeZone = TimeZone.getTimeZone(timeZone);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("CEF parser setting timezone: " + timeZone);
+      }
+      return this;
+    }
 
+    @Override
+    public void configure(Map<String, Object> config) {
+      withDateFormat((String) config.get("dateFormat"));
+      withTimeZone((String) config.get("timeZone"));
+    }
 
 }
