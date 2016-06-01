@@ -21,9 +21,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public interface MessageParser<T> extends Serializable {
-
-	void configure(Map<String, Object> parserConfig);
+public interface MessageParser<T> extends Configurable{
 	void init();
 	List<T> parse(byte[] rawMessage);
 	boolean validate(T message);

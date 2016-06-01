@@ -32,10 +32,9 @@ public class ReflectionUtils<T> {
     return instance;
   }
 
-  public static <T> T createInstance(String className) {
+  public static <T> T createInstance(Class<? extends T> clazz) {
     T instance;
     try {
-      Class<? extends T> clazz = (Class<? extends T>) Class.forName(className);
       instance = clazz.getConstructor().newInstance();
     } catch (InstantiationException e) {
       throw new IllegalStateException("Unable to instantiate connector.", e);
@@ -45,6 +44,14 @@ public class ReflectionUtils<T> {
       throw new IllegalStateException("Unable to instantiate connector", e);
     } catch (NoSuchMethodException e) {
       throw new IllegalStateException("Unable to instantiate connector: no such method", e);
+    }
+    return instance;
+  }
+  public static <T> T createInstance(String className) {
+    T instance;
+    try {
+      Class<? extends T> clazz = (Class<? extends T>) Class.forName(className);
+      instance = createInstance(clazz);
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("Unable to instantiate connector: class not found", e);
     }

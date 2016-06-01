@@ -15,15 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.lookup.handler;
 
-import org.apache.metron.enrichment.lookup.LookupKey;
+package org.apache.metron.parsers.interfaces;
 
-import java.io.IOException;
+import java.io.Serializable;
+import java.util.Map;
 
-public interface Handler<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> extends AutoCloseable{
-  boolean exists(KEY_T key, CONTEXT_T context, boolean logAccess) throws IOException;
-  RESULT_T get(KEY_T key, CONTEXT_T context, boolean logAccess) throws IOException;
-  Iterable<Boolean> exists(Iterable<KeyWithContext<KEY_T, CONTEXT_T>> key, boolean logAccess) throws IOException;
-  Iterable<RESULT_T> get(Iterable<KeyWithContext<KEY_T, CONTEXT_T>> key, boolean logAccess) throws IOException;
+public interface Configurable extends Serializable {
+  void configure(Map<String, Object> config);
 }

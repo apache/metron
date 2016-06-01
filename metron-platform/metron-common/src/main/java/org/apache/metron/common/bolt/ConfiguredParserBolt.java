@@ -22,6 +22,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
 
 import java.io.IOException;
 
@@ -30,15 +31,23 @@ public abstract class ConfiguredParserBolt extends ConfiguredBolt {
   private static final Logger LOG = Logger.getLogger(ConfiguredEnrichmentBolt.class);
 
   protected final ParserConfigurations configurations = new ParserConfigurations();
-
-  public ConfiguredParserBolt(String zookeeperUrl) {
+  private String sensorType;
+  public ConfiguredParserBolt(String zookeeperUrl, String sensorType) {
     super(zookeeperUrl);
+    this.sensorType = sensorType;
+  }
+
+  protected SensorParserConfig getSensorParserConfig() {
+    return getConfigurations().getSensorParserConfig(sensorType);
   }
 
   public ParserConfigurations getConfigurations() {
     return configurations;
   }
 
+  public String getSensorType() {
+    return sensorType;
+  }
   @Override
   public void loadConfig() {
     try {
