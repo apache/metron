@@ -1,0 +1,4 @@
+<141>Mar 31 13:46:35 mfugjchwna38k notice apd[6848]: 90329113:5: 1d0bf7c7: session.logon.euid is ABC906
+<141>Mar 31 13:59:37 mfugjchwna38k notice mdd[6456]: 90329521:5: 690fe490: Session statistics - bytes in: 3032, bytes out: 469
+<141>Apr 19 19:24:29 mfugjchwna38k notice mdd4[6456]: 90329500:5: 37451372: New session from client IP 10.000.11.000 (ST=/CC=/C=) at VIP 240.61.45.23 Listener /Common/access.google.com_443 (Reputation=Unknown)
+<141>Mar 31 13:59:31 mfugjchwna38k notice apd[6848]: 90329115:5: 090faa3e: Following rule 'fallback' from item 'clog1220' to terminalout 'Out'
