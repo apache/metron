@@ -1,0 +1,71 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "o365"
+config:
+    topology.workers: 1
+
+components:
+    -   id: "parser"
+        className: "org.apache.metron.parsers.passthrough.BasicPassThroughParser"
+    -   id: "writer"
+        className: "org.apache.metron.parsers.writer.KafkaWriter"
+        constructorArgs:
+            - "${kafka.broker}"
+    -   id: "zkHosts"
+        className: "storm.kafka.ZkHosts"
+        constructorArgs:
+            - "${kafka.zk}"
+    -   id: "kafkaConfig"
+        className: "storm.kafka.SpoutConfig"
+        constructorArgs:
+            # zookeeper hosts
+            - ref: "zkHosts"
+            # topic name
+            - "o365"
+            # zk root
+            - ""
+            # id
+            - "o365"
+        properties:
+            -   name: "ignoreZkOffsets"
+                value: false
+            -   name: "startOffsetTime"
+                value: -2
+            -   name: "socketTimeoutMs"
+                value: 1000000
+
+spouts:
+    -   id: "kafkaSpout"
+        className: "storm.kafka.KafkaSpout"
+        constructorArgs:
+            - ref: "kafkaConfig"
+
+bolts:
+    -   id: "parserBolt"
+        className: "org.apache.metron.parsers.bolt.ParserBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+            - "o365"
+            - ref: "parser"
+            - ref: "writer"
+
+streams:
+    -   name: "spout -> bolt"
+        from: "kafkaSpout"
+        to: "parserBolt"
+        grouping:
+            type: SHUFFLE
