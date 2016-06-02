@@ -43,6 +43,7 @@ public class ParserBolt extends ConfiguredParserBolt {
   private MessageParser<JSONObject> parser;
   private MessageFilter<JSONObject> filter;
   private MessageWriter<JSONObject> writer;
+  private long ingest_timestamp = 0;
 
   public ParserBolt(String zookeeperUrl, String sensorType, MessageParser<JSONObject> parser, MessageWriter<JSONObject> writer) {
     super(zookeeperUrl, sensorType);
@@ -53,6 +54,11 @@ public class ParserBolt extends ConfiguredParserBolt {
   public ParserBolt withMessageFilter(MessageFilter<JSONObject> filter) {
     this.filter = filter;
     return this;
+  }
+
+  public long getIngestTimestamp()
+  {
+    return ingest_timestamp;
   }
 
   @SuppressWarnings("unchecked")
@@ -91,7 +97,9 @@ public class ParserBolt extends ConfiguredParserBolt {
         for (JSONObject message : messages) {
           if (parser.validate(message)) {
             if (filter != null && filter.emitTuple(message)) {
+              ingest_timestamp = System.currentTimeMillis();
               message.put(Constants.SENSOR_TYPE, getSensorType());
+              message.put("ingest_timestamp", ingest_timestamp);
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
                 if (handler != null) {
                   handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
