@@ -70,6 +70,7 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			}
 
 			removeEmptyFields(payload);
+			normalizeFields(payload);
 			messages.add(payload);
 			return messages;
 		} catch (Exception e) {
@@ -88,6 +89,15 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			if (null == value || "".equals(value.toString()) || "-".equals(value.toString())) {
 				keyIter.remove();
 			}
+		}
+	}
+
+	private void normalizeFields(JSONObject json) {
+		if (json.containsKey("src_ip")) {
+			json.put("ip_src_addr", json.remove("src_ip"));
+		}
+		if (json.containsKey("dest_ip")) {
+			json.put("ip_dst_addr", json.remove("dest_ip"));
 		}
 	}
 }
