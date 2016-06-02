@@ -1,5 +1,8 @@
 {
    "template": "adallom_index*",
+   "aliases" : {
+      "addalom" : {}
+   },
    "mappings": {
       "adallom_doc": {
          "_timestamp": {
