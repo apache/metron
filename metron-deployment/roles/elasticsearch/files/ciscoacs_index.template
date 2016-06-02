@@ -1,11 +1,10 @@
 {
-    "template" : "checkpointsyslog*",
-    "order" : 1,
+    "template" : "ciscoacs*",
     "aliases" : {
-        "checkpointsyslog" : {}
+        "ciscoacs" : {}
     },
     "mappings" : {
-        "checkpointsyslog_doc" : {
+        "ciscoacs_doc" : {
             "_timestamp" : {
                 "enabled" : true
             },
@@ -15,20 +14,53 @@
                     "format" : "epoch_millis"
                 },
                 "priority" : {
+                    "type" : "long"
+                },
+                "hostname" : {
                     "type" : "string",
                     "index" : "not_analyzed"
                 },
-                "processName" : {
+                "severity" : {
                     "type" : "string",
                     "index" : "not_analyzed"
                 },
-                "processId" : {
+                "SelectedAccessService" : {
                     "type" : "string",
                     "index" : "not_analyzed"
                 },
-                "message" : {
+                "ACSVersion" : {
+                    "type" : "long"
+                },
+                "DestinationIPAddress" : {
+                    "type" : "ip"
+                },
+                "messageText" : {
                     "type" : "string",
-                    "index" : "analyzed"
+                    "index" : "not_analyzed"
+                },
+                "DeviceIPAddress" : {
+                    "type" : "ip"
+                },
+                "SelectedCommandSet" : {
+                    "type" : "ip"
+                },
+                "Steps" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "RequestLatency" : {
+                    "type" : "long"
+                },
+                "Remote-Address" : {
+                    "type" : "ip"
+                },
+                "Protocol" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "AcsSessionID" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
                 }
             }
         }
