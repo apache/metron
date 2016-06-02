@@ -1,0 +1,36 @@
+{
+    "template" : "checkpointsyslog*",
+    "order" : 1,
+    "aliases" : {
+        "checkpointsyslog" : {}
+    },
+    "mappings" : {
+        "checkpointsyslog_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "priority" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "processName" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "processId" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "message" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                }
+            }
+        }
+    }
+}
