@@ -56,10 +56,10 @@ public class ParserBolt extends ConfiguredParserBolt {
     return this;
   }
 
-  public long getIngestTimestamp()
-  {
-    return ingest_timestamp;
-  }
+ // public long getIngestTimestamp()
+ // {
+ //   return ingest_timestamp;
+ // }
 
   @SuppressWarnings("unchecked")
   @Override
