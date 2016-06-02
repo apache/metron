@@ -22,8 +22,10 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.Values;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
@@ -140,10 +142,15 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     try {
       boolean ackTuple = true;
       if(sensorParserConfig != null) {
+        List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         List<JSONObject> messages = parser.parse(originalMessage);
         for (JSONObject message : messages) {
           if (parser.validate(message)) {
-            if (filter != null && filter.emitTuple(message)) {
+            if(!isGloballyValid(message, fieldValidations)) {
+              message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
+              collector.emit(Constants.INVALID_STREAM, new Values(message));
+            }
+            else if (filter != null && filter.emitTuple(message)) {
               ackTuple = !isBulk;
               message.put(Constants.SENSOR_TYPE, getSensorType());
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
@@ -165,8 +172,18 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     }
   }
 
+  private boolean isGloballyValid(JSONObject input, List<FieldValidator> validators) {
+    for(FieldValidator validator : validators) {
+      if(!validator.isValid(input, getConfigurations().getGlobalConfig())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
+    declarer.declareStream(Constants.INVALID_STREAM, new Fields("message"));
     declarer.declareStream(Constants.ERROR_STREAM, new Fields("message"));
   }
 }
