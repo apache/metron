@@ -73,10 +73,10 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			messages.add(payload);
 			return messages;
 		} catch (Exception e) {
-			e.printStackTrace();
-			LOG.error("Failed to parse: " + new String(msg));
+			LOG.error("Failed to parse: " + new String(msg), e);
 			return null;
 		}
+
 	}
 
 	@SuppressWarnings("unchecked")
