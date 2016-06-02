@@ -1,0 +1,68 @@
+{
+    "template" : "bigip*",
+    "aliases" : {
+        "bigip" : {}
+    },
+    "mappings" : {
+        "bigip_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "priority" : {
+                    "type" : "long"
+                },
+                "hostname" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "severity" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "process" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "process_id" : {
+                    "type" : "long"
+                },
+                "big_ip_log_code" : {
+                    "type" : "long"
+                },
+                "big_ip_message_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "vpn_session_id" : {
+                    "type" : "long"
+                },
+                "ip_vip" : {
+                    "type" : "ip"
+                },
+                "eid" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "bytes_in" : {
+                    "type" : "long"
+                },
+                "bytes_out" : {
+                    "type" : "long"
+                },
+                "access_policy_result" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "message" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}
