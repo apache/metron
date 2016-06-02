@@ -1,0 +1,47 @@
+{
+  "template": "McAfeeFirewall*",
+  "aliases": {
+    "McAfeeFirewall": {}
+  },
+  "mappings": {
+    "mcafeefirewall_doc": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "properties": {
+        "timestamp" : {
+            "type" : "date",
+            "format" : "epoch_millis"
+        },
+        "priority": {
+          "type": "int",
+          "index": "not_analyzed"
+        },
+        "hostname": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "firewall_rule": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "firewall_direction": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "protocol": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "subprotocol": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "action": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}
