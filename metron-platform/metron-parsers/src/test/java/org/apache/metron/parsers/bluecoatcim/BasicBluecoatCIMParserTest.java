@@ -48,7 +48,7 @@ public class BasicBluecoatCIMParserTest {
 		assertEquals(jo.get("priority"), "13");
 		assertEquals(jo.get("proxy_name"), "abcproxy11a");
 		assertEquals(jo.get("bytes_out"), "215");
-		assertEquals(jo.get("dest_ip"), "12.34.56.78");
+		assertEquals(jo.get("ip_dst_addr"), "12.34.56.78");
 		assertEquals(jo.get("proxy_connect_type"), "Explicit");
 		assertEquals(jo.get("x_rs_connection_negotiated_cipher"), "none");
 		assertEquals(jo.get("status"), "407");
@@ -56,7 +56,7 @@ public class BasicBluecoatCIMParserTest {
 		assertEquals(jo.get("x_cs_connection_negotiated_cipher"), "none");
 		assertEquals(jo.get("http_user_agent"), "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/12.0.3456.78 Safari/537.36");
 		assertEquals(jo.get("duration"), "8");
-		assertEquals(jo.get("src_ip"), "12.32.42.52");
+		assertEquals(jo.get("ip_src_addr"), "12.32.42.52");
 		assertEquals(jo.get("x_bluecoat_application_name"), "none");
 		assertEquals(jo.get("timestamp").toString(), "1464268438000");
 		assertEquals(jo.get("proxy_ip"), "123.456.789.876");
