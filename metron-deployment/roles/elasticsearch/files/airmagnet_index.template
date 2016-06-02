@@ -1,0 +1,47 @@
+{
+    "template" : "airmagnet*",
+    "aliases" : {
+        "airmagnet" : {}
+    },
+    "mappings" : {
+        "airmagnet_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp": {
+                    "type": "date",
+                    "format": "epoch_millis"
+                },
+                "hostname" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "source_MAC_address" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "alert" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "description" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "wifi_channel" : {
+                    "type" : "long",
+                    "index" : "not_analyzed"
+                },
+                "location" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "priority" : {
+                    "type" : "long",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}
