@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class DateValidation implements FieldValidation, Predicate<List<String>> {
+public class DateValidation implements FieldValidation, Predicate<List<Object>> {
 
   /**
    * Evaluates this predicate on the given argument.
@@ -37,19 +37,19 @@ public class DateValidation implements FieldValidation, Predicate<List<String>> 
    * otherwise {@code false}
    */
   @Override
-  public boolean test(List<String> strings) {
+  public boolean test(List<Object> strings) {
     if(strings.isEmpty()) {
       return false;
     }
     if(strings.size() >= 2) {
-      String date = strings.get(0);
-      String format = strings.get(1);
+      Object date = strings.get(0);
+      Object format = strings.get(1);
       if(date == null || format == null) {
         return false;
       }
       try {
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
-        sdf.parse(date);
+        SimpleDateFormat sdf = new SimpleDateFormat(format.toString());
+        sdf.parse(date.toString());
         return true;
       }
       catch(ParseException pe) {

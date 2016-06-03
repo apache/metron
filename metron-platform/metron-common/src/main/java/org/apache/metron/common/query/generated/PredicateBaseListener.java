@@ -133,25 +133,49 @@ public class PredicateBaseListener implements PredicateListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterInExpression(PredicateParser.InExpressionContext ctx) { }
+	@Override public void enterInExpression_List(PredicateParser.InExpression_ListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitInExpression(PredicateParser.InExpressionContext ctx) { }
+	@Override public void exitInExpression_List(PredicateParser.InExpression_ListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNInExpression(PredicateParser.NInExpressionContext ctx) { }
+	@Override public void enterNInExpression_List(PredicateParser.NInExpression_ListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNInExpression(PredicateParser.NInExpressionContext ctx) { }
+	@Override public void exitNInExpression_List(PredicateParser.NInExpression_ListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterInExpression_Func(PredicateParser.InExpression_FuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInExpression_Func(PredicateParser.InExpression_FuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -241,6 +265,18 @@ public class PredicateBaseListener implements PredicateListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterTransformationFunc(PredicateParser.TransformationFuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTransformationFunc(PredicateParser.TransformationFuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterStringLiteral(PredicateParser.StringLiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -265,13 +301,49 @@ public class PredicateBaseListener implements PredicateListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterStringFunc(PredicateParser.StringFuncContext ctx) { }
+	@Override public void enterId_tfunc(PredicateParser.Id_tfuncContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitStringFunc(PredicateParser.StringFuncContext ctx) { }
+	@Override public void exitId_tfunc(PredicateParser.Id_tfuncContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIntegerLiteral(PredicateParser.IntegerLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIntegerLiteral(PredicateParser.IntegerLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDoubleLiteral(PredicateParser.DoubleLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDoubleLiteral(PredicateParser.DoubleLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterList(PredicateParser.ListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitList(PredicateParser.ListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

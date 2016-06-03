@@ -28,7 +28,7 @@ import java.util.function.Predicate;
 public class DomainValidation extends SimpleValidation {
 
   @Override
-  public Predicate<String> getPredicate() {
-    return domain -> DomainValidator.getInstance().isValid(domain);
+  public Predicate<Object> getPredicate() {
+    return domain -> DomainValidator.getInstance().isValid(domain == null?null:domain.toString());
   }
 }

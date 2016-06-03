@@ -20,9 +20,9 @@ package org.apache.metron.threatintel.triage;
 
 import com.google.common.base.Function;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
-import org.apache.metron.common.query.MapVariableResolver;
+import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.query.PredicateProcessor;
-import org.apache.metron.common.query.VariableResolver;
+import org.apache.metron.common.dsl.VariableResolver;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

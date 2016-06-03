@@ -16,18 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.dsl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MapVariableResolver implements VariableResolver {
-  Map variableMapping;
-  public MapVariableResolver(Map variableMapping) {
-    this.variableMapping = variableMapping;
+  List<Map> variableMappings = new ArrayList<>();
+  public MapVariableResolver(Map... variableMapping) {
+    for(Map m : variableMapping) {
+      this.variableMappings.add(m);
+    }
   }
   @Override
-  public String resolve(String variable) {
-    Object o = variableMapping.get(variable);
-    return o == null?null:o.toString();
+  public Object resolve(String variable) {
+    for(Map variableMapping : variableMappings) {
+      Object o = variableMapping.get(variable);
+      if(o != null) {
+        return o;
+      }
+    }
+    return null;
   }
 }

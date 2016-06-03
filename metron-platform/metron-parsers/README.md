@@ -84,7 +84,7 @@ unconditionally:
     "fieldTransformations" : [
           {
             "input" : "field1"
-          , "mapping" : "REMOVE"
+          , "transformation" : "REMOVE"
           }
                       ]
 }
@@ -98,7 +98,7 @@ whenever `field2` exists and whose corresponding equal to 'foo':
   "fieldTransformations" : [
           {
             "input" : "field1"
-          , "mapping" : "REMOVE"
+          , "transformation" : "REMOVE"
           , "config" : {
               "condition" : "exists(field2) and field2 == 'foo'"
                        }
@@ -125,6 +125,42 @@ to a textual representation of the protocol:
 
 This transformation would transform `{ "protocol" : 6, "source.type" : "bro", ... }` 
 into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
+
+* `MTL` : This transformation executes a set of transformations expressed as [Metron Transformation Language](../metron-common) statements.
+
+Consider the following sensor parser config to add three new fields to a
+message:
+* `utc_timestamp` : The unix epoch timestamp based on the `timestamp` field, a `dc` field which is the data center the message comes from and a `dc2tz` map mapping data centers to timezones
+* `url_host` : The host associated with the url in the `url` field
+* `url_protocol` : The protocol associated with the url in the `url` field
+
+```
+{
+...
+    "fieldTransformations" : [
+          {
+           "transformation" : "MTL"
+          ,"output" : [ "utc_timestamp", "url_host", "url_protocol" ]
+          ,"config" : {
+            "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd
+HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC') )"
+           ,"url_host" : "URL_TO_HOST(url)"
+           ,"url_protocol" : "URL_TO_PROTOCOL(url)"
+                      }
+          }
+                      ]
+   ,"parserConfig" : {
+      "dc2tz" : {
+                "nyc" : "EST"
+               ,"la" : "PST"
+               ,"london" : "UTC"
+                }
+    }
+}
+```
+
+Note that the `dc2tz` map is in the parser config, so it is accessible
+in the functions.
 
 ###An Example Configuration for a Sensor
 Consider the following example configuration for the `yaf` sensor:

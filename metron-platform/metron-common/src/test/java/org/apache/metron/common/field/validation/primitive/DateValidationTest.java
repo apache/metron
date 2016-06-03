@@ -71,10 +71,10 @@ public class DateValidationTest extends BaseValidationTest{
   }
   @Test
   public void negativeTest_single() throws IOException {
+    Assert.assertFalse(run(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
     Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "2014/05/01")));
     Assert.assertFalse(run(validWithSingleField_MQL, ImmutableMap.of("field1", "2014/05/01")));
     Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
-    Assert.assertFalse(run(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
