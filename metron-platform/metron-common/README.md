@@ -14,9 +14,6 @@ The query language supports the following:
     * `STARTS_WITH(str, prefix)`
     * `ENDS_WITH(str, suffix)`
     * `REGEXP_MATCH(str, pattern)`
-    * `TO_LOWER`
-    * `TO_UPPER`
-    * `TRIM`
     * `IS_IP` : Validates that the input fields are an IP address.  By default, if no second arg is set, it assumes `IPV4`, but you can specify the type by passing in either `IPV6` or `IPV4` to the second argument.
    * `IS_DOMAIN` 
    * `IS_EMAIL`
