@@ -56,11 +56,6 @@ public class ParserBolt extends ConfiguredParserBolt {
     return this;
   }
 
- // public long getIngestTimestamp()
- // {
- //   return ingest_timestamp;
- // }
-
   @SuppressWarnings("unchecked")
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
