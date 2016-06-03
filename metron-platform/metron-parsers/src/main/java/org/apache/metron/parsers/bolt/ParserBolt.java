@@ -45,10 +45,7 @@ import org.apache.metron.common.interfaces.MessageWriter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
@@ -143,14 +140,14 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       boolean ackTuple = true;
       if(sensorParserConfig != null) {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
-        List<JSONObject> messages = parser.parse(originalMessage);
-        for (JSONObject message : messages) {
-          if (parser.validate(message)) {
+        Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
+        for (JSONObject message : messages.orElse(Collections.EMPTY_LIST)) {
+          if (parser.validate(message) && filter != null && filter.emitTuple(message)) {
             if(!isGloballyValid(message, fieldValidations)) {
               message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
               collector.emit(Constants.INVALID_STREAM, new Values(message));
             }
-            else if (filter != null && filter.emitTuple(message)) {
+            else {
               ackTuple = !isBulk;
               message.put(Constants.SENSOR_TYPE, getSensorType());
               for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
