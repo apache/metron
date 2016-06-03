@@ -1,0 +1,59 @@
+{
+    "template" : "windowssyslog*",
+    "aliases" : {
+        "windowssyslog" : {}
+    },
+    "mappings" : {
+        "windwossyslog_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "computer_name" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "keywords" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "log_name" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "record_number" : {
+                    "type" : "long",
+                    "index" : "analyzed"
+                },
+                "message" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "event_type" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "event_code" : {
+                    "type" : "long",
+                    "index" : "analyzed"
+                },
+                "computer_name_simple" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "task_category" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "source_name" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                }
+            }
+        }
+    }
+}
