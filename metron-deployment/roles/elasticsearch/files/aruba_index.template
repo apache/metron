@@ -1,0 +1,60 @@
+{
+    "template" : "aruba*",
+   "order" : 1,
+    "aliases" : {
+        "aruba" : {}
+    },
+    "mappings" : {
+        "aruba_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp": {
+                    "type": "date",
+                    "format": "epoch_millis"
+                },"priority" : {
+                    "type" : "long"
+                },
+                "url" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "message_subtype" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "message_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "message_hex" : {
+                    "type" : "long"
+                },
+                "message_id" : {
+                    "type" : "long"
+                },
+                "session_id" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "attr_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "attr_value" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "request_timestamp" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,355 @@
+{
+   "template" : "paloalto*",
+   "order" : 1,
+   "aliases" : {
+      "paloalto" : {}
+   },
+   "mappings" : {
+      "paloalto_doc" : {
+         "_timestamp" : {
+            "enabled" : true
+         },
+         "properties" : {
+            "timestamp" : {
+               "type" : "date",
+               "format" : "epoch_millis"
+            },
+            "deviceGeneratedTimestamp": {
+               "type": "date",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "ingestTimestamp" : {
+               "type": "date",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "sourceType" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "priority" : {
+               "type": "int",
+               "index": "not_analyzed"
+            },
+            "timestamp" : {
+               "type": "string",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "hostName" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "receiveTime" : {
+               "type": "date",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "generatedTime" : {
+               "type": "date",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "serialNumber" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "type" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "subtype" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "ipSrcAddr" : {
+               "type": "ip",
+               "index": "not_analyzed"
+            },
+            "ipDstAddr" : {
+               "type": "ip",
+               "index": "not_analyzed"
+            },
+            "natSourceIp" : {
+               "type": "ip",
+               "index": "not_analyzed"
+            },
+            "natDestinationIp" : {
+               "type": "ip",
+               "index": "not_analyzed"
+            },
+            "ruleName" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "srcUserName" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "dstUserName" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "application" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "virtualSystem" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "sourceZone" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "destinationZone" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "ingressInterface" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "egressInterface" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "logForwardingProfile" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "sessionId" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "repeatCount" : {
+               "type": "int",
+               "index": "not_analyzed"
+            },
+            "ipSrcPort" : {
+               "type": "port",
+               "index": "not_analyzed"
+            },
+            "ipDestPort" : {
+               "type": "port",
+               "index": "not_analyzed"
+            },
+            "natSourcePort" : {
+               "type": "port",
+               "index": "not_analyzed"
+            },
+            "natDestinationPort" : {
+               "type": "port",
+               "index": "not_analyzed"
+            },
+            "flags" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "protocol" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "action" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "category" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "sequenceNumber" : {
+               "type": "int",
+               "index": "not_analyzed"
+            },
+            "actionFlags" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "sourceLocation" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "destinationLocation" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "startTime" : {
+               "type": "string",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "elapsedTime" : {
+               "type": "string",
+               "format": "strict_date_optional_time||epoch_millis",
+               "index": "not_analyzed"
+            },
+            "bytes" : {
+               "type": "int",
+               "index": "not_analyzed"
+            },
+            "byteSent" : {
+               "type": "int",
+               "index": "not_analyzed"
+            },
+            "bytesReceived" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "packets" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "packetsSent" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "packetsReceived" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "sessionEndReason" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "deviceGroupHierarchyLevel1" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "deviceGroupHierarchyLevel2" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "deviceGroupHierarchyLevel3" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "deviceGroupHierarchyLevel4" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "virtualSystemName" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "deviceName" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "actionSource" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "host" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "command" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "admin" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "client" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "result" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "configurationPath" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "eventId" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "object" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "module" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "description" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "miscellaneous" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "threatId" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "severity" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "direction" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "contentType" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "pcapId" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "fileDigest" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "cloud" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "urlIndex" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "userAgent" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "fileType" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "xForwardedFor" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "referer" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "sender" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "subject" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "recipient" : {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "reportId" : {
+               "type": "string",
+               "index": "not_analyzed"
+            }
+         }
+      }
+   }
+}
