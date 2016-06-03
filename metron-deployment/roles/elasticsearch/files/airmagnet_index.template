@@ -1,5 +1,6 @@
 {
     "template" : "airmagnet*",
+   "order" : 1,
     "aliases" : {
         "airmagnet" : {}
     },

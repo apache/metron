@@ -1,5 +1,6 @@
 {
     "template" : "windowssyslog*",
+   "order" : 1,
     "aliases" : {
         "windowssyslog" : {}
     },

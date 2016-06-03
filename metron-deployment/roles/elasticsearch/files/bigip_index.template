@@ -1,5 +1,6 @@
 {
     "template" : "bigip*",
+   "order" : 1,
     "aliases" : {
         "bigip" : {}
     },

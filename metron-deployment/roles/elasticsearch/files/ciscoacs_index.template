@@ -1,5 +1,6 @@
 {
     "template" : "ciscoacs*",
+   "order" : 1,
     "aliases" : {
         "ciscoacs" : {}
     },

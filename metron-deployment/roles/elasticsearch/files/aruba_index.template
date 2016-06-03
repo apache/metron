@@ -1,5 +1,6 @@
 {
     "template" : "aruba*",
+   "order" : 1,
     "aliases" : {
         "aruba" : {}
     },

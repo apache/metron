@@ -1,5 +1,6 @@
 {
     "template" : "cyberark*",
+   "order" : 1,
     "aliases" : {
         "cyberark" : {}
     },

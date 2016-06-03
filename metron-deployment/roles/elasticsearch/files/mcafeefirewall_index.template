@@ -1,5 +1,6 @@
 {
   "template": "McAfeeFirewall*",
+   "order" : 1,
   "aliases": {
     "McAfeeFirewall": {}
   },

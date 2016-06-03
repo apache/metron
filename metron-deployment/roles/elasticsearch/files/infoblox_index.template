@@ -1,5 +1,6 @@
 {
     "template" : "infoblox*",
+   "order" : 1,
     "aliases" : {
         "infoblox" : {}
     },
