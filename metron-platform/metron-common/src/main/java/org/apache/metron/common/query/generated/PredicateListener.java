@@ -123,53 +123,29 @@ public interface PredicateListener extends ParseTreeListener {
 	 */
 	void exitComparisonExpressionWithOperator(PredicateParser.ComparisonExpressionWithOperatorContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code InExpression_List}
+	 * Enter a parse tree produced by the {@code InExpression}
 	 * labeled alternative in {@link PredicateParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterInExpression_List(PredicateParser.InExpression_ListContext ctx);
+	void enterInExpression(PredicateParser.InExpressionContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code InExpression_List}
+	 * Exit a parse tree produced by the {@code InExpression}
 	 * labeled alternative in {@link PredicateParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitInExpression_List(PredicateParser.InExpression_ListContext ctx);
+	void exitInExpression(PredicateParser.InExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code NInExpression_List}
+	 * Enter a parse tree produced by the {@code NInExpression}
 	 * labeled alternative in {@link PredicateParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterNInExpression_List(PredicateParser.NInExpression_ListContext ctx);
+	void enterNInExpression(PredicateParser.NInExpressionContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code NInExpression_List}
+	 * Exit a parse tree produced by the {@code NInExpression}
 	 * labeled alternative in {@link PredicateParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitNInExpression_List(PredicateParser.NInExpression_ListContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code InExpression_Func}
-	 * labeled alternative in {@link PredicateParser#comparison_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterInExpression_Func(PredicateParser.InExpression_FuncContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code InExpression_Func}
-	 * labeled alternative in {@link PredicateParser#comparison_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitInExpression_Func(PredicateParser.InExpression_FuncContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code NInExpression_Func}
-	 * labeled alternative in {@link PredicateParser#comparison_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code NInExpression_Func}
-	 * labeled alternative in {@link PredicateParser#comparison_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx);
+	void exitNInExpression(PredicateParser.NInExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ComparisonExpressionParens}
 	 * labeled alternative in {@link PredicateParser#comparison_expr}.

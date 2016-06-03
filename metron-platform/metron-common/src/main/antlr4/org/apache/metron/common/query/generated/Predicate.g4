@@ -108,10 +108,8 @@ logical_expr
  ;
 
 comparison_expr : comparison_operand comp_operator comparison_operand # ComparisonExpressionWithOperator
-                | identifier_operand IN list_entity #InExpression_List
-                | identifier_operand NIN list_entity #NInExpression_List
-                | identifier_operand IN t_func #InExpression_Func
-                | identifier_operand NIN t_func #NInExpression_Func
+                | identifier_operand IN identifier_operand #InExpression
+                | identifier_operand NIN identifier_operand #NInExpression
                 | LPAREN comparison_expr RPAREN # ComparisonExpressionParens
                 ;
 

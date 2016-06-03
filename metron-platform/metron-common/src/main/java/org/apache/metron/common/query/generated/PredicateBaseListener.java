@@ -133,49 +133,25 @@ public class PredicateBaseListener implements PredicateListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterInExpression_List(PredicateParser.InExpression_ListContext ctx) { }
+	@Override public void enterInExpression(PredicateParser.InExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitInExpression_List(PredicateParser.InExpression_ListContext ctx) { }
+	@Override public void exitInExpression(PredicateParser.InExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNInExpression_List(PredicateParser.NInExpression_ListContext ctx) { }
+	@Override public void enterNInExpression(PredicateParser.NInExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNInExpression_List(PredicateParser.NInExpression_ListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterInExpression_Func(PredicateParser.InExpression_FuncContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitInExpression_Func(PredicateParser.InExpression_FuncContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx) { }
+	@Override public void exitNInExpression(PredicateParser.NInExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

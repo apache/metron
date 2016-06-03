@@ -77,7 +77,7 @@ public class MTLTransformationTest {
           ,"output" : [ "utc_timestamp", "url_host", "url_protocol" ]
           ,"config" : {
             "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC') )"
-           ,"url_host" : "URL_TO_HOST(url)"
+           ,"url_host" : "TO_LOWER(URL_TO_HOST(url))"
            ,"url_protocol" : "URL_TO_PROTOCOL(url)"
                       }
           }

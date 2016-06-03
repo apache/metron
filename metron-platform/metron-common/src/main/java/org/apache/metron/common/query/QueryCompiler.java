@@ -19,6 +19,7 @@
 package org.apache.metron.common.query;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.query.generated.PredicateBaseListener;
 import org.apache.metron.common.query.generated.PredicateParser;
@@ -211,12 +212,17 @@ class QueryCompiler extends PredicateBaseListener {
   private boolean handleIn(Token<?> left, Token<?> right) {
     Object key = null;
     Set<Object> set = null;
-    if(left.getValue() instanceof List) {
+    if(left.getValue() instanceof Collection) {
       set = new HashSet<>((List<Object>) left.getValue());
     }
-    else {
-      throw new ParseException("Unable to process in clause because " + left.getValue() + " is not a set");
+    else if(left.getValue() != null) {
+      set = ImmutableSet.of(left.getValue());
     }
+    else {
+      set = new HashSet<>();
+    }
+
+
     key = right.getValue();
     if(key == null || set.isEmpty()) {
       return false;
@@ -224,37 +230,20 @@ class QueryCompiler extends PredicateBaseListener {
     return set.contains(key);
   }
 
-
-
-
-
   @Override
-  public void exitNInExpression_List(PredicateParser.NInExpression_ListContext ctx) {
-    Token<?> left = popStack();
-    Token<?> right = popStack();
-    tokenStack.push(new Token<>(!handleIn(left, right), Boolean.class));
-  }
-  @Override
-  public void exitNInExpression_Func(PredicateParser.NInExpression_FuncContext ctx) {
-    Token<?> left = popStack();
-    Token<?> right = popStack();
-    tokenStack.push(new Token<>(!handleIn(left, right), Boolean.class));
-  }
-
-  @Override
-  public void exitInExpression_List(PredicateParser.InExpression_ListContext ctx) {
+  public void exitInExpression(PredicateParser.InExpressionContext ctx) {
     Token<?> left = popStack();
     Token<?> right = popStack();
     tokenStack.push(new Token<>(handleIn(left, right), Boolean.class));
   }
 
+
   @Override
-  public void exitInExpression_Func(PredicateParser.InExpression_FuncContext ctx) {
+  public void exitNInExpression(PredicateParser.NInExpressionContext ctx) {
     Token<?> left = popStack();
     Token<?> right = popStack();
-    tokenStack.push(new Token<>(handleIn(left, right), Boolean.class));
+    tokenStack.push(new Token<>(!handleIn(left, right), Boolean.class));
   }
-
 
   @Override
   public void exitLogicalFunc(PredicateParser.LogicalFuncContext ctx) {

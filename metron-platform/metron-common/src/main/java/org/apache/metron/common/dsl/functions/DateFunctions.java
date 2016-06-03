@@ -21,28 +21,86 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 public class DateFunctions {
-  private static LoadingCache<Pair<String, String>, SimpleDateFormat> formatCache
-          = CacheBuilder.newBuilder()
-                        .build(new CacheLoader<Pair<String, String>, SimpleDateFormat>() {
-                          @Override
-                          public SimpleDateFormat load(Pair<String, String> key) throws Exception {
-                            SimpleDateFormat sdf = new SimpleDateFormat(key.getLeft());
-                            if(key.getRight() != null) {
-                              sdf.setTimeZone(TimeZone.getTimeZone(key.getRight()));
-                            }
-                            return sdf;
-                          }
-                        });
+
+  private static class TimezonedFormat {
+    private String format;
+    private Optional<String> timezone;
+    public TimezonedFormat(String format, String timezone) {
+      this.format = format;
+      this.timezone = Optional.of(timezone);
+    }
+
+    public TimezonedFormat(String format) {
+      this.format = format;
+      this.timezone = Optional.empty();
+    }
+    public SimpleDateFormat toDateFormat() {
+      return createFormat(format, timezone);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      TimezonedFormat that = (TimezonedFormat) o;
+
+      if (format != null ? !format.equals(that.format) : that.format != null) return false;
+      return timezone != null ? timezone.equals(that.timezone) : that.timezone == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = format != null ? format.hashCode() : 0;
+      result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
+      return result;
+    }
+  }
+
+  private static LoadingCache<TimezonedFormat, ThreadLocal<SimpleDateFormat>> formatCache
+          = CacheBuilder.newBuilder().build(new CacheLoader<TimezonedFormat, ThreadLocal<SimpleDateFormat>>() {
+            @Override
+            public ThreadLocal<SimpleDateFormat> load(final TimezonedFormat format) throws Exception {
+              return new ThreadLocal<SimpleDateFormat>() {
+                @Override
+                public SimpleDateFormat initialValue() {
+                  return format.toDateFormat();
+                }
+              };
+            }
+          }
+                        );
+
+  public static SimpleDateFormat createFormat(String format, Optional<String> timezone) {
+    SimpleDateFormat sdf = new SimpleDateFormat(format);
+    if(timezone.isPresent()) {
+      sdf.setTimeZone(TimeZone.getTimeZone(timezone.get()));
+    }
+    return sdf;
+  }
+  public static long getEpochTime(String date, String format, Optional<String> timezone) throws ExecutionException, ParseException {
+    TimezonedFormat fmt = null;
+    if(timezone.isPresent()) {
+      fmt = new TimezonedFormat(format, timezone.get());
+    }
+    else {
+      fmt = new TimezonedFormat(format);
+    }
+    SimpleDateFormat sdf = formatCache.get(fmt).get();
+    return sdf.parse(date).getTime();
+  }
+
 
   public static class ToTimestamp implements Function<List<Object>, Object> {
     @Override
@@ -55,8 +113,10 @@ public class DateFunctions {
       }
       if(dateObj != null && formatObj != null) {
         try {
-          SimpleDateFormat sdf = formatCache.get(Pair.of(formatObj.toString(), tzObj != null?tzObj.toString():null ));
-          return sdf.parse(dateObj.toString()).getTime();
+          return getEpochTime(dateObj.toString()
+                             , formatObj.toString()
+                             , tzObj == null?Optional.empty():Optional.of(tzObj.toString())
+                             );
         } catch (ExecutionException e) {
           return null;
         } catch (ParseException e) {
