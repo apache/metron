@@ -141,7 +141,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       if(sensorParserConfig != null) {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
-        for (JSONObject message : messages.orElse(Collections.EMPTY_LIST)) {
+        for (JSONObject message : messages.orElse(Collections.emptyList())) {
           if (parser.validate(message) && filter != null && filter.emitTuple(message)) {
             if(!isGloballyValid(message, fieldValidations)) {
               message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");

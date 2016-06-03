@@ -43,10 +43,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -103,6 +100,7 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
+
     };
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -120,7 +118,7 @@ public class ParserBoltTest extends BaseBoltTest {
     final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\" }");
     final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\" }");
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
-    when(parser.parse(sampleBinary)).thenReturn(messages);
+    when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messages));
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
     when(parser.validate(eq(messages.get(1)))).thenReturn(false);
     parserBolt.execute(tuple);
@@ -166,7 +164,7 @@ public void testImplicitBatchOfOne() throws Exception {
   verify(parser, times(1)).init();
   verify(batchWriter, times(1)).init(any(), any());
   when(parser.validate(any())).thenReturn(true);
-  when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+  when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
   when(filter.emitTuple(any())).thenReturn(true);
   parserBolt.withMessageFilter(filter);
   parserBolt.execute(t1);
@@ -202,7 +200,7 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
@@ -236,7 +234,7 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any())).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
@@ -271,7 +269,7 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any())).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     writeNonBatch(outputCollector, parserBolt, t1);
