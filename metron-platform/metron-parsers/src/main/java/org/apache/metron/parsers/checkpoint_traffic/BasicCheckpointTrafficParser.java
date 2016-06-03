@@ -103,6 +103,7 @@ public class BasicCheckpointTrafficParser extends BasicParser {
                     case "dst": split[0] = "ip_dst_addr"; break;
                     case "service": split[0] = "ip_dst_port"; break;
                     case "proto": split[0] = "protocol"; break;
+                    case "client_ip": split[0] = "ip_src_addr"; break;
                 }
 
                 if(split[0].equals("time")){
