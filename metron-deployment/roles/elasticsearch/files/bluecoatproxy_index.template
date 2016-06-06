@@ -1,6 +1,9 @@
 {
     "template" : "bluecoat_proxy*",
    "order" : 1,
+   "settings" : {
+       "number_of_shards" : 5
+   },
     "aliases" : {
         "bluecoat" : {}
     },

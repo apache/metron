@@ -1,6 +1,9 @@
 {
   "template": "unixsyslog3164*",
    "order" : 1,
+   "settings" : {
+     "number_of_shards" : 1
+   },
   "aliases": {
     "unixsyslog": {}
   },

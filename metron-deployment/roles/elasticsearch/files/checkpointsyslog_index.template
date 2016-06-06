@@ -1,6 +1,9 @@
 {
     "template" : "checkpointsyslog*",
     "order" : 1,
+    "settings" : {
+        "number_of_shards" : 1
+    },
     "aliases" : {
         "checkpointsyslog" : {}
     },
