@@ -46,6 +46,9 @@
     - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
     - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
     - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
+    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.tenplate' }}" }
+    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.tenplate' }}" }
+    - { sensor: soltra, file: "{{ lookup('file','soltra_index.tenplate' }}" }
     - { sensor: adallom, file: "{{ lookup('file','adallom_index.template') }}" }
     - { sensor: airmagnet, file: "{{ lookup('file','airmagnet_index.template') }}" }
     - { sensor: aruba, file: "{{ lookup('file','aruba_index.template') }}" }
