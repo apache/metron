@@ -1,6 +1,9 @@
 {
     "template" : "checkpointfirewall*",
    "order" : 1,
+   "settings" : {
+       "number_of_shards" : 5
+   },
     "aliases" : {
         "checkpointfirewall" : {}
     },
