@@ -27,10 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class BasicCheckpointTrafficParser extends BasicParser {
@@ -50,6 +47,7 @@ public class BasicCheckpointTrafficParser extends BasicParser {
 
     @Override
     public void init() {
+        dateFormat.setTimeZone(TimeZone.getTimeZone("EST"));
 
     }
 
