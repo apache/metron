@@ -15,11 +15,8 @@
 #  limitations under the License.
 #
 ---
-num_partitions: 1
-retention_in_gb: 10
-pycapa_topic: pcap
-bro_topic: bro
-yaf_topic: yaf
-snort_topic: snort
-enrichments_topic: enrichments
-
+hbase_tables_to_create:
+  - pcap
+  - access_tracker
+  - threatintel
+  - enrichment

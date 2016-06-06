@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 ---
-dependencies:
-  - ambari_gather_facts
-
+kafka_home: /usr/hdp/current/kafka-broker/
+topics_to_create:
+  - { topic: "pcap",        num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "bro",         num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "yaf",         num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "snort",       num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "enrichments", num_partitions: 1, replication_factor: 1, retention_gb: 10 }

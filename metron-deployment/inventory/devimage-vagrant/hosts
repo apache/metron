@@ -21,7 +21,10 @@ node1
 [ambari_slave]
 node1
 
-[hadoop_client]
+[metron_hbase_setup]
+node1
+
+[metron_kafka_setup]
 node1
 
 [enrichment]
@@ -48,5 +51,6 @@ search
 web
 sensors
 mysql
-hadoop_client
+metron_kafka_setup
+metron_hbase_setup
 pcap_server

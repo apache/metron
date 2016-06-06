@@ -28,8 +28,10 @@ node6
 node7
 node8
 
-#last ambari_slave
-[hadoop_client]
+[metron_hbase_setup]
+node9
+
+[metron_kafka_setup]
 node9
 
 [pcap_server]
@@ -62,5 +64,5 @@ search
 web
 sensors
 mysql
-hadoop_client
-
+metron_kafka_setup
+metron_hbase_setup

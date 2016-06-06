@@ -30,6 +30,7 @@
   become: true
   roles:
     - role: ambari_gather_facts
-    - role: hadoop_setup
+    - role: metron-hbase
+    - role: metron-kafka
   tags:
     - packer-cleanup

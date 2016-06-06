@@ -14,43 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-[ambari_master]
-node1
-
-[ambari_slave]
-node1
-
-[metron_hbase_setup]
-node1
-
-[metron_kafka_setup]
-node1
-
-[enrichment]
-node1
-
-[search]
-node1
-
-[web]
-node1
-
-[sensors]
-node1
-
-[pcap_server]
-node1
-
-[mysql]
-node1
-
-[metron:children]
-enrichment
-search
-web
-sensors
-mysql
-metron_kafka_setup
-metron_hbase_setup
-pcap_server
+---
+dependencies:
+  - ambari_gather_facts
