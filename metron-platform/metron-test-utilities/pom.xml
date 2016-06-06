@@ -89,8 +89,13 @@
       <version>2.7.1</version>
     </dependency>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
+    <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
       <version>${global_mockito_version}</version>
     </dependency>
     <dependency>
@@ -102,11 +107,6 @@
       <groupId>org.adrianwalker</groupId>
       <artifactId>multiline-string</artifactId>
       <version>0.1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
     </dependency>
   </dependencies>
 
