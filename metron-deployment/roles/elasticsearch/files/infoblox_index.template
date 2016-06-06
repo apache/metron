@@ -15,7 +15,7 @@
                     "format" : "epoch_millis"
                 },
                 "priority" : {
-                    "type" : "long",
+                    "type" : "long"
                 },
                 "process" : {
                     "type" : "string",
