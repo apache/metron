@@ -47,7 +47,7 @@ public class BasicCheckpointTrafficParser extends BasicParser {
 
     @Override
     public void init() {
-        dateFormat.setTimeZone(TimeZone.getTimeZone("EST"));
+
 
     }
 
@@ -105,6 +105,7 @@ public class BasicCheckpointTrafficParser extends BasicParser {
                 }
 
                 if(split[0].equals("time")){
+                    dateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
                     payload.put("timestamp", dateFormat.parse(split[1]).getTime());
                 }else{
                     split[0] = split[0].replaceAll("[^\\._a-zA-Z0-9]+","");
