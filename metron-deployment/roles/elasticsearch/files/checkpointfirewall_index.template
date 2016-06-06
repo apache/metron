@@ -1,0 +1,232 @@
+{
+    "template" : "checkpointfirewall*",
+   "order" : 1,
+    "aliases" : {
+        "checkpointfirewall" : {}
+    },
+    "mappings" : {
+        "checkpointfirewall_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "firewallName" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "timestamp2" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "audit_status" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "subject" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "origin" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "ipAddress" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "uid" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "administrator" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "application" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "operation_number" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "client" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "client_ip" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "category" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "operation" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "info" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "action" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "interfaceDirection" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "interfaceName" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "sourceIp" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "sourcePort" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "destinationIp" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "destinationPort" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "service" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "protocol" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "ruleNumber" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd1" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd2" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd3" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd4" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd5" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd6" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd7" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd8" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "messageType1" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd9" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd10" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd11" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd12" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd13" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd14" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd15" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "messageType2" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd16" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd17" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd18" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd19" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd20" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd21" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "eventDate" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "tbd22" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "eventSource" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}

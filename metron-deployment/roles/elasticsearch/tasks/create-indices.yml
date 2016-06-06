@@ -46,6 +46,25 @@
     - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
     - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
     - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
-
+    - { sensor: adallom, file: "{{ lookup('file','adallom_index.template') }}" }
+    - { sensor: airmagnet, file: "{{ lookup('file','airmagnet_index.template') }}" }
+    - { sensor: aruba, file: "{{ lookup('file','aruba_index.template') }}" }
+    - { sensor: bigip, file: "{{ lookup('file','bigip_index.template') }}" }
+    - { sensor: bluecoatproxy, file: "{{ lookup('file','bluecoatproxy_index.template') }}" }
+    - { sensor: checkpointfirewall, file: "{{ lookup('file','checkpointfirewall_index.template') }}" }
+    - { sensor: checkpointsyslog, file: "{{ lookup('file','checkpointsyslog_index.template') }}" }
+    - { sensor: ciscoacs, file: "{{ lookup('file','ciscoacs_index.template') }}" }
+    - { sensor: cyberark, file: "{{ lookup('file','cyberark_index.template') }}" }
+    - { sensor: fireeye, file: "{{ lookup('file','fireeye_index.template') }}" }
+    - { sensor: infoblox, file: "{{ lookup('file','infoblox_index.template') }}" }
+    - { sensor: ironport, file: "{{ lookup('file','ironport_index.template') }}" }
+    - { sensor: mcafeeepo, file: "{{ lookup('file','mcafeeepo_index.template') }}" }
+    - { sensor: mcafeefirewall, file: "{{ lookup('file','mcafeefirewall_index.template') }}" }
+    - { sensor: paloalto, file: "{{ lookup('file','paloalto_index.template') }}" }
+    - { sensor: unixsyslog3164, file: "{{ lookup('file','unixsyslog3164_index.template') }}" }
+    - { sensor: unixsyslog5424, file: "{{ lookup('file','unixsyslog5424_index.template') }}" }
+    - { sensor: waf, file: "{{ lookup('file','waf_index.template') }}" }
+    - { sensor: windowssyslog, file: "{{ lookup('file','windowssyslog_index.template') }}" }
+    - { sensor: checkpointtraffic, file: "{{ lookup('file','checkpointtraffic_index.template') }}" }
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped

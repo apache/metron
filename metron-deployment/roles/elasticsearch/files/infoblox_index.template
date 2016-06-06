@@ -1,0 +1,136 @@
+{
+    "template" : "infoblox*",
+   "order" : 1,
+    "aliases" : {
+        "infoblox" : {}
+    },
+    "mappings" : {
+        "infoblox_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "priority" : {
+                    "type" : "long",
+                },
+                "process" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "process_id" : {
+                    "type" : "long"
+                },
+                "ip_address" : {
+                    "type" : "ip"
+                },
+                "dns_query" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_server_interface" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_action_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_record_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_bind_parameters" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_update_target" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_auth_keyname" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_update_message" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_forward_return_code" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_forward_server" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dns_forward_port" : {
+                    "type" : "long"
+                },
+                "message" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_hostnme" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_options" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_interface" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_requested_ip" : {
+                    "type" : "ip"
+                },
+                "src_mac_addr" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_relay_ip" : {
+                    "type" : "ip"
+                },
+                "dhcp_uid" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dst_mac" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dst_mac_addr" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_lease_duration" : {
+                    "type" : "long"
+                },
+                "src_mac" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_relay_mac" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dhcp_ip_address" : {
+                    "type" : "ip"
+                },
+                "dhcp_message" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}
