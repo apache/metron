@@ -130,9 +130,15 @@ public class GrokCiscoACSParser  extends GrokParser {
                     JSONObject steps = new JSONObject();
                     for (int i = 0; (i < fields.length) && (i < keys.size()); i++) {
                         String[] pairArray = fields[i].split("=");
+
                         if("Step".equals(pairArray[0].replaceAll("\\s+", "")))
                         {
                             steps.put((pairArray[0]+""+i).replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
+                        }
+                        if("CmdSet".equals(pairArray[0].replaceAll("\\s+", "")))
+                        {
+                            String cmdSet = fields[i].substring(fields[i].indexOf("["));
+                            newPairs.put(pairArray[0].replaceAll("\\s+", ""),cmdSet.replaceAll("\\s+", ""));
                         }
                         else
                         {
