@@ -46,6 +46,11 @@
     - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
     - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
     - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
+    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.tenplate' }}" }
+    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.tenplate' }}" }
+    - { sensor: soltra, file: "{{ lookup('file','soltra_index.tenplate' }}" }
+
+
 
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped
