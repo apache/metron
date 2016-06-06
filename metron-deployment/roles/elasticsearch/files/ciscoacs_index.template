@@ -1,0 +1,69 @@
+{
+    "template" : "ciscoacs*",
+   "order" : 1,
+    "aliases" : {
+        "ciscoacs" : {}
+    },
+    "mappings" : {
+        "ciscoacs_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "priority" : {
+                    "type" : "long"
+                },
+                "hostname" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "severity" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "SelectedAccessService" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "ACSVersion" : {
+                    "type" : "long"
+                },
+                "DestinationIPAddress" : {
+                    "type" : "ip"
+                },
+                "messageText" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "DeviceIPAddress" : {
+                    "type" : "ip"
+                },
+                "SelectedCommandSet" : {
+                    "type" : "ip"
+                },
+                "Steps" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "RequestLatency" : {
+                    "type" : "long"
+                },
+                "Remote-Address" : {
+                    "type" : "ip"
+                },
+                "Protocol" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "AcsSessionID" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}
