@@ -65,6 +65,6 @@
     - { sensor: unixsyslog5424, file: "{{ lookup('file','unixsyslog5424_index.template') }}" }
     - { sensor: waf, file: "{{ lookup('file','waf_index.template') }}" }
     - { sensor: windowssyslog, file: "{{ lookup('file','windowssyslog_index.template') }}" }
-
+    - { sensor: checkpointtraffic, file: "{{ lookup('file','checkpointtraffic_index.template') }}" }
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped
