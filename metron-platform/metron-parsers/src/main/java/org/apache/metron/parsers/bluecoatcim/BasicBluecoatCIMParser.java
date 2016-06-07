@@ -23,6 +23,7 @@ import java.util.*;
 
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,17 +48,31 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			String message = new String(msg, "UTF-8");
 			payload.put("original_string", message);
 
-			String[] parts = message.split("\\|");
+			// some values in the pipe delimited bluecoat cim logs contain pipes
+			// parse and remove them first to avoid problems parsing the rest of the string
+			String[] array;
+			array = handleValueContainingDelimiter(message, "uri_query", "|uri_extension=");
+			message = array[0];
+			payload.put("uri_query", array[1]);
+			array = handleValueContainingDelimiter(message, "http_referrer", "|status=");
+			message = array[0];
+			payload.put("http_referrer", array[1]);
 
-			String [] logstart = parts[0].split("<|>|\\(|\\)| ");
+			// split message into pipe delimited substrings
+			String[] substrings = message.split("\\|");
+
+			// the first substring contains timestamp and priority
+			String [] logstart = substrings[0].split("<|>|\\(|\\)| ");
 			Date date = df.parse(logstart[2] + " " + logstart[3] + " " + Calendar.getInstance().get(Calendar.YEAR) + " " + logstart[4] + " UTC");
 			long epoch = date.getTime();
 			payload.put("timestamp", epoch);
 			payload.put("priority", logstart[1]);
 
-			for (int i = 1; i < parts.length -1; ++i){
-				String[] kvp = parts[i].split("=");
+			// the remaining substrings (except for the last one) are key value pairs with format key=value
+			for (int i = 1; i < substrings.length -1; ++i){
+				String[] kvp = substrings[i].split("=",2);
 				String value = kvp[1];
+				// remove quotes that appear around some values
 				if (value.matches("\".*\"")){
 					value = value.substring(1, value.length()-1);
 				}
@@ -68,10 +83,20 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			messages.add(payload);
 			return messages;
 		} catch (Exception e) {
+			LOG.error("Failed to parse: " + new String(msg) + "\n");
 			e.printStackTrace();
-			LOG.error("Failed to parse: " + new String(msg));
 			return null;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private String[] handleValueContainingDelimiter(String message, String key, String nextKey){
+		int keyStart = message.indexOf(key);
+		int valueStart = keyStart + key.length() + 1;
+		int valueEnd = message.indexOf(nextKey);
+		String value = message.substring(valueStart,valueEnd);
+		String newMessage = message.substring(0, keyStart - 1) + message.substring(valueEnd);
+		return new String[] {newMessage, value};
 	}
 
 	@SuppressWarnings("unchecked")
