@@ -88,10 +88,11 @@
 #
 - hosts: enrichment
   become: true
-  roles:
-    - role: metron_streaming
   tags:
     - enrichment
+  roles:
+    - role: metron_streaming
+    - { role: elasticsearch_templates, tags: ['elasticsearch'] }
 
 #
 # user interface

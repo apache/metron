@@ -51,8 +51,4 @@
 
 - include: hdfs_purge.yml
 
-- include: create_index_templates.yml
-  when: install_elasticsearch == True
-  run_once: true
-
 - include: es_purge.yml
