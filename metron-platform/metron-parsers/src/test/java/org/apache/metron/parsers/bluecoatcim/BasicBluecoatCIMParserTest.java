@@ -17,12 +17,12 @@
  */
 package org.apache.metron.parsers.bluecoatcim;
 
-import static org.junit.Assert.assertEquals;
+import org.json.simple.JSONObject;
+import org.junit.Test;
 
 import java.util.List;
 
-import org.json.simple.JSONObject;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class BasicBluecoatCIMParserTest {
 

@@ -23,7 +23,6 @@ import java.util.*;
 
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
