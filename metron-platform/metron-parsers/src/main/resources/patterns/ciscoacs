@@ -50,4 +50,6 @@ MESSAGETEXT (.*?)
 
 GREEDY .*
 
-CISCOACS <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGETEXT:messageText}, %{GREEDY:messageGreedy}
+CISCOACSONE <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGETEXT:messageText}, %{GREEDY:messageGreedy}
+CISCOACSTWO <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum}  %{GREEDY:messageGreedy}
+CISCOACS %{CISCOACSONE:UNWANTED}|%{CISCOACSTWO:UNWANTED}
