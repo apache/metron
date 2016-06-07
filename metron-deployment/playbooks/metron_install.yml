@@ -116,66 +116,17 @@
 - hosts: sensors
   become: true
   roles:
-    - role: ambari_gather_facts
-    - role: tap_interface
+    - { role: ambari_gather_facts, tags: [ 'always'] }
+    - { role: tap_interface, tags: ['tap'] }
+    - { role: pycapa, tags: ['pycapa'] }
+    - { role: bro, tags: ['bro'] }
+    - { role: flume,  tags: ['snort','flume'] }
+    - { role: snort, tags: ['snort'] }
+    - { role: yaf, tags: ['yaf'] }
+    - { role: pcap_replay, tags: ['pcap-replay'] }
+    - { role: sensor-test-mode, tags: ['sensor-test-mode'] }
   tags:
-    - tap
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: pycapa
-  tags:
-    - pycapa
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: bro
-  tags:
-    - bro
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: flume
-  tags:
-    - flume
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: snort
-  tags:
-    - snort
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: yaf
-  tags:
-    - yaf
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: pcap_replay
-  tags:
-    - pcap-replay
-
-- hosts: sensors
-  become: true
-  roles:
-    - role: ambari_gather_facts
-    - role: sensor-test-mode
-  tags:
-    - sensor-test-mode
+    - sensors
 
 #
 # monit
