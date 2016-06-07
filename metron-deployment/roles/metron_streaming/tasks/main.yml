@@ -23,7 +23,10 @@
       - config
 
 - name: Create Source Config Directory
-  file: path={{ zookeeper_config_path }} state=directory mode=0755
+  file:
+    path: "{{ zookeeper_config_path }}"
+    state: directory
+    mode: 0755
 
 - include: copy_bundles.yml
 
