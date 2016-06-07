@@ -1,6 +1,6 @@
 {
   "index": "mcafeesensor",
-  "batchSize": 5,
+  "batchSize": 200,
   "enrichment": {
   }
 }

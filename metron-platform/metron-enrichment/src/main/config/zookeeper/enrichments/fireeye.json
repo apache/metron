@@ -1,6 +1,6 @@
 {
   "index": "fireeye",
-  "batchSize": 5,
+  "batchSize": 1,
   "enrichment": {
     "fieldMap": {
       "geo": [

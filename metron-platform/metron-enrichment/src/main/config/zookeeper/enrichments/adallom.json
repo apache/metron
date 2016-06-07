@@ -1,6 +1,6 @@
 {
   "index": "adallom",
-  "batchSize": 5,
+  "batchSize": 200,
   "enrichment": {
     "fieldMap": {
       "geo": [

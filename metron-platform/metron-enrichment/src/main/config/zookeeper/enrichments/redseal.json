@@ -1,6 +1,6 @@
 {
   "index": "redseal",
-  "batchSize": 5,
+  "batchSize": 200,
   "enrichment": {
   }
 }

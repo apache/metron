@@ -1,6 +1,6 @@
 {
   "index": "bluecoat_proxy",
-  "batchSize": 5,
+  "batchSize": 1000,
   "enrichment": {
     "fieldMap": {
       "geo": [

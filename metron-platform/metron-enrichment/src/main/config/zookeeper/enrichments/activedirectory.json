@@ -1,6 +1,6 @@
 {
   "index": "activedirectory",
-  "batchSize": 5,
+  "batchSize": 200,
   "enrichment": {
     "fieldMap": {
 
