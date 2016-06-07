@@ -7,7 +7,7 @@ DAY \d\d
 YEAR \d\d\d\d
 
 # Time - two digit hour, minute, second and milliseconds as a decimal
-TIME \d{2}:\d{2}:\d{2}.\d{0,3}
+TIME \d{2}:\d{2}:\d{2}(\.\d{0,3})?
 
 # Timestamp - month, day, and time
 TIMESTAMP %{YEAR:UNWANTED}-%{MONTH:UNWANTED}-%{DAY:UNWANTED}T%{TIME:UNWANTED}
