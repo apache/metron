@@ -55,7 +55,7 @@ public class ConfigurationTest {
         GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
         GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
 
-        when(getDataBuilder.forPath(Constants.ZOOKEEPER_GLOBAL_ROOT)).thenReturn(mockGlobalData());
+        when(getDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenReturn(mockGlobalData());
         when(curatorFramework.checkExists()).thenReturn(existsBuilder);
         when(curatorFramework.getData()).thenReturn(getDataBuilder);
         when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);

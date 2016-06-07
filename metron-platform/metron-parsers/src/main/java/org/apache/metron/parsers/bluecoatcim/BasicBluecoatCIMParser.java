@@ -38,6 +38,11 @@ public class BasicBluecoatCIMParser extends BasicParser {
 
 	}
 
+	@Override
+	public void configure(Map<String, Object> parserConfig) {
+
+	}
+
 	@SuppressWarnings({ "unchecked", "unused" })
 	public List<JSONObject> parse(byte[] msg) {
 
@@ -80,13 +85,14 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			}
 
 			removeEmptyFields(payload);
+			normalizeFields(payload);
 			messages.add(payload);
 			return messages;
 		} catch (Exception e) {
-			LOG.error("Failed to parse: " + new String(msg) + "\n");
-			e.printStackTrace();
+			LOG.error("Failed to parse: " + new String(msg), e);
 			return null;
 		}
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,6 +114,15 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			if (null == value || "".equals(value.toString()) || "-".equals(value.toString())) {
 				keyIter.remove();
 			}
+		}
+	}
+
+	private void normalizeFields(JSONObject json) {
+		if (json.containsKey("src_ip")) {
+			json.put("ip_src_addr", json.remove("src_ip"));
+		}
+		if (json.containsKey("dest_ip")) {
+			json.put("ip_dst_addr", json.remove("dest_ip"));
 		}
 	}
 }

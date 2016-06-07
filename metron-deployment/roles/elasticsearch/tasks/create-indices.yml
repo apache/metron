@@ -38,11 +38,14 @@
 
 - name: Add Elasticsearch templates for topologies
   uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_yaf"
-    method: POST
-    body: "{{ lookup('file','yaf_index.template') }}"
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_{{ item.sensor }}"
+    method: PUT
+    body: "{{ item.file }} | to_json "
     status_code: 200
-    body_format: json
+  with_items:
+    - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
+    - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
+    - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
 
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped

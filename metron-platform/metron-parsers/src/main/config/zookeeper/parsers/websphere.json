@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.websphere.GrokWebSphereParser",
+  "sensorTopic":"websphere",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/websphere",
+    "patternLabel":"WEBSPHERE",
+    "timestampField":"timestamp_string",
+    "dateFormat":"yyyy MMM dd HH:mm:ss"
+  }
+}
