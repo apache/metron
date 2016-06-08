@@ -63,8 +63,8 @@ Metron services will be installed on by updating these groups:
 
 The Metron topologies depend on Kafka topics and HBase tables being created beforehand.  Declare a host that has Kafka and HBase clients installed by updating these groups:
 
-- metron_kafka_setup
-- metron_hbase_setup
+- metron_kafka_topics
+- metron_hbase_tables
 
 If only installing Metron, these groups can be ignored:
 

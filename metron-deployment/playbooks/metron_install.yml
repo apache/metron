@@ -78,21 +78,21 @@
 #
 # parsers, enrichment, and indexing topologies
 #
-- hosts: metron_hbase_setup
+- hosts: metron_hbase_tables
   become: true
   roles:
     - role: ambari_gather_facts
-    - role: metron-hbase
+    - role: metron_hbase_tables
   tags:
-    - metron-hbase
+    - metron-hbase-tables
 
-- hosts: metron_kafka_setup
+- hosts: metron_kafka_topics
   become: true
   roles:
     - role: ambari_gather_facts
-    - role: metron-kafka
+    - role: metron_kafka_topics
   tags:
-    - metron-kafka
+    - metron-kafka-topics
 
 - hosts: enrichment
   become: true

@@ -14,43 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-[ambari_master]
-node1
-
-[ambari_slave]
-node1
-
-[metron_hbase_tables]
-node1
-
-[metron_kafka_topics]
-node1
-
-[enrichment]
-node1
-
-[search]
-node1
-
-[web]
-node1
-
-[sensors]
-node1
-
-[mysql]
-node1
-
-[pcap_server]
-node1
-
-[metron:children]
-enrichment
-search
-web
-sensors
-mysql
-metron_kafka_topics
-metron_hbase_tables
-pcap_server
+---
+kafka_home: /usr/hdp/current/kafka-broker/
+topics_to_create:
+  - { topic: "pcap",        num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "bro",         num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "yaf",         num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "snort",       num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "enrichments", num_partitions: 1, replication_factor: 1, retention_gb: 10 }
