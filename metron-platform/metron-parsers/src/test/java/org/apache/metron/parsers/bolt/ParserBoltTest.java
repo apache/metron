@@ -338,26 +338,7 @@ public void testImplicitBatchOfOne() throws Exception {
   }
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {
     bolt.execute(t);
-    verify(collector, times(0)).ack(t);
+    verify(collector, times(1)).ack(t);
   }
 
-/*=======
-    verify(writer, times(1)).init();
-    byte[] sampleBinary = "some binary message".getBytes();
-    JSONParser jsonParser = new JSONParser();
-    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\" }");
-    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\" }");
-    List<JSONObject> messages = new ArrayList<JSONObject>() {{
-      add(sampleMessage1);
-      add(sampleMessage2);
-    }};
-    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\" }");
-    when(tuple.getBinary(0)).thenReturn(sampleBinary);
-    when(parser.parse(sampleBinary)).thenReturn(messages);
-    when(parser.validate(any(JSONObject.class))).thenReturn(true);
-    parserBolt.execute(tuple);
-    verify(writer, times(1)).write(eq(sensorType), any(Configurations.class), eq(tuple), eq(finalMessage1));
-    verify(outputCollector, times(1)).ack(tuple);
-  }
->>>>>>> master*/
 }
