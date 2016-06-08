@@ -39,7 +39,7 @@ WORD \w*\s*
 NUMBER \w*\s*
 
 MESSAGE1 id=%{NUMBER:message_id},session_id=%{GREEDY:session_id},type=%{WORD:type},attr_name=%{GREEDY:attr_name},
-MESSAGE2 attr_value=%{WORD:attr_value},timestamp=%{GREEDY:request_timestamp}
+MESSAGE2 attr_value=%{GREEDY:attr_value},timestamp=%{GREEDY:request_timestamp}
 MESSAGE %{MESSAGE1:UNWANTED}%{MESSAGE2:UNWANTED}
 
 ARUBA %{LOGSTART:UNWANTED} %{MESSAGEFULL:UNWANTED} %{MESSAGE:UNWANTED}
