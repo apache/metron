@@ -59,7 +59,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void error(Exception e, Iterable<Tuple> tuples) {
-    tuples.forEach(t -> collector.fail(t));
+    tuples.forEach(t -> collector.ack(t));
     LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
     ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
   }
