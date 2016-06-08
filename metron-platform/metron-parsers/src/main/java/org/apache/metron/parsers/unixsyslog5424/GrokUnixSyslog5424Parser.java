@@ -34,6 +34,9 @@ public class GrokUnixSyslog5424Parser extends GrokParser {
 		if (value != null) {
 			try {
 				String timestamp = (String)value;
+				if(!timestamp.contains(".")){
+					timestamp += ".000";
+				}
 				int missingzeros = "yyyy-dd-mmThh:mm:ss.sss".length() - timestamp.length();
 				timestamp += new String(new char[missingzeros]).replace("\0", "0"); // add on the missing zeros
 

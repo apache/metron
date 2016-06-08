@@ -182,7 +182,9 @@ public class ActiveDirectoryParser extends BasicParser {
                     for (String value : memberMapValues) {
                         memberOfInfo = value.split(",");//Splitting the fields
                         memberOfInfo = memberOfInfo[0].split("=");//splitting the key value pairs
-                        membersOfList.add(memberOfInfo[1]);//taking the "value" part of the key value field(
+                        if(1 < memberOfInfo.length) {
+                            membersOfList.add(memberOfInfo[1]);//taking the "value" part of the key value field(
+                        }
                     }
                     jsonAdditional.put("memberOf", membersOfList);
                 } /*SPECIAL CASE: if it starts with member, we have to

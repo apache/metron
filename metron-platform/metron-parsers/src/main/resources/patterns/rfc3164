@@ -24,4 +24,4 @@ TAG .*?
 MSG  %{TAG:tag}: %{MESSAGE:message}
 
 # RFC3164 - the entire log message
-RFC3164 <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{TAG:hostname} %{TAG:tag}: %{MESSAGE:message}
+RFC3164 <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{TAG:hostname} %{TAG:tag}:? %{MESSAGE:message}

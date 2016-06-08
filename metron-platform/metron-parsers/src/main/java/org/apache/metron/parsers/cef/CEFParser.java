@@ -119,12 +119,16 @@ public class CEFParser extends BasicParser {
 			String key = "";
 			String value = "";
 
-			while (findNextEquals(fields) !=  findLastEquals(fields)) {
+			while ((findNextEquals(fields) !=  findLastEquals(fields)) && fields.contains(" ")) {
+
 
 				// Extract the key-value pairs
 				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
-				value = fields.substring(0, findNextEquals(fields));
+        System.out.println("Before find next: " + fields);
+        value = fields.substring(0, findNextEquals(fields));
+				System.out.println(value);
+
 				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
@@ -182,9 +186,15 @@ public class CEFParser extends BasicParser {
 	// Finds the next non-escaped equals sign
 	public int findNextEquals(String input) {
 
-		int nextEqualsIndex = 0;
-		int currentIndex = 0;
-		boolean found = false;
+    int nextEqualsIndex = 0;
+    int indexOffset = 0;
+    int currentIndex = 0;
+    boolean found = false;
+
+    if(input.startsWith("http") && input.contains(" ")){
+      indexOffset = input.indexOf(" ") + 1;
+      input = input.substring(input.indexOf(" ") + 1);
+    }
 
 		if (input.indexOf("=") == -1)
 			return -1;
@@ -198,8 +208,8 @@ public class CEFParser extends BasicParser {
 				found = true;
 			currentIndex = nextEqualsIndex + 1;
 		}
-
-		return nextEqualsIndex;
+    nextEqualsIndex = nextEqualsIndex + indexOffset;
+    return nextEqualsIndex;
 	}
 
 
