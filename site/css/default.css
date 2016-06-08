@@ -7913,7 +7913,7 @@ nav .main-menu > li.mobile-only {
   max-width: 960px;
   margin: 0 auto; }
 .intro-block h2 {
-  color: #404041;
+  color: #d4d4d7;
   margin-bottom: 12px; }
 .intro-block h5 {
   line-height: 27px;
@@ -11140,7 +11140,7 @@ nav .main-menu > li.mobile-only {
     margin-top: 20px;
     line-height: inherit; }
   .hero-second-level .bg-img {
-    height: 250px; }
+    height: 265px; }
     .hero-second-level .bg-img img {
       width: auto; }
 
@@ -11452,5 +11452,7 @@ nav .main-menu > li.mobile-only {
 	.darken {
 		background: #1f212a;
 		}
-
+    .disclaimer{
+      font-size:13px;
+    }
 /*# sourceMappingURL=default.css.map */
