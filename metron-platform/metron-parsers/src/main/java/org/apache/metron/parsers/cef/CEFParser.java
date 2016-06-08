@@ -188,7 +188,7 @@ public class CEFParser extends BasicParser {
     int currentIndex = 0;
     boolean found = false;
 
-    if(input.startsWith("http") && input.contains(" ")){
+    if((input.startsWith("http") || input.startsWith("Value=")) && input.contains(" ")){
       indexOffset = input.indexOf(" ") + 1;
       input = input.substring(input.indexOf(" ") + 1);
     }
