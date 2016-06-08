@@ -35,7 +35,7 @@ public enum LookupConverters {
         }
 
         @Override
-        public LookupValue toValue(Map<String, String> metadata) {
+        public LookupValue toValue(Map<String, Object> metadata) {
             return new EnrichmentValue(metadata);
         }
     })

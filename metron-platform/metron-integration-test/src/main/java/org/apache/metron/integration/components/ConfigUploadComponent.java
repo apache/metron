@@ -23,6 +23,8 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class ConfigUploadComponent implements InMemoryComponent {
@@ -31,7 +33,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private String globalConfigPath;
   private String parserConfigsPath;
   private String enrichmentConfigsPath;
-
+  private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
   public ConfigUploadComponent withTopologyProperties(Properties topologyProperties) {
     this.topologyProperties = topologyProperties;
     return this;
@@ -51,11 +53,27 @@ public class ConfigUploadComponent implements InMemoryComponent {
     return this;
   }
 
+  public ConfigUploadComponent withParserSensorConfig(String name, SensorParserConfig config) {
+    parserSensorConfigs.put(name, config);
+    return this;
+  }
+
 
   @Override
   public void start() throws UnableToStartException {
     try {
-      ConfigurationsUtils.uploadConfigsToZookeeper(globalConfigPath, parserConfigsPath, enrichmentConfigsPath, topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY));
+      ConfigurationsUtils.uploadConfigsToZookeeper( globalConfigPath
+                                                  , parserConfigsPath
+                                                  , enrichmentConfigsPath
+                                                  , topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY)
+                                                  );
+      for(Map.Entry<String, SensorParserConfig> kv : parserSensorConfigs.entrySet()) {
+        ConfigurationsUtils.writeSensorParserConfigToZookeeper( kv.getKey()
+                                                              , kv.getValue()
+                                                              , topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY)
+                                                              );
+      }
+
     } catch (Exception e) {
       throw new UnableToStartException(e.getMessage(), e);
     }
