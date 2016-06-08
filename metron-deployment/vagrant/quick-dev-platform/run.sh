@@ -17,5 +17,7 @@
 # limitations under the License.
 #
 
-vagrant --ansible-tags="hdp-deploy,metron" up
-
+vagrant \
+  --ansible-tags="hdp-deploy,metron" \
+  --ansible-skip-tags="solr" \
+  up

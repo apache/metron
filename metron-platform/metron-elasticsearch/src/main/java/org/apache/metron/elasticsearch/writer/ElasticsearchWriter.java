@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.writer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -55,7 +56,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   }
 
   @Override
-  public void init(Map stormConf, EnrichmentConfigurations configurations) {
+  public void init(Map stormConf, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
 
     Settings.Builder settingsBuilder = Settings.settingsBuilder();
@@ -88,8 +89,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   }
 
   @Override
-  public void write(String sensorType, EnrichmentConfigurations configurations, List<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    SensorEnrichmentConfig sensorEnrichmentConfig = configurations.getSensorEnrichmentConfig(sensorType);
+  public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
     String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -97,8 +97,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
       String indexName = sensorType;
 
-      if (sensorEnrichmentConfig != null) {
-        indexName = sensorEnrichmentConfig.getIndex();
+      if (configurations != null) {
+        indexName = configurations.getIndex(sensorType);
       }
 
       indexName = indexName + "_index_" + indexPostfix;
