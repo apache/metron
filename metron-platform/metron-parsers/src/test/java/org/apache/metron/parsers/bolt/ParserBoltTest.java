@@ -318,27 +318,20 @@ public void testImplicitBatchOfOne() throws Exception {
     when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
     when(filter.emitTuple(any())).thenReturn(true);
     parserBolt.withMessageFilter(filter);
-    writeNonBatch(outputCollector, parserBolt, t1);
-    writeNonBatch(outputCollector, parserBolt, t2);
-    writeNonBatch(outputCollector, parserBolt, t3);
-    writeNonBatch(outputCollector, parserBolt, t4);
+    parserBolt.execute(t1);
+    parserBolt.execute(t2);
+    parserBolt.execute(t3);
+    parserBolt.execute(t4);
     parserBolt.execute(t5);
-    verify(outputCollector, times(0)).ack(t1);
-    verify(outputCollector, times(1)).fail(t1);
-    verify(outputCollector, times(0)).ack(t2);
-    verify(outputCollector, times(1)).fail(t2);
-    verify(outputCollector, times(0)).ack(t3);
-    verify(outputCollector, times(1)).fail(t3);
-    verify(outputCollector, times(0)).ack(t4);
-    verify(outputCollector, times(1)).fail(t4);
-    verify(outputCollector, times(0)).ack(t5);
-    verify(outputCollector, times(1)).fail(t5);
-
+    verify(outputCollector, times(1)).ack(t1);
+    verify(outputCollector, times(1)).ack(t2);
+    verify(outputCollector, times(1)).ack(t3);
+    verify(outputCollector, times(1)).ack(t4);
+    verify(outputCollector, times(1)).ack(t5);
 
   }
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {
     bolt.execute(t);
-    verify(collector, times(1)).ack(t);
   }
 
 }
