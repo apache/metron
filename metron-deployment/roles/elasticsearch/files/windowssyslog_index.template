@@ -5,7 +5,9 @@
        "number_of_shards" : 2
    },
     "aliases" : {
-        "windowssyslog" : {}
+        "windowssyslog" : {},
+        "Host-Based" : {},
+        "IP-Search" : {}
     },
     "mappings" : {
         "windwossyslog_doc" : {

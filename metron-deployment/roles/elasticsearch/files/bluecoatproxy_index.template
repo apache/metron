@@ -5,7 +5,10 @@
        "number_of_shards" : 5
    },
     "aliases" : {
-        "bluecoat" : {}
+        "bluecoat" : {},
+        "Network-Based" : {},
+        "Malware-Detection" : {},
+        "IP-Search" : {}
     },
     "mappings" : {
         "bluecoat_proxy_doc" : {
@@ -22,7 +25,7 @@
                     "index" : "not_analyzed"
                 },
                 "ip_dst_port" : {
-                    "type" : "long",
+                    "type" : "long"
                 },
                 "csusername" : {
                     "type" : "string",

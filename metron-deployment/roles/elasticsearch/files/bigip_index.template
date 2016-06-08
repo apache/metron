@@ -5,7 +5,8 @@
        "number_of_shards" : 1
    },
     "aliases" : {
-        "bigip" : {}
+        "bigip" : {},
+        "Network-Based" : {}
     },
     "mappings" : {
         "bigip_doc" : {
