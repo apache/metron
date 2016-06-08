@@ -1,11 +1,4 @@
 {
-  "parserClassName":"org.apache.metron.parsers.lenelbadge.GrokLenelBadgeParser",
-  "sensorTopic":"lenelbadge",
-  "parserConfig":
-  {
-    "grokPath":"/patterns/lenelbadge",
-    "patternLabel":"LENELBADGE",
-    "timestampField":"timestamp_string",
-    "dateFormat":"yyyy-MM-dd HH:mm:ss"
-  }
+  "parserClassName":"org.apache.metron.parsers.lenelbadge.BasicLenelBadgeParser",
+  "sensorTopic":"lenelbadge"
 }

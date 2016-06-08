@@ -27,7 +27,7 @@ public class LenelBadgeIntegrationTest extends ParserIntegrationTest {
 
 	@Override
 	public String getSensorType() {
-		return "websphere";
+		return "lenelbadge";
 	}
 
 	@Override
