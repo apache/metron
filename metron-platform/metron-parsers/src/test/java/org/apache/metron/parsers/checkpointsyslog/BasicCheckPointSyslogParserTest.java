@@ -61,8 +61,20 @@ public class BasicCheckPointSyslogParserTest {
     }
 
     @Test
+    public void testParseWithoutProcess() throws Exception {
+        String testString = "<27>last message repeated 6 times";
+
+        List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        JSONObject parsedJSON = result.get(0);
+
+        //Compare fields
+        assertEquals(parsedJSON.get("priority"), "27");
+        assertEquals(parsedJSON.get("message"), "last message repeated 6 times");
+    }
+
+    @Test
     public void tetsParseMalformedOtherLine() throws Exception {
-        String testString = "<86>cp_radius_helper_1 Non-local user 'socbackup' given role 'radius-group-any' (if that exists)";
+        String testString = "<86cp_radius_helper_1 Non-local user 'socbackup' given role 'radius-group-any' (if that exists)";
         List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
         assertEquals(null, result);
     }
