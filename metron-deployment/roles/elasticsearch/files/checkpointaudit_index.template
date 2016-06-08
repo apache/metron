@@ -9,7 +9,7 @@
    },
    "mappings": {
       "checkpoint_audit_doc": {
-         "_tiemstamp": {
+         "_timestamp": {
             "enabled": true
          },
          "properties": {
