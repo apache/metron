@@ -124,4 +124,4 @@ NOTCLOSEPAREN [^\)]+
 SUBPROTO N/A|[^/]+(?=/)
 SUBSUBPROTO .+(?=\) )
 
-MCAFEEFIREWALL \A<%{NUMBER:priority}>%{TIMESTAMP_MCAFEE:timestamp_string} %{WORD:hostname} AclLog: %{WORD:UNWANTED} matched %{WORD:firewall_direction} ACL rule \(%{NOTCLOSEPAREN:firewall_rule}\) %{IP:ip_src_addr} -> %{IP:ip_dst_addr}:%{NOTSPACE:ip_dst_port} \(%{SUBPROTO:protocol}/%{SUBSUBPROTO:subprotocol}\) = ->%{WORD:action}\|%{NUMBERORNA:unknown1}\|%{NUMBERORNA:unknown2}
+MCAFEEFIREWALL \A<%{NUMBER:priority}>%{TIMESTAMP_MCAFEE:timestamp_string} %{WORD:hostname} AclLog: %{WORD:UNWANTED} matched %{WORD:firewall_direction} ACL rule \(%{NOTCLOSEPAREN:firewall_rule}\) %{IP:ip_src_addr} -> %{IP:ip_dst_addr}:%{NOTSPACE:ip_dst_port} \(%{SUBPROTO:protocol}/%{SUBSUBPROTO:subprotocol}?\) = ->%{WORD:action}\|%{NUMBERORNA:unknown1}\|%{NUMBERORNA:unknown2}
