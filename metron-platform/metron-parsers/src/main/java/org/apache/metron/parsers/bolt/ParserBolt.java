@@ -171,7 +171,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
     } catch (Throwable ex) {
       ErrorUtils.handleError(collector, ex, Constants.ERROR_STREAM);
-      collector.fail(tuple);
+      collector.ack(tuple);
     }
   }
 
