@@ -1,16 +1,9 @@
 {
     "template" : "waf*",
-<<<<<<< HEAD
    "order" : 1,
    "settings" : {
        "number_of_shards" : 1
    },
-=======
-    "order" : 1,
-    "settings": {
-        "number_of_shards": 1
-    },
->>>>>>> capone-templates
     "aliases" : {
         "waf" : {}
     },
