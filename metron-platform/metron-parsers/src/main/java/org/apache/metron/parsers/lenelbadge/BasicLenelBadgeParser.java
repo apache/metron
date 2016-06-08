@@ -19,12 +19,10 @@
 package org.apache.metron.parsers.lenelbadge;
 
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.GrokParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
