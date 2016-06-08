@@ -19,9 +19,12 @@ package org.apache.metron.common.interfaces;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 
-public interface MessageWriter<T> extends AutoCloseable {
+import java.io.Serializable;
+
+public interface MessageWriter<T> extends AutoCloseable, Serializable {
 
   void init();
-  void write(String sensorType, Configurations configurations, Tuple tuple, T message) throws Exception;
+  void write(String sensorType, WriterConfiguration configurations, Tuple tuple, T message) throws Exception;
 }
