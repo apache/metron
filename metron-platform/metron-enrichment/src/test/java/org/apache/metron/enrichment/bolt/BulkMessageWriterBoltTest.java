@@ -144,8 +144,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     for(int i = 0; i < 5; i++) {
       bulkMessageWriterBolt.execute(tuple);
     }
-    verify(outputCollector, times(0)).ack(tuple);
-    verify(outputCollector, times(5)).fail(tuple);
+    verify(outputCollector, times(5)).ack(tuple);
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
   }
