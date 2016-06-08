@@ -15,34 +15,5 @@
 #  limitations under the License.
 #
 ---
-- name: Start Elasticsearch
-  service: name=elasticsearch state=started
-
-- name : Wait for Elasticsearch Host to Start
-  wait_for:
-    host: "{{ groups.search[0] }}"
-    port: "{{ elasticsearch_web_port }}"
-    delay: 10
-    timeout: 300
-
-- name: Wait for Index to Become Available
-  uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_cat/health"
-    method: GET
-    status_code: 200
-    return_content: yes
-  register: result
-  until: result.content.find("green") != -1 or result.content.find("yellow") != -1
-  retries: 10
-  delay: 60
-
-- name: Add Elasticsearch templates for topologies
-  uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
-    method: PUT
-    body: "{{ lookup('file',item) }}"
-    status_code: 200
-  with_fileglob: ./files/es_templates/*.template
-
-- name: Stop Elasticsearch
-  service: name=elasticsearch state=stopped
+- include: load_templates.yml
+  run_once: true
