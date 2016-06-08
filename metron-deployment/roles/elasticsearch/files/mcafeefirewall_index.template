@@ -1,11 +1,11 @@
 {
-  "template": "McAfeeFirewall*",
+  "template": "mcafeefirewall*",
    "order" : 1,
    "settings" : {
      "number_of_shards" : 1
    },
   "aliases": {
-    "McAfeeFirewall": {}
+    "mcafeefirewall": {}
   },
   "mappings": {
     "mcafeefirewall_doc": {
