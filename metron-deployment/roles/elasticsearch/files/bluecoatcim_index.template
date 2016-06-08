@@ -5,7 +5,9 @@
         "number_of_shards": 5
     },
     "aliases" : {
-        "bluecoat" : {}
+        "bluecoat" : {},
+        "1-Network-Based" : {},
+        "1-Malware-Detection" : {}
     },
     "mappings" : {
         "bluecoatcim_doc" : {

@@ -125,10 +125,7 @@ public class CEFParser extends BasicParser {
 				// Extract the key-value pairs
 				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
-        System.out.println("Before find next: " + fields);
         value = fields.substring(0, findNextEquals(fields));
-				System.out.println(value);
-
 				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
