@@ -137,30 +137,36 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     byte[] originalMessage = tuple.getBinary(0);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
-      boolean ackTuple = true;
+      //we want to ack the tuple in the situation where we have are not doing a bulk write
+      //otherwise we want to defer to the writerComponent who will ack on bulk commit.
+      boolean ackTuple = !isBulk;
+      int numWritten = 0;
       if(sensorParserConfig != null) {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
           if (parser.validate(message) && filter != null && filter.emitTuple(message)) {
+            message.put(Constants.SENSOR_TYPE, getSensorType());
+            for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+              if (handler != null) {
+                handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
+              }
+            }
             if(!isGloballyValid(message, fieldValidations)) {
               message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
               collector.emit(Constants.INVALID_STREAM, new Values(message));
             }
             else {
-              ackTuple = !isBulk;
-              message.put(Constants.SENSOR_TYPE, getSensorType());
-              for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
-                if (handler != null) {
-                  handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
-                }
-              }
+              numWritten++;
               writerComponent.write(getSensorType(), tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
             }
           }
         }
       }
-      if(ackTuple) {
+      //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
+      //(meaning that none of the messages are valid either globally or locally)
+      //then we want to handle the ack ourselves.
+      if(ackTuple || numWritten == 0) {
         collector.ack(tuple);
       }
     } catch (Throwable ex) {
