@@ -61,27 +61,37 @@ public class BasicCheckPointSyslogParser extends BasicParser {
     private void parseMessage(String message, JSONObject outputMessage) {
         int indexOfColon = message.indexOf(":");
 
-        String processDataWithPriority = message.substring(0, indexOfColon).trim();
+        String processDataWithPriority;
+        if (indexOfColon == -1) {
+            processDataWithPriority = message;
+        }
+        else {
+            processDataWithPriority = message.substring(0, indexOfColon).trim();
+        }
 
         String[] tokens = processDataWithPriority.split(">");
 
         outputMessage.put("priority", tokens[0].substring(1));
 
-        String processData = tokens[1];
-        int indexOfSquareBracketOpen = processData.indexOf("[");
-        int indexOfSquareBracketClose = processData.indexOf("]");
-
-        if (indexOfSquareBracketOpen > -1) {
-            outputMessage.put("processName", processData.substring(0,indexOfSquareBracketOpen));
-            outputMessage.put("processId", processData.substring(indexOfSquareBracketOpen+1, indexOfSquareBracketClose));
+        if (indexOfColon == -1) {
+            outputMessage.put("message", tokens[1].trim());
         }
         else {
-            outputMessage.put("processName", processData);
+            String processData = tokens[1];
+            int indexOfSquareBracketOpen = processData.indexOf("[");
+            int indexOfSquareBracketClose = processData.indexOf("]");
+
+            if (indexOfSquareBracketOpen > -1) {
+                outputMessage.put("processName", processData.substring(0, indexOfSquareBracketOpen));
+                outputMessage.put("processId", processData.substring(indexOfSquareBracketOpen + 1, indexOfSquareBracketClose));
+            } else {
+                outputMessage.put("processName", processData);
+            }
+
+            outputMessage.put("message", message.substring(indexOfColon + 1).trim());
         }
 
-        outputMessage.put("message", message.substring(indexOfColon + 1).trim());
         outputMessage.put("timestamp", System.currentTimeMillis());
-
         removeEmptyFields(outputMessage);
     }
 
