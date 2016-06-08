@@ -1,0 +1,10 @@
+{
+   "template" : "rsa_dlp*",
+   "order" : 1,
+   "settings" : {
+      "number_of_shards" : 1
+   },
+   "aliases" : {
+      "rsa_dlp" : {}
+   }
+}

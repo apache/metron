@@ -1,0 +1,95 @@
+{
+   "template": "checkpoint_audit*",
+   "order": 1,
+   "settings" : {
+      "number_of_shards" : 1
+   },
+   "aliases": {
+      "checkpoint_audit": {}
+   },
+   "mappings": {
+      "checkpoint_audit_doc": {
+         "_timestamp": {
+            "enabled": true
+         },
+         "properties": {
+            "timestamp" : {
+               "type" : "date",
+               "format" : "epoch_millis"
+            },
+            "AdditionalInfo": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "process": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "product": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "if_name": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "OperationNumber": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "pid": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "Operation": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "priority": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "uuid": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "Machine": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "Subject": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "hostname": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "has_accounting": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "Administrator": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "orig": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "syslog_timestamp": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "action": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "if_dir": {
+               "type": "string",
+               "index": "not_analyzed"
+            }
+         }
+      }
+   }
+}
