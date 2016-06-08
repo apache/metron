@@ -6,9 +6,9 @@
    },
     "aliases" : {
         "bluecoat" : {},
-        "Network-Based" : {},
-        "Malware-Detection" : {},
-        "IP-Search" : {}
+        "1-Network-Based" : {},
+        "1-Malware-Detection" : {},
+        "1-IP-Search" : {}
     },
     "mappings" : {
         "bluecoat_proxy_doc" : {

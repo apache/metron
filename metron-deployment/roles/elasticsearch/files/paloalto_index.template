@@ -6,8 +6,8 @@
    },
    "aliases" : {
       "paloalto" : {},
-      "Network-Based" : {},
-      "IP-Search" : {}
+      "1-Network-Based" : {},
+      "1-IP-Search" : {}
    },
    "mappings" : {
       "paloalto_doc" : {

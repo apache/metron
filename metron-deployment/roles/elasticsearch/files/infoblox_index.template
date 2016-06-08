@@ -6,7 +6,7 @@
    },
     "aliases" : {
         "infoblox" : {},
-        "Network-Based" : {}
+        "1-Network-Based" : {}
     },
     "mappings" : {
         "infoblox_doc" : {
