@@ -1,0 +1,19 @@
+{
+  "index": "bluecoatcim",
+  "batchSize": 1000,
+  "enrichment": {
+    "fieldMap": {
+      "geo": [
+        "ip_src_addr"
+      ],
+      "host": [
+        "ip_src_addr"
+    ]
+  },
+  "fieldToTypeMap": {
+      "ip_src_addr": [
+        "playful_classification"
+      ]
+    }
+  }
+}

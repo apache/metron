@@ -47,9 +47,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +63,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
   private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
-  private static final Map<String, String> PLAYFUL_ENRICHMENT = new HashMap<String, String>() {{
+  private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
   protected String testSensorType = "test";
@@ -103,6 +101,16 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  public static List<byte[]> readSampleData(String samplePath) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(samplePath));
+    List<byte[]> ret = new ArrayList<>();
+    for (String line = null; (line = br.readLine()) != null; ) {
+      ret.add(line.getBytes());
+    }
+    br.close();
+    return ret;
+  }
+
   public static List<Map<String, Object> > readDocsFromDisk(String hdfsDirStr) throws IOException {
     List<Map<String, Object>> ret = new ArrayList<>();
     File hdfsDir = new File(hdfsDirStr);
@@ -119,7 +127,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
         else {
           System.out.println("Processed " + f);
           if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
-            List<byte[]> data = TestUtils.readSampleData(f.getPath());
+            List<byte[]> data = readSampleData(f.getPath());
             Iterables.addAll(ret, Iterables.transform(data, new Function<byte[], Map<String, Object>>() {
               @Nullable
               @Override
@@ -140,13 +148,12 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
-
   @Test
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
     final EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
     final String dateFormat = "yyyy.MM.dd.HH";
-    final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
+    final List<byte[]> inputMessages = readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
     final String threatIntelTableName = "threat_intel";
@@ -183,7 +190,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
     final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
     final MockHTable threatIntelTable = (MockHTable)MockHTable.Provider.addToCache(threatIntelTableName, cf);
     EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
-      add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<String, String>())));
+      add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
     }});
     final MockHTable enrichmentTable = (MockHTable)MockHTable.Provider.addToCache(enrichmentsTableName, cf);
     EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
@@ -206,7 +213,7 @@ public abstract class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("search", searchComponent)
             .withComponent("storm", fluxComponent)
-            .withMillisecondsBetweenAttempts(10000)
+            .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
             .build();
     runner.start();

@@ -1,0 +1,99 @@
+{
+   "template": "checkpointtraffic*",
+   "order": 1,
+   "settings" : {
+      "number_of_shards" : 5
+   },
+   "aliases": {
+      "checkpointtraffic": {}
+   },
+   "mappings": {
+      "checkpointtraffic_doc": {
+         "_timestamp": {
+            "enabled": true
+         },
+         "properties": {
+            "timestamp": {
+               "type": "date",
+               "format": "epoch_millis"
+            },
+            "priority": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "syslog_timestamp": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "hostname": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "process": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "pid": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "action": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "orig": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "if_dir": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "if_name": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "has_accounting": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "uuid": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "product": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "__policy_id_tag": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "inzone": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "outzone": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "rule": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "rule_uid": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "service_id": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "protocol": {
+               "type": "string",
+               "index": "not_analyzed"
+            }
+         }
+      }
+   }
+}

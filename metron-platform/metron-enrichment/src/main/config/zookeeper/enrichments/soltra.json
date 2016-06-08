@@ -1,0 +1,8 @@
+{
+  "index": "soltra",
+  "batchSize": 200,
+  "enrichment" : {
+  },
+  "threatIntel": {
+  }
+}

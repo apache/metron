@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.mcafeefirewall.GrokMcAfeeFirewallParser",
+  "sensorTopic":"mcafeefirewall",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/mcafeefirewall",
+    "patternLabel":"MCAFEEFIREWALL",
+    "timestampField":"timestamp_string",
+    "dateFormat":"yyyy MMM dd HH:mm:ss"
+  }
+}

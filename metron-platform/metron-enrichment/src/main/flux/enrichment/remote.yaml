@@ -80,16 +80,16 @@ components:
           -   ref: "simpleHBaseEnrichmentAdapter"
     -   id: "enrichments"
         className: "java.util.ArrayList"
-        configMethods:
-            -   name: "add"
-                args:
-                    - ref: "geoEnrichment"
-            -   name: "add"
-                args:
-                    - ref: "hostEnrichment"
-            -   name: "add"
-                args:
-                    - ref: "simpleHBaseEnrichment"
+#        configMethods:
+#            -   name: "add"
+#                args:
+#                    - ref: "hostEnrichment"
+#            -   name: "add"
+#                args:
+#                    - ref: "hostEnrichment"
+#            -   name: "add"
+#                args:
+#                    - ref: "simpleHBaseEnrichment"
 # Threat Intel
 
     -   id: "simpleHBaseThreatIntelConfig"
@@ -198,84 +198,84 @@ bolts:
             -   name: "withEnrichments"
                 args:
                     - ref: "enrichments"
-    -   id: "geoEnrichmentBolt"
-        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withEnrichment"
-                args:
-                    - ref: "geoEnrichment"
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-    -   id: "hostEnrichmentBolt"
-        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withEnrichment"
-                args:
-                    - ref: "hostEnrichment"
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-    -   id: "simpleHBaseEnrichmentBolt"
-        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withEnrichment"
-                args:
-                    - ref: "simpleHBaseEnrichment"
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-    -   id: "enrichmentJoinBolt"
-        className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-
-# Threat Intel Bolts
-    -   id: "threatIntelSplitBolt"
-        className: "org.apache.metron.enrichment.bolt.ThreatIntelSplitterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withEnrichments"
-                args:
-                    - ref: "threatIntels"
-            -   name: "withMessageFieldName"
-                args: ["message"]
-    -   id: "simpleHBaseThreatIntelBolt"
-        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withEnrichment"
-                args:
-                    - ref: "simpleHBaseThreatIntelEnrichment"
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
-    -   id: "threatIntelJoinBolt"
-        className: "org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withMaxCacheSize"
-                args: [10000]
-            -   name: "withMaxTimeRetain"
-                args: [10]
+#    -   id: "geoEnrichmentBolt"
+#        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withEnrichment"
+#                args:
+#                    - ref: "geoEnrichment"
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
+#    -   id: "hostEnrichmentBolt"
+#        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withEnrichment"
+#                args:
+#                    - ref: "hostEnrichment"
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
+#    -   id: "simpleHBaseEnrichmentBolt"
+#        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withEnrichment"
+#                args:
+#                    - ref: "simpleHBaseEnrichment"
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
+#    -   id: "enrichmentJoinBolt"
+#        className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
+#
+## Threat Intel Bolts
+#    -   id: "threatIntelSplitBolt"
+#        className: "org.apache.metron.enrichment.bolt.ThreatIntelSplitterBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withEnrichments"
+#                args:
+#                    - ref: "threatIntels"
+#            -   name: "withMessageFieldName"
+#                args: ["message"]
+#    -   id: "simpleHBaseThreatIntelBolt"
+#        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withEnrichment"
+#                args:
+#                    - ref: "simpleHBaseThreatIntelEnrichment"
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
+#    -   id: "threatIntelJoinBolt"
+#        className: "org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withMaxCacheSize"
+#                args: [10000]
+#            -   name: "withMaxTimeRetain"
+#                args: [10]
 # Indexing Bolts
     -   id: "indexingBolt"
         className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
@@ -285,122 +285,129 @@ bolts:
             -   name: "withBulkMessageWriter"
                 args:
                     - ref: "indexWriter"
-    -   id: "hdfsIndexingBolt"
-        className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withBulkMessageWriter"
-                args:
-                    - ref: "hdfsWriter"
+#    -   id: "hdfsIndexingBolt"
+#        className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
+#        constructorArgs:
+#            - "${kafka.zk}"
+#        configMethods:
+#            -   name: "withBulkMessageWriter"
+#                args:
+#                    - ref: "hdfsWriter"
 
 
 streams:
 #parser
-    -   name: "spout -> enrichmentSplit"
+    -   name: "spout -> splitter"
         from: "kafkaSpout"
         to: "enrichmentSplitBolt"
         grouping:
             type: SHUFFLE
 
 #enrichment
-    -   name: "enrichmentSplit -> host"
+#    -   name: "enrichmentSplit -> host"
+#        from: "enrichmentSplitBolt"
+#        to: "hostEnrichmentBolt"
+#        grouping:
+#            streamId: "host"
+#            type: FIELDS
+#            args: ["key"]
+#    -   name: "enrichmentSplit -> geo"
+#        from: "enrichmentSplitBolt"
+#        to: "geoEnrichmentBolt"
+#        grouping:
+#            streamId: "geo"
+#            type: FIELDS
+#            args: ["key"]
+#
+#    -   name: "enrichmentSplit -> simpleHBaseEnrichmentBolt"
+#        from: "enrichmentSplitBolt"
+#        to: "simpleHBaseEnrichmentBolt"
+#        grouping:
+#            streamId: "hbaseEnrichment"
+#            type: FIELDS
+#            args: ["key"]
+#
+#    -   name: "splitter -> join"
+#        from: "enrichmentSplitBolt"
+#        to: "enrichmentJoinBolt"
+#        grouping:
+#            streamId: "message"
+#            type: FIELDS
+#            args: ["key"]
+#    -   name: "geo -> join"
+#        from: "geoEnrichmentBolt"
+#        to: "enrichmentJoinBolt"
+#        grouping:
+#            streamId: "geo"
+#            type: FIELDS
+#            args: ["key"]
+#
+#
+#    -   name: "simpleHBaseEnrichmentBolt -> join"
+#        from: "simpleHBaseEnrichmentBolt"
+#        to: "enrichmentJoinBolt"
+#        grouping:
+#            streamId: "hbaseEnrichment"
+#            type: FIELDS
+#            args: ["key"]
+#    -   name: "host -> join"
+#        from: "hostEnrichmentBolt"
+#        to: "enrichmentJoinBolt"
+#        grouping:
+#            streamId: "host"
+#            type: FIELDS
+#            args: ["key"]
+#
+##threat intel
+#    -   name: "enrichmentJoin -> threatSplit"
+#        from: "enrichmentJoinBolt"
+#        to: "threatIntelSplitBolt"
+#        grouping:
+#            streamId: "message"
+#            type: FIELDS
+#            args: ["key"]
+#
+#    -   name: "threatSplit -> simpleHBaseThreatIntel"
+#        from: "threatIntelSplitBolt"
+#        to: "simpleHBaseThreatIntelBolt"
+#        grouping:
+#            streamId: "hbaseThreatIntel"
+#            type: FIELDS
+#            args: ["key"]
+#
+#    -   name: "simpleHBaseThreatIntel -> join"
+#        from: "simpleHBaseThreatIntelBolt"
+#        to: "threatIntelJoinBolt"
+#        grouping:
+#            streamId: "hbaseThreatIntel"
+#            type: FIELDS
+#            args: ["key"]
+#    -   name: "threatIntelSplit -> threatIntelJoin"
+#        from: "threatIntelSplitBolt"
+#        to: "threatIntelJoinBolt"
+#        grouping:
+#            streamId: "message"
+#            type: FIELDS
+#            args: ["key"]
+##indexing
+#    -   name: "threatIntelJoin -> indexing"
+#        from: "threatIntelJoinBolt"
+#        to: "indexingBolt"
+#        grouping:
+#            streamId: "message"
+#            type: FIELDS
+#            args: ["key"]
+
+#    -   name: "threatIntelJoin -> hdfs"
+#        from: "threatIntelJoinBolt"
+#        to: "hdfsIndexingBolt"
+#        grouping:
+#            streamId: "message"
+#            type: SHUFFLE
+
+    -   name: "enrichmentSplitBolt -> indexingBolt"
         from: "enrichmentSplitBolt"
-        to: "hostEnrichmentBolt"
-        grouping:
-            streamId: "host"
-            type: FIELDS
-            args: ["key"]
-    -   name: "enrichmentSplit -> geo"
-        from: "enrichmentSplitBolt"
-        to: "geoEnrichmentBolt"
-        grouping:
-            streamId: "geo"
-            type: FIELDS
-            args: ["key"]
-
-    -   name: "enrichmentSplit -> simpleHBaseEnrichmentBolt"
-        from: "enrichmentSplitBolt"
-        to: "simpleHBaseEnrichmentBolt"
-        grouping:
-            streamId: "hbaseEnrichment"
-            type: FIELDS
-            args: ["key"]
-
-    -   name: "splitter -> join"
-        from: "enrichmentSplitBolt"
-        to: "enrichmentJoinBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-    -   name: "geo -> join"
-        from: "geoEnrichmentBolt"
-        to: "enrichmentJoinBolt"
-        grouping:
-            streamId: "geo"
-            type: FIELDS
-            args: ["key"]
-
-
-    -   name: "simpleHBaseEnrichmentBolt -> join"
-        from: "simpleHBaseEnrichmentBolt"
-        to: "enrichmentJoinBolt"
-        grouping:
-            streamId: "hbaseEnrichment"
-            type: FIELDS
-            args: ["key"]
-    -   name: "host -> join"
-        from: "hostEnrichmentBolt"
-        to: "enrichmentJoinBolt"
-        grouping:
-            streamId: "host"
-            type: FIELDS
-            args: ["key"]
-
-#threat intel
-    -   name: "enrichmentJoin -> threatSplit"
-        from: "enrichmentJoinBolt"
-        to: "threatIntelSplitBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-
-    -   name: "threatSplit -> simpleHBaseThreatIntel"
-        from: "threatIntelSplitBolt"
-        to: "simpleHBaseThreatIntelBolt"
-        grouping:
-            streamId: "hbaseThreatIntel"
-            type: FIELDS
-            args: ["key"]
-
-    -   name: "simpleHBaseThreatIntel -> join"
-        from: "simpleHBaseThreatIntelBolt"
-        to: "threatIntelJoinBolt"
-        grouping:
-            streamId: "hbaseThreatIntel"
-            type: FIELDS
-            args: ["key"]
-    -   name: "threatIntelSplit -> threatIntelJoin"
-        from: "threatIntelSplitBolt"
-        to: "threatIntelJoinBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-#indexing
-    -   name: "threatIntelJoin -> indexing"
-        from: "threatIntelJoinBolt"
         to: "indexingBolt"
-        grouping:
-            streamId: "message"
-            type: FIELDS
-            args: ["key"]
-
-    -   name: "threatIntelJoin -> hdfs"
-        from: "threatIntelJoinBolt"
-        to: "hdfsIndexingBolt"
         grouping:
             streamId: "message"
             type: SHUFFLE

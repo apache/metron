@@ -1,0 +1,3 @@
+<188>Apr 15 16:35:41 GMT mabm011q AclLog: mabm011q matched Outbound ACL rule (COM Baseline Firewall/#3) 60.210.64.70 -> 200.60.213.21:443 (ssl/SSL/TLS (HTTPS)) = ->PERMIT|N/A|N/A
+<188>Apr 15 16:34:34 GMT VOX3V80K032 AclLog: VOX3V80K032 matched Inbound ACL rule (COM Baseline Firewall/#2) 80.177.224.26 -> 205.87.46.178:53 (dns/N/A) = ->DROP|N/A|N/A
+<188>Apr 15 16:34:33 GMT VTGI80K052 AclLog: VTGI80K052 matched Inbound ACL rule (COM Baseline Firewall/#7) 174.65.228.50 -> 202.61.43.132:23176 (dns/DNS) = ->IGNORE|N/A|N/A

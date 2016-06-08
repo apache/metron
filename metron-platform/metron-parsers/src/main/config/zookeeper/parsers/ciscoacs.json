@@ -1,0 +1,10 @@
+{
+  "parserClassName":"org.apache.metron.parsers.ciscoacs.GrokCiscoACSParser",
+  "sensorTopic":"ciscoacs",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/ciscoacs",
+    "patternLabel":"CISCOACS",
+    "timestampField":"timestamp"
+  }
+}

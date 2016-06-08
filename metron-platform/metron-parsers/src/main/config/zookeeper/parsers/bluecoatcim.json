@@ -1,0 +1,4 @@
+{
+  "parserClassName":"org.apache.metron.parsers.bluecoatcim.BasicBluecoatCIMParser",
+  "sensorTopic":"bluecoatcim"
+}

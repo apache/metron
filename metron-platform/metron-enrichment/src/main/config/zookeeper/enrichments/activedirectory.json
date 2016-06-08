@@ -1,0 +1,12 @@
+{
+  "index": "activedirectory",
+  "batchSize": 200,
+  "enrichment": {
+    "fieldMap": {
+
+    },
+    "fieldToTypeMap": {
+
+    }
+  }
+}

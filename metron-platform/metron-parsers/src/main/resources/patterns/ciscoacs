@@ -1,0 +1,59 @@
+PRIORITY \d+
+
+MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
+DAY \d{2}
+YEAR \d{4}
+
+ONESPACE \s
+TWOSPACE \s\s
+SPACE %{ONESPACE:UNWANTED}|%{TWOSPACE:UNWANTED}
+
+HOUR \d{2}
+MINUTE \d{2}
+SECOND \d{2}
+
+TIMESTAMP %{HOUR}:%{MINUTE:minute}:%{SECOND}
+
+IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
+IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])
+
+HOSTNAMEALPHABET [-\w\.]+
+# hostname can be a url or ip address
+HOSTNAME %{IPV6:UNWANTED}|%{IPV4:UNWANTED}|%{HOSTNAMEALPHABET:UNWANTED}
+
+EVENTYEAR \d{4}
+EVENTMONTH \d{2}
+EVENTDAY \d{2}
+EVENTDATE %{EVENTYEAR:eventYear}-%{EVENTMONTH:eventMonth}-%{EVENTDAY:eventDay}
+
+EVENTHOUR \d{2}
+EVENTMINUTE \d{2}
+EVENTSECOND \d{2}
+EVENTMILLISECOND \d{3}
+
+EVENTTIMESTAMP %{EVENTHOUR:eventHour}:%{EVENTMINUTE:eventMinute}:%{EVENTSECOND:eventSecond}.%{EVENTMILLISECOND:eventMili}
+
+TIMEZONEHOUR [-\w\.]+
+TIMEZONEMINUTE [-\w\.]+
+TIMEZONE %{TIMEZONEHOUR:timezoneHour}:%{TIMEZONEMINUTE:timezoneMinute}
+
+CATEGORYONE [-\w\.]+
+CATEGORY %{CATEGORYONE:UNWANTED}
+MESSAGEID [-\w\.]+
+TOTALSEGMENTS [-\w\.]+
+SEGMENTNUMBER [-\w\.]+
+EVENTTIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}.%{TIMEZONE}\s-%{HOUR}:%{MINUTE}\s
+SEQUENCENUMBER [-\w\.]+
+MESSAGECODE [-\w\.]+
+SEVERITY [-\w\.]+
+MESSAGECLASS [-\w\.]+
+MESSAGEONE (.*?)
+MESSAGETWO (\S[^,])\w
+MESSAGETEXT %{MESSAGEONE:UNWANTED}|%{MESSAGETWO:UNWANTED}
+
+GREEDY .*
+
+CISCOACSONE <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGEONE:messageText}, %{GREEDY:messageGreedy}
+#CISCOACSTWO <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGETWO:messageText}, %{GREEDY:messageGreedy}
+CISCOACSTHREE <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{GREEDY:messageGreedy}
+CISCOACS %{CISCOACSONE:UNWANTED}|%{CISCOACSTHREE:UNWANTED}

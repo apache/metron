@@ -17,6 +17,7 @@
  */
 package org.apache.metron.test.utils;
 
+import com.google.common.collect.Iterables;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 
@@ -36,7 +37,7 @@ public class ValidationUtils {
       if(v2 == null) {
         Assert.fail("Unable to find key: " + k + " in output");
       }
-      if(k.equals("timestamp")) {
+      if(k.equals("timestamp") || k.equals("ingest_timestamp")) {
         //TODO: Take the ?!?@ timestamps out of the reference file.
         Assert.assertEquals(v1.toString().length(), v2.toString().length());
       }
@@ -44,6 +45,11 @@ public class ValidationUtils {
         Assert.assertEquals("value mismatch for " + k ,v1, v2);
       }
     }
-    Assert.assertEquals(m1.size(), m2.size());
+    Assert.assertTrue(m2.containsKey("timestamp"));
+    Assert.assertTrue(m2.containsKey("ingest_timestamp"));
+    Assert.assertEquals(getMapSize(m1), getMapSize(m2));
+  }
+  private static int getMapSize(Map m) {
+    return Iterables.size(Iterables.filter(m.keySet(), k -> !k.toString().contains("timestamp")));
   }
 }

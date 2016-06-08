@@ -1,0 +1,239 @@
+{
+   "template": "adallom_index*",
+   "order" : 1,
+   "settings" : {
+      "number_of_shards" : 1
+   },
+   "aliases" : {
+      "addalom" : {}
+   },
+   "mappings": {
+      "adallom_doc": {
+         "_timestamp": {
+            "enabled": true
+         },
+         "properties": {
+            "timestamp": {
+               "type": "date",
+               "format": "epoch_millis"
+            },
+            "header" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "device_vendor" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "device_product" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "device_version" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "event_class_id" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "event_name" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "severity" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceAction" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "applicationProtocol" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceEventCategory" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "baseEventCount" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "dst_hostname" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "dst_mac" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "destinationNtDomain" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "destinationProcessId" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "destinationUserPrivileges" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "destinationProcessName" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceTimeZone" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "dst_user_id" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "dst_username" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceAddress" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceHostName" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceMacAddress" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "deviceProcessId" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "endTime" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "fileName" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "fileSize" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "bytesIn" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "message" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "bytesOut" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "eventOutcome" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "protocol" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "requestURL" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "src_hostname" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "src_mac" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "sourceNtDomain" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "sourceProcessId" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "sourceUserPrivileges" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "sourceProcessName" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "startTime" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "src_user_id" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "src_username" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentAddress" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentHostName" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentId" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentMacAddress" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentReceiptTime" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentType" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentTimeZone" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "agentVersion" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "destinationGeoLatitude" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "destinationGeoLongitude" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "sourceGeoLatitude" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "sourceGeoLongitude" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            }
+         }
+      }
+   }
+}
