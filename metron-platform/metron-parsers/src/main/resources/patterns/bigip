@@ -30,8 +30,11 @@ USERID \w+
 # Bytes
 BYTES \d+
 
+# Hostname that can possible contain a '/'
+HOSTNAMESLASH %{HOSTNAME:UNWANTED}/?%{HOSTNAME:UNWANTED}?
+
 # Log start - the first part of the log line
-LOGSTART <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{HOSTNAME:hostname} %{WORD:severity}
+LOGSTART <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{HOSTNAMESLASH:hostname} %{WORD:severity}
 
 # Message - the rest of the log body
 MESSAGE .*
