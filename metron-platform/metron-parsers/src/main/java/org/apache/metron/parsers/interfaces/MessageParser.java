@@ -26,7 +26,13 @@ public interface MessageParser<T> extends Configurable{
   void init();
   List<T> parse(byte[] rawMessage);
   default Optional<List<T>> parseOptional(byte[] parseMessage) {
-    return Optional.of(parse(parseMessage));
+    List<T> ret = parse(parseMessage);
+    if(ret == null) {
+      return Optional.empty();
+    }
+    else {
+      return Optional.of(parse(parseMessage));
+    }
   }
 
   boolean validate(T message);
