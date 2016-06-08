@@ -36,7 +36,7 @@ import java.util.HashMap;
 public class HBaseEnrichmentConverterTest {
     EnrichmentKey key = new EnrichmentKey("domain", "google");
     EnrichmentValue value = new EnrichmentValue(
-            new HashMap<String, String>() {{
+            new HashMap<String, Object>() {{
                 put("foo", "bar");
                 put("grok", "baz");
             }});

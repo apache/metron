@@ -52,7 +52,7 @@ public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
         final String indicatorType = typeStr + ":" + DomainNameTypeEnum.FQDN;
         LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
                 , new EnrichmentValue(
-                new HashMap<String, String>() {{
+                new HashMap<String, Object>() {{
                   put("source-type", "STIX");
                   put("indicator-type", indicatorType);
                   put("source", type.toXMLString());
