@@ -1,5 +1,5 @@
 {
-  "index": "rfc4164",
+  "index": "unixsyslog3164",
   "batchSize": 200,
   "enrichment": {
   }
