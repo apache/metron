@@ -33,7 +33,7 @@ public class ThreatIntelSplitterBolt extends EnrichmentSplitterBolt {
   @Override
   protected Map<String, List<String>> getFieldMap(String sensorType) {
     if (sensorType != null) {
-      SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sensorType);
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
       if (config != null) {
         return config.getThreatIntel().getFieldMap();
       } else {

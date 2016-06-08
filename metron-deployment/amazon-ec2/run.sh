@@ -65,4 +65,7 @@ mvn package -DskipTests
 # deploy metron
 cd $DEPLOYDIR
 export EC2_INI_PATH=conf/ec2.ini
-ansible-playbook -i ec2.py playbook.yml --extra-vars="env=$ENV" $EXTRA_ARGS
+ansible-playbook -i ec2.py playbook.yml \
+  --skip-tags="solr" \
+  --extra-vars="env=$ENV" \
+  $EXTRA_ARGS

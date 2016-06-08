@@ -38,8 +38,9 @@ GREEDY .*
 WORD \w*\s*
 NUMBER \w*\s*
 
-MESSAGE1 id=%{NUMBER:message_id},session_id=%{GREEDY:session_id},type=%{WORD:type},attr_name=%{GREEDY:attr_name},
-MESSAGE2 attr_value=%{WORD:attr_value},timestamp=%{GREEDY:request_timestamp}
+MESSAGE1 id=%{NUMBER:message_id},session_id=%{GREEDY:session_id},
+MESSAGE2 type=%{WORD:type},attr_name=%{GREEDY:attr_name},attr_value=%{GREEDY:attr_value}
 MESSAGE %{MESSAGE1:UNWANTED}%{MESSAGE2:UNWANTED}
+ALERTMESSAGE session_id=%{GREEDY:alert_session_id},service_name=%{GREEDY:service_name},alert=%{GREEDY:alert}
 
-ARUBA %{LOGSTART:UNWANTED} %{MESSAGEFULL:UNWANTED} %{MESSAGE:UNWANTED}
+ARUBA %{LOGSTART:UNWANTED} %{MESSAGEFULL:UNWANTED}\s+%{MESSAGE:UNWANTED}?%{ALERTMESSAGE:UNWANTED}?%{GREEDY:message}?,timestamp=%{GREEDY:request_timestamp}

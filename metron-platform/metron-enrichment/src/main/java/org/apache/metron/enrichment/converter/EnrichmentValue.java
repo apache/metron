@@ -35,20 +35,20 @@ public class EnrichmentValue implements LookupValue {
     public static final String VALUE_COLUMN_NAME = "v";
     public static final byte[] VALUE_COLUMN_NAME_B = Bytes.toBytes(VALUE_COLUMN_NAME);
 
-    private Map<String, String> metadata = null;
+    private Map<String, Object> metadata = null;
 
     public EnrichmentValue()
     {
 
     }
 
-    public EnrichmentValue(Map<String, String> metadata) {
+    public EnrichmentValue(Map<String, Object> metadata) {
         this.metadata = metadata;
     }
 
 
 
-    public Map<String, String> getMetadata() {
+    public Map<String, Object> getMetadata() {
         return metadata;
     }
 
@@ -66,14 +66,14 @@ public class EnrichmentValue implements LookupValue {
             }
         }
     }
-    public Map<String, String> stringToValue(String s){
+    public Map<String, Object> stringToValue(String s){
         try {
-            return _mapper.get().readValue(s, new TypeReference<Map<String, String>>(){});
+            return _mapper.get().readValue(s, new TypeReference<Map<String, Object>>(){});
         } catch (IOException e) {
             throw new RuntimeException("Unable to convert string to metadata: " + s);
         }
     }
-    public String valueToString(Map<String, String> value) {
+    public String valueToString(Map<String, Object> value) {
         try {
             return _mapper.get().writeValueAsString(value);
         } catch (IOException e) {
