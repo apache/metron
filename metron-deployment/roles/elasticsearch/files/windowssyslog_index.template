@@ -2,7 +2,9 @@
     "template" : "windowssyslog*",
     "order" : 1,
     "aliases" : {
-        "windowssyslog" : {}
+        "windowssyslog" : {},
+        "Host-Based" : {},
+        "IP-Search" : {}
     },
     "mappings" : {
         "_default_" : {

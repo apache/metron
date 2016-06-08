@@ -5,7 +5,8 @@
        "number_of_shards" : 1
    },
     "aliases" : {
-        "infoblox" : {}
+        "infoblox" : {},
+        "Network-Based" : {}
     },
     "mappings" : {
         "infoblox_doc" : {
