@@ -3,8 +3,8 @@
     "order" : 1,
     "aliases" : {
         "windowssyslog" : {},
-        "Host-Based" : {},
-        "IP-Search" : {}
+        "1-Host-Based" : {},
+        "1-IP-Search" : {}
     },
     "mappings" : {
         "_default_" : {

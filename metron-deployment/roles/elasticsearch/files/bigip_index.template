@@ -6,7 +6,7 @@
    },
     "aliases" : {
         "bigip" : {},
-        "Network-Based" : {}
+        "1-Network-Based" : {}
     },
     "mappings" : {
         "bigip_doc" : {

@@ -6,9 +6,9 @@
    },
     "aliases" : {
         "mcafeeepo" : {},
-        "Host-Based" : {},
-        "Malware-Detection" : {},
-        "IP-Search" : {}
+        "1-Host-Based" : {},
+        "1-Malware-Detection" : {},
+        "1-IP-Search" : {}
     },
     "mappings" : {
         "mcafeeepo_doc" : {
