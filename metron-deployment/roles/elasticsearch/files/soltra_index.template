@@ -5,7 +5,8 @@
         "number_of_shards": 1
     },
     "aliases" : {
-        "soltra" : {}
+        "soltra" : {},
+        "1-IP_Search" : {}
     },
     "mappings" : {
         "soltra_doc" : {
@@ -66,10 +67,10 @@
                     "index" : "not_analyzed"
                 },
                 "IP_Range_To_Long" : {
-                    "type" : "long",
+                    "type" : "long"
                 },
                 "IP_Range_From_Long" : {
-                    "type" : "long",
+                    "type" : "long"
                 },
                 "Email" : {
                     "type" : "string",

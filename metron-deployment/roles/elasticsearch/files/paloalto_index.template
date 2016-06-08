@@ -5,7 +5,9 @@
       "number_of_shards" : 2
    },
    "aliases" : {
-      "paloalto" : {}
+      "paloalto" : {},
+      "1-Network-Based" : {},
+      "1-IP-Search" : {}
    },
    "mappings" : {
       "paloalto_doc" : {

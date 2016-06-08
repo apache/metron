@@ -5,7 +5,10 @@
      "number_of_shards" : 1
    },
     "aliases" : {
-        "mcafeeepo" : {}
+        "mcafeeepo" : {},
+        "1-Host-Based" : {},
+        "1-Malware-Detection" : {},
+        "1-IP-Search" : {}
     },
     "mappings" : {
         "mcafeeepo_doc" : {
