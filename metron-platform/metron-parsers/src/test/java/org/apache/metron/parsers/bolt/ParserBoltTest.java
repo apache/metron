@@ -39,6 +39,7 @@ import org.apache.metron.common.interfaces.MessageWriter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -81,10 +82,13 @@ public class ParserBoltTest extends BaseBoltTest {
   @Mock
   private Tuple t5;
 
+
+
   @Test
   public void test() throws Exception {
+
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, writer) {
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
       @Override
       protected ParserConfigurations defaultConfigurations() {
         return new ParserConfigurations() {
@@ -134,14 +138,14 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(outputCollector, times(2)).ack(tuple);
     doThrow(new Exception()).when(writer).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
     parserBolt.execute(tuple);
-    verify(outputCollector, times(1)).reportError(any(Throwable.class));
+    verify(outputCollector, times(2)).reportError(any(Throwable.class));
   }
 @Test
 public void testImplicitBatchOfOne() throws Exception {
 
   String sensorType = "yaf";
 
-  ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+  ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
     @Override
     protected ParserConfigurations defaultConfigurations() {
       return new ParserConfigurations() {
@@ -184,7 +188,8 @@ public void testImplicitBatchOfOne() throws Exception {
   @Test
   public void testFilter() throws Exception {
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
       protected SensorParserConfig getSensorParserConfig() {
         try {
@@ -210,7 +215,7 @@ public void testImplicitBatchOfOne() throws Exception {
 
     String sensorType = "yaf";
 
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
       protected ParserConfigurations defaultConfigurations() {
         return new ParserConfigurations() {
@@ -245,7 +250,7 @@ public void testImplicitBatchOfOne() throws Exception {
 
     String sensorType = "yaf";
 
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
       protected ParserConfigurations defaultConfigurations() {
         return new ParserConfigurations() {
@@ -289,7 +294,7 @@ public void testImplicitBatchOfOne() throws Exception {
   public void testBatchOfFiveWithError() throws Exception {
 
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, batchWriter) {
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
       protected ParserConfigurations defaultConfigurations() {
         return new ParserConfigurations() {

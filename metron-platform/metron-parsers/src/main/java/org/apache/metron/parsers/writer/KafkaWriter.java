@@ -25,12 +25,14 @@ import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.MessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.common.writer.AbstractWriter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObject>, Serializable {
   public enum Configurations {
@@ -44,11 +46,11 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     Configurations(String key) {
       this.key = key;
     }
-    public Object get(Map<String, Object> config) {
-      return config.get(key);
+    public Object get(Optional<String> configPrefix, Map<String, Object> config) {
+      return config.get(StringUtils.join(".", configPrefix, Optional.of(key)));
     }
-    public <T> T getAndConvert(Map<String, Object> config, Class<T> clazz) {
-      Object o = get(config);
+    public <T> T getAndConvert(Optional<String> configPrefix, Map<String, Object> config, Class<T> clazz) {
+      Object o = get(configPrefix, config);
       if(o != null) {
         return ConversionUtils.convert(o, clazz);
       }
@@ -61,10 +63,9 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
   private int requiredAcks = 1;
   private String kafkaTopic = Constants.ENRICHMENT_TOPIC;
   private KafkaProducer kafkaProducer;
+  private Optional<String> configPrefix = Optional.empty();
 
   public KafkaWriter() {}
-
-
 
   public KafkaWriter(String brokerUrl) {
     this.brokerUrl = brokerUrl;
@@ -89,26 +90,30 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     this.kafkaTopic= topic;
     return this;
   }
+  public KafkaWriter withConfigPrefix(String prefix) {
+    this.configPrefix = Optional.ofNullable(prefix);
+    return this;
+  }
   @Override
   public void configure(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> configMap = configuration.getSensorConfig(sensorName);
-    String brokerUrl = Configurations.BROKER.getAndConvert(configMap, String.class);
+    String brokerUrl = Configurations.BROKER.getAndConvert(configPrefix, configMap, String.class);
     if(brokerUrl != null) {
       this.brokerUrl = brokerUrl;
     }
-    String keySerializer = Configurations.KEY_SERIALIZER.getAndConvert(configMap, String.class);
+    String keySerializer = Configurations.KEY_SERIALIZER.getAndConvert(configPrefix, configMap, String.class);
     if(keySerializer != null) {
       withKeySerializer(keySerializer);
     }
-    String valueSerializer = Configurations.VALUE_SERIALIZER.getAndConvert(configMap, String.class);
+    String valueSerializer = Configurations.VALUE_SERIALIZER.getAndConvert(configPrefix, configMap, String.class);
     if(valueSerializer != null) {
       withValueSerializer(keySerializer);
     }
-    Integer requiredAcks = Configurations.REQUIRED_ACKS.getAndConvert(configMap, Integer.class);
+    Integer requiredAcks = Configurations.REQUIRED_ACKS.getAndConvert(configPrefix, configMap, Integer.class);
     if(requiredAcks!= null) {
       withRequiredAcks(requiredAcks);
     }
-    String topic = Configurations.TOPIC.getAndConvert(configMap, String.class);
+    String topic = Configurations.TOPIC.getAndConvert(configPrefix, configMap, String.class);
     if(topic != null) {
       withTopic(topic);
     }

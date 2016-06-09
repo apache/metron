@@ -19,6 +19,7 @@ package org.apache.metron.common.utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Values;
@@ -28,37 +29,43 @@ import org.json.simple.JSONObject;
 
 public class ErrorUtils {
 
-	@SuppressWarnings("unchecked")
-	public static JSONObject generateErrorMessage(String message, Throwable t)
-	{
-		JSONObject error_message = new JSONObject();
+  @SuppressWarnings("unchecked")
+  public static JSONObject generateErrorMessage(String message, Throwable t)
+  {
+    return generateErrorMessage(message, t, Optional.empty());
+  }
+  public static JSONObject generateErrorMessage(String message, Throwable t, Optional<String> sensorType)
+  {
+    JSONObject error_message = new JSONObject();
 		
 		/*
 		 * Save full stack trace in object.
 		 */
-		String stackTrace = ExceptionUtils.getStackTrace(t);
-		
-		String exception = t.toString();
-		
-		error_message.put("time", System.currentTimeMillis());
-		try {
-			error_message.put("hostname", InetAddress.getLocalHost().getHostName());
-		} catch (UnknownHostException ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
-		
-		error_message.put("message", message);
-		error_message.put(Constants.SENSOR_TYPE, "error");
-		error_message.put("exception", exception);
-		error_message.put("stack", stackTrace);
-		
-		return error_message;
-	}
+    String stackTrace = ExceptionUtils.getStackTrace(t);
 
-	public static void handleError(OutputCollector collector, Throwable t, String errorStream) {
-		JSONObject error = ErrorUtils.generateErrorMessage(t.getMessage(), t);
-		collector.emit(errorStream, new Values(error));
-		collector.reportError(t);
-	}
+    String exception = t.toString();
+
+    error_message.put("time", System.currentTimeMillis());
+    try {
+      error_message.put("hostname", InetAddress.getLocalHost().getHostName());
+    } catch (UnknownHostException ex) {
+
+    }
+
+    error_message.put("message", message);
+    error_message.put(Constants.SENSOR_TYPE, StringUtils.join("_", sensorType, Optional.of("error")));
+    error_message.put("exception", exception);
+    error_message.put("stack", stackTrace);
+
+    return error_message;
+  }
+
+  public static void handleError(OutputCollector collector, Throwable t, String errorStream) {
+    handleError(collector, t, errorStream, Optional.empty());
+  }
+  public static void handleError(OutputCollector collector, Throwable t, String errorStream, Optional<String> sensorType) {
+    JSONObject error = ErrorUtils.generateErrorMessage(t.getMessage(), t, sensorType);
+    collector.emit(errorStream, new Values(error));
+    collector.reportError(t);
+  }
 }
