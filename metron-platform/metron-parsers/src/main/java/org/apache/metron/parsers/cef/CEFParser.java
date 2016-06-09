@@ -24,8 +24,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,15 +97,15 @@ public class CEFParser extends BasicParser {
 		try {
 
 			message = new String(rawMessage, "UTF-8");
-
+						
 			// Only attempt to split if this is a well-formed CEF line
-			if (!message.matches(".*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*")) {
-				_LOG.error("Failed to parse: " + message);
+			if (StringUtils.countMatches(message, "|") < 7){
+				_LOG.error("Not a well-formed CEF line, Failed to parse: " + message);
 				return null;
 			}
-
+			
 			payload.put("original_string", message.replace("\\=", "="));
-			String[] parts = message.split("\\|");
+			String[] parts = message.split("\\|", 8);
 
 			// Add the standard CEF fields
 			payload.put("header", parts[0]);
@@ -132,10 +134,10 @@ public class CEFParser extends BasicParser {
 				//Trim and remove escaped equals characters from values and keys
 				key = key.replace("\\=", "=").trim();
 				value = value.replace("\\=", "=").trim();
-
+				
 				// Place in JSON, accounting for custom field names
 				if (payload.containsKey(key+"Label")) {
-					payload.put(payload.get(key+"Label"), value);
+					payload.put(payload.get(key+"Label"), value);	
 					payload.remove(key+"Label");
 				}
 				else if (key.matches("\\w+\\dLabel") &&  payload.containsKey(key.substring(0, key.indexOf("Label")))) {
@@ -151,7 +153,7 @@ public class CEFParser extends BasicParser {
 			key = fields.substring(0, findNextEquals(fields)).replace("\\=", "=").trim();
 			value = fields.substring(findNextEquals(fields) + 1).replace("\\=", "=").trim();
 			if (payload.containsKey(key+"Label")) {
-				payload.put(payload.get(key+"Label"), value);
+				payload.put(payload.get(key+"Label"), value);	
 				payload.remove(key+"Label");
 			}
 			else if (key.matches("\\w+\\dLabel") && payload.containsKey(key.substring(0, key.indexOf("Label")))) {
@@ -164,17 +166,17 @@ public class CEFParser extends BasicParser {
 			}
 
 			//Ensure that the required fields are present in the JSON
-			parseHeader(payload);
+			parseHeader(payload);	
 			removeEmptyFields(payload);
 			handleTimestamp(payload);
 			useReadableFieldsJSON(payload);
-
-			messages.add(payload);
+			
+			messages.add(payload);	
 			return messages;
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			_LOG.error("Failed to parse: " + message);
+			_LOG.error("Failed to parse: " + message + " with error message " + e.getMessage());
 			return null;
 		}
 	}
@@ -183,20 +185,15 @@ public class CEFParser extends BasicParser {
 	// Finds the next non-escaped equals sign
 	public int findNextEquals(String input) {
 
-		int nextEqualsIndex = 0;
-		int indexOffset = 0;
-		int currentIndex = 0;
-		boolean found = false;
+    int nextEqualsIndex = 0;
+    int indexOffset = 0;
+    int currentIndex = 0;
+    boolean found = false;
 
-		if ((input.startsWith("http") || input.startsWith("Value=")) && input.contains(" ")) {
-			indexOffset = input.indexOf(" ") + 1;
-			input = input.substring(input.indexOf(" ") + 1);
-		}
-
-		if ((input.startsWith("http") || input.startsWith("Value=")) && input.contains(" ")) {
-			indexOffset = input.indexOf(" ") + 1;
-			input = input.substring(input.indexOf(" ") + 1);
-		}
+    if((input.startsWith("http") || input.startsWith("Value=")) && input.contains(" ")){
+      indexOffset = input.indexOf(" ") + 1;
+      input = input.substring(input.indexOf(" ") + 1);
+    }
 
 		if (input.indexOf("=") == -1)
 			return -1;
@@ -206,13 +203,12 @@ public class CEFParser extends BasicParser {
 
 		while (!found) {
 			nextEqualsIndex = input.indexOf("=", currentIndex);
-			if (!"\\".equals(input.substring(nextEqualsIndex - 1, nextEqualsIndex)))
+			if (!"\\".equals(input.substring(nextEqualsIndex-1, nextEqualsIndex)))
 				found = true;
 			currentIndex = nextEqualsIndex + 1;
 		}
-
-		nextEqualsIndex = nextEqualsIndex + indexOffset;
-		return nextEqualsIndex;
+    nextEqualsIndex = nextEqualsIndex + indexOffset;
+    return nextEqualsIndex;
 	}
 
 
@@ -258,7 +254,7 @@ public class CEFParser extends BasicParser {
 					json.put("rt", timestamp);
 				}
 			}
-		}
+		}		
 	}
 
 	//Removes any null or empty values from the JSON
@@ -273,23 +269,28 @@ public class CEFParser extends BasicParser {
 			}
 		}
 	}
-
+	
 	//Converts a timestamp string to a long
 	@SuppressWarnings("unchecked")
 	private void handleTimestamp(JSONObject json) {
-
+		
 		long epochTimestamp = System.currentTimeMillis();
-
+		
 		//Checks for the CEF timestamp field
 		if (json.containsKey("rt")) {
-
+			
 			String timestamp = (String) json.get("rt");
+			if(timestamp.equals("${Event.createTime}")){
+				json.put("timestamp", System.currentTimeMillis());
+				json.remove("rt");
+				return;
+			}
 
 			//Adds the year if it is not present
 			if (!dateFormatString.contains("yyyy")) {
 				timestampContainsYear = false;
 				dateFormatString = "yyyy " + dateFormatString;
-
+				
 			}
 
 			// Set up the dateformat object with timezone
@@ -310,7 +311,7 @@ public class CEFParser extends BasicParser {
 				_LOG.error("Date Parsing Exception:" + e.toString());
 				json.put("timestamp", epochTimestamp);
 			}
-
+			
 			json.remove("rt");
 
 		}
