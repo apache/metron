@@ -95,7 +95,6 @@ public class GrokCiscoACSParser  extends GrokParser {
             }
             else
             {
-                System.out.println("hellow");
                 format2(toReturn, messageValue);
             }
 
@@ -286,22 +285,39 @@ public class GrokCiscoACSParser  extends GrokParser {
             }
 
             String firstHalf = messageValue.substring(0, messageValue.indexOf(",")+1);
-            System.out.println("firstHalf: "+firstHalf);
 
             String messageClass = firstHalf.substring(firstHalf.lastIndexOf(" ", firstHalf.lastIndexOf(":"))+1, firstHalf.lastIndexOf(":"));
-            System.out.println("messageClass: "+messageClass);
             String messageText = firstHalf.substring(firstHalf.lastIndexOf(":")+2, firstHalf.lastIndexOf(","));
-            System.out.println("messageText: "+messageText);
 
             String secondHalf = messageValue.substring(messageValue.indexOf(",")+1);
-            //System.out.println("secondHalf: "+secondHalf);
 
             String parameters = firstHalf.substring(0,firstHalf.indexOf(messageClass)-1);
-            System.out.println("parameters: "+ parameters);
+
+            String severity = parameters.substring(parameters.lastIndexOf(" ")+1);
+            parameters = parameters.substring(0,parameters.lastIndexOf(" "));
+
+            String messageCode = parameters.substring(parameters.lastIndexOf(" ")+1);
+            parameters = parameters.substring(0,parameters.lastIndexOf(" "));
+
+            String sequenceNum = parameters.substring(parameters.lastIndexOf(" ")+1);
+            parameters = parameters.substring(0,parameters.lastIndexOf(" "));
+
+            String timezoneOffset = parameters.substring(parameters.lastIndexOf(" ")+1);
+            parameters = parameters.substring(0,parameters.lastIndexOf(" "));
+
+            String eventTimestamp = parameters.substring(parameters.lastIndexOf(" ")+1);
+            parameters = parameters.substring(0,parameters.lastIndexOf(" "));
+
+            String eventDate = parameters.substring(parameters.lastIndexOf(" ")+1);
 
             toReturn.put("messageClass",messageClass);
             toReturn.put("messageText",messageText);
-
+            toReturn.put("eventDate",eventDate);
+            toReturn.put("eventTimestamp",eventTimestamp);
+            toReturn.put("timezoneOffset",timezoneOffset);
+            toReturn.put("sequenceNum",sequenceNum);
+            toReturn.put("messageCode",messageCode);
+            toReturn.put("severity",severity);
 
             String[] fields = secondHalf.split(",");
 
