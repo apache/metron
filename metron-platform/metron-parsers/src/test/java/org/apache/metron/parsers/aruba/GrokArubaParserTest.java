@@ -55,12 +55,13 @@ public class GrokArubaParserTest {
 
     Assert.assertEquals(parsedJSON.get("priority"), 143);
 		Assert.assertEquals(parsedJSON.get("ip_src_addr"), "110.137.3.2");
-		Assert.assertEquals(parsedJSON.get("message_hex"), 473964876);
-		Assert.assertEquals(parsedJSON.get("message_type"), "CPPM_Session_Detail");
-		Assert.assertEquals(parsedJSON.get("timestamp") + "", "1461904051000");
+		Assert.assertEquals(parsedJSON.get("category"), "CPPM_Session_Detail");
+		Assert.assertEquals(parsedJSON.get("message_id"), 473964876);
+		Assert.assertEquals(parsedJSON.get("timestamp") , 1461904051000L);
 		Assert.assertEquals(parsedJSON.get("attr_name"), "Radius:IETF:User-Name");
 		Assert.assertEquals(parsedJSON.get("session_id"), "R011cf48e-04-57231aa3");
-		Assert.assertEquals(parsedJSON.get("message_id"), "5983679670");
+		Assert.assertEquals(parsedJSON.get("message_id"), 473964876);
+		Assert.assertEquals(parsedJSON.get("id"), "5983679670");
 		Assert.assertEquals(parsedJSON.get("type"), "RADIUS_IN");
 		Assert.assertEquals(parsedJSON.get("request_timestamp"), "2016-04-29 04:26:13.002367-04");
   }

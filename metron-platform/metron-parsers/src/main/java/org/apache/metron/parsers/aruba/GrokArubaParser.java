@@ -41,6 +41,27 @@ public class GrokArubaParser extends GrokParser {
 				message.put("ip_src_addr", url);
 			}
 		}
+
+		parseCSVSection(message);
+	}
+
+	private void parseCSVSection(JSONObject json) {
+		if (json.containsKey("message")) {
+			String message = json.get("message").toString();
+			String[] split = message.split(",");
+			for (int i = 0; i < split.length; i++) {
+				String[] messageSplit = split[i].split("=");
+				// Timestamp contains a comma within it so the whole timestamp is across 2 sections of the csv split
+				if ("Timestamp".equals(messageSplit[0])) {
+					String timestampFull = messageSplit[1] + split[++i];
+					json.put("request_timestamp", timestampFull);
+				} else if ("timestamp".equals(messageSplit[0])) {
+					json.put("request_timestamp", messageSplit[1]);
+				} else {
+					json.put(messageSplit[0], messageSplit[1]);
+				}
+			}
+		}
 	}
 
 	//Removes any keys with empty or null values
