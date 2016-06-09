@@ -82,6 +82,42 @@ public class ParserBoltTest extends BaseBoltTest {
   private Tuple t5;
 
   @Test
+  public void testEmpty() throws Exception {
+    String sensorType = "yaf";
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, writer) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig() {
+              @Override
+              public Map<String, Object> getParserConfig() {
+                return new HashMap<String, Object>() {{
+                }};
+              }
+            };
+          }
+        };
+      }
+
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(writer, times(1)).init();
+    byte[] sampleBinary = "some binary message".getBytes();
+
+    when(tuple.getBinary(0)).thenReturn(sampleBinary);
+    when(parser.parseOptional(sampleBinary)).thenReturn(null);
+    parserBolt.execute(tuple);
+    verify(parser, times(0)).validate(any());
+    verify(writer, times(0)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), any());
+    verify(outputCollector, times(1)).ack(tuple);
+  }
+
+  @Test
   public void test() throws Exception {
     String sensorType = "yaf";
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, writer) {
