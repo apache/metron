@@ -293,7 +293,22 @@ public class GrokCiscoACSParser  extends GrokParser {
             System.out.println("messageText: "+messageText);
 
             String secondHalf = messageValue.substring(messageValue.indexOf(",")+1);
-            System.out.println("secondHalf: "+secondHalf);
+            //System.out.println("secondHalf: "+secondHalf);
+
+            String parameters = firstHalf.substring(0,firstHalf.indexOf(messageClass)-1);
+            System.out.println("parameters: "+ parameters);
+
+            Pattern MY_PATTERN = Pattern.compile("\\d{4}" + "-" + "\\d{2}" + "-" + "\\d{2}");
+
+            MY_PATTERN = Pattern.compile("\\d{2}:\\d{2}:\\d{2}.\\d{3}");
+
+            Matcher m = MY_PATTERN.matcher(parameters);
+            while (m.find()) {
+                String s = m.group(1);
+                System.out.println("pattern: "+s);
+                toReturn.put("eventTimestamp",s);
+                // s now contains "BAR"
+            }
 
             toReturn.put("messageClass",messageClass);
             toReturn.put("messageText",messageText);

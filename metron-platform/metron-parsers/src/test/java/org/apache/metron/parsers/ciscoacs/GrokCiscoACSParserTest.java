@@ -71,6 +71,12 @@ public class GrokCiscoACSParserTest {
 
         System.out.println("result.get(0): " + result.get(0));
 
+        String testString2 = "<181>May 26 09:05:53 MDCNMSACS002 CSCOacs_Passed_Authentications 0107266100 2 1  Step=22037 , Step=15044 , Step=15035 , Step=15042 , Step=15036 , Step=15004 , Step=15018 , Step=13024 , Step=13034 , SelectedAuthenticationIdentityStores=Internal Users, SelectedAuthenticationIdentityStores=AD1, NetworkDeviceName=napoleonville-sw1, NetworkDeviceGroups=Location:All Locations:VZB, NetworkDeviceGroups=Device Type:All Device Types:Cisco IOS, ServiceSelectionMatchedRule=Rule-2, IdentityPolicyMatchedRule=Default, AuthorizationPolicyMatchedRule=HPNA-DeviceInteraction CiscoIOS, UserIdentityGroup=IdentityGroup:All Groups:HPNA-Device-Interaction, Response={Type=Authorization; Author-Reply-Status=PassAdd; }";
+        List<JSONObject> result2 = parser.parse(testString2.getBytes());
+        JSONObject parsedJSON2 = result.get(0);
+
+        System.out.println("result2.get(0): " + result2.get(0));
+
         //Compare fields
         assertEquals(parsedJSON.get("priority") + "", "181");
         assertEquals(parsedJSON.get("hostname"), "MDCNMSACS002");
