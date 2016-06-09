@@ -20,11 +20,7 @@ package org.apache.metron.parsers.cef;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,20 +44,33 @@ public class CEFParser extends BasicParser {
 		//Nothing to do to initialize the CEF parser
 	}
 
+	@Override
+	public void configure(Map<String, Object> config) {
+		withDateFormat((String) config.get("dateFormat"));
+		withTimeZone((String) config.get("timezone"));
+		withHeaderTimestampRegex((String) config.get("headerRegEx"));
+	}
+
 	//For specifying the date format that the parser will use
 	public CEFParser withDateFormat(String dateFormat) {
+		if (dateFormat == null) {
+			throw new IllegalArgumentException("DateFormat must be specified in parser config file");
+		}
 		this.dateFormatString = dateFormat;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("CEF parser settting date format: " + dateFormat);
+			LOG.debug("CEF parser setting date format: " + dateFormat);
 		}
 		return this;
 	}
 
 	//For setting the timezone of the parser
 	public CEFParser withTimeZone(String timeZone) {
+		if (timeZone == null) {
+			timeZone = "UTC";
+		}
 		this.timeZone = TimeZone.getTimeZone(timeZone);
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("CEF parser settting timezone: " + timeZone);
+			LOG.debug("CEF parser setting timezone: " + timeZone);
 		}
 		return this;
 	}
@@ -70,7 +79,7 @@ public class CEFParser extends BasicParser {
 	public CEFParser withHeaderTimestampRegex(String headerRegex) {
 		this.headerTimestampRegex = headerRegex;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("CEF parser settting header regular expression: " + headerRegex);
+			LOG.debug("CEF parser setting header regular expression: " + headerRegex);
 		}
 		return this;
 	}
@@ -86,14 +95,14 @@ public class CEFParser extends BasicParser {
 		try {
 
 			message = new String(rawMessage, "UTF-8");
-						
+
 			// Only attempt to split if this is a well-formed CEF line
 			if (!message.matches(".*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*")) {
 				_LOG.error("Failed to parse: " + message);
 				return null;
 			}
-			
-			payload.put("original_string", message);
+
+			payload.put("original_string", message.replace("\\=", "="));
 			String[] parts = message.split("\\|");
 
 			// Add the standard CEF fields
@@ -110,18 +119,23 @@ public class CEFParser extends BasicParser {
 			String key = "";
 			String value = "";
 
-			while (findNextEquals(fields) !=  findLastEquals(fields)) {
+			while ((findNextEquals(fields) !=  findLastEquals(fields)) && fields.contains(" ")) {
+
 
 				// Extract the key-value pairs
-				key = fields.substring(0, findNextEquals(fields));
+				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
 				value = fields.substring(0, findNextEquals(fields));
 				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
+				//Trim and remove escaped equals characters from values and keys
+				key = key.replace("\\=", "=").trim();
+				value = value.replace("\\=", "=").trim();
+
 				// Place in JSON, accounting for custom field names
 				if (payload.containsKey(key+"Label")) {
-					payload.put(payload.get(key+"Label"), value);	
+					payload.put(payload.get(key+"Label"), value);
 					payload.remove(key+"Label");
 				}
 				else if (key.matches("\\w+\\dLabel") &&  payload.containsKey(key.substring(0, key.indexOf("Label")))) {
@@ -134,10 +148,10 @@ public class CEFParser extends BasicParser {
 			}
 
 			// Handle last remaining key-value pair
-			key = fields.substring(0, findNextEquals(fields));
-			value = fields.substring(findNextEquals(fields) + 1);
+			key = fields.substring(0, findNextEquals(fields)).replace("\\=", "=").trim();
+			value = fields.substring(findNextEquals(fields) + 1).replace("\\=", "=").trim();
 			if (payload.containsKey(key+"Label")) {
-				payload.put(payload.get(key+"Label"), value);	
+				payload.put(payload.get(key+"Label"), value);
 				payload.remove(key+"Label");
 			}
 			else if (key.matches("\\w+\\dLabel") && payload.containsKey(key.substring(0, key.indexOf("Label")))) {
@@ -150,12 +164,12 @@ public class CEFParser extends BasicParser {
 			}
 
 			//Ensure that the required fields are present in the JSON
-			parseHeader(payload);	
+			parseHeader(payload);
 			removeEmptyFields(payload);
 			handleTimestamp(payload);
 			useReadableFieldsJSON(payload);
-			
-			messages.add(payload);	
+
+			messages.add(payload);
 			return messages;
 
 		} catch (Exception e) {
@@ -170,8 +184,14 @@ public class CEFParser extends BasicParser {
 	public int findNextEquals(String input) {
 
 		int nextEqualsIndex = 0;
+		int indexOffset = 0;
 		int currentIndex = 0;
 		boolean found = false;
+
+		if((input.startsWith("http") || input.startsWith("Value=")) && input.contains(" ")){
+			indexOffset = input.indexOf(" ") + 1;
+			input = input.substring(input.indexOf(" ") + 1);
+		}
 
 		if (input.indexOf("=") == -1)
 			return -1;
@@ -185,7 +205,7 @@ public class CEFParser extends BasicParser {
 				found = true;
 			currentIndex = nextEqualsIndex + 1;
 		}
-
+		nextEqualsIndex = nextEqualsIndex + indexOffset;
 		return nextEqualsIndex;
 	}
 
@@ -232,7 +252,7 @@ public class CEFParser extends BasicParser {
 					json.put("rt", timestamp);
 				}
 			}
-		}		
+		}
 	}
 
 	//Removes any null or empty values from the JSON
@@ -247,23 +267,23 @@ public class CEFParser extends BasicParser {
 			}
 		}
 	}
-	
+
 	//Converts a timestamp string to a long
 	@SuppressWarnings("unchecked")
 	private void handleTimestamp(JSONObject json) {
-		
+
 		long epochTimestamp = System.currentTimeMillis();
-		
+
 		//Checks for the CEF timestamp field
 		if (json.containsKey("rt")) {
-			
+
 			String timestamp = (String) json.get("rt");
 
 			//Adds the year if it is not present
 			if (!dateFormatString.contains("yyyy")) {
 				timestampContainsYear = false;
 				dateFormatString = "yyyy " + dateFormatString;
-				
+
 			}
 
 			// Set up the dateformat object with timezone
@@ -284,7 +304,7 @@ public class CEFParser extends BasicParser {
 				_LOG.error("Date Parsing Exception:" + e.toString());
 				json.put("timestamp", epochTimestamp);
 			}
-			
+
 			json.remove("rt");
 
 		}
@@ -407,7 +427,7 @@ public class CEFParser extends BasicParser {
 			json.remove("proto");
 		}
 		if (json.containsKey("request")) {
-			json.put("fileName", json.get("request"));
+			json.put("requestURL", json.get("request"));
 			json.remove("request");
 		}
 		if (json.containsKey("shost")) {
@@ -503,4 +523,5 @@ public class CEFParser extends BasicParser {
 			json.remove("slong");
 		}
 	}
+
 }
