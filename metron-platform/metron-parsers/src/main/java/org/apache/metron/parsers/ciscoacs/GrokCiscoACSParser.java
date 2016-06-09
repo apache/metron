@@ -88,116 +88,321 @@ public class GrokCiscoACSParser  extends GrokParser {
             String messageValue = (String) message.get("messageGreedy");
 
             JSONObject toReturn = message;
-            try {
-                // if url is in IP form, replace url tag with ip_src_addr
-                if (toReturn.containsKey("url")) {
-                    String ip = (String) toReturn.get("url");
-                    if (ip.matches("[\\.\\d]+")) {
-                        toReturn.put("ip_src_addr", ip);
-                        toReturn.remove("url");
-                    }
-                }
 
-                // sort out the fields within message
-                    Pattern pattern = Pattern.compile("=");
-
-                    //Matcher matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
-                    Matcher matcher = pattern.matcher(messageValue);
-
-                    // Check first occurrences
-                    ArrayList<String> keys = new ArrayList<String>();
-                    if( matcher.find() ){
-                        keys.add(matcher.group().toString().substring(0,matcher.group().toString().length()-1));
-                    }
-                    //Check all occurrences
-                    pattern = Pattern.compile(",");
-                    //matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
-                    matcher = pattern.matcher(messageValue);
-
-                    while (matcher.find()) {
-                        if(matcher.group().toString().equals(",timestamp=")){
-                            keys.add("log_timestamp1");
-                        }
-                        else {
-                            keys.add(matcher.group().toString().substring(0,matcher.group().toString().length()-1));
-                        }
-                    }
-
-                    String[] fields = messageValue.split(",");
-
-                    HashMap<String, String> pairs = new HashMap<String, String>();
-                    HashMap<String, String> newPairs = new HashMap<String, String>();
-                    JSONObject steps = new JSONObject();
-                    JSONObject cmdArgAV = new JSONObject();
-
-                for (int i = 0; (i < fields.length) && (i < keys.size()); i++) {
-                        String[] pairArray = fields[i].split("=");
-                        String[] subPairArray;
-
-                        if("Step".equals(pairArray[0].replaceAll("\\s+", "")))
-                        {
-                            steps.put((pairArray[0]+""+i).replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
-                        }
-                        if("CmdSet".equals(pairArray[0].replaceAll("\\s+", "")))
-                        {
-                            String cmdSet = fields[i].substring(fields[i].indexOf("["));
-                            subPairArray = cmdSet.split(" ");
-                            String[] innerPairArray;
-
-                            int cmdArgAVCcounter = 0;
-
-                            for(int z = 0; z < subPairArray.length; z++)
-                            {
-                                if(subPairArray[z].contains("="))
-                                {
-                                    innerPairArray = subPairArray[z].split("=");
-
-                                    if("CmdArgAV".equals(innerPairArray[0].replaceAll("\\s+", "")))
-                                    {
-                                        cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
-                                        cmdArgAVCcounter++;
-                                    }
-
-                                    newPairs.put(innerPairArray[0].replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
-                                }
-                            }
-                            newPairs.put(pairArray[0].replaceAll("\\s+", ""),cmdSet.replaceAll("\\s+", ""));
-                        }
-                        else
-                        {
-                            newPairs.put(pairArray[0].replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
-                        }
-                    }
-
-                newPairs.put("CmdArgAV",cmdArgAV.toJSONString());
-                newPairs.put("Steps",steps.toJSONString());
-
-                Set set = newPairs.entrySet();
-                    // Get an iterator
-                    Iterator i = set.iterator();
-                    // Display elements
-                    while(i.hasNext()) {
-                        Map.Entry me = (Map.Entry)i.next();
-                        if (me.getValue() != null || me.getValue().toString().length() != 0) {
-                            if ("Steps".equals(me.getKey().toString())) {
-                                toReturn.put("Steps", steps);
-                            } else {
-                                toReturn.put((me.getKey().toString()).replaceAll("\\s+", ""), (me.getValue().toString()).replaceAll("\\s+", "")); // add the field and value
-                            }
-                        }else {
-                            toReturn.put((me.getKey().toString()), "EMPTY_FIELD");   // there was no value for this field
-                        }
-                    }
-
-                    toReturn.remove("messageGreedy"); // remove message. If something goes wrong, the message is preserved within the original_string
-            } catch (Exception e) {
-                LOGGER.error("ParseException when trying to parse date");
+            if(messageValue.substring(0,10).contains("Step"))
+            {
+                format1(toReturn, messageValue);
+            }
+            else
+            {
+                format2(toReturn, messageValue);
             }
 
             cleanJSON(toReturn, "ciscoacs");
             ArrayList<JSONObject> toReturnList = new ArrayList<JSONObject>();
             toReturnList.add(toReturn);
         }
+    }
+
+    private JSONObject format1(JSONObject toReturn, String messageValue)
+    {
+        try {
+            // if url is in IP form, replace url tag with ip_src_addr
+            if (toReturn.containsKey("url")) {
+                String ip = (String) toReturn.get("url");
+                if (ip.matches("[\\.\\d]+")) {
+                    toReturn.put("ip_src_addr", ip);
+                    toReturn.remove("url");
+                }
+            }
+
+            // sort out the fields within message
+            Pattern pattern = Pattern.compile("=");
+
+            //Matcher matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
+            Matcher matcher = pattern.matcher(messageValue);
+
+            // Check first occurrences
+            ArrayList<String> keys = new ArrayList<String>();
+            if( matcher.find() ){
+                keys.add(matcher.group().toString().substring(0,matcher.group().toString().length()-1));
+            }
+            //Check all occurrences
+            pattern = Pattern.compile(",");
+            //matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
+            matcher = pattern.matcher(messageValue);
+
+            while (matcher.find()) {
+                if(matcher.group().toString().equals(",timestamp=")){
+                    keys.add("log_timestamp1");
+                }
+                else {
+                    keys.add(matcher.group().toString().substring(0,matcher.group().toString().length()-1));
+                }
+            }
+
+            String[] fields = messageValue.split(",");
+
+            HashMap<String, String> pairs = new HashMap<String, String>();
+            HashMap<String, String> newPairs = new HashMap<String, String>();
+            JSONObject steps = new JSONObject();
+            JSONObject cmdArgAV = new JSONObject();
+            int stepCounter = 0;
+
+            for (int i = 0; (i < fields.length) && (i < keys.size()); i++) {
+                String[] pairArray = fields[i].split("=");
+                String[] subPairArray;
+
+                if("Step".equals(pairArray[0].replaceAll("\\s+", "")))
+                {
+                    stepCounter++;
+                    steps.put((pairArray[0]+""+stepCounter).replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
+                }
+                if("CmdSet".equals(pairArray[0].replaceAll("\\s+", "")))
+                {
+                    String cmdSet = fields[i].substring(fields[i].indexOf("["));
+                    subPairArray = cmdSet.split(" ");
+                    String[] innerPairArray;
+
+                    int cmdArgAVCcounter = 0;
+
+                    for(int z = 0; z < subPairArray.length; z++)
+                    {
+                        if(subPairArray[z].contains("="))
+                        {
+                            innerPairArray = subPairArray[z].split("=");
+
+                            if("CmdArgAV".equals(innerPairArray[0].replaceAll("\\s+", "")))
+                            {
+                                cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                                cmdArgAVCcounter++;
+                            }
+
+                            newPairs.put(innerPairArray[0].replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                        }
+                    }
+                    newPairs.put(pairArray[0].replaceAll("\\s+", ""),cmdSet.replaceAll("\\s+", ""));
+                }
+                if("Response".equals(pairArray[0].replaceAll("\\s+", "")))
+                {
+                    String cmdSet = fields[i].substring(fields[i].indexOf("{")+1);
+                    subPairArray = cmdSet.split(";");
+                    String[] innerPairArray;
+
+                    int cmdArgAVCcounter = 0;
+
+                    for(int z = 0; z < subPairArray.length; z++)
+                    {
+                        if(subPairArray[z].contains("="))
+                        {
+                            innerPairArray = subPairArray[z].split("=");
+
+                            if("Type".equals(innerPairArray[0].replaceAll("\\s+", "")))
+                            {
+                                cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                                cmdArgAVCcounter++;
+                            }
+                            if("Author-Reply-Status".equals(innerPairArray[0].replaceAll("\\s+", "")))
+                            {
+                                cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                                cmdArgAVCcounter++;
+                            }
+
+                            newPairs.put(innerPairArray[0].replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                        }
+                    }
+                    newPairs.put(pairArray[0].replaceAll("\\s+", ""),cmdSet.replaceAll("\\s+", ""));
+                }
+                else
+                {
+                    newPairs.put(pairArray[0].replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
+                }
+            }
+
+            newPairs.put("Response",cmdArgAV.toJSONString());
+            newPairs.put("Steps",steps.toJSONString());
+
+            Set set = newPairs.entrySet();
+            // Get an iterator
+            Iterator i = set.iterator();
+            // Display elements
+            while(i.hasNext()) {
+                Map.Entry me = (Map.Entry)i.next();
+                if (me.getValue() != null || me.getValue().toString().length() != 0) {
+                    if ("Steps".equals(me.getKey().toString())) {
+                        toReturn.put("Steps", steps);
+                    } else {
+                        toReturn.put((me.getKey().toString()).replaceAll("\\s+", ""), (me.getValue().toString()).replaceAll("\\s+", "")); // add the field and value
+                    }
+                }else {
+                    toReturn.put((me.getKey().toString()), "EMPTY_FIELD");   // there was no value for this field
+                }
+            }
+
+            toReturn.remove("messageGreedy"); // remove message. If something goes wrong, the message is preserved within the original_string
+        } catch (Exception e) {
+            LOGGER.error("ParseException when trying to parse date");
+        }
+
+        return toReturn;
+    }
+
+    private JSONObject format2(JSONObject toReturn, String messageValue)
+    {
+        try {
+            // if url is in IP form, replace url tag with ip_src_addr
+            if (toReturn.containsKey("url")) {
+                String ip = (String) toReturn.get("url");
+                if (ip.matches("[\\.\\d]+")) {
+                    toReturn.put("ip_src_addr", ip);
+                    toReturn.remove("url");
+                }
+            }
+
+            // sort out the fields within message
+            Pattern pattern = Pattern.compile("=");
+
+            //Matcher matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
+            Matcher matcher = pattern.matcher(messageValue);
+
+            // Check first occurrences
+            ArrayList<String> keys = new ArrayList<String>();
+            if( matcher.find() ){
+                keys.add(matcher.group().toString().substring(0,matcher.group().toString().length()-1));
+            }
+            //Check all occurrences
+            pattern = Pattern.compile(",");
+            //matcher = pattern.matcher(toReturn.get("messageGreedy").toString());
+            matcher = pattern.matcher(messageValue);
+
+            while (matcher.find()) {
+                if(matcher.group().toString().equals(",timestamp=")){
+                    keys.add("log_timestamp1");
+                }
+                else {
+                    keys.add(matcher.group().toString().substring(0,matcher.group().toString().length()-1));
+                }
+            }
+
+            String firstHalf = messageValue.substring(0, messageValue.indexOf(",")+1);
+            System.out.println("firstHalf: "+firstHalf);
+
+            String messageClass = firstHalf.substring(firstHalf.lastIndexOf(" ", firstHalf.lastIndexOf(":"))+1, firstHalf.lastIndexOf(":"));
+            System.out.println("messageClass: "+messageClass);
+            String messageText = firstHalf.substring(firstHalf.lastIndexOf(":")+2, firstHalf.lastIndexOf(","));
+            System.out.println("messageText: "+messageText);
+
+            String secondHalf = messageValue.substring(messageValue.indexOf(",")+1);
+            System.out.println("secondHalf: "+secondHalf);
+
+            toReturn.put("messageClass",messageClass);
+            toReturn.put("messageText",messageText);
+
+
+            String[] fields = secondHalf.split(",");
+
+            HashMap<String, String> pairs = new HashMap<String, String>();
+            HashMap<String, String> newPairs = new HashMap<String, String>();
+            JSONObject steps = new JSONObject();
+            JSONObject cmdArgAV = new JSONObject();
+            int stepCounter = 0;
+
+            for (int i = 0; (i < fields.length) && (i < keys.size()); i++) {
+                String[] pairArray = fields[i].split("=");
+                String[] subPairArray;
+
+                if("Step".equals(pairArray[0].replaceAll("\\s+", "")))
+                {
+                    stepCounter++;
+                    steps.put((pairArray[0]+""+stepCounter).replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
+                }
+                if("CmdSet".equals(pairArray[0].replaceAll("\\s+", "")))
+                {
+                    String cmdSet = fields[i].substring(fields[i].indexOf("["));
+                    subPairArray = cmdSet.split(" ");
+                    String[] innerPairArray;
+
+                    int cmdArgAVCcounter = 0;
+
+                    for(int z = 0; z < subPairArray.length; z++)
+                    {
+                        if(subPairArray[z].contains("="))
+                        {
+                            innerPairArray = subPairArray[z].split("=");
+
+                            if("CmdArgAV".equals(innerPairArray[0].replaceAll("\\s+", "")))
+                            {
+                                cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                                cmdArgAVCcounter++;
+                            }
+
+                            newPairs.put(innerPairArray[0].replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                        }
+                    }
+                    newPairs.put(pairArray[0].replaceAll("\\s+", ""),cmdSet.replaceAll("\\s+", ""));
+                }
+                if("Response".equals(pairArray[0].replaceAll("\\s+", "")))
+                {
+                    String cmdSet = fields[i].substring(fields[i].indexOf("{")+1);
+                    subPairArray = cmdSet.split(";");
+                    String[] innerPairArray;
+
+                    int cmdArgAVCcounter = 0;
+
+                    for(int z = 0; z < subPairArray.length; z++)
+                    {
+                        if(subPairArray[z].contains("="))
+                        {
+                            innerPairArray = subPairArray[z].split("=");
+
+                            if("Type".equals(innerPairArray[0].replaceAll("\\s+", "")))
+                            {
+                                cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                                cmdArgAVCcounter++;
+                            }
+                            if("Author-Reply-Status".equals(innerPairArray[0].replaceAll("\\s+", "")))
+                            {
+                                cmdArgAV.put((innerPairArray[0]+""+cmdArgAVCcounter).replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                                cmdArgAVCcounter++;
+                            }
+
+                            newPairs.put(innerPairArray[0].replaceAll("\\s+", ""),innerPairArray[1].replaceAll("\\s+", ""));
+                        }
+                    }
+                    newPairs.put(pairArray[0].replaceAll("\\s+", ""),cmdSet.replaceAll("\\s+", ""));
+                }
+                else
+                {
+                    newPairs.put(pairArray[0].replaceAll("\\s+", ""),pairArray[1].replaceAll("\\s+", ""));
+                }
+            }
+
+            newPairs.put("Response",cmdArgAV.toJSONString());
+            newPairs.put("Steps",steps.toJSONString());
+
+            Set set = newPairs.entrySet();
+            // Get an iterator
+            Iterator i = set.iterator();
+            // Display elements
+            while(i.hasNext()) {
+                Map.Entry me = (Map.Entry)i.next();
+                if (me.getValue() != null || me.getValue().toString().length() != 0) {
+                    if ("Steps".equals(me.getKey().toString())) {
+                        toReturn.put("Steps", steps);
+                    } else {
+                        toReturn.put((me.getKey().toString()).replaceAll("\\s+", ""), (me.getValue().toString()).replaceAll("\\s+", "")); // add the field and value
+                    }
+                }else {
+                    toReturn.put((me.getKey().toString()), "EMPTY_FIELD");   // there was no value for this field
+                }
+            }
+
+            toReturn.remove("messageGreedy"); // remove message. If something goes wrong, the message is preserved within the original_string
+        } catch (Exception e) {
+            LOGGER.error("ParseException when trying to parse date");
+        }
+
+        return toReturn;
     }
 
     /**
