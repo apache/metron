@@ -333,12 +333,8 @@ public class TaxiiHandler extends TimerTask {
       , HttpClientContext context
       , Class<RESPONSE_T> responseClazz
   ) throws JAXBException, IOException {
-    //TaxiiXml taxiiXml = xmlFactory.get().createTaxiiXml();
-    //String req = taxiiXml.marshalToString(request, true);
-    // Call the service
     Object responseObj =  taxiiClient.callTaxiiService(endpoint, request, context);
     LOG.info("Request made : " + request.getClass().getCanonicalName() + " => " + responseObj.getClass().getCanonicalName() + " (expected " + responseClazz.getCanonicalName() + ")");
-    //String resp = taxiiXml.marshalToString(responseObj, true);
     try {
       return responseClazz.cast(responseObj);
     }
