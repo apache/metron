@@ -24,8 +24,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,13 +99,13 @@ public class CEFParser extends BasicParser {
 			message = new String(rawMessage, "UTF-8");
 						
 			// Only attempt to split if this is a well-formed CEF line
-			if (!message.matches(".*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*")) {
-				_LOG.error("Failed to parse: " + message);
+			if (StringUtils.countMatches(message, "|") < 7){
+				_LOG.error("Not a well-formed CEF line, Failed to parse: " + message);
 				return null;
 			}
 			
 			payload.put("original_string", message.replace("\\=", "="));
-			String[] parts = message.split("\\|");
+			String[] parts = message.split("\\|", 8);
 
 			// Add the standard CEF fields
 			payload.put("header", parts[0]);
@@ -174,7 +176,7 @@ public class CEFParser extends BasicParser {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			_LOG.error("Failed to parse: " + message);
+			_LOG.error("Failed to parse: " + message + " with error message " + e.getMessage());
 			return null;
 		}
 	}
@@ -278,6 +280,11 @@ public class CEFParser extends BasicParser {
 		if (json.containsKey("rt")) {
 			
 			String timestamp = (String) json.get("rt");
+			if(timestamp.equals("${Event.createTime}")){
+				json.put("timestamp", System.currentTimeMillis());
+				json.remove("rt");
+				return;
+			}
 
 			//Adds the year if it is not present
 			if (!dateFormatString.contains("yyyy")) {
