@@ -5,7 +5,7 @@
       "number_of_shards" : 1
    },
    "aliases" : {
-      "addalom" : {}
+      "adallom" : {}
    },
    "mappings": {
       "adallom_doc": {
