@@ -1,7 +1,9 @@
 PRIORITY \d+
 
 MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
-DAY \d{2}
+DAYONE \d{1}
+DAYTWO \d{2}
+DAY %{DAYONE:UNWANTED}|%{DAYTWO:UNWANTED}
 YEAR \d{4}
 
 ONESPACE \s
