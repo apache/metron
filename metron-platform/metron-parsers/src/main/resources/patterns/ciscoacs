@@ -53,8 +53,8 @@ MESSAGETEXT %{MESSAGEONE:UNWANTED}|%{MESSAGETWO:UNWANTED}
 
 GREEDY .*
 
-#CISCOACSONE <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGEONE:messageText}, %{GREEDY:messageGreedy}
+#CISCOACSONE <%{PRIORITY:priority}>%{MONTH:UNWANTED}%{SPACE}%{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGEONE:messageText}, %{GREEDY:messageGreedy}
 #CISCOACSTWO <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{EVENTDATE:eventDate} %{EVENTTIMESTAMP:eventTimestamp} %{TIMEZONE:timezoneOffset} %{SEQUENCENUMBER:sequenceNum} %{MESSAGECODE:messageCode} %{SEVERITY:severity} %{MESSAGECLASS:messageClass}: %{MESSAGETWO:messageText}, %{GREEDY:messageGreedy}
-CISCOACSTHREE <%{PRIORITY:priority}>%{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{GREEDY:messageGreedy}
+CISCOACSTHREE <%{PRIORITY:priority}>%{MONTH:UNWANTED}%{SPACE}%{DAY:UNWANTED} %{TIMESTAMP:timestamp} %{HOSTNAMEALPHABET:hostname} %{CATEGORY:category} %{MESSAGEID:messageID} %{TOTALSEGMENTS:totalSegments} %{SEGMENTNUMBER:segmentNum} %{GREEDY:messageGreedy}
 CISCOACS %{CISCOACSTHREE:UNWANTED}
 %{CISCOACSONE:UNWANTED}|%{CISCOACSTHREE:UNWANTED}
