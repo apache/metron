@@ -95,6 +95,7 @@ public class GrokCiscoACSParser  extends GrokParser {
             }
             else
             {
+                System.out.println("hellow");
                 format2(toReturn, messageValue);
             }
 
@@ -298,18 +299,6 @@ public class GrokCiscoACSParser  extends GrokParser {
             String parameters = firstHalf.substring(0,firstHalf.indexOf(messageClass)-1);
             System.out.println("parameters: "+ parameters);
 
-            Pattern MY_PATTERN = Pattern.compile("\\d{4}" + "-" + "\\d{2}" + "-" + "\\d{2}");
-
-            MY_PATTERN = Pattern.compile("\\d{2}:\\d{2}:\\d{2}.\\d{3}");
-
-            Matcher m = MY_PATTERN.matcher(parameters);
-            while (m.find()) {
-                String s = m.group(1);
-                System.out.println("pattern: "+s);
-                toReturn.put("eventTimestamp",s);
-                // s now contains "BAR"
-            }
-
             toReturn.put("messageClass",messageClass);
             toReturn.put("messageText",messageText);
 
@@ -323,6 +312,7 @@ public class GrokCiscoACSParser  extends GrokParser {
             int stepCounter = 0;
 
             for (int i = 0; (i < fields.length) && (i < keys.size()); i++) {
+
                 String[] pairArray = fields[i].split("=");
                 String[] subPairArray;
 
