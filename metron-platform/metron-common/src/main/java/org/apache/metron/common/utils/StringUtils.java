@@ -27,9 +27,10 @@ import java.util.Optional;
 public class StringUtils {
   public static String join(String delim, Optional<String>... parts) {
     return Joiner.on(delim).join(
-      Iterables.filter(Arrays.asList(parts)
-                      , part -> part.isPresent()
-                      )
-    );
+            Arrays.asList(parts).stream().filter(
+                    part -> part.isPresent()
+            ).map( part -> part.get())
+             .toArray()
+                                );
   }
 }

@@ -30,14 +30,15 @@ import org.apache.metron.common.writer.BulkWriterComponent;
 import org.apache.metron.common.writer.WriterToBulkWriter;
 import org.json.simple.JSONObject;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Function;
 
-public class WriterHandler {
+public class WriterHandler implements Serializable {
   private BulkMessageWriter<JSONObject> messageWriter;
-  private BulkWriterComponent<JSONObject> writerComponent;
+  private transient BulkWriterComponent<JSONObject> writerComponent;
   private transient Function<ParserConfigurations, WriterConfiguration> writerTransformer;
   private boolean isBulk = false;
   public WriterHandler(MessageWriter<JSONObject> writer) {
@@ -67,7 +68,7 @@ public class WriterHandler {
     } catch (Exception e) {
       throw new IllegalStateException("Unable to initialize message writer", e);
     }
-    this.writerComponent = new BulkWriterComponent<JSONObject>(collector, isBulk, false) {
+    this.writerComponent = new BulkWriterComponent<JSONObject>(collector, isBulk, isBulk) {
       @Override
       protected Collection<Tuple> createTupleCollection() {
         return new HashSet<>();

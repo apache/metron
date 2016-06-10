@@ -111,16 +111,18 @@ public class ParserTopologyBuilder {
     builder.setBolt("parserBolt", parserBolt, parserParallelism)
            .setNumTasks(spoutNumTasks)
            .shuffleGrouping("kafkaSpout");
-
-    builder.setBolt("errorMessageWriter", errorBolt, errorWriterParallelism)
-           .setNumTasks(errorWriterNumTasks)
-           .shuffleGrouping("parserBolt")
-           ;
-
-    builder.setBolt("invalidMessageWriter", invalidBolt, invalidWriterParallelism)
-           .setNumTasks(invalidWriterNumTasks)
-           .shuffleGrouping("parserBolt")
-           ;
+    if(errorWriterNumTasks > 0) {
+      builder.setBolt("errorMessageWriter", errorBolt, errorWriterParallelism)
+              .setNumTasks(errorWriterNumTasks)
+              .shuffleGrouping("parserBolt", Constants.ERROR_STREAM)
+      ;
+    }
+    if(invalidWriterNumTasks > 0) {
+      builder.setBolt("invalidMessageWriter", invalidBolt, invalidWriterParallelism)
+              .setNumTasks(invalidWriterNumTasks)
+              .shuffleGrouping("parserBolt", Constants.INVALID_STREAM)
+      ;
+    }
     return builder;
   }
 

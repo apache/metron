@@ -23,7 +23,9 @@ import java.util.Optional;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Values;
+import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
 
@@ -32,9 +34,13 @@ public class ErrorUtils {
   @SuppressWarnings("unchecked")
   public static JSONObject generateErrorMessage(String message, Throwable t)
   {
-    return generateErrorMessage(message, t, Optional.empty());
+    return generateErrorMessage(message, t, Optional.empty(), Optional.empty());
   }
-  public static JSONObject generateErrorMessage(String message, Throwable t, Optional<String> sensorType)
+  public static JSONObject generateErrorMessage(String message
+                                               , Throwable t
+                                               , Optional<String> sensorType
+                                               , Optional<Object> rawMessage
+                                               )
   {
     JSONObject error_message = new JSONObject();
 		
@@ -51,7 +57,15 @@ public class ErrorUtils {
     } catch (UnknownHostException ex) {
 
     }
-
+    if(rawMessage.isPresent()) {
+      if(rawMessage.get() instanceof byte[]) {
+        error_message.put("rawMessage", Bytes.toString((byte[])rawMessage.get()));
+        error_message.put("rawMessage_bytes", rawMessage.get());
+      }
+      else {
+        error_message.put("rawMessage", rawMessage.get());
+      }
+    }
     error_message.put("message", message);
     error_message.put(Constants.SENSOR_TYPE, StringUtils.join("_", sensorType, Optional.of("error")));
     error_message.put("exception", exception);
@@ -61,10 +75,16 @@ public class ErrorUtils {
   }
 
   public static void handleError(OutputCollector collector, Throwable t, String errorStream) {
-    handleError(collector, t, errorStream, Optional.empty());
+    handleError(collector, t, errorStream, Optional.empty(), Optional.empty());
   }
-  public static void handleError(OutputCollector collector, Throwable t, String errorStream, Optional<String> sensorType) {
-    JSONObject error = ErrorUtils.generateErrorMessage(t.getMessage(), t, sensorType);
+  public static void handleError(OutputCollector collector
+                                , Throwable t
+                                , String errorStream
+                                , Optional<String> sensorType
+                                , Optional<Object> rawMessage
+                                )
+  {
+    JSONObject error = ErrorUtils.generateErrorMessage(t.getMessage(), t, sensorType, rawMessage);
     collector.emit(errorStream, new Values(error));
     collector.reportError(t);
   }

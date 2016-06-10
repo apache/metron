@@ -22,12 +22,13 @@ import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SensorParserConfig {
+public class SensorParserConfig implements Serializable {
 
   private String parserClassName;
   private String filterClassName;

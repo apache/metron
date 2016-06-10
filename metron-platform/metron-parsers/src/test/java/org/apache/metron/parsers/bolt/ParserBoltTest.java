@@ -31,6 +31,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -82,6 +83,24 @@ public class ParserBoltTest extends BaseBoltTest {
   @Mock
   private Tuple t5;
 
+  @Test
+  public void foo() {
+    System.out.println(ErrorUtils.generateErrorMessage("foo"
+                                                      , new IllegalStateException("foo")
+                                                      , Optional.of("sensortype")
+                                                      , Optional.of("foo bar grok".getBytes())
+                                                      ).toJSONString()
+                      );
+    System.out.println(ErrorUtils.generateErrorMessage("foo"
+                                                      , new IllegalStateException("foo")
+                                                      , Optional.of("sensortype")
+                                                      , Optional.of(new JSONObject() {{
+                                                          put("foo", "bar");
+                                                          put("bar", 7);
+                                                        }})
+                                                      ).toJSONString()
+                      );
+  }
 
 
   @Test
@@ -138,7 +157,7 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(outputCollector, times(2)).ack(tuple);
     doThrow(new Exception()).when(writer).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
     parserBolt.execute(tuple);
-    verify(outputCollector, times(2)).reportError(any(Throwable.class));
+    verify(outputCollector, times(1)).reportError(any(Throwable.class));
   }
 @Test
 public void testImplicitBatchOfOne() throws Exception {

@@ -18,10 +18,11 @@
 
 package org.apache.metron.common.field.transformation;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public interface FieldTransformation {
+public interface FieldTransformation extends Serializable {
   Map<String, Object> map( Map<String, Object> input
                          , List<String> outputField
                          , Map<String, Object> fieldMappingConfig

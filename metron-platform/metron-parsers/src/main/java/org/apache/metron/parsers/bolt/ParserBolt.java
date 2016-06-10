@@ -141,8 +141,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         collector.ack(tuple);
       }
     } catch (Throwable ex) {
-      writer.errorAll(getSensorType(), ex);
-      ErrorUtils.handleError(collector, ex, Constants.ERROR_STREAM, Optional.of(getSensorType()));
+      ErrorUtils.handleError( collector
+                            , ex
+                            , Constants.ERROR_STREAM
+                            , Optional.of(getSensorType())
+                            , Optional.ofNullable(originalMessage)
+                            );
       collector.ack(tuple);
     }
   }

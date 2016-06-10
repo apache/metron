@@ -63,7 +63,7 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
   private int requiredAcks = 1;
   private String kafkaTopic = Constants.ENRICHMENT_TOPIC;
   private KafkaProducer kafkaProducer;
-  private Optional<String> configPrefix = Optional.empty();
+  private String configPrefix = null;
 
   public KafkaWriter() {}
 
@@ -91,29 +91,33 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     return this;
   }
   public KafkaWriter withConfigPrefix(String prefix) {
-    this.configPrefix = Optional.ofNullable(prefix);
+    this.configPrefix = prefix;
     return this;
+  }
+
+  public Optional<String> getConfigPrefix() {
+    return Optional.ofNullable(configPrefix);
   }
   @Override
   public void configure(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> configMap = configuration.getSensorConfig(sensorName);
-    String brokerUrl = Configurations.BROKER.getAndConvert(configPrefix, configMap, String.class);
+    String brokerUrl = Configurations.BROKER.getAndConvert(getConfigPrefix(), configMap, String.class);
     if(brokerUrl != null) {
       this.brokerUrl = brokerUrl;
     }
-    String keySerializer = Configurations.KEY_SERIALIZER.getAndConvert(configPrefix, configMap, String.class);
+    String keySerializer = Configurations.KEY_SERIALIZER.getAndConvert(getConfigPrefix(), configMap, String.class);
     if(keySerializer != null) {
       withKeySerializer(keySerializer);
     }
-    String valueSerializer = Configurations.VALUE_SERIALIZER.getAndConvert(configPrefix, configMap, String.class);
+    String valueSerializer = Configurations.VALUE_SERIALIZER.getAndConvert(getConfigPrefix(), configMap, String.class);
     if(valueSerializer != null) {
       withValueSerializer(keySerializer);
     }
-    Integer requiredAcks = Configurations.REQUIRED_ACKS.getAndConvert(configPrefix, configMap, Integer.class);
+    Integer requiredAcks = Configurations.REQUIRED_ACKS.getAndConvert(getConfigPrefix(), configMap, Integer.class);
     if(requiredAcks!= null) {
       withRequiredAcks(requiredAcks);
     }
-    String topic = Configurations.TOPIC.getAndConvert(configPrefix, configMap, String.class);
+    String topic = Configurations.TOPIC.getAndConvert(getConfigPrefix(), configMap, String.class);
     if(topic != null) {
       withTopic(topic);
     }

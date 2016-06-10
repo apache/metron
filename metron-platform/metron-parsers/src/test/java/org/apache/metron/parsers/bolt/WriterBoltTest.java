@@ -61,6 +61,7 @@ public class WriterBoltTest extends BaseBoltTest{
 
   @Mock
   private BulkMessageWriter<JSONObject> batchWriter;
+
   private ParserConfigurations getConfigurations(int batchSize) {
     return new ParserConfigurations() {
           @Override
@@ -134,6 +135,22 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(outputCollector, times(0)).fail(any());
   }
   @Test
+  public void test_nonbatch_error_path_error_in_write() throws Exception {
+    ParserConfigurations configurations = getConfigurations(1);
+    String sensorType = "test";
+    Tuple t = mock(Tuple.class);
+    when(t.getValueByField(eq("message"))).thenReturn(new JSONObject());
+    WriterBolt bolt = new WriterBolt(new WriterHandler(writer), configurations, sensorType);
+    bolt.prepare(new HashMap(), topologyContext, outputCollector);
+    doThrow(new Exception()).when(writer).write(any(), any(), any(), any());
+    verify(writer, times(1)).init();
+    bolt.execute(t);
+    verify(outputCollector, times(1)).ack(t);
+    verify(writer, times(1)).write(eq(sensorType), any(), any(), any());
+    verify(outputCollector, times(1)).reportError(any());
+    verify(outputCollector, times(0)).fail(any());
+  }
+  @Test
   public void test_batch_error_path() throws Exception {
     ParserConfigurations configurations = getConfigurations(5);
     String sensorType = "test";
@@ -144,6 +161,8 @@ public class WriterBoltTest extends BaseBoltTest{
       tuples.add(t);
     }
     Tuple errorTuple = mock(Tuple.class);
+    Tuple goodTuple = mock(Tuple.class);
+    when(goodTuple.getValueByField(eq("message"))).thenReturn(new JSONObject());
     when(errorTuple.getValueByField(eq("message"))).thenThrow(new IllegalStateException());
 
     WriterBolt bolt = new WriterBolt(new WriterHandler(batchWriter), configurations, sensorType);
@@ -157,11 +176,48 @@ public class WriterBoltTest extends BaseBoltTest{
     }
     bolt.execute(errorTuple);
     for(Tuple t : tuples) {
+      verify(outputCollector, times(0)).ack(t);
+    }
+    bolt.execute(goodTuple);
+    for(Tuple t : tuples) {
       verify(outputCollector, times(1)).ack(t);
     }
-    verify(outputCollector, times(1)).ack(errorTuple);
-    verify(batchWriter, times(0)).write(eq(sensorType), any(), any(), any());
-    verify(outputCollector, times(5)).reportError(any());
+    verify(outputCollector, times(1)).ack(goodTuple);
+    verify(batchWriter, times(1)).write(eq(sensorType), any(), any(), any());
+    verify(outputCollector, times(1)).reportError(any());
+    verify(outputCollector, times(0)).fail(any());
+  }
+
+  @Test
+  public void test_batch_error_path_exception_in_write() throws Exception {
+    ParserConfigurations configurations = getConfigurations(5);
+    String sensorType = "test";
+    List<Tuple> tuples = new ArrayList<>();
+    for(int i = 0;i < 4;++i) {
+      Tuple t = mock(Tuple.class);
+      when(t.getValueByField(eq("message"))).thenReturn(new JSONObject());
+      tuples.add(t);
+    }
+    Tuple goodTuple = mock(Tuple.class);
+    when(goodTuple.getValueByField(eq("message"))).thenReturn(new JSONObject());
+
+    WriterBolt bolt = new WriterBolt(new WriterHandler(batchWriter), configurations, sensorType);
+    bolt.prepare(new HashMap(), topologyContext, outputCollector);
+    doThrow(new Exception()).when(batchWriter).write(any(), any(), any(), any());
+    verify(batchWriter, times(1)).init(any(), any());
+    for(int i = 0;i < 4;++i) {
+      Tuple t = tuples.get(i);
+      bolt.execute(t);
+      verify(outputCollector, times(0)).ack(t);
+      verify(batchWriter, times(0)).write(eq(sensorType), any(), any(), any());
+    }
+    bolt.execute(goodTuple);
+    for(Tuple t : tuples) {
+      verify(outputCollector, times(1)).ack(t);
+    }
+    verify(batchWriter, times(1)).write(eq(sensorType), any(), any(), any());
+    verify(outputCollector, times(1)).ack(goodTuple);
+    verify(outputCollector, times(1)).reportError(any());
     verify(outputCollector, times(0)).fail(any());
   }
 }

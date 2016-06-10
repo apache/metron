@@ -35,7 +35,7 @@ public class WriterBolt extends BaseRichBolt {
   private WriterHandler handler;
   private ParserConfigurations configuration;
   private String sensorType;
-  private OutputCollector collector;
+  private transient OutputCollector collector;
   public WriterBolt(WriterHandler handler, ParserConfigurations configuration, String sensorType) {
     this.handler = handler;
     this.configuration = configuration;
@@ -50,15 +50,20 @@ public class WriterBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
+    JSONObject message = null;
     try {
-      JSONObject message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
+      message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
       handler.write(sensorType, tuple, message, configuration);
       if(!handler.handleAck()) {
         collector.ack(tuple);
       }
     } catch (Throwable e) {
-      handler.errorAll(sensorType, e);
-      ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM, Optional.of(sensorType));
+      ErrorUtils.handleError( collector
+                            , e
+                            , Constants.ERROR_STREAM
+                            , Optional.of(sensorType)
+                            , Optional.ofNullable(message)
+                            );
       collector.ack(tuple);
     }
   }
