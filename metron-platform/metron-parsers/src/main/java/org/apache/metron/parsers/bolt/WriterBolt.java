@@ -48,6 +48,19 @@ public class WriterBolt extends BaseRichBolt {
     handler.init(stormConf, collector, configuration);
   }
 
+  private JSONObject getMessage(Tuple tuple) {
+    Object ret = tuple.getValueByField("message");
+    if(ret != null) {
+      ret = tuple.getValue(0);
+    }
+    if(ret != null) {
+      return (JSONObject)((JSONObject)ret).clone();
+    }
+    else {
+      return null;
+    }
+  }
+
   @Override
   public void execute(Tuple tuple) {
     JSONObject message = null;

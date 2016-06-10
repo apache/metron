@@ -19,12 +19,16 @@ package org.apache.metron.common.utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Values;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
@@ -60,7 +64,7 @@ public class ErrorUtils {
     if(rawMessage.isPresent()) {
       if(rawMessage.get() instanceof byte[]) {
         error_message.put("rawMessage", Bytes.toString((byte[])rawMessage.get()));
-        error_message.put("rawMessage_bytes", rawMessage.get());
+        error_message.put("rawMessage_bytes", toByteArrayList((byte[])rawMessage.get()));
       }
       else {
         error_message.put("rawMessage", rawMessage.get());
@@ -72,6 +76,14 @@ public class ErrorUtils {
     error_message.put("stack", stackTrace);
 
     return error_message;
+  }
+
+  private static List<Byte> toByteArrayList(byte[] list) {
+    List<Byte> ret = new ArrayList<>();
+    for(byte b : list) {
+      ret.add(b);
+    }
+    return ret;
   }
 
   public static void handleError(OutputCollector collector, Throwable t, String errorStream) {
