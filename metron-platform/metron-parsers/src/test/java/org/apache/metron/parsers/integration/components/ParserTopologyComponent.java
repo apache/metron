@@ -91,6 +91,8 @@ public class ParserTopologyComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    stormCluster.shutdown();
+    if(stormCluster != null) {
+      stormCluster.shutdown();
+    }
   }
 }

@@ -168,7 +168,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      return null;
+      throw new IllegalStateException("Unable to parse: " + e.getMessage(), e);
     }
     return messages;
   }
