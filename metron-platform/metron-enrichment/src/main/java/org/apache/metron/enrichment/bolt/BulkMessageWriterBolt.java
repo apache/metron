@@ -63,7 +63,7 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
+    JSONObject message = new JSONObject((JSONObject) tuple.getValueByField("message"));
     message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
     String sensorType = MessageUtils.getSensorType(message);
     try
@@ -71,7 +71,7 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
       writerComponent.write(sensorType, tuple, message, bulkMessageWriter, new EnrichmentWriterConfiguration(getConfigurations()));
     }
     catch(Exception e) {
-      throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA");
+      throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
     }
   }
 
