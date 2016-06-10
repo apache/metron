@@ -1,9 +1,9 @@
 {
   "template": "ironport*",
-   "order" : 1,
-   "settings" : {
-     "number_of_shards" : 2
-   },
+  "order" : 1,
+  "settings" : {
+    "number_of_shards" : 2
+  },
   "aliases": {
     "ironport": {}
   },
@@ -13,10 +13,10 @@
         "enabled": true
       },
       "properties": {
-          "timestamp" : {
-              "type" : "date",
-              "format" : "epoch_millis"
-          },
+        "timestamp" : {
+          "type" : "date",
+          "format" : "epoch_millis"
+        },
         "level":{
           "type":"string",
           "index":"not_analyzed"
@@ -30,7 +30,7 @@
           "index":"analyzed"
         },
         "priority":{
-          "type":"int",
+          "type":"long",
           "index":"not_analyzed"
         }
       }

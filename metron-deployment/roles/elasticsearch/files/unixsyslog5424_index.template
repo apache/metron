@@ -1,24 +1,17 @@
 {
-  "template": "unixsyslog5424*",
-   "order" : 1,
-   "settings" : {
-     "number_of_shards" : 1
-   },
+  "template": "UnixSyslog5424*",
+  "order": 1,
   "aliases": {
     "unixsyslog": {}
   },
   "mappings": {
-    "unixsyslog5424_doc": {
-      "_timestamp": {
+    "_default_": {
+      "_all": {
         "enabled": true
       },
       "properties": {
-        "timestamp" : {
-            "type" : "date",
-            "format" : "epoch_millis"
-        },
         "priority": {
-          "type": "int",
+          "type": "long",
           "index": "not_analyzed"
         },
         "hostname": {

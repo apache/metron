@@ -1,9 +1,9 @@
 {
   "template": "unixsyslog3164*",
-   "order" : 1,
-   "settings" : {
-     "number_of_shards" : 1
-   },
+  "order" : 1,
+  "settings" : {
+    "number_of_shards" : 1
+  },
   "aliases": {
     "unixsyslog": {}
   },
@@ -14,14 +14,10 @@
       },
       "properties": {
         "timestamp" : {
-            "type" : "date",
-            "format" : "epoch_millis"
+          "type" : "date",
+          "format" : "epoch_millis"
         },
         "priority": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "timestamp": {
           "type": "long",
           "index": "not_analyzed"
         },
@@ -32,6 +28,10 @@
         "tag": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "extra_info": {
+          "type": "string",
+          "index": "analyzed"
         },
         "message": {
           "type": "string",

@@ -1,24 +1,15 @@
 {
    "template" : "paloalto*",
    "order" : 1,
-   "settings" : {
-      "number_of_shards" : 2
-   },
    "aliases" : {
-      "paloalto" : {},
-      "1-Network-Based" : {},
-      "1-IP-Search" : {}
+      "paloalto" : {}
    },
    "mappings" : {
-      "paloalto_doc" : {
-         "_timestamp" : {
+      "_default_" : {
+         "_all" : {
             "enabled" : true
          },
          "properties" : {
-            "timestamp" : {
-               "type" : "date",
-               "format" : "epoch_millis"
-            },
             "deviceGeneratedTimestamp": {
                "type": "date",
                "format": "strict_date_optional_time||epoch_millis",
@@ -34,7 +25,7 @@
                "index": "not_analyzed"
             },
             "priority" : {
-               "type": "int",
+               "type": "long",
                "index": "not_analyzed"
             },
             "timestamp" : {
@@ -129,7 +120,7 @@
                "index": "not_analyzed"
             },
             "repeatCount" : {
-               "type": "int",
+               "type": "long",
                "index": "not_analyzed"
             },
             "ipSrcPort" : {
@@ -165,7 +156,7 @@
                "index": "not_analyzed"
             },
             "sequenceNumber" : {
-               "type": "int",
+               "type": "long",
                "index": "not_analyzed"
             },
             "actionFlags" : {
@@ -191,11 +182,11 @@
                "index": "not_analyzed"
             },
             "bytes" : {
-               "type": "int",
+               "type": "long",
                "index": "not_analyzed"
             },
             "byteSent" : {
-               "type": "int",
+               "type": "long",
                "index": "not_analyzed"
             },
             "bytesReceived" : {
