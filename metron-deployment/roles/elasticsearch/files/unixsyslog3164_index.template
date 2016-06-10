@@ -1,27 +1,23 @@
 {
-  "template": "unixsyslog3164*",
-   "order" : 1,
-   "settings" : {
-     "number_of_shards" : 1
-   },
+  "template": "unixsyslog5424*",
+  "order" : 1,
+  "settings" : {
+    "number_of_shards" : 1
+  },
   "aliases": {
     "unixsyslog": {}
   },
   "mappings": {
-    "unixsyslog3164_doc": {
+    "unixsyslog5424_doc": {
       "_timestamp": {
         "enabled": true
       },
       "properties": {
         "timestamp" : {
-            "type" : "date",
-            "format" : "epoch_millis"
+          "type" : "date",
+          "format" : "epoch_millis"
         },
         "priority": {
-          "type": "int",
-          "index": "not_analyzed"
-        },
-        "timestamp": {
           "type": "long",
           "index": "not_analyzed"
         },
@@ -32,6 +28,10 @@
         "tag": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "extra_info": {
+          "type": "string",
+          "index": "analyzed"
         },
         "message": {
           "type": "string",

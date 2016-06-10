@@ -1,9 +1,9 @@
 {
   "template": "mcafeefirewall*",
-   "order" : 1,
-   "settings" : {
-     "number_of_shards" : 1
-   },
+  "order" : 1,
+  "settings" : {
+    "number_of_shards" : 1
+  },
   "aliases": {
     "mcafeefirewall": {}
   },
@@ -14,11 +14,11 @@
       },
       "properties": {
         "timestamp" : {
-            "type" : "date",
-            "format" : "epoch_millis"
+          "type" : "date",
+          "format" : "epoch_millis"
         },
         "priority": {
-          "type": "int",
+          "type": "long",
           "index": "not_analyzed"
         },
         "hostname": {
