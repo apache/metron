@@ -10,27 +10,8 @@
             "enabled" : true
          },
          "properties" : {
-            "deviceGeneratedTimestamp": {
-               "type": "date",
-               "format": "strict_date_optional_time||epoch_millis",
-               "index": "not_analyzed"
-            },
-            "ingestTimestamp" : {
-               "type": "date",
-               "format": "strict_date_optional_time||epoch_millis",
-               "index": "not_analyzed"
-            },
-            "sourceType" : {
-               "type": "string",
-               "index": "not_analyzed"
-            },
             "priority" : {
                "type": "long",
-               "index": "not_analyzed"
-            },
-            "timestamp" : {
-               "type": "string",
-               "format": "strict_date_optional_time||epoch_millis",
                "index": "not_analyzed"
             },
             "hostName" : {
