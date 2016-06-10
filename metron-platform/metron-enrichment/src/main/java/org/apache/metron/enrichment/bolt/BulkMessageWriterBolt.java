@@ -64,7 +64,6 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
   @Override
   public void execute(Tuple tuple) {
     JSONObject message = new JSONObject((JSONObject) tuple.getValueByField("message"));
-    message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
     String sensorType = MessageUtils.getSensorType(message);
     try
     {
