@@ -2,7 +2,7 @@
   "template": "UnixSyslog5424*",
   "order": 1,
   "aliases": {
-    "UnixSyslog5424": {}
+    "unixsyslog": {}
   },
   "mappings": {
     "_default_": {
