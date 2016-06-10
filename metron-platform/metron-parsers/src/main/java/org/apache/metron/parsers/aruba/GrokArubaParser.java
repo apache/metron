@@ -43,6 +43,20 @@ public class GrokArubaParser extends GrokParser {
 		}
 
 		parseCSVSection(message);
+		sanitizeKeys(message);
+	}
+
+	private void sanitizeKeys(JSONObject json) {
+		for (Object obj : json.keySet()) {
+			if (obj instanceof String) {
+				String key = obj.toString();
+				if (key.contains(".")) {
+					String cleanKey = key.replace(".", "_");
+					json.put(cleanKey, json.get(key));
+					json.remove(key);
+				}
+			}
+		}
 	}
 
 	private void parseCSVSection(JSONObject json) {
