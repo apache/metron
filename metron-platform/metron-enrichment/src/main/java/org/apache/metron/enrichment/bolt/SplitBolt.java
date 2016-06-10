@@ -29,7 +29,7 @@ import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class SplitBolt<T> extends
+public abstract class SplitBolt<T extends Cloneable> extends
         ConfiguredEnrichmentBolt {
 
   protected OutputCollector collector;

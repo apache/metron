@@ -90,7 +90,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
             message = (JSONObject) tuple.getValueByField(messageFieldName);
             message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
         }
-        return message;
+        return (JSONObject)message.clone();
     }
 
     @Override
