@@ -51,7 +51,7 @@ title: Apache Metron Community
     <tr>
       <td style="text-align: left">George Vetticaden</td> <td style="text-align: left">gvetticaden</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-       <td style="text-align: left">Ryan Merriman</td> <td style="text-align: left">merrimanr</td> <td style="text-align: left">PMC</td> </tr>
+       <td style="text-align: left">Ryan Merriman</td> <td style="text-align: left">rmerriman</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
       <td style="text-align: left">P. Taylor Goetz</td> <td style="text-align: left">ptgoetz</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
