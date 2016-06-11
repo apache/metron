@@ -60,10 +60,20 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     }
   }
 
+  private JSONObject cloneMessage(Tuple tuple) {
+    JSONObject ret = new JSONObject();
+    JSONObject message = (JSONObject) tuple.getValueByField("message");
+    for(Iterator<Map.Entry<String, Object>> it = message.entrySet().iterator();it.hasNext();) {
+      Map.Entry<String, Object> kv = it.next();
+      ret.put(kv.getKey(), kv.getValue());
+    }
+    return ret;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = new JSONObject((JSONObject) tuple.getValueByField("message"));
+    JSONObject message = cloneMessage(tuple);
     String sensorType = MessageUtils.getSensorType(message);
     try
     {
