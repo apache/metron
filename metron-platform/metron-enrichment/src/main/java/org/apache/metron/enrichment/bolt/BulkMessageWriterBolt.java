@@ -25,6 +25,7 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterComponent;
@@ -63,9 +64,15 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
   private JSONObject cloneMessage(Tuple tuple) {
     JSONObject ret = new JSONObject();
     JSONObject message = (JSONObject) tuple.getValueByField("message");
-    for(Iterator<Map.Entry<String, Object>> it = message.entrySet().iterator();it.hasNext();) {
-      Map.Entry<String, Object> kv = it.next();
-      ret.put(kv.getKey(), kv.getValue());
+    try {
+      for (Iterator<Map.Entry<String, Object>> it = message.entrySet().iterator(); it.hasNext(); ) {
+        Map.Entry<String, Object> kv = it.next();
+        ret.put(kv.getKey(), kv.getValue());
+      }
+    }
+    catch(ConcurrentModificationException cme) {
+      LOG.error(cme.getMessage() + "\n" + ErrorUtils.generateThreadDump(), cme);
+      throw cme;
     }
     return ret;
   }
