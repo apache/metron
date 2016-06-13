@@ -20,6 +20,7 @@ package org.apache.metron.parsers.activedirectory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -250,5 +251,21 @@ public class ActiveDirectoryParserTest {
                 testKeysNotNull((JSONObject) jsonValue);
             }
         }
+    }
+
+    @Test
+    public void testEmptyLine() {
+        //Set up parser, parse message
+        ActiveDirectoryParser parser = new ActiveDirectoryParser();
+        parser.configure(new HashMap<>());
+        String testString = "";
+
+        List<JSONObject> result = null;
+        try {
+            result = parser.parse(testString.getBytes());
+            System.out.println(result.get(0));
+        } catch (Exception e) {
+        }
+        assertNull(result);
     }
 }

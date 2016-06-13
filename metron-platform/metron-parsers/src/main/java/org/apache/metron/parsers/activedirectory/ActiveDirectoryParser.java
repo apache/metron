@@ -83,21 +83,22 @@ public class ActiveDirectoryParser extends BasicParser {
     }
 
     @Override
-    public List<JSONObject> parse(byte[] rawMessage) {
-
-        ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
+    public List<JSONObject> parse(byte[] rawMessage) throws Exception {
 
         try {
+            ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
             toReturn.add(getActiveDirectoryJSON(new String(rawMessage)));
             return toReturn;
         } catch (IOException e) {
             LOGGER.error("UnsupportedEncodingException when trying to create String", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Unable to parse message", e);
+            throw e;
         }
-
-        return toReturn;
     }
 
-    private JSONObject getActiveDirectoryJSON(String fileName) throws IOException {
+    private JSONObject getActiveDirectoryJSON(String fileName) throws Exception {
         // if using test generator, read from file
         if (fileName.matches("^/vagrant/resources/activedirectory/\\d+\\.txt")) {
             try {
@@ -111,6 +112,7 @@ public class ActiveDirectoryParser extends BasicParser {
                 br.close();
             } catch (IOException e) {
                 LOGGER.error("Unable to locate test file.", e);
+                throw e;
             }
         }
 
@@ -210,13 +212,33 @@ public class ActiveDirectoryParser extends BasicParser {
             //do nothing if the line's length is 0.(Implied else)
         }
         br.close();
+
         jsonMain.put("names", jsonNames);
         jsonMain.put("object", jsonObject);
         jsonMain.put("event", jsonEvent);
         jsonMain.put("additional", jsonAdditional);
 
+        if (notTruelyParsed(jsonMain)) {
+            throw new Exception("Unable to parse the following message: " + fileName);
+        }
+
         cleanJSON(jsonMain, "ActiveDirectory");
         return jsonMain;
+    }
+
+    private boolean notTruelyParsed(JSONObject json) {
+        boolean trulyParsed = false;
+        for (Object key : json.keySet()) {
+            if (!"timestamp".equals(key)) {
+                if (json.get(key) instanceof JSONObject) {
+                    if (!( (JSONObject) json.get(key)) .isEmpty() ) {
+                        trulyParsed = true;
+                        break; // break out of loop if found to be truly parsed
+                    }
+                }
+            }
+        }
+        return !trulyParsed;
     }
 
     /**
