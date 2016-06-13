@@ -18,16 +18,23 @@
 
 package org.apache.metron.common.query;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import org.apache.metron.common.query.generated.PredicateLexer;
 import org.apache.metron.common.query.generated.PredicateParser;
 
+import java.util.Map;
+
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 
 public class PredicateProcessor {
+
   public boolean parse(String rule, VariableResolver resolver) {
     if (rule == null || isEmpty(rule.trim())) {
       return true;
@@ -38,11 +45,11 @@ public class PredicateProcessor {
     lexer.addErrorListener(new ErrorListener());
     TokenStream tokens = new CommonTokenStream(lexer);
     PredicateParser parser = new PredicateParser(tokens);
-
-    QueryCompiler treeBuilder = new QueryCompiler(resolver);
-    parser.addParseListener(treeBuilder);
     parser.removeErrorListeners();
     parser.addErrorListener(new ErrorListener());
+    QueryCompiler treeBuilder = new QueryCompiler(resolver);
+    parser.removeParseListeners();
+    parser.addParseListener(treeBuilder);
     parser.single_rule();
     return treeBuilder.getResult();
   }

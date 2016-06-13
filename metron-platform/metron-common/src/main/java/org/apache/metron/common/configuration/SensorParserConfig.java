@@ -18,6 +18,7 @@
 package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -31,6 +32,14 @@ public class SensorParserConfig {
   private String parserClassName;
   private String filterClassName;
   private String sensorTopic;
+  private String writerClassName;
+
+  public String getWriterClassName() {
+    return writerClassName;
+  }
+  public void setWriterClassName(String classNames) {
+    this.writerClassName = classNames;
+  }
   private Map<String, Object> parserConfig = new HashMap<>();
   private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
@@ -97,6 +106,8 @@ public class SensorParserConfig {
             "parserClassName='" + parserClassName + '\'' +
             ", filterClassName='" + filterClassName + '\'' +
             ", sensorTopic='" + sensorTopic + '\'' +
+            ", writerClassName='" + writerClassName + '\'' +
+            ", parserConfig=" + parserConfig +
             ", parserConfig=" + parserConfig +
             ", fieldTransformations=" + fieldTransformations +
             '}';
@@ -115,6 +126,10 @@ public class SensorParserConfig {
       return false;
     if (getSensorTopic() != null ? !getSensorTopic().equals(that.getSensorTopic()) : that.getSensorTopic() != null)
       return false;
+    if (getWriterClassName() != null ? !getWriterClassName().equals(that.getWriterClassName()) : that.getWriterClassName() != null)
+      return false;
+    if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
+      return false;
     if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
       return false;
     return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
@@ -126,6 +141,8 @@ public class SensorParserConfig {
     int result = getParserClassName() != null ? getParserClassName().hashCode() : 0;
     result = 31 * result + (getFilterClassName() != null ? getFilterClassName().hashCode() : 0);
     result = 31 * result + (getSensorTopic() != null ? getSensorTopic().hashCode() : 0);
+    result = 31 * result + (getWriterClassName() != null ? getWriterClassName().hashCode() : 0);
+    result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
     result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
     result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
     return result;
