@@ -19,14 +19,11 @@
 package org.apache.metron.parsers.soltra;
 
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.ise.ParseException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import org.json.JSONException;
 import org.json.XML;
 
 import java.io.UnsupportedEncodingException;
@@ -51,7 +48,7 @@ public class SoltraParser extends BasicParser {
 
 	}
 
-	public List<JSONObject> parse(byte[] msg) {
+	public List<JSONObject> parse(byte[] msg) throws Exception {
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		String message = "";
@@ -86,26 +83,21 @@ public class SoltraParser extends BasicParser {
 			}
 
 			// put metron standard fields
-//			payload.put("original_string", message);
 			payload.put("original_string", "");
 			payload.put("timestamp", formatDate((String)topLevel.get("timestamp")));
-
-
-
-//			cleanJSON(payload, "Soltra");
 
 			messages.add(payload);
 			return messages;
 		} catch (org.json.simple.parser.ParseException e1) {
 			e1.printStackTrace();
+			throw e1;
 		} catch (UnsupportedEncodingException e1) {
 			e1.printStackTrace();
+			throw e1;
 		} catch (Exception e) {
-			e.printStackTrace();
-			_LOG.error("Failed to parse: " + message);
-			return null;
+			_LOG.error("Failed to parse: " + message, e);
+			throw e;
 		}
-		return null;
 	}
 
 
