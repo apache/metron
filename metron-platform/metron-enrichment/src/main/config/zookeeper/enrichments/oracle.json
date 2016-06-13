@@ -1,0 +1,7 @@
+{
+  "index": "oracle",
+  "batchSize": 200,
+  "enrichment": {
+  }
+}
+

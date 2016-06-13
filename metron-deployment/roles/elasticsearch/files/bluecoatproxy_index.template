@@ -1,0 +1,128 @@
+{
+    "template" : "bluecoat_proxy*",
+   "order" : 1,
+   "settings" : {
+       "number_of_shards" : 5
+   },
+    "aliases" : {
+        "bluecoat" : {},
+        "1-Network-Based" : {},
+        "1-Malware-Detection" : {},
+        "1-IP-Search" : {}
+    },
+    "mappings" : {
+        "bluecoat_proxy_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "epoch_millis"
+                },
+                "csauthtype" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "ip_dst_port" : {
+                    "type" : "long"
+                },
+                "csusername" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_uripath" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "rscontenttype" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "protocol" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_method" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "csauthgroup" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "csbytes" : {
+                    "type" : "long"
+                },
+                "proxy_ip_addr" : {
+                    "type" : "ip"
+                },
+                "http_uriquery" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "scbytes" : {
+                    "type" : "long"
+                },
+                "cshost" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "scfilterresult" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "time_taken" : {
+                    "type" : "long"
+                },
+                "saction" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_referer" :{
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "cscategories" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_status" : {
+                    "type" : "long"
+                },
+                "http_useragent" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "ssupliername" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "packetsSent" : {
+                    "type" : "long"
+                },
+                "packetsReceived" : {
+                    "type" : "long"
+                },
+                "bytesSent" : {
+                    "type" : "long"
+                },
+                "bytes" : {
+                    "type" : "long"
+                },
+                "port" : {
+                    "type" : "long"
+                },
+                "bytesReceived" : {
+                    "type" : "long"
+                },
+                "bytesOut" : {
+                    "type" : "long"
+                },
+                "bytesIn" : {
+                    "type" : "long"
+                }
+            }
+        }
+    }
+}

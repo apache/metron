@@ -1,0 +1,7 @@
+{
+  "parserClassName":"org.apache.metron.parsers.checkpointfirewall.BasicCheckPointFirewallParser",
+  "sensorTopic":"checkpointfirewall",
+  "parserConfig":
+  {
+  }
+}

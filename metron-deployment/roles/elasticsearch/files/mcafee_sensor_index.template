@@ -1,0 +1,10 @@
+{
+   "template" : "mcafee_sensor*",
+   "order" : 1,
+   "settings" : {
+      "number_of_shards" : 1
+   },
+   "aliases" : {
+      "mcafee_sensor" : {}
+   }
+}

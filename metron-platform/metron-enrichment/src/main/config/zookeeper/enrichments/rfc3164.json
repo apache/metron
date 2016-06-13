@@ -1,0 +1,6 @@
+{
+  "index": "unixsyslog3164",
+  "batchSize": 200,
+  "enrichment": {
+  }
+}

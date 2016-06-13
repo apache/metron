@@ -19,12 +19,15 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.log4j.Logger;
+import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -32,12 +35,16 @@ import java.util.concurrent.ConcurrentMap;
 public class Configurations implements Serializable {
 
   private static final Logger LOG = Logger.getLogger(Configurations.class);
-
+  private List<FieldValidator> validations = new ArrayList<>();
   protected ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
     return (Map<String, Object>) configurations.get(ConfigurationType.GLOBAL.getName());
+  }
+
+  public List<FieldValidator> getFieldValidations() {
+    return validations;
   }
 
   public void updateGlobalConfig(byte[] data) throws IOException {
@@ -53,23 +60,34 @@ public class Configurations implements Serializable {
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
     configurations.put(ConfigurationType.GLOBAL.getName(), globalConfig);
+    validations = FieldValidator.readValidations(getGlobalConfig());
   }
+
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
+
     Configurations that = (Configurations) o;
-    return configurations.equals(that.configurations);
+
+    if (validations != null ? !validations.equals(that.validations) : that.validations != null) return false;
+    return configurations != null ? configurations.equals(that.configurations) : that.configurations == null;
+
   }
 
   @Override
   public int hashCode() {
-    return configurations.hashCode();
+    int result = validations != null ? validations.hashCode() : 0;
+    result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+    return result;
   }
 
   @Override
   public String toString() {
-    return configurations.toString();
+    return "Configurations{" +
+            "validations=" + validations +
+            ", configurations=" + configurations +
+            '}';
   }
 }

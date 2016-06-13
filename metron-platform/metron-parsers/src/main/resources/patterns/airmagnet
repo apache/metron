@@ -1,0 +1,41 @@
+# Months - only three-letter code is used
+MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
+
+# Days - two digit number is used
+DAY \d{1,2}
+
+# Time - two digit hour, minute, and second
+TIME \d{2}:\d{2}:\d{2}
+
+# Timestamp - month, day, and time
+TIMESTAMP %{MONTH:UNWANTED}\s{1,2}%{DAY:UNWANTED} %{TIME:UNWANTED}
+
+# Source
+SOURCE .*
+
+# Priority
+PRIORITY \d+
+
+# Log start - the first part of the log line
+LOGSTART <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{SOURCE:hostname} %{SOURCE:UNWANTED}
+
+# Alert
+ALERT .*
+
+# Location
+LOCATION .*
+
+# Description
+DESCRIPTION .*
+
+# Source MAC
+SOURCE_MAC (?:(?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4})|(?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2})|(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}))
+
+# WIFI Channel
+WIFI_CHANNEL .*
+
+# Log end - the level of the log and the message
+LOGEND Alert: %{ALERT:alert}, Location: %{LOCATION:location}, Description: %{DESCRIPTION:description}, Source MAC: %{SOURCE_MAC:source_MAC_address}.*, Channel: %{WIFI_CHANNEL:wifi_channel}
+
+# AirMagnet - a basic AirMagnet log entry
+AIRMAGNET %{LOGSTART:UNWANTED} %{LOGEND:UNWANTED}

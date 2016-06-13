@@ -1,0 +1,2 @@
+<22>May 05 10:41:27 infosec_OutboundMailLogs: Info: MID 33333333 DKIM: signing with abc_com - matches MicrosoftExchange333333eeeeeeeeee3333333333eeeeee@abc.com
+<22>May 05 10:41:56 infosec_InboundMailLogs: Info: ICID 1111111111 close

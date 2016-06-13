@@ -20,6 +20,7 @@ package org.apache.metron.parsers.bluecoatcim;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
@@ -31,7 +32,9 @@ public class BasicBluecoatCIMParser extends BasicParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BasicBluecoatCIMParser.class);
 	private SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy HH:mm:ss zzz");
-	
+
+	public static final Pattern IPV4_REGEX = Pattern.compile("\\A(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}\\z");
+
 	@Override
 	public void init() {
 
@@ -43,7 +46,7 @@ public class BasicBluecoatCIMParser extends BasicParser {
 	}
 
 	@SuppressWarnings({ "unchecked", "unused" })
-	public List<JSONObject> parse(byte[] msg) {
+	public List<JSONObject> parse(byte[] msg) throws Exception {
 
 		List<JSONObject> messages = new ArrayList<>();
 		JSONObject payload = new JSONObject();
@@ -89,7 +92,7 @@ public class BasicBluecoatCIMParser extends BasicParser {
 			return messages;
 		} catch (Exception e) {
 			LOG.error("Failed to parse: " + new String(msg), e);
-			return null;
+			throw e;
 		}
 
 	}
@@ -118,10 +121,18 @@ public class BasicBluecoatCIMParser extends BasicParser {
 
 	private void normalizeFields(JSONObject json) {
 		if (json.containsKey("src_ip")) {
-			json.put("ip_src_addr", json.remove("src_ip"));
+			if (isIpv4(json.get("src_ip").toString())){
+				json.put("ip_src_addr", json.get("src_ip"));
+			}
 		}
 		if (json.containsKey("dest_ip")) {
-			json.put("ip_dst_addr", json.remove("dest_ip"));
+			if (isIpv4(json.get("dest_ip").toString())){
+				json.put("ip_dst_addr", json.get("dest_ip"));
+			}
 		}
+	}
+
+	private boolean isIpv4(String ip){
+		return IPV4_REGEX.matcher(ip).matches();
 	}
 }

@@ -136,6 +136,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
     // setup Broker
     Properties props = TestUtils.createBrokerConfig(0, brokerPort, true);
+    props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);

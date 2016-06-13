@@ -1,0 +1,7 @@
+{
+  "index": "radware",
+  "batchSize": 200,
+  "enrichment": {
+  }
+}
+

@@ -1,0 +1,106 @@
+{
+    "template" : "soltra*",
+    "order" : 1,
+    "settings": {
+        "number_of_shards": 1
+    },
+    "aliases" : {
+        "soltra" : {},
+        "1-IP_Search" : {}
+    },
+    "mappings" : {
+        "soltra_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp": {
+                    "type":"date",
+                    "format":"epoch_millis"
+                },
+                "Type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Edge_ID" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "ID" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Title" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "Description" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "Producer" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Child" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "TTP_Identity" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Malware_Identity" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "IP_Range_To" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "IP_Range_From" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "IP_Range_To_Long" : {
+                    "type" : "long"
+                },
+                "IP_Range_From_Long" : {
+                    "type" : "long"
+                },
+                "Email" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Domain" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "URI" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Hostname" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Port" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Hash" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "Filename" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}

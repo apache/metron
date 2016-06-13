@@ -1,0 +1,7 @@
+{
+  "parserClassName":"org.apache.metron.parsers.checkpointsyslog.BasicCheckPointSyslogParser",
+  "sensorTopic":"checkpointsyslog",
+  "parserConfig":
+  {
+  }
+}

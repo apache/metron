@@ -1,0 +1,64 @@
+{
+   "template" : "activedirectory*",
+   "order" : 1,
+   "settings" : {
+      "number_of_shards" : 1
+   },
+   "aliases" : {
+      "activedirectory" : {},
+      "1-Host-Based" : {}
+   },
+   "mappings" : {
+      "activedirectory_doc" : {
+         "_timestamp" : {
+            "enabled" : true
+         },
+         "properties" : {
+            "msExchRecipientDisplayType" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "msExchALObjectVersion" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "msExchVersion" : {
+               "type" : "string",
+               "index" : "not_analyzed"
+            },
+            "legacyExchangeDN" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "mailNickname" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "info" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "simpleMachineName" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "priority" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "event" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "admonEventType" : {
+               "type" : "string",
+               "index" : "analyzed"
+            },
+            "object" : {
+               "type" : "string",
+               "index" : "analyzed"
+            }
+         }
+      }
+   }
+}

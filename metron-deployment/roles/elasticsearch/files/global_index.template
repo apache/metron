@@ -1,0 +1,51 @@
+{
+    "template" : "*",
+    "order" : 0,
+    "settings" : {
+        "index.mapping.ignore_malformed" : false,
+        "index.refresh_interval" : "15s",
+        "number_of_shards" : 1,
+        "index.number_of_replicas" : 1
+    },
+    "mappings" : {
+        "_default_" : {
+            "_all" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp" : {
+                    "type" : "date",
+                    "format" : "strict_date_optional_time||epoch_millis"
+                },
+                "ingest_timestamp" : {
+                    "type" : "date",
+                    "format" : "strict_date_optional_time||epoch_millis"
+                },
+                "device_generated_timestamp" : {
+                    "type" : "date",
+                    "format" : "strict_date_optional_time||epoch_millis"
+                },
+                "ip_src_addr" : {
+                    "type" : "ip"
+                },
+                "ip_src_port" : {
+                    "type" : "long"
+                },
+                "ip_dst_addr" : {
+                    "type" : "ip"
+                },
+                "ip_dst_port" : {
+                    "type" : "long"
+                },
+                "original_string" : {
+                    "type" : "string",
+                    "index" : "analyzed"
+                },
+                "source:type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}
