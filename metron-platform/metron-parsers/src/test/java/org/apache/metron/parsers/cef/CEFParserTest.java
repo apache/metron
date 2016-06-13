@@ -18,12 +18,13 @@
 
 package org.apache.metron.parsers.cef;
 
-import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 import org.json.simple.JSONObject;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class CEFParserTest {
 	
@@ -42,8 +43,13 @@ public class CEFParserTest {
 										,"timezone" , "UTC"
 										)
 		                );
-		
-		List<JSONObject> result = parser.parse(testString.getBytes());
+
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		assertEquals(parsedJSON.get("priority"), "161");
@@ -57,7 +63,7 @@ public class CEFParserTest {
 		assertEquals(parsedJSON.get("fileHash"), "481e959d8qrstbeaf67a30eff7e989c5");
 		assertEquals(parsedJSON.get("filePath"), "/3qZjLW6xPpz5C8dn-files_doc_5D6D7B.zip");
 		assertEquals(parsedJSON.get("deviceHostName"), "SERVER003");
-		assertEquals(parsedJSON.get("link"), "https://server0003/emps/eanalysis?e_id\\=129555927&type\\=attch");
+		assertEquals(parsedJSON.get("link"), "https://server0003/emps/eanalysis?e_id=129555927&type=attch");
 		assertEquals(parsedJSON.get("dst_username"), "RickUser72@hotmail.com");
 		assertEquals(parsedJSON.get("vlan"), "0");
 		assertEquals(parsedJSON.get("externalId"), "1377069887");
@@ -82,8 +88,13 @@ public class CEFParserTest {
 										 "headerRegEx" , "\\w\\w\\w \\d\\d \\d\\d:\\d\\d:\\d\\d"
 										)
 						);
-		
-		List<JSONObject> result = parser.parse(testString.getBytes());
+
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		assertEquals(parsedJSON.get("device_vendor"), "Cyber-Ark");
@@ -112,8 +123,13 @@ public class CEFParserTest {
 										 "timezone" , "UTC"
 										)
 						);
-		
-		List<JSONObject> result = parser.parse(testString.getBytes());
+
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		assertEquals(parsedJSON.get("priority"), "14");
@@ -153,8 +169,13 @@ public class CEFParserTest {
 										 "headerRegEx" , "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d"
 										)
 						);
-		
-		List<JSONObject> result = parser.parse(testString.getBytes());
+
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		assertEquals(parsedJSON.get("device_vendor"), "Adallom");
@@ -183,9 +204,13 @@ public class CEFParserTest {
 				+ "start=1459517280810 end=1459517280810 audits=[\"AVPR-4oIPeFmuZ3CKKrg\",\"AVPR-wx80cd9PUpAu2aj\",\"AVPR-6XGPeFmuZ3CKKvx\","
 				+ "\"AVPSALn_qE4Kgs_8_yK9\",\"AVPSASW3gw_f3aEvgEmi\"] services=[\"APPID_SXC\"] users=[\"lvader@hotmail.com\"] "
 						+ "cs6=https://abcd-remote.console.arc.com/#/alerts/56fe779ee4b0459f4e9a484a cs6Label=consoleUrl";
-		
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+		}
+		assertNull(result);
 	}
 	
 	
@@ -196,24 +221,32 @@ public class CEFParserTest {
 				+ "msg=Activity policy 'User download/view file' was triggered by 'scolbert@gmail.com' suser=wanderson@rock.com "
 				+ "start=1459517280810 end=1459517280810 audits=[\"AVPR-4oIPeFmuZ3CKKrg\",\"AVPR-wx80cd9PUpAu2aj\",\"AVPR-6XGPeFmuZ3CKKvx\","
 				+ "\"AVPSALn_qE4Kgs_8_yK9\",\"AVPSASW3gw_f3aEvgEmi\"] services=[\"APPID_SXC\"] users=[\"lvader@hotmail.com\"] "
-						+ "cs6=https://abcd-remote.console.arc.com/#/alerts/56fe779ee4b0459f4e9a484a cs6Label=consoleUrl";
+				+ "cs6=https://abcd-remote.console.arc.com/#/alerts/56fe779ee4b0459f4e9a484a cs6Label=consoleUrl";
 
 		parser.configure(ImmutableMap.of("dateFormat", "yyyy-MM-dd'T'HH:mm:ss",
-                     "timezone" , "UTC",
-										 "headerRegEx" , "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d"
-										)
-						);
-		
-		List<JSONObject> result = parser.parse(testString.getBytes());	
-		JSONObject parsedJSON = result.get(0);
-		assertEquals(parsedJSON.get("timestamp"), System.currentTimeMillis());
+                     "timezone" , "UTC", "headerRegEx" , "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d"));
+
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+		}
+		System.out.println(result.get(0).get("timestamp"));
+		System.out.println(System.currentTimeMillis());
+		// This test should take place within a single millisecond.
+		// assert that timestamp from parser is within 3 milliseconds of this assertTrue().
+		assertTrue(System.currentTimeMillis() - ((Long) result.get(0).get("timestamp")) < 3);
 	}
 	
 	//Tests an empty line to insure there are no parser errors thrown 
 	@Test
 	public void testParseEmptyLine() {
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+		}
+		assertNull(result);
 	}
 }

@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class CEFParser extends BasicParser {
 
 	// Set up the requisite variables
-	private static final Logger _LOG = LoggerFactory.getLogger(CEFParser.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CEFParser.class);
 	private String dateFormatString;
 	private String headerTimestampRegex;
 	private TimeZone timeZone;
@@ -88,7 +87,7 @@ public class CEFParser extends BasicParser {
 
 	// Parse a raw telemetry message
 	@SuppressWarnings({ "unchecked"})
-	public List<JSONObject> parse(byte[] rawMessage) {
+	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
 
 		String message = "";
 		List<JSONObject> messages = new ArrayList<>();
@@ -100,7 +99,7 @@ public class CEFParser extends BasicParser {
 						
 			// Only attempt to split if this is a well-formed CEF line
 			if (StringUtils.countMatches(message, "|") < 7){
-				_LOG.error("Not a well-formed CEF line, Failed to parse: " + message);
+				LOGGER.error("Not a well-formed CEF line, Failed to parse: " + message);
 				return null;
 			}
 			
@@ -127,7 +126,7 @@ public class CEFParser extends BasicParser {
 				// Extract the key-value pairs
 				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
-        value = fields.substring(0, findNextEquals(fields));
+			value = fields.substring(0, findNextEquals(fields));
 				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
@@ -175,9 +174,8 @@ public class CEFParser extends BasicParser {
 			return messages;
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			_LOG.error("Failed to parse: " + message + " with error message " + e.getMessage());
-			return null;
+			LOGGER.error("Failed to parse: " + message + " with error message " + e.getMessage(), e);
+			throw e;
 		}
 	}
 
@@ -308,7 +306,7 @@ public class CEFParser extends BasicParser {
 			try {
 				epochTimestamp = dateFormat.parse(timestamp).getTime();
 			} catch (ParseException e) {
-				_LOG.error("Date Parsing Exception:" + e.toString());
+				LOGGER.error("Date Parsing Exception:" + e.toString());
 				json.put("timestamp", epochTimestamp);
 			}
 			
