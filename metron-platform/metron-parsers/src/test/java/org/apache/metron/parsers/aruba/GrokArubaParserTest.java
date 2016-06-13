@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import junit.framework.Assert;
 
+import static org.junit.Assert.assertTrue;
+
 public class GrokArubaParserTest {
 	
 	private Map<String, Object> parserConfig;
@@ -75,10 +77,14 @@ public class GrokArubaParserTest {
 		String testString = "<143>2016-04-9 04:27:31,823  110.137.3.2 CPPM_Session_Detail 473964876 1 0 "
 				+ "id=5983679670,session_id=R011cf48e-04-57231aa3,type=RADIUS_IN,atr_name=Radius:IETF:User-Name,"
 				+ "attr_value=ac81125d02ea,timestamp=2016-04-29 04:26:13.002367-04";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		
-		//Result should be null due to malformed message
-		Assert.assertEquals(result, null);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 	
 	//Tests a blank Aruba message; parser should return null
@@ -88,10 +94,14 @@ public class GrokArubaParserTest {
 		GrokArubaParser parser = new GrokArubaParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		
-		//Result should be null due to malformed message
-		Assert.assertEquals(result, null);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 
 }
