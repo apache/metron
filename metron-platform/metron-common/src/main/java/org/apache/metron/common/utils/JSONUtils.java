@@ -54,28 +54,35 @@ public enum JSONUtils {
   public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
     return _mapper.get().readValue(is, ref);
   }
+
   public <T> T load(String is, TypeReference<T> ref) throws IOException {
     return _mapper.get().readValue(is, ref);
   }
+
   public <T> T load(File f, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(new BufferedInputStream(new FileInputStream(f)), ref);
+    try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
+      return _mapper.get().readValue(is, ref);
+    }
   }
+
   public <T> T load(InputStream is, Class<T> clazz) throws IOException {
     return _mapper.get().readValue(is, clazz);
   }
 
   public <T> T load(File f, Class<T> clazz) throws IOException {
-    return _mapper.get().readValue(new BufferedInputStream(new FileInputStream(f)), clazz);
+    try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
+      return _mapper.get().readValue(is, clazz);
+    }
   }
+
   public <T> T load(String is, Class<T> clazz) throws IOException {
     return _mapper.get().readValue(is, clazz);
   }
 
   public String toJSON(Object o, boolean pretty) throws JsonProcessingException {
-    if(pretty) {
+    if (pretty) {
       return _mapper.get().writerWithDefaultPrettyPrinter().writeValueAsString(o);
-    }
-    else {
+    } else {
       return _mapper.get().writeValueAsString(o);
     }
   }
