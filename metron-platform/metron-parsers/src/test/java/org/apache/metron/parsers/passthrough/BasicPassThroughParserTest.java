@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class BasicPassThroughParserTest {
 
@@ -38,15 +39,19 @@ public class BasicPassThroughParserTest {
 	public void testPassThrough() {
 		String testString = "Pass through sample input line";
 
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		try {
+			List<JSONObject> result = parser.parse(testString.getBytes());
 
-		JSONObject jo = result.get(0);
+			JSONObject jo = result.get(0);
 
-		assertEquals(jo.get("original_string"), "Pass through sample input line");
-		assertEquals(jo.get("is_parsed"), "false");
-		assertNotNull(jo.get("timestamp"));
+			assertEquals(jo.get("original_string"), "Pass through sample input line");
+			assertEquals(jo.get("is_parsed"), "false");
+			assertNotNull(jo.get("timestamp"));
 
-		System.out.println(result);
+			System.out.println(result);
+		} catch (Exception e){
+			fail();
+		}
 	}
 
     @Test
@@ -57,18 +62,22 @@ public class BasicPassThroughParserTest {
                 "443 XMA848@login.capone.com 204.63.37.5 Microsoft+Office/16.0+(Windows+NT+6.1;+Microsoft+" +
                 "Outlook+16.0.6001;+Pro) mail.capitalone.com 200 0 0 1508 1184 218";
 
-        List<JSONObject> result = parser.parse(testString.getBytes());
+		try {
+			List<JSONObject> result = parser.parse(testString.getBytes());
 
-        JSONObject jo = result.get(0);
+			JSONObject jo = result.get(0);
 
-        assertEquals(jo.get("original_string"), "BN3P103CA0002,308237415,2016-04-12 13:08:23 141.251.172.79 POST /mapi/emsmdb/ " +
-                "MailboxId=a4faa1ea-e353-493a-8794-54dd0e2ad3c5@capitalone.com&CorrelationID=<empty>;&Live" +
-                "IdBasicMemberName=XMA848@login.capone.com&cafeReqId=e797ca7f-6512-41ba-b411-ee36da4e19d4; " +
-                "443 XMA848@login.capone.com 204.63.37.5 Microsoft+Office/16.0+(Windows+NT+6.1;+Microsoft+" +
-                "Outlook+16.0.6001;+Pro) mail.capitalone.com 200 0 0 1508 1184 218");
-        assertEquals(jo.get("is_parsed"), "false");
-        assertNotNull(jo.get("timestamp"));
+			assertEquals(jo.get("original_string"), "BN3P103CA0002,308237415,2016-04-12 13:08:23 141.251.172.79 POST /mapi/emsmdb/ " +
+					"MailboxId=a4faa1ea-e353-493a-8794-54dd0e2ad3c5@capitalone.com&CorrelationID=<empty>;&Live" +
+					"IdBasicMemberName=XMA848@login.capone.com&cafeReqId=e797ca7f-6512-41ba-b411-ee36da4e19d4; " +
+					"443 XMA848@login.capone.com 204.63.37.5 Microsoft+Office/16.0+(Windows+NT+6.1;+Microsoft+" +
+					"Outlook+16.0.6001;+Pro) mail.capitalone.com 200 0 0 1508 1184 218");
+			assertEquals(jo.get("is_parsed"), "false");
+			assertNotNull(jo.get("timestamp"));
 
-        System.out.println(result);
+			System.out.println(result);
+		} catch (Exception e){
+			fail();
+		}
     }
 }

@@ -44,7 +44,7 @@ public class BasicPassThroughParser extends BasicParser{
 	}
 
 	@SuppressWarnings({ "unchecked", "unused" })
-	public List<JSONObject> parse(byte[] msg) {
+	public List<JSONObject> parse(byte[] msg) throws Exception {
 
 		String message = "";
 		List<JSONObject> messages = new ArrayList<>();
@@ -64,9 +64,8 @@ public class BasicPassThroughParser extends BasicParser{
 			messages.add(payload);
 			return messages;
 		} catch (Exception e) {
-			e.printStackTrace();
-			_LOG.error("Failed to parse: " + message);
-			return null;
+			_LOG.error("Failed to parse: " + message, e);
+			throw e;
 		}
 	}
 
