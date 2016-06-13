@@ -18,27 +18,24 @@
 
 package org.apache.metron.parsers.checkpoint_traffic;
 
-import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.bro.JSONCleaner;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
 
-@SuppressWarnings("serial")
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
 public class BasicCheckpointTrafficParser extends BasicParser {
 
-    protected static final Logger _LOG = LoggerFactory
+    protected static final Logger LOGGER = LoggerFactory
             .getLogger(BasicCheckpointTrafficParser.class);
-    private JSONCleaner cleaner = new JSONCleaner();
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-
 
     @Override
     public void configure(Map<String, Object> parserConfig) {
@@ -52,20 +49,18 @@ public class BasicCheckpointTrafficParser extends BasicParser {
     }
 
     @SuppressWarnings("unchecked")
-    public List<JSONObject> parse(byte[] msg) {
+    public List<JSONObject> parse(byte[] msg) throws Exception {
 
-        _LOG.trace("[Metron] Starting to parse incoming message");
+        LOGGER.trace("[Metron] Starting to parse incoming message");
 
         String rawMessage = null;
         List<JSONObject> messages = new ArrayList<>();
         try {
             rawMessage = new String(msg, "UTF-8");
-            _LOG.trace("[Metron] Received message: " + rawMessage);
-
+            LOGGER.trace("[Metron] Received message: " + rawMessage);
 
             JSONObject payload = new JSONObject();
             payload.put("original_string", rawMessage);
-
 
             String priority = rawMessage.substring(1, rawMessage.indexOf(">"));
             payload.put("priority", priority);
@@ -86,10 +81,8 @@ public class BasicCheckpointTrafficParser extends BasicParser {
             String pid = rawMessage.substring(processEnd+1, pidEnd);
             payload.put("pid", pid);
 
-
             //log header ends with a colon and space, so we can just cut it off
             rawMessage = rawMessage.substring(rawMessage.indexOf(": ") + 2);
-
 
             String[] keypairs = rawMessage.split("\\|");
             for (String keypair : keypairs) {
@@ -112,15 +105,12 @@ public class BasicCheckpointTrafficParser extends BasicParser {
                     payload.put(split[0], split[1]);
                 }
             }
-            _LOG.debug("[Metron] Returning parsed message: " + payload);
+            LOGGER.debug("[Metron] Returning parsed message: " + payload);
             messages.add(payload);
             return messages;
-
         } catch (Exception e) {
-
-            _LOG.error("Unable to Parse Message: " + rawMessage);
-            e.printStackTrace();
-            return null;
+            LOGGER.error("Unable to Parse Message: " + rawMessage, e);
+            throw e;
         }
 
     }

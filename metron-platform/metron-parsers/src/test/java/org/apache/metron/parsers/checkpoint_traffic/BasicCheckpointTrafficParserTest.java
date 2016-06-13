@@ -23,6 +23,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.Map;
 
@@ -43,13 +44,16 @@ public class BasicCheckpointTrafficParserTest extends TestCase {
 		checkpointParser = new BasicCheckpointTrafficParser();
 	}
 
-    public void testRealLine() throws ParseException {
+	@Test
+    public void testRealLine() {
         String rawMessage = "<165>Jun  2 15:49:24 ctids042 fw1-loggrabber[9868]: time=2016-06-01 16:48:23|action=accept|orig=100.12.5.1|i/f_dir=inbound|i/f_name=bond12.3198|has_accounting=0|uuid=<574f4a17,00000012,3d000c0a,0001ffff>|product=VPN-1 & FireWall-1|__policy_id_tag=product=VPN-1 & FireWall-1[db_tag={00000051-00CD-004F-9539-AB555A5BC669};mgmt=Ravenwood_KDC3;date=1464667243;policy_name=3pecd-current]|inzone=Internal|outzone=External|rule=3907|rule_uid={6FED6C6A-908D-4BA2-B4E1-97A1ADA9DCCB}|service_id=TCP-8500|src=60.70.149.131|s_port=62264|dst=200.60.40.20|service=8500|proto=tcp";
 
-        JSONObject checkpointJson = checkpointParser.parse(rawMessage.getBytes()).get(0);
-
-		System.out.println(checkpointJson.toJSONString());
-
+		JSONObject checkpointJson = null;
+		try {
+			checkpointJson = checkpointParser.parse(rawMessage.getBytes()).get(0);
+		} catch (Exception e) {
+			fail();
+		}
 
 		assertEquals(checkpointJson.get("priority"), "165");
 		assertEquals(checkpointJson.get("syslog_timestamp"), "Jun  2 15:49:24");
@@ -76,4 +80,19 @@ public class BasicCheckpointTrafficParserTest extends TestCase {
 		assertEquals(checkpointJson.get("ip_src_addr"), "60.70.149.131");
 		assertEquals(checkpointJson.get("timestamp"), 1464814103000L);
     }
+
+	@Test
+	public void testEmptyLine() {
+		String rawMessage = "";
+
+		JSONObject checkpointJson = null;
+		try {
+			checkpointJson = checkpointParser.parse(rawMessage.getBytes()).get(0);
+		} catch (Exception e) {
+		}
+		assertNull(checkpointJson);
+	}
+
+
+
 }
