@@ -6,5 +6,11 @@
   "solr.zookeeper": "localhost:2181",
   "solr.collection": "metron",
   "solr.numShards": 1,
-  "solr.replicationFactor": 1
+  "solr.replicationFactor": 1,
+  "fieldValidations" : [
+    {
+       "input" : [ "src_ip_addr", "dst_ip_addr"]
+      ,"validation" : "IP"
+    }
+                       ]
 }
