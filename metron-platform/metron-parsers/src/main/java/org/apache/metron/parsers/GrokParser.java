@@ -135,8 +135,9 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       init();
     }
     List<JSONObject> messages = new ArrayList<>();
+    String originalMessage = null;
     try {
-      String originalMessage = new String(rawMessage, "UTF-8");
+      originalMessage = new String(rawMessage, "UTF-8");
       if (LOG.isDebugEnabled()) {
         LOG.debug("Grok perser parsing message: " + originalMessage);
       }
@@ -168,7 +169,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      return null;
+      throw new RuntimeException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
     }
     return messages;
   }

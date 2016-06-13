@@ -58,7 +58,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
   }
 
-  public void error(Exception e, Iterable<Tuple> tuples) {
+  public void error(Throwable e, Iterable<Tuple> tuples) {
     tuples.forEach(t -> collector.ack(t));
     LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
     ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
@@ -98,7 +98,7 @@ public class BulkWriterComponent<MESSAGE_T> {
           commit(tupleList);
         }
 
-      } catch (Exception e) {
+      } catch (Throwable e) {
         if(handleError) {
           error(e, tupleList);
         }
