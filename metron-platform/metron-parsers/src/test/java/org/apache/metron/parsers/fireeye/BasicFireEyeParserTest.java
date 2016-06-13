@@ -29,6 +29,8 @@ import org.json.simple.parser.ParseException;
 import org.apache.metron.parsers.AbstractConfigTest;
 import org.junit.Assert;
 
+import static org.junit.Assert.fail;
+
 /**
  * <ul>
  * <li>Title: Test For SourceFireParser</li>
@@ -102,29 +104,36 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	@SuppressWarnings({ "rawtypes"})
 	public void testParse() {
 		for (String inputString : getInputStrings()) {
-			JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
-			Assert.assertNotNull(parsed);
-		
-			JSONParser parser = new JSONParser();
-
-			Map json=null;
 			try {
-				json = (Map) parser.parse(parsed.toJSONString());
-			} catch (ParseException e) {
-				e.printStackTrace();
+				JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+				Assert.assertNotNull(parsed);
+
+				JSONParser parser = new JSONParser();
+
+				Map json = null;
+				try {
+					json = (Map) parser.parse(parsed.toJSONString());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				Iterator iter = json.entrySet().iterator();
+
+				Assert.assertNotNull(json);
+				Assert.assertFalse(json.isEmpty());
+
+				while (iter.hasNext()) {
+					Map.Entry entry = (Map.Entry) iter.next();
+					String key = (String) entry.getKey();
+					String value = (String) json.get(key).toString();
+					Assert.assertNotNull(value);
+				}
+
+			} catch (Exception e) {
+				fail();
 			}
-			Iterator iter = json.entrySet().iterator();
-			
-			Assert.assertNotNull(json);
-			Assert.assertFalse(json.isEmpty());
 			
 
-			while (iter.hasNext()) {
-				Map.Entry entry = (Map.Entry) iter.next();
-				String key = (String) entry.getKey();
-				String value = (String) json.get(key).toString();
-				Assert.assertNotNull(value);
-			}
+
 		}
 	}
 

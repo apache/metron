@@ -70,14 +70,12 @@ public class BasicFireEyeParser extends BasicParser {
 	}
 
 	@Override
-	public List<JSONObject> parse(byte[] raw_message) {
+	public List<JSONObject> parse(byte[] raw_message) throws Exception {
 		String toParse = "";
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 
 			toParse = new String(raw_message, "UTF-8");
-
-			// String[] mTokens = toParse.split(" ");
 
 			String positveIntPattern = "<[1-9][0-9]*>";
 			Pattern p = Pattern.compile(positveIntPattern);
@@ -105,8 +103,8 @@ public class BasicFireEyeParser extends BasicParser {
 			return messages;
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			LOG.error("Failed to parse: " + new String(raw_message), e);
+			throw e ;
 		}
 
 	}
