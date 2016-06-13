@@ -344,7 +344,7 @@ public class GrokInfobloxParserTest {
         } catch (Exception e) {
             hitException = true;
         }
-        assertTrue(true);
+        assertTrue(hitException);
     }
 
     @Test
@@ -360,7 +360,7 @@ public class GrokInfobloxParserTest {
         } catch (Exception e) {
             hitException = true;
         }
-        assertTrue(true);
+        assertTrue(hitException);
     }
 
 }

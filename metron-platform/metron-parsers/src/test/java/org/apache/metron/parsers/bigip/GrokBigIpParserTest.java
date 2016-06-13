@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class GrokBigIpParserTest {
 
@@ -194,9 +195,16 @@ public class GrokBigIpParserTest {
 		GrokBigIpParser parser = new GrokBigIpParser();
 		parser.configure(parserConfig);
 		String testString = "141>Apr 19 19:24:29 mfugjchwna38k notice mdd4[6456]: 90329500:5: 37451372: New session from client IP 10.000.11.000 (ST=/CC=/C=) at VIP 123.45.678.90 Listener /Common/access.google.com_443 (Reputation=Unknown)";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
+
 	@Test
 	public void testParseMalformedLoginLine() throws Exception {
 
@@ -204,8 +212,14 @@ public class GrokBigIpParserTest {
 		GrokBigIpParser parser = new GrokBigIpParser();
 		parser.configure(parserConfig);
 		String testString = "<141>Mar 31 13:46:35 mfugjchwna38k apd[6848]: 90329113:5: 1d0bf7c7: session.logon.euid is ABC906";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
+    List<JSONObject> result = null;
+    boolean hitException = false;
+    try {
+      result = parser.parse(testString.getBytes());
+    } catch (Exception e) {
+      hitException = true;
+    }
+    assertTrue(hitException);
 	}
 	
 	@Test
@@ -215,8 +229,14 @@ public class GrokBigIpParserTest {
 		GrokBigIpParser parser = new GrokBigIpParser();
 		parser.configure(parserConfig);
 		String testString = "<141>\nMar 31 13:59:37 mfugjchwna38k notice mdd[6456]: 90329521:5: 690fe490: Session statistics - bytes in: 3032, bytes out: 469";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
+    List<JSONObject> result = null;
+    boolean hitException = false;
+    try {
+      result = parser.parse(testString.getBytes());
+    } catch (Exception e) {
+      hitException = true;
+    }
+    assertTrue(hitException);
 	}
 	
 	@Test
@@ -246,8 +266,14 @@ public class GrokBigIpParserTest {
 		GrokBigIpParser parser = new GrokBigIpParser();
 		parser.configure(parserConfig);
 		String testString = "Mar 31 13:59:31 mfugjchwna38k notice apd[6848]: 90329115:5: 090faa3e: Following rule 'fallback' from item 'clog1220' to terminalout 'Out'";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
+    List<JSONObject> result = null;
+    boolean hitException = false;
+    try {
+      result = parser.parse(testString.getBytes());
+    } catch (Exception e) {
+      hitException = true;
+    }
+    assertTrue(hitException);
 	}
 
 	@Test
@@ -278,8 +304,14 @@ public class GrokBigIpParserTest {
 		GrokBigIpParser parser = new GrokBigIpParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+    List<JSONObject> result = null;
+    boolean hitException = false;
+    try {
+      result = parser.parse(testString.getBytes());
+    } catch (Exception e) {
+      hitException = true;
+    }
+    assertTrue(hitException);
 	}
 		
 }
