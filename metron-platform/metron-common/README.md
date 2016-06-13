@@ -17,6 +17,13 @@ The query language supports the following:
     * `TO_LOWER`
     * `TO_UPPER`
     * `TRIM`
+    * `IS_IP` : Validates that the input fields are an IP address.  By default, if no second arg is set, it assumes `IPV4`, but you can specify the type by passing in either `IPV6` or `IPV4` to the second argument.
+   * `IS_DOMAIN` 
+   * `IS_EMAIL`
+   * `IS_URL`
+   * `IS_DATE`
+   * `IS_INTEGER`
+
 
 Example query:
 
@@ -47,9 +54,41 @@ This configuration is stored in zookeeper, but looks something like
   "es.clustername": "metron",
   "es.ip": "node1",
   "es.port": "9300",
-  "es.date.format": "yyyy.MM.dd.HH"
+  "es.date.format": "yyyy.MM.dd.HH",
+  "fieldValidations" : [
+              {
+                "input" : [ "ip_src_addr", "ip_dst_addr" ],
+                "validation" : "IP",
+                "config" : {
+                    "type" : "IPV4"
+                           }
+              } 
+                       ]
 }
 ```
+
+###Validation Framework
+
+Inside of the global configuration, there is a validation framework in
+place that enables the validation that messages coming from all parsers
+are valid.  This is done in the form of validation plugins where
+assertions about fields or whole messages can be made. 
+
+The format for this is a `fieldValidations` field inside of global
+config.  This is associated with an array of field validation objects
+structured like so:
+* `input` : An array of input fields or a single field.  If this is omitted, then the whole messages is passed to the validator.
+* `config` : A String to Object map for validation configuration.  This is optional if the validation function requires no configuration.
+* `validation` : The validation function to be used.  This is one of
+   * `MQL` : Execute a Query Language statement.  Expects the query string in the `condition` field of the config.
+   * `IP` : Validates that the input fields are an IP address.  By default, if no configuration is set, it assumes `IPV4`, but you can specify the type by passing in the config by passing in `type` with either `IPV6` or `IPV4`.
+   * `DOMAIN` : Validates that the fields are all domains.
+   * `EMAIL` : Validates that the fields are all email addresses
+   * `URL` : Validates that the fields are all URLs
+   * `DATE` : Validates that the fields are a date.  Expects `format` in the config.
+   * `INTEGER` : Validates that the fields are an integer.  String representation of an integer is allowed.
+   * `REGEX_MATCH` : Validates that the fields match a regex.  Expects `pattern` in the config.
+   * `NOT_EMPTY` : Validates that the fields exist and are not empty (after trimming.)
 
 ##Sensor Enrichment Configuration
 

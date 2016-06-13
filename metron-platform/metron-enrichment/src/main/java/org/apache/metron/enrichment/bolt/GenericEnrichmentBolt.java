@@ -185,7 +185,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
         } else {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
-            SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+            SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
               LOG.error("Unable to find " + config);
               error = true;

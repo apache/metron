@@ -22,20 +22,49 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.MessageWriter;
+import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.writer.AbstractWriter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class KafkaWriter implements MessageWriter<JSONObject>, Serializable {
-
+public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObject>, Serializable {
+  public enum Configurations {
+     BROKER("kafka.brokerUrl")
+    ,KEY_SERIALIZER("kafka.keySerializer")
+    ,VALUE_SERIALIZER("kafka.valueSerializer")
+    ,REQUIRED_ACKS("kafka.requiredAcks")
+    ,TOPIC("kafka.topic");
+    ;
+    String key;
+    Configurations(String key) {
+      this.key = key;
+    }
+    public Object get(Map<String, Object> config) {
+      return config.get(key);
+    }
+    public <T> T getAndConvert(Map<String, Object> config, Class<T> clazz) {
+      Object o = get(config);
+      if(o != null) {
+        return ConversionUtils.convert(o, clazz);
+      }
+      return null;
+    }
+  }
   private String brokerUrl;
   private String keySerializer = "org.apache.kafka.common.serialization.StringSerializer";
   private String valueSerializer = "org.apache.kafka.common.serialization.StringSerializer";
   private int requiredAcks = 1;
+  private String kafkaTopic = Constants.ENRICHMENT_TOPIC;
   private KafkaProducer kafkaProducer;
+
+  public KafkaWriter() {}
+
+
 
   public KafkaWriter(String brokerUrl) {
     this.brokerUrl = brokerUrl;
@@ -51,9 +80,38 @@ public class KafkaWriter implements MessageWriter<JSONObject>, Serializable {
     return this;
   }
 
-  public KafkaWriter withRequiredAcks(int requiredAcks) {
+  public KafkaWriter withRequiredAcks(Integer requiredAcks) {
     this.requiredAcks = requiredAcks;
     return this;
+  }
+
+  public KafkaWriter withTopic(String topic) {
+    this.kafkaTopic= topic;
+    return this;
+  }
+  @Override
+  public void configure(String sensorName, WriterConfiguration configuration) {
+    Map<String, Object> configMap = configuration.getSensorConfig(sensorName);
+    String brokerUrl = Configurations.BROKER.getAndConvert(configMap, String.class);
+    if(brokerUrl != null) {
+      this.brokerUrl = brokerUrl;
+    }
+    String keySerializer = Configurations.KEY_SERIALIZER.getAndConvert(configMap, String.class);
+    if(keySerializer != null) {
+      withKeySerializer(keySerializer);
+    }
+    String valueSerializer = Configurations.VALUE_SERIALIZER.getAndConvert(configMap, String.class);
+    if(valueSerializer != null) {
+      withValueSerializer(keySerializer);
+    }
+    Integer requiredAcks = Configurations.REQUIRED_ACKS.getAndConvert(configMap, Integer.class);
+    if(requiredAcks!= null) {
+      withRequiredAcks(requiredAcks);
+    }
+    String topic = Configurations.TOPIC.getAndConvert(configMap, String.class);
+    if(topic != null) {
+      withTopic(topic);
+    }
   }
 
   @Override
@@ -68,8 +126,8 @@ public class KafkaWriter implements MessageWriter<JSONObject>, Serializable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public void write(String sourceType, Configurations configurations, Tuple tuple, JSONObject message) throws Exception {
-    kafkaProducer.send(new ProducerRecord<String, String>(Constants.ENRICHMENT_TOPIC, message.toJSONString()));
+  public void write(String sourceType, WriterConfiguration configurations, Tuple tuple, JSONObject message) throws Exception {
+    kafkaProducer.send(new ProducerRecord<String, String>(kafkaTopic, message.toJSONString()));
   }
 
   @Override
