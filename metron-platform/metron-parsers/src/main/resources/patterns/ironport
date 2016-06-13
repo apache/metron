@@ -1,0 +1,35 @@
+# Months - only three-letter code is used
+MONTH \b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\b
+
+# Days - two digit number is used
+DAY \d{1,2}
+
+# Years - full year is listed
+YEAR \d{4}
+
+# Time - two digit hour, minute, and second
+TIME \d{2}:\d{2}:\d{2}
+
+# Timestamp - month, day, and time
+TIMESTAMP %{MONTH:UNWANTED} %{DAY:UNWANTED} %{TIME:UNWANTED}
+
+# Source
+SOURCE [^:]+
+
+# Priority
+PRIORITY \d+
+
+# Log start - the first part of the log line
+LOGSTART <%{PRIORITY:priority}>%{TIMESTAMP:timestamp_string} %{SOURCE:source}:
+
+# Level - what type of log entry is this
+LEVEL \b\w+\b
+
+# Message - what this log entry is about
+MESSAGE .+
+
+# Log end - the level of the log and the message
+LOGEND %{LEVEL:level}: %{MESSAGE:message}
+
+# Ironport - a basic Ironport log entry
+IRONPORT %{LOGSTART:UNWANTED} %{LOGEND:UNWANTED}

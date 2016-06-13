@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.infoblox.GrokInfobloxParser",
+  "sensorTopic":"infoblox",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/infoblox",
+    "patternLabel":"INFOBLOX",
+    "timestampField":"timestamp",
+    "dateFormat":"yyyy MMM dd HH:mm:ss"
+  }
+}

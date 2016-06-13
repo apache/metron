@@ -1,0 +1,171 @@
+{
+    "template" : "lenelbadge*",
+    "order" : 1,
+    "settings": {
+        "number_of_shards": 1
+    },
+    "aliases" : {
+        "lenelbadge" : {}
+    },
+    "mappings" : {
+        "lenelbadge_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp": {
+                    "type":"date",
+                    "format":"epoch_millis"
+                },
+                "priority" : {
+                    "type" : "long"
+                },
+                "panel_id" : {
+                    "type" : "long"
+                },
+                "panel_event_id" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "building_number" : {
+                    "type" : "long"
+                },
+                "building_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "building_usage_description" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "building_department_id" : {
+                    "type" : "long"
+                },
+                "building_space_planner_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "building_street_address" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "building_city_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "building_state_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+ 
+                "building_postal_code" : {
+                    "type" : "long"
+                },
+                "building_country_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "badge_id" : {
+                    "type" : "long"
+                },
+                "badge_type_description" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "badge_status_description" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "badge_holder_first_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "badge_holder_middle_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "badge_holder_last_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "badge_holder_type_description" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "eid" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "supervisor_eid" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "supervisor_first_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "supervisor_middle_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "supervisor_last_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "employee_department_id" : {
+                    "type" : "long"
+                },
+                "employee_department_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "personnel_type_code" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "regular_temp_type_code" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "full_time_part_time_type_code" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "event_type_description" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "event_local_date" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "event_local_hour_num" : {
+                    "type" : "long"
+                },
+                "event_local_week_num" : {
+                    "type" : "long"
+                },
+                "event_local_day_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "event_local_day_holiday_indicator" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "emp_first_dly_cmps_swipe_ind" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }, 
+                "emp_first_unq_cmps_swipe_ind" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },               
+                "wpsdw_publn_id" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}

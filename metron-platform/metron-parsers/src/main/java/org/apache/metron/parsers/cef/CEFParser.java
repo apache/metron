@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class CEFParser extends BasicParser {
 
 	// Set up the requisite variables
-	private static final Logger _LOG = LoggerFactory.getLogger(CEFParser.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CEFParser.class);
 	private String dateFormatString;
 	private String headerTimestampRegex;
 	private TimeZone timeZone;
@@ -86,7 +87,7 @@ public class CEFParser extends BasicParser {
 
 	// Parse a raw telemetry message
 	@SuppressWarnings({ "unchecked"})
-	public List<JSONObject> parse(byte[] rawMessage) {
+	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
 
 		String message = "";
 		List<JSONObject> messages = new ArrayList<>();
@@ -97,13 +98,13 @@ public class CEFParser extends BasicParser {
 			message = new String(rawMessage, "UTF-8");
 						
 			// Only attempt to split if this is a well-formed CEF line
-			if (!message.matches(".*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*\\|.*")) {
-				_LOG.error("Failed to parse: " + message);
+			if (StringUtils.countMatches(message, "|") < 7){
+				LOGGER.error("Not a well-formed CEF line, Failed to parse: " + message);
 				return null;
 			}
 			
 			payload.put("original_string", message.replace("\\=", "="));
-			String[] parts = message.split("\\|");
+			String[] parts = message.split("\\|", 8);
 
 			// Add the standard CEF fields
 			payload.put("header", parts[0]);
@@ -119,12 +120,13 @@ public class CEFParser extends BasicParser {
 			String key = "";
 			String value = "";
 
-			while (findNextEquals(fields) !=  findLastEquals(fields)) {
+			while ((findNextEquals(fields) !=  findLastEquals(fields)) && fields.contains(" ")) {
+
 
 				// Extract the key-value pairs
 				key = fields.substring(0, findNextEquals(fields)).trim();
 				fields = fields.substring(findNextEquals(fields) + 1);
-				value = fields.substring(0, findNextEquals(fields));
+			value = fields.substring(0, findNextEquals(fields));
 				value = value.substring(0, value.lastIndexOf(" "));
 				fields = fields.substring(value.length() + 1);
 
@@ -172,9 +174,8 @@ public class CEFParser extends BasicParser {
 			return messages;
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			_LOG.error("Failed to parse: " + message);
-			return null;
+			LOGGER.error("Failed to parse: " + message + " with error message " + e.getMessage(), e);
+			throw e;
 		}
 	}
 
@@ -182,9 +183,15 @@ public class CEFParser extends BasicParser {
 	// Finds the next non-escaped equals sign
 	public int findNextEquals(String input) {
 
-		int nextEqualsIndex = 0;
-		int currentIndex = 0;
-		boolean found = false;
+    int nextEqualsIndex = 0;
+    int indexOffset = 0;
+    int currentIndex = 0;
+    boolean found = false;
+
+    if((input.startsWith("http") || input.startsWith("Value=")) && input.contains(" ")){
+      indexOffset = input.indexOf(" ") + 1;
+      input = input.substring(input.indexOf(" ") + 1);
+    }
 
 		if (input.indexOf("=") == -1)
 			return -1;
@@ -198,8 +205,8 @@ public class CEFParser extends BasicParser {
 				found = true;
 			currentIndex = nextEqualsIndex + 1;
 		}
-
-		return nextEqualsIndex;
+    nextEqualsIndex = nextEqualsIndex + indexOffset;
+    return nextEqualsIndex;
 	}
 
 
@@ -271,6 +278,11 @@ public class CEFParser extends BasicParser {
 		if (json.containsKey("rt")) {
 			
 			String timestamp = (String) json.get("rt");
+			if(timestamp.equals("${Event.createTime}")){
+				json.put("timestamp", System.currentTimeMillis());
+				json.remove("rt");
+				return;
+			}
 
 			//Adds the year if it is not present
 			if (!dateFormatString.contains("yyyy")) {
@@ -294,7 +306,7 @@ public class CEFParser extends BasicParser {
 			try {
 				epochTimestamp = dateFormat.parse(timestamp).getTime();
 			} catch (ParseException e) {
-				_LOG.error("Date Parsing Exception:" + e.toString());
+				LOGGER.error("Date Parsing Exception:" + e.toString());
 				json.put("timestamp", epochTimestamp);
 			}
 			

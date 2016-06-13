@@ -1,0 +1,36 @@
+PRIORITY \d+
+
+YEAR \d{4}
+MONTH \d{2}
+DAY \d{2}
+
+HOUR \d{2}
+MINUTE \d{2}
+SECOND \d{2}
+
+DATE %{YEAR:UNWANTED}-%{MONTH:UNWANTED}-%{DAY:UNWANTED}
+TIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}
+OFFSET \d+
+
+TIMESTAMP %{DATE:UNWANTED} %{TIME:UNWANTED}
+TIMESTAMPFULL %{TIMESTAMP:timestamp_string},%{OFFSET:UNWANTED}
+
+IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?
+IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])
+
+# hostname can be a url or ip address
+HOSTNAME %{IPV6:UNWANTED}|%{IPV4:UNWANTED}|[-\w\.]+
+
+LOGSTART <%{PRIORITY:priority}>%{TIMESTAMPFULL:UNWANTED}\s+%{HOSTNAME:url}
+
+CATWORD [_A-Za-z0-9-]+
+CATEGORY %{CATWORD:UNWANTED}\s?%{CATWORD:UNWANTED}?\s?%{CATWORD:UNWANTED}?
+
+MESSAGEID \d+
+SEGMENTS \d+
+
+LOGMIDDLE %{CATEGORY:category} %{MESSAGEID:message_id} %{SEGMENTS:total_segments} %{SEGMENTS:segment_number}
+
+GREEDY .+
+
+ARUBA %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{GREEDY:message}

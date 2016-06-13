@@ -100,6 +100,10 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
+      @Override
+      protected long getCurrentTimestamp() {
+        return 0;
+      }
 
     };
     parserBolt.setCuratorFramework(client);
@@ -115,13 +119,13 @@ public class ParserBoltTest extends BaseBoltTest {
       add(sampleMessage1);
       add(sampleMessage2);
     }};
-    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\" }");
-    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\" }");
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messages));
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
     when(parser.validate(eq(messages.get(1)))).thenReturn(false);
     parserBolt.execute(tuple);
+    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"ingest_timestamp\":0 \"source.type\":\"" + sensorType + "\" }");
+    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"ingest_timestamp\":0 \"source.type\":\"" + sensorType + "\" }");
     verify(writer, times(1)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage1));
     verify(outputCollector, times(1)).ack(tuple);
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);

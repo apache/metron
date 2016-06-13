@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.bigip.GrokBigIpParser",
+  "sensorTopic":"bigip",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/bigip",
+    "patternLabel":"BIGIP",
+    "timestampField":"timestamp_string",
+    "dateFormat":"yyyy MMM dd HH:mm:ss"
+  }
+}

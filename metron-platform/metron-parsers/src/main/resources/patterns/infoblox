@@ -1,0 +1,174 @@
+# Tag Specific Names
+
+PRIORITY \d+
+
+MONTH (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)
+DAY \d{1,2}
+HOUR \d{2}
+MINUTE \d{2}
+SECOND \d{2}
+TIME %{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}
+
+TIMESTAMP %{MONTH:UNWANTED}\s{1,2}%{DAY:UNWANTED} %{TIME:UNWANTED}
+
+BEGINNING <%{PRIORITY:priority}>%{TIMESTAMP:timestamp}
+
+IPADDRESS \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
+IPPORT \d+
+
+PROCESS \w+
+PROCESSID \d+
+PROCESSIDFULL \[%{PROCESSID:process_id}\]
+PROCESSFULL %{PROCESS:process}%{PROCESSIDFULL:UNWANTED}?
+
+# ALL Infoblox lines start with this
+LOGSTART %{BEGINNING:UNWANTED} %{IPADDRESS:ip_address} %{PROCESSFULL:UNWANTED}:
+
+GREEDY .*
+
+# DNS messages
+DNSRESULT [a-zA-Z]*
+
+# # Client messages
+CLIENTSTART client %{IPADDRESS:ip_src_addr}#%{IPPORT:ip_src_port}
+CLIENTBINDPARAMETERS [\+a-zA-z]*
+CLIENTQUERY [/\w\-\.\\]+
+CLIENTQUERYFULL \s\(%{CLIENTQUERY:dns_query}\)
+
+# # # Query messages - will have to add a field 'dns_result' with value 'success' after parsing
+QUERYACTIONTYPE query
+QUERYRECORDTYPE [a-zA-Z]+\s?[a-zA-Z]?
+QUERYSERVERINTERFACE \(%{IPADDRESS:dns_server_interface}\)
+
+CLIENTQUERYMESSAGE client %{IPADDRESS:clientquery_ip_src_addr}#%{IPPORT:clientquery_ip_src_port}(?:\s\(%{CLIENTQUERY:clientquery_dns_query}\))?: %{QUERYACTIONTYPE:clientquery_dns_action_type}: %{CLIENTQUERY:UNWANTED} %{QUERYRECORDTYPE:clientquery_dns_record_type} %{CLIENTBINDPARAMETERS:clientquery_dns_bind_parameters} \(%{IPADDRESS:clientquery_dns_server_interface}\)
+
+# # # Update fail messages
+UPDATEACTIONTYPE update\s?\w*
+UPDATETARGET [\w\.-]*
+UPDATERECORDTYPE [a-zA-Z]*/?[a-zA-Z]*
+
+CLIENTUPDATEFAILMESSAGE client %{IPADDRESS:clientupdatefail_ip_src_addr}#%{IPPORT:clientupdatefail_ip_src_port}[^:]*: %{UPDATEACTIONTYPE:clientupdatefail_dns_action_type} \'%{UPDATETARGET:clientupdatefail_dns_update_target}/%{UPDATERECORDTYPE:clientupdatefail_dns_record_type}\' %{DNSRESULT:clientupdatefail_dns_result}
+
+# # # Update success messages - will have to add a field 'dns_result' with value 'success' after parsing
+UPDATEAUTHKEYNAME \w*
+
+CLIENTUPDATESUCCESSMESSAGE client %{IPADDRESS:clientupdatesuccess_ip_src_addr}#%{IPPORT:clientupdatesuccess_ip_src_port}[^\s]* %{UPDATEAUTHKEYNAME:clientupdatesuccess_dns_auth_keyname}: %{GREEDY:clientupdatesuccess_dns_update_message}
+
+###### Combining patterns 1.1 - Combining first 3 client messages into a single grok pattern for simplicity in later patterns
+CLIENTCHECKPOINTALPHA %{CLIENTQUERYMESSAGE:UNWANTED}|%{CLIENTUPDATEFAILMESSAGE:UNWANTED}|%{CLIENTUPDATESUCCESSMESSAGE:UNWANTED}
+
+# # # client unknown
+CLIENTUNKNOWN client %{IPADDRESS:clientunknown_ip_src_addr}#%{IPPORT:clientunknown_ip_src_port}[^:]*: %{GREEDY:clientunknown_dns_update_message}
+
+###### Combining patterns 1.2 - Combing known client patterns and unknown client patterns
+CLIENTCHECKPOINTBETA %{CLIENTCHECKPOINTALPHA:UNWANTED}|%{CLIENTUNKNOWN:UNWANTED}
+
+# # Error messages - after parsed, check if 'dns_action_type' maps to 'resolving' -> if so, replace value with 'query'
+ERRORRESULTTYPE error
+ERRORRETURNCODE \b\w+\b
+ERRORACTIONTYPE \w+
+ERRORRECORDTYPE [a-zA-Z]*/?[a-zA-Z]*
+ERRORRETURNCODEFULL \([a-zA-Z]*\s?[a-zA-Z]*\s?%{ERRORRETURNCODE:error_dns_forward_return_code}\)
+ERRORQUERY [^/]*
+
+ERRORMESSAGE %{ERRORRESULTTYPE:error_dns_result} %{ERRORRETURNCODEFULL:UNWANTED} %{ERRORACTIONTYPE:error_dns_action_type} \'%{ERRORQUERY:error_dns_query}/%{ERRORRECORDTYPE:error_dns_record_type}\': %{IPADDRESS:error_dns_forward_server}#%{IPPORT:error_dns_forward_port}
+
+####### Combining patterns 1.3 - Combining all client patterns with error pattern
+DNSCHECKPOINTALPHA %{CLIENTCHECKPOINTBETA:UNWANTED}|%{ERRORMESSAGE:UNWANTED}
+
+# # Zone messages 
+ZONEACTIONTYPE zone
+ZONEMESSAGE %{ZONEACTIONTYPE:zone_dns_action_type}
+
+# # Checkhints messages
+CHECKHINTSGREEDY checkhints.+
+CHECKHINTSMESSAGE %{CHECKHINTSGREEDY:checkhints_message}
+
+###### Combining patterns 1.4 - Combining DNSCHECKPOINTALPHA with zone and checkhints patterns - all known DNS Patterns
+DNSCHECKPOINTBETA %{DNSCHECKPOINTALPHA:UNWANTED}|%{ZONEMESSAGE:UNWANTED}|%{CHECKHINTSMESSAGE:UNWANTED}
+
+# # Unknown DNS message - assumption that all dns messages use the process 'named' - added at final pattern combination
+DNSUNKNOWNPROCESS named
+DNSUNKNOWNPROCESSFULL %{DNSUNKNOWNPROCESS}%(?:\[%{PROCESSID:dnsunknown_process_id}\])?
+DNSUNKNOWNLOGSTART <%{PRIORITY:dnsunknown_priority}>%{TIMESTAMP:dnsunknown_timestamp} %{IPADDRESS:dnsunknown_ip_address} %{DNSUNKNOWNPROCESSFULL:UNWANTED}:
+DNSUNKNOWNMESSAGE %{DNSUNKNOWNLOGSTART:UNWANTED} %{GREEDY:dnsunknown_message}
+
+
+# dhcp messages
+MACADDRESS ([0-9A-Fa-f]{2}[:-])*([0-9A-Fa-f]{2})
+HOSTNAME \w+
+INTERFACE [A-Za-z]+[0-9\-]+
+
+# # Request messages
+REQUESTTYPE DHCPREQUEST
+REQUESTHOSTNAME \s\(%{HOSTNAME:request_dhcp_hostname}\)
+REQUESTOPTIONS \w+
+REQUESTOPTIONS2 \(%{REQUESTOPTIONS:request_dhcp_options}\)
+REQUESTOPTIONSFULL %{REQUESTOPTIONS2:UNWANTED}
+REQUESTINTERFACEFULL %{INTERFACE:request_dhcp_interface}
+
+REQUESTSTART %{REQUESTTYPE:request_dhcp_type} for %{IPADDRESS:request_dhcp_requested_ip} from %{MACADDRESS:request_src_mac_addr}%{REQUESTHOSTNAME:UNWANTED}? via
+
+REQUESTVIA1 %{IPADDRESS:request_dhcp_relay_ip} uid %{MACADDRESS:request_dhcp_uid} %{REQUESTOPTIONSFULL:UNWANTED}
+REQUESTVIA2 %{REQUESTINTERFACEFULL:UNWANTED}
+REQUESTVIAFULL %{REQUESTVIA1:UNWANTED}|%{REQUESTVIA2:UNWANTED}
+
+REQUESTMESSAGE %{REQUESTSTART:UNWANTED} %{REQUESTVIAFULL:UNWANTED}
+
+# # Acknowledgement messages
+ACKTYPE DHCPACK
+ACKRELAYSRCIP on %{IPADDRESS:ack_dhcp_relay_ip}
+ACKDST %{MACADDRESS:ack_dst_mac}|%{IPADDRESS:ack_ip_dst_addr}
+ACKDSTFULL to %{ACKDST:UNWANTED}
+
+ACKCHECKPOINTALPHA %{ACKTYPE:ack_dhcp_type} %{ACKRELAYSRCIP:UNWANTED}?\s?%{ACKDSTFULL:UNWANTED}?
+
+ACKMACORHOST %{MACADDRESS:ack_dst_mac_addr}|%{HOSTNAME:ack_dhcp_hostname}
+ACKMACORHOSTFULL \(%{ACKMACORHOST:UNWANTED}\)
+
+ACKCHECKPOINTBETA %{ACKCHECKPOINTALPHA:UNWANTED} %{ACKMACORHOSTFULL:UNWANTED} via %{INTERFACE:ack_dhcp_interface}
+
+ACKRELAYSTART (relay)?\s?%{IPADDRESS:ack_dhcp_relay_ip}?
+ACKLEASEDURATION \d+
+ACKLEASEDURATIONFULL lease-duration %{ACKLEASEDURATION:ack_dhcp_lease_duration}
+ACKOPTIONS [a-zA-Z]+
+ACKOPTIONSFULL \(%{ACKOPTIONS:ack_dhcp_options}\)
+ACKUID uid %{MACADDRESS:ack_dhcp_uid}
+ACKRELAYEND %{ACKLEASEDURATIONFULL:UNWANTED}|%{ACKOPTIONSFULL:UNWANTED}|%{ACKUID:UNWANTED}|\s
+ACKRELAYFULL %{ACKRELAYSTART:UNWANTED}\s?%{ACKRELAYEND:UNWANTED}*
+
+ACKMESSAGE %{ACKCHECKPOINTBETA:UNWANTED}\s?%{ACKRELAYFULL:UNWANTED}?
+
+###### Combining patterns 2.1 - Combining Request and Acknowledgement patterns
+DHCPCHECKPOINTALPHA %{REQUESTMESSAGE:UNWANTED}|%{ACKMESSAGE:UNWANTED}
+
+# # Inform messages
+INFORMTYPE DHCPINFORM
+INFORMSRC %{IPADDRESS:inform_ip_src_addr}|%{MACADDRESS:inform_src_mac}
+INFORMFROM from %{INFORMSRC:UNWANTED}
+INFORMDST %{IPADDRESS:inform_dhcp_relay_ip}|%{MACADDRESS:infrom_dhcp_relay_mac}
+INFORMVIA via %{INFORMDST:UNWANTED}
+INFORMMESSAGE %{INFORMTYPE:inform_dhcp_type}\s?%{INFORMFROM:UNWANTED}?\s?%{INFORMVIA:UNWANTED}?
+
+###### Combining patterns 2.2 - Combining previous DHCP patterns with Inform messages pattern
+DHCPCHECKPOINTBETA %{DHCPCHECKPOINTALPHA:UNWANTED}|%{INFORMMESSAGE:UNWANTED}
+
+# # Unknown DHCP messages - assumption that all dhcp messages use process 'dhcpd' - added at final pattern combination
+DHCPUNKNOWNPROCESS dhcpd
+DHCPUNKNOWNPROCESSFULL %{DHCPUNKNOWNPROCESS:dhcpdunknwon_process}%(?:\[%{PROCESSID:dhcpdunknwon_process_id}\])?
+DHCPUNKNOWNLOGSTART <%{PRIORITY:dhcpdunknwon_priority}>%{TIMESTAMP:dhcpdunknwon_timestamp} %{IPADDRESS:dhcpdunknwon_dhcp_ip_address} %{DHCPUNKNOWNPROCESSFULL:UNWANTED}:
+DHCPUNKNOWNMESSAGE %{DHCPUNKNOWNLOGSTART:UNWANTED} %{GREEDY:dhcpdunknwon_dhcp_message}
+
+# Unknown messages
+UNKNOWNMESSAGELOGSTART <%{PRIORITY:unknown_priority}>%{TIMESTAMP:unknown_timestamp} %{IPADDRESS:unknown_ip_address} %{PROCESS:unknown_process}(?:\[%{PROCESSID:unknown_process_id}\])?:
+UNKNOWNMESSAGE %{UNKNOWNMESSAGELOGSTART:UNWANTED} %{GREEDY:unknown_message}
+
+
+###### Combining patterns 3.1 - combining known DNS and known DHCP messages together
+INFOBLOXCHECKPOINTALPHA %{DNSCHECKPOINTBETA:UNWANTED}|%{DHCPCHECKPOINTBETA:UNWANTED}
+
+###### Combining patterns 3.2 - combining LOGSTART and known DNS and DHCP patterns
+INFOBLOXCHECKPOINTBETA %{LOGSTART:UNWANTED} %{INFOBLOXCHECKPOINTALPHA:UNWANTED}
+
+###### Combining patterns 3.3 - combining all known messages and unknown DNS and DHCP messages
+INFOBLOX %{INFOBLOXCHECKPOINTBETA:UNWANTED}|%{DNSUNKNOWNMESSAGE:UNWANTED}|%{DHCPUNKNOWNMESSAGE:UNWANTED}|%{UNKNOWNMESSAGE:UNWANTED}

@@ -1,0 +1,11 @@
+{
+  "parserClassName":"org.apache.metron.parsers.bluecoat_proxy.GrokBluecoatProxyParser",
+  "sensorTopic":"bluecoat_proxy",
+  "parserConfig":
+  {
+    "grokPath":"/patterns/bluecoat_proxy",
+    "patternLabel":"BLUECOAT",
+    "timestampField":"timestamp",
+    "dateFormat":"yyyy-MM-dd HH:mm:ss"
+  }
+}

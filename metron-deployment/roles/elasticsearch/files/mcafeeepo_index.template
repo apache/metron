@@ -1,0 +1,158 @@
+{
+    "template" : "mcafeeepo*",
+   "order" : 1,
+   "settings" : {
+     "number_of_shards" : 1
+   },
+    "aliases" : {
+        "mcafeeepo" : {},
+        "1-Host-Based" : {},
+        "1-Malware-Detection" : {},
+        "1-IP-Search" : {}
+    },
+    "mappings" : {
+        "mcafeeepo_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+              "timestamp" : {
+                  "type" : "date",
+                  "format" : "epoch_millis"
+              },
+              "priority": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "AutoID": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "signature": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "threat_type": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "signature_id": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "category": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "severity_id": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "event_description": {
+                "type": "string",
+                "index": "analyzed"
+              },
+              "detected_timestamp": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "file_name": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "vendor_action": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "threat_handled": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "logon_user": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "user": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "dest_nt_domain": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "dest_dns": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "dest_nt_host": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "fqdn": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "ip_dst_addr": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "dest_mac": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "os": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "sp": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "os_version": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "os_build": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "timezone": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "is_laptop": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "product": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "product_version": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "vse_dat_version": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "vse_engine64_version": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "vse_engine_version": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "vse_hotfix": {
+                "type": "string",
+                "index": "not_analyzed"
+              },
+              "vse_product_version": {
+                "type": "string",
+                "index": "not_analyzed"
+              }
+            }
+        }
+    }
+}

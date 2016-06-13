@@ -1,0 +1,7 @@
+{
+  "index": "rsa_dlp",
+  "batchSize": 200,
+  "enrichment": {
+  }
+}
+

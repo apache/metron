@@ -1,0 +1,11 @@
+{
+  "index": "ciscoacs",
+  "batchSize": 200,
+  "enrichment": {
+    "fieldMap": {
+    },
+    "fieldToTypeMap": {
+    }
+  }
+}
+

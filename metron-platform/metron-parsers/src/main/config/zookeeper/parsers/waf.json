@@ -1,0 +1,9 @@
+{
+  "parserClassName":"org.apache.metron.parsers.cef.CEFParser",
+  "sensorTopic":"waf",
+  "parserConfig":
+  {
+    "dateFormat":"dd MMMMM yyyy HH:mm:ss",
+    "timezone":"UTC"
+  }
+}

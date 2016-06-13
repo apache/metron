@@ -1,0 +1,7 @@
+{
+  "parserClassName":"org.apache.metron.parsers.checkpoint_traffic.BasicCheckpointTrafficParser",
+  "sensorTopic":"checkpoint_audit",
+  "parserConfig":
+  {
+  }
+}

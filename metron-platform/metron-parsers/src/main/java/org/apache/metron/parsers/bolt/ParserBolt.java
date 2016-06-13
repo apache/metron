@@ -130,6 +130,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     parser.configure(config.getParserConfig());
   }
 
+  protected long getCurrentTimestamp() {
+    return System.currentTimeMillis();
+  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -145,8 +148,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
+          long ingest_timestamp = getCurrentTimestamp();
           if (parser.validate(message) && filter != null && filter.emitTuple(message)) {
             message.put(Constants.SENSOR_TYPE, getSensorType());
+            message.put("ingest_timestamp", ingest_timestamp);
             for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
               if (handler != null) {
                 handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());

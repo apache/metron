@@ -1,0 +1,221 @@
+{
+    "template" : "bluecoatcim*",
+    "order" : 1,
+    "settings": {
+        "number_of_shards": 5
+    },
+    "aliases" : {
+        "bluecoat" : {},
+        "1-Network-Based" : {},
+        "1-Malware-Detection" : {}
+    },
+    "mappings" : {
+        "bluecoatcim_doc" : {
+            "_timestamp" : {
+                "enabled" : true
+            },
+            "properties" : {
+                "timestamp": {
+                    "type":"date",
+                    "format":"epoch_millis"
+                },
+                "date" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "time" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "duration" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "src_ip" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "user" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "cs_auth_group" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_exception_id" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "filter_result" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "category" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_referrer" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "status" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "action" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_method" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_content_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "cs_uri_scheme" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dest" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "uri_port" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "uri_path" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "uri_query" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "uri_extension" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "http_user_agent" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dest_ip" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "bytes_in" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "bytes_out" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_virus_id" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_bluecoat_application_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_bluecoat_application_operation" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "target_ip" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "proxy_connect_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "proxy_name" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "proxy_ip" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "proxy_src_ip" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "dest_duration" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_certificate_validate_status" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_certificate_observed_errors" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_cs_ocsp_error" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_ocsp_error" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_connection_negotiated_ssl_version" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_connection_negotiated_cipher" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_connection_negotiated_cipher_size" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_certificate_hostname" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_rs_certificate_hostname_category" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_cs_connection_negotiated_ssl_version" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_cs_connection_negotiated_cipher" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_cs_connection_negotiated_cipher_size" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_cs_certificate_subject" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "cs_realm" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "cs_auth_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                },
+                "x_auth_credential_type" : {
+                    "type" : "string",
+                    "index" : "not_analyzed"
+                }
+            }
+        }
+    }
+}

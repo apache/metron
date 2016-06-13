@@ -1,0 +1,6 @@
+{
+  "index": "paloalto",
+  "batchSize": 200,
+  "enrichment": {
+  }
+}
