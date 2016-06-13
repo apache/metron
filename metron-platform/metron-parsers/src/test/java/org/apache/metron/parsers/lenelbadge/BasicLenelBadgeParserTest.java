@@ -25,18 +25,22 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class BasicLenelBadgeParserTest {
 
-	private Map<String, Object> parserConfig;
-
 	@Test
-	public void testParseLine() throws Exception {
+	public void testParseLine() {
 		//Set up parser, parse message
 		BasicLenelBadgeParser parser = new BasicLenelBadgeParser();
-		parser.configure(parserConfig);
 		String testString = "<13> server01.data.com \"2016-04-07 17:44:56\" PANEL_ID=\"87223\", PANEL_EVT_ID=\"3458831671\", BLDG_NUM=\"182\", BLDG_NM=\"Kathryn Janeway\", BLDG_USGE_DESC=\"COMMAND\", BLDG_DEPT_ID=\"12421\", BLDG_SPACE_PLANR_NM=\"Tom Paris\", BLDG_STR_ADR_TXT=\"24593 Federation Drive\", BLDG_CITY_NM=\"San Francisco\", BLDG_ST_NM=\"CA\", BLDG_PSTL_CD=\"12345\", CNTRY_NM=\"USA\", BADGE_ID=\"123456\", BADGE_TYPE_DESC=\"Associate\", BADGE_STAT_DESC=\"Active\", BADGE_HOLDR_FRST_NM=\"James\", BADGE_HOLDR_MID_NM=\"Tiberius\", BADGE_HOLDR_LAST_NM=\"Kirk\", BADGE_HOLDR_TYPE_DESC=\"Associate\", EMP_ENT_USER_ID=\"JTK578\", SUPVR_ENT_USER_ID=\"JLP626\", SUPVR_FRST_NM=\"Jean\", SUPVR_MID_NM=\"Luc\", SUPVR_LAST_NM=\"Picard\", EMP_DEPT_ID=\"27159\", EMP_DEPT_NM=\"MN - Processing\", PRSNL_TYPE_CD=\"E\", REG_TEMP_TYPE_CD=\"R\", FULL_TM_PART_TM_TYPE_CD=\"F\", EVT_TYPE_DESC=\"Access Granted\", EVT_TS=\"2016-04-07 17:44:56.0\", EVT_LOCL_DT=\"2016-04-07\", EVT_LOCL_HOUR_NUM=\"12\", EVT_LOCL_WEEK_NUM=\"14\", EVT_LOCL_DAY_NM=\"THURSDAY\", EVT_LOCL_DAY_HOL_IND=\"N\", EMP_FRST_DLY_CMPS_SWIPE_IND=\"N\", EMP_FRST_UNQ_CMPS_SWIPE_IND=\"N\", WPSDW_PUBLN_ID=\"20160410220230\"";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 
 		assertEquals(parsedJSON.get("priority").toString(), "13");
@@ -82,12 +86,16 @@ public class BasicLenelBadgeParserTest {
 	}
 
 	@Test
-	public void testParseMalformedLine() throws Exception {
+	public void testParseMalformedLine() {
 		//Set up parser, attempt to parse malformed message
 		BasicLenelBadgeParser parser = new BasicLenelBadgeParser();
-		parser.configure(parserConfig);
 		String testString = "<13> server01.data.com \"2016-04-07 17:44:56\" PANEL_ID=\"87223\", PANEL_EVT_ID=\"3458831671\", BLD";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		assertEquals(parsedJSON.get("panel_id"),"87223");
 		assertEquals(parsedJSON.get("original_string"),"<13> server01.data.com \"2016-04-07 17:44:56\" PANEL_ID=\"87223\", PANEL_EVT_ID=\"3458831671\", BLD");
@@ -97,13 +105,16 @@ public class BasicLenelBadgeParserTest {
 	}
 
 	@Test
-	public void testParseEmptyLine() throws Exception {
+	public void testParseEmptyLine() {
 		//Set up parser, attempt to parse malformed message
 		BasicLenelBadgeParser parser = new BasicLenelBadgeParser();
-		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+		}
+		assertNull(result);
 	}
 		
 }
