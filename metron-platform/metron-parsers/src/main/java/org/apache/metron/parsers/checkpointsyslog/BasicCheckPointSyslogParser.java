@@ -30,7 +30,7 @@ import java.util.Map;
 public class BasicCheckPointSyslogParser extends BasicParser {
 
     private static final long serialVersionUID = 4860659629055777358L;
-    private static final Logger _LOG = LoggerFactory.getLogger
+    private static final Logger LOGGER = LoggerFactory.getLogger
             (BasicCheckPointSyslogParser.class);
 
     @Override
@@ -38,14 +38,13 @@ public class BasicCheckPointSyslogParser extends BasicParser {
 
     }
 
-    @SuppressWarnings({"unchecked", "unused"})
-    public List<JSONObject> parse(byte[] msg) {
+    public List<JSONObject> parse(byte[] msg) throws Exception {
         JSONObject outputMessage = new JSONObject();
         String toParse = "";
         List<JSONObject> messages = new ArrayList<>();
         try {
             toParse = new String(msg, "UTF-8");
-            _LOG.debug("Received message: " + toParse);
+            LOGGER.debug("Received message: " + toParse);
 
             parseMessage(toParse, outputMessage);
 
@@ -53,8 +52,8 @@ public class BasicCheckPointSyslogParser extends BasicParser {
             messages.add(outputMessage);
             return messages;
         } catch (Exception e) {
-            _LOG.error("Failed to parse: " + toParse);
-            return null;
+            LOGGER.error("Failed to parse: " + toParse, e);
+            throw e;
         }
     }
 
