@@ -77,17 +77,13 @@ public class BasicLenelBadgeParser extends BasicParser {
 	private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss zzz");
 
 	@Override
-	public void init() {
-
-	}
+	public void init() { }
 
 	@Override
-	public void configure(Map<String, Object> parserConfig) {
-
-	}
+	public void configure(Map<String, Object> parserConfig) { }
 
 	@Override
-	public List<JSONObject> parse(byte[] rawMessage) {
+	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
 		List<JSONObject> messages = new ArrayList<>();
 		JSONObject payload = new JSONObject();
 
@@ -125,7 +121,7 @@ public class BasicLenelBadgeParser extends BasicParser {
 			return messages;
 		} catch (Exception e) {
 			LOG.error("Failed to parse: " + new String(rawMessage), e);
-			return null;
+			throw e;
 		}
 
 	}
