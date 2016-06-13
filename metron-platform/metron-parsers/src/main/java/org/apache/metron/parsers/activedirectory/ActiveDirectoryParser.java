@@ -212,16 +212,33 @@ public class ActiveDirectoryParser extends BasicParser {
             //do nothing if the line's length is 0.(Implied else)
         }
         br.close();
+
         jsonMain.put("names", jsonNames);
         jsonMain.put("object", jsonObject);
         jsonMain.put("event", jsonEvent);
         jsonMain.put("additional", jsonAdditional);
 
-        cleanJSON(jsonMain, "ActiveDirectory");
-        if (null == jsonMain) {
+        if (notTruelyParsed(jsonMain)) {
             throw new Exception("Unable to parse the following message: " + fileName);
         }
+
+        cleanJSON(jsonMain, "ActiveDirectory");
         return jsonMain;
+    }
+
+    private boolean notTruelyParsed(JSONObject json) {
+        boolean trulyParsed = false;
+        for (Object key : json.keySet()) {
+            if (!"timestamp".equals(key)) {
+                if (json.get(key) instanceof JSONObject) {
+                    if (!( (JSONObject) json.get(key)) .isEmpty() ) {
+                        trulyParsed = true;
+                        break; // break out of loop if found to be truly parsed
+                    }
+                }
+            }
+        }
+        return !trulyParsed;
     }
 
     /**
