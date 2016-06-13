@@ -22,6 +22,8 @@ import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntel
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SensorEnrichmentConfig {
 
@@ -29,6 +31,15 @@ public class SensorEnrichmentConfig {
   private int batchSize;
   private EnrichmentConfig enrichment = new EnrichmentConfig();
   private ThreatIntelConfig threatIntel = new ThreatIntelConfig();
+  private Map<String, Object> configuration = new HashMap<>();
+
+  public Map<String, Object> getConfiguration() {
+    return configuration;
+  }
+
+  public void setConfiguration(Map<String, Object> configuration) {
+    this.configuration = configuration;
+  }
 
   public EnrichmentConfig getEnrichment() {
     return enrichment;
@@ -70,6 +81,7 @@ public class SensorEnrichmentConfig {
             ", batchSize=" + batchSize +
             ", enrichment=" + enrichment +
             ", threatIntel=" + threatIntel +
+            ", configuration=" + configuration +
             '}';
   }
 
@@ -84,7 +96,9 @@ public class SensorEnrichmentConfig {
     if (getIndex() != null ? !getIndex().equals(that.getIndex()) : that.getIndex() != null) return false;
     if (getEnrichment() != null ? !getEnrichment().equals(that.getEnrichment()) : that.getEnrichment() != null)
       return false;
-    return getThreatIntel() != null ? getThreatIntel().equals(that.getThreatIntel()) : that.getThreatIntel() == null;
+    if (getThreatIntel() != null ? !getThreatIntel().equals(that.getThreatIntel()) : that.getThreatIntel() != null)
+      return false;
+    return getConfiguration() != null ? getConfiguration().equals(that.getConfiguration()) : that.getConfiguration() == null;
 
   }
 
@@ -94,6 +108,7 @@ public class SensorEnrichmentConfig {
     result = 31 * result + getBatchSize();
     result = 31 * result + (getEnrichment() != null ? getEnrichment().hashCode() : 0);
     result = 31 * result + (getThreatIntel() != null ? getThreatIntel().hashCode() : 0);
+    result = 31 * result + (getConfiguration() != null ? getConfiguration().hashCode() : 0);
     return result;
   }
 

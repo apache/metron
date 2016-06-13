@@ -18,13 +18,19 @@
 
 package org.apache.metron.common.query;
 
-import com.google.common.base.Function;
 import org.apache.commons.net.util.SubnetUtils;
+import org.apache.metron.common.field.validation.network.DomainValidation;
+import org.apache.metron.common.field.validation.network.EmailValidation;
+import org.apache.metron.common.field.validation.network.IPValidation;
+import org.apache.metron.common.field.validation.network.URLValidation;
+import org.apache.metron.common.field.validation.primitive.DateValidation;
+import org.apache.metron.common.field.validation.primitive.IntegerValidation;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Predicate;
 
-public enum LogicalFunctions implements Function<List<String>, Boolean> {
+public enum LogicalFunctions implements Predicate<List<String>> {
   IS_EMPTY ( list -> {
     if(list.size() == 0) {
       throw new IllegalStateException("IS_EMPTY expects one string arg");
@@ -86,14 +92,20 @@ public enum LogicalFunctions implements Function<List<String>, Boolean> {
     }
     return str.matches(pattern);
   })
+  , IS_IP(new IPValidation())
+  , IS_DOMAIN(new DomainValidation())
+  , IS_EMAIL(new EmailValidation())
+  , IS_URL(new URLValidation())
+  , IS_DATE(new DateValidation())
+  , IS_INTEGER(new IntegerValidation())
   ;
-  Function<List<String>, Boolean> func;
-  LogicalFunctions(Function<List<String>, Boolean> func) {
+  Predicate<List<String>> func;
+  LogicalFunctions(Predicate<List<String>> func) {
     this.func = func;
   }
   @Nullable
   @Override
-  public Boolean apply(@Nullable List<String> input) {
-    return func.apply(input);
+  public boolean test(@Nullable List<String> input) {
+    return func.test(input);
   }
 }
