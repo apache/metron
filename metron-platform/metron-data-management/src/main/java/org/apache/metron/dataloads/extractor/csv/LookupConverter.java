@@ -25,5 +25,5 @@ import java.util.Map;
 
 public interface LookupConverter {
     LookupKey toKey(String type, String indicator);
-    LookupValue toValue(Map<String, String> metadata);
+    LookupValue toValue(Map<String, Object> metadata);
 }
