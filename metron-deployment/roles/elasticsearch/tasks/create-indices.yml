@@ -49,7 +49,7 @@
     - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.tenplate' }}" }
     - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.tenplate' }}" }
     - { sensor: soltra, file: "{{ lookup('file','soltra_index.tenplate' }}" }
-    - { sensor: global; file: "{{ lookup('file','global_index.tempalte' }}" }
+    - { sensor: global, file: "{{ lookup('file','global_index.tempalte' }}" }
 
 
 
