@@ -69,8 +69,8 @@
     - { sensor: waf, file: "{{ lookup('file','waf_index.template') }}" }
     - { sensor: windowssyslog, file: "{{ lookup('file','windowssyslog_index.template') }}" }
     - { sensor: checkpointtraffic, file: "{{ lookup('file','checkpointtraffic_index.template') }}" }
-    - { sensor: global; file: "{{ lookup('file','global_index.tempalte' }}" }
     - { sensor: rfc4164, file: "{{ lookup('file','rfc4164_index.template') }}" }
+    - { sensor: global, file: "{{ lookup('file','global_index.tempalte' }}" }
 
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped
