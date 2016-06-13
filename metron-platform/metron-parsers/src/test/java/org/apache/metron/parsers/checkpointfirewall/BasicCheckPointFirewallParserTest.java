@@ -24,23 +24,26 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class BasicCheckPointFirewallParserTest {
 
-    private BasicCheckPointFirewallParser basicCheckPointFirewallParser = new BasicCheckPointFirewallParser();
-
-    public BasicCheckPointFirewallParserTest() throws Exception {
-        super();
-    }
-
     @Test
-    public void testParseWithKeyValue() throws Exception {
+    public void testParseWithKeyValue() {
+        BasicCheckPointFirewallParser basicCheckPointFirewallParser = new BasicCheckPointFirewallParser();
+
         String testString = "Apr 01 00:17:41 [10.255.255.255] Apr 01 2016 00:17:40: %CHKPNT-2-080040: Origin=Death_STAR,Application=HeavyBlaster," +
                 "Name=finn,Type=firewall_application,Category=applications,Operation=\"Install Policy\",Uid={00000035-00B7-0042-9209-1DEE70DDFA4C}," +
                 "Administrator=rey007,Client=LUKE1-SKYWALKER2,Subject=\"Policy Installation\",Audit Status=Success,Info=\"Security Policy : finn-current\"," +
                 "Operation Number=7,client_ip=10.255.255.255,";
 
-        List<JSONObject> result = basicCheckPointFirewallParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicCheckPointFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
@@ -65,12 +68,19 @@ public class BasicCheckPointFirewallParserTest {
     }
 
     @Test
-    public void testParseWithoutKeyValue() throws Exception {
+    public void testParseWithoutKeyValue() {
+        BasicCheckPointFirewallParser basicCheckPointFirewallParser = new BasicCheckPointFirewallParser();
+
         String testString = "Apr 01 00:00:03 [10.255.255.255] Apr 01 2016 00:00:02: %CHKPNT-5-100023: monitor, rey3finn004, inbound, abc3-01, 10.255.255.255, 41655, 10.255.255.255," +
                 " 11500, 11500, tcp, 1, , , , , , , , , illegal header format detected: 0, , , , , , , , , , *** Confidential ***, , , , ,  1Apr2016  0:00:02, 0, SmartDefense," +
                 " , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 100023, Block HTTP Non Compliant, illegal header format detected, , , , , , , , , , , ," +
                 " {B78F2121-0028-4369-A684-6422FFE76063}";
-        List<JSONObject> result = basicCheckPointFirewallParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicCheckPointFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
@@ -101,20 +111,36 @@ public class BasicCheckPointFirewallParserTest {
     }
 
     @Test
-    public void tetsParseMalformedOtherLine() throws Exception {
+    public void tetsParseMalformedOtherLine() {
+        BasicCheckPointFirewallParser basicCheckPointFirewallParser = new BasicCheckPointFirewallParser();
+
         String testString = "Apr 01 00:17:41 [10.255.255.255] Apr 01 2016 00:17:40: %CHKPNT-2-080040: Origin=Death_STAR,Application=HeavyBlaster," +
                 "Name=finn,Type=firewall_application,,,,Category=applications,Operation=\"Install Policy\",Uid={00000035-00B7-0042-9209-1DEE70DDFA4C}," +
                 "Administrator=rey007,Client=LUKE1-SKYWALKER2,Subject=\"Policy Installation\",Audit Status=Success,Info=\"Security Policy : finn-current\"," +
                 "Operation Number=7,client_ip=10.255.255.255,";
-        List<JSONObject> result = basicCheckPointFirewallParser.parse(testString.getBytes());
-        assertEquals(null, result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = basicCheckPointFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 
     @Test
-    public void testParseEmptyLine() throws Exception {
+    public void testParseEmptyLine() {
+        BasicCheckPointFirewallParser basicCheckPointFirewallParser = new BasicCheckPointFirewallParser();
+
         String testString = "";
-        List<JSONObject> result = basicCheckPointFirewallParser.parse(testString.getBytes());
-        assertEquals(null, result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = basicCheckPointFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 
 }
