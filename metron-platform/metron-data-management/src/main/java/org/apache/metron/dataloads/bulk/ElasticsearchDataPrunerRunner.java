@@ -23,6 +23,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.configuration.Configuration;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -31,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -88,6 +88,8 @@ public class ElasticsearchDataPrunerRunner {
                 String resourceFile = cmd.getOptionValue("c");
                 configuration = new Configuration(Paths.get(resourceFile));
 
+            } else {
+                ErrorUtils.RuntimeErrors.ILLEGAL_ARG.throwRuntime("Unable to finish setting up configuration - z or c option is required.");
             }
 
             configuration.update();
