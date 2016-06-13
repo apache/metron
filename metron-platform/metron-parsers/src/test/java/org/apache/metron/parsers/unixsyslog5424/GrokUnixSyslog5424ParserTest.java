@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class GrokUnixSyslog5424ParserTest {
 
@@ -43,15 +45,19 @@ public class GrokUnixSyslog5424ParserTest {
 		parserConfig.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS");
 	}
 
-
 	@Test
-	public void testParseRealLine() throws Exception {
+	public void testParseRealLine() {
 		
 		//Set up parser, parse message
 		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
 		parser.configure(parserConfig);
 		String testString = "<166>2016-05-20T12:53:01.034Z vpcr07.abc.google.com Vpxa: [71237B90 verbose 'hostdstats'] Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -65,13 +71,18 @@ public class GrokUnixSyslog5424ParserTest {
 	}
 
 	@Test
-	public void testParseWithoutExtraInfo() throws Exception {
+	public void testParseWithoutExtraInfo() {
 
 		//Set up parser, parse message
 		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
 		parser.configure(parserConfig);
 		String testString = "<166>2016-05-20T12:53:01.034Z vpcr07.abc.google.com Vpxa: Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 
 		//Compare fields
@@ -84,13 +95,18 @@ public class GrokUnixSyslog5424ParserTest {
 	}
 
 	@Test
-	public void testParseShortTimestamp() throws Exception {
+	public void testParseShortTimestamp() {
 
 		//Set up parser, parse message
 		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
 		parser.configure(parserConfig);
 		String testString = "<166>2016-05-20T12:53:01.03Z vpcr07.abc.google.com Vpxa: [71237B90 verbose 'hostdstats'] Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 
 		//Compare fields
@@ -104,28 +120,37 @@ public class GrokUnixSyslog5424ParserTest {
 	}
 
 	@Test
-	public void testParseMalformedLine() throws Exception {
+	public void testParseMalformedLine() {
 
 		//Set up parser, parse message
 		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
 		parser.configure(parserConfig);
 		String testString = "<1662016-05-20T12:53:01.03Z Vpxa Set internal stats for VM: 22 (vpxa VM id), 30997 (vpxd VM id). Is FT primary? false";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-
-		assertEquals(result, null);
-
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
-
 	
 	@Test
-	public void testParseEmptyLine() throws Exception {
+	public void testParseEmptyLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokUnixSyslog5424Parser parser = new GrokUnixSyslog5424Parser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 		
 }

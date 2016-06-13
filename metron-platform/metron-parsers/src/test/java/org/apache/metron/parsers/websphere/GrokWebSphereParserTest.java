@@ -19,6 +19,8 @@
 package org.apache.metron.parsers.websphere;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,14 +44,18 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseLoginLine() throws Exception {
-		
+	public void testParseLoginLine() {
 		//Set up parser, parse message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] user(rick007): "
 				+ "[120.43.200.6]: User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -66,14 +72,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void tetsParseLogoutLine() throws Exception {
+	public void tetsParseLogoutLine() {
 		
 		//Set up parser, parse message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201]: "
 				+ "User 'hjpotter' logged out from 'default'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -89,14 +100,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void tetsParseRBMLine() throws Exception {
+	public void tetsParseRBMLine() {
 		
 		//Set up parser, parse message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbm(RBM-Settings): "
 				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -111,14 +127,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void tetsParseOtherLine() throws Exception {
+	public void tetsParseOtherLine() {
 		
 		//Set up parser, parse message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans(191): (admin:default:system:*): "
 				+ "ntp-service 'NTP Service' - Operational state down";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -133,14 +154,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseMalformedLoginLine() throws Exception {
+	public void testParseMalformedLoginLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
 				+ "[120.43.200. User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 
 		//Compare fields
@@ -157,14 +183,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void tetsParseMalformedLogoutLine() throws Exception {
+	public void tetsParseMalformedLogoutLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201: "
 				+ "User 'hjpotter' logged out from 'default.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -180,14 +211,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void tetsParseMalformedRBMLine() throws Exception {
+	public void tetsParseMalformedRBMLine() {
 		
 		//Set up parser, parse message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbmRBM-Settings): "
 				+ "trans3502888135)[request] gtid3502888135) RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -202,14 +238,19 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void tetsParseMalformedOtherLine() throws Exception {
+	public void tetsParseMalformedOtherLine() {
 		
 		//Set up parser, parse message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans 191)  admindefaultsystem*): "
 				+ "ntp-service 'NTP Service' - Operational state down:";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -226,14 +267,20 @@ public class GrokWebSphereParserTest {
 	
 	
 	@Test
-	public void testParseEmptyLine() throws Exception {
+	public void testParseEmptyLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 		
 }
