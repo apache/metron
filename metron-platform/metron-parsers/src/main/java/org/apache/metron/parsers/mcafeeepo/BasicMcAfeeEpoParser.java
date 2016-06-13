@@ -27,14 +27,19 @@ import org.slf4j.LoggerFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
-public class McAfeeEpoParser extends BasicParser {
-    private static final Logger _LOG = LoggerFactory.getLogger(McAfeeEpoParser.class);
+public class BasicMcAfeeEpoParser extends BasicParser {
+    private static final Logger _LOG = LoggerFactory.getLogger(BasicMcAfeeEpoParser.class);
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Override
     public void init() {
+    }
+
+    @Override
+    public void configure(Map<String, Object> config) {
     }
 
     @SuppressWarnings({ "unchecked", "unused" })
@@ -108,4 +113,6 @@ public class McAfeeEpoParser extends BasicParser {
             return null;
         }
     }
+
+
 }

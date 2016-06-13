@@ -29,7 +29,7 @@ import static org.junit.Assert.assertNull;
 
 public class BasicMcAfeeEpoTest {
 
-    private McAfeeEpoParser bmap = new McAfeeEpoParser();
+    private BasicMcAfeeEpoParser bmap = new BasicMcAfeeEpoParser();
 
     public BasicMcAfeeEpoTest() throws Exception {
         super();
