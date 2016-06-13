@@ -51,7 +51,12 @@ public abstract class GrokParserTest {
     grokParser.configure(parserConfig);
     grokParser.init();
     byte[] rawMessage = getRawMessage().getBytes();
-    List<JSONObject> parsedList = grokParser.parse(rawMessage);
+    List<JSONObject> parsedList = null;
+    try {
+      parsedList = grokParser.parse(rawMessage);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     Assert.assertEquals(1, parsedList.size());
     compare(expectedParsed, parsedList.get(0));
   }
