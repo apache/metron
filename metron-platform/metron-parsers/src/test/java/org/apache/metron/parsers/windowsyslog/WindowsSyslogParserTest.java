@@ -18,25 +18,18 @@
 
 package org.apache.metron.parsers.windowsyslog;
 
-import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.GrokParser;
-import org.apache.metron.parsers.bluecoat.BasicBluecoatParser;
-import org.apache.metron.parsers.websphere.GrokWebSphereParser;
 import org.apache.metron.parsers.windowssyslog.WindowsSyslogParser;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class WindowsSyslogParserTest {
 
@@ -273,4 +266,21 @@ public class WindowsSyslogParserTest {
 	private void appendWithNewLine(StringBuilder sb, String toAppend) {
 		sb.append(toAppend + '\n');
 	}
+
+	@Test
+	public void testEmptyLine() {
+		//Set up parser, parse message
+		WindowsSyslogParser parser = new WindowsSyslogParser();
+		parser.configure(new HashMap<>());
+		//parser.withDateFormat(dateFormat).withTimestampField(timestampField);
+		String testString = "";
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+		}
+		assertNull(result);
+	}
+
+
 }
