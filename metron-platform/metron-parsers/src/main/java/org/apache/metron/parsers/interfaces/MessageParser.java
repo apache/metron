@@ -23,7 +23,7 @@ import java.util.Optional;
 public interface MessageParser<T> extends Configurable{
   void init();
   List<T> parse(byte[] rawMessage) throws Exception;
-  default Optional<List<T>> parseOptional(byte[] parseMessage) {
+  default Optional<List<T>> parseOptional(byte[] parseMessage) throws Exception {
     return Optional.of(parse(parseMessage));
   }
 
