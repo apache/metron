@@ -1,5 +1,5 @@
 {
-  "template": "UnixSyslog5424*",
+  "template": "unixsyslog5424*",
   "order": 1,
   "aliases": {
     "unixsyslog": {}
