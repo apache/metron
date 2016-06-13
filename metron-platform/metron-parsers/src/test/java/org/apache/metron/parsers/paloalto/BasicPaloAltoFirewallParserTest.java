@@ -22,8 +22,8 @@ import org.junit.Test;
 
 import java.util.List;
 import com.google.common.collect.ImmutableMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+
+import static org.junit.Assert.*;
 
 public class BasicPaloAltoFirewallParserTest {
 
@@ -42,7 +42,12 @@ public class BasicPaloAltoFirewallParserTest {
                 "2015/01/05 05:38:58,12031,1,54180,80,0,0,0x80004000,tcp,reset-both,\"ad.aspx?f=300x250&id=12;tile=1;ord=67AF705D60B1119C0F18BEA336F9\"," +
                 "HTTP: IIS Denial Of Service Attempt(40019),any,high,client-to-server,347368099,0x0,10.0.0.0-10.255.255.255,US,0,,1200568889751109656,,";
 
-        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
 
         JSONObject json = result.get(0);
 
@@ -105,7 +110,12 @@ public class BasicPaloAltoFirewallParserTest {
                 "0.0.0.0,0.0.0.0,EX-EasyAV2,,,mssql-db,vsys1,v_external,v_internal,ethernet1/2,ethernet1/1,LOG-Default,2015/01/05 12:51:33,33621086,1,54266,40004," +
                 "0,0,0x401c,tcp,allow,5325,3299,2026,25,2015/01/05 12:51:01,30,any,0,17754932075,0x0,10.0.0.0-10.255.255.255,10.0.0.0-10.255.255.255,0,11,14";
 
-        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
 
         JSONObject json = result.get(0);
 
@@ -170,7 +180,12 @@ public class BasicPaloAltoFirewallParserTest {
         String testString = "<14>Mar 24 18:36:14 PAN1.exampleCustomer.com 1,2016/03/24 18:36:14,003001112668,CONFIG,0,0,2016/03/24 18:36:14,10.255.255.255,,set," +
                 "HarryPotter,Web,Succeeded, config mgt-config users HarryPotter preferences saved-log-query traffic Change-Mar25,8071,0x0,0,0,0,0,,SUNKUPAN1";
 
-        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
 
         JSONObject json = result.get(0);
 
@@ -211,7 +226,12 @@ public class BasicPaloAltoFirewallParserTest {
         String testString = "<14>Mar 25 00:00:56 PAN1.exampleCustomer.com 1,2016/03/25 00:00:56,003002112674,SYSTEM,general,0,2016/03/25 00:00:56,,general,,0,0," +
                 "general,informational,User HarryPotter logged in via Web from 10.255.255.255 using http,156324,0x0,0,0,0,0,,SUNKUPAN1";
 
-        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
 
         JSONObject json = result.get(0);
 
@@ -244,8 +264,14 @@ public class BasicPaloAltoFirewallParserTest {
     @Test
     public void testEmpty() {
         String testString = "";
-        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
-        assertNull(result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 
     @Test
@@ -254,8 +280,14 @@ public class BasicPaloAltoFirewallParserTest {
                 "216.0.10.198,0.0.0.0,0.0.0.0,EX-Allow,example\\user.name,,web-browsing,vsys1,internal,external,ethernet1/2,ethernet1/1,LOG-Default," +
                 "2015/01/05 05:38:58,12031,1,54180,80,0,0,0x80004000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,tcp,reset-both,\"ad.aspx?f=300x250&id=12;tile=1;ord=67AF705D60B1119C0F18BEA336F9\"," +
                 "HTTP: IIS Denial Of Service Attempt(40019),any,high,client-to-server,347368099,0x0,10.0.0.0-10.255.255.255,US,0,,1200568889751109656,,";
-        List<JSONObject> result = basicPaloAltoFirewallParser.parse(testString.getBytes());
-        assertNull(result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = basicPaloAltoFirewallParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 
 
