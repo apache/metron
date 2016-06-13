@@ -24,20 +24,22 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class BasicCheckPointSyslogParserTest {
 
-    private BasicCheckPointSyslogParser basicCheckPointSyslogParser = new BasicCheckPointSyslogParser();
-
-    public BasicCheckPointSyslogParserTest() throws Exception {
-        super();
-    }
-
     @Test
-    public void testParseWithProcessId() throws Exception {
+    public void testParseWithProcessId() {
+        BasicCheckPointSyslogParser basicCheckPointSyslogParser = new BasicCheckPointSyslogParser();
         String testString = "<133>xpand[22939]: admin localhost t +volatile:mrma:users:user:socbackup:role:radius-group-any t";
 
-        List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
@@ -48,10 +50,17 @@ public class BasicCheckPointSyslogParserTest {
     }
 
     @Test
-    public void testParseWithoutProcessId() throws Exception {
+    public void testParseWithoutProcessId() {
+        BasicCheckPointSyslogParser basicCheckPointSyslogParser = new BasicCheckPointSyslogParser();
+
         String testString = "<86>cp_radius_helper_1: Non-local user 'socbackup' given role 'radius-group-any' (if that exists)";
 
-        List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
@@ -61,10 +70,17 @@ public class BasicCheckPointSyslogParserTest {
     }
 
     @Test
-    public void testParseWithoutProcess() throws Exception {
+    public void testParseWithoutProcess() {
+        BasicCheckPointSyslogParser basicCheckPointSyslogParser = new BasicCheckPointSyslogParser();
+
         String testString = "<27>last message repeated 6 times";
 
-        List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        List<JSONObject> result = null;
+        try {
+            result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            fail();
+        }
         JSONObject parsedJSON = result.get(0);
 
         //Compare fields
@@ -73,16 +89,32 @@ public class BasicCheckPointSyslogParserTest {
     }
 
     @Test
-    public void tetsParseMalformedOtherLine() throws Exception {
+    public void tetsParseMalformedOtherLine() {
+        BasicCheckPointSyslogParser basicCheckPointSyslogParser = new BasicCheckPointSyslogParser();
+
         String testString = "<86cp_radius_helper_1 Non-local user 'socbackup' given role 'radius-group-any' (if that exists)";
-        List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
-        assertEquals(null, result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 
     @Test
-    public void testParseEmptyLine() throws Exception {
+    public void testParseEmptyLine() {
+        BasicCheckPointSyslogParser basicCheckPointSyslogParser = new BasicCheckPointSyslogParser();
+
         String testString = "";
-        List<JSONObject> result = basicCheckPointSyslogParser.parse(testString.getBytes());
-        assertEquals(null, result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = basicCheckPointSyslogParser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 }
