@@ -44,6 +44,7 @@ import java.util.*;
 
 public class KafkaWithZKComponent implements InMemoryComponent {
 
+  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
 
   public static class Topic {
     public int numPartitions;
@@ -135,6 +136,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
     // setup Broker
     Properties props = TestUtils.createBrokerConfig(0, brokerPort, true);
+    props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
@@ -177,6 +179,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
       payload.get(bytes);
       messages.add(bytes);
     }
+    consumer.close();
     return messages;
   }
 

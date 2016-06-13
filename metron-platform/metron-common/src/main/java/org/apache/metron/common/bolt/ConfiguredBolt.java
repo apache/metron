@@ -29,28 +29,23 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 
 import java.io.IOException;
 import java.util.Map;
 
-public abstract class ConfiguredBolt extends BaseRichBolt {
+public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends BaseRichBolt {
 
   private static final Logger LOG = Logger.getLogger(ConfiguredBolt.class);
 
   private String zookeeperUrl;
 
-  protected final Configurations configurations = new Configurations();
   protected CuratorFramework client;
   protected TreeCache cache;
-
+  private final CONFIG_T configurations = defaultConfigurations();
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
-  }
-
-  public Configurations getConfigurations() {
-    return configurations;
   }
 
   public void setCuratorFramework(CuratorFramework client) {
@@ -61,8 +56,12 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     this.cache = cache;
   }
 
-  public void reloadCallback(String name, Configurations.Type type) {
+  public void reloadCallback(String name, ConfigurationType type) {
   }
+  public CONFIG_T getConfigurations() {
+    return configurations;
+  }
+  protected abstract CONFIG_T defaultConfigurations();
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -85,11 +84,7 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
           }
         };
         cache.getListenable().addListener(listener);
-        try {
-          ConfigurationsUtils.updateConfigsFromZookeeper(configurations, client);
-        } catch (Exception e) {
-          LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
-        }
+        loadConfig();
       }
       cache.start();
     } catch (Exception e) {
@@ -98,23 +93,8 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
     }
   }
 
-  public void updateConfig(String path, byte[] data) throws IOException {
-    if (data.length != 0) {
-      String name = path.substring(path.lastIndexOf("/") + 1);
-      Configurations.Type type;
-      if (path.startsWith(Constants.ZOOKEEPER_SENSOR_ROOT)) {
-        configurations.updateSensorEnrichmentConfig(name, data);
-        type = Configurations.Type.SENSOR;
-      } else if (Constants.ZOOKEEPER_GLOBAL_ROOT.equals(path)) {
-        configurations.updateGlobalConfig(data);
-        type = Configurations.Type.GLOBAL;
-      } else {
-        configurations.updateConfig(name, data);
-        type = Configurations.Type.OTHER;
-      }
-      reloadCallback(name, type);
-    }
-  }
+  abstract public void loadConfig();
+  abstract public void updateConfig(String path, byte[] data) throws IOException;
 
   @Override
   public void cleanup() {

@@ -19,13 +19,20 @@ package org.apache.metron.common.interfaces;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public interface BulkMessageWriter<T> extends AutoCloseable {
+public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializable {
 
-  void init(Map stormConf, Configurations configuration) throws Exception;
-  void write(String sensorType, Configurations configurations, List<Tuple> tuples, List<T> messages) throws Exception;
+  void init(Map stormConf, WriterConfiguration config) throws Exception;
+  void write( String sensorType
+            , WriterConfiguration configurations
+            , Iterable<Tuple> tuples
+            , List<MESSAGE_T> messages
+            ) throws Exception;
 
 }

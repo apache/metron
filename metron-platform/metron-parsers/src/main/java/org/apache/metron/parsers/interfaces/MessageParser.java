@@ -18,11 +18,15 @@
 package org.apache.metron.parsers.interfaces;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface MessageParser<T> {
+public interface MessageParser<T> extends Configurable{
+  void init();
+  List<T> parse(byte[] rawMessage) throws Exception;
+  default Optional<List<T>> parseOptional(byte[] parseMessage) throws Exception {
+    return Optional.of(parse(parseMessage));
+  }
 
-	void init();
-	List<T> parse(byte[] rawMessage);
-	boolean validate(T message);
+  boolean validate(T message);
 
 }

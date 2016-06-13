@@ -19,13 +19,15 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -33,21 +35,20 @@ import java.util.concurrent.ConcurrentMap;
 public class Configurations implements Serializable {
 
   private static final Logger LOG = Logger.getLogger(Configurations.class);
-
-  public enum Type {
-    GLOBAL, SENSOR, OTHER
-  }
-
-  public static final String GLOBAL_CONFIG_NAME = "global";
-
-  private ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
+  private List<FieldValidator> validations = new ArrayList<>();
+  protected ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.get(GLOBAL_CONFIG_NAME);
+    return (Map<String, Object>) configurations.get(ConfigurationType.GLOBAL.getName());
+  }
+
+  public List<FieldValidator> getFieldValidations() {
+    return validations;
   }
 
   public void updateGlobalConfig(byte[] data) throws IOException {
+    if (data == null) throw new IllegalStateException("global config data cannot be null");
     updateGlobalConfig(new ByteArrayInputStream(data));
   }
 
@@ -58,56 +59,35 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    configurations.put(GLOBAL_CONFIG_NAME, globalConfig);
+    configurations.put(ConfigurationType.GLOBAL.getName(), globalConfig);
+    validations = FieldValidator.readValidations(getGlobalConfig());
   }
 
-  public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
-    return (SensorEnrichmentConfig) configurations.get(sensorType);
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, byte[] data) throws IOException {
-    updateSensorEnrichmentConfig(sensorType, new ByteArrayInputStream(data));
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, InputStream io) throws IOException {
-    SensorEnrichmentConfig sensorEnrichmentConfig = JSONUtils.INSTANCE.load(io, SensorEnrichmentConfig.class);
-    updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfig);
-  }
-
-  public void updateSensorEnrichmentConfig(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig) {
-    configurations.put(sensorType, sensorEnrichmentConfig);
-  }
-
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> getConfig(String name) {
-    return (Map<String, Object>) configurations.get(name);
-  }
-
-  public void updateConfig(String name, byte[] data) throws IOException {
-    if (data == null) throw new IllegalStateException("config data cannot be null");
-    Map<String, Object> config = JSONUtils.INSTANCE.load(new ByteArrayInputStream(data), new TypeReference<Map<String, Object>>() {});
-    updateConfig(name, config);
-  }
-
-  public void updateConfig(String name, Map<String, Object> config) {
-    configurations.put(name, config);
-  }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
+
     Configurations that = (Configurations) o;
-    return configurations.equals(that.configurations);
+
+    if (validations != null ? !validations.equals(that.validations) : that.validations != null) return false;
+    return configurations != null ? configurations.equals(that.configurations) : that.configurations == null;
+
   }
 
   @Override
   public int hashCode() {
-    return configurations.hashCode();
+    int result = validations != null ? validations.hashCode() : 0;
+    result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+    return result;
   }
 
   @Override
   public String toString() {
-    return configurations.toString();
+    return "Configurations{" +
+            "validations=" + validations +
+            ", configurations=" + configurations +
+            '}';
   }
 }

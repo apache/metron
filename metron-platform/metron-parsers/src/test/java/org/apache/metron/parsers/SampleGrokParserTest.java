@@ -19,6 +19,9 @@ package org.apache.metron.parsers;
 
 import org.adrianwalker.multilinestring.Multiline;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SampleGrokParserTest extends GrokParserTest {
 
   /**
@@ -61,15 +64,17 @@ public class SampleGrokParserTest extends GrokParserTest {
   }
 
   public String getGrokPath() {
-    return "../metron-integration-test/src/main/resources/sample/patterns/test";
+    return "../metron-integration-test/src/main/sample/patterns/test";
   }
 
   public String getGrokPatternLabel() {
     return "YAF_DELIMITED";
   }
 
-  public String[] getTimeFields() {
-    return new String[]{"end_time"};
+  public List<String> getTimeFields() {
+    return new ArrayList<String>() {{
+      add("end_time");
+    }};
   }
 
   public String getDateFormat() {

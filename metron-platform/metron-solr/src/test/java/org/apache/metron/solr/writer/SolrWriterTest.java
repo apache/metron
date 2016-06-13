@@ -19,6 +19,8 @@ package org.apache.metron.solr.writer;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
 import org.apache.metron.integration.utils.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
@@ -92,7 +94,7 @@ public class SolrWriterTest {
 
   @Test
   public void testWriter() throws Exception {
-    Configurations configurations = SampleUtil.getSampleConfigs();
+    EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
     JSONObject message1 = new JSONObject();
     message1.put("intField", 100);
     message1.put("doubleField", 100.0);
@@ -106,7 +108,7 @@ public class SolrWriterTest {
     String collection = "metron";
     MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
     SolrWriter writer = new SolrWriter().withMetronSolrClient(solr);
-    writer.init(null, configurations);
+    writer.init(null, new EnrichmentWriterConfiguration(configurations));
     verify(solr, times(1)).createCollection(collection, 1, 1);
     verify(solr, times(1)).setDefaultCollection(collection);
 
@@ -119,18 +121,18 @@ public class SolrWriterTest {
     globalConfig.put("solr.replicationFactor", replicationFactor);
     configurations.updateGlobalConfig(globalConfig);
     writer = new SolrWriter().withMetronSolrClient(solr);
-    writer.init(null, configurations);
+    writer.init(null, new EnrichmentWriterConfiguration(configurations));
     verify(solr, times(1)).createCollection(collection, numShards, replicationFactor);
     verify(solr, times(1)).setDefaultCollection(collection);
 
-    writer.write("test", configurations, new ArrayList<Tuple>(), messages);
+    writer.write("test", new EnrichmentWriterConfiguration(configurations), new ArrayList<>(), messages);
     verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "test", 100, 100.0)));
     verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "test", 200, 200.0)));
     verify(solr, times(0)).commit(collection);
 
     writer = new SolrWriter().withMetronSolrClient(solr).withShouldCommit(true);
-    writer.init(null, configurations);
-    writer.write("test", configurations, new ArrayList<Tuple>(), messages);
+    writer.init(null, new EnrichmentWriterConfiguration(configurations));
+    writer.write("test", new EnrichmentWriterConfiguration(configurations), new ArrayList<>(), messages);
     verify(solr, times(2)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "test", 100, 100.0)));
     verify(solr, times(2)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "test", 200, 200.0)));
     verify(solr, times(1)).commit(collection);

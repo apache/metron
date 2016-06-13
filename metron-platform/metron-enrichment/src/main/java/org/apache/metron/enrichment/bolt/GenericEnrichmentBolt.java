@@ -28,12 +28,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredBolt;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
  **/
 
 @SuppressWarnings({"rawtypes", "serial"})
-public class GenericEnrichmentBolt extends ConfiguredBolt {
+public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
@@ -114,8 +114,9 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
     this.invalidateCacheOnReload= cacheInvalidationOnReload;
     return this;
   }
+
   @Override
-  public void reloadCallback(String name, Configurations.Type type) {
+  public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();
@@ -175,6 +176,7 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
       else {
         throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
       }
+      boolean error = false;
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
         String value = (String) rawMessage.get(field);
@@ -183,16 +185,25 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
         } else {
           JSONObject enrichedField = new JSONObject();
           if (value != null && value.length() != 0) {
-            SensorEnrichmentConfig config = configurations.getSensorEnrichmentConfig(sourceType);
+            SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
-              throw new RuntimeException("Unable to find " + config);
+              LOG.error("Unable to find " + config);
+              error = true;
+              continue;
             }
             CacheKey cacheKey= new CacheKey(field, value, config);
-            adapter.logAccess(cacheKey);
-            enrichedField = cache.getUnchecked(cacheKey);
-            if (enrichedField == null)
-              throw new Exception("[Metron] Could not enrich string: "
-                      + value);
+            try {
+              adapter.logAccess(cacheKey);
+              enrichedField = cache.getUnchecked(cacheKey);
+              if (enrichedField == null)
+                throw new Exception("[Metron] Could not enrich string: "
+                        + value);
+            }
+            catch(Exception e) {
+              LOG.error(e.getMessage(), e);
+              error = true;
+              continue;
+            }
           }
           if (!enrichedField.isEmpty()) {
             for (Object enrichedKey : enrichedField.keySet()) {
@@ -205,7 +216,10 @@ public class GenericEnrichmentBolt extends ConfiguredBolt {
       }
 
       enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
-      if (!enrichedMessage.isEmpty()) {
+      if(error) {
+        throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
+      }
+      if (enrichedMessage != null && !enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage));
       }
     } catch (Exception e) {

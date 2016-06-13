@@ -60,25 +60,33 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   }
 
 
+  public boolean isInitialized() {
+    return lookup != null && lookup.getTable() != null;
+  }
   @Override
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
+    if(!isInitialized()) {
+      initializeAdapter();
+    }
     List<String> enrichmentTypes = value.getConfig()
                                         .getEnrichment().getFieldToTypeMap()
                                         .get(EnrichmentUtils.toTopLevelField(value.getField()));
-    if(enrichmentTypes != null && value.getValue() != null) {
+    if(isInitialized() && enrichmentTypes != null && value.getValue() != null) {
       try {
         for (LookupKV<EnrichmentKey, EnrichmentValue> kv :
                 lookup.get(Iterables.transform(enrichmentTypes
-                                              , new EnrichmentUtils.TypeToKey(value.getValue())
+                                              , new EnrichmentUtils.TypeToKey( value.getValue()
+                                                                             , lookup.getTable()
+                                                                             , value.getConfig().getEnrichment()
+                                                                             )
                                               )
-                          , lookup.getTable()
                           , false
                           )
             )
         {
           if (kv != null && kv.getValue() != null && kv.getValue().getMetadata() != null) {
-            for (Map.Entry<String, String> values : kv.getValue().getMetadata().entrySet()) {
+            for (Map.Entry<String, Object> values : kv.getValue().getMetadata().entrySet()) {
               enriched.put(kv.getKey().type + "." + values.getKey(), values.getValue());
             }
             _LOG.trace("Enriched type " + kv.getKey().type + " => " + enriched);
@@ -87,6 +95,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       }
       catch (IOException e) {
         _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
+        initializeAdapter();
         throw new RuntimeException("Unable to retrieve value: " + e.getMessage(), e);
       }
     }
@@ -103,7 +112,8 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
                                    , new NoopAccessTracker()
                                    );
     } catch (IOException e) {
-      throw new RuntimeException("Unable to initialize adapter: " + e.getMessage(), e);
+      _LOG.error("Unable to initialize adapter: " + e.getMessage(), e);
+      return false;
     }
     return true;
   }
@@ -113,7 +123,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     try {
       lookup.close();
     } catch (Exception e) {
-      throw new RuntimeException("Unable to cleanup access tracker", e);
+      _LOG.error("Unable to cleanup access tracker", e);
     }
   }
 }

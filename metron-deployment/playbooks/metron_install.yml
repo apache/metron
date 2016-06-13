@@ -22,11 +22,20 @@
   tags:
     - ec2
 
+- hosts: packer
+  become: true
+  tasks:
+    - include_vars: ../inventory/full-dev-platform/group_vars/all
+  tags:
+    - packer
+
+#
+# prerequisites
+#
 - hosts: metron
   become: true
   roles:
     - role: metron_common
-    - role: monit
   tags:
     - metron-prereqs
 
@@ -36,23 +45,30 @@
     - role: hadoop_setup
   tags:
     - metron-prereqs
+    - hadoop-setup
 
+#
+# search
+#
 - hosts: search
   become: true
   vars:
     es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
   roles:
-    - { role: elasticsearch, when: install_elasticsearch | default(True) == True }
+    - role: elasticsearch
   tags:
-    - search
+    - elasticsearch
 
 - hosts: search
   become: true
   roles:
-    - { role: solr, when: install_solr | default(False) == True  }
+    - role: solr
   tags:
-    - search
+    - solr
 
+#
+# mysql
+#
 - hosts: mysql
   become: true
   roles:
@@ -67,21 +83,9 @@
   tags:
     - mysql-client
 
-- hosts: sensors
-  become: true
-  roles:
-    - ambari_gather_facts
-    - { role: tap_interface, when: install_tap | default(False) == True }
-    - { role: pycapa, when: install_pycapa | default(True) == True }
-    - { role: bro, when: install_bro | default(True) == True }
-    - { role: flume, when: install_snort | default(True) == True }
-    - { role: snort, when: install_snort | default(True) == True }
-    - { role: yaf, when: install_yaf | default(True) == True }
-    - { role: pcap_replay, when: install_pcap_replay | default(False) == True }
-    - { role: sensor-test-mode, when: sensor_test_mode | default(False) == True }
-  tags:
-      - sensors
-
+#
+# parsers, enrichment, and indexing topologies
+#
 - hosts: enrichment
   become: true
   roles:
@@ -89,23 +93,56 @@
   tags:
     - enrichment
 
+#
+# user interface
+#
 - hosts: pcap_server
   become: true
   roles:
-    - { role: metron_pcapservice, when: install_elasticsearch | default(True) == True }
+    - role: metron_pcapservice
   tags:
-    - pcap_service
+    - pcap-service
 
 - hosts: web
   become: true
   roles:
-    - { role: metron_ui, when: install_elasticsearch | default(True) == True }
+    - role: kibana
   tags:
-    - web
+    - kibana
+
+#
+# sensors
+#
+- hosts: sensors
+  become: true
+  roles:
+    - { role: ambari_gather_facts, tags: [ 'always'] }
+    - { role: tap_interface, tags: ['tap'] }
+    - { role: pycapa, tags: ['pycapa'] }
+    - { role: bro, tags: ['bro'] }
+    - { role: flume,  tags: ['snort','flume'] }
+    - { role: snort, tags: ['snort'] }
+    - { role: yaf, tags: ['yaf'] }
+    - { role: pcap_replay, tags: ['pcap-replay'] }
+    - { role: sensor-test-mode, tags: ['sensor-test-mode'] }
+  tags:
+    - sensors
+
+#
+# monit
+#
+- hosts: metron
+  become: true
+  roles:
+    - role: ambari_gather_facts
+    - role: monit
+  tags:
+    - monit
 
 - hosts: metron
   become: true
   roles:
-    - monit-start
+    - role: ambari_gather_facts
+    - role: monit-start
   tags:
     - start
