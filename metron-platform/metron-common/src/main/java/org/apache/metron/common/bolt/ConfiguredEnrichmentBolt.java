@@ -25,24 +25,23 @@ import org.apache.metron.common.configuration.EnrichmentConfigurations;
 
 import java.io.IOException;
 
-public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt {
+public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt<EnrichmentConfigurations> {
 
   private static final Logger LOG = Logger.getLogger(ConfiguredEnrichmentBolt.class);
-
-  protected final EnrichmentConfigurations configurations = new EnrichmentConfigurations();
 
   public ConfiguredEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
 
-  public EnrichmentConfigurations getConfigurations() {
-    return configurations;
+  @Override
+  protected EnrichmentConfigurations defaultConfigurations() {
+    return new EnrichmentConfigurations();
   }
 
   @Override
   public void loadConfig() {
     try {
-      ConfigurationsUtils.updateEnrichmentConfigsFromZookeeper(configurations, client);
+      ConfigurationsUtils.updateEnrichmentConfigsFromZookeeper(getConfigurations(), client);
     } catch (Exception e) {
       LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
     }
@@ -53,10 +52,10 @@ public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt {
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
       if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
-        configurations.updateSensorEnrichmentConfig(name, data);
+        getConfigurations().updateSensorEnrichmentConfig(name, data);
         reloadCallback(name, ConfigurationType.ENRICHMENT);
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        configurations.updateGlobalConfig(data);
+        getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }
     }

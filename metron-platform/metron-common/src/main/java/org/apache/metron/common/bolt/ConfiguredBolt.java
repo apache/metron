@@ -30,11 +30,12 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.Configurations;
 
 import java.io.IOException;
 import java.util.Map;
 
-public abstract class ConfiguredBolt extends BaseRichBolt {
+public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends BaseRichBolt {
 
   private static final Logger LOG = Logger.getLogger(ConfiguredBolt.class);
 
@@ -42,7 +43,7 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
 
   protected CuratorFramework client;
   protected TreeCache cache;
-
+  private final CONFIG_T configurations = defaultConfigurations();
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
   }
@@ -57,6 +58,10 @@ public abstract class ConfiguredBolt extends BaseRichBolt {
 
   public void reloadCallback(String name, ConfigurationType type) {
   }
+  public CONFIG_T getConfigurations() {
+    return configurations;
+  }
+  protected abstract CONFIG_T defaultConfigurations();
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
