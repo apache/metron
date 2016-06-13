@@ -37,7 +37,6 @@ public class WindowsSyslogParser extends BasicParser {
 
 	protected DateFormat dateFormat;
 
-	protected String DATE_FORMAT;
 	protected int TIMEZONE_OFFSET;
 
 	private static final long serialVersionUID = -535234013637774698L;
@@ -85,14 +84,13 @@ public class WindowsSyslogParser extends BasicParser {
 	}
 
 	@Override
-	public List<JSONObject> parse(byte[] rawMessage)
-	{
+	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
 		ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
 		toReturn.add(getParsedJSON(new String(rawMessage)));
 		return toReturn;
 	}
 
-	private JSONObject getParsedJSON(String fileName) {
+	private JSONObject getParsedJSON(String fileName) throws Exception{
 		JSONObject toReturn = new JSONObject();
 
 		// if using test generator, read from file
@@ -108,6 +106,7 @@ public class WindowsSyslogParser extends BasicParser {
 				br.close();
 			} catch (IOException e) {
 				LOGGER.error("Unable to locate test file.", e);
+				throw e;
 			}
 		}
 		try {
@@ -141,60 +140,58 @@ public class WindowsSyslogParser extends BasicParser {
 			boolean newLogonAccountName = false;
 
 			for(int i = 0; i < fields.length; i++) {
-				if (fields[i].contains("Logon Type"))
-				{
+				if (fields[i].contains("Logon Type")) {
 					String value = "";
 					value = fields[i].substring(fields[i].indexOf(":")+1,fields[i].length());
 					toReturn.put("logon_type", value.replaceAll("\\s+",""));
 					logonType = true;
 				}
 
-				if (fields[i].contains("Security ID") && fields[i].contains("COF\\"))
-				{
+				if (fields[i].contains("Security ID") && fields[i].contains("COF\\")) {
 					String value = "";
 					value = fields[i].substring(fields[i].indexOf("COF\\")+4,fields[i].length());
 					toReturn.put("security_id", value.replaceAll("\\s+",""));
 					securityID = true;
 				}
 
-				if (fields[i].contains("Account Name") && subjectAccountName==true && newLogonAccountName==false)
-				{
+				if (fields[i].contains("Account Name") && subjectAccountName==true && newLogonAccountName==false) {
 					String value = "";
 					value = fields[i].substring(fields[i].indexOf(":")+1,fields[i].length());
 					toReturn.put("newLogonAccountName", value.replaceAll("\\s+",""));
 					newLogonAccountName = true;
 				}
 
-				if (fields[i].contains("Account Name") && subjectAccountName==false)
-				{
+				if (fields[i].contains("Account Name") && subjectAccountName==false) {
 					String value = "";
 					value = fields[i].substring(fields[i].indexOf(":")+1,fields[i].length());
 					toReturn.put("subjectAccountName", value.replaceAll("\\s+",""));
 					subjectAccountName = true;
 				}
 			}
-			if(logonType == false)
-			{
+			if(logonType == false) {
 				toReturn.put("logon_type", "");
 			}
-			if(securityID == false)
-			{
+			if(securityID == false) {
 				toReturn.put("security_id", "");
 			}
-			if(subjectAccountName == false)
-			{
+			if(subjectAccountName == false) {
 				toReturn.put("subjectAccountName", "");
 			}
-			if(newLogonAccountName == false)
-			{
+			if(newLogonAccountName == false) {
 				toReturn.put("newLogonAccountName", "");
 			}
 		}
 		catch (ParseException e) {
 			LOGGER.error("Unable to parse timestamp in first line of windows syslog.", e);
+			throw e;
 		} catch (IOException | IndexOutOfBoundsException e) {
 			LOGGER.error("Unable to properly read windows syslog file.", e);
+			throw e;
 		}
+		if (null == toReturn) {
+			throw new Exception("Unable to parse windows syslog message");
+		}
+
 		cleanJSON(toReturn, "Windows Syslog");
 
 		return toReturn;
