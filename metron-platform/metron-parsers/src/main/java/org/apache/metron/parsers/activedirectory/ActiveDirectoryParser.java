@@ -83,21 +83,22 @@ public class ActiveDirectoryParser extends BasicParser {
     }
 
     @Override
-    public List<JSONObject> parse(byte[] rawMessage) {
-
-        ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
+    public List<JSONObject> parse(byte[] rawMessage) throws Exception {
 
         try {
+            ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
             toReturn.add(getActiveDirectoryJSON(new String(rawMessage)));
             return toReturn;
         } catch (IOException e) {
             LOGGER.error("UnsupportedEncodingException when trying to create String", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Unable to parse message", e);
+            throw e;
         }
-
-        return toReturn;
     }
 
-    private JSONObject getActiveDirectoryJSON(String fileName) throws IOException {
+    private JSONObject getActiveDirectoryJSON(String fileName) throws Exception {
         // if using test generator, read from file
         if (fileName.matches("^/vagrant/resources/activedirectory/\\d+\\.txt")) {
             try {
@@ -111,6 +112,7 @@ public class ActiveDirectoryParser extends BasicParser {
                 br.close();
             } catch (IOException e) {
                 LOGGER.error("Unable to locate test file.", e);
+                throw e;
             }
         }
 
@@ -216,6 +218,9 @@ public class ActiveDirectoryParser extends BasicParser {
         jsonMain.put("additional", jsonAdditional);
 
         cleanJSON(jsonMain, "ActiveDirectory");
+        if (null == jsonMain) {
+            throw new Exception("Unable to parse the following message: " + fileName);
+        }
         return jsonMain;
     }
 
