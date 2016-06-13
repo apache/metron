@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 public class BasicMcAfeeEpoParser extends BasicParser {
-    private static final Logger _LOG = LoggerFactory.getLogger(BasicMcAfeeEpoParser.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BasicMcAfeeEpoParser.class);
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Override
@@ -43,9 +43,8 @@ public class BasicMcAfeeEpoParser extends BasicParser {
     }
 
     @SuppressWarnings({ "unchecked", "unused" })
-    public List<JSONObject> parse(byte[] msg) {
+    public List<JSONObject> parse(byte[] msg) throws Exception {
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
-
 
         String message = "";
         List<JSONObject> messages = new ArrayList<>();
@@ -56,8 +55,8 @@ public class BasicMcAfeeEpoParser extends BasicParser {
 
             String[] parts = message.split("<|>|\", |\" |\"$");
             if(parts.length < 2){
-                _LOG.error("Failed to parse: " + message);
-                return null;
+                LOGGER.error("Failed to parse: " + message);
+                throw new Exception("Unable to parse message: " + message);
             }
             payload.put("original_string", message);
             payload.put("priority", parts[1]);
@@ -66,9 +65,8 @@ public class BasicMcAfeeEpoParser extends BasicParser {
             for(int i = 3; i < parts.length; i++){
                 String[] keypair = parts[i].split("=\"");
                 if(keypair.length != 2){
-
-                    _LOG.error("Failed to parse: " + message);
-                    return null;
+                    LOGGER.error("Failed to parse: " + message);
+                    throw new Exception("Unable to parse message: " + message);
                 }
                 if(keypair[0].equals("src_ip"))
                     keypair[0] = "ip_src_addr";
@@ -106,11 +104,13 @@ public class BasicMcAfeeEpoParser extends BasicParser {
             payload.put("timestamp", df.parse(timestamp).getTime());
 
             messages.add(payload);
+            if (null == messages || messages.isEmpty()) {
+                throw new Exception("Unable to parse McAfee Epo data: " + message);
+            }
             return messages;
         } catch (Exception e) {
-            e.printStackTrace();
-            _LOG.error("Failed to parse: " + message);
-            return null;
+            LOGGER.error("Failed to parse: " + message, e);
+            throw e;
         }
     }
 
