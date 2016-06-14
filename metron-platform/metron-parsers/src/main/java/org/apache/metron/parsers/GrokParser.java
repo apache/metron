@@ -131,7 +131,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public List<JSONObject> parse(byte[] rawMessage) throws Exception {
+  public List<JSONObject> parse(byte[] rawMessage) {
 
     if (grok == null) {
       init();

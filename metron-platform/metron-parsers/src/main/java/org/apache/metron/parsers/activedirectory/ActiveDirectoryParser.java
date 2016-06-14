@@ -23,10 +23,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -83,18 +80,15 @@ public class ActiveDirectoryParser extends BasicParser {
     }
 
     @Override
-    public List<JSONObject> parse(byte[] rawMessage) throws Exception {
+    public List<JSONObject> parse(byte[] rawMessage) {
 
         try {
             ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
             toReturn.add(getActiveDirectoryJSON(new String(rawMessage)));
             return toReturn;
-        } catch (IOException e) {
-            LOGGER.error("UnsupportedEncodingException when trying to create String", e);
-            throw e;
         } catch (Exception e) {
             LOGGER.error("Unable to parse message", e);
-            throw e;
+            throw new IllegalStateException("Unable to Parse Message: " + new String(rawMessage) + " due to " + e.getMessage(), e);
         }
     }
 

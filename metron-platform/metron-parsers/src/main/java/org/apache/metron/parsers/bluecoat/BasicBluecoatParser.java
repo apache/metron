@@ -49,13 +49,11 @@ public class BasicBluecoatParser extends BasicParser {
 	@SuppressWarnings({ "unchecked", "unused" })
 	public List<JSONObject> parse(byte[] msg) {
 
-		String message = "";
+		String message = new String(msg);
 		List<JSONObject> messages = new ArrayList<>();
 		JSONObject payload = new JSONObject();
 		
 		try {
-			message = new String(msg, "UTF-8");
-			
 			
 			String[] parts = message.split("<|>|\\(|\\)| ");
 			payload.put("original_string", message);
@@ -98,9 +96,8 @@ public class BasicBluecoatParser extends BasicParser {
 			messages.add(payload);
 			return messages;
 		} catch (Exception e) {
-			e.printStackTrace();
 			_LOG.error("Failed to parse: " + message);
-			return null;
+			throw new IllegalStateException("Unable to Parse Message: " + message + " due to " + e.getMessage(), e);
 		}
 	}
 

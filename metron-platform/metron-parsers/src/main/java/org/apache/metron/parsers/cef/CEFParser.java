@@ -87,16 +87,14 @@ public class CEFParser extends BasicParser {
 
 	// Parse a raw telemetry message
 	@SuppressWarnings({ "unchecked"})
-	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
+	public List<JSONObject> parse(byte[] rawMessage) {
 
-		String message = "";
+		String message = new String(rawMessage);
 		List<JSONObject> messages = new ArrayList<>();
 		JSONObject payload = new JSONObject();
 
 		try {
 
-			message = new String(rawMessage, "UTF-8");
-						
 			// Only attempt to split if this is a well-formed CEF line
 			if (StringUtils.countMatches(message, "|") < 7){
 				LOGGER.error("Not a well-formed CEF line, Failed to parse: " + message);
@@ -175,7 +173,7 @@ public class CEFParser extends BasicParser {
 
 		} catch (Exception e) {
 			LOGGER.error("Failed to parse: " + message + " with error message " + e.getMessage(), e);
-			throw e;
+			throw new IllegalStateException("Unable to Parse Message: " + message + " due to " + e.getMessage(), e);
 		}
 	}
 

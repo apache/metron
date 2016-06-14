@@ -49,14 +49,13 @@ public class BasicCheckpointTrafficParser extends BasicParser {
     }
 
     @SuppressWarnings("unchecked")
-    public List<JSONObject> parse(byte[] msg) throws Exception {
+    public List<JSONObject> parse(byte[] msg) {
 
         LOGGER.trace("[Metron] Starting to parse incoming message");
 
-        String rawMessage = null;
+        String rawMessage = new String(msg);
         List<JSONObject> messages = new ArrayList<>();
         try {
-            rawMessage = new String(msg, "UTF-8");
             LOGGER.trace("[Metron] Received message: " + rawMessage);
 
             JSONObject payload = new JSONObject();
@@ -110,7 +109,7 @@ public class BasicCheckpointTrafficParser extends BasicParser {
             return messages;
         } catch (Exception e) {
             LOGGER.error("Unable to Parse Message: " + rawMessage, e);
-            throw e;
+            throw new IllegalStateException("Unable to Parse Message: " + rawMessage + " due to " + e.getMessage(), e);
         }
 
     }

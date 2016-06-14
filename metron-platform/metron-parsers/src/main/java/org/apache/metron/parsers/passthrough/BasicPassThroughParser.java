@@ -44,15 +44,13 @@ public class BasicPassThroughParser extends BasicParser{
 	}
 
 	@SuppressWarnings({ "unchecked", "unused" })
-	public List<JSONObject> parse(byte[] msg) throws Exception {
+	public List<JSONObject> parse(byte[] msg) {
 
-		String message = "";
+		String message = new String(msg);
 		List<JSONObject> messages = new ArrayList<>();
 		JSONObject payload = new JSONObject();
 		
 		try {
-			message = new String(msg, "UTF-8");
-
 			payload.put("original_string", message);
             payload.put("is_parsed", "false");
 
@@ -65,7 +63,7 @@ public class BasicPassThroughParser extends BasicParser{
 			return messages;
 		} catch (Exception e) {
 			_LOG.error("Failed to parse: " + message, e);
-			throw e;
+			throw new IllegalStateException("Unable to Parse Message: " + message + " due to " + e.getMessage(), e);
 		}
 	}
 

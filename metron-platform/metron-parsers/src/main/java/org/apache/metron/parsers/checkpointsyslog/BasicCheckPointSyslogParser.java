@@ -38,12 +38,11 @@ public class BasicCheckPointSyslogParser extends BasicParser {
 
     }
 
-    public List<JSONObject> parse(byte[] msg) throws Exception {
+    public List<JSONObject> parse(byte[] msg) {
         JSONObject outputMessage = new JSONObject();
-        String toParse = "";
+        String toParse = new String(msg);
         List<JSONObject> messages = new ArrayList<>();
         try {
-            toParse = new String(msg, "UTF-8");
             LOGGER.debug("Received message: " + toParse);
 
             parseMessage(toParse, outputMessage);
@@ -53,7 +52,7 @@ public class BasicCheckPointSyslogParser extends BasicParser {
             return messages;
         } catch (Exception e) {
             LOGGER.error("Failed to parse: " + toParse, e);
-            throw e;
+            throw new IllegalStateException("Unable to Parse Message: " + toParse + " due to " + e.getMessage(), e);
         }
     }
 

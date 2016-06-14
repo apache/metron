@@ -48,22 +48,21 @@ public class SoltraParser extends BasicParser {
 
 	}
 
-	public List<JSONObject> parse(byte[] msg) throws Exception {
+	public List<JSONObject> parse(byte[] msg) {
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-		String message = "";
+		String message = new String(msg);
 		List<JSONObject> messages = new ArrayList<>();
 		payload = new JSONObject();
 		
 		try {
-			message = new String(msg, "UTF-8");
 
 			org.json.JSONObject fullJSONtemp = XML.toJSONObject(message);
 			org.json.simple.parser.JSONParser parser = new org.json.simple.parser.JSONParser();
 
-			JSONObject fullJSON = (JSONObject)parser.parse(fullJSONtemp.toString());
+			JSONObject fullJSON = (JSONObject) parser.parse(fullJSONtemp.toString());
 
-			JSONObject topLevel = (JSONObject)fullJSON.get("stix:STIX_Package");
+			JSONObject topLevel = (JSONObject) fullJSON.get("stix:STIX_Package");
 			payload.put("Edge_ID", topLevel.get("id"));
 
 
@@ -72,31 +71,25 @@ public class SoltraParser extends BasicParser {
 			} else if (topLevel.containsKey("stix:TTPs")) {
 				handleTTP(topLevel);
 			} else if (topLevel.containsKey("stix:Observables")) {
-				if(((JSONObject)((JSONObject)topLevel.get("stix:Observables")).get("cybox:Observable")).containsKey("cybox:Observable_Composition")){
+				if (((JSONObject) ((JSONObject) topLevel.get("stix:Observables")).get("cybox:Observable")).containsKey("cybox:Observable_Composition")) {
 					handleObservableComposition(topLevel);
-				}else{
+				} else {
 					handleObservable(topLevel);
 				}
-			}else{
+			} else {
 				//something new
 				payload.put("Type", "Unknown");
 			}
 
 			// put metron standard fields
 			payload.put("original_string", "");
-			payload.put("timestamp", formatDate((String)topLevel.get("timestamp")));
+			payload.put("timestamp", formatDate((String) topLevel.get("timestamp")));
 
 			messages.add(payload);
 			return messages;
-		} catch (org.json.simple.parser.ParseException e1) {
-			e1.printStackTrace();
-			throw e1;
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-			throw e1;
 		} catch (Exception e) {
 			_LOG.error("Failed to parse: " + message, e);
-			throw e;
+			throw new IllegalStateException("Unable to Parse Message: " + message + " due to " + e.getMessage(), e);
 		}
 	}
 

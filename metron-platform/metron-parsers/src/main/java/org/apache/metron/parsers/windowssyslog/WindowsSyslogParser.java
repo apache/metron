@@ -84,13 +84,13 @@ public class WindowsSyslogParser extends BasicParser {
 	}
 
 	@Override
-	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
+	public List<JSONObject> parse(byte[] rawMessage) {
 		ArrayList<JSONObject> toReturn = new ArrayList<JSONObject>();
 		toReturn.add(getParsedJSON(new String(rawMessage)));
 		return toReturn;
 	}
 
-	private JSONObject getParsedJSON(String fileName) throws Exception{
+	private JSONObject getParsedJSON(String fileName) {
 		JSONObject toReturn = new JSONObject();
 
 		// if using test generator, read from file
@@ -106,7 +106,7 @@ public class WindowsSyslogParser extends BasicParser {
 				br.close();
 			} catch (IOException e) {
 				LOGGER.error("Unable to locate test file.", e);
-				throw e;
+				throw new IllegalStateException("Unable to find file: " + fileName + " due to " + e.getMessage(), e);
 			}
 		}
 		try {
@@ -183,13 +183,13 @@ public class WindowsSyslogParser extends BasicParser {
 		}
 		catch (ParseException e) {
 			LOGGER.error("Unable to parse timestamp in first line of windows syslog.", e);
-			throw e;
+			throw new IllegalStateException("Unable to parse timestamp in first line of windows syslog message: " + fileName + "\n due to " + e.getMessage(), e);
 		} catch (IOException | IndexOutOfBoundsException e) {
 			LOGGER.error("Unable to properly read windows syslog file.", e);
-			throw e;
+			throw new IllegalStateException("Unable to properly read windows syslog file: " + fileName + "\n due to " + e.getMessage(), e);
 		}
 		if (null == toReturn) {
-			throw new Exception("Unable to parse windows syslog message");
+			throw new IllegalStateException("Unable to Parse Windows Syslog message: " + fileName);
 		}
 
 		cleanJSON(toReturn, "Windows Syslog");

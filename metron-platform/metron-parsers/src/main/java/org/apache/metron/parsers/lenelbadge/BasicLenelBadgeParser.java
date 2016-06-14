@@ -83,7 +83,7 @@ public class BasicLenelBadgeParser extends BasicParser {
 	public void configure(Map<String, Object> parserConfig) { }
 
 	@Override
-	public List<JSONObject> parse(byte[] rawMessage) throws Exception {
+	public List<JSONObject> parse(byte[] rawMessage) {
 		List<JSONObject> messages = new ArrayList<>();
 		JSONObject payload = new JSONObject();
 
@@ -121,7 +121,7 @@ public class BasicLenelBadgeParser extends BasicParser {
 			return messages;
 		} catch (Exception e) {
 			LOG.error("Failed to parse: " + new String(rawMessage), e);
-			throw e;
+			throw new IllegalStateException("Unable to Parse Message: " + new String(rawMessage) + " due to " + e.getMessage(), e);
 		}
 
 	}

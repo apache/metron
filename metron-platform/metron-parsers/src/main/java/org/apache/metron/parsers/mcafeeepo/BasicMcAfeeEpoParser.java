@@ -43,15 +43,14 @@ public class BasicMcAfeeEpoParser extends BasicParser {
     }
 
     @SuppressWarnings({ "unchecked", "unused" })
-    public List<JSONObject> parse(byte[] msg) throws Exception {
+    public List<JSONObject> parse(byte[] msg) {
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        String message = "";
+        String message = new String(msg);
         List<JSONObject> messages = new ArrayList<>();
         JSONObject payload = new JSONObject();
 
         try {
-            message = new String(msg, "UTF-8");
 
             String[] parts = message.split("<|>|\", |\" |\"$");
             if(parts.length < 2){
@@ -110,7 +109,8 @@ public class BasicMcAfeeEpoParser extends BasicParser {
             return messages;
         } catch (Exception e) {
             LOGGER.error("Failed to parse: " + message, e);
-            throw e;
+            throw new IllegalStateException("Unable to Parse Message: " + message + " due to " + e.getMessage(), e);
+
         }
     }
 
