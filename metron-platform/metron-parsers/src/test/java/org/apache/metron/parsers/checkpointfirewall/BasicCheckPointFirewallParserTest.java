@@ -66,11 +66,10 @@ public class BasicCheckPointFirewallParserTest {
 
     @Test
     public void testParseWithoutKeyValue() throws Exception {
-        /*String testString = "Apr 01 00:00:03 [10.255.255.255] Apr 01 2016 00:00:02: %CHKPNT-5-100023: monitor, rey3finn004, inbound, abc3-01, 10.255.255.255, 41655, 10.255.255.255," +
+        String testString = "Apr 01 00:00:03 [10.255.255.255] Apr 01 2016 00:00:02: %CHKPNT-5-100023: monitor, rey3finn004, inbound, abc3-01, 10.255.255.255, 41655, 10.255.255.255," +
                 " 11500, 11500, tcp, 1, , , , , , , , , illegal header format detected: 0, , , , , , , , , , *** Confidential ***, , , , ,  1Apr2016  0:00:02, 0, SmartDefense," +
                 " , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 100023, Block HTTP Non Compliant, illegal header format detected, , , , , , , , , , , ," +
-                " {B78F2121-0028-4369-A684-6422FFE76063}";*/
-        String testString = "Apr 01 00:00:00 [10.255.255.255] Mar 31 2016 23:59:58: %CHKPNT-1-030050: drop, rey3cpips004, inbound, rey3-01, 10.255.255.255, 0, 10.255.255.255, 0, ICMP - Protocol Unreachable, icmp, , , , , , , , , , , , , ICMP error does not match an existing connection, , , , , , , , , , , , 31Mar2016 23:59:58, 0, VPN-1 & FireWall-1, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , 3, 2, 030050, , , , , , , , , , , , , ,";
+                " {B78F2121-0028-4369-A684-6422FFE76063}";
         List<JSONObject> result = basicCheckPointFirewallParser.parse(testString.getBytes());
         JSONObject parsedJSON = result.get(0);
 
