@@ -18,8 +18,13 @@
 package org.apache.metron.elasticsearch.writer;
 
 import backtype.storm.tuple.Tuple;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -36,9 +41,7 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
@@ -55,7 +58,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   }
 
   @Override
-  public void init(Map stormConf, EnrichmentConfigurations configurations) {
+  public void init(Map stormConf, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
 
     Settings.Builder settingsBuilder = Settings.settingsBuilder();
@@ -71,11 +74,12 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings settings = settingsBuilder.build();
 
     try{
-
-      client = TransportClient.builder().settings(settings).build()
-              .addTransportAddress(
-                      new InetSocketTransportAddress(InetAddress.getByName(globalConfiguration.get("es.ip").toString()), Integer.parseInt(globalConfiguration.get("es.port").toString()) )
-              );
+      for(HostnamePort hp : getIps(globalConfiguration)) {
+        client = TransportClient.builder().settings(settings).build()
+                .addTransportAddress(
+                        new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
+                );
+      }
 
 
     } catch (UnknownHostException exception){
@@ -87,9 +91,49 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
   }
 
+  public static class HostnamePort {
+    String hostname;
+    Integer port;
+    public HostnamePort(String hostname, Integer port) {
+      this.hostname = hostname;
+      this.port = port;
+    }
+  }
+  List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
+    Object ipObj = globalConfiguration.get("es.ip");
+    Object portObj = globalConfiguration.get("es.port");
+    if(ipObj == null) {
+      return Collections.emptyList();
+    }
+    if(ipObj instanceof String
+    && !ipObj.toString().contains(":")
+      ) {
+      return ImmutableList.of(new HostnamePort(ipObj.toString(), Integer.parseInt(portObj + "")));
+    }
+    else if(ipObj instanceof String
+        && ipObj.toString().contains(":")
+           ) {
+      Iterable<String> tokens = Splitter.on(":").split(ipObj.toString());
+      String host = Iterables.getFirst(tokens, null);
+      String portStr = Iterables.getLast(tokens, null);
+      return ImmutableList.of(new HostnamePort(host, Integer.parseInt(portStr)));
+    }
+    else if(ipObj instanceof List) {
+      List<String> ips = (List)ipObj;
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        Iterable<String> tokens = Splitter.on(":").split(ip);
+        String host = Iterables.getFirst(tokens, null);
+        String portStr = Iterables.getLast(tokens, null);
+        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
+      }
+      return ret;
+    }
+    throw new IllegalStateException("Unable to read the elasticsearch ips, expected es.ip to be either a list of strings, a string hostname or a host:port string");
+  }
+
   @Override
-  public void write(String sensorType, EnrichmentConfigurations configurations, List<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    SensorEnrichmentConfig sensorEnrichmentConfig = configurations.getSensorEnrichmentConfig(sensorType);
+  public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
     String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -97,8 +141,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
       String indexName = sensorType;
 
-      if (sensorEnrichmentConfig != null) {
-        indexName = sensorEnrichmentConfig.getIndex();
+      if (configurations != null) {
+        indexName = configurations.getIndex(sensorType);
       }
 
       indexName = indexName + "_index_" + indexPostfix;
@@ -112,7 +156,12 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
       IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
               sensorType + "_doc");
-      indexRequestBuilder.setSource(esDoc.toJSONString()).setTimestamp(esDoc.get("timestamp").toString());
+
+      indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
+      Object ts = esDoc.get("timestamp");
+      if(ts != null) {
+        indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
+      }
       bulkRequest.add(indexRequestBuilder);
 
     }

@@ -52,7 +52,7 @@ public class HostnameHandler  extends AbstractObjectTypeHandler<Hostname>{
     for(String token : StixExtractor.split(value)) {
       final String indicatorType = typeStr;
       LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
-              , new EnrichmentValue(new HashMap<String, String>() {{
+              , new EnrichmentValue(new HashMap<String, Object>() {{
         put("source-type", "STIX");
         put("indicator-type", indicatorType);
         put("source", type.toXMLString());

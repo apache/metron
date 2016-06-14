@@ -23,12 +23,12 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredBolt;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterComponent;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,67 +39,45 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
-  private OutputCollector collector;
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
-  private Map<String, List<Tuple>> sensorTupleMap = new HashMap<>();
-  private Map<String, List<JSONObject>> sensorMessageMap = new HashMap<>();
-
+  private BulkWriterComponent<JSONObject> writerComponent;
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
 
-  public BulkMessageWriterBolt withBulkMessageWriter(BulkMessageWriter<JSONObject> bulkMessageWriter) {
+  public BulkMessageWriterBolt withBulkMessageWriter(BulkMessageWriter<JSONObject > bulkMessageWriter) {
     this.bulkMessageWriter = bulkMessageWriter;
     return this;
   }
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    this.collector = collector;
+    this.writerComponent = new BulkWriterComponent<>(collector);
     super.prepare(stormConf, context, collector);
     try {
-      bulkMessageWriter.init(stormConf, configurations);
+      bulkMessageWriter.init(stormConf, new EnrichmentWriterConfiguration(getConfigurations()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
+
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
-    message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
+    JSONObject message =(JSONObject)tuple.getValueByField("message");
     String sensorType = MessageUtils.getSensorType(message);
-    SensorEnrichmentConfig sensorEnrichmentConfig = configurations.getSensorEnrichmentConfig(sensorType);
-    int batchSize = sensorEnrichmentConfig != null ? sensorEnrichmentConfig.getBatchSize() : 1;
-    List<Tuple> tupleList = sensorTupleMap.get(sensorType);
-    if (tupleList == null) tupleList = new ArrayList<>();
-    tupleList.add(tuple);
-    List<JSONObject> messageList = sensorMessageMap.get(sensorType);
-    if (messageList == null) messageList = new ArrayList<>();
-    messageList.add(message);
-    if (messageList.size() < batchSize) {
-      sensorTupleMap.put(sensorType, tupleList);
-      sensorMessageMap.put(sensorType, messageList);
-    } else {
-      try {
-        bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
-        for(Tuple t: tupleList) {
-          collector.ack(t);
-        }
-      } catch (Exception e) {
-        for(Tuple t: tupleList) {
-          collector.fail(t);
-        }
-        ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
-      }
-      sensorTupleMap.remove(sensorType);
-      sensorMessageMap.remove(sensorType);
+    try
+    {
+      writerComponent.write(sensorType, tuple, message, bulkMessageWriter, new EnrichmentWriterConfiguration(getConfigurations()));
+    }
+    catch(Exception e) {
+      throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
     }
   }
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declareStream("error", new Fields("message"));
+    declarer.declareStream(Constants.ERROR_STREAM, new Fields("message"));
   }
 }

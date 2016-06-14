@@ -225,7 +225,7 @@ public class GrokWebSphereParserTest {
 	}
 	
 	
-	@Test
+	@Test(expected=RuntimeException.class)
 	public void testParseEmptyLine() throws Exception {
 		
 		//Set up parser, attempt to parse malformed message
@@ -233,7 +233,6 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "";
 		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
 	}
 		
 }

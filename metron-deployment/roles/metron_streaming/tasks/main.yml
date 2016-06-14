@@ -15,12 +15,12 @@
 #  limitations under the License.
 #
 ---
-- name: Create Metron streaming directories
-  file: path="{{ metron_directory }}/{{ item.name }}"  state=directory mode=0755
+- name: Create Metron directories
+  file: path={{ metron_directory }}/{{ item }} state=directory mode=0755
   with_items:
-      - { name: 'lib'}
-      - { name: 'bin'}
-      - { name: 'config'}
+      - lib
+      - bin
+      - config
 
 - name: Create Source Config Directory
   file:
@@ -29,10 +29,6 @@
     mode: 0755
 
 - include: copy_bundles.yml
-
-- name: Get Default mysql passowrd
-  include_vars: "../roles/mysql_server/defaults/main.yml"
-  when: mysql_root_password is undefined
 
 - include: hdfs_filesystem.yml
   run_once: true

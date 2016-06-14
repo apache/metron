@@ -97,7 +97,9 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
 
     public void stop() {
-        stormCluster.shutdown();
+        if(stormCluster != null) {
+            stormCluster.shutdown();
+        }
     }
 
     public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
