@@ -15,11 +15,16 @@
 #  limitations under the License.
 #
 ---
-num_partitions: 1
-retention_in_gb: 10
-pycapa_topic: pcap
-bro_topic: bro
-yaf_topic: yaf
-snort_topic: snort
-enrichments_topic: enrichments
-
+- name: Create the Kafka topics required for Metron
+  shell: >
+    {{ kafka_home }}/bin/kafka-topics.sh \
+      --zookeeper {{ zookeeper_url }} \
+      --create \
+      --topic {{ item.topic }} \
+      --partitions {{ item.num_partitions }} \
+      --replication-factor {{ item.replication_factor }} \
+      --config retention.bytes={{ item.retention_gb * 1024 * 1024 * 1024 }}
+  with_items: "{{ topics_to_create }}"
+  register: out
+  failed_when: out.rc != 0 and ("already exists" not in out.stderr)
+  changed_when: ("already exists" not in out.stderr)

@@ -15,36 +15,10 @@
 #  limitations under the License.
 #
 ---
-- name: Create Metron directories
-  file: path={{ metron_directory }}/{{ item }} state=directory mode=0755
-  with_items:
-      - lib
-      - bin
-      - config
-
-- name: Create Source Config Directory
-  file:
-    path: "{{ zookeeper_config_path }}"
-    state: directory
-    mode: 0755
-
-- include: copy_bundles.yml
-
-- include: hdfs_filesystem.yml
-  run_once: true
-
-- include: grok_upload.yml
-  run_once: true
-
-- include: topologies.yml
-
-- include: source_config.yml
-  run_once: true
-
-- include: threat_intel.yml
-  run_once: true
-  when: threat_intel_bulk_load == True
-
-- include: hdfs_purge.yml
-
-- include: es_purge.yml
+# must run on hadoop host
+- name: Create the HBase tables required for Metron
+  shell: echo "create '{{ item }}','t'" | hbase shell -n
+  with_items: "{{ hbase_tables_to_create }}"
+  register: out
+  failed_when: out.rc != 0 and ("Table already exists" not in out.stdout)
+  changed_when: ("Table already exists" not in out.stdout)

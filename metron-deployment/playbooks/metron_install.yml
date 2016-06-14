@@ -39,14 +39,6 @@
   tags:
     - metron-prereqs
 
-- hosts: hadoop_client
-  become: true
-  roles:
-    - role: hadoop_setup
-  tags:
-    - metron-prereqs
-    - hadoop-setup
-
 #
 # search
 #
@@ -86,6 +78,22 @@
 #
 # parsers, enrichment, and indexing topologies
 #
+- hosts: metron_hbase_tables
+  become: true
+  roles:
+    - role: ambari_gather_facts
+    - role: metron_hbase_tables
+  tags:
+    - metron-hbase-tables
+
+- hosts: metron_kafka_topics
+  become: true
+  roles:
+    - role: ambari_gather_facts
+    - role: metron_kafka_topics
+  tags:
+    - metron-kafka-topics
+
 - hosts: enrichment
   become: true
   roles:
