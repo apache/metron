@@ -4272,61 +4272,6 @@ svg {
 .content-carousal .learn-more {
   font-size: 16px; }
 
-/*overlay */
-.outer-box {
-  display: none;
-  position: fixed;
-  left: 0;
-  top: 0;
-  background: url(../images/footer-overlay-bg.jpg) repeat;
-  width: 100%;
-  height: 100%;
-  float: left;
-  z-index: 11;
-  overflow-y: auto; }
-  .outer-box .overlay-form {
-    text-align: center;
-    height: 100%;
-    overflow: scroll; }
-  .outer-box .close-video {
-    position: absolute;
-    top: 30px;
-    right: 22px;
-    background: white url(../images/close-icon.png);
-    height: 36px;
-    width: 36px;
-    border-radius: 50%;
-    text-indent: -9999px;
-    background-position: 0 36px;
-    cursor: pointer; }
-    .outer-box .close-video > img {
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-      position: relative;
-      top: -3px; }
-      @media (min-width: 596px) and (max-width: 749px) {
-        .outer-box .close-video > img {
-          width: 20px;
-          height: 20px; } }
-      @media (min-width: 480px) and (max-width: 595px) {
-        .outer-box .close-video > img {
-          width: 16px; } }
-      @media (min-width: 300px) and (max-width: 479px) {
-        .outer-box .close-video > img {
-          width: 15px;
-          height: 15px; } }
-  .outer-box .video iframe {
-    width: 560px;
-    height: 315px; }
-  .outer-box .loader {
-    position: relative;
-    top: 0;
-    bottom: 0;
-    background: url("../images/loader1.gif") no-repeat;
-    text-align: center;
-    background-position: 50%; }
-
 #video {
   margin: auto; }
   #video iframe {
@@ -7913,7 +7858,7 @@ nav .main-menu > li.mobile-only {
   max-width: 960px;
   margin: 0 auto; }
 .intro-block h2 {
-  color: #404041;
+  color: #d4d4d7;
   margin-bottom: 12px; }
 .intro-block h5 {
   line-height: 27px;
@@ -11140,7 +11085,7 @@ nav .main-menu > li.mobile-only {
     margin-top: 20px;
     line-height: inherit; }
   .hero-second-level .bg-img {
-    height: 250px; }
+    height: 265px; }
     .hero-second-level .bg-img img {
       width: auto; }
 
@@ -11452,5 +11397,6 @@ nav .main-menu > li.mobile-only {
 	.darken {
 		background: #1f212a;
 		}
-
-/*# sourceMappingURL=default.css.map */
+    .disclaimer{
+      font-size:13px;
+    }

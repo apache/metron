@@ -51,6 +51,8 @@ title: Apache Metron Community
     <tr>
       <td style="text-align: left">George Vetticaden</td> <td style="text-align: left">gvetticaden</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
+       <td style="text-align: left">Ryan Merriman</td> <td style="text-align: left">rmerriman</td> <td style="text-align: left">PMC</td> </tr>
+    <tr>
       <td style="text-align: left">P. Taylor Goetz</td> <td style="text-align: left">ptgoetz</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
       <td style="text-align: left">Jim Baker</td> <td style="text-align: left">jimbaker</td> <td style="text-align: left">PMC</td> </tr>
@@ -68,22 +70,22 @@ title: Apache Metron Community
 </table>
 </section>
 
-<section class="events-section feature darken" id="communityresources">
+<section class="intro-block darken" id="communityresources">
         <div class="text-center">
           <h2>Community Resources</h2>
         </div>
-        <div class="hover-btn text-center">
-            <p>Apache Community Resources - GitHub and Mailing List's </p>
+        <div class="content-960 hover-btn text-center">
+            <p>Apache Metron provides user and development mailing lists, a Github repository, a JIRA site, and list of community members to enable you to learn more about Metron. Feel free to join any of the mailing lists and the Metron IRC channel, and view the code on Github.</p>
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Community+Resources#CommunityResources-ApacheMetronCommunityResources" target="_blank">LEARN MORE</a>
         </div>
 </section>
 
-<section class="events-section feature" id="getinvolved">
+<section class="intro-block" id="getinvolved">
         <div class="text-center">
           <h2>Get Involved</h2>
         </div>
-        <div class="hover-btn text-center">
-            <p>Wish to contribute to Apache Metron?. Follow these simple steps.</p>
+        <div class="content-960 hover-btn text-center">
+            <p> Do you want to contribute to Apache Metron? Follow these simple steps to subscribe to the user and development mailing lists, familiarize yourself with the Metron code, set up your development environment, and start contributing.</p>
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Community+Resources#CommunityResources-JointheCommunity-GetingStarted" target="_blank">Take Me There</a>
         </div>
 </section>

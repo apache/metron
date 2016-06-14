@@ -45,10 +45,7 @@ import org.apache.metron.common.interfaces.MessageWriter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
@@ -140,35 +137,41 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     byte[] originalMessage = tuple.getBinary(0);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
-      boolean ackTuple = true;
+      //we want to ack the tuple in the situation where we have are not doing a bulk write
+      //otherwise we want to defer to the writerComponent who will ack on bulk commit.
+      boolean ackTuple = !isBulk;
+      int numWritten = 0;
       if(sensorParserConfig != null) {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
-        List<JSONObject> messages = parser.parse(originalMessage);
-        for (JSONObject message : messages) {
-          if (parser.validate(message)) {
+        Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
+        for (JSONObject message : messages.orElse(Collections.emptyList())) {
+          if (parser.validate(message) && filter != null && filter.emitTuple(message)) {
+            message.put(Constants.SENSOR_TYPE, getSensorType());
+            for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+              if (handler != null) {
+                handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
+              }
+            }
             if(!isGloballyValid(message, fieldValidations)) {
               message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
               collector.emit(Constants.INVALID_STREAM, new Values(message));
             }
-            else if (filter != null && filter.emitTuple(message)) {
-              ackTuple = !isBulk;
-              message.put(Constants.SENSOR_TYPE, getSensorType());
-              for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
-                if (handler != null) {
-                  handler.transformAndUpdate(message, sensorParserConfig.getParserConfig());
-                }
-              }
+            else {
+              numWritten++;
               writerComponent.write(getSensorType(), tuple, message, messageWriter, writerTransformer.apply(getConfigurations()));
             }
           }
         }
       }
-      if(ackTuple) {
+      //if we are supposed to ack the tuple OR if we've never passed this tuple to the bulk writer
+      //(meaning that none of the messages are valid either globally or locally)
+      //then we want to handle the ack ourselves.
+      if(ackTuple || numWritten == 0) {
         collector.ack(tuple);
       }
     } catch (Throwable ex) {
       ErrorUtils.handleError(collector, ex, Constants.ERROR_STREAM);
-      collector.fail(tuple);
+      collector.ack(tuple);
     }
   }
 
