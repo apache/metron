@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class GrokIronportParserTest {
 
@@ -42,13 +44,18 @@ public class GrokIronportParserTest {
 	}
 	
 	@Test
-	public void testParseRealLine() throws Exception {
+	public void testParseRealLine() {
 		
 		//Set up parser, parse message
 		GrokIronportParser parser = new GrokIronportParser();
 		parser.configure(parserConfig);
 		String testString = "<22>May 05 10:41:27 infosec_OutboundMailLogs: Info: MID 33333333 DKIM: signing with abc_com - matches MicrosoftExchange333333eeeeeeeeee3333333333eeeeee@abc.com";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 
 
@@ -62,16 +69,20 @@ public class GrokIronportParserTest {
 	}
 
 	@Test
-	public void testParseMalformedOtherLine() throws Exception {
+	public void testParseMalformedOtherLine() {
 		
 		//Set up parser, parse message
 		GrokIronportParser parser = new GrokIronportParser();
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans 191)  admindefaultsystem*): ";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
-
-	}
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);	}
 	
 	
 	@Test
@@ -81,8 +92,13 @@ public class GrokIronportParserTest {
 		GrokIronportParser parser = new GrokIronportParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
-	}
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);	}
 		
 }

@@ -29,13 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class GrokRFC3164Test {
 
-
-
 	private Map<String, Object> parserConfig;
-
 
 	@Before
 	public void setup() {
@@ -47,13 +46,18 @@ public class GrokRFC3164Test {
 	}
 
 	@Test
-	public void testParseRealLine() throws Exception {
+	public void testParseRealLine() {
 		
 		//Set up parser, parse message
 		GrokRFC3164Parser parser = new GrokRFC3164Parser();
 		parser.configure(parserConfig);
 		String testString = "<14>May 20 08:57:57 abcen123 marathon[3040]: [2016-05-20 08:57:57,048] INFO Connecting to Zookeeper... (mesosphere.marathon.Main$:39)";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -64,33 +68,42 @@ public class GrokRFC3164Test {
 		assertEquals(parsedJSON.get("message"), "[2016-05-20 08:57:57,048] INFO Connecting to Zookeeper... (mesosphere.marathon.Main$:39)");
 
 	}
-	
 
-	
 	@Test
-	public void tetsParseMalformedLine() throws Exception {
+	public void tetsParseMalformedLine() {
 
 		//Set up parser, parse message
 		GrokRFC3164Parser parser = new GrokRFC3164Parser();
 		parser.configure(parserConfig);
 		String testString = "<14>May 20 08:0:57  marathon[3040]: asdf9)";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null,result);
-
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 	
 
 	
 	
 	@Test
-	public void testParseEmptyLine() throws Exception {
+	public void testParseEmptyLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokRFC3164Parser parser = new GrokRFC3164Parser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 		
 }

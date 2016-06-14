@@ -74,7 +74,6 @@ public class BasicCheckPointFirewallParser extends BasicParser {
             "eventDate",
             "tbd22",
             "eventSource"};
-    private int nextTbdCount = 23;
 
     @Override
     public void init() {
@@ -160,8 +159,8 @@ public class BasicCheckPointFirewallParser extends BasicParser {
         for(count = 0; count < numFields; count++)
             outputMessage.put(fields[count],tokens.get(count).trim().replace('^', ','));
 
-        for(; count < numTokens; count++)
-            outputMessage.put("tbd"+nextTbdCount++,tokens.get(count).trim().replace('^', ','));
+        for(int tbdFieldCounter = 23; count < numTokens; count++,tbdFieldCounter++)
+            outputMessage.put("tbd"+tbdFieldCounter,tokens.get(count).trim().replace('^', ','));
     }
 
     private void parseFirstField(String firstField, JSONObject outputMessage) {

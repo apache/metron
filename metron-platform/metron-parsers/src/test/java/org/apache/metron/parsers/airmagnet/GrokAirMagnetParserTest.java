@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class GrokAirMagnetParserTest {
 
@@ -75,7 +76,7 @@ public class GrokAirMagnetParserTest {
     }
 
     @Test
-    public void testParseMalformed() throws Exception {
+    public void testParseMalformed() {
 
         //Set up parser, attempt to parse malformed message
         GrokAirMagnetParser parser = new GrokAirMagnetParser();
@@ -87,8 +88,14 @@ public class GrokAirMagnetParserTest {
                 "also recommends TKIP in its WPA (Wireless Protected Access) standard.  Some WLAN equipment vendors have added TKIP support in their latest firmware and driver.  " +
                 "Unlike AES based CCMP encryption, TKIP typically does not require hardware upgrade.  Please consider configuring this WLAN device to enable TKIP to prevent security " +
                 "vulnerabilities such as packet forgery, replay, and WEP key recovery., Source MAC: 58:6D:8F:5A:62:D1-gn, Channel: 1";
-        List<JSONObject> result = parser.parse(testString.getBytes());
-        assertNull(result);
+        List<JSONObject> result = null;
+        boolean hitException = false;
+        try {
+            result = parser.parse(testString.getBytes());
+        } catch (Exception e) {
+            hitException = true;
+        }
+        assertTrue(hitException);
     }
 
 }

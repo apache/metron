@@ -28,13 +28,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class GrokMcAfeeFirewallParserTest {
 
-
-
 	private Map<String, Object> parserConfig;
-
 
 	@Before
 	public void setup() {
@@ -45,13 +44,18 @@ public class GrokMcAfeeFirewallParserTest {
 		parserConfig.put("dateFormat", "yyyy MMM dd HH:mm:ss");
 	}
 	@Test
-	public void testParseRealLine() throws Exception {
+	public void testParseRealLine() {
 		
 		//Set up parser, parse message
 		GrokMcAfeeFirewallParser parser = new GrokMcAfeeFirewallParser();
 		parser.configure(parserConfig);
 		String testString = "<188>Apr 15 16:35:41 GMT mabm011q AclLog: mabm011q matched Outbound ACL rule (COM Baseline Firewall/#3) 60.210.64.70 -> 200.60.213.21:443 (ssl/SSL/TLS (HTTPS)) = ->PERMIT|N/A|N/A";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -71,25 +75,37 @@ public class GrokMcAfeeFirewallParserTest {
 	
 	
 	@Test
-	public void testParseEmptyLine() throws Exception {
+	public void testParseEmptyLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokMcAfeeFirewallParser parser = new GrokMcAfeeFirewallParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 
 	@Test
-	public void TestParseMalformedLine() throws Exception {
+	public void TestParseMalformedLine() {
 
 		//Set up parser, parse message
 		GrokMcAfeeFirewallParser parser = new GrokMcAfeeFirewallParser();
 		parser.configure(parserConfig);
 		String testString = "<188>Apr 15 16:35:41 GMT mabm011q AclLog: mabm011q matched Outbound ACL rule (COM Baseline Firewall/#3) 60.210.64.70 -> 200.60.213.21:443 (ssl/SSL/TLS (HTTPS))";
-		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 		
 }
