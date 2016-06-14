@@ -67,10 +67,10 @@
     - { sensor: windowssyslog, file: "{{ lookup('file','windowssyslog_index.template') }}" }
     - { sensor: checkpointtraffic, file: "{{ lookup('file','checkpointtraffic_index.template') }}" }
     - { sensor: rfc4164, file: "{{ lookup('file','rfc4164_index.template') }}" }
-    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.template' }}" }
-    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.template' }}" }
-    - { sensor: soltra, file: "{{ lookup('file','soltra_index.template' }}" }
-    - { sensor: global, file: "{{ lookup('file','global_index.template' }}" }
+    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.template') }}" }
+    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.template') }}" }
+    - { sensor: soltra, file: "{{ lookup('file','soltra_index.template') }}" }
+    - { sensor: global, file: "{{ lookup('file','global_index.template') }}" }
 
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped
