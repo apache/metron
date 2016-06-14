@@ -15,10 +15,5 @@
 #  limitations under the License.
 #
 ---
-- include: elasticsearch.yml
-
-- name: Create Logrotate Script for Elasticsearch
-  template:
-    src: "metron-elasticsearch-logrotate.yml"
-    dest: "/etc/logrotate.d/metron-elasticsearch"
-    mode: 0644
+- include: load_templates.yml
+  run_once: true
