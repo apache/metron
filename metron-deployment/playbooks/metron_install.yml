@@ -48,6 +48,7 @@
     es_hosts: "{% set comma = joiner(',') %}{% for host in groups['search'] -%}{{ comma() }}{{ host }}{%- endfor %}"
   roles:
     - role: elasticsearch
+    - { role: metron_elasticsearch_templates, tags: ['load_es_templates'] }
   tags:
     - elasticsearch
 
@@ -96,10 +97,10 @@
 
 - hosts: enrichment
   become: true
-  roles:
-    - role: metron_streaming
   tags:
     - enrichment
+  roles:
+    - role: metron_streaming
 
 #
 # user interface

@@ -25,27 +25,21 @@
     delay: 10
     timeout: 300
 
-- name: Wait for Green Index Status
+- name: Wait for Index to Become Available
   uri:
     url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_cat/health"
     method: GET
     status_code: 200
     return_content: yes
   register: result
-  until: result.content.find("green") != -1
+  until: result.content.find("green") != -1 or result.content.find("yellow") != -1
   retries: 10
   delay: 60
 
 - name: Add Elasticsearch templates for topologies
   uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/template_{{ item.sensor }}"
+    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
     method: PUT
-    body: "{{ item.file }} | to_json "
+    body: "{{ lookup('file',item) }}"
     status_code: 200
-  with_items:
-    - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
-    - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
-    - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
-
-- name: Stop Elasticsearch
-  service: name=elasticsearch state=stopped
+  with_fileglob: ./files/es_templates/*.template
