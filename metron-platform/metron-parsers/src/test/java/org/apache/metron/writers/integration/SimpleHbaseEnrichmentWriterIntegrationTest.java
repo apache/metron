@@ -157,7 +157,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
         for (Map.Entry<String, String> x : metadata.entrySet()) {
           Assert.assertEquals(kv.getValue().getMetadata().get(x.getKey()), x.getValue());
         }
-        Assert.assertEquals(metadata.size() + 3, kv.getValue().getMetadata().size());
+        Assert.assertEquals(metadata.size() + 3 + 1, kv.getValue().getMetadata().size());
       }
     }
     finally {
