@@ -15,36 +15,16 @@
 #  limitations under the License.
 #
 ---
-- name: Create Metron directories
-  file: path={{ metron_directory }}/{{ item }} state=directory mode=0755
-  with_items:
-      - lib
-      - bin
-      - config
-
-- name: Create Source Config Directory
-  file:
-    path: "{{ zookeeper_config_path }}"
-    state: directory
-    mode: 0755
-
-- include: copy_bundles.yml
-
-- include: hdfs_filesystem.yml
-  run_once: true
-
-- include: grok_upload.yml
-  run_once: true
-
-- include: topologies.yml
-
-- include: source_config.yml
-  run_once: true
-
-- include: threat_intel.yml
-  run_once: true
-  when: threat_intel_bulk_load == True
-
-- include: hdfs_purge.yml
-
-- include: es_purge.yml
+- name: Create the Kafka topics required for Metron
+  shell: >
+    {{ kafka_home }}/bin/kafka-topics.sh \
+      --zookeeper {{ zookeeper_url }} \
+      --create \
+      --topic {{ item.topic }} \
+      --partitions {{ item.num_partitions }} \
+      --replication-factor {{ item.replication_factor }} \
+      --config retention.bytes={{ item.retention_gb * 1024 * 1024 * 1024 }}
+  with_items: "{{ topics_to_create }}"
+  register: out
+  failed_when: out.rc != 0 and ("already exists" not in out.stderr)
+  changed_when: ("already exists" not in out.stderr)

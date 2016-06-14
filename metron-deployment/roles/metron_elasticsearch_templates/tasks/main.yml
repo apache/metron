@@ -15,6 +15,5 @@
 #  limitations under the License.
 #
 ---
-dependencies:
-  - ambari_gather_facts
-
+- include: load_templates.yml
+  run_once: true

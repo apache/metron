@@ -36,7 +36,6 @@ metron_solr_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-solr/t
 metron_elasticsearch_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-elasticsearch/target/{{ metron_elasticsearch_bundle_name }}"
 metron_parsers_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-parsers/target/{{ metron_parsers_bundle_name }}"
 
-
 config_path: "{{ metron_directory }}/config"
 zookeeper_config_path: "{{ config_path }}/zookeeper"
 zookeeper_global_config_path: "{{ zookeeper_config_path }}/global.json"
