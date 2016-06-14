@@ -87,7 +87,7 @@ public class ParserBoltTest extends BaseBoltTest {
   @Test
   public void testEmpty() throws Exception {
     String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, writer) {
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
       @Override
       protected ParserConfigurations defaultConfigurations() {
         return new ParserConfigurations() {
