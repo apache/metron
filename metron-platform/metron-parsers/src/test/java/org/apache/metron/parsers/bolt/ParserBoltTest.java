@@ -83,25 +83,6 @@ public class ParserBoltTest extends BaseBoltTest {
   @Mock
   private Tuple t5;
 
-  @Test
-  public void foo() {
-    System.out.println(ErrorUtils.generateErrorMessage("foo"
-                                                      , new IllegalStateException("foo")
-                                                      , Optional.of("sensortype")
-                                                      , Optional.of("foo bar grok".getBytes())
-                                                      ).toJSONString()
-                      );
-    System.out.println(ErrorUtils.generateErrorMessage("foo"
-                                                      , new IllegalStateException("foo")
-                                                      , Optional.of("sensortype")
-                                                      , Optional.of(new JSONObject() {{
-                                                          put("foo", "bar");
-                                                          put("bar", 7);
-                                                        }})
-                                                      ).toJSONString()
-                      );
-  }
-
 
   @Test
   public void test() throws Exception {

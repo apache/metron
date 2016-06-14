@@ -113,7 +113,7 @@ public class BulkWriterComponent<MESSAGE_T> {
           commit(tupleList);
         }
 
-      } catch (Exception e) {
+      } catch (Throwable e) {
         if(handleError) {
           error(e, tupleList);
         }

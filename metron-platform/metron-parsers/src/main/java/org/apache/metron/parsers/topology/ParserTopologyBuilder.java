@@ -72,7 +72,7 @@ public class ParserTopologyBuilder {
     SpoutConfig spoutConfig = new SpoutConfig(zkHosts, sensorTopic, "", sensorTopic).from(offset);
     KafkaSpout kafkaSpout = new KafkaSpout(spoutConfig);
     builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
-           .setNumTasks(parserNumTasks);
+           .setNumTasks(spoutNumTasks);
     MessageParser<JSONObject> parser = ReflectionUtils.createInstance(sensorParserConfig.getParserClassName());
     parser.configure(sensorParserConfig.getParserConfig());
 
@@ -109,7 +109,7 @@ public class ParserTopologyBuilder {
                                          );
 
     builder.setBolt("parserBolt", parserBolt, parserParallelism)
-           .setNumTasks(spoutNumTasks)
+           .setNumTasks(parserNumTasks)
            .shuffleGrouping("kafkaSpout");
     if(errorWriterNumTasks > 0) {
       builder.setBolt("errorMessageWriter", errorBolt, errorWriterParallelism)
