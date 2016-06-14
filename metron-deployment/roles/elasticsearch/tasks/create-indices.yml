@@ -46,10 +46,10 @@
     - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
     - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
     - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
-    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.template' }}" }
-    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.template' }}" }
-    - { sensor: soltra, file: "{{ lookup('file','soltra_index.template' }}" }
-    - { sensor: global, file: "{{ lookup('file','global_index.template' }}" }
+    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.template') }}" }
+    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.template') }}" }
+    - { sensor: soltra, file: "{{ lookup('file','soltra_index.template') }}" }
+    - { sensor: global, file: "{{ lookup('file','global_index.template') }}" }
 
 
 
