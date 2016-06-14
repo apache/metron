@@ -81,7 +81,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
       message.remove(o);
     }
     message.put(getClass().getSimpleName().toLowerCase() + ".joiner.ts", "" + System.currentTimeMillis());
-    return message;
+    return  message;
   }
 
   public Map<String, List<String>> getFieldMap(String sourceType) {

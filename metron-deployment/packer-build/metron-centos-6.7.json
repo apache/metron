@@ -89,7 +89,7 @@
       "sftp_command": "/usr/libexec/openssh/sftp-server",
       "user" : "vagrant",
       "host_alias" : "node1",
-      "groups" : ["packer","ambari_master","ambari_slave","hadoop_client","enrichment","search","web","sensors","mysql","pcap_server","metron"]
+      "groups" : ["packer","ambari_master","ambari_slave","metron_kafka_topics","metron_hbase_tables","enrichment","search","web","sensors","mysql","pcap_server","metron"]
     },
     {
       "type": "shell",

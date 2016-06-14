@@ -17,9 +17,6 @@
 ---
 - include: elasticsearch.yml
 
-- include: create-indices.yml
-  run_once: yes
-
 - name: Create Logrotate Script for Elasticsearch
   template:
     src: "metron-elasticsearch-logrotate.yml"

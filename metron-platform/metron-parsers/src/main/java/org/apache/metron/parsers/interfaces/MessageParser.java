@@ -17,22 +17,39 @@
  */
 package org.apache.metron.parsers.interfaces;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-public interface MessageParser<T> extends Configurable{
+public interface MessageParser<T> extends Configurable {
+  /**
+   * Initialize the message parser.  This is done once.
+   */
   void init();
-  List<T> parse(byte[] rawMessage) throws Exception;
-  default Optional<List<T>> parseOptional(byte[] parseMessage) throws Exception {
-    List<T> ret = parse(parseMessage);
-    if (ret == null) {
-      return Optional.empty();
-    } else {
-      return Optional.of(parse(parseMessage));
-    }
+
+  /**
+   * Take raw data and convert it to a list of messages.
+   *
+   * @param rawMessage
+   * @return If null is returned, this is treated as an empty list.
+   */
+  List<T> parse(byte[] rawMessage);
+
+  /**
+   * Take raw data and convert it to an optional list of messages.
+   * @param parseMessage
+   * @return If null is returned, this is treated as an empty list.
+   */
+  default Optional<List<T>> parseOptional(byte[] parseMessage) {
+    return Optional.ofNullable(parse(parseMessage));
   }
 
-
+  /**
+   * Validate the message to ensure that it's correct.
+   * @param message
+   * @return true if the message is valid, false if not
+   */
   boolean validate(T message);
 
 }

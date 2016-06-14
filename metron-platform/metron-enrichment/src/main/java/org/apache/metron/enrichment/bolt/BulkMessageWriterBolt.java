@@ -25,6 +25,7 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterComponent;
@@ -60,18 +61,18 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     }
   }
 
+
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
-    message.put("index." + bulkMessageWriter.getClass().getSimpleName().toLowerCase() + ".ts", "" + System.currentTimeMillis());
+    JSONObject message =(JSONObject)tuple.getValueByField("message");
     String sensorType = MessageUtils.getSensorType(message);
     try
     {
       writerComponent.write(sensorType, tuple, message, bulkMessageWriter, new EnrichmentWriterConfiguration(getConfigurations()));
     }
     catch(Exception e) {
-      throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA");
+      throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
     }
   }
 
