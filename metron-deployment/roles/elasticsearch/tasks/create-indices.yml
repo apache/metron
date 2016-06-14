@@ -46,9 +46,6 @@
     - { sensor: bro, file: "{{ lookup('file','bro_index.template') }}" }
     - { sensor: yaf, file: "{{ lookup('file','yaf_index.template') }}" }
     - { sensor: snort, file: "{{ lookup('file','snort_index.template') }}" }
-    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.tenplate' }}" }
-    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.tenplate' }}" }
-    - { sensor: soltra, file: "{{ lookup('file','soltra_index.tenplate' }}" }
     - { sensor: adallom, file: "{{ lookup('file','adallom_index.template') }}" }
     - { sensor: airmagnet, file: "{{ lookup('file','airmagnet_index.template') }}" }
     - { sensor: aruba, file: "{{ lookup('file','aruba_index.template') }}" }
@@ -70,7 +67,10 @@
     - { sensor: windowssyslog, file: "{{ lookup('file','windowssyslog_index.template') }}" }
     - { sensor: checkpointtraffic, file: "{{ lookup('file','checkpointtraffic_index.template') }}" }
     - { sensor: rfc4164, file: "{{ lookup('file','rfc4164_index.template') }}" }
-    - { sensor: global, file: "{{ lookup('file','global_index.tempalte' }}" }
+    - { sensor: bluecoatcim, file: "{{ lookup('file','bluecoatcim_index.template' }}" }
+    - { sensor: lenelbadge, file: "{{ lookup('file','lenelbadge_index.template' }}" }
+    - { sensor: soltra, file: "{{ lookup('file','soltra_index.template' }}" }
+    - { sensor: global, file: "{{ lookup('file','global_index.template' }}" }
 
 - name: Stop Elasticsearch
   service: name=elasticsearch state=stopped
