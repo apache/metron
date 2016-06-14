@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class GrokBluecoatProxyParserTest {
 
@@ -42,7 +44,7 @@ public class GrokBluecoatProxyParserTest {
 	}
 
 	@Test
-	public void testParseLine() throws Exception {
+	public void testParseLine() {
 		
 		//Set up parser, parse message
 		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser();
@@ -55,7 +57,12 @@ public class GrokBluecoatProxyParserTest {
 				" http://www.saavnarnia.com/s/album/hindi/Greatest-Hits-Of-Coke-Studio-@-MTV-Vol.-1-2013/i9JkxZIt6Zk_" +
 				" \"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML," +
 				" like Gecko) Chrome/49.200.263.110 Safari/537.36\" OBSERVED \"Entertainment;Audio/Video Clips\" - 170.237.230.7 Certificate";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = null;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			fail();
+		}
 		JSONObject parsedJSON = result.get(0);
 
 		assertEquals(parsedJSON.get("csauthtype"), "Certificate");
@@ -85,7 +92,7 @@ public class GrokBluecoatProxyParserTest {
 	}
 	
 	@Test
-	public void testMalformedLine() throws Exception {
+	public void testMalformedLine() {
 		//Set up parser, attempt to parse malformed message
 		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser();
 		parser.configure(parserConfig);
@@ -96,19 +103,32 @@ public class GrokBluecoatProxyParserTest {
 				" text/html;%20charset=UTF-8" +
 				" http://www.saavnarnia.com/s/album/hindi/Greatest-Hits-Of-Coke-Studio-@-MTV-Vol.-1-2013/i9JkxZIt6Zk_" +
 				" \"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML," +
-				" like Gecko) Chrome/49.200.263.110 Safari/537.36\" OBSERVED \"Entertainment;Audio/Video Clips\" - 170.237.230.7 Certificate";		List<JSONObject> result = parser.parse(testString.getBytes());
-		assertEquals(null, result);
+				" like Gecko) Chrome/49.200.263.110 Safari/537.36\" OBSERVED \"Entertainment;Audio/Video Clips\" - 170.237.230.7 Certificate";
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 	
 	@Test
-	public void testParseEmptyLine() throws Exception {
+	public void testParseEmptyLine() {
 		
 		//Set up parser, attempt to parse malformed message
 		GrokBluecoatProxyParser parser = new GrokBluecoatProxyParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
-		assertEquals(null, result);
+		List<JSONObject> result = null;
+		boolean hitException = false;
+		try {
+			result = parser.parse(testString.getBytes());
+		} catch (Exception e) {
+			hitException = true;
+		}
+		assertTrue(hitException);
 	}
 		
 }
