@@ -31,7 +31,10 @@ public class EnrichmentWriterConfiguration implements WriterConfiguration{
 
   @Override
   public int getBatchSize(String sensorName) {
-    return config.getSensorEnrichmentConfig(sensorName).getBatchSize();
+    if(config != null && config.getSensorEnrichmentConfig(sensorName) != null) {
+      return config.getSensorEnrichmentConfig(sensorName).getBatchSize();
+    }
+    return 1;
   }
 
   @Override
