@@ -78,7 +78,7 @@ public class WriterBoltTest extends BaseBoltTest{
         };
   }
   @Test
-  public void test_batch_happy_path() throws Exception {
+  public void testBatchHappyPath() throws Exception {
     ParserConfigurations configurations = getConfigurations(5);
     String sensorType = "test";
     List<Tuple> tuples = new ArrayList<>();
@@ -105,7 +105,7 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(outputCollector, times(0)).fail(any());
   }
   @Test
-  public void test_nonbatch_happy_path() throws Exception {
+  public void testNonBatchHappyPath() throws Exception {
     ParserConfigurations configurations = getConfigurations(1);
     String sensorType = "test";
     Tuple t = mock(Tuple.class);
@@ -120,7 +120,7 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(outputCollector, times(0)).fail(any());
   }
   @Test
-  public void test_nonbatch_error_path() throws Exception {
+  public void testNonBatchErrorPath() throws Exception {
     ParserConfigurations configurations = getConfigurations(1);
     String sensorType = "test";
     Tuple t = mock(Tuple.class);
@@ -135,7 +135,7 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(outputCollector, times(0)).fail(any());
   }
   @Test
-  public void test_nonbatch_error_path_error_in_write() throws Exception {
+  public void testNonBatchErrorPathErrorInWrite() throws Exception {
     ParserConfigurations configurations = getConfigurations(1);
     String sensorType = "test";
     Tuple t = mock(Tuple.class);
@@ -151,7 +151,7 @@ public class WriterBoltTest extends BaseBoltTest{
     verify(outputCollector, times(0)).fail(any());
   }
   @Test
-  public void test_batch_error_path() throws Exception {
+  public void testBatchErrorPath() throws Exception {
     ParserConfigurations configurations = getConfigurations(5);
     String sensorType = "test";
     List<Tuple> tuples = new ArrayList<>();
@@ -189,7 +189,7 @@ public class WriterBoltTest extends BaseBoltTest{
   }
 
   @Test
-  public void test_batch_error_path_exception_in_write() throws Exception {
+  public void testBatchErrorPathExceptionInWrite() throws Exception {
     ParserConfigurations configurations = getConfigurations(5);
     String sensorType = "test";
     List<Tuple> tuples = new ArrayList<>();
