@@ -6,6 +6,7 @@
     "grokPath":"/patterns/ironport",
     "patternLabel":"IRONPORT",
     "timestampField":"timestamp_string",
-    "dateFormat":"yyyy MMM dd HH:mm:ss"
+    "dateFormat":"yyyy MMM dd HH:mm:ss",
+    "timeZone":"America/New_York"
   }
 }
