@@ -15,11 +15,10 @@
 #  limitations under the License.
 #
 ---
-num_partitions: 1
-retention_in_gb: 10
-pycapa_topic: pcap
-bro_topic: bro
-yaf_topic: yaf
-snort_topic: snort
-enrichments_topic: enrichments
-
+kafka_home: /usr/hdp/current/kafka-broker/
+topics_to_create:
+  - { topic: "pcap",        num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "bro",         num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "yaf",         num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "snort",       num_partitions: 1, replication_factor: 1, retention_gb: 10 }
+  - { topic: "enrichments", num_partitions: 1, replication_factor: 1, retention_gb: 10 }

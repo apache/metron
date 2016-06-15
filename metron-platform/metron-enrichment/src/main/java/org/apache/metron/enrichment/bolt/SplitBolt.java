@@ -64,7 +64,6 @@ public abstract class SplitBolt<T extends Cloneable> extends
   public void emit(Tuple tuple, T message) {
     if (message == null) return;
     String key = getKey(tuple, message);
-    collector.emit("message", tuple, new Values(key, message));
     Map<String, T> streamMessageMap = splitMessage(message);
     for (String streamId : streamMessageMap.keySet()) {
       T streamMessage = streamMessageMap.get(streamId);
@@ -73,6 +72,7 @@ public abstract class SplitBolt<T extends Cloneable> extends
       }
       collector.emit(streamId, new Values(key, streamMessage));
     }
+    collector.emit("message", tuple, new Values(key, message));
     collector.ack(tuple);
     emitOther(tuple, message);
   }

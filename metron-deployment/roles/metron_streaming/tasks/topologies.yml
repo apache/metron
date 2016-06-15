@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 ---
+- name: Get Default mysql passowrd
+  include_vars: "../roles/mysql_server/defaults/main.yml"
+  when: mysql_root_password is undefined
+  
 - name: Configure Metron Pcap Topology
   lineinfile: >
     dest={{ metron_pcap_properties_config_path }}

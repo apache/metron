@@ -28,7 +28,7 @@
     - include: tasks/create-open-outbound-security-group.yml
     - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2
     - include: tasks/create-hosts.yml host_count=4 host_type=ambari_slave,ec2
-    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,hadoop_client,metron,ec2,pcap_server
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,metron_kafka_topics,metron_hbase_tables,metron,ec2,pcap_server
     - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
     - include: tasks/create-hosts.yml host_count=2 host_type=search,metron,ec2
     - include: tasks/create-hosts.yml host_count=1 host_type=web,mysql,metron,ec2

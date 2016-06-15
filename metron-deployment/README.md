@@ -61,10 +61,10 @@ Metron services will be installed on by updating these groups:
 - web - host where the Metron UI and underlying services will run
 - sensors - host where network data will be collected and published to Kafka
 
-The Metron topologies depend on Kafka topics and HBase tables being created beforehand.  Declare a host that has Kafka
- and HBase clients installed by updating this group:
+The Metron topologies depend on Kafka topics and HBase tables being created beforehand.  Declare a host that has Kafka and HBase clients installed by updating these groups:
 
-- hadoop_client
+- metron_kafka_topics
+- metron_hbase_tables
 
 If only installing Metron, these groups can be ignored:
 
