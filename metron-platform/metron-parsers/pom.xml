@@ -138,6 +138,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>metron-elasticsearch</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>metron-test-utilities</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
