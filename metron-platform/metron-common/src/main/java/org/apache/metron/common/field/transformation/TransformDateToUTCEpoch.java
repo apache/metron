@@ -21,6 +21,8 @@ package org.apache.metron.common.field.transformation;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.*;
 
@@ -53,7 +55,10 @@ public class TransformDateToUTCEpoch implements FieldTransformation {
         DateTime jodaDateTime = new DateTime(Long.valueOf(input.get("timestamp").toString()),
                 DateTimeZone.forTimeZone(TimeZone.getTimeZone(timeZone)));
 
-        returnMap.put("timestamp", jodaDateTime.getMillis());
+        DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+        String dateString = dateTimeFormatter.print(jodaDateTime);
+        DateTime newJodaDateTime = dateTimeFormatter.parseDateTime(dateString);
+        returnMap.put("timestamp", newJodaDateTime.getMillis());
         return returnMap;
     }
 
