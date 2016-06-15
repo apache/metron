@@ -1,9 +1,9 @@
 {
-"parserClassName":"org.apache.metron.parsers.soltra.SoltraParser",
-"sensorTopic":"soltra",
+  "parserClassName": "org.apache.metron.parsers.soltra.SoltraParser",
+  "sensorTopic": "soltra",
   "writerClassName": "org.apache.metron.elasticsearch.writer.ElasticsearchWriter",
-"parserConfig": {
-  "indexName":"soltratest",
-  "elasticSearchID":"ID"
-}
+  "parserConfig": {
+    "indexName": "soltra",
+    "elasticSearchID": "ID"
+  }
 }
