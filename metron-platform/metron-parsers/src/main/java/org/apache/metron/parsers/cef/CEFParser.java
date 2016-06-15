@@ -302,6 +302,7 @@ public class CEFParser extends BasicParser {
 			dateFormat.setTimeZone(timeZone);
 
 			try {
+				timestamp = timestamp.replace("Z", "UTC");
 				epochTimestamp = dateFormat.parse(timestamp).getTime();
 			} catch (ParseException e) {
 				LOGGER.error("Date Parsing Exception:" + e.toString());
