@@ -5,5 +5,14 @@
     "grokPath": "/patterns/squid",
     "patternLabel": "SQUID_DELIMITED",
     "timestampField": "timestamp"
-  }
+  },
+  "fieldTransformations" : [
+    {
+      "transformation" : "MTL"
+    ,"output" : [ "host" ]
+    ,"config" : {
+      "host" : "URL_TO_HOST(url)"
+                }
+    }
+                           ]
 }
