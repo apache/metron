@@ -35,7 +35,7 @@ public class MTLTransformation implements FieldTransformation {
                                 )
   {
     Map<String, Object> ret = new HashMap<>();
-    VariableResolver resolver = new MapVariableResolver(input, fieldMappingConfig, sensorConfig);
+    VariableResolver resolver = new MapVariableResolver(ret, input,fieldMappingConfig, sensorConfig);
     TransformationProcessor processor = new TransformationProcessor();
     for(String oField : outputField) {
       Object transformObj = fieldMappingConfig.get(oField);

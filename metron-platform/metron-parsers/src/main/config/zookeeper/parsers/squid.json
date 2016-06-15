@@ -9,9 +9,10 @@
   "fieldTransformations" : [
     {
       "transformation" : "MTL"
-    ,"output" : [ "host" ]
+    ,"output" : [ "full_hostname", "domain_without_subdomains" ]
     ,"config" : {
-      "host" : "URL_TO_HOST(url)"
+      "full_hostname" : "URL_TO_HOST(url)"
+      ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
                 }
     }
                            ]

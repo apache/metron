@@ -42,6 +42,7 @@ public enum TransformationFunctions implements Function<List<Object>, Object> {
   ,MAP_GET(new MapFunctions.MapGet())
   ,DOMAIN_TO_TLD(new NetworkFunctions.ExtractTLD())
   ,DOMAIN_REMOVE_TLD(new NetworkFunctions.RemoveTLD())
+  ,DOMAIN_REMOVE_SUBDOMAINS(new NetworkFunctions.RemoveSubdomains())
   ,URL_TO_HOST(new NetworkFunctions.URLToHost())
   ,URL_TO_PORT(new NetworkFunctions.URLToPort())
   ,URL_TO_PATH(new NetworkFunctions.URLToPath())

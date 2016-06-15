@@ -75,6 +75,12 @@ public class TransformationTest {
   }
 
   @Test
+  public void testSubdomainRemoval() {
+    String query = "DOMAIN_REMOVE_SUBDOMAINS(foo)";
+    Assert.assertEquals("google.co.uk", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
+    Assert.assertEquals("google.com", run(query, ImmutableMap.of("foo", "www.google.com")));
+  }
+  @Test
   public void testURLToHost() {
     String query = "URL_TO_HOST(foo)";
     Assert.assertEquals("www.google.co.uk", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));

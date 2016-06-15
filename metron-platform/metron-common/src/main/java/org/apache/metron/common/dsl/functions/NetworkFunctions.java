@@ -28,6 +28,32 @@ import java.util.List;
 import java.util.function.Function;
 
 public class NetworkFunctions {
+  public static class RemoveSubdomains implements Function<List<Object>, Object> {
+
+    @Override
+    public Object apply(List<Object> objects) {
+      Object dnObj = objects.get(0);
+      InternetDomainName idn = toDomainName(dnObj);
+      if(idn != null) {
+        String dn = dnObj.toString();
+        String tld = idn.publicSuffix().toString();
+        String suffix = Iterables.getFirst(Splitter.on(tld).split(dn), null);
+        if(suffix != null)
+        {
+          String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
+          String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
+          if(hostnameWithoutSubsAndTLD == null) {
+            return null;
+          }
+          return hostnameWithoutSubsAndTLD + "." + tld;
+        }
+        else {
+          return null;
+        }
+      }
+      return null;
+    }
+  }
   public static class RemoveTLD implements Function<List<Object>, Object> {
     @Override
     public Object apply(List<Object> objects) {
