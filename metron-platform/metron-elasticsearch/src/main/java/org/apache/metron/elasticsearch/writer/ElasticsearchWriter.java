@@ -23,6 +23,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.writer.AbstractWriter;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -41,7 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
+public class ElasticsearchWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   private Map<String, String> optionalSettings;
   private transient TransportClient client;
@@ -49,6 +50,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   private static final Logger LOG = LoggerFactory
           .getLogger(ElasticsearchWriter.class);
   private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
+  private boolean changeID = false;
+  private String elasticSearchId;
 
   public ElasticsearchWriter withOptionalSettings(Map<String, String> optionalSettings) {
     this.optionalSettings = optionalSettings;
@@ -113,6 +116,9 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
               sensorType + "_doc");
       indexRequestBuilder.setSource(esDoc.toJSONString()).setTimestamp(esDoc.get("timestamp").toString());
+      if(changeID){
+        indexRequestBuilder.setId((String)message.get(elasticSearchId));
+      }
       bulkRequest.add(indexRequestBuilder);
 
     }
@@ -148,5 +154,15 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
   }
 
+
+  @Override
+  public void configure(String sensorName, WriterConfiguration configuration) {
+    Map<String, Object> sensorConfiguration = configuration.getSensorConfig(sensorName);
+    if(sensorConfiguration.containsKey("elasticSearchID")){
+      changeID = true;
+      elasticSearchId = (String)sensorConfiguration.get("elasticSearchID");
+    }
+
+  }
 }
 
