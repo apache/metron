@@ -22,16 +22,13 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.common.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
@@ -41,14 +38,30 @@ public class BulkWriterComponent<MESSAGE_T> {
   private OutputCollector collector;
   private boolean handleCommit = true;
   private boolean handleError = true;
+  private Long currentTime;
+  private Long flushIntervalInMs;
+  private boolean flush;
+
   public BulkWriterComponent(OutputCollector collector) {
     this.collector = collector;
+    this.currentTime = System.currentTimeMillis();
+    this.flush = false;
   }
 
   public BulkWriterComponent(OutputCollector collector, boolean handleCommit, boolean handleError) {
     this(collector);
     this.handleCommit = handleCommit;
     this.handleError = handleError;
+    this.currentTime = System.currentTimeMillis();
+    this.flush = false;
+  }
+
+  public void setFlush(boolean flush) {
+    this.flush = flush;
+  }
+
+  public void setFlushIntervalInMs(Long flushIntervalInMs) {
+    this.flushIntervalInMs = flushIntervalInMs;
   }
 
   public void commit(Iterable<Tuple> tuples) {
@@ -87,11 +100,32 @@ public class BulkWriterComponent<MESSAGE_T> {
       messageList = new ArrayList<>();
     }
     messageList.add(message);
-
-    if (tupleList.size() < batchSize) {
+    if ((flush && (System.currentTimeMillis() >= currentTime + flushIntervalInMs))) {
+      flushAllSensorTypes(bulkMessageWriter, configurations);
+    } else if ((tupleList.size() >= batchSize)) {
+        flush(sensorType, bulkMessageWriter, configurations, tupleList, messageList);
+    } else {
       sensorTupleMap.put(sensorType, tupleList);
       sensorMessageMap.put(sensorType, messageList);
-    } else {
+    }
+  }
+
+  private void flushAllSensorTypes (BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations) throws Exception {
+      for (Map.Entry<String, Collection<Tuple>> tupleEntry : sensorTupleMap.entrySet()) {
+        try {
+          flush(tupleEntry.getKey(), bulkMessageWriter, configurations, tupleEntry.getValue(), sensorMessageMap.get(tupleEntry.getKey()));
+        } catch (Exception e) {
+          LOG.warn("Exception thrown while flushing senson type " + tupleEntry.getKey(), e);
+          LOG.warn("Continuing with next sensor type");
+        }
+      }
+      if (flush) {
+        currentTime = System.currentTimeMillis();
+      }
+  }
+
+  private void flush(String sensorType, BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations, Collection<Tuple> tupleList,
+                     List<MESSAGE_T> messageList ) throws Exception {
       try {
         bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
         if(handleCommit) {
@@ -109,7 +143,7 @@ public class BulkWriterComponent<MESSAGE_T> {
       finally {
         sensorTupleMap.remove(sensorType);
         sensorMessageMap.remove(sensorType);
+
       }
-    }
   }
 }

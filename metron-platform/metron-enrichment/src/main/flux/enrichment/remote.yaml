@@ -285,6 +285,12 @@ bolts:
             -   name: "withBulkMessageWriter"
                 args:
                     - ref: "indexWriter"
+            -   name: "withFlush"
+                args:
+                    - true
+            -   name: "withFlushIntervalInMs"
+                args:
+                    - 15000
 #    -   id: "hdfsIndexingBolt"
 #        className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
 #        constructorArgs:
