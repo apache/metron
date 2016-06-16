@@ -46,7 +46,9 @@ public class ParserTopologyBuilder {
                          int spoutParallelism,
                          int spoutNumTasks,
                          int parserParallelism,
-                         int parserNumTasks
+                         int parserNumTasks,
+                         int fetchSizeBytes,
+                         int bufferSizeBtyes
                                      ) throws Exception {
     CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
@@ -62,7 +64,12 @@ public class ParserTopologyBuilder {
     TopologyBuilder builder = new TopologyBuilder();
     ZkHosts zkHosts = new ZkHosts(zookeeperUrl);
     SpoutConfig spoutConfig = new SpoutConfig(zkHosts, sensorTopic, "", sensorTopic).from(offset);
+    spoutConfig.fetchSizeBytes = fetchSizeBytes;
+    spoutConfig.bufferSizeBytes = bufferSizeBtyes;
     KafkaSpout kafkaSpout = new KafkaSpout(spoutConfig);
+    System.out.println("Initializing parser topology KafkaSpout with the following configs:");
+    System.out.println("Fetch Size Bytes: " + spoutConfig.fetchSizeBytes);
+    System.out.println("Buffer Size Bytes: " + spoutConfig.bufferSizeBytes);
     builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
            .setNumTasks(spoutNumTasks);
     MessageParser<JSONObject> parser = ReflectionUtils.createInstance(sensorParserConfig.getParserClassName());
