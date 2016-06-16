@@ -20,11 +20,13 @@ package org.apache.metron.integration.components;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 public class ConfigUploadComponent implements InMemoryComponent {
@@ -33,6 +35,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private String globalConfigPath;
   private String parserConfigsPath;
   private String enrichmentConfigsPath;
+  private Optional<String> globalConfig = Optional.empty();
   private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
   public ConfigUploadComponent withTopologyProperties(Properties topologyProperties) {
     this.topologyProperties = topologyProperties;
@@ -58,20 +61,31 @@ public class ConfigUploadComponent implements InMemoryComponent {
     return this;
   }
 
+  public ConfigUploadComponent withGlobalConfig(String globalConfig) {
+    this.globalConfig = Optional.ofNullable(globalConfig);
+    return this;
+  }
 
   @Override
   public void start() throws UnableToStartException {
     try {
-      ConfigurationsUtils.uploadConfigsToZookeeper( globalConfigPath
-                                                  , parserConfigsPath
-                                                  , enrichmentConfigsPath
-                                                  , topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY)
-                                                  );
+      if(globalConfigPath != null) {
+        ConfigurationsUtils.uploadConfigsToZookeeper(globalConfigPath
+                , parserConfigsPath
+                , enrichmentConfigsPath
+                , topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY)
+        );
+      }
       for(Map.Entry<String, SensorParserConfig> kv : parserSensorConfigs.entrySet()) {
         ConfigurationsUtils.writeSensorParserConfigToZookeeper( kv.getKey()
                                                               , kv.getValue()
                                                               , topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY)
                                                               );
+      }
+      if(globalConfig.isPresent()) {
+        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.get().getBytes()
+                                                        , topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY)
+                                                        );
       }
 
     } catch (Exception e) {

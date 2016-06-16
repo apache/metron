@@ -23,12 +23,13 @@ import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.field.validation.FieldValidations;
 import org.json.simple.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FieldValidator {
+public class FieldValidator implements Serializable {
 
   public enum Config {
      FIELD_VALIDATIONS("fieldValidations")
