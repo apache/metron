@@ -57,10 +57,12 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void setFlush(boolean flush) {
+    LOG.info("Setting flush to " + flush);
     this.flush = flush;
   }
 
   public void setFlushIntervalInMs(Long flushIntervalInMs) {
+    LOG.info("Setting flushIntervalInMs to " + flushIntervalInMs);
     this.flushIntervalInMs = flushIntervalInMs;
   }
 

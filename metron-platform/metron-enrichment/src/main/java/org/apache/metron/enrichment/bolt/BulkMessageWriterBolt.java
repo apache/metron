@@ -52,23 +52,12 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
-  public BulkMessageWriterBolt withFlush (String flush) {
-    if ("true".equals(flush)) {
-      this.flush = true;
-    }
-    return this;
-  }
-
-  public BulkMessageWriterBolt withFlushIntervalInMs (Long flushIntervalInMs) {
-    this.flushIntervalInMs = flushIntervalInMs;
-    return this;
-  }
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.writerComponent = new BulkWriterComponent<>(collector);
-    this.writerComponent.setFlush(flush);
-    this.writerComponent.setFlushIntervalInMs(flushIntervalInMs);
+    this.writerComponent.setFlush(Boolean.getBoolean(getConfigurations().getGlobalConfig().get("flush").toString()));
+    this.writerComponent.setFlushIntervalInMs(Long.parseLong(getConfigurations().getGlobalConfig().get("flushIntervalInMs").toString()));
     super.prepare(stormConf, context, collector);
     try {
       bulkMessageWriter.init(stormConf, new EnrichmentWriterConfiguration(getConfigurations()));
