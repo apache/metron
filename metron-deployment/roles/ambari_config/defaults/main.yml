@@ -29,5 +29,7 @@ storm_local_dir: /hadoop/storm
 kafka_log_dirs: /kafka-log
 cluster_type: small_cluster
 nodemanager_mem_mb : 4096
-mapred_map_mem_mb : 1024
-mapred_reduce_mem_mb : 1024
+mapred_map_java_opts : -Xmx1024m
+mapred_reduce_java_opts : -Xmx1024m
+mapred_map_mem_mb : 1229
+mapred_reduce_mem_mb : 1229

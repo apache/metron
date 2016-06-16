@@ -61,6 +61,8 @@ configurations:
       jobhistory_heapsize: 256
   - mapred-site:
       mapreduce.jobhistory.recovery.store.leveldb.path : '{{ jhs_recovery_store_ldb_path }}'
+      mapreduce.map.java.opts : '{{ mapred_map_java_opts }}'
+      mapreduce.reduce.java.opts : '{{ mapred_reduce_java_opts }}'
       mapreduce.map.memory.mb : '{{ mapred_map_mem_mb }}'
       mapreduce.reduce.memory.mb : '{{ mapred_reduce_mem_mb }}'
   - yarn-site:
