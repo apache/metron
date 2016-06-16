@@ -60,8 +60,10 @@ public class BulkWriterComponent<MESSAGE_T> {
 
   public void error(Throwable e, Iterable<Tuple> tuples) {
     tuples.forEach(t -> collector.ack(t));
-    LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
-    ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
+    if(!Iterables.isEmpty(tuples)) {
+      LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
+      ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
+    }
   }
 
   protected Collection<Tuple> createTupleCollection() {
@@ -69,6 +71,19 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
 
+  public void errorAll(Throwable e) {
+    for(Map.Entry<String, Collection<Tuple>> kv : sensorTupleMap.entrySet()) {
+      error(e, kv.getValue());
+      sensorTupleMap.remove(kv.getKey());
+      sensorMessageMap.remove(kv.getKey());
+    }
+  }
+
+  public void errorAll(String sensorType, Throwable e) {
+    error(e, Optional.ofNullable(sensorTupleMap.get(sensorType)).orElse(new ArrayList<>()));
+    sensorTupleMap.remove(sensorType);
+    sensorMessageMap.remove(sensorType);
+  }
   public void write( String sensorType
                    , Tuple tuple
                    , MESSAGE_T message

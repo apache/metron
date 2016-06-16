@@ -67,9 +67,23 @@ public class ParserTopologyCLI {
       o.setType(Number.class);
       return o;
     }),
-    PARSER_PARALLISM("pp", code -> {
+    PARSER_PARALLELISM("pp", code -> {
       Option o = new Option(code, "parser_p", true, "Parser Parallelism Hint");
-      o.setArgName("PARSER_PARALLELISM_HINT");
+      o.setArgName("PARALLELISM_HINT");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    INVALID_WRITER_PARALLELISM("iwp", code -> {
+      Option o = new Option(code, "invalid_writer_p", true, "Invalid Message Writer Parallelism Hint");
+      o.setArgName("PARALLELISM_HINT");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    ERROR_WRITER_PARALLELISM("ewp", code -> {
+      Option o = new Option(code, "error_writer_p", true, "Error Writer Parallelism Hint");
+      o.setArgName("PARALLELISM_HINT");
       o.setRequired(false);
       o.setType(Number.class);
       return o;
@@ -83,7 +97,21 @@ public class ParserTopologyCLI {
     }),
     PARSER_NUM_TASKS("pnt", code -> {
       Option o = new Option(code, "parser_num_tasks", true, "Parser Num Tasks");
-      o.setArgName("PARSER_NUM_TASKS");
+      o.setArgName("NUM_TASKS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    INVALID_WRITER_NUM_TASKS("iwnt", code -> {
+      Option o = new Option(code, "invalid_writer_num_tasks", true, "Invalid Writer Num Tasks");
+      o.setArgName("NUM_TASKS");
+      o.setRequired(false);
+      o.setType(Number.class);
+      return o;
+    }),
+    ERROR_WRITER_NUM_TASKS("ewnt", code -> {
+      Option o = new Option(code, "error_writer_num_tasks", true, "Error Writer Num Tasks");
+      o.setArgName("NUM_TASKS");
       o.setRequired(false);
       o.setType(Number.class);
       return o;
@@ -226,8 +254,12 @@ public class ParserTopologyCLI {
       String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
       int spoutParallelism = Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
       int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
-      int parserParallelism = Integer.parseInt(ParserOptions.PARSER_PARALLISM.get(cmd, "1"));
+      int parserParallelism = Integer.parseInt(ParserOptions.PARSER_PARALLELISM.get(cmd, "1"));
       int parserNumTasks= Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
+      int errorParallelism = Integer.parseInt(ParserOptions.ERROR_WRITER_PARALLELISM.get(cmd, "1"));
+      int errorNumTasks= Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
+      int invalidParallelism = Integer.parseInt(ParserOptions.INVALID_WRITER_PARALLELISM.get(cmd, "1"));
+      int invalidNumTasks= Integer.parseInt(ParserOptions.INVALID_WRITER_NUM_TASKS.get(cmd, "1"));
       SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
@@ -236,7 +268,12 @@ public class ParserTopologyCLI {
               spoutParallelism,
               spoutNumTasks,
               parserParallelism,
-              parserNumTasks);
+              parserNumTasks,
+              invalidParallelism,
+              invalidNumTasks,
+              errorParallelism,
+              errorNumTasks
+      );
       Config stormConf = ParserOptions.getConfig(cmd);
 
       if (ParserOptions.TEST.has(cmd)) {

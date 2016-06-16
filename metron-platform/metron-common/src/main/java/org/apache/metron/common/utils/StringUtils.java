@@ -16,15 +16,21 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.validation;
+package org.apache.metron.common.utils;
 
-import java.io.Serializable;
-import java.util.Map;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 
-public interface FieldValidation extends Serializable {
-  boolean isValid( Map<String, Object> input
-                 , Map<String, Object> validationConfig
-                 , Map<String, Object> globalConfig
-                 );
-  void initialize(Map<String, Object> validationConfig, Map<String, Object> globalConfig);
+import java.util.Arrays;
+import java.util.Optional;
+
+public class StringUtils {
+  public static String join(String delim, Optional<String>... parts) {
+    return Joiner.on(delim).join(
+            Arrays.asList(parts).stream().filter(
+                    part -> part.isPresent()
+            ).map( part -> part.get())
+             .toArray()
+                                );
+  }
 }
