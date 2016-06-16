@@ -84,17 +84,18 @@ public class BasicMcAfeeEpoParser extends BasicParser {
             String timezone = (String)payload.get("timezone");
             if(timezone != null){
                 switch(timezone){
-                    case "Eastern Standard Time": df.setTimeZone(TimeZone.getTimeZone("EST"));break;
-                    case "Central Standard Time": df.setTimeZone(TimeZone.getTimeZone("US/Central"));break;
-                    case "Pacific Standard Time": df.setTimeZone(TimeZone.getTimeZone("PST"));break;
+                    case "Eastern Standard Time":
+                    case "Est":
+                    case "EST": df.setTimeZone(TimeZone.getTimeZone("America/New_York"));break;
+                    case "Central Standard Time":
+                    case "CST": df.setTimeZone(TimeZone.getTimeZone("America/Chicago"));;break;
+                    case "Pacific Standard Time": df.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));break;
                     case "GMT Standard Time": df.setTimeZone(TimeZone.getTimeZone("GMT"));break;
                     case "India Standard Time": df.setTimeZone(TimeZone.getTimeZone("IST"));break;
-                    case "Est": df.setTimeZone(TimeZone.getTimeZone("EST"));break;
-                    case "CST": df.setTimeZone(TimeZone.getTimeZone("US/Central"));;break;
-                    case "China Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
+                    case "China Standard Time":
                     case "Malay Peninsula Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
                 }
-            }else{
+            } else {
                 df.setTimeZone(TimeZone.getTimeZone("UTC"));
             }
 
