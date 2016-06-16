@@ -135,6 +135,20 @@ public class ParserTopologyCLI {
       o.setRequired(false);
       return o;
     })
+    ,FETCH_SIE_BYTES("fetch", code ->
+    {
+      Option o = new Option(code, "fetch_size_bytes", true, "Fetch Size Bytes for Kafka Spout");
+      o.setArgName("FETCH_SIE_BYTES");
+      o.setRequired(false);
+      return o;
+    })
+    ,BUFFER_SIZE_BYTES("buffer", code ->
+    {
+      Option o = new Option(code, "test", true, "Buffer Size Bytes for Kafka Spout");
+      o.setArgName("BUFFER_SIE_BYTES");
+      o.setRequired(false);
+      return o;
+    })
     ;
     Option option;
     String shortCode;
@@ -228,6 +242,8 @@ public class ParserTopologyCLI {
       int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
       int parserParallelism = Integer.parseInt(ParserOptions.PARSER_PARALLISM.get(cmd, "1"));
       int parserNumTasks= Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
+      int fetchSizeBytes = Integer.parseInt(ParserOptions.FETCH_SIE_BYTES.get(cmd, "1048576"));
+      int bufferSizeBytes = Integer.parseInt(ParserOptions.BUFFER_SIZE_BYTES.get(cmd, "1048576"));
       SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
@@ -236,7 +252,9 @@ public class ParserTopologyCLI {
               spoutParallelism,
               spoutNumTasks,
               parserParallelism,
-              parserNumTasks);
+              parserNumTasks,
+              fetchSizeBytes,
+              bufferSizeBytes);
       Config stormConf = ParserOptions.getConfig(cmd);
 
       if (ParserOptions.TEST.has(cmd)) {
