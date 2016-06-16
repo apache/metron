@@ -94,7 +94,7 @@ public class GrokInfobloxParser extends GrokParser {
                     break;
                 case "clientunknown_":
                 case "dnsunknown_":
-                case "dhcpdunknwon_":
+                case "dhcpdunknown_":
                 case "unknown_":
                     isUnknownTag = true;
             }
@@ -118,13 +118,13 @@ public class GrokInfobloxParser extends GrokParser {
     private void fixTimestamp(JSONObject json) {
         if (hasValidTimestampString(json, "unknown_timestamp")) {
             json.put("timestamp", (Long) formatTimestamp(json.get("unknown_timestamp")));
-            json.remove("unknwon_timestamp");
+            json.remove("unknown_timestamp");
         } else if (hasValidTimestampString(json, "dhcpunknown_timestamp")) {
-            json.put("timestamp", (Long) formatTimestamp(json.get("dhcpdunknwon_timestamp")));
-            json.remove("unknwon_timestamp");
+            json.put("timestamp", (Long) formatTimestamp(json.get("dhcpdunknown_timestamp")));
+            json.remove("unknown_timestamp");
         } else if (hasValidTimestampString(json, "dnsunknown_timestamp")) {
-            json.put("timestamp", (Long) formatTimestamp(json.get("dnsunknwon_timestamp")));
-            json.remove("dnsunknwon_timestamp");
+            json.put("timestamp", (Long) formatTimestamp(json.get("dnsunknown_timestamp")));
+            json.remove("dnsunknown_timestamp");
         } else if (hasValidTimestampString(json, "timestamp")) {
             json.put("timestamp", (Long) formatTimestamp(json.get("timestamp")));
         }
