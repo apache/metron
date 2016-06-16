@@ -23,6 +23,7 @@ import org.apache.metron.common.utils.ReflectionUtils;
 public enum FieldTransformations {
   IP_PROTOCOL(new IPProtocolTransformation())
   ,REMOVE(new RemoveTransformation())
+  ,TRANSFORM_TO_UTC_EPOCH(new TransformDateToUTCEpoch())
   ;
   FieldTransformation mapping;
   FieldTransformations(FieldTransformation mapping) {
