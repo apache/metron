@@ -53,14 +53,12 @@ public class TransformDateToUTCEpoch implements FieldTransformation {
             timeZone = "UTC";
 
         DateTime jodaDateTime = new DateTime(Long.valueOf(input.get("timestamp").toString()),
-                DateTimeZone.forTimeZone(TimeZone.getTimeZone(timeZone)));
+                DateTimeZone.forID("GMT"));
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
         String dateString = dateTimeFormatter.print(jodaDateTime);
-        DateTime newJodaDateTime = dateTimeFormatter.parseDateTime(dateString);
+        DateTime newJodaDateTime = dateTimeFormatter.parseDateTime(dateString).withZoneRetainFields(DateTimeZone.forID(timeZone));
         returnMap.put("timestamp", newJodaDateTime.getMillis());
         return returnMap;
     }
-
-
 }
