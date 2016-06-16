@@ -16,8 +16,8 @@
 
 name: "enrichment"
 config:
-    topology.workers: 1
-    topology.acker.executors: 0
+    topology.workers: 26
+    topology.acker.executors: 26
 
 components:
 # Enrichment
@@ -179,7 +179,7 @@ components:
             - "enrichments"
         properties:
             -   name: "ignoreZkOffsets"
-                value: true
+                value: false
             -   name: "startOffsetTime"
                 value: -1
             -   name: "fetchSizeBytes"
@@ -192,6 +192,7 @@ spouts:
         className: "storm.kafka.KafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
+        parallelism: 26
 bolts:
 # Enrichment Bolts
     -   id: "enrichmentSplitBolt"
@@ -202,6 +203,7 @@ bolts:
             -   name: "withEnrichments"
                 args:
                     - ref: "enrichments"
+        parallelism: 6
 #    -   id: "geoEnrichmentBolt"
 #        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
 #        constructorArgs:
@@ -289,6 +291,7 @@ bolts:
             -   name: "withBulkMessageWriter"
                 args:
                     - ref: "indexWriter"
+        parallelism: 20
 #    -   id: "hdfsIndexingBolt"
 #        className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
 #        constructorArgs:
