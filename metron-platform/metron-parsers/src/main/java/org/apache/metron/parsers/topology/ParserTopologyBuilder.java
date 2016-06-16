@@ -40,6 +40,18 @@ import java.util.Map;
 public class ParserTopologyBuilder {
 
   public static TopologyBuilder build(String zookeeperUrl,
+                        String brokerUrl,
+                        String sensorType,
+                        SpoutConfig.Offset offset,
+                        int spoutParallelism,
+                        int spoutNumTasks,
+                        int parserParallelism,
+                        int parserNumTasks
+                                      ) throws Exception {
+    return build(zookeeperUrl, brokerUrl, sensorType, offset, spoutParallelism, spoutNumTasks, parserParallelism, parserNumTasks, 1048576, 1048576);
+  }
+
+  public static TopologyBuilder build(String zookeeperUrl,
                          String brokerUrl,
                          String sensorType,
                          SpoutConfig.Offset offset,
