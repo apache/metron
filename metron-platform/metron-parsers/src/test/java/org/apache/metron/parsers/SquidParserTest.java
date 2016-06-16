@@ -39,7 +39,7 @@ public class SquidParserTest extends GrokParserTest {
    *   "action":"TCP_MISS",
    *   "ip_src_addr":"127.0.0.1",
    *   "ip_dst_addr":"199.27.79.73",
-   *   "url":"cnn.com",
+   *   "url":"http://www.cnn.com/",
    *   "timestamp":1461576382642
    * }
    */

@@ -74,11 +74,38 @@ public class QueryValidationTest extends BaseValidationTest{
    */
   @Multiline
   public static String invalidQueryConfig2;
+  /**
+   {
+    "fieldValidations" : [
+          {
+           "validation" : "MQL"
+          ,"config" : {
+                "condition" : "MAP_EXISTS(dc, dc2tz)"
+                ,"dc2tz" : {
+                          "la" : "PST"
+                           }
+                      }
+          }
+                         ]
+   }
+   */
+  @Multiline
+  public static String validQueryConfig_map;
+
   @Test
   public void testPositive() throws IOException {
     Assert.assertTrue(execute(validQueryConfig, ImmutableMap.of("field1", "foo")));
   }
 
+  @Test
+  public void testPositive_map() throws IOException {
+    Assert.assertTrue(execute(validQueryConfig_map, ImmutableMap.of("dc", "la")));
+  }
+  @Test
+  public void testNegative_map() throws IOException {
+    Assert.assertFalse(execute(validQueryConfig_map, ImmutableMap.of("dc", "nyc")));
+    Assert.assertFalse(execute(validQueryConfig_map, ImmutableMap.of("foo", "nyc")));
+  }
   @Test
   public void testNegative() throws IOException {
     Assert.assertFalse(execute(validQueryConfig, ImmutableMap.of("field2", "foo")));

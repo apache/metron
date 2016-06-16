@@ -86,7 +86,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           LOG.debug(sourceType + ": Empty rules!");
         }
 
-        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(triageConfig);
+        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config);
         Double triageLevel = threatTriageProcessor.apply(ret);
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules().entrySet());

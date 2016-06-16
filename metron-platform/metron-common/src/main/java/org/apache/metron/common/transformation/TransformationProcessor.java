@@ -16,44 +16,37 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.transformation;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import org.apache.metron.common.dsl.ErrorListener;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.query.generated.PredicateLexer;
-import org.apache.metron.common.query.generated.PredicateParser;
-
-import java.util.Map;
+import org.apache.metron.common.transformation.generated.TransformationLexer;
+import org.apache.metron.common.transformation.generated.TransformationParser;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+public class TransformationProcessor {
 
-public class PredicateProcessor {
-
-  public boolean parse(String rule, VariableResolver resolver) {
+  public Object parse(String rule, VariableResolver resolver) {
     if (rule == null || isEmpty(rule.trim())) {
-      return true;
+      return null;
     }
     ANTLRInputStream input = new ANTLRInputStream(rule);
-    PredicateLexer lexer = new PredicateLexer(input);
+    TransformationLexer lexer = new TransformationLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ErrorListener());
     TokenStream tokens = new CommonTokenStream(lexer);
-    PredicateParser parser = new PredicateParser(tokens);
+    TransformationParser parser = new TransformationParser(tokens);
+
+    TransformationCompiler treeBuilder = new TransformationCompiler(resolver);
+    parser.addParseListener(treeBuilder);
     parser.removeErrorListeners();
     parser.addErrorListener(new ErrorListener());
-    QueryCompiler treeBuilder = new QueryCompiler(resolver);
-    parser.removeParseListeners();
-    parser.addParseListener(treeBuilder);
-    parser.single_rule();
+    parser.transformation();
     return treeBuilder.getResult();
   }
 

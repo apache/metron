@@ -19,7 +19,7 @@
 package org.apache.metron.pcap.filter;
 
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.query.VariableResolver;
+import org.apache.metron.common.dsl.VariableResolver;
 
 import java.util.EnumMap;
 

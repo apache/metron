@@ -4,7 +4,8 @@ For a variety of components (currently only threat intelligence triage) we have 
 
 The query language supports the following:
 * Referencing fields in the enriched JSON
-* Simple boolean operations: and, not, or
+* Simple boolean operations: `and`, `not`, `or`
+* Simple comparison operations `<`, `>`, `<=`, `>=`
 * Determining whether a field exists (via `exists`)
 * The ability to have parenthesis to make order of operations explicit
 * A fixed set of functions which take strings and return boolean.  Currently:
@@ -13,17 +14,33 @@ The query language supports the following:
     * `STARTS_WITH(str, prefix)`
     * `ENDS_WITH(str, suffix)`
     * `REGEXP_MATCH(str, pattern)`
-* A fixed set of string to string transformation functions:
-    * `TO_LOWER`
-    * `TO_UPPER`
-    * `TRIM`
     * `IS_IP` : Validates that the input fields are an IP address.  By default, if no second arg is set, it assumes `IPV4`, but you can specify the type by passing in either `IPV6` or `IPV4` to the second argument.
    * `IS_DOMAIN` 
    * `IS_EMAIL`
    * `IS_URL`
    * `IS_DATE`
    * `IS_INTEGER`
-
+* A fixed set of transformation functions:
+   * `TO_LOWER(string)` : Transforms the first argument to a lowercase string
+   * `TO_UPPER(string)` : Transforms the first argument to an uppercase string
+   * `TO_STRING(string)` : Transforms the first argument to a string
+   * `TO_INTEGER(x)` : Transforms the first argument to an integer 
+   * `TO_DOUBLE(x)` : Transforms the first argument to a double
+   * `TRIM(string)` : Trims whitespace from both sides of a string.
+   * `JOIN(list, delim)` : Joins the components of the list with the specified delimiter
+   * `SPLIT(string, delim)` : Splits the string by the delimiter.  Returns a list.
+   * `GET_FIRST(list)` : Returns the first element of the list
+   * `GET_LAST(list)` : Returns the last element of the list
+   * `GET(list, i)` : Returns the i'th element of the list (i is 0-based).
+   * `MAP_GET(key, map, default)` : Returns the value associated with the key in the map.  If the key does not exist, the default will be returned.  If the default is unspecified, then null will be returned.
+   * `DOMAIN_TO_TLD(domain)` : Returns the TLD of the domain.
+   * `DOMAIN_REMOVE_TLD(domain)` : Remove the TLD of the domain.
+   * `REMOVE_TLD(domain)` : Removes the TLD from the domain.
+   * `URL_TO_HOST(url)` : Returns the host from a URL
+   * `URL_TO_PROTOCOL(url)` : Returns the protocol from a URL
+   * `URL_TO_PORT(url)` : Returns the port from a URL
+   * `URL_TO_PATH(url)` : Returns the path from a URL
+   * `TO_EPOCH_TIMESTAMP(dateTime, format, timezone)` : Returns the epoch timestamp of the `dateTime` given the `format`.  If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the `timezone` optionally.
 
 Example query:
 
@@ -33,6 +50,48 @@ This evaluates to true precisely when one of the following is true:
 * The value of the `ip` field is in the `192.168.0.0/24` subnet
 * The value of the `ip` field is `10.0.0.1` or `10.0.0.2`
 * The field `is_local` exists
+
+#Transformation Language
+
+For a variety of components, there is the need to transform messages and
+compose those transformations in a pluggable way.  For this purpose,
+there is a simple DSL to allow functions to be defined for common
+transformations and to have those functions be composed.
+
+The functions currently supported are:
+   * `TO_LOWER(string)` : Transforms the first argument to a lowercase string
+   * `TO_UPPER(string)` : Transforms the first argument to an uppercase string
+   * `TO_STRING(string)` : Transforms the first argument to a string
+   * `TO_INTEGER(x)` : Transforms the first argument to an integer 
+   * `TO_DOUBLE(x)` : Transforms the first argument to a double
+   * `TRIM(string)` : Trims whitespace from both sides of a string.
+   * `JOIN(list, delim)` : Joins the components of the list with the specified delimiter
+   * `SPLIT(string, delim)` : Splits the string by the delimiter.  Returns a list.
+   * `GET_FIRST(list)` : Returns the first element of the list
+   * `GET_LAST(list)` : Returns the last element of the list
+   * `GET(list, i)` : Returns the i'th element of the list (i is 0-based).
+   * `MAP_GET(key, map, default)` : Returns the value associated with the key in the map.  If the key does not exist, the default will be returned.  If the default is unspecified, then null will be returned.
+   * `DOMAIN_TO_TLD(domain)` : Returns the TLD of the domain.
+   * `DOMAIN_REMOVE_TLD(domain)` : Remove the TLD of the domain.
+   * `REMOVE_TLD(domain)` : Removes the TLD from the domain.
+   * `URL_TO_HOST(url)` : Returns the host from a URL
+   * `URL_TO_PROTOCOL(url)` : Returns the protocol from a URL
+   * `URL_TO_PORT(url)` : Returns the port from a URL
+   * `URL_TO_PATH(url)` : Returns the path from a URL
+   * `TO_EPOCH_TIMESTAMP(dateTime, format, timezone)` : Returns the epoch timestamp of the `dateTime` given the `format`.  If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the `timezone` optionally.
+
+Example Transformation:
+
+`TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC'))`
+
+For a message with a `timestamp` and `dc` field, we want to set the
+transform the timestamp to an epoch timestamp given a timezone which we
+will lookup in a separate map, called `dc2tz`.
+
+This will convert the timestamp field to an epoch timestamp based on the 
+* Format `yyyy-MM-dd HH:mm:ss`
+* The value in `dc2tz` associated with the value associated with field
+  `dc`, defaulting to `UTC`
 
 #Enrichment Configuration
 

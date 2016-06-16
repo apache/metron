@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 
 public class URLValidation extends SimpleValidation {
   @Override
-  public Predicate<String> getPredicate() {
-    return url -> UrlValidator.getInstance().isValid(url);
+  public Predicate<Object> getPredicate() {
+    return url -> UrlValidator.getInstance().isValid(url == null?null:url.toString());
   }
 }

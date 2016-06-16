@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.dsl;
 
-public class PredicateToken<T> {
+public class Token<T> {
   T value;
   Class<T> underlyingType;
-  public PredicateToken(T value, Class<T> clazz) {
+  public Token(T value, Class<T> clazz) {
     this.value = value;
     this.underlyingType = clazz;
   }
@@ -42,10 +42,10 @@ public class PredicateToken<T> {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    PredicateToken<?> predicateToken = (PredicateToken<?>) o;
+    Token<?> token = (Token<?>) o;
 
-    if (getValue() != null ? !getValue().equals(predicateToken.getValue()) : predicateToken.getValue() != null) return false;
-    return getUnderlyingType() != null ? getUnderlyingType().equals(predicateToken.getUnderlyingType()) : predicateToken.getUnderlyingType() == null;
+    if (getValue() != null ? !getValue().equals(token.getValue()) : token.getValue() != null) return false;
+    return getUnderlyingType() != null ? getUnderlyingType().equals(token.getUnderlyingType()) : token.getUnderlyingType() == null;
 
   }
 
