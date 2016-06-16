@@ -160,4 +160,22 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
 		Assert.assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
+
+	public void testBadMessage()  throws ParseException{
+		try {
+			broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
+			Assert.fail("Should have marked this as a bad message.");
+		}
+		catch(IllegalStateException ise) {
+
+		}
+		//non json
+		try {
+			broParser.parse("foo bar".getBytes());
+			Assert.fail("Should have marked this as a bad message.");
+		}
+		catch(IllegalStateException ise) {
+
+		}
+	}
 }
