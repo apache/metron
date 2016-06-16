@@ -83,20 +83,7 @@ public class BasicMcAfeeEpoParser extends BasicParser {
             //No standard way to go between the timezone field value and a timezone, so they have to be done manually
             String timezone = (String)payload.get("timezone");
             if(timezone != null){
-                switch(timezone){
-                    case "Eastern Standard Time":
-                    case "Est":
-                    case "EST": df.setTimeZone(TimeZone.getTimeZone("America/New_York"));break;
-                    case "Central Standard Time":
-                    case "CST": df.setTimeZone(TimeZone.getTimeZone("America/Chicago"));;break;
-                    case "Pacific Standard Time": df.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));break;
-                    case "GMT Standard Time": df.setTimeZone(TimeZone.getTimeZone("GMT"));break;
-                    case "India Standard Time": df.setTimeZone(TimeZone.getTimeZone("IST"));break;
-                    case "China Standard Time":
-                    case "Malay Peninsula Standard Time": df.setTimeZone(TimeZone.getTimeZone("Etc/GMT+8"));break;
-                }
-            } else {
-                df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                df.setTimeZone(TimeZone.getTimeZone("GMT"));
             }
 
             int missingZeros = "yyyy-MM-dd HH:mm:ss.SSS".length() - timestamp.length();
