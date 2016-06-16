@@ -1,0 +1,11 @@
+{
+  "index": "checkpoint_audit",
+  "batchSize": 20,
+  "enrichment": {
+    "fieldMap": {
+    },
+    "fieldToTypeMap": {
+    }
+  }
+}
+
