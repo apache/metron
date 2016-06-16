@@ -18,24 +18,21 @@
 
 package org.apache.metron.common.writer;
 
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class EnrichmentWriterConfigurationTest {
+public class ParserWriterConfigurationTest {
   @Test
   public void testDefaultBatchSize() {
-    EnrichmentWriterConfiguration config = new EnrichmentWriterConfiguration(
-           new EnrichmentConfigurations()
-    );
+    ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
     Assert.assertEquals(1, config.getBatchSize("foo"));
   }
+
   @Test
   public void testDefaultIndex() {
-    EnrichmentWriterConfiguration config = new EnrichmentWriterConfiguration(
-           new EnrichmentConfigurations()
-    );
+    ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
     Assert.assertEquals("foo", config.getIndex("foo"));
   }
 }
