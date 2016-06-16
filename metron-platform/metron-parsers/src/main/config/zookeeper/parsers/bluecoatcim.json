@@ -1,4 +1,12 @@
 {
   "parserClassName":"org.apache.metron.parsers.bluecoatcim.BasicBluecoatCIMParser",
-  "sensorTopic":"bluecoatcim"
+  "sensorTopic":"bluecoatcim",
+  "fieldTransformations" : [
+    {
+      "input" : "timestamp",
+      "transformation": "TRANSFORM_TO_UTC_EPOCH",
+      "config":
+      { "timeZone":"America/New_York" }
+    }
+  ]
 }

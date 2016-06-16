@@ -7,5 +7,13 @@
     "patternLabel":"RFC3164",
     "timestampField":"timestamp_string",
     "dateFormat":"yyyy MMM dd HH:mm:ss"
-  }
+  },
+  "fieldTransformations" : [
+    {
+      "input" : "timestamp",
+      "transformation": "TRANSFORM_TO_UTC_EPOCH",
+      "config":
+      { "timeZone":"America/New_York" }
+    }
+  ]
 }

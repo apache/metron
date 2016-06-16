@@ -39,7 +39,6 @@ public class GrokRFC3164Parser extends GrokParser {
 				//default to current time
 			}
 		}
-		epochTimestamp += 1000*60*60*4;
 		return epochTimestamp;
 	}
 

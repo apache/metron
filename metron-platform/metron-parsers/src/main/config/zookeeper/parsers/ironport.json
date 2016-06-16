@@ -8,5 +8,13 @@
     "timestampField":"timestamp_string",
     "dateFormat":"yyyy MMM dd HH:mm:ss",
     "timeZone":"America/New_York"
-  }
+  },
+  "fieldTransformations" : [
+    {
+      "input" : "timestamp",
+      "transformation": "TRANSFORM_TO_UTC_EPOCH",
+      "config":
+      { "timeZone":"America/New_York" }
+    }
+  ]
 }
