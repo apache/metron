@@ -6,5 +6,13 @@
     "dateFormat":"MMM dd HH:mm:ss",
     "timezone":"UTC",
     "headerRegEx":"\\w\\w\\w \\d\\d \\d\\d:\\d\\d:\\d\\d"
-  }
+  },
+  "fieldTransformations" : [
+    {
+      "input" : "timestamp",
+      "transformation": "TRANSFORM_TO_UTC_EPOCH",
+      "config":
+      { "timeZone":"America/Chicago" }
+    }
+  ]
 }
