@@ -119,10 +119,9 @@ public class BasicSnortParser extends BasicParser {
       jsonMessage.put("is_alert", "true");
       messages.add(jsonMessage);
     } catch (Exception e) {
-
-      _LOG.error("unable to parse message: " + rawMessage);
-      e.printStackTrace();
-      return null;
+      String message = "Unable to parse message: " + rawMessage;
+      _LOG.error(message, e);
+      throw new IllegalStateException(message, e);
     }
 
     return messages;
