@@ -24,8 +24,8 @@ import java.util.function.Predicate;
 
 public class NotEmptyValidation extends SimpleValidation {
   @Override
-  public Predicate<String> getPredicate() {
-    return s -> !(s == null || s.trim().isEmpty());
+  public Predicate<Object> getPredicate() {
+    return s -> !(s == null || s.toString().trim().isEmpty());
   }
 
   @Override

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.dsl;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.Parser;
@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
+import org.apache.metron.common.dsl.ParseException;
 
 import java.util.BitSet;
 

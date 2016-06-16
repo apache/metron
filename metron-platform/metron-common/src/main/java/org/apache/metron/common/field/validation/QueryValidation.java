@@ -18,7 +18,7 @@
 
 package org.apache.metron.common.field.validation;
 
-import org.apache.metron.common.query.MapVariableResolver;
+import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.query.PredicateProcessor;
 
 import java.util.Map;
@@ -52,7 +52,7 @@ public class QueryValidation implements FieldValidation {
     }
     else {
       PredicateProcessor processor = new PredicateProcessor();
-      return processor.parse(condition, new MapVariableResolver(input));
+      return processor.parse(condition, new MapVariableResolver(input, validationConfig, globalConfig));
     }
   }
 

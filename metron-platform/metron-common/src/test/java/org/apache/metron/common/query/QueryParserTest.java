@@ -18,6 +18,11 @@
 
 package org.apache.metron.common.query;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.VariableResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -134,6 +139,59 @@ public class QueryParserTest {
     Assert.assertFalse(run("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
   }
 
+  @Test
+  public void testStringFunctions_advanced() throws Exception {
+    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
+      put("foo", "casey");
+      put("bar", "bar.casey.grok");
+      put("ip", "192.168.0.1");
+      put("empty", "");
+      put("spaced", "metron is great");
+      put("myList", ImmutableList.of("casey", "apple", "orange"));
+    }};
+    Assert.assertTrue(run("foo in SPLIT(bar, '.')", v -> variableMap.get(v)));
+    Assert.assertFalse(run("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
+    Assert.assertTrue(run("foo in myList", v -> variableMap.get(v)));
+    Assert.assertFalse(run("foo not in myList", v -> variableMap.get(v)));
+  }
+
+  @Test
+  public void testMapFunctions_advanced() throws Exception {
+    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
+      put("foo", "casey");
+      put("bar", "bar.casey.grok");
+      put("ip", "192.168.0.1");
+      put("empty", "");
+      put("spaced", "metron is great");
+      put("myMap", ImmutableMap.of("casey", "apple"));
+    }};
+    Assert.assertTrue(run("MAP_EXISTS(foo, myMap)", v -> variableMap.get(v)));
+  }
+
+  @Test
+  public void testNumericComparisonFunctions() throws Exception {
+    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
+      put("foo", "casey");
+      put("bar", "bar.casey.grok");
+      put("ip", "192.168.0.1");
+      put("num", 7);
+      put("num2", 8.5);
+      put("num3", 7);
+      put("num4", "8.5");
+      put("empty", "");
+      put("spaced", "metron is great");
+    }};
+    Assert.assertTrue(run("num == 7", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num < num2", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num < TO_DOUBLE(num2)", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num < TO_DOUBLE(num4)", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num < 100", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num == num3", v -> variableMap.get(v)));
+    Assert.assertFalse(run("num == num2", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num == num2 || true", v -> variableMap.get(v)));
+    Assert.assertFalse(run("num > num2", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num == 7 && num > 2", v -> variableMap.get(v)));
+  }
   @Test
   public void testLogicalFunctions() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{

@@ -24,4 +24,8 @@
     <suppress checks="HeaderCheck"
               files="org[\\/]apache[\\/]metron[\\/]common[\\/]query[\\/]generated[\\/].*.java"
               />
+    <suppress checks="HeaderCheck"
+              files="org[\\/]apache[\\/]metron[\\/]common[\\/]transformation[\\/]generated[\\/].*.java"
+              />
+
 </suppressions>

@@ -5,5 +5,15 @@
     "grokPath": "/patterns/squid",
     "patternLabel": "SQUID_DELIMITED",
     "timestampField": "timestamp"
-  }
+  },
+  "fieldTransformations" : [
+    {
+      "transformation" : "MTL"
+    ,"output" : [ "full_hostname", "domain_without_subdomains" ]
+    ,"config" : {
+      "full_hostname" : "URL_TO_HOST(url)"
+      ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+                }
+    }
+                           ]
 }
