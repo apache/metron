@@ -285,7 +285,9 @@ bolts:
             -   name: "withBulkMessageWriter"
                 args:
                     - ref: "indexWriter"
-            -   name: "enableFlush"
+            -   name: "withFlush"
+                args:
+                    - "true"
             -   name: "withFlushIntervalInMs"
                 args:
                     - 15000
