@@ -98,7 +98,7 @@ public class CEFParser extends BasicParser {
 			// Only attempt to split if this is a well-formed CEF line
 			if (StringUtils.countMatches(message, "|") < 7){
 				LOGGER.error("Not a well-formed CEF line, Failed to parse: " + message);
-				return null;
+				throw new IllegalStateException("Unable to Parse Message: " + message + " due to not being a well-formed CEF line");
 			}
 			
 			payload.put("original_string", message.replace("\\=", "="));
