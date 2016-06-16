@@ -81,11 +81,8 @@ public class BasicMcAfeeEpoParser extends BasicParser {
                 }
             }
 
-            //No standard way to go between the timezone field value and a timezone, so they have to be done manually
-            String timezone = (String)payload.get("timezone");
-            if(timezone != null){
-                df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            }
+            // Devices come in with the GMT timezone
+            df.setTimeZone(TimeZone.getTimeZone("GMT"));
 
             int missingZeros = "yyyy-MM-dd HH:mm:ss.SSS".length() - timestamp.length();
             timestamp += new String(new char[missingZeros]).replace("\0", "0"); // add on the missing zeros
