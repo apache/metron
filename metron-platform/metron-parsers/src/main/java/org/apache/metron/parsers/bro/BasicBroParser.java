@@ -32,135 +32,134 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class BasicBroParser extends BasicParser {
 
-    protected static final Logger _LOG = LoggerFactory
-            .getLogger(BasicBroParser.class);
-    private JSONCleaner cleaner = new JSONCleaner();
+  protected static final Logger _LOG = LoggerFactory
+          .getLogger(BasicBroParser.class);
+  private JSONCleaner cleaner = new JSONCleaner();
 
-    @Override
-    public void configure(Map<String, Object> parserConfig) {
+  @Override
+  public void configure(Map<String, Object> parserConfig) {
 
-    }
+  }
 
-    @Override
-    public void init() {
+  @Override
+  public void init() {
 
-    }
+  }
 
-    @SuppressWarnings("unchecked")
-    public List<JSONObject> parse(byte[] msg) {
+  @SuppressWarnings("unchecked")
+  public List<JSONObject> parse(byte[] msg) {
 
-        _LOG.trace("[Metron] Starting to parse incoming message");
+    _LOG.trace("[Metron] Starting to parse incoming message");
 
-        String rawMessage = null;
-        List<JSONObject> messages = new ArrayList<>();
+    String rawMessage = null;
+    List<JSONObject> messages = new ArrayList<>();
+    try {
+      rawMessage = new String(msg, "UTF-8");
+      _LOG.trace("[Metron] Received message: " + rawMessage);
+
+      JSONObject cleanedMessage = cleaner.clean(rawMessage);
+      _LOG.debug("[Metron] Cleaned message: " + cleanedMessage);
+
+      if (cleanedMessage == null || cleanedMessage.isEmpty()) {
+        throw new Exception("Unable to clean message: " + rawMessage);
+      }
+
+      String key;
+      JSONObject payload;
+      if (cleanedMessage.containsKey("type")) {
+        key = cleanedMessage.get("type").toString();
+        payload = cleanedMessage;
+      } else {
+        key = cleanedMessage.keySet().iterator().next().toString();
+
+        if (key == null) {
+          throw new Exception("Unable to retrieve key for message: "
+                  + rawMessage);
+        }
+
+        payload = (JSONObject) cleanedMessage.get(key);
+      }
+
+      if (payload == null) {
+        throw new Exception("Unable to retrieve payload for message: "
+                + rawMessage);
+      }
+
+      String originalString = key.toUpperCase() + " |";
+      for (Object k : payload.keySet()) {
+        String value = payload.get(k).toString();
+        originalString += " " + k.toString() + ":" + value;
+      }
+      payload.put("original_string", originalString);
+
+      replaceKey(payload, Constants.Fields.TIMESTAMP.getName(), new String[]{ "ts" });
+
+      long timestamp = 0L;
+      if (payload.containsKey(Constants.Fields.TIMESTAMP.getName())) {
         try {
-            rawMessage = new String(msg, "UTF-8");
-            _LOG.trace("[Metron] Received message: " + rawMessage);
-
-            JSONObject cleanedMessage = cleaner.clean(rawMessage);
-            _LOG.debug("[Metron] Cleaned message: " + cleanedMessage);
-
-            if (cleanedMessage == null || cleanedMessage.isEmpty()) {
-                throw new Exception("Unable to clean message: " + rawMessage);
-            }
-
-            String key;
-            JSONObject payload;
-            if (cleanedMessage.containsKey("type")) {
-                key = cleanedMessage.get("type").toString();
-                payload = cleanedMessage;
-            } else {
-                key = cleanedMessage.keySet().iterator().next().toString();
-
-                if (key == null) {
-                    throw new Exception("Unable to retrieve key for message: "
-                            + rawMessage);
-                }
-
-                payload = (JSONObject) cleanedMessage.get(key);
-            }
-
-            if (payload == null) {
-                throw new Exception("Unable to retrieve payload for message: "
-                    + rawMessage);
-            }
-
-            String originalString = key.toUpperCase() + " |";
-            for (Object k : payload.keySet()) {
-                String value = payload.get(k).toString();
-                originalString += " " + k.toString() + ":" + value;
-            }
-            payload.put("original_string", originalString);
-
-            replaceKey(payload, Constants.Fields.TIMESTAMP.getName(), new String[]{ "ts" });
-
-            long timestamp = 0L;
-            if (payload.containsKey(Constants.Fields.TIMESTAMP.getName())) {
-                try {
-                    String broTimestamp = payload.get(Constants.Fields.TIMESTAMP.getName()).toString();
-                    String convertedTimestamp = broTimestamp.replace(".","");
-                    convertedTimestamp = convertedTimestamp.substring(0,13);
-                    timestamp = Long.parseLong(convertedTimestamp);
-                    payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
-                    payload.put("bro_timestamp",broTimestamp);
-                    _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get(Constants.Fields.TIMESTAMP.getName())));
-                } catch (NumberFormatException nfe) {
-                    _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
-                    payload.put(Constants.Fields.TIMESTAMP.getName(), 0);
-                }
-            }
-
-            boolean ipSrcReplaced = replaceKey(payload, Constants.Fields.SRC_ADDR.getName(), new String[]{"source_ip", "id.orig_h"});
-            if (!ipSrcReplaced) {
-                replaceKeyArray(payload, Constants.Fields.SRC_ADDR.getName(), new String[]{ "tx_hosts" });
-            }
-
-            boolean ipDstReplaced = replaceKey(payload, Constants.Fields.DST_ADDR.getName(), new String[]{"dest_ip", "id.resp_h"});
-            if (!ipDstReplaced) {
-                replaceKeyArray(payload, Constants.Fields.DST_ADDR.getName(), new String[]{ "rx_hosts" });
-            }
-
-            replaceKey(payload, Constants.Fields.SRC_PORT.getName(), new String[]{"source_port", "id.orig_p"});
-            replaceKey(payload, Constants.Fields.DST_PORT.getName(), new String[]{"dest_port", "id.resp_p"});
-
-            payload.put(Constants.Fields.PROTOCOL.getName(), key);
-            _LOG.debug("[Metron] Returning parsed message: " + payload);
-            messages.add(payload);
-            return messages;
-
-        } catch (Exception e) {
-
-            _LOG.error("Unable to Parse Message: " + rawMessage);
-            e.printStackTrace();
-            return null;
+          String broTimestamp = payload.get(Constants.Fields.TIMESTAMP.getName()).toString();
+          String convertedTimestamp = broTimestamp.replace(".","");
+          convertedTimestamp = convertedTimestamp.substring(0,13);
+          timestamp = Long.parseLong(convertedTimestamp);
+          payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
+          payload.put("bro_timestamp",broTimestamp);
+          _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get(Constants.Fields.TIMESTAMP.getName())));
+        } catch (NumberFormatException nfe) {
+          _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
+          payload.put(Constants.Fields.TIMESTAMP.getName(), 0);
         }
+      }
 
+      boolean ipSrcReplaced = replaceKey(payload, Constants.Fields.SRC_ADDR.getName(), new String[]{"source_ip", "id.orig_h"});
+      if (!ipSrcReplaced) {
+        replaceKeyArray(payload, Constants.Fields.SRC_ADDR.getName(), new String[]{ "tx_hosts" });
+      }
+
+      boolean ipDstReplaced = replaceKey(payload, Constants.Fields.DST_ADDR.getName(), new String[]{"dest_ip", "id.resp_h"});
+      if (!ipDstReplaced) {
+        replaceKeyArray(payload, Constants.Fields.DST_ADDR.getName(), new String[]{ "rx_hosts" });
+      }
+
+      replaceKey(payload, Constants.Fields.SRC_PORT.getName(), new String[]{"source_port", "id.orig_p"});
+      replaceKey(payload, Constants.Fields.DST_PORT.getName(), new String[]{"dest_port", "id.resp_p"});
+
+      payload.put(Constants.Fields.PROTOCOL.getName(), key);
+      _LOG.debug("[Metron] Returning parsed message: " + payload);
+      messages.add(payload);
+      return messages;
+
+    } catch (Exception e) {
+      String message = "Unable to parse Message: " + rawMessage;
+      _LOG.error(message, e);
+      throw new IllegalStateException(message, e);
     }
 
-    private boolean replaceKey(JSONObject payload, String toKey, String[] fromKeys) {
-        for (String fromKey : fromKeys) {
-            if (payload.containsKey(fromKey)) {
-                Object value = payload.remove(fromKey);
-                payload.put(toKey, value);
-                _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
-                return true;
-            }
-        }
-        return false;
-    }
+  }
 
-    private boolean replaceKeyArray(JSONObject payload, String toKey, String[] fromKeys) {
-        for (String fromKey : fromKeys) {
-            if (payload.containsKey(fromKey)) {
-                JSONArray value = (JSONArray) payload.remove(fromKey);
-                if (value != null && !value.isEmpty()) {
-                    payload.put(toKey, value.get(0));
-                    _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
-                    return true;
-                }
-            }
-        }
-        return false;
+  private boolean replaceKey(JSONObject payload, String toKey, String[] fromKeys) {
+    for (String fromKey : fromKeys) {
+      if (payload.containsKey(fromKey)) {
+        Object value = payload.remove(fromKey);
+        payload.put(toKey, value);
+        _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
+        return true;
+      }
     }
+    return false;
+  }
+
+  private boolean replaceKeyArray(JSONObject payload, String toKey, String[] fromKeys) {
+    for (String fromKey : fromKeys) {
+      if (payload.containsKey(fromKey)) {
+        JSONArray value = (JSONArray) payload.remove(fromKey);
+        if (value != null && !value.isEmpty()) {
+          payload.put(toKey, value.get(0));
+          _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
 }
