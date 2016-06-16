@@ -52,8 +52,10 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
-  public BulkMessageWriterBolt enableFlush () {
-    this.flush = true;
+  public BulkMessageWriterBolt withFlush (String flush) {
+    if ("true".equals(flush)) {
+      this.flush = true;
+    }
     return this;
   }
 
