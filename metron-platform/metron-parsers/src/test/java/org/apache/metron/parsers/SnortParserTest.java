@@ -32,39 +32,6 @@ public class SnortParserTest {
   @Multiline
   public static String goodMessage;
 
-  /**
-   { "msg":"\"Consecutive TCP small segments exceeding threshold\""
-   , "sig_rev":"1"
-   ,"ip_dst_addr":"10.0.2.15"
-   ,"ip_dst_port":"22"
-   ,"ethsrc":"52:54:00:12:35:02"
-   ,"tcpseq":"0x9AFF3D7"
-   ,"dgmlen":"64"
-   ,"icmpid":""
-   ,"tcplen":""
-   ,"tcpwindow":"0xFFFF"
-   ,"icmpseq":""
-   ,"tcpack":"0xC8761D52"
-   ,"original_string":"01\/27-16:01:04.877970 ,129,12,1,\"Consecutive TCP small segments exceeding threshold\",TCP,10.0.2.2,56642,10.0.2.15,22,52:54:00:12:35:02,08:00:27:7F:93:2D,0x4E,***AP***,0x9AFF3D7,0xC8761D52,,0xFFFF,64,0,59677,64,65536,,,,"
-   ,"icmpcode":""
-   ,"tos":"0"
-   ,"id":"59677"
-   ,"timestamp":1453932941970
-   ,"ethdst":"08:00:27:7F:93:2D"
-   ,"ip_src_addr":"10.0.2.2"
-   ,"ttl":"64"
-   ,"source.type":"snort"
-   ,"ethlen":"0x4E"
-   ,"iplen":"65536"
-   ,"icmptype":""
-   ,"protocol":"TCP"
-   ,"ip_src_port":"56642"
-   ,"tcpflags":"***AP***"
-   ,"sig_id":"12"
-   ,"sig_generator":"129"
-   , "is_alert" : "true"
-   }
-   */
 
   @Test
   public void testGoodMessage() {
