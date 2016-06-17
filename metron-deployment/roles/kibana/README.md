@@ -23,3 +23,13 @@ Kibana stores all configuration elements within an Elasticsearch index called `.
 (3) This will result in a file containing the JSON-based definitions.  Overwrite `templates/kibana-index.json`.
 
 (4) After redeploying the code, your changes should now be a part of the default Metron dashboard.
+
+#### Why do my dashboard components change their order when reloading the dashboard?
+
+This has been a problem in Kibana 4.5.1 and perhaps other versions too.  To address this problem find the definition for your dashboard in the Kibana index extract.  It will look like the following.
+
+```
+{"_index":".kibana","_type":"dashboard","_id":"Metron-Dashboard",...
+```
+
+Extract the `panelsJSON` field from the dashboard definition.  Reorder the definition of these panels so that they are ordered by row and column.  The component in row 1 should come before the component in row 2, etc.  After you have ordered the components in this way, Kibana will maintain the order of components in the dashboard.
