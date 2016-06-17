@@ -62,7 +62,7 @@ public class GrokRFC3164Test {
 		
 		//Compare fields
 		assertEquals(parsedJSON.get("priority") + "", "14");
-		assertEquals(parsedJSON.get("timestamp") + "", "1463749077000");
+		assertEquals(parsedJSON.get("timestamp") + "", "1463734677000");
 		assertEquals(parsedJSON.get("hostname"), "abcen123");
 		assertEquals(parsedJSON.get("tag"), "marathon[3040]");
 		assertEquals(parsedJSON.get("message"), "[2016-05-20 08:57:57,048] INFO Connecting to Zookeeper... (mesosphere.marathon.Main$:39)");
