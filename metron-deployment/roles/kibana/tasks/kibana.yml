@@ -32,6 +32,7 @@
   with_items:
     - '^server\.port:'
     - '^elasticsearch\.url:'
+    - '^default_app_id:'
 
 - name: Configure Kibana
   lineinfile: >
@@ -43,3 +44,4 @@
   with_items:
     - { regexp: '^# *server\.port:', line: 'server.port: 5000' }
     - { regexp: '^# *elasticsearch\.url:', line: 'elasticsearch.url: http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}' }
+    - { regexp: '^# *default_app_id:', line: 'default_app_id: "dashboard/Metron-Dashboard"' }
