@@ -15,8 +15,11 @@
 #  limitations under the License.
 #
 ---
+- name: Download Nodesource Yum Repository Setup
+  get_url: url={{ nodesource_repo_setup }} dest=/tmp/nodesource_setup_4.x
+
 - name: Setup Nodesource Yum Repository
-  shell: "curl --silent --location https://rpm.nodesource.com/setup_4.x | bash -"
+  shell: bash /tmp/nodesource_setup_4.x
 
 - name: Install Node - Needed for Elasticdump
   yum: name="{{ item }}"
