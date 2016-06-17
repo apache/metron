@@ -14,8 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-kibana_repo_url: http://packages.elastic.co/kibana/4.5/centos
-kibana_repo_key_url: http://packages.elastic.co/GPG-KEY-elasticsearch
-kibana_index_url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/.kibana"
-kibana_index_def: "/tmp/kibana-index.json"
-kibana_version: 4.5.1
+---
+- name: Distribute the Kibana index containing the Metron Dashboard
+  template: src=kibana-index.json dest={{ kibana_index_def }}
+
+- name: Install the Metron Dashboard
+  shell: "elasticdump --output={{ kibana_index_url }} --input={{ kibana_index_def }}"
