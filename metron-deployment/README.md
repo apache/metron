@@ -13,7 +13,7 @@ The following tools are required to run these scripts:
 Currently Metron must be built from source.  Before running these scripts perform the following steps:
 
 1. Clone the Metron git repository with `git clone git@github.com:apache/incubator-metron.git`
-2. Navigate to `incubator-metron/metron-platform` and run `mvn clean package`
+2. Navigate to `incubator-metron` and run `mvn clean package`
 
 These scripts depend on two files for configuration:
 
