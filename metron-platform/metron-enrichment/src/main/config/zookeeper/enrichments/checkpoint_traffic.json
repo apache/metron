@@ -1,6 +1,6 @@
 {
   "index": "checkpoint_traffic",
-  "batchSize": 200,
+  "batchSize": 1000,
   "enrichment": {
     "fieldMap": {
       "geo": [

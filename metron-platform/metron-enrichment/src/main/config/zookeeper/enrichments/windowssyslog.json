@@ -1,6 +1,6 @@
 {
   "index": "windowssyslog",
-  "batchSize": 200,
+  "batchSize": 1000,
   "enrichment": {
     "fieldMap": {
 

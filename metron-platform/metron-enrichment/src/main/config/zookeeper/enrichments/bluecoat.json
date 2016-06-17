@@ -1,6 +1,6 @@
 {
   "index": "bluecoat",
-  "batchSize": 20,
+  "batchSize": 200,
   "enrichment": {
     "fieldMap": {
     },
