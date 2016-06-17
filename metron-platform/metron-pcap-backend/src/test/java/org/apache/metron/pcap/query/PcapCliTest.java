@@ -66,6 +66,7 @@ public class PcapCliTest {
   public void runs_fixed_pcap_filter_job_with_default_argument_list() throws Exception {
     String[] args = {
             "fixed",
+            "-start_time", "500",
             "-ip_src_addr", "192.168.1.1",
             "-ip_dst_addr", "192.168.1.2",
             "-ip_src_port", "8081",
@@ -182,6 +183,7 @@ public class PcapCliTest {
   public void runs_query_pcap_filter_job_with_default_argument_list() throws Exception {
     String[] args = {
             "query",
+            "-start_time", "500",
             "-query", "some query string"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
