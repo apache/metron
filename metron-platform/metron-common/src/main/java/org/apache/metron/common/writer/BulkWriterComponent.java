@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
@@ -106,6 +107,7 @@ public class BulkWriterComponent<MESSAGE_T> {
       flushAllSensorTypes(bulkMessageWriter, configurations);
     } else if ((tupleList.size() >= batchSize)) {
         flush(sensorType, bulkMessageWriter, configurations, tupleList, messageList);
+        sensorTupleMap.remove(sensorType);
     } else {
       sensorTupleMap.put(sensorType, tupleList);
       sensorMessageMap.put(sensorType, messageList);
@@ -113,11 +115,17 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   private void flushAllSensorTypes (BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations) throws Exception {
-      for (Map.Entry<String, Collection<Tuple>> tupleEntry : sensorTupleMap.entrySet()) {
+	  Iterator<Entry<String, Collection<Tuple>>> iterator=sensorTupleMap.entrySet().iterator();
+	  
+	  String sensrorType = null;
+	  while (iterator.hasNext()) {
         try {
-          flush(tupleEntry.getKey(), bulkMessageWriter, configurations, tupleEntry.getValue(), sensorMessageMap.get(tupleEntry.getKey()));
+        	sensrorType=iterator.next().getKey();
+          if(flush(sensrorType, bulkMessageWriter, configurations, sensorTupleMap.get(sensrorType), sensorMessageMap.get(sensrorType))){
+        	  iterator.remove();
+          }
         } catch (Exception e) {
-          LOG.warn("Exception thrown while flushing senson type " + tupleEntry.getKey(), e);
+          LOG.warn("Exception thrown while flushing senson type " + sensrorType, e);
           LOG.warn("Continuing with next sensor type");
         }
       }
@@ -126,15 +134,17 @@ public class BulkWriterComponent<MESSAGE_T> {
       }
   }
 
-  private void flush(String sensorType, BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations, Collection<Tuple> tupleList,
+  private boolean flush(String sensorType, BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations, Collection<Tuple> tupleList,
                      List<MESSAGE_T> messageList ) throws Exception {
+	  boolean flushed=false;
       try {
         bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
+        flushed=true;
         if(handleCommit) {
           commit(tupleList);
         }
-
       } catch (Throwable e) {
+    	  
         if(handleError) {
           error(e, tupleList);
         }
@@ -143,9 +153,8 @@ public class BulkWriterComponent<MESSAGE_T> {
         }
       }
       finally {
-        sensorTupleMap.remove(sensorType);
-        sensorMessageMap.remove(sensorType);
-
+        sensorMessageMap.remove(sensorType); 
       }
+      return flushed;
   }
 }

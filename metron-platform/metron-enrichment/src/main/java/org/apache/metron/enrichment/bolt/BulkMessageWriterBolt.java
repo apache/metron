@@ -25,7 +25,6 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterComponent;
@@ -33,16 +32,17 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.util.*;
 
 public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
 
-  private static final Logger LOG = LoggerFactory
+private static final long serialVersionUID = -3496598085103594248L;
+private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
   private BulkWriterComponent<JSONObject> writerComponent;
-  private boolean flush;
-  private Long flushIntervalInMs;
+
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -52,14 +52,19 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
-
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-    this.writerComponent = new BulkWriterComponent<>(collector);
-    this.writerComponent.setFlush(Boolean.getBoolean(getConfigurations().getGlobalConfig().get("flush").toString()));
-    this.writerComponent.setFlushIntervalInMs(Long.parseLong(getConfigurations().getGlobalConfig().get("flushIntervalInMs").toString()));
+    this.writerComponent = new BulkWriterComponent<>(collector);	
     super.prepare(stormConf, context, collector);
     try {
+    	if(getConfigurations().getGlobalConfig()!=null&&getConfigurations().getGlobalConfig().get(Constants.FLUSH_FLAG)!=null)
+        {
+        	this.writerComponent.setFlush(Boolean.getBoolean(getConfigurations().getGlobalConfig().get(Constants.FLUSH_FLAG).toString()));
+        	LOG.debug("Setting time based flushing to "+getConfigurations().getGlobalConfig().get(Constants.FLUSH_FLAG).toString());
+        	if(getConfigurations().getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS)!=null)
+            	this.writerComponent.setFlushIntervalInMs(Long.parseLong(getConfigurations().getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString()));
+        }
+    	
       bulkMessageWriter.init(stormConf, new EnrichmentWriterConfiguration(getConfigurations()));
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -67,7 +72,6 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
   }
 
 
-  @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
     JSONObject message =(JSONObject)tuple.getValueByField("message");
