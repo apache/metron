@@ -18,58 +18,74 @@
 
 package org.apache.metron.pcap.query;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
+import org.apache.commons.cli.*;
 
 /**
  * Provides commmon required fields for the PCAP filter jobs
  */
 public class CliParser {
+  private CommandLineParser parser;
+
+  public CliParser() {
+    parser = new PosixParser();
+  }
 
   public Options buildOptions() {
     Options options = new Options();
-    options.addOption(newOption("h", false, "Display help"));
-    options.addOption(newOption("basePath", true, String.format("Base PCAP data path. Default is '%s'", CliConfig.BASE_PATH_DEFAULT)));
-    options.addOption(newOption("baseOutputPath", true, String.format("Query result output path. Default is '%s'", CliConfig.BASE_OUTPUT_PATH_DEFAULT)));
-    options.addOption(newOption("startTime", true, "Packet start time range. Default is '0'"));
-    options.addOption(newOption("endTime", true, "Packet end time range. Default is current system time."));
+    options.addOption(newOption("h", "help", false, "Display help"));
+    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", CliConfig.BASE_PATH_DEFAULT)));
+    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'", CliConfig.BASE_OUTPUT_PATH_DEFAULT)));
+    options.addOption(newOption("st", "start_time", true, "(required) Packet start time range.", true));
+    options.addOption(newOption("et", "end_time", true, "Packet end time range. Default is current system time."));
+    options.addOption(newOption("df", "date_format", true, "Date format to use for parsing start_time and end_time. Default is to use time in millis since the epoch."));
     return options;
   }
 
-  protected Option newOption(String opt, boolean hasArg, String desc) {
-    return newOption(opt, hasArg, desc, false);
+  protected Option newOption(String opt, String longOpt, boolean hasArg, String desc) {
+    return newOption(opt, longOpt, hasArg, desc, false);
   }
 
-  protected Option newOption(String opt, boolean hasArg, String desc, boolean required) {
-    Option option = new Option(opt, hasArg, desc);
+  protected Option newOption(String opt, String longOpt, boolean hasArg, String desc, boolean required) {
+    Option option = new Option(opt, longOpt, hasArg, desc);
     option.setRequired(required);
     return option;
   }
 
-  public void parse(CommandLine commandLine, CliConfig config) {
-    if (commandLine.hasOption("h")) {
+  public void parse(CommandLine commandLine, CliConfig config) throws java.text.ParseException {
+    if (commandLine.hasOption("help")) {
       config.setShowHelp(true);
     }
-    if (commandLine.hasOption("basePath")) {
-      config.setBasePath(commandLine.getOptionValue("basePath"));
+    if (commandLine.hasOption("date_format")) {
+      config.setDateFormat(commandLine.getOptionValue("date_format"));
     }
-    if (commandLine.hasOption("baseOutputPath")) {
-      config.setBaseOutputPath(commandLine.getOptionValue("baseOutputPath"));
+    if (commandLine.hasOption("base_path")) {
+      config.setBasePath(commandLine.getOptionValue("base_path"));
     }
-    if (commandLine.hasOption("startTime")) {
+    if (commandLine.hasOption("base_output_path")) {
+      config.setBaseOutputPath(commandLine.getOptionValue("base_output_path"));
+    }
+    if (commandLine.hasOption("start_time")) {
       try {
-        long startTime = Long.parseLong(commandLine.getOptionValue("startTime"));
-        config.setStartTime(startTime);
+        if (commandLine.hasOption("date_format")) {
+          long startTime = config.getDateFormat().parse(commandLine.getOptionValue("start_time")).getTime();
+          config.setStartTime(startTime);
+        } else {
+          long startTime = Long.parseLong(commandLine.getOptionValue("start_time"));
+          config.setStartTime(startTime);
+        }
       } catch (NumberFormatException nfe) {
         //no-op
       }
     }
-    if (commandLine.hasOption("endTime")) {
+    if (commandLine.hasOption("end_time")) {
       try {
-        long endTime = Long.parseLong(commandLine.getOptionValue("endTime"));
-        config.setEndTime(endTime);
+        if (commandLine.hasOption("date_format")) {
+          long endTime = config.getDateFormat().parse(commandLine.getOptionValue("end_time")).getTime();
+          config.setEndTime(endTime);
+        } else {
+          long endTime = Long.parseLong(commandLine.getOptionValue("end_time"));
+          config.setEndTime(endTime);
+        }
       } catch (NumberFormatException nfe) {
         //no-op
       }
@@ -80,4 +96,7 @@ public class CliParser {
     new HelpFormatter().printHelp(msg, opts);
   }
 
+  protected CommandLineParser getParser() {
+    return parser;
+  }
 }

@@ -19,6 +19,9 @@ package org.apache.metron.pcap.query;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 public class CliConfig {
   public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap";
   public static final String BASE_OUTPUT_PATH_DEFAULT = "/tmp";
@@ -27,6 +30,7 @@ public class CliConfig {
   private String baseOutputPath;
   private long startTime;
   private long endTime;
+  private DateFormat dateFormat;
 
   public CliConfig() {
     showHelp = false;
@@ -80,4 +84,11 @@ public class CliConfig {
     return StringUtils.isEmpty(val);
   }
 
+  public void setDateFormat(String dateFormat) {
+    this.dateFormat = new SimpleDateFormat(dateFormat);
+  }
+
+  public DateFormat getDateFormat() {
+    return dateFormat;
+  }
 }

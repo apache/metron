@@ -17,7 +17,9 @@
  */
 package org.apache.metron.pcap.query;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.metron.common.Constants;
 
 public class FixedCliParser extends CliParser {
@@ -29,12 +31,12 @@ public class FixedCliParser extends CliParser {
 
   private Options buildFixedOptions() {
     Options options = buildOptions();
-    options.addOption(newOption("srcAddr", true, "Source IP address"));
-    options.addOption(newOption("dstAddr", true, "Destination IP address"));
-    options.addOption(newOption("srcPort", true, "Source port"));
-    options.addOption(newOption("dstPort", true, "Destination port"));
-    options.addOption(newOption("protocol", true, "IP Protocol"));
-    options.addOption(newOption("includeReverse", false, "Indicates if filter should check swapped src/dest addresses and IPs"));
+    options.addOption(newOption("sa", "ip_src_addr", true, "Source IP address"));
+    options.addOption(newOption("da", "ip_dst_addr", true, "Destination IP address"));
+    options.addOption(newOption("sp", "ip_src_port", true, "Source port"));
+    options.addOption(newOption("dp", "ip_dst_port", true, "Destination port"));
+    options.addOption(newOption("p", "protocol", true, "IP Protocol"));
+    options.addOption(newOption("ir", "include_reverse", false, "Indicates if filter should check swapped src/dest addresses and IPs"));
     return options;
   }
 
@@ -45,17 +47,16 @@ public class FixedCliParser extends CliParser {
    * @return Configuration tailored to fixed pcap queries
    * @throws ParseException
    */
-  public FixedCliConfig parse(String[] args) throws ParseException {
-    CommandLineParser parser = new BasicParser();
-    CommandLine commandLine = parser.parse(fixedOptions, args);
+  public FixedCliConfig parse(String[] args) throws ParseException, java.text.ParseException {
+    CommandLine commandLine = getParser().parse(fixedOptions, args);
     FixedCliConfig config = new FixedCliConfig();
     super.parse(commandLine, config);
-    config.putFixedField(Constants.Fields.SRC_ADDR, commandLine.getOptionValue("srcAddr"));
-    config.putFixedField(Constants.Fields.DST_ADDR, commandLine.getOptionValue("dstAddr"));
-    config.putFixedField(Constants.Fields.SRC_PORT, commandLine.getOptionValue("srcPort"));
-    config.putFixedField(Constants.Fields.DST_PORT, commandLine.getOptionValue("dstPort"));
+    config.putFixedField(Constants.Fields.SRC_ADDR, commandLine.getOptionValue("ip_src_addr"));
+    config.putFixedField(Constants.Fields.DST_ADDR, commandLine.getOptionValue("ip_dst_addr"));
+    config.putFixedField(Constants.Fields.SRC_PORT, commandLine.getOptionValue("ip_src_port"));
+    config.putFixedField(Constants.Fields.DST_PORT, commandLine.getOptionValue("ip_dst_port"));
     config.putFixedField(Constants.Fields.PROTOCOL, commandLine.getOptionValue("protocol"));
-    config.putFixedField(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, Boolean.toString(commandLine.hasOption("includeReverse")));
+    config.putFixedField(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, Boolean.toString(commandLine.hasOption("include_reverse")));
     return config;
   }
 

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
@@ -59,13 +60,22 @@ public class PcapCli {
     }
     String jobType = args[0];
     List<byte[]> results = new ArrayList<>();
+    String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
+    Configuration hadoopConf = new Configuration();
+    String[] otherArgs = null;
+    try {
+      otherArgs = new GenericOptionsParser(hadoopConf, commandArgs).getRemainingArgs();
+    } catch (IOException e) {
+      LOGGER.error("Failed to configure hadoop with provided options: " + e.getMessage(), e);
+      return -1;
+    }
     if ("fixed".equals(jobType)) {
       FixedCliParser fixedParser = new FixedCliParser();
       FixedCliConfig config = null;
       try {
-        config = fixedParser.parse(Arrays.copyOfRange(args, 1, args.length));
-      } catch (ParseException e) {
-        System.out.println(e.getMessage());
+        config = fixedParser.parse(otherArgs);
+      } catch (ParseException | java.text.ParseException e) {
+        System.err.println(e.getMessage());
         fixedParser.printHelp();
         return -1;
       }
@@ -77,7 +87,6 @@ public class PcapCli {
       long startTime = time.getLeft();
       long endTime = time.getRight();
 
-      Configuration hadoopConf = new Configuration();
       try {
         results = jobRunner.query(
                 new Path(config.getBasePath()),
@@ -99,9 +108,9 @@ public class PcapCli {
       QueryCliParser queryParser = new QueryCliParser();
       QueryCliConfig config = null;
       try {
-        config = queryParser.parse(Arrays.copyOfRange(args, 1, args.length));
-      } catch (ParseException e) {
-        System.out.println(e.getMessage());
+        config = queryParser.parse(otherArgs);
+      } catch (ParseException | java.text.ParseException e) {
+        System.err.println(e.getMessage());
         queryParser.printHelp();
         return -1;
       }
@@ -113,7 +122,6 @@ public class PcapCli {
       long startTime = time.getLeft();
       long endTime = time.getRight();
 
-      Configuration hadoopConf = new Configuration();
       try {
         results = jobRunner.query(
                 new Path(config.getBasePath()),

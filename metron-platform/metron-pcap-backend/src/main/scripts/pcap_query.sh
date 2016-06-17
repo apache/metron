@@ -29,6 +29,6 @@ fi
 
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-export API_JAR=${project.artifactId}-$METRON_VERSION.jar
+export PCAP_BACKEND_JAR=${project.artifactId}-$METRON_VERSION.jar
 
-yarn jar $METRON_HOME/lib/$API_JAR org.apache.metron.pcap.query.PcapCli "$@"
+yarn jar $METRON_HOME/lib/$PCAP_BACKEND_JAR org.apache.metron.pcap.query.PcapCli "$@"

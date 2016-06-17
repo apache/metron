@@ -17,7 +17,9 @@
  */
 package org.apache.metron.pcap.query;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class QueryCliParser extends CliParser {
   private Options queryOptions;
@@ -28,7 +30,7 @@ public class QueryCliParser extends CliParser {
 
   private Options setupOptions() {
     Options options = buildOptions();
-    options.addOption(newOption("query", true, "Query string to use as a filter"));
+    options.addOption(newOption("q", "query", true, "Query string to use as a filter"));
     return options;
   }
 
@@ -39,9 +41,8 @@ public class QueryCliParser extends CliParser {
    * @return Configuration tailored to query pcap queries
    * @throws ParseException
    */
-  public QueryCliConfig parse(String[] args) throws ParseException {
-    CommandLineParser parser = new BasicParser();
-    CommandLine commandLine = parser.parse(queryOptions, args);
+  public QueryCliConfig parse(String[] args) throws ParseException, java.text.ParseException {
+    CommandLine commandLine = getParser().parse(queryOptions, args);
     QueryCliConfig config = new QueryCliConfig();
     super.parse(commandLine, config);
     if (commandLine.hasOption("query")) {
