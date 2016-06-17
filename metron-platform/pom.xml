@@ -20,6 +20,11 @@
 	<version>0.1BETA</version>
 	<packaging>pom</packaging>
 	<name>metron-platform</name>
+	<parent>
+		<groupId>org.apache.metron</groupId>
+		<artifactId>Metron</artifactId>
+		<version>0.1BETA</version>
+	</parent>
 	<description>Stream analytics for Metron</description>
 	<url>https://metron.incubator.apache.org/</url>
 	<scm>
@@ -28,31 +33,7 @@
 		<tag>HEAD</tag>
 		<url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
 	</scm>
-	<properties>
-		<twitter>@ApacheMetron</twitter>
-		<global_opencsv_version>3.7</global_opencsv_version>
-		<global_storm_version>0.10.0</global_storm_version>
-		<global_flux_version>0.10.0</global_flux_version>
-		<global_pcap_version>1.7.1</global_pcap_version>
-		<global_kafka_version>0.8.2.2</global_kafka_version>
-		<global_hadoop_version>2.7.1</global_hadoop_version>
-		<global_hbase_version>1.1.1</global_hbase_version>
-		<global_flume_version>1.5.2</global_flume_version>
-		<global_elasticsearch_version>2.3.3</global_elasticsearch_version>
-		<global_json_simple_version>1.1.1</global_json_simple_version>
-		<global_metrics_version>3.0.2</global_metrics_version>
-		<global_junit_version>4.4</global_junit_version>
-		<global_guava_version>17.0</global_guava_version>
-		<global_hbase_guava_version>12.0</global_hbase_guava_version>
-		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
-		<global_slf4j_version>1.7.7</global_slf4j_version>
-		<global_opencsv_version>3.7</global_opencsv_version>
-		<global_java_version>1.8</global_java_version>
-		<global_solr_version>5.2.1</global_solr_version>
-		<global_mockito_version>1.10.19</global_mockito_version>
-		<global_shade_version>2.4.3</global_shade_version>
-		<global_jackson_version>2.7.4</global_jackson_version>
-	</properties>
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -75,15 +56,6 @@
 		<module>elasticsearch-shaded</module>
 		<module>metron-elasticsearch</module>
 	</modules>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>${global_mockito_version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -99,118 +71,8 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<!-- Separates the unit tests from the integration tests. -->
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.18</version>
-					<configuration>
-						<!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-						<argLine>-Xmx2048m</argLine>
-						<skip>true</skip>
-						<!-- Show 100% of the lines from the stack trace (doesn't work) -->
-						<trimStackTrace>false</trimStackTrace>
-					</configuration>
-					<executions>
-						<execution>
-							<id>unit-tests</id>
-							<phase>test</phase>
-							<goals>
-								<goal>test</goal>
-							</goals>
-							<configuration>
-								<!-- Never skip running the tests when the test phase is invoked -->
-								<skip>false</skip>
-								<includes>
-									<!-- Include unit tests within integration-test phase. -->
-									<include>**/*Test.java</include>
-								</includes>
-								<excludes>
-									<!-- Exclude integration tests within (unit) test phase. -->
-									<exclude>**/*IntegrationTest.java</exclude>
-								</excludes>
-							</configuration>
-						</execution>
-						<execution>
-							<id>integration-tests</id>
-							<phase>integration-test</phase>
-							<goals>
-								<goal>test</goal>
-							</goals>
-							<configuration>
-								<!-- Never skip running the tests when the integration-test phase is invoked -->
-								<skip>false</skip>
-								<includes>
-									<!-- Include integration tests within integration-test phase. -->
-									<include>**/*IntegrationTest.java</include>
-								</includes>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.17</version>
-				<executions>
-					<execution>
-						<id>checkstyle</id>
-						<phase>package</phase>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<configLocation>style/checkstyle.xml</configLocation>
-					<headerLocation>style/LICENSE</headerLocation>
-					<failOnViolation>true</failOnViolation>
-					<includeTestSourceDirectory>true</includeTestSourceDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.5.1</version>
-				<configuration>
-					<source>${global_java_version}</source>
-					<target>${global_java_version}</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>2.7</version>
-				<configuration>
-					<check />
-					<formats>
-						<format>html</format>
-					</formats>
-					<aggregate>true</aggregate>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.rat</groupId>
-				<artifactId>apache-rat-plugin</artifactId>
-				<version>0.11</version>
-				<configuration>
-					<excludes>
-						<exclude>**/README.md</exclude>
-						<exclude>**/*.json</exclude>
-						<exclude>**/*.log</exclude>
-						<exclude>**/src/main/resources/patterns/**</exclude>
-						<exclude>**/src/main/sample/data/SampleIndexed/**</exclude>
-						<exclude>**/src/main/sample/data/SampleInput/**</exclude>
-						<exclude>**/src/main/sample/data/SampleParsed/**</exclude>
-						<exclude>**/dependency-reduced-pom.xml</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
+
 		</plugins>
 	</build>
 	<reporting>
