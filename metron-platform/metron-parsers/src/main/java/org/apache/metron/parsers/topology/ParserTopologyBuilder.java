@@ -27,6 +27,7 @@ import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.MessageWriter;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
+import org.apache.metron.common.spout.kafka.SpoutConfigOptions;
 import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.common.writer.AbstractWriter;
 import org.apache.metron.parsers.bolt.ParserBolt;
@@ -54,7 +55,8 @@ public class ParserTopologyBuilder {
                          int invalidWriterParallelism,
                          int invalidWriterNumTasks,
                          int errorWriterParallelism,
-                         int errorWriterNumTasks
+                         int errorWriterNumTasks,
+                         EnumMap<SpoutConfigOptions, Object> kafkaSpoutConfigOptions
                                      ) throws Exception {
     CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
@@ -70,6 +72,7 @@ public class ParserTopologyBuilder {
     TopologyBuilder builder = new TopologyBuilder();
     ZkHosts zkHosts = new ZkHosts(zookeeperUrl);
     SpoutConfig spoutConfig = new SpoutConfig(zkHosts, sensorTopic, "", sensorTopic).from(offset);
+    SpoutConfigOptions.configure(spoutConfig, kafkaSpoutConfigOptions);
     KafkaSpout kafkaSpout = new KafkaSpout(spoutConfig);
     builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
            .setNumTasks(spoutNumTasks);

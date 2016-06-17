@@ -237,27 +237,73 @@ The usage for `start_parser_topology.sh` is as follows:
 
 ```
 usage: start_parser_topology.sh
- -e,--extra_options <JSON_FILE>               Extra options in the form of
-                                              a JSON file with a map for
-                                              content.
- -h,--help                                    This screen
- -k,--kafka <BROKER_URL>                      Kafka Broker URL
- -mt,--message_timeout <TIMEOUT_IN_SECS>      Message Timeout in Seconds
- -mtp,--max_task_parallelism <MAX_TASK>       Max task parallelism
- -na,--num_ackers <NUM_ACKERS>                Number of Ackers
- -nw,--num_workers <NUM_WORKERS>              Number of Workers
- -pnt,--parser_num_tasks <PARSER_NUM_TASKS>   Parser Num Tasks
- -pp,--parser_p <PARSER_PARALLELISM_HINT>     Parser Parallelism Hint
- -s,--sensor <SENSOR_TYPE>                    Sensor Type
- -snt,--spout_num_tasks <NUM_TASKS>           Spout Num Tasks
- -sp,--spout_p <SPOUT_PARALLELISM_HINT>       Spout Parallelism Hint
- -t,--test <TEST>                             Run in Test Mode
- -z,--zk <ZK_QUORUM>                          Zookeeper Quroum URL
-                                              (zk1:2181,zk2:2181,...
+ -e,--extra_topology_options <JSON_FILE>        Extra options in the form
+                                                of a JSON file with a map
+                                                for content.
+ -esc,--extra_kafka_spout_config <JSON_FILE>    Extra spout config options
+                                                in the form of a JSON file
+                                                with a map for content.
+                                                Possible keys are:
+                                                retryDelayMaxMs,retryDelay
+                                                Multiplier,retryInitialDel
+                                                ayMs,stateUpdateIntervalMs
+                                                ,bufferSizeBytes,fetchMaxW
+                                                ait,fetchSizeBytes,maxOffs
+                                                etBehind,metricsTimeBucket
+                                                SizeInSecs,socketTimeoutMs
+ -ewnt,--error_writer_num_tasks <NUM_TASKS>     Error Writer Num Tasks
+ -ewp,--error_writer_p <PARALLELISM_HINT>       Error Writer Parallelism
+                                                Hint
+ -h,--help                                      This screen
+ -iwnt,--invalid_writer_num_tasks <NUM_TASKS>   Invalid Writer Num Tasks
+ -iwp,--invalid_writer_p <PARALLELISM_HINT>     Invalid Message Writer
+                                                Parallelism Hint
+ -k,--kafka <BROKER_URL>                        Kafka Broker URL
+ -mt,--message_timeout <TIMEOUT_IN_SECS>        Message Timeout in Seconds
+ -mtp,--max_task_parallelism <MAX_TASK>         Max task parallelism
+ -na,--num_ackers <NUM_ACKERS>                  Number of Ackers
+ -nw,--num_workers <NUM_WORKERS>                Number of Workers
+ -pnt,--parser_num_tasks <NUM_TASKS>            Parser Num Tasks
+ -pp,--parser_p <PARALLELISM_HINT>              Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                      Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>             Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>         Spout Parallelism Hint
+ -t,--test <TEST>                               Run in Test Mode
+ -z,--zk <ZK_QUORUM>                            Zookeeper Quroum URL
+                                                (zk1:2181,zk2:2181,...
 ```
 
-A small note on the extra options.  These options are intended to be Storm configuration options and will live in
-a JSON file which will be loaded into the Storm config.  For instance, if you wanted to set some storm property on
+# The `--extra_kafka_spout_config` Option
+These options are intended to configure the Storm Kafka Spout more completely.  These options can be
+specified in a JSON file containing a map associating the kafka spout configuration parameter to a value.
+The range of values possible to configure are:
+* retryDelayMaxMs
+* retryDelayMultiplier
+* retryInitialDelayMs
+* stateUpdateIntervalMs
+* bufferSizeBytes
+* fetchMaxWait
+* fetchSizeBytes
+* maxOffsetBehind
+* metricsTimeBucketSizeInSecs
+* socketTimeoutMs
+
+These are described in some detail [here](https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/bk_storm-user-guide/content/storm-kafka-api-ref.html).
+
+For instance, creating a JSON file which will set the `bufferSizeBytes` to 2MB and `retryDelayMaxMs` to 2000 would look like
+```
+{
+  "bufferSizeBytes" : 2000000,
+  "retryDelayMaxMs" : 2000
+}
+```
+
+This would be loaded by passing the file as argument to `--extra_kafka_spout_config`
+
+# The `--extra_topology_options` Option
+
+These options are intended to be Storm configuration options and will live in
+a JSON file which will be loaded into the Storm config.  For instance, if you wanted to set a storm property on
 the config called `topology.ticks.tuple.freq.secs` to 1000 and `storm.local.dir` to `/opt/my/path`
 you could create a file called `custom_config.json` containing 
 ```
@@ -266,4 +312,4 @@ you could create a file called `custom_config.json` containing
   "storm.local.dir" : "/opt/my/path"
 }
 ```
-and pass `--extra_options custom_config.json` to `start_parser_topology.sh`.
+and pass `--extra_topology_options custom_config.json` to `start_parser_topology.sh`.

@@ -23,12 +23,20 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
+import org.apache.metron.common.spout.kafka.SpoutConfigOptions;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.topology.config.Arg;
 import org.apache.metron.parsers.topology.config.ConfigHandlers;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -149,12 +157,24 @@ public class ParserTopologyCLI {
     }, new ConfigHandlers.SetMessageTimeoutHandler()
     )
     ,EXTRA_OPTIONS("e", code -> {
-      Option o = new Option(code, "extra_options", true, "Extra options in the form of a JSON file with a map for content.");
+      Option o = new Option(code, "extra_topology_options", true, "Extra options in the form of a JSON file with a map for content.");
       o.setArgName("JSON_FILE");
       o.setRequired(false);
       o.setType(String.class);
       return o;
     }, new ConfigHandlers.LoadJSONHandler()
+    )
+    ,SPOUT_CONFIG("esc", code -> {
+      Option o = new Option(code
+                           , "extra_kafka_spout_config"
+                           , true
+                           , "Extra spout config options in the form of a JSON file with a map for content.  " +
+                             "Possible keys are: " + Joiner.on(",").join(SpoutConfigOptions.values()));
+      o.setArgName("JSON_FILE");
+      o.setRequired(false);
+      o.setType(String.class);
+      return o;
+    }
     )
     ,TEST("t", code ->
     {
@@ -260,6 +280,10 @@ public class ParserTopologyCLI {
       int errorNumTasks= Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
       int invalidParallelism = Integer.parseInt(ParserOptions.INVALID_WRITER_PARALLELISM.get(cmd, "1"));
       int invalidNumTasks= Integer.parseInt(ParserOptions.INVALID_WRITER_NUM_TASKS.get(cmd, "1"));
+      EnumMap<SpoutConfigOptions, Object> spoutConfig = new EnumMap<SpoutConfigOptions, Object>(SpoutConfigOptions.class);
+      if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
+        spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
+      }
       SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
@@ -272,7 +296,8 @@ public class ParserTopologyCLI {
               invalidParallelism,
               invalidNumTasks,
               errorParallelism,
-              errorNumTasks
+              errorNumTasks,
+              spoutConfig
       );
       Config stormConf = ParserOptions.getConfig(cmd);
 
@@ -288,6 +313,25 @@ public class ParserTopologyCLI {
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(-1);
+    }
+  }
+  private static EnumMap<SpoutConfigOptions, Object> readSpoutConfig(File inputFile) {
+    String json = null;
+    if (inputFile.exists()) {
+      try {
+        json = FileUtils.readFileToString(inputFile);
+      } catch (IOException e) {
+        throw new IllegalStateException("Unable to process JSON file " + inputFile, e);
+      }
+    }
+    else {
+      throw new IllegalArgumentException("Unable to load JSON file at " + inputFile.getAbsolutePath());
+    }
+    try {
+      return SpoutConfigOptions.coerceMap(JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
+      }));
+    } catch (IOException e) {
+      throw new IllegalStateException("Unable to process JSON.", e);
     }
   }
 }
