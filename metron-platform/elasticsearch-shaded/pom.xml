@@ -17,7 +17,7 @@
     <parent>
         <artifactId>metron-platform</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.1BETA</version>
+        <version>0.2.0BETA</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elasticsearch-shaded</artifactId>
