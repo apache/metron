@@ -144,17 +144,12 @@
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-enrichment</artifactId>
-      <version>0.1BETA</version>
+      <version>${project.parent.version}</version>
     </dependency>
-    <!--dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>metron-parsers</artifactId>
-      <version>0.1BETA</version>
-    </dependency-->
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-test-utilities</artifactId>
-      <version>0.1BETA</version>
+      <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
   <build>

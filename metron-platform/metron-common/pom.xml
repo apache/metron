@@ -206,7 +206,7 @@
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-test-utilities</artifactId>
-            <version>0.1BETA</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
