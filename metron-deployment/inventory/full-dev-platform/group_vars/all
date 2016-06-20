@@ -47,7 +47,7 @@ threatintel_hbase_table: threatintel
 enrichment_hbase_table: enrichment
 
 # metron
-metron_version: 0.1BETA
+metron_version: 0.2.0BETA
 metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
 bro_version: "2.4.1"
