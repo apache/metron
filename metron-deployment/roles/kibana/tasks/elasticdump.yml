@@ -14,9 +14,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-kibana_repo_url: http://packages.elastic.co/kibana/4.5/centos
-kibana_repo_key_url: http://packages.elastic.co/GPG-KEY-elasticsearch
-kibana_index_url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/.kibana"
-kibana_index_def: "/tmp/kibana-index.json"
-kibana_version: 4.5.1
-nodesource_repo_setup: https://rpm.nodesource.com/setup_4.x
+---
+- name: Download Nodesource Yum Repository Setup
+  get_url: url={{ nodesource_repo_setup }} dest=/tmp/nodesource_setup_4.x
+
+- name: Setup Nodesource Yum Repository
+  shell: bash /tmp/nodesource_setup_4.x
+
+- name: Install Node - Needed for Elasticdump
+  yum: name="{{ item }}"
+  with_items:
+    - gcc-c++
+    - make
+    - nodejs
+
+- name: Install Elasticdump
+  shell: npm install elasticdump -g

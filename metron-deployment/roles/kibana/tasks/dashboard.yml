@@ -15,31 +15,8 @@
 #  limitations under the License.
 #
 ---
-- name: Install Kibana
-  yum:
-    name: kibana
-    state: installed
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
+- name: Distribute the Kibana index containing the Metron Dashboard
+  template: src=kibana-index.json dest={{ kibana_index_def }}
 
-- name: Configure Kibana - remove stale entries
-  lineinfile: >
-    dest=/opt/kibana/config/kibana.yml
-    regexp="{{ item }}"
-    state=absent
-  with_items:
-    - '^server\.port:'
-    - '^elasticsearch\.url:'
-
-- name: Configure Kibana
-  lineinfile: >
-    dest=/opt/kibana/config/kibana.yml
-    regexp="{{ item.regexp }}"
-    insertafter="{{ item.regexp }}"
-    line="{{ item.line }}"
-    state=present
-  with_items:
-    - { regexp: '^# *server\.port:', line: 'server.port: 5000' }
-    - { regexp: '^# *elasticsearch\.url:', line: 'elasticsearch.url: http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}' }
+- name: Install the Metron Dashboard
+  shell: "elasticdump --output={{ kibana_index_url }} --input={{ kibana_index_def }}"
