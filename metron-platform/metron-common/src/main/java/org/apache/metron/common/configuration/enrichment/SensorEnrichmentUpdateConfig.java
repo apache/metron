@@ -115,13 +115,7 @@ public class SensorEnrichmentUpdateConfig {
   {
     Map<String, SensorEnrichmentConfig> sourceConfigsChanged = new HashMap<>();
     for (Map.Entry<String, FieldList> kv : sensorToFieldList.entrySet()) {
-      SensorEnrichmentConfig config = sourceConfigsChanged.get(kv.getKey());
-      if(config == null) {
-        config = scHandler.readConfig(kv.getKey());
-        if(_LOG.isDebugEnabled()) {
-          _LOG.debug(config.toJSON());
-        }
-      }
+      SensorEnrichmentConfig config = findConfigBySensorType(scHandler, sourceConfigsChanged, kv.getKey());
       Map<String, List<String> > fieldMap = null;
       Map<String, List<String> > fieldToTypeMap = null;
       List<String> fieldList = null;
@@ -204,6 +198,17 @@ public class SensorEnrichmentUpdateConfig {
     for(Map.Entry<String, SensorEnrichmentConfig> kv : sourceConfigsChanged.entrySet()) {
       scHandler.persistConfig(kv.getKey(), kv.getValue());
     }
+  }
+
+  private static SensorEnrichmentConfig findConfigBySensorType(SourceConfigHandler scHandler, Map<String, SensorEnrichmentConfig> sourceConfigsChanged, String key) throws Exception {
+    SensorEnrichmentConfig config = sourceConfigsChanged.get(key);
+    if(config == null) {
+      config = scHandler.readConfig(key);
+      if(_LOG.isDebugEnabled()) {
+        _LOG.debug(config.toJSON());
+      }
+    }
+    return config;
   }
 
 }

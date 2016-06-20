@@ -63,6 +63,7 @@ arguments has been created to make this very simple.  Simply, execute
 
 ## Utilities
 
+### Inspector Utility
 In order to ensure that data can be read back out, a utility,
 `$METRON_HOME/bin/pcap_inspector.sh` has been
 created to read portions of the sequence files.
@@ -72,4 +73,50 @@ usage: PcapInspector
  -h,--help               Generate Help screen
  -i,--input <SEQ_FILE>   Input sequence file on HDFS
  -n,--num_packets <N>    Number of packets to dump
+```
+
+### Query Filter Utility
+This tool exposes the two methods for filtering PCAP data via a command line tool:
+- fixed
+- query (Metron Stellar)
+
+The tool is executed via ```${metron_home}/bin/pcap_query.sh [fixed|query]```
+
+#### Usage
+```
+usage: Fixed filter options
+ -bop,--base_output_path <arg>   Query result output path. Default is
+                                 '/tmp'
+ -bp,--base_path <arg>           Base PCAP data path. Default is
+                                 '/apps/metron/pcap'
+ -da,--ip_dst_addr <arg>         Destination IP address
+ -df,--date_format <arg>         Date format to use for parsing start_time
+                                 and end_time. Default is to use time in
+                                 millis since the epoch.
+ -dp,--ip_dst_port <arg>         Destination port
+ -et,--end_time <arg>            Packet end time range. Default is current
+                                 system time.
+ -h,--help                       Display help
+ -ir,--include_reverse           Indicates if filter should check swapped
+                                 src/dest addresses and IPs
+ -p,--protocol <arg>             IP Protocol
+ -sa,--ip_src_addr <arg>         Source IP address
+ -sp,--ip_src_port <arg>         Source port
+ -st,--start_time <arg>          (required) Packet start time range.
+```
+
+```
+usage: Query filter options
+ -bop,--base_output_path <arg>   Query result output path. Default is
+                                 '/tmp'
+ -bp,--base_path <arg>           Base PCAP data path. Default is
+                                 '/apps/metron/pcap'
+ -df,--date_format <arg>         Date format to use for parsing start_time
+                                 and end_time. Default is to use time in
+                                 millis since the epoch.
+ -et,--end_time <arg>            Packet end time range. Default is current
+                                 system time.
+ -h,--help                       Display help
+ -q,--query <arg>                Query string to use as a filter
+ -st,--start_time <arg>          (required) Packet start time range.
 ```
