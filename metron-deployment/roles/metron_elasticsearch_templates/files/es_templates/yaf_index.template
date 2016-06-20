@@ -1,85 +1,205 @@
 {
-   "template": "yaf_index*",
-   "mappings": {
-      "yaf_doc": {
-         "_timestamp": {
-            "enabled": true
-         },
-         "properties": {
-            "timestamp": {
-               "type": "date",
-               "format": "epoch_millis"
-            },
-            "enrichments:geo:ip_dst_addr:location_point": {
-               "type": "geo_point"
-            },
-            "end-time": {
-               "type": "string"
-            },
-            "duration": {
-               "type": "string"
-            },
-            "rtt": {
-               "type": "string"
-            },
-            "proto": {
-               "type": "string"
-            },
-            "sip": {
-               "type": "string"
-            },
-            "sp": {
-               "type": "string"
-            },
-            "dip": {
-               "type": "string"
-            },
-            "dp": {
-               "type": "string"
-            },
-            "iflags": {
-               "type": "string"
-            },
-            "uflags": {
-               "type": "string"
-            },
-            "riflags": {
-               "type": "string"
-            },
-            "ruflags": {
-               "type": "string"
-            },
-            "isn": {
-               "type": "string"
-            },
-            "risn": {
-               "type": "string"
-            },
-            "tag": {
-               "type": "string"
-            },
-            "rtag": {
-               "type": "string"
-            },
-            "pkt": {
-               "type": "string"
-            },
-            "oct": {
-               "type": "string"
-            },
-            "rpkt": {
-               "type": "string"
-            },
-            "roct": {
-               "type": "string"
-            },
-            "app": {
-               "type": "string"
-            },
-            "end-reason": {
-               "type": "string"
+  "template": "yaf_index*",
+  "mappings": {
+    "yaf_doc": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "dynamic_templates": [
+        {
+          "geo_location_point": {
+            "match": "enrichments:geo:*:location_point",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "geo_point"
             }
-         }
+          }
+        },
+        {
+          "geo_country": {
+            "match": "enrichments:geo:*:country",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        },
+        {
+          "geo_city": {
+            "match": "enrichments:geo:*:city",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        },
+        {
+          "geo_location_id": {
+            "match": "enrichments:geo:*:locID",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        },
+        {
+          "geo_dma_code": {
+            "match": "enrichments:geo:*:dmaCode",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        },
+        {
+          "geo_postal_code": {
+            "match": "enrichments:geo:*:postalCode",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        },
+        {
+          "geo_latitude": {
+            "match": "enrichments:geo:*:latitude",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "float"
+            }
+          }
+        },
+        {
+          "geo_longitude": {
+            "match": "enrichments:geo:*:longitude",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "float"
+            }
+          }
+        },
+        {
+          "timestamps": {
+            "match": "*:ts",
+            "match_mapping_type": "*",
+            "mapping": {
+              "type": "date",
+              "format": "epoch_millis"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "source:type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "ip_dst_addr": {
+          "type": "ip"
+        },
+        "ip_dst_port": {
+          "type": "integer"
+        },
+        "ip_src_addr": {
+          "type": "ip"
+        },
+        "ip_src_port": {
+          "type": "integer"
+        },
+        "start_time": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "end_time": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "duration": {
+          "type": "double"
+        },
+        "rtt": {
+          "type": "double"
+        },
+        "proto": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "sip": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "sp": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "dip": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "dp": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "iflags": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "uflags": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "riflags": {
+          "type": "string"
+        },
+        "ruflags": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "isn": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "risn": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "tag": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "rtag": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "pkt": {
+          "type": "integer"
+        },
+        "oct": {
+          "type": "integer"
+        },
+        "rpkt": {
+          "type": "integer"
+        },
+        "roct": {
+          "type": "integer"
+        },
+        "app": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "end-reason": {
+          "type": "string"
+        }
       }
-   }
+    }
+  }
 }
