@@ -62,6 +62,7 @@
     - include: tasks/check-volume.yml vol_name=xvda vol_src=/dev/xvda vol_size={{ xvda_vol_size }}
   tags:
     - ec2
+    - ec2-mount
 
 #
 # build the metron cluster

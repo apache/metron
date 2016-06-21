@@ -30,3 +30,9 @@
     dest: /etc/snort/rules/test.rules
     line: "alert tcp any any -> any any (msg:'snort test alert'; sid:999158; )"
     create: yes
+
+- name: Configure home network
+  lineinfile:
+    dest: /etc/snort/snort.conf
+    regexp: "^ipvar HOME_NET.*$"
+    line: "ipvar HOME_NET any"
