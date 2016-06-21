@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-platform</artifactId>
-        <version>0.1BETA</version>
+        <version>0.2.0BETA</version>
     </parent>
     <artifactId>metron-data-management</artifactId>
     <properties>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-enrichment</artifactId>
-            <version>0.1BETA</version>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hadoop</groupId>

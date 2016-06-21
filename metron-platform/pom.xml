@@ -17,13 +17,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.apache.metron</groupId>
 	<artifactId>metron-platform</artifactId>
-	<version>0.1BETA</version>
 	<packaging>pom</packaging>
 	<name>metron-platform</name>
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron</artifactId>
-		<version>0.1BETA</version>
+		<version>0.2.0BETA</version>
 	</parent>
 	<description>Stream analytics for Metron</description>
 	<url>https://metron.incubator.apache.org/</url>

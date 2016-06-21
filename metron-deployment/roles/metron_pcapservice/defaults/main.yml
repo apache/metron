@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 ---
-metron_version: 0.1BETA
+metron_version: 0.2.0BETA
 metron_directory: /usr/metron/{{ metron_version }}
 pcapservice_jar_name: metron-api-{{ metron_version }}.jar
 pcapservice_jar_src: "{{ playbook_dir }}/../../metron-platform/metron-api/target/{{ pcapservice_jar_name }}"
