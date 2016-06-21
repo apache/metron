@@ -162,7 +162,7 @@ export ES_HOST="http://ec2-52-25-237-20.us-west-2.compute.amazonaws.com:9200"
 
 (2) Confirm the index templates are in fact missing.  
 ```
-curl -s -XPOST $ES_HOST/_template
+curl -s -XGET $ES_HOST/_template
 ```
 
 (3) Manually load the index templates.
@@ -176,9 +176,9 @@ curl -s -XPOST $ES_HOST/_template/yaf_index -d @roles/metron_elasticsearch_templ
 (4) Delete the existing indexes.  Only a new index will use the templates defined in the previous step.
 
 ```
-curl -s -XDELETE "$ES_HOST/_template/yaf_index*"
-curl -s -XDELETE "$ES_HOST/_template/bro_index*"
-curl -s -XDELETE "$ES_HOST/_template/snort_index*"
+curl -s -XDELETE "$ES_HOST/yaf_index*"
+curl -s -XDELETE "$ES_HOST/bro_index*"
+curl -s -XDELETE "$ES_HOST/snort_index*"
 ```
 
 (5) Open up Kibana and wait for the new indexes to be created.  The dashboard should now work.
