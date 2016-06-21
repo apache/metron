@@ -17,7 +17,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>metron-platform</artifactId>
-		<version>0.1BETA</version>
+		<version>0.2.0BETA</version>
 	</parent>
 	<artifactId>metron-api</artifactId>
 	<description>Metron API</description>

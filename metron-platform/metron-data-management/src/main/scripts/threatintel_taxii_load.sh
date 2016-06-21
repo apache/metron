@@ -28,7 +28,11 @@ elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
 fi
 
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
-CP=/usr/metron/0.1BETA/lib/metron-data-management-0.1BETA.jar:/usr/metron/0.1BETA/lib/taxii-1.1.0.1.jar:`${HBASE_HOME}/bin/hbase classpath`
+export METRON_VERSION=${project.version}
+export METRON_HOME=/usr/metron/$METRON_VERSION
+export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
+
+CP=$METRON_HOME/lib/$DM_JAR:/usr/metron/$METRON_VERSION/lib/taxii-1.1.0.1.jar:`${HBASE_HOME}/bin/hbase classpath`
 HADOOP_CLASSPATH=$(echo $CP )
 for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do
   if [ -f $jar ];then
@@ -36,7 +40,4 @@ for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do
   fi
 done
 export HADOOP_CLASSPATH
-export METRON_VERSION=${project.version}
-export METRON_HOME=/usr/metron/$METRON_VERSION
-export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
 hadoop jar $METRON_HOME/lib/$DM_JAR org.apache.metron.dataloads.nonbulk.taxii.TaxiiLoader "$@"

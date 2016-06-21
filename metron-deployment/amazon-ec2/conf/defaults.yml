@@ -60,7 +60,7 @@ num_partitions: 3
 retention_in_gb: 25
 
 # metron variables
-metron_version: 0.1BETA
+metron_version: 0.2.0BETA
 metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081

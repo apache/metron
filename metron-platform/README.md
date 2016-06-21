@@ -17,7 +17,7 @@ limitations under the License.
 
 # Current Build
 
-The latest build of metron-platform is 0.1BETA.
+The latest build of metron-platform is 0.2.0BETA.
 
 We are still in the process of merging/porting additional features from our production code base into this open source release. This release will be followed by a number of additional beta releases until the port is complete. We will also work on getting additional documentation and user/developer guides to the community as soon as we can. At this time we offer no support for the beta software, but will try to respond to requests as promptly as we can.
 

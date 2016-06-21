@@ -35,7 +35,7 @@ elasticsearch_network_interface: eth1
 elasticsearch_web_port: 9200
 
 # metron variables
-metron_version: 0.1BETA
+metron_version: 0.2.0BETA
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
 
