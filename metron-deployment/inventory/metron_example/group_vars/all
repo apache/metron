@@ -14,12 +14,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+---
+# which services should be started?
+services_to_start:
+  - mysql
+  - elasticsearch
+  - pcap-service
+  - kibana
+  - yaf
+  - snort
+  - snort-logs
+  - bro
+  - pcap-replay
+  - yaf-parser
+  - bro-parser
+  - snort-parser
+  - enrichment
 
 #Ansible Variables
 ansible_ssh_private_key_file: /Path/to/private/key/file #Change This
 ansible_ssh_user: root
 
-#Ambari variables
+#Ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
 ambari_port: 8080
 ambari_user: admin
@@ -32,13 +48,17 @@ tracker_hbase_table: access_tracker
 threatintel_hbase_table: threatintel
 enrichment_hbase_table: enrichment
 
+# kafka
+num_partitions: 3
+retention_in_gb: 25
+
 # metron variables
 metron_version: 0.2.0BETA
+metron_directory: /usr/metron/{{ metron_version }}
 java_home: /usr/jdk64/jdk1.8.0_40
 pcapservice_port: 8081
 
 # sensors
-sensor_test_mode: True
 sniff_interface: eth0
 bro_version: "2.4.1"
 fixbuf_version: "1.7.1"
@@ -52,26 +72,31 @@ snort_alert_csv_path: "/var/log/snort/alert.csv"
 
 # pcap-replay
 install_pcap_replay: True
-pcap_replay_interface: eth1
+install_tap: True
+tap_ip: 10.0.0.1
+sensor_test_mode: True
+pcap_replay_interface: tap0
+pcap_replay_home: /opt/pcap-replay
+sniff_interface: tap0
 
-#data directories - only required to override defaults
-#zookeeper_data_dir: "/newdir/hadoop/zookeeper"
-#namenode_checkpoint_dir: "/newdir/hadoop/hdfs/namesecondary"
-#namenode_name_dir: "/newdir/hadoop/hdfs/namenode"
-#datanode_data_dir: "/newdir/hadoop/hdfs/data"
-#journalnode_edits_dir: "/newdir/hadoop/hdfs/journalnode"
-#nodemanager_local_dirs: "/newdir/hadoop/yarn/local"
-#timeline_ldb_store_path: "/newdir/hadoop/yarn/timeline"
-#timeline_ldb_state_path: "/newdir/hadoop/yarn/timeline"
-#nodemanager_log_dirs: "/newdir/hadoop/yarn/log"
-#jhs_recovery_store_ldb_path: "/newdir/hadoop/mapreduce/jhs"
-#storm_local_dir: "/newdir/hadoop/storm"
-#kafka_log_dirs: "/newdir/kafka-log"
-#elasticsearch_data_dir: "/newdir1/elasticsearch"
+# data directories
+zookeeper_data_dir: "/data1/hadoop/zookeeper"
+namenode_checkpoint_dir: "/data1/hadoop/hdfs/namesecondary"
+namenode_name_dir: "/data1/hadoop/hdfs/namenode"
+datanode_data_dir: "/data1/hadoop/hdfs/data,/data2/hadoop/hdfs/data"
+journalnode_edits_dir: "/data1/hadoop/hdfs/journalnode"
+nodemanager_local_dirs: "/data1/hadoop/yarn/local"
+timeline_ldb_store_path: "/data1/hadoop/yarn/timeline"
+timeline_ldb_state_path: "/data1/hadoop/yarn/timeline"
+nodemanager_log_dirs: "/data1/hadoop/yarn/log"
+jhs_recovery_store_ldb_path: "/data1/hadoop/mapreduce/jhs"
+storm_local_dir: "/data1/hadoop/storm"
+kafka_log_dirs: "/data2/kafka-log"
+elasticsearch_data_dir: "/data1/elasticsearch,/data2/elasticsearch"
 
-#Search
+# search
 install_elasticsearch: True
 install_solr: False
 elasticsearch_transport_port: 9300
-elasticsearch_network_interface: eth1
+elasticsearch_network_interface: eth0
 elasticsearch_web_port: 9200
