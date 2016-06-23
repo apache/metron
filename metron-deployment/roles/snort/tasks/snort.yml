@@ -63,11 +63,11 @@
 - name: Download snort configuration
   copy: src=snort.conf dest=/etc/snort/snort.conf
 
-- name: Configure network
+- name: Configure home network
   lineinfile:
     dest: /etc/snort/snort.conf
     regexp: "^ipvar HOME_NET.*$"
-    line: "ipvar HOME_NET {{ ansible_eth0.ipv4.address }}"
+    line: "ipvar HOME_NET {{ snort_home_net }}"
 
 - name: Configure alerting
   lineinfile:
