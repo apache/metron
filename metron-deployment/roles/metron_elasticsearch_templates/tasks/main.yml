@@ -16,4 +16,3 @@
 #
 ---
 - include: load_templates.yml
-  run_once: true
