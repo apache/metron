@@ -178,6 +178,8 @@ public class QueryParserTest {
       put("num2", 8.5);
       put("num3", 7);
       put("num4", "8.5");
+      put("num5", "-8.5");
+      put("num6", -8.5);
       put("empty", "");
       put("spaced", "metron is great");
     }};
@@ -191,6 +193,7 @@ public class QueryParserTest {
     Assert.assertTrue(run("num == num2 || true", v -> variableMap.get(v)));
     Assert.assertFalse(run("num > num2", v -> variableMap.get(v)));
     Assert.assertTrue(run("num == 7 && num > 2", v -> variableMap.get(v)));
+    Assert.assertTrue(run("num5 == -8.5 && num6 == -8.5", v -> variableMap.get(v)));
   }
   @Test
   public void testLogicalFunctions() throws Exception {

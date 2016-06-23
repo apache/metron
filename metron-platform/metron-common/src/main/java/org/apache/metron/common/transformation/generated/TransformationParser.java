@@ -37,8 +37,8 @@ public class TransformationParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		COMMA=1, LBRACKET=2, RBRACKET=3, LPAREN=4, RPAREN=5, INT_LITERAL=6, DOUBLE_LITERAL=7, 
-		IDENTIFIER=8, STRING_LITERAL=9, COMMENT=10, WS=11;
+		COMMA=1, LBRACKET=2, RBRACKET=3, LPAREN=4, RPAREN=5, MINUS=6, INT_LITERAL=7, 
+		DOUBLE_LITERAL=8, IDENTIFIER=9, STRING_LITERAL=10, COMMENT=11, WS=12;
 	public static final int
 		RULE_transformation = 0, RULE_transformation_expr = 1, RULE_transformation_entity = 2, 
 		RULE_func_args = 3, RULE_op_list = 4, RULE_list_entity = 5, RULE_identifier_operand = 6;
@@ -48,10 +48,10 @@ public class TransformationParser extends Parser {
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, "','", "'['", "']'", "'('", "')'"
+		null, "','", "'['", "']'", "'('", "')'", "'-'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
-		null, "COMMA", "LBRACKET", "RBRACKET", "LPAREN", "RPAREN", "INT_LITERAL", 
+		null, "COMMA", "LBRACKET", "RBRACKET", "LPAREN", "RPAREN", "MINUS", "INT_LITERAL", 
 		"DOUBLE_LITERAL", "IDENTIFIER", "STRING_LITERAL", "COMMENT", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
@@ -614,7 +614,7 @@ public class TransformationParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\r:\4\2\t\2\4\3\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\16:\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\3\2\3\2\3\2\3\3\3\3\3\3\3\3"+
 		"\3\3\5\3\31\n\3\3\4\3\4\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3\6\7\6%\n\6\f\6\16"+
 		"\6(\13\6\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\5\b8"+
@@ -625,10 +625,10 @@ public class TransformationParser extends Parser {
 		"\2\32\33\5\16\b\2\33\7\3\2\2\2\34\35\5\n\6\2\35\t\3\2\2\2\36\37\b\6\1"+
 		"\2\37 \5\16\b\2 &\3\2\2\2!\"\f\3\2\2\"#\7\3\2\2#%\5\16\b\2$!\3\2\2\2%"+
 		"(\3\2\2\2&$\3\2\2\2&\'\3\2\2\2\'\13\3\2\2\2(&\3\2\2\2)*\7\4\2\2*+\5\n"+
-		"\6\2+,\7\5\2\2,\r\3\2\2\2-8\7\13\2\2.8\7\b\2\2/8\7\t\2\2\608\7\n\2\2\61"+
-		"\62\7\n\2\2\62\63\7\6\2\2\63\64\5\b\5\2\64\65\7\7\2\2\658\3\2\2\2\668"+
-		"\5\f\7\2\67-\3\2\2\2\67.\3\2\2\2\67/\3\2\2\2\67\60\3\2\2\2\67\61\3\2\2"+
-		"\2\67\66\3\2\2\28\17\3\2\2\2\5\30&\67";
+		"\6\2+,\7\5\2\2,\r\3\2\2\2-8\7\f\2\2.8\7\t\2\2/8\7\n\2\2\608\7\13\2\2\61"+
+		"\62\7\13\2\2\62\63\7\6\2\2\63\64\5\b\5\2\64\65\7\7\2\2\658\3\2\2\2\66"+
+		"8\5\f\7\2\67-\3\2\2\2\67.\3\2\2\2\67/\3\2\2\2\67\60\3\2\2\2\67\61\3\2"+
+		"\2\2\67\66\3\2\2\28\17\3\2\2\2\5\30&\67";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
