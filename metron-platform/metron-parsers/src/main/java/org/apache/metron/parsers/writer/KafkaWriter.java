@@ -40,7 +40,8 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     ,KEY_SERIALIZER("kafka.keySerializer")
     ,VALUE_SERIALIZER("kafka.valueSerializer")
     ,REQUIRED_ACKS("kafka.requiredAcks")
-    ,TOPIC("kafka.topic");
+    ,TOPIC("kafka.topic")
+    ,PRODUCER_CONFIGS("kafka.producerConfigs");
     ;
     String key;
     Configurations(String key) {
@@ -64,6 +65,7 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
   private String kafkaTopic = Constants.ENRICHMENT_TOPIC;
   private KafkaProducer kafkaProducer;
   private String configPrefix = null;
+  private Map<String, Object> producerConfigs = new HashMap<>();
 
   public KafkaWriter() {}
 
@@ -95,9 +97,15 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     return this;
   }
 
+  public KafkaWriter withProducerConfigs(Map<String, Object> extraConfigs) {
+    this.producerConfigs = extraConfigs;
+    return this;
+  }
+
   public Optional<String> getConfigPrefix() {
     return Optional.ofNullable(configPrefix);
   }
+
   @Override
   public void configure(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> configMap = configuration.getSensorConfig(sensorName);
@@ -121,16 +129,26 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     if(topic != null) {
       withTopic(topic);
     }
+    Map<String, Object> producerConfigs = (Map)Configurations.PRODUCER_CONFIGS.get(getConfigPrefix(), configMap);
+    if(producerConfigs != null) {
+      withProducerConfigs(producerConfigs);
+    }
   }
 
-  @Override
-  public void init() {
+  public Map<String, Object> createProducerConfigs() {
     Map<String, Object> producerConfig = new HashMap<>();
     producerConfig.put("bootstrap.servers", brokerUrl);
     producerConfig.put("key.serializer", keySerializer);
     producerConfig.put("value.serializer", valueSerializer);
     producerConfig.put("request.required.acks", requiredAcks);
-    this.kafkaProducer = new KafkaProducer<>(producerConfig);
+    producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
+    return producerConfig;
+  }
+
+  @Override
+  public void init() {
+
+    this.kafkaProducer = new KafkaProducer<>(createProducerConfigs());
   }
 
   @SuppressWarnings("unchecked")
