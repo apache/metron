@@ -22,6 +22,7 @@ import org.apache.metron.common.dsl.functions.DateFunctions;
 import org.apache.metron.common.dsl.functions.MapFunctions;
 import org.apache.metron.common.dsl.functions.NetworkFunctions;
 import org.apache.metron.common.dsl.functions.StringFunctions;
+import org.apache.metron.common.field.transformation.IPProtocolTransformation;
 import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public enum TransformationFunctions implements Function<List<Object>, Object> {
   ,URL_TO_PATH(new NetworkFunctions.URLToPath())
   ,URL_TO_PROTOCOL(new NetworkFunctions.URLToProtocol())
   ,TO_EPOCH_TIMESTAMP(new DateFunctions.ToTimestamp())
+  ,PROTOCOL_TO_NAME(new IPProtocolTransformation())
   ;
   Function<List<Object>, Object> func;
   TransformationFunctions(Function<List<Object>, Object> func) {
