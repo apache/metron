@@ -39,8 +39,8 @@ public class PredicateParser extends Parser {
 	public static final int
 		AND=1, OR=2, NOT=3, TRUE=4, FALSE=5, EQ=6, NEQ=7, LT=8, LTE=9, GT=10, 
 		GTE=11, COMMA=12, LBRACKET=13, RBRACKET=14, LPAREN=15, RPAREN=16, IN=17, 
-		NIN=18, EXISTS=19, INT_LITERAL=20, DOUBLE_LITERAL=21, IDENTIFIER=22, STRING_LITERAL=23, 
-		SEMI=24, COMMENT=25, WS=26;
+		NIN=18, EXISTS=19, MINUS=20, INT_LITERAL=21, DOUBLE_LITERAL=22, IDENTIFIER=23, 
+		STRING_LITERAL=24, SEMI=25, COMMENT=26, WS=27;
 	public static final int
 		RULE_single_rule = 0, RULE_logical_expr = 1, RULE_comparison_expr = 2, 
 		RULE_logical_entity = 3, RULE_list_entity = 4, RULE_func_args = 5, RULE_op_list = 6, 
@@ -55,12 +55,12 @@ public class PredicateParser extends Parser {
 	private static final String[] _LITERAL_NAMES = {
 		null, null, null, null, null, null, "'=='", "'!='", "'<'", "'<='", "'>'", 
 		"'>='", "','", "'['", "']'", "'('", "')'", "'in'", "'not in'", "'exists'", 
-		null, null, null, null, "';'"
+		"'-'", null, null, null, null, "';'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, "AND", "OR", "NOT", "TRUE", "FALSE", "EQ", "NEQ", "LT", "LTE", "GT", 
 		"GTE", "COMMA", "LBRACKET", "RBRACKET", "LPAREN", "RPAREN", "IN", "NIN", 
-		"EXISTS", "INT_LITERAL", "DOUBLE_LITERAL", "IDENTIFIER", "STRING_LITERAL", 
+		"EXISTS", "MINUS", "INT_LITERAL", "DOUBLE_LITERAL", "IDENTIFIER", "STRING_LITERAL", 
 		"SEMI", "COMMENT", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
@@ -1189,7 +1189,7 @@ public class PredicateParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\34w\4\2\t\2\4\3\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\35w\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4"+
 		"\f\t\f\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3"+
 		"(\n\3\3\3\3\3\3\3\3\3\3\3\3\3\7\3\60\n\3\f\3\16\3\63\13\3\3\4\3\4\3\4"+
@@ -1209,13 +1209,13 @@ public class PredicateParser extends Parser {
 		"\2\2\289\5\22\n\29:\7\23\2\2:;\5\22\n\2;E\3\2\2\2<=\5\22\n\2=>\7\24\2"+
 		"\2>?\5\22\n\2?E\3\2\2\2@A\7\21\2\2AB\5\6\4\2BC\7\22\2\2CE\3\2\2\2D\64"+
 		"\3\2\2\2D8\3\2\2\2D<\3\2\2\2D@\3\2\2\2E\7\3\2\2\2FQ\t\2\2\2GH\7\25\2\2"+
-		"HI\7\21\2\2IJ\7\30\2\2JQ\7\22\2\2KL\7\30\2\2LM\7\21\2\2MN\5\f\7\2NO\7"+
+		"HI\7\21\2\2IJ\7\31\2\2JQ\7\22\2\2KL\7\31\2\2LM\7\21\2\2MN\5\f\7\2NO\7"+
 		"\22\2\2OQ\3\2\2\2PF\3\2\2\2PG\3\2\2\2PK\3\2\2\2Q\t\3\2\2\2RS\7\17\2\2"+
 		"ST\5\16\b\2TU\7\20\2\2U\13\3\2\2\2VW\5\16\b\2W\r\3\2\2\2XY\b\b\1\2YZ\5"+
 		"\22\n\2Z`\3\2\2\2[\\\f\3\2\2\\]\7\16\2\2]_\5\22\n\2^[\3\2\2\2_b\3\2\2"+
-		"\2`^\3\2\2\2`a\3\2\2\2a\17\3\2\2\2b`\3\2\2\2cd\7\30\2\2de\7\21\2\2ef\5"+
-		"\f\7\2fg\7\22\2\2g\21\3\2\2\2ho\7\31\2\2io\7\30\2\2jo\5\20\t\2ko\7\26"+
-		"\2\2lo\7\27\2\2mo\5\n\6\2nh\3\2\2\2ni\3\2\2\2nj\3\2\2\2nk\3\2\2\2nl\3"+
+		"\2`^\3\2\2\2`a\3\2\2\2a\17\3\2\2\2b`\3\2\2\2cd\7\31\2\2de\7\21\2\2ef\5"+
+		"\f\7\2fg\7\22\2\2g\21\3\2\2\2ho\7\32\2\2io\7\31\2\2jo\5\20\t\2ko\7\27"+
+		"\2\2lo\7\30\2\2mo\5\n\6\2nh\3\2\2\2ni\3\2\2\2nj\3\2\2\2nk\3\2\2\2nl\3"+
 		"\2\2\2nm\3\2\2\2o\23\3\2\2\2ps\5\22\n\2qs\5\b\5\2rp\3\2\2\2rq\3\2\2\2"+
 		"s\25\3\2\2\2tu\t\3\2\2u\27\3\2\2\2\n\'/\61DP`nr";
 	public static final ATN _ATN =

@@ -84,6 +84,7 @@ public class TransformationTest {
   public void testURLToHost() {
     String query = "URL_TO_HOST(foo)";
     Assert.assertEquals("www.google.co.uk", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
+    Assert.assertNull(null, run("URL_TO_HOST(-123)", ImmutableMap.of("foo", -123)));
   }
 
   @Test

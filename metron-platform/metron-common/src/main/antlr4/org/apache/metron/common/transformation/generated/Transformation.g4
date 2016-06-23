@@ -48,8 +48,9 @@ RBRACKET : ']';
 LPAREN : '(' ;
 RPAREN : ')' ;
 
-INT_LITERAL     : '0'..'9'+ ;
-DOUBLE_LITERAL  : '0'..'9'+'.''0'..'9'+ ;
+MINUS : '-';
+INT_LITERAL     : MINUS? '0'..'9'+ ;
+DOUBLE_LITERAL  : MINUS? '0'..'9'+'.''0'..'9'+ ;
 IDENTIFIER : [a-zA-Z_][a-zA-Z_\.0-9]* ;
 fragment SCHAR:  ~['"\\\r\n];
 STRING_LITERAL : '"' SCHAR* '"'
