@@ -39,6 +39,7 @@ public class ParserConfigurations extends Configurations {
   }
 
   public void updateSensorParserConfig(String sensorType, SensorParserConfig sensorParserConfig) {
+    sensorParserConfig.init();
     configurations.put(getKey(sensorType), sensorParserConfig);
   }
 
