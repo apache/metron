@@ -20,14 +20,14 @@
 
 - name : Wait for Elasticsearch Host to Start
   wait_for:
-    host: "{{ groups.search[0] }}"
+    host: "{{ inventory_hostname }}"
     port: "{{ elasticsearch_web_port }}"
     delay: 10
     timeout: 300
 
 - name: Wait for Index to Become Available
   uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_cat/health"
+    url: "http://{{ inventory_hostname }}:{{ elasticsearch_web_port }}/_cat/health"
     method: GET
     status_code: 200
     return_content: yes
@@ -38,7 +38,7 @@
 
 - name: Add Elasticsearch templates for topologies
   uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
+    url: "http://{{ inventory_hostname }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
     method: PUT
     body: "{{ lookup('file',item) }}"
     status_code: 200
@@ -46,7 +46,7 @@
 
 - name: Validate Elasticsearch templates
   uri:
-    url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
+    url: "http://{{ inventory_hostname }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
     method: HEAD
     body: "{{ lookup('file',item) }}"
     status_code: 200
