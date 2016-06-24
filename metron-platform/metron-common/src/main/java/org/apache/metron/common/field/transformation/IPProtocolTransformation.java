@@ -19,10 +19,15 @@
 package org.apache.metron.common.field.transformation;
 
 
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.hadoop.yarn.util.ConverterUtils;
+import org.apache.metron.common.utils.ConversionUtils;
 
-public class IPProtocolTransformation extends SimpleFieldTransformation {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+public class IPProtocolTransformation extends SimpleFieldTransformation implements Function<List<Object>, Object> {
 
   private final static Map<Integer, String> PROTOCOLS = new HashMap<>();
 
@@ -172,6 +177,24 @@ public class IPProtocolTransformation extends SimpleFieldTransformation {
     if(value != null && value instanceof Number) {
       int protocolNum = ((Number)value).intValue();
       ret.put(outputField, PROTOCOLS.get(protocolNum));
+    }
+    return ret;
+  }
+
+
+  @Override
+  public Object apply(List<Object> objects) {
+    Object keyObj = objects.get(0);
+    if(keyObj == null) {
+      return keyObj;
+    }
+    Integer key = ConversionUtils.convert(keyObj, Integer.class);
+    if(key == null ) {
+      return keyObj;
+    }
+    Object ret = PROTOCOLS.get(key);
+    if(ret == null ) {
+      return keyObj;
     }
     return ret;
   }
