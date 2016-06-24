@@ -105,6 +105,14 @@ public class TransformationTest {
   }
 
   @Test
+  public void testProtocolToName() {
+    String query = "PROTOCOL_TO_NAME(protocol)";
+    Assert.assertEquals("TCP", run(query, ImmutableMap.of("protocol", "6")));
+    Assert.assertEquals("TCP", run(query, ImmutableMap.of("protocol", 6)));
+    Assert.assertEquals(null, run(query, ImmutableMap.of("foo", 6)));
+    Assert.assertEquals("chicken", run(query, ImmutableMap.of("protocol", "chicken")));
+  }
+  @Test
   public void testDateConversion() {
     long expected =1452013350000L;
     {
