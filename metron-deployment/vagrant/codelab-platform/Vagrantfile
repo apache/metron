@@ -53,7 +53,7 @@ hosts = [{
 Vagrant.configure(2) do |config|
 
   # all hosts built on centos 6
-  config.vm.box = "metron/hackathon_05042016"
+  config.vm.box = "metron/codelab"
   config.ssh.insert_key = true
 
   # enable the hostmanager plugin

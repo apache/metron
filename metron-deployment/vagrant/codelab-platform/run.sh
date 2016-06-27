@@ -17,4 +17,4 @@
 # limitations under the License.
 #
 
-vagrant --ansible-tags="hdp-deploy,sensors" up
+vagrant --ansible-tags="hdp-deploy,start" --ansible-skip-tags="solr" up
