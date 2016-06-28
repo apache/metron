@@ -46,7 +46,4 @@ RUN tar xzvf apache-maven-3.2.5-bin.tar.gz
 RUN mv apache-maven-3.2.5 /opt/maven
 RUN ln -s /opt/maven/bin/mvn /usr/bin/mvn
 WORKDIR /root
-RUN git clone https://github.com/apache/incubator-metron
-WORKDIR /root/incubator-metron/metron-platform
-RUN mvn clean package -DskipTests
-WORKDIR /root/incubator-metron/metron-deployment
+
