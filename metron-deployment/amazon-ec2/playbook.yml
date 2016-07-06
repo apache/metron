@@ -62,19 +62,9 @@
     - include: tasks/check-volume.yml vol_name=xvda vol_src=/dev/xvda vol_size={{ xvda_vol_size }}
   tags:
     - ec2
+    - mount
 
 #
 # build the metron cluster
 #
 - include: ../playbooks/metron_full_install.yml
-
-#
-# provisioning report
-#
-- hosts: localhost
-  vars_files:
-    - conf/defaults.yml
-  tasks:
-    - include: tasks/provisioning-report.yml
-  tags:
-    - ec2
