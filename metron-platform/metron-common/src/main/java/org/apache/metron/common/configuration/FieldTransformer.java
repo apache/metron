@@ -33,6 +33,7 @@ public class FieldTransformer implements Serializable {
   private List<String> input = new ArrayList<>();
   private List<String> output;
   private FieldTransformation transformation;
+  private String transformationName;
   private Map<String, Object> config = new HashMap<>();
   private boolean initialized = false;
   public FieldTransformer() {
@@ -72,11 +73,12 @@ public class FieldTransformer implements Serializable {
     this.config = config;
   }
 
-  public FieldTransformation getTransformation() {
-    return transformation;
+  public String getTransformation() {
+    return transformationName;
   }
 
   public void setTransformation(String transformation) {
+    this.transformationName = transformation;
     this.transformation = FieldTransformations.get(transformation);
   }
 

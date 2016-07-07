@@ -20,10 +20,14 @@ package org.apache.metron.common.configuration;
 import junit.framework.Assert;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.apache.commons.io.IOUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
@@ -37,5 +41,18 @@ public class SensorEnrichmentConfigTest {
     SensorEnrichmentConfig sensorEnrichmentConfig = SensorEnrichmentConfig.fromBytes(sensorConfigBytes);
     Assert.assertNotNull(sensorEnrichmentConfig);
     Assert.assertTrue(sensorEnrichmentConfig.toString() != null && sensorEnrichmentConfig.toString().length() > 0);
+  }
+
+  @Test
+  public void testSerDe() throws IOException {
+    for(File enrichmentConfig : new File(new File(TestConstants.ENRICHMENTS_CONFIGS_PATH), "enrichments").listFiles()) {
+      SensorEnrichmentConfig config = null;
+      try (BufferedReader br = new BufferedReader(new FileReader(enrichmentConfig))) {
+        String parserStr = IOUtils.toString(br);
+        config = SensorEnrichmentConfig.fromBytes(parserStr.getBytes());
+      }
+      SensorEnrichmentConfig config2 = SensorEnrichmentConfig.fromBytes(config.toJSON().getBytes());
+      Assert.assertEquals(config2, config);
+    }
   }
 }
