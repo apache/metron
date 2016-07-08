@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.configuration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
@@ -77,6 +78,7 @@ public class FieldTransformer implements Serializable {
     return transformationName;
   }
 
+  @JsonIgnore
   public FieldTransformation getFieldTransformation() {
     return transformation;
   }
