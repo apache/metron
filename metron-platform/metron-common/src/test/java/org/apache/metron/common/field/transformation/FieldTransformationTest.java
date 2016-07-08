@@ -106,7 +106,7 @@ public class FieldTransformationTest {
   public void testValidSerde_simple() throws IOException {
     SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(config));
     Assert.assertEquals(1, c.getFieldTransformations().size());
-    Assert.assertEquals(IPProtocolTransformation.class, c.getFieldTransformations().get(0).getTransformation().getClass());
+    Assert.assertEquals(IPProtocolTransformation.class, c.getFieldTransformations().get(0).getFieldTransformation().getClass());
     Assert.assertEquals(ImmutableList.of("protocol"), c.getFieldTransformations().get(0).getInput());
   }
 

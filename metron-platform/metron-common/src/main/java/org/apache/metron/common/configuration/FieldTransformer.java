@@ -77,6 +77,10 @@ public class FieldTransformer implements Serializable {
     return transformationName;
   }
 
+  public FieldTransformation getFieldTransformation() {
+    return transformation;
+  }
+
   public void setTransformation(String transformation) {
     this.transformationName = transformation;
     this.transformation = FieldTransformations.get(transformation);
