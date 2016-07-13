@@ -1,15 +1,28 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 %define timestamp           %(date +%Y%m%d%H%M)
 %define version             %{?_version}%{!?_version:UNKNOWN}
-%define metron_root         %{?_metron_root}%{!?_metron_root:/usr/metron/}
 %define base_name           metron
-%define name                %{base_name}
 %define versioned_app_name  %{base_name}-%{version}
 %define buildroot           %{_topdir}/BUILDROOT/%{versioned_app_name}-root
 %define installpriority     %{_priority} # Used by alternatives for concurrent version installs
 %define __jar_repack        %{nil}
-%define _rpmfilename        %%{ARCH}/%%{NAME}.%%{RELEASE}.%%{ARCH}.rpm
 
-%define metron_home         %{metron_root}%{version}
+%define metron_home         %{_prefix}/%{base_name}/%{version}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -18,8 +31,9 @@ Version:        %{version}
 Release:        %{timestamp}
 BuildRoot:      %{buildroot}
 BuildArch:      noarch
-Summary:        Metron installation
-License:        Apache2
+Summary:        Apache Metron provides a scalable advanced security analytics framework
+License:        ASL 2.0
+URL:            https://metron.incubator.apache.org
 Group:          Applications/Internet
 Source0:        metron-common-%{version}-archive.tar.gz
 
@@ -47,19 +61,6 @@ tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package -n     %{versioned_app_name}-all
-Summary:        All Metron Components
-Group:          Applications/Internet
-Requires:       common
-
-%description -n %{versioned_app_name}-all
-Install all the Metrons
-
-%files -n %{versioned_app_name}-all
-# This is a meta-package and only exists to install other packages
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 %package        common
 Summary:        Metron Common
 Group:          Applications/Internet
@@ -70,12 +71,13 @@ This package installs the Metron common files %{metron_home}
 
 %files common
 
-%defattr(644, root, root, 755)
-%{metron_home}
+%defattr(-,root,root,755)
+%{metron_home}/bin/zk_load_configs.sh
+%attr(0644,root,root) %{metron_home}/lib/metron-common-%{version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
-* Tues Jul 12 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
+* Tue Jul 12 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
 - First packaging
 
