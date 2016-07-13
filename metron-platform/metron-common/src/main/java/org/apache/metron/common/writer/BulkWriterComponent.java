@@ -34,21 +34,37 @@ import java.util.*;
 import java.util.function.Function;
 
 public class BulkWriterComponent<MESSAGE_T> {
-  public static final Logger LOG = LoggerFactory
-            .getLogger(BulkWriterComponent.class);
+  public static final Logger LOG = LoggerFactory.getLogger(BulkWriterComponent.class);
   private Map<String, Collection<Tuple>> sensorTupleMap = new HashMap<>();
   private Map<String, List<MESSAGE_T>> sensorMessageMap = new HashMap<>();
   private OutputCollector collector;
   private boolean handleCommit = true;
   private boolean handleError = true;
+  private Long lastFlushTime;
+  private Long flushIntervalInMs;
+  private boolean flush = false;
+
+
   public BulkWriterComponent(OutputCollector collector) {
     this.collector = collector;
+    this.lastFlushTime = System.currentTimeMillis();
+    this.flush = false;
   }
 
   public BulkWriterComponent(OutputCollector collector, boolean handleCommit, boolean handleError) {
     this(collector);
     this.handleCommit = handleCommit;
     this.handleError = handleError;
+    this.lastFlushTime = System.currentTimeMillis();
+    this.flush = false;
+  }
+
+  public void setFlush(boolean flush) {
+    this.flush = flush;
+  }
+
+  public void setFlushIntervalInMs(Long flushIntervalInMs) {
+    this.flushIntervalInMs = flushIntervalInMs;
   }
 
   public void commit(Iterable<Tuple> tuples) {
@@ -84,12 +100,8 @@ public class BulkWriterComponent<MESSAGE_T> {
     sensorTupleMap.remove(sensorType);
     sensorMessageMap.remove(sensorType);
   }
-  public void write( String sensorType
-                   , Tuple tuple
-                   , MESSAGE_T message
-                   , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
-                   , WriterConfiguration configurations
-                   ) throws Exception
+
+  public void write( String sensorType, Tuple tuple, MESSAGE_T message, BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations) throws Exception
   {
     int batchSize = configurations.getBatchSize(sensorType);
     Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);
@@ -103,10 +115,21 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
     messageList.add(message);
 
-    if (tupleList.size() < batchSize) {
-      sensorTupleMap.put(sensorType, tupleList);
-      sensorMessageMap.put(sensorType, messageList);
-    } else {
+    if(configurations.getGlobalConfig()!=null&&configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG)!=null)
+    {
+      this.setFlush(Boolean.parseBoolean(configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG).toString()));
+      if (configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS) != null)
+      {
+        this.setFlushIntervalInMs(Long.parseLong(configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString()));
+        LOG.trace("Setting time based flushing  to " +configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG)+" with timeout of"+ configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString());
+      }
+    }
+
+    sensorTupleMap.put(sensorType, tupleList);
+    sensorMessageMap.put(sensorType, messageList);
+
+    if(tupleList.size() >= batchSize || (flush && (System.currentTimeMillis() >= (lastFlushTime + flushIntervalInMs))))
+    {
       try {
         bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
         if(handleCommit) {
@@ -124,6 +147,9 @@ public class BulkWriterComponent<MESSAGE_T> {
       finally {
         sensorTupleMap.remove(sensorType);
         sensorMessageMap.remove(sensorType);
+        if (flush) {
+          lastFlushTime = System.currentTimeMillis();
+        }
       }
     }
   }
