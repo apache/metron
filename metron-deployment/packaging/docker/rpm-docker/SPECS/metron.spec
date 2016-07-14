@@ -43,6 +43,7 @@ URL:            %{url}
 Source0:        metron-common-%{full_version}-archive.tar.gz
 Source1:        metron-parsers-%{full_version}-archive.tar.gz
 Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
+Source3:        metron-data-management-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -67,6 +68,7 @@ mkdir -p %{buildroot}%{metron_home}
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE1} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE2} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE3} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -144,7 +146,30 @@ This package installs the Metron Elasticsearch files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        data-management
+Summary:        Metron Data Management Files
+Group:          Applications/Internet
+Provides:       data-management = %{version}
+
+%description    data-management
+This package installs the Metron Parser files
+
+%files          data-management
+%defattr(-,root,root,755)
+%{metron_home}/bin/Whois_CSV_to_JSON.py
+%{metron_home}/bin/flatfile_loader.sh
+%{metron_home}/bin/prune_elasticsearch_indices.sh
+%{metron_home}/bin/prune_hdfs_files.sh
+%{metron_home}/bin/threatintel_bulk_load.sh
+%{metron_home}/bin/threatintel_bulk_prune.sh
+%{metron_home}/bin/threatintel_taxii_load.sh
+%attr(0644, root, root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %changelog
+* Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
+- Adding Data Management subpackage
 * Thu Jul 14 2016 Justin Leet <jsutinjleet@gmail.com> - 0.2.1
 - Adding Elasticsearch subpackage
 * Wed Jul 13 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
