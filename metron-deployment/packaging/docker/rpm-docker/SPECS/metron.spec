@@ -42,6 +42,7 @@ Group:          Applications/Internet
 URL:            %{url}
 Source0:        metron-common-%{full_version}-archive.tar.gz
 Source1:        metron-parsers-%{full_version}-archive.tar.gz
+Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -65,6 +66,7 @@ mkdir -p %{buildroot}%{metron_home}
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE1} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE2} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -126,7 +128,25 @@ This package installs the Metron Parser files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        elasticsearch
+Summary:        Metron Elasticsearch Files
+Group:          Applications/Internet
+Provides:       elasticsearch = %{version}
+
+%description    elasticsearch
+This package installs the Metron Elasticsearch files
+
+%files          elasticsearch
+%defattr(-,root,root,755)
+%{metron_home}/bin/start_elasticsearch_topology.sh
+%{metron_home}/config/elasticsearch.properties
+%attr(0644, root, root) %{metron_home}/lib/metron-elasticsearch-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %changelog
+* Thu Jul 14 2016 Justin Leet <jsutinjleet@gmail.com> - 0.2.1
+- Adding Elasticsearch subpackage
 * Wed Jul 13 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
 - Adding Parsers subpackage
 * Tue Jul 12 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
