@@ -27,7 +27,8 @@
 %define installpriority     %{_priority} # Used by alternatives for concurrent version installs
 %define __jar_repack        %{nil}
 
-%define metron_home         %{_prefix}/%{base_name}/%{full_version}
+%define metron_root         %{_prefix}/%{base_name}
+%define metron_home         %{metron_root}/%{full_version}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -46,6 +47,7 @@ Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
 Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-%{full_version}-archive.tar.gz
+Source6:        metron-pcap-backend-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -73,6 +75,7 @@ tar -xzf %{SOURCE2} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE3} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE4} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -81,12 +84,16 @@ Summary:        Metron Common
 Group:          Applications/Internet
 Provides:       common = %{version}
 
-%description common
+%description    common
 This package installs the Metron common files %{metron_home}
 
-%files common
+%files          common
 
 %defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
 %{metron_home}/bin/zk_load_configs.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
 
@@ -102,6 +109,22 @@ This package installs the Metron Parser files
 
 %files          parsers
 %defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/config/zookeeper
+%dir %{metron_home}/config/zookeeper/parsers
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/asa
+%dir %{metron_home}/flux/fireeye
+%dir %{metron_home}/flux/ise
+%dir %{metron_home}/flux/lancope
+%dir %{metron_home}/flux/paloalto
+%dir %{metron_home}/flux/sourcefire
+%dir %{metron_home}/flux/websphere
+%dir %{metron_home}/patterns
+%dir %{metron_home}/lib
 %{metron_home}/bin/start_parser_topology.sh
 %{metron_home}/config/zookeeper/parsers/bluecoat.json
 %{metron_home}/config/zookeeper/parsers/bro.json
@@ -130,7 +153,7 @@ This package installs the Metron Parser files
 %{metron_home}/patterns/squid
 %{metron_home}/patterns/websphere
 %{metron_home}/patterns/yaf
-%attr(0644, root, root) %{metron_home}/lib/metron-parsers-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-parsers-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -144,9 +167,14 @@ This package installs the Metron Elasticsearch files
 
 %files          elasticsearch
 %defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/lib
 %{metron_home}/bin/start_elasticsearch_topology.sh
 %{metron_home}/config/elasticsearch.properties
-%attr(0644, root, root) %{metron_home}/lib/metron-elasticsearch-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -160,6 +188,10 @@ This package installs the Metron Parser files
 
 %files          data-management
 %defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
 %{metron_home}/bin/Whois_CSV_to_JSON.py
 %{metron_home}/bin/flatfile_loader.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
@@ -167,7 +199,7 @@ This package installs the Metron Parser files
 %{metron_home}/bin/threatintel_bulk_load.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh
 %{metron_home}/bin/threatintel_taxii_load.sh
-%attr(0644, root, root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -181,9 +213,14 @@ This package installs the Metron Solr files
 
 %files          solr
 %defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/lib
 %{metron_home}/bin/start_solr_topology.sh
 %{metron_home}/config/solr.properties
-%attr(0644, root, root) %{metron_home}/lib/metron-solr-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
 
@@ -196,7 +233,15 @@ Provides:       enrichment = %{version}
 This package installs the Metron Enrichment files
 
 %files          enrichment
-%defattr(-,root,root)
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/config/zookeeper
+%dir %{metron_home}/config/zookeeper/enrichments
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/latency_summarizer.sh
 %{metron_home}/config/zookeeper/enrichments/bro.json
 %{metron_home}/config/zookeeper/enrichments/snort.json
@@ -207,7 +252,36 @@ This package installs the Metron Enrichment files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        pcap
+Summary:        Metron PCAP
+Group:          Applications/Internet
+Provides:       pcap = %{version}
+
+%description    pcap
+This package installs the Metron PCAP files %{metron_home}
+
+%files          pcap
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/bin
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/pcap
+%dir %{metron_home}/lib
+%{metron_home}/config/pcap.properties
+%{metron_home}/bin/pcap_inspector.sh
+%{metron_home}/bin/pcap_query.sh
+%{metron_home}/bin/start_pcap_topology.sh
+%{metron_home}/flux/pcap/remote.yaml
+%attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %changelog
+* Thu Jul 14 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
+- Adding PCAP subpackage
+- Added directory macros to files sections
 * Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
 - Adding Enrichment subpackage
 * Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
