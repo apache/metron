@@ -16,26 +16,32 @@
 #
 %define timestamp           %(date +%Y%m%d%H%M)
 %define version             %{?_version}%{!?_version:UNKNOWN}
+%define full_version        %{version}%{?_prerelease}
+%define prerelease_fmt      %{?_prerelease:.%{_prerelease}}          
+%define vendor_version      %{?_vendor_version}%{!?_vendor_version: UNKNOWN}
+%define url                 http://metron.incubator.apache.org/
 %define base_name           metron
+%define name                %{base_name}-%{vendor_version}
 %define versioned_app_name  %{base_name}-%{version}
 %define buildroot           %{_topdir}/BUILDROOT/%{versioned_app_name}-root
 %define installpriority     %{_priority} # Used by alternatives for concurrent version installs
 %define __jar_repack        %{nil}
 
-%define metron_home         %{_prefix}/%{base_name}/%{version}
+%define metron_home         %{_prefix}/%{base_name}/%{full_version}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Name:           %{base_name}
 Version:        %{version}
-Release:        %{timestamp}
+Release:        %{timestamp}%{prerelease_fmt}
 BuildRoot:      %{buildroot}
 BuildArch:      noarch
 Summary:        Apache Metron provides a scalable advanced security analytics framework
 License:        ASL 2.0
-URL:            https://metron.incubator.apache.org
 Group:          Applications/Internet
-Source0:        metron-common-%{version}-archive.tar.gz
+URL:            %{url}
+Source0:        metron-common-%{full_version}-archive.tar.gz
+Source1:        metron-parsers-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -58,6 +64,7 @@ mkdir -p %{buildroot}%{metron_home}
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE1} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -73,11 +80,54 @@ This package installs the Metron common files %{metron_home}
 
 %defattr(-,root,root,755)
 %{metron_home}/bin/zk_load_configs.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-common-%{version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        parsers
+Summary:        Metron Parser Files
+Group:          Applications/Internet
+Provides:       parsers = %{version}
+
+%description    parsers
+This package installs the Metron Parser files
+
+%files          parsers
+%defattr(-,root,root,755)
+%{metron_home}/bin/start_parser_topology.sh
+%{metron_home}/config/zookeeper/parsers/bluecoat.json
+%{metron_home}/config/zookeeper/parsers/bro.json
+%{metron_home}/config/zookeeper/parsers/snort.json
+%{metron_home}/config/zookeeper/parsers/squid.json
+%{metron_home}/config/zookeeper/parsers/websphere.json
+%{metron_home}/config/zookeeper/parsers/yaf.json
+%{metron_home}/flux/asa/remote.yaml
+%{metron_home}/flux/asa/test.yaml
+%{metron_home}/flux/fireeye/remote.yaml
+%{metron_home}/flux/fireeye/test.yaml
+%{metron_home}/flux/ise/remote.yaml
+%{metron_home}/flux/ise/test.yaml
+%{metron_home}/flux/lancope/remote.yaml
+%{metron_home}/flux/lancope/test.yaml
+%{metron_home}/flux/paloalto/remote.yaml
+%{metron_home}/flux/paloalto/test.yaml
+%{metron_home}/flux/sourcefire/remote.yaml
+%{metron_home}/flux/sourcefire/test.yaml
+%{metron_home}/flux/websphere/remote.yaml
+%{metron_home}/flux/websphere/test.yaml
+%{metron_home}/patterns/asa
+%{metron_home}/patterns/common
+%{metron_home}/patterns/fireeye
+%{metron_home}/patterns/sourcefire
+%{metron_home}/patterns/squid
+%{metron_home}/patterns/websphere
+%{metron_home}/patterns/yaf
+%attr(0644, root, root) %{metron_home}/lib/metron-parsers-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Wed Jul 13 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
+- Adding Parsers subpackage
 * Tue Jul 12 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
 - First packaging
-
