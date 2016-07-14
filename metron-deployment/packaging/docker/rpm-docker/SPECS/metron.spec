@@ -44,6 +44,7 @@ Source0:        metron-common-%{full_version}-archive.tar.gz
 Source1:        metron-parsers-%{full_version}-archive.tar.gz
 Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
+Source4:        metron-solr-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -69,6 +70,7 @@ tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE1} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE2} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE3} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE4} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -167,7 +169,25 @@ This package installs the Metron Parser files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        solr
+Summary:        Metron Solr Files
+Group:          Applications/Internet
+Provides:       solr = %{version}
+
+%description    solr
+This package installs the Metron Solr files
+
+%files          solr
+%defattr(-,root,root,755)
+%{metron_home}/bin/start_solr_topology.sh
+%{metron_home}/config/solr.properties
+%attr(0644, root, root) %{metron_home}/lib/metron-solr-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %changelog
+* Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
+- Adding Solr subpackage
 * Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
 - Adding Data Management subpackage
 * Thu Jul 14 2016 Justin Leet <jsutinjleet@gmail.com> - 0.2.1
