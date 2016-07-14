@@ -45,6 +45,7 @@ Source1:        metron-parsers-%{full_version}-archive.tar.gz
 Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
 Source4:        metron-solr-%{full_version}-archive.tar.gz
+Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -71,6 +72,7 @@ tar -xzf %{SOURCE1} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE2} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE3} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE4} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -183,9 +185,31 @@ This package installs the Metron Solr files
 %{metron_home}/config/solr.properties
 %attr(0644, root, root) %{metron_home}/lib/metron-solr-%{full_version}.jar
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+
+%package        enrichment
+Summary:        Metron Enrichment Files
+Group:          Applications/Internet
+Provides:       enrichment = %{version}
+
+%description    enrichment
+This package installs the Metron Enrichment files
+
+%files          enrichment
+%defattr(-,root,root)
+%{metron_home}/bin/latency_summarizer.sh
+%{metron_home}/config/zookeeper/enrichments/bro.json
+%{metron_home}/config/zookeeper/enrichments/snort.json
+%{metron_home}/config/zookeeper/enrichments/websphere.json
+%{metron_home}/config/zookeeper/enrichments/yaf.json
+%{metron_home}/flux/enrichment/remote.yaml
+%{metron_home}/flux/enrichment/test.yaml
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
+- Adding Enrichment subpackage
 * Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
 - Adding Solr subpackage
 * Thu Jul 14 2016 Justin Leet <justinjleet@gmail.com> - 0.2.1
