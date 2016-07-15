@@ -294,6 +294,10 @@
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.apache.metron.guava</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons.beanutils</pattern>
+                                    <shadedPattern>org.apache.metron.beanutils</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer
