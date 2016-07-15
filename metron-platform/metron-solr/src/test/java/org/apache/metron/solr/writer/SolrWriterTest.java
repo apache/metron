@@ -17,11 +17,9 @@
  */
 package org.apache.metron.solr.writer;
 
-import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
-import org.apache.metron.integration.utils.SampleUtil;
+import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.hamcrest.Description;

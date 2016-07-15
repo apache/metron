@@ -20,7 +20,6 @@ package org.apache.metron.integration;
 import com.google.common.base.Function;
 import org.apache.metron.TestConstants;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;

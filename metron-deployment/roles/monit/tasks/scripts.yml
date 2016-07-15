@@ -39,6 +39,7 @@
     - bro
     - pcap
     - enrichment
+    - indexing
 
 - name: Deploy topology status scripts
   template:
@@ -51,3 +52,4 @@
     - bro
     - pcap
     - enrichment
+    - indexing

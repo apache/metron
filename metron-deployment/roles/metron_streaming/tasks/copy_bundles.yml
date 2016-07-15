@@ -30,6 +30,12 @@
     src: "{{ metron_enrichment_bundle_path }}"
     dest: "{{ metron_directory }}"
 
+- name: Copy Metron Indexing bundle
+  copy:
+    src: "{{ metron_indexing_bundle_path }}"
+    dest: "{{ metron_directory }}"
+
+
 - name: Copy Metron Parsers bundle
   copy:
     src: "{{ metron_parsers_bundle_path }}"
@@ -58,6 +64,7 @@
     - tar xzvf metron-solr*.tar.gz
     - tar xzvf metron-elasticsearch*.tar.gz
     - tar xzvf metron-enrichment*.tar.gz
+    - tar xzvf metron-indexing*.tar.gz
     - tar xzvf metron-parsers*.tar.gz
     - tar xzvf metron-data-management*.tar.gz
     - tar xzvf metron-common*.tar.gz
@@ -67,6 +74,9 @@
 - name: Add *-site.xml files to topology jars
   shell: "cd {{ item.config_path }} && jar -uf {{ metron_directory }}/lib/{{ item.jar_name }} {{ item.file_name }}"
   with_items:
+      - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_enrichment_jar_name }}", file_name: "hbase-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_enrichment_jar_name }}", file_name: "core-site.xml" }
+      - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_enrichment_jar_name }}", file_name: "hdfs-site.xml" }
       - { config_path: "{{ hbase_config_path }}", jar_name: "{{ metron_solr_jar_name }}", file_name: "hbase-site.xml" }
       - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_solr_jar_name }}", file_name: "core-site.xml" }
       - { config_path: "{{ hdfs_config_path }}", jar_name: "{{ metron_solr_jar_name }}", file_name: "hdfs-site.xml" }

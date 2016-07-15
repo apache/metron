@@ -29,18 +29,14 @@
     - { regexp: "kafka.pcap.out=", line: "kafka.pcap.out={{ pcap_hdfs_path }}" }
     - { regexp: "spout.kafka.topic.pcap=", line: "spout.kafka.topic.pcap={{ pycapa_topic }}" }
 
-- name: Configure Metron Solr topology
+- name: Configure Metron Enrichment topology
   lineinfile: >
-    dest={{ metron_solr_properties_config_path }}
+    dest={{ metron_enrichment_properties_config_path }}
     regexp="{{ item.regexp }}"
     line="{{ item.line }}"
   with_items:
     - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
     - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
-    - { regexp: "es.ip=", line: "es.ip={{ groups.search[0] }}" }
-    - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
-    - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
-    - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
     - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
     - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
     - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
@@ -50,6 +46,17 @@
     - { regexp: "enrichment.simple.hbase.cf=", line: "enrichment.simple.hbase.cf=t" }
     - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
     - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
+
+
+- name: Configure Metron Solr topology
+  lineinfile: >
+    dest={{ metron_solr_properties_config_path }}
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+  with_items:
+    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
+    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
+    - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
     - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
@@ -67,15 +74,6 @@
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "spout.kafka.topic.bro=", line: "spout.kafka.topic.bro={{ bro_topic }}" }
-    - { regexp: "threat.intel.tracker.table=", line: "threat.intel.tracker.table={{ tracker_hbase_table }}" }
-    - { regexp: "threat.intel.tracker.cf=", line: "threat.intel.tracker.cf=t" }
-    - { regexp: "threat.intel.simple.hbase.table=", line: "threat.intel.simple.hbase.table={{ threatintel_hbase_table }}" }
-    - { regexp: "threat.intel.simple.hbase.cf=", line: "threat.intel.simple.hbase.cf=t" }
-    - { regexp: "enrichment.simple.hbase.table=", line: "enrichment.simple.hbase.table={{ enrichment_hbase_table }}" }
-    - { regexp: "enrichment.simple.hbase.cf=", line: "enrichment.simple.hbase.cf=t" }
-    - { regexp: "mysql.ip=", line: "mysql.ip={{ groups.mysql[0] }}" }
-    - { regexp: "mysql.password=", line: "mysql.password={{ mysql_root_password }}" }
     - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }

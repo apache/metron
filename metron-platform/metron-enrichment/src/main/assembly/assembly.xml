@@ -53,5 +53,13 @@
       <fileMode>0644</fileMode>
       <lineEnding>unix</lineEnding>
     </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/target</directory>
+      <includes>
+        <include>${project.artifactId}-${project.version}-uber.jar</include>
+      </includes>
+      <outputDirectory>/lib</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+    </fileSet>
   </fileSets>
 </assembly>

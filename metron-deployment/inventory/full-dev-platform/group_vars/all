@@ -30,6 +30,7 @@ services_to_start:
   - bro-parser
   - snort-parser
   - enrichment
+  - indexing
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"

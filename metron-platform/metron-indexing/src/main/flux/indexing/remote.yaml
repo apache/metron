@@ -1,0 +1,152 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "indexing"
+config:
+    topology.workers: ${indexing.workers}
+    topology.acker.executors: ${indexing.executors}
+
+components:
+
+    -   id: "fileNameFormat"
+        className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
+        configMethods:
+            -   name: "withPrefix"
+                args:
+                    - "enrichment-"
+            -   name: "withExtension"
+                args:
+                  - ".json"
+            -   name: "withPath"
+                args:
+                    - "${index.hdfs.output}"
+
+    -   id: "hdfsRotationPolicy"
+        className: "${bolt.hdfs.rotation.policy}"
+        constructorArgs:
+          -  ${bolt.hdfs.rotation.policy.count}
+          - "${bolt.hdfs.rotation.policy.units}"
+#indexing
+    -   id: "hdfsWriter"
+        className: "org.apache.metron.writer.hdfs.HdfsWriter"
+        configMethods:
+            -   name: "withFileNameFormat"
+                args:
+                    - ref: "fileNameFormat"
+            -   name: "withRotationPolicy"
+                args:
+                    - ref: "hdfsRotationPolicy"
+    -   id: "kafkaWriter"
+        className: "org.apache.metron.writer.kafka.KafkaWriter"
+        configMethods:
+            -   name: "withTopic"
+                args:
+                    - "${index.error.topic}"
+            -   name: "withZkQuorum"
+                args:
+                    - "${kafka.zk}"
+
+    -   id: "indexWriter"
+        className: "${writer.class.name}"
+
+#kafka/zookeeper
+    -   id: "zkHosts"
+        className: "storm.kafka.ZkHosts"
+        constructorArgs:
+            - "${kafka.zk}"
+    -   id: "kafkaConfig"
+        className: "org.apache.metron.common.spout.kafka.SpoutConfig"
+        constructorArgs:
+            # zookeeper hosts
+            - ref: "zkHosts"
+            # topic name
+            - "${index.input.topic}"
+            # zk root
+            - ""
+            # id
+            - "indexing"
+        configMethods:
+            -   name: "from"
+                args:
+                    - "${kafka.start}"
+
+spouts:
+    -   id: "kafkaSpout"
+        className: "storm.kafka.KafkaSpout"
+        constructorArgs:
+            - ref: "kafkaConfig"
+bolts:
+
+# Indexing Bolts
+    -   id: "indexingBolt"
+        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withBulkMessageWriter"
+                args:
+                    - ref: "indexWriter"
+            -   name: "withMessageGetter"
+                args:
+                    - "RAW"
+    -   id: "hdfsIndexingBolt"
+        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withBulkMessageWriter"
+                args:
+                    - ref: "hdfsWriter"
+            -   name: "withMessageGetter"
+                args:
+                    - "RAW"
+
+    -   id: "indexingErrorBolt"
+        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withMessageWriter"
+                args:
+                    - ref: "kafkaWriter"
+
+streams:
+
+    -   name: "spout -> indexing"
+        from: "kafkaSpout"
+        to: "indexingBolt"
+        grouping:
+            type: SHUFFLE
+
+    -   name: "spout -> hdfs"
+        from: "kafkaSpout"
+        to: "hdfsIndexingBolt"
+        grouping:
+            type: SHUFFLE
+
+    -   name: "indexingBolt -> errorIndexingBolt"
+        from: "indexingBolt"
+        to: "indexingErrorBolt"
+        grouping:
+            streamId: "error"
+            type: SHUFFLE
+
+    -   name: "hdfsBolt -> errorIndexingBolt"
+        from: "hdfsIndexingBolt"
+        to: "indexingErrorBolt"
+        grouping:
+            streamId: "error"
+            type: SHUFFLE

@@ -30,6 +30,7 @@ services_to_start:
   - bro-parser
   - snort-parser
   - enrichment
+  - indexing
 
 # ec2
 env: metron-test

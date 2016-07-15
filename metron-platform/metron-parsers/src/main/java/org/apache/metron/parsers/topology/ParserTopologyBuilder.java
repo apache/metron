@@ -29,18 +29,17 @@ import org.apache.metron.common.interfaces.MessageWriter;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.spout.kafka.SpoutConfigOptions;
 import org.apache.metron.common.utils.ReflectionUtils;
-import org.apache.metron.common.writer.AbstractWriter;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.parsers.writer.KafkaWriter;
+import org.apache.metron.writer.AbstractWriter;
+import org.apache.metron.writer.kafka.KafkaWriter;
 import org.json.simple.JSONObject;
 import storm.kafka.KafkaSpout;
 import storm.kafka.ZkHosts;
 
 import java.util.EnumMap;
-import java.util.Map;
 
 public class ParserTopologyBuilder {
 

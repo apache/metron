@@ -17,13 +17,12 @@
  */
 package org.apache.metron.enrichment.lookup.accesstracker;
 
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnel;
-import com.google.common.hash.PrimitiveSink;
+import org.apache.metron.common.utils.BloomFilter;
 import org.apache.metron.enrichment.lookup.LookupKey;
 
 import java.io.*;
 import java.util.Map;
+import java.util.function.Function;
 
 public class BloomAccessTracker implements AccessTracker {
     private static final long serialVersionUID = 1L;
@@ -31,24 +30,13 @@ public class BloomAccessTracker implements AccessTracker {
     public static final String FALSE_POSITIVE_RATE_KEY = "false_positive_rate";
     public static final String NAME_KEY = "name";
 
-    private static class LookupKeyFunnel implements Funnel<LookupKey> {
-        @Override
-        public void funnel(LookupKey lookupKey, PrimitiveSink primitiveSink) {
-            primitiveSink.putBytes(lookupKey.toBytes());
-        }
 
+    public static class LookupKeySerializer implements Function<LookupKey, byte[]>, Serializable {
         @Override
-        public boolean equals(Object obj) {
-            return this.getClass().equals(obj.getClass());
-        }
-
-        @Override
-        public int hashCode() {
-            return super.hashCode() * 31;
+        public byte[] apply(LookupKey lookupKey) {
+            return lookupKey.toBytes();
         }
     }
-
-    private static Funnel<LookupKey> LOOKUPKEY_FUNNEL = new LookupKeyFunnel();
 
     BloomFilter<LookupKey> filter;
     String name;
@@ -60,7 +48,7 @@ public class BloomAccessTracker implements AccessTracker {
         this.name = name;
         this.expectedInsertions = expectedInsertions;
         this.falsePositiveRate = falsePositiveRate;
-        filter = BloomFilter.create(LOOKUPKEY_FUNNEL, expectedInsertions, falsePositiveRate);
+        filter = new BloomFilter<LookupKey>(new LookupKeySerializer(), expectedInsertions, falsePositiveRate);
     }
     public BloomAccessTracker() {}
     public BloomAccessTracker(Map<String, Object> config) {
@@ -73,7 +61,7 @@ public class BloomAccessTracker implements AccessTracker {
     @Override
     public void logAccess(LookupKey key) {
         numInsertions++;
-        filter.put(key);
+        filter.add(key);
     }
 
     @Override
@@ -81,7 +69,7 @@ public class BloomAccessTracker implements AccessTracker {
         expectedInsertions = toInt(config.get(EXPECTED_INSERTIONS_KEY));
         falsePositiveRate = toDouble(config.get(FALSE_POSITIVE_RATE_KEY));
         name = config.get(NAME_KEY).toString();
-        filter = BloomFilter.create(LOOKUPKEY_FUNNEL, expectedInsertions, falsePositiveRate);
+        filter = new BloomFilter<LookupKey>(new LookupKeySerializer(), expectedInsertions, falsePositiveRate);
     }
 
     @Override
@@ -91,7 +79,7 @@ public class BloomAccessTracker implements AccessTracker {
 
     @Override
     public void reset() {
-        filter = BloomFilter.create(LOOKUPKEY_FUNNEL, expectedInsertions, falsePositiveRate);
+        filter = new BloomFilter<LookupKey>(new LookupKeySerializer(), expectedInsertions, falsePositiveRate);
     }
 
     private static double toDouble(Object o) {
@@ -129,7 +117,7 @@ public class BloomAccessTracker implements AccessTracker {
             throw new IllegalStateException("Unable to union access tracker, because this tracker is not initialized.");
         }
         if(tracker instanceof BloomAccessTracker ) {
-            filter.putAll(((BloomAccessTracker)tracker).getFilter());
+            filter.merge(((BloomAccessTracker)tracker).getFilter());
             return this;
         }
         else {

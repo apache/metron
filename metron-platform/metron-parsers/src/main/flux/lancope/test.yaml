@@ -22,7 +22,7 @@ components:
     -   id: "parser"
         className: "org.apache.metron.parsers.lancope.BasicLancopeParser"
     -   id: "writer"
-        className: "org.apache.metron.parsers.writer.KafkaWriter"
+        className: "org.apache.metron.writer.kafka.KafkaWriter"
         constructorArgs:
             - "${kafka.broker}"
     -   id: "zkHosts"
