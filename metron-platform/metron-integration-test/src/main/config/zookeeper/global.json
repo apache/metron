@@ -7,10 +7,12 @@
   "solr.collection": "metron",
   "solr.numShards": 1,
   "solr.replicationFactor": 1,
+  "flushIntervalInMs": "20000",
+  "flushOnTimeout": "false",
   "fieldValidations" : [
     {
-       "input" : [ "src_ip_addr", "dst_ip_addr"]
-      ,"validation" : "IP"
+      "input" : [ "src_ip_addr", "dst_ip_addr"]
+    ,"validation" : "IP"
     }
-                       ]
+  ]
 }
