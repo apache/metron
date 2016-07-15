@@ -125,33 +125,32 @@
 - hosts: sensors
   become: true
   roles:
-    - { role: ambari_gather_facts, tags: [ 'always'] }
-    - { role: tap_interface, tags: ['tap'] }
-    - { role: pycapa, tags: ['pycapa'] }
-    - { role: bro, tags: ['bro'] }
-    - { role: flume,  tags: ['snort','flume'] }
-    - { role: snort, tags: ['snort'] }
-    - { role: yaf, tags: ['yaf'] }
-    - { role: pcap_replay, tags: ['pcap-replay'] }
-    - { role: sensor-test-mode, tags: ['sensor-test-mode'] }
+    - { role: ambari_gather_facts,    tags: ['always'] }
+    - { role: tap_interface,          tags: ['tap'] }
+    - { role: pycapa,                 tags: ['pycapa'] }
+    - { role: bro,                    tags: ['bro'] }
+    - { role: flume,                  tags: ['snort','flume'] }
+    - { role: snort,                  tags: ['snort'] }
+    - { role: yaf,                    tags: ['yaf'] }
+    - { role: pcap_replay,            tags: ['pcap-replay'] }
+    - { role: sensor-test-mode,       tags: ['sensor-test-mode'] }
   tags:
     - sensors
 
 #
-# monit
+# monitor and start metron services with monit
 #
 - hosts: metron
   become: true
   roles:
-    - role: ambari_gather_facts
-    - role: monit
-  tags:
-    - monit
+    - { role: ambari_gather_facts,    tags: ['always'] }
+    - { role: monit,                  tags: ['monit'] }
+    - { role: monit-start,            tags: ['start'] }
 
+#
+# deployment report
+#
 - hosts: metron
-  become: true
+  become: false
   roles:
-    - role: ambari_gather_facts
-    - role: monit-start
-  tags:
-    - start
+    - { role: deployment-report,      tags: ['report'] }

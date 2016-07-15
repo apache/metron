@@ -31,16 +31,30 @@ services_to_start:
   - snort-parser
   - enrichment
 
+# the ami for cent6 by region
+amis_by_region:
+  us-east-1:        ami-1c221e76    # US East (N. Virginia)
+  us-west-2:        ami-05cf2265    # US West (Oregon)
+  us-west-1:        ami-ac5f2fcc    # US West (N. California)
+  eu-central-1:     ami-2bf11444    # EU (Frankfurt)
+  eu-west-1:        ami-edb9069e    # EU (Ireland)
+  ap-south-1:       ami-9b1c76f4    # Asia Pacific (Mumbai)
+  ap-southeast-1:   ami-106aa373    # Asia Pacific (Singapore)
+  ap-southeast-2:   ami-87d2f4e4    # Asia Pacific (Sydney)
+  ap-northeast-1:   ami-fa3d3f94    # Asia Pacific (Tokyo)
+  ap-northeast-2:   ami-56478938    # Asia Pacific (Seoul)
+  sa-east-1:        ami-03b93b6f    # South America (Sao Paulo)
+
 # ec2
 env: metron-test
 region: us-west-2
 instance_type: m4.xlarge
-image: ami-05cf2265
 volume_type: standard
 key_name: metron-key
 xvda_vol_size: 50
 xvdb_vol_size: 100
 xvdc_vol_size: 100
+image: "{{ amis_by_region[region] }}"
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
