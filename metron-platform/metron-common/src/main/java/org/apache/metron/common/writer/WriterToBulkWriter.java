@@ -18,13 +18,15 @@
 
 package org.apache.metron.common.writer;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
-import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.MessageWriter;
+import org.json.simple.JSONObject;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +47,18 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
       throw new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1");
     }
     messageWriter.write(sensorType, configurations, Iterables.getFirst(tuples, null), Iterables.getFirst(messages, null));
+  }
+
+  @Override
+  public void writeGlobalBatch(Map<String, Collection<Tuple>> sensorTupleMap, WriterConfiguration configurations, OutputCollector outputCollector) throws Exception {
+    for(String sensorType:sensorTupleMap.keySet()){
+      if(sensorTupleMap.get(sensorType).size() > 1) {
+        throw new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1");
+      }
+      JSONObject message=(JSONObject)((Tuple)Iterables.getFirst(sensorTupleMap.get(sensorType),null).getValueByField("message"));
+      messageWriter.write(sensorType, configurations, Iterables.getFirst(sensorTupleMap.get(sensorType), null), (MESSAGE_T) message);
+    }
+
   }
 
   @Override

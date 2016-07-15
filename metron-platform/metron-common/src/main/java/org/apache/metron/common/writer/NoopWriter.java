@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.writer;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -24,10 +25,9 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
 
-import java.io.Closeable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
@@ -131,6 +131,13 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<Obje
 
   @Override
   public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<Object> messages) throws Exception {
+    if(sleepFunction != null) {
+      sleepFunction.apply(null);
+    }
+  }
+
+  @Override
+  public void writeGlobalBatch(Map<String, Collection<Tuple>> sensorTupleMap, WriterConfiguration configurations, OutputCollector outputCollector) throws Exception {
     if(sleepFunction != null) {
       sleepFunction.apply(null);
     }
