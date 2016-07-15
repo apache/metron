@@ -41,30 +41,18 @@ public class BulkWriterComponent<MESSAGE_T> {
   private boolean handleCommit = true;
   private boolean handleError = true;
   private Long lastFlushTime;
-  private Long flushIntervalInMs;
-  private boolean flush = false;
+  Map<String,Object> globalConfig=null;
 
 
   public BulkWriterComponent(OutputCollector collector) {
     this.collector = collector;
     this.lastFlushTime = System.currentTimeMillis();
-    this.flush = false;
   }
 
   public BulkWriterComponent(OutputCollector collector, boolean handleCommit, boolean handleError) {
     this(collector);
     this.handleCommit = handleCommit;
     this.handleError = handleError;
-    this.lastFlushTime = System.currentTimeMillis();
-    this.flush = false;
-  }
-
-  public void setFlush(boolean flush) {
-    this.flush = flush;
-  }
-
-  public void setFlushIntervalInMs(Long flushIntervalInMs) {
-    this.flushIntervalInMs = flushIntervalInMs;
   }
 
   public void commit(Iterable<Tuple> tuples) {
@@ -104,6 +92,9 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void write( String sensorType, Tuple tuple, MESSAGE_T message, BulkMessageWriter<MESSAGE_T> bulkMessageWriter, WriterConfiguration configurations) throws Exception
   {
     int batchSize = configurations.getBatchSize(sensorType);
+    boolean flush=false;
+    long flushIntervalInMs=0;
+
     Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);
     if (tupleList == null) {
       tupleList = createTupleCollection();
@@ -114,14 +105,15 @@ public class BulkWriterComponent<MESSAGE_T> {
       messageList = new ArrayList<>();
     }
     messageList.add(message);
+    globalConfig=configurations.getGlobalConfig();
 
-    if(configurations.getGlobalConfig()!=null&&configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG)!=null)
+    if(globalConfig!=null&&globalConfig.get(Constants.TIME_FLUSH_FLAG)!=null)
     {
-      this.setFlush(Boolean.parseBoolean(configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG).toString()));
-      if (configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS) != null)
+      flush=Boolean.parseBoolean(globalConfig.get(Constants.TIME_FLUSH_FLAG).toString());
+      if (globalConfig.get(Constants.FLUSH_INTERVAL_IN_MS) != null)
       {
-        this.setFlushIntervalInMs(Long.parseLong(configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString()));
-        LOG.trace("Setting time based flushing  to " +configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG)+" with timeout of"+ configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString());
+        flushIntervalInMs=Long.parseLong(globalConfig.get(Constants.FLUSH_INTERVAL_IN_MS).toString());
+        LOG.trace("Setting time based flushing  to " +globalConfig.get(Constants.TIME_FLUSH_FLAG)+" with timeout of"+ globalConfig.get(Constants.FLUSH_INTERVAL_IN_MS).toString());
       }
     }
 
