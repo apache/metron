@@ -162,6 +162,7 @@
                         <exclude>**/*.seed</exclude>
                         <exclude>**/*.iml</exclude>
                         <exclude>**/ansible.cfg</exclude>
+                        <exclude>**/*.rpm</exclude>
                         <exclude>site/**</exclude>
                         <exclude>**/src/main/resources/patterns/**</exclude>
                         <exclude>**/src/main/sample/patterns/**</exclude>

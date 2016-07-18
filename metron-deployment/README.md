@@ -91,6 +91,33 @@ installed
 Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.  This also provides a good
 example of how to run a full end-to-end Metron install.
 
+## RPM
+RPMs can be built to install the components in metron-platform. These RPMs are built in a Docker container and placed into `target`.
+
+Components in the RPMs:
+- metron-common
+- metron-data-management
+- metron-elasticsearch
+- metron-enrichment
+- metron-parsers
+- metron-pcap
+- metron-solr
+
+### Prerequisites
+- Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
+- On Mac, Docker Toolbox's handling of ownership causes permissions issues in the Docker container.  Please use Docker for Mac instead.
+- Artifacts for metron-platform have been produced.  E.g. `mvn clean package -DskipTests` in `metron-platform`
+
+### Building RPMs
+From `metron-deployment` run
+```
+mvn clean package
+```
+
+The output RPM files will land in `target/RPMS/noarch`.  They can be installed with the standard
+```
+rpm -i <package>
+```
 
 ## TODO
 - migrate existing MySQL/GeoLite playbook
