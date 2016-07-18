@@ -37,7 +37,10 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -227,5 +230,48 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     verify(outputCollector, times(9)).ack(tuple);
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
+  }
+
+
+  @Test
+  public void testTimeBasedFlushing() throws Exception {
+    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl").withBulkMessageWriter(bulkMessageWriter);
+    bulkMessageWriterBolt.setCuratorFramework(client);
+    bulkMessageWriterBolt.setTreeCache(cache);
+    bulkMessageWriterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
+    bulkMessageWriterBolt.getConfigurations().updateGlobalConfig(new FileInputStream(sampleSensorEnrichmentConfigPath));
+
+    bulkMessageWriterBolt.getConfigurations().getGlobalConfig().put(Constants.TIME_FLUSH_FLAG,"true");
+    bulkMessageWriterBolt.getConfigurations().getGlobalConfig().put(Constants.FLUSH_INTERVAL_IN_MS,"5000");
+
+    bulkMessageWriterBolt.declareOutputFields(declarer);
+    verify(declarer, times(1)).declareStream(eq("error"), argThat(new FieldsMatcher("message")));
+
+    Map stormConf = new HashMap();
+    doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf), any(WriterConfiguration.class));
+    try {
+      bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
+      fail("A runtime exception should be thrown when bulkMessageWriter.init throws an exception");
+    } catch(RuntimeException e) {}
+    reset(bulkMessageWriter);
+    bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
+
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
+    tupleList = new ArrayList<>();
+    for(int i = 0; i < 3; i++) {
+      when(tuple.getValueByField("message")).thenReturn(messageList.get(i));
+      tupleList.add(tuple);
+      bulkMessageWriterBolt.execute(tuple);
+      verify(bulkMessageWriter, times(0)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), eq(messageList));
+    }
+    when(tuple.getValueByField("message")).thenReturn(messageList.get(3));
+    tupleList.add(tuple);
+
+    Thread.sleep(5000);
+
+    bulkMessageWriterBolt.execute(tuple);
+    verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), argThat(new MessageListMatcher(messageList.subList(0,4))));
+    verify(outputCollector, times(4)).ack(tuple);
+
   }
 }
