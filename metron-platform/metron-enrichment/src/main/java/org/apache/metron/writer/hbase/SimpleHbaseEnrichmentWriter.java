@@ -18,17 +18,14 @@
 
 package org.apache.metron.writer.hbase;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -37,16 +34,13 @@ import org.apache.metron.common.writer.AbstractWriter;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.json.simple.JSONObject;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
@@ -269,6 +263,38 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       }
     }
     table.put(puts);
+  }
+
+  @Override
+  public void writeGlobalBatch(Map<String, Collection<Tuple>> sensorTupleMap, WriterConfiguration configurations, OutputCollector outputCollector) throws Exception {
+    {
+      for(String sensorType:sensorTupleMap.keySet()){
+        List<Put> puts = new ArrayList<>();
+        for(Tuple tuple:sensorTupleMap.get(sensorType)){
+
+
+          Map<String, Object> sensorConfig = configurations.getSensorConfig(sensorType);
+          HTableInterface table = getTable(sensorConfig);
+          KeyTransformer transformer = getTransformer(sensorConfig);
+          Object enrichmentTypeObj = Configurations.ENRICHMENT_TYPE.get(sensorConfig);
+          String enrichmentType = enrichmentTypeObj == null?null:enrichmentTypeObj.toString();
+          Set<String> valueColumns = new HashSet<>(getColumns(Configurations.VALUE_COLUMNS.get(sensorConfig), true));
+
+          JSONObject message=(JSONObject)tuple.getValueByField("message");
+          EnrichmentKey key = getKey(message, transformer, enrichmentType);
+          EnrichmentValue value = getValue(message, transformer.keySet, valueColumns);
+          if(key == null || value == null) {
+            continue;
+          }
+          Put put = converter.toPut(this.cf, key, value);
+          if(put != null) {
+            puts.add(put);
+          }
+        }
+        table.put(puts);
+      }
+
+    }
   }
 
   @Override

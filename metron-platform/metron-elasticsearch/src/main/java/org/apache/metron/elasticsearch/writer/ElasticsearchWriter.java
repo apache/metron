@@ -17,16 +17,17 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.utils.ErrorUtils;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -174,6 +175,61 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     }
 
+  }
+
+  @Override
+  public void writeGlobalBatch(Map<String, Collection<Tuple>> sensorTupleMap, WriterConfiguration configurations, OutputCollector outputCollector) throws Exception {
+    String indexPostfix = dateFormat.format(new Date());
+    BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+    for(String sensorType:sensorTupleMap.keySet()){
+      try{
+        for(Tuple tuple:sensorTupleMap.get(sensorType)){
+
+          String indexName = sensorType;
+          JSONObject message=(JSONObject)tuple.getValueByField("message");
+
+          if (configurations != null) {
+            indexName = configurations.getIndex(sensorType);
+          }
+
+          indexName = indexName + "_index_" + indexPostfix;
+
+          JSONObject esDoc = new JSONObject();
+          for(Object k : message.keySet()){
+            deDot(k.toString(),message,esDoc);
+          }
+
+          IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName, sensorType + "_doc");
+
+          indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
+          Object ts = esDoc.get("timestamp");
+          if(ts != null) {
+            indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
+          }
+          bulkRequest.add(indexRequestBuilder);
+
+        }
+      }catch(Exception e){
+      //Handle the exception and move to next sensorType
+        LOG.error("Error:"+e.getMessage()+" while adding index for sensor "+sensorType);
+        this.error(e,sensorTupleMap.get(sensorType),outputCollector);
+      }
+    }
+
+    BulkResponse resp = bulkRequest.execute().actionGet();
+    if (resp.hasFailures()) {
+
+      throw new Exception(resp.buildFailureMessage());
+    }
+  }
+
+  public void error(Throwable e, Iterable<Tuple> tuples,OutputCollector collector) {
+    tuples.forEach(t -> collector.ack(t));
+    if(!Iterables.isEmpty(tuples)) {
+      LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
+      ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
+    }
   }
 
   @Override

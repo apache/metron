@@ -17,12 +17,12 @@
  */
 package org.apache.metron.common.interfaces;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -35,4 +35,5 @@ public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializabl
             , List<MESSAGE_T> messages
             ) throws Exception;
 
+  void writeGlobalBatch(Map<String, Collection<Tuple>> sensorTupleMap, WriterConfiguration configurations, OutputCollector outputCollector) throws Exception;
 }

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.writer;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
@@ -28,18 +29,23 @@ import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 
 public class SolrWriterTest {
+
+  @Mock
+  protected OutputCollector outputCollector;
+
+  @Mock
+  protected Tuple tuple1,tuple2;
+
 
   class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
 
@@ -138,4 +144,65 @@ public class SolrWriterTest {
     verify(solr, times(1)).commit(collection);
 
   }
+
+  @Test
+  public void testSolrGlobalFlush() throws Exception {
+    EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
+    Map<String, Collection<Tuple>> sensorTupleMap=new HashMap<>();
+    MockitoAnnotations.initMocks(this);
+    JSONObject message1 = new JSONObject();
+    message1.put("intField", 100);
+    message1.put("doubleField", 100.0);
+    JSONObject message2 = new JSONObject();
+    message2.put("intField", 200);
+    message2.put("doubleField", 200.0);
+    List<JSONObject> messages = new ArrayList<>();
+    messages.add(message1);
+    messages.add(message2);
+
+    List<Tuple> list1=new ArrayList<>();
+    List<Tuple> list2=new ArrayList<>();
+    when(tuple1.getValueByField("message")).thenReturn(message1);
+    list1.add(tuple1);
+    when(tuple2.getValueByField("message")).thenReturn(message2);
+    list2.add(tuple2);
+
+    sensorTupleMap.put("sensor1",list1);
+    sensorTupleMap.put("sensor2",list2);
+
+    String collection = "metron";
+    MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
+    SolrWriter writer = new SolrWriter().withMetronSolrClient(solr);
+    writer.init(null, new EnrichmentWriterConfiguration(configurations));
+    verify(solr, times(1)).createCollection(collection, 1, 1);
+    verify(solr, times(1)).setDefaultCollection(collection);
+
+    collection = "metron2";
+    int numShards = 4;
+    int replicationFactor = 2;
+    Map<String, Object> globalConfig = configurations.getGlobalConfig();
+    globalConfig.put("solr.collection", collection);
+    globalConfig.put("solr.numShards", numShards);
+    globalConfig.put("solr.replicationFactor", replicationFactor);
+    configurations.updateGlobalConfig(globalConfig);
+    writer = new SolrWriter().withMetronSolrClient(solr);
+    writer.init(null, new EnrichmentWriterConfiguration(configurations));
+    verify(solr, times(1)).createCollection(collection, numShards, replicationFactor);
+    verify(solr, times(1)).setDefaultCollection(collection);
+
+    writer.writeGlobalBatch(sensorTupleMap, new EnrichmentWriterConfiguration(configurations), outputCollector);
+    verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "sensor1", 100, 100.0)));
+    verify(solr, times(1)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "sensor2", 200, 200.0)));
+    verify(solr, times(0)).commit(collection);
+
+    writer = new SolrWriter().withMetronSolrClient(solr).withShouldCommit(true);
+    writer.init(null, new EnrichmentWriterConfiguration(configurations));
+    writer.writeGlobalBatch(sensorTupleMap, new EnrichmentWriterConfiguration(configurations), outputCollector);
+    verify(solr, times(2)).add(argThat(new SolrInputDocumentMatcher(message1.toJSONString().hashCode(), "sensor1", 100, 100.0)));
+    verify(solr, times(2)).add(argThat(new SolrInputDocumentMatcher(message2.toJSONString().hashCode(), "sensor2", 200, 200.0)));
+    verify(solr, times(2)).commit(collection);
+
+  }
+
+
 }

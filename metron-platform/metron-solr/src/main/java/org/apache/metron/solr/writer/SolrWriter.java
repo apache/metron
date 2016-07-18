@@ -17,9 +17,8 @@
  */
 package org.apache.metron.solr.writer;
 
+import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +77,31 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     }
     if (shouldCommit) {
       solr.commit(getCollection(configurations));
+    }
+  }
+
+  @Override
+  public void writeGlobalBatch(Map<String, Collection<Tuple>> sensorTupleMap, WriterConfiguration configurations, OutputCollector outputCollector) throws Exception {
+    {
+      for(String sensorType:sensorTupleMap.keySet()){
+        for(Tuple tuple:sensorTupleMap.get(sensorType)){
+
+          JSONObject message=(JSONObject)tuple.getValueByField("message");
+
+          SolrInputDocument document = new SolrInputDocument();
+          document.addField("id", getIdValue(message));
+          document.addField("sensorType", sensorType);
+          for(Object key: message.keySet()) {
+            Object value = message.get(key);
+            document.addField(getFieldName(key, value), value);
+          }
+          UpdateResponse response = solr.add(document);
+
+          if (shouldCommit) {
+            solr.commit(getCollection(configurations));
+          }
+        }
+      }
     }
   }
 

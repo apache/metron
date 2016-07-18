@@ -25,7 +25,6 @@ import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterComponent;
@@ -41,6 +40,8 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
           .getLogger(BulkMessageWriterBolt.class);
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
   private BulkWriterComponent<JSONObject> writerComponent;
+  private boolean globalBatch=false;
+
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -69,7 +70,18 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     String sensorType = MessageUtils.getSensorType(message);
     try
     {
-      writerComponent.write(sensorType, tuple, message, bulkMessageWriter, new EnrichmentWriterConfiguration(getConfigurations()));
+      if(getConfigurations().getGlobalConfig()!=null&&getConfigurations().getGlobalConfig().get(Constants.GLOBAL_FLUSH_FLAG)!=null)
+      {
+        globalBatch=Boolean.parseBoolean(getConfigurations().getGlobalConfig().get(Constants.GLOBAL_FLUSH_FLAG).toString());
+        LOG.trace("Setting globalBatch flushing  to " +globalBatch);
+      }
+
+      if(globalBatch){
+        writerComponent.writeGlobalBatch(sensorType,tuple,bulkMessageWriter,new EnrichmentWriterConfiguration(getConfigurations()));
+      }
+      else{
+        writerComponent.write(sensorType, tuple, message, bulkMessageWriter, new EnrichmentWriterConfiguration(getConfigurations()));
+      }
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
