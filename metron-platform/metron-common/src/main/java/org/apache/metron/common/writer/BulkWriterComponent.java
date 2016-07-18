@@ -151,19 +151,24 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void writeGlobalBatch(String sensorType,Tuple tuple, BulkMessageWriter<MESSAGE_T> bulkMessageWriter, EnrichmentWriterConfiguration configurations) throws Exception {
     {
       int batchSize = Integer.parseInt(configurations.getGlobalConfig().get(Constants.GLOBAL_BATCH_SIZE).toString());
+      boolean flush=false;
+      long flushIntervalInMs=0;
+
       Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);
       if (tupleList == null) {
         tupleList = createTupleCollection();
       }
       tupleList.add(tuple);
 
-      if(configurations.getGlobalConfig()!=null&&configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG)!=null)
+      globalConfig=configurations.getGlobalConfig();
+
+      if(globalConfig!=null&&globalConfig.get(Constants.TIME_FLUSH_FLAG)!=null)
       {
-        this.setFlush(Boolean.parseBoolean(configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG).toString()));
-        if (configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS) != null)
+        flush=Boolean.parseBoolean(globalConfig.get(Constants.TIME_FLUSH_FLAG).toString());
+        if (globalConfig.get(Constants.FLUSH_INTERVAL_IN_MS) != null)
         {
-          this.setFlushIntervalInMs(Long.parseLong(configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString()));
-          LOG.trace("Setting time based flushing  to " +configurations.getGlobalConfig().get(Constants.TIME_FLUSH_FLAG)+" with timeout of"+ configurations.getGlobalConfig().get(Constants.FLUSH_INTERVAL_IN_MS).toString());
+          flushIntervalInMs=Long.parseLong(globalConfig.get(Constants.FLUSH_INTERVAL_IN_MS).toString());
+          LOG.trace("Setting time based flushing  to " +globalConfig.get(Constants.TIME_FLUSH_FLAG)+" with timeout of"+ globalConfig.get(Constants.FLUSH_INTERVAL_IN_MS).toString());
         }
       }
 

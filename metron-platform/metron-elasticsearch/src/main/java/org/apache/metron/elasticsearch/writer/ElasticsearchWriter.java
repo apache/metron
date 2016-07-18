@@ -219,12 +219,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     BulkResponse resp = bulkRequest.execute().actionGet();
     if (resp.hasFailures()) {
-      BulkItemResponse[] itemResponseList=resp.getItems();
-      for(BulkItemResponse itemResponse:itemResponseList){
-        itemResponse.getFailure();
-        itemResponse.getId();
-        //itemResponse.getResponse();
-      }
 
       throw new Exception(resp.buildFailureMessage());
     }
