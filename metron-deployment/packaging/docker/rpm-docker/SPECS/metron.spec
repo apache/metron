@@ -133,19 +133,12 @@ This package installs the Metron Parser files
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/flux/asa/remote.yaml
-%{metron_home}/flux/asa/test.yaml
 %{metron_home}/flux/fireeye/remote.yaml
-%{metron_home}/flux/fireeye/test.yaml
 %{metron_home}/flux/ise/remote.yaml
-%{metron_home}/flux/ise/test.yaml
 %{metron_home}/flux/lancope/remote.yaml
-%{metron_home}/flux/lancope/test.yaml
 %{metron_home}/flux/paloalto/remote.yaml
-%{metron_home}/flux/paloalto/test.yaml
 %{metron_home}/flux/sourcefire/remote.yaml
-%{metron_home}/flux/sourcefire/test.yaml
 %{metron_home}/flux/websphere/remote.yaml
-%{metron_home}/flux/websphere/test.yaml
 %{metron_home}/patterns/asa
 %{metron_home}/patterns/common
 %{metron_home}/patterns/fireeye
@@ -153,6 +146,13 @@ This package installs the Metron Parser files
 %{metron_home}/patterns/squid
 %{metron_home}/patterns/websphere
 %{metron_home}/patterns/yaf
+%exclude %{metron_home}/flux/asa/test.yaml
+%exclude %{metron_home}/flux/fireeye/test.yaml
+%exclude %{metron_home}/flux/ise/test.yaml
+%exclude %{metron_home}/flux/lancope/test.yaml
+%exclude %{metron_home}/flux/paloalto/test.yaml
+%exclude %{metron_home}/flux/sourcefire/test.yaml
+%exclude %{metron_home}/flux/websphere/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-parsers-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -248,7 +248,7 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/flux/enrichment/remote.yaml
-%{metron_home}/flux/enrichment/test.yaml
+%exclude %{metron_home}/flux/enrichment/test.yaml
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -279,6 +279,8 @@ This package installs the Metron PCAP files %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Tue Jul 19 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
+- Adding excludes for test.yaml files
 * Thu Jul 14 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
 - Adding PCAP subpackage
 - Added directory macros to files sections
