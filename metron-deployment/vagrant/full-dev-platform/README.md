@@ -28,8 +28,9 @@ Any platform that supports these tools is suitable, but the following instructio
 
   ```  
   brew cask install vagrant virtualbox
-  brew install brew-pip maven git
-  pip install ansible==2.0.0.2
+  brew install maven git
+  brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
+  brew switch ansible 2.0.0.2
   ```
 
 ### Deploy Metron

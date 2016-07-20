@@ -27,7 +27,9 @@ Any platform that supports these tools is suitable, but the following instructio
 2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
 
   ```  
-  brew install ansible brew-pip maven git
+  brew install maven git
+  brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
+  brew switch ansible 2.0.0.2
   ```
 
 3. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.  
