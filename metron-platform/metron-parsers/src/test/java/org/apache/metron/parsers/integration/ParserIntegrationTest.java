@@ -18,25 +18,21 @@
 package org.apache.metron.parsers.integration;
 
 import junit.framework.Assert;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
+import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.*;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {

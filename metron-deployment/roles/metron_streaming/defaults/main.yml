@@ -20,11 +20,13 @@ metron_solr_jar_name: metron-solr-{{ metron_version }}.jar
 metron_elasticsearch_jar_name: metron-elasticsearch-{{ metron_version }}.jar
 metron_pcap_jar_name: metron-pcap-backend-{{ metron_version }}.jar
 metron_parsers_jar_name: metron-parsers-{{ metron_version }}.jar
+metron_enrichment_jar_name: metron-enrichment-{{ metron_version }}-uber.jar
 
 metron_common_bundle_name: metron-common-{{ metron_version }}-archive.tar.gz
 metron_pcap_bundle_name: metron-pcap-backend-{{ metron_version }}-archive.tar.gz
 metron_data_management_bundle_name: metron-data-management-{{ metron_version }}-archive.tar.gz
 metron_enrichment_bundle_name: metron-enrichment-{{ metron_version }}-archive.tar.gz
+metron_indexing_bundle_name: metron-indexing-{{ metron_version }}-archive.tar.gz
 metron_solr_bundle_name: metron-solr-{{ metron_version }}-archive.tar.gz
 metron_elasticsearch_bundle_name: metron-elasticsearch-{{ metron_version }}-archive.tar.gz
 metron_parsers_bundle_name: metron-parsers-{{ metron_version }}-archive.tar.gz
@@ -32,6 +34,7 @@ metron_pcap_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-pcap-b
 metron_common_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-common/target/{{ metron_common_bundle_name }}"
 metron_data_management_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-data-management/target/{{ metron_data_management_bundle_name }}"
 metron_enrichment_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-enrichment/target/{{ metron_enrichment_bundle_name }}"
+metron_indexing_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-indexing/target/{{ metron_indexing_bundle_name }}"
 metron_solr_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-solr/target/{{ metron_solr_bundle_name }}"
 metron_elasticsearch_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-elasticsearch/target/{{ metron_elasticsearch_bundle_name }}"
 metron_parsers_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-parsers/target/{{ metron_parsers_bundle_name }}"
@@ -42,6 +45,7 @@ zookeeper_global_config_path: "{{ zookeeper_config_path }}/global.json"
 metron_pcap_properties_config_path: "{{ metron_directory }}/config/pcap.properties"
 metron_solr_properties_config_path: "{{ metron_directory }}/config/solr.properties"
 metron_elasticsearch_properties_config_path: "{{ metron_directory }}/config/elasticsearch.properties"
+metron_enrichment_properties_config_path: "{{ metron_directory }}/config/enrichment.properties"
 metron_parsers_properties_config_path: "{{ metron_directory }}/config/parsers.properties"
 hbase_config_path: "/etc/hbase/conf"
 hdfs_config_path: "/etc/hadoop/conf"

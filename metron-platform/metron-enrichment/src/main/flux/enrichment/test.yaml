@@ -21,7 +21,7 @@ config:
 components:
 # Enrichment
     -   id: "geoEnrichmentAdapter"
-        className: "org.apache.metron.integration.mock.MockGeoAdapter"
+        className: "org.apache.metron.enrichment.integration.mock.MockGeoAdapter"
     -   id: "geoEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
@@ -111,27 +111,17 @@ components:
                 args:
                     - ref: "simpleHBaseThreatIntelEnrichment"
 
-    -   id: "fileNameFormat"
-        className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
-        configMethods:
-            -   name: "withPrefix"
-                args:
-                    - "enrichment-"
-            -   name: "withExtension"
-                args:
-                  - ".json"
-            -   name: "withPath"
-                args:
-                    - "${index.hdfs.output}"
+
 #indexing
-    -   id: "hdfsWriter"
-        className: "org.apache.metron.writer.hdfs.HdfsWriter"
+    -   id: "kafkaWriter"
+        className: "org.apache.metron.writer.kafka.KafkaWriter"
         configMethods:
-            -   name: "withFileNameFormat"
+            -   name: "withTopic"
                 args:
-                    - ref: "fileNameFormat"
-    -   id: "indexWriter"
-        className: "${writer.class.name}"
+                    - "${enrichment.output.topic}"
+            -   name: "withZkQuorum"
+                args:
+                    - "${kafka.zk}"
 
 #kafka/zookeeper
     -   id: "zkHosts"
@@ -249,22 +239,14 @@ bolts:
             -   name: "withMaxTimeRetain"
                 args: [10]
 # Indexing Bolts
-    -   id: "indexingBolt"
-        className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
+    -   id: "outputBolt"
+        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            -   name: "withBulkMessageWriter"
+            -   name: "withMessageWriter"
                 args:
-                    - ref: "indexWriter"
-    -   id: "hdfsIndexingBolt"
-        className: "org.apache.metron.enrichment.bolt.BulkMessageWriterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withBulkMessageWriter"
-                args:
-                    - ref: "hdfsWriter"
+                    - ref: "kafkaWriter"
 
 
 streams:
@@ -361,24 +343,12 @@ streams:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-#indexing
-    -   name: "threatIntelJoin -> indexing"
+
+#output
+    -   name: "threatIntelJoin -> output"
         from: "threatIntelJoinBolt"
-        to: "indexingBolt"
+        to: "outputBolt"
         grouping:
             streamId: "message"
             type: FIELDS
             args: ["key"]
-    -   name: "threatIntelJoin -> hdfs"
-        from: "threatIntelJoinBolt"
-        to: "hdfsIndexingBolt"
-        grouping:
-            streamId: "message"
-            type: SHUFFLE
-
-    -   name: "indexingBolt -> errorIndexingBolt"
-        from: "indexingBolt"
-        to: "indexingBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE

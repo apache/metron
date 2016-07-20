@@ -21,15 +21,14 @@ services_to_start:
   - elasticsearch
   - pcap-service
   - kibana
-  - yaf
   - snort
   - snort-logs
   - bro
   - pcap-replay
-  - yaf-parser
   - bro-parser
   - snort-parser
   - enrichment
+  - indexing
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"

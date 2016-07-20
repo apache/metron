@@ -30,6 +30,7 @@ services_to_start:
   - bro-parser
   - snort-parser
   - enrichment
+  - indexing
 
 # the ami for cent6 by region
 amis_by_region:

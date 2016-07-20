@@ -32,7 +32,7 @@ components:
                 args:
                     - "yyyy MMM dd HH:mm:ss"
     -   id: "writer"
-        className: "org.apache.metron.parsers.writer.KafkaWriter"
+        className: "org.apache.metron.writer.kafka.KafkaWriter"
         constructorArgs:
             - "${kafka.broker}"
     -   id: "zkHosts"
