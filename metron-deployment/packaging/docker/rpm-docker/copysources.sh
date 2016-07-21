@@ -23,6 +23,7 @@ files=(
 ${BASE_DIR}/metron-common/target/metron-common-0.2.0BETA-archive.tar.gz
 ${BASE_DIR}/metron-parsers/target/metron-parsers-0.2.0BETA-archive.tar.gz
 ${BASE_DIR}/metron-enrichment/target/metron-enrichment-0.2.0BETA-archive.tar.gz
+${BASE_DIR}/metron-indexing/target/metron-indexing-0.2.0BETA-archive.tar.gz
 ${BASE_DIR}/metron-data-management/target/metron-data-management-0.2.0BETA-archive.tar.gz
 ${BASE_DIR}/metron-solr/target/metron-solr-0.2.0BETA-archive.tar.gz
 ${BASE_DIR}/metron-elasticsearch/target/metron-elasticsearch-0.2.0BETA-archive.tar.gz
