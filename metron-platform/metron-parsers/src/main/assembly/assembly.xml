@@ -31,17 +31,6 @@
       <filtered>true</filtered>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/flux</directory>
-      <outputDirectory>/flux</outputDirectory>
-      <useDefaultExcludes>true</useDefaultExcludes>
-      <excludes>
-        <exclude>**/*.formatted</exclude>
-        <exclude>**/*.filtered</exclude>
-      </excludes>
-      <fileMode>0644</fileMode>
-      <lineEnding>unix</lineEnding>
-    </fileSet>
-    <fileSet>
       <directory>${project.basedir}/src/main/resources/patterns</directory>
       <outputDirectory>/patterns</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>

@@ -47,7 +47,8 @@ Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
 Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-%{full_version}-archive.tar.gz
-Source6:        metron-pcap-backend-%{full_version}-archive.tar.gz
+Source6:        metron-indexing-%{full_version}-archive.tar.gz
+Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -76,6 +77,7 @@ tar -xzf %{SOURCE3} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE4} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -115,14 +117,6 @@ This package installs the Metron Parser files
 %dir %{metron_home}/config
 %dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/config/zookeeper/parsers
-%dir %{metron_home}/flux
-%dir %{metron_home}/flux/asa
-%dir %{metron_home}/flux/fireeye
-%dir %{metron_home}/flux/ise
-%dir %{metron_home}/flux/lancope
-%dir %{metron_home}/flux/paloalto
-%dir %{metron_home}/flux/sourcefire
-%dir %{metron_home}/flux/websphere
 %dir %{metron_home}/patterns
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_parser_topology.sh
@@ -132,20 +126,6 @@ This package installs the Metron Parser files
 %{metron_home}/config/zookeeper/parsers/squid.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
-%{metron_home}/flux/asa/remote.yaml
-%{metron_home}/flux/asa/test.yaml
-%{metron_home}/flux/fireeye/remote.yaml
-%{metron_home}/flux/fireeye/test.yaml
-%{metron_home}/flux/ise/remote.yaml
-%{metron_home}/flux/ise/test.yaml
-%{metron_home}/flux/lancope/remote.yaml
-%{metron_home}/flux/lancope/test.yaml
-%{metron_home}/flux/paloalto/remote.yaml
-%{metron_home}/flux/paloalto/test.yaml
-%{metron_home}/flux/sourcefire/remote.yaml
-%{metron_home}/flux/sourcefire/test.yaml
-%{metron_home}/flux/websphere/remote.yaml
-%{metron_home}/flux/websphere/test.yaml
 %{metron_home}/patterns/asa
 %{metron_home}/patterns/common
 %{metron_home}/patterns/fireeye
@@ -243,12 +223,33 @@ This package installs the Metron Enrichment files
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/latency_summarizer.sh
+%{metron_home}/bin/start_enrichment_topology.sh
+%{metron_home}/config/enrichment.properties
 %{metron_home}/config/zookeeper/enrichments/bro.json
 %{metron_home}/config/zookeeper/enrichments/snort.json
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/flux/enrichment/remote.yaml
-%{metron_home}/flux/enrichment/test.yaml
+%exclude %{metron_home}/flux/enrichment/test.yaml
+%attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+
+%package        indexing
+Summary:        Metron Indexing Files
+Group:          Applications/Internet
+Provides:       indexing = %{version}
+
+%description    indexing
+This package installs the Metron Indexing files
+
+%files          indexing
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/indexing
+%{metron_home}/flux/indexing/remote.yaml
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -279,6 +280,9 @@ This package installs the Metron PCAP files %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu Jul 21 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
+- Remove parser flux files
+- Add new enrichment files
 * Thu Jul 14 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
 - Adding PCAP subpackage
 - Added directory macros to files sections
