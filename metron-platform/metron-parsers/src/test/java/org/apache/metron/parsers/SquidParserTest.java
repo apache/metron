@@ -20,36 +20,59 @@ package org.apache.metron.parsers;
 import org.adrianwalker.multilinestring.Multiline;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SquidParserTest extends GrokParserTest {
-
-  @Override
-  public String getRawMessage() {
-    return "1461576382.642    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html";
-  }
 
   /**
    * {
    *   "elapsed":161,
    *   "code":200,
+   *   "ip_dst_addr":"199.27.79.73",
    *   "original_string":"1461576382.642    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html",
    *   "method":"GET",
    *   "bytes":103701,
    *   "action":"TCP_MISS",
-   *   "ip_src_addr":"127.0.0.1",
-   *   "ip_dst_addr":"199.27.79.73",
    *   "url":"http://www.cnn.com/",
+   *   "ip_src_addr":"127.0.0.1",
    *   "timestamp":1461576382642
    * }
    */
   @Multiline
-  public String expectedParsedString;
+  private String result1;
+
+  /**
+   * {
+   *   "elapsed":0,
+   *   "code":403,
+   *   "original_string":"1469539185.270      0 139.196.181.68 TCP_DENIED/403 3617 CONNECT search.yahoo.com:443 - NONE/- text/html",
+   *   "method":"CONNECT",
+   *   "bytes":3617,
+   *   "action":"TCP_DENIED",
+   *   "url":"search.yahoo.com:443",
+   *   "ip_src_addr":"139.196.181.68",
+   *   "timestamp":1469539185270,
+   *   "ip_dst_addr": null
+   * }
+   */
+  @Multiline
+  private String result2;
 
   @Override
-  public String getExpectedParsedString() {
-    return expectedParsedString;
+  public Map<String,String> getTestData() {
+
+    String input1 = "1461576382.642    161 127.0.0.1 TCP_MISS/200 103701 GET http://www.cnn.com/ - DIRECT/199.27.79.73 text/html";
+    String input2 = "1469539185.270      0 139.196.181.68 TCP_DENIED/403 3617 CONNECT search.yahoo.com:443 - NONE/- text/html";
+
+    HashMap testData = new HashMap<String,String>();
+    testData.put(input1,result1);
+    testData.put(input2,result2);
+    return testData;
+
   }
+
 
   @Override
   public String getGrokPath() {

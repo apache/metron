@@ -23,37 +23,42 @@ import junit.framework.Assert;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class GrokParserTest {
 
-  private JSONObject expectedParsed;
-
-  @Before
-  public void parseJSON() throws ParseException {
-    JSONParser jsonParser = new JSONParser();
-    expectedParsed = (JSONObject) jsonParser.parse(getExpectedParsedString());
-  }
-
   @Test
   public void test() throws IOException, ParseException {
+
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("grokPath", getGrokPath());
     parserConfig.put("patternLabel", getGrokPatternLabel());
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
     parserConfig.put("timeFields", getTimeFields());
+
     GrokParser grokParser = new GrokParser();
     grokParser.configure(parserConfig);
     grokParser.init();
-    byte[] rawMessage = getRawMessage().getBytes();
-    List<JSONObject> parsedList = grokParser.parse(rawMessage);
-    Assert.assertEquals(1, parsedList.size());
-    compare(expectedParsed, parsedList.get(0));
+
+    JSONParser jsonParser = new JSONParser();
+    Map<String,String> testData = getTestData();
+    for( Map.Entry<String,String> e : testData.entrySet() ){
+
+      JSONObject expected = (JSONObject) jsonParser.parse(e.getValue());
+      byte[] rawMessage = e.getKey().getBytes();
+
+      List<JSONObject> parsedList = grokParser.parse(rawMessage);
+      Assert.assertEquals(1, parsedList.size());
+      compare(expected, parsedList.get(0));
+    }
+
   }
 
   public boolean compare(JSONObject expected, JSONObject actual) {
@@ -81,8 +86,7 @@ public abstract class GrokParserTest {
     return true;
   }
 
-  public abstract String getRawMessage();
-  public abstract String getExpectedParsedString();
+  public abstract Map getTestData();
   public abstract String getGrokPath();
   public abstract String getGrokPatternLabel();
   public abstract List<String> getTimeFields();

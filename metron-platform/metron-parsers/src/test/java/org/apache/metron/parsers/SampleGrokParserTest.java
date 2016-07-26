@@ -20,7 +20,9 @@ package org.apache.metron.parsers;
 import org.adrianwalker.multilinestring.Multiline;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SampleGrokParserTest extends GrokParserTest {
 
@@ -55,12 +57,11 @@ public class SampleGrokParserTest extends GrokParserTest {
   @Multiline
   public String expectedParsedString;
 
-  public String getExpectedParsedString() {
-    return expectedParsedString;
-  }
 
-  public String getRawMessage() {
-    return "1453994987000|2016-01-28 15:29:48|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
+  @Override
+  public Map getTestData() {
+    return new HashMap<String,String>();
+    //return "1453994987000|2016-01-28 15:29:48|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
   }
 
   public String getGrokPath() {
