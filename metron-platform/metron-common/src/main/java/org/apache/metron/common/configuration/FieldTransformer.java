@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.configuration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
@@ -33,6 +34,7 @@ public class FieldTransformer implements Serializable {
   private List<String> input = new ArrayList<>();
   private List<String> output;
   private FieldTransformation transformation;
+  private String transformationName;
   private Map<String, Object> config = new HashMap<>();
   private boolean initialized = false;
   public FieldTransformer() {
@@ -72,11 +74,17 @@ public class FieldTransformer implements Serializable {
     this.config = config;
   }
 
-  public FieldTransformation getTransformation() {
+  public String getTransformation() {
+    return transformationName;
+  }
+
+  @JsonIgnore
+  public FieldTransformation getFieldTransformation() {
     return transformation;
   }
 
   public void setTransformation(String transformation) {
+    this.transformationName = transformation;
     this.transformation = FieldTransformations.get(transformation);
   }
 
