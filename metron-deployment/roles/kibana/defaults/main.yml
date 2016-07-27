@@ -18,5 +18,5 @@ kibana_repo_url: http://packages.elastic.co/kibana/4.5/centos
 kibana_repo_key_url: http://packages.elastic.co/GPG-KEY-elasticsearch
 kibana_index_url: "http://{{ groups.search[0] }}:{{ elasticsearch_web_port }}/.kibana"
 kibana_index_def: "/tmp/kibana-index.json"
-kibana_version: 4.5.1
+kibana_version: 4.5.3
 nodesource_repo_setup: https://rpm.nodesource.com/setup_4.x

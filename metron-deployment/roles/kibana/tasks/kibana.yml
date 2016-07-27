@@ -17,7 +17,7 @@
 ---
 - name: Install Kibana
   yum:
-    name: kibana
+    name: "kibana-{{ kibana_version }}"
     state: installed
   register: result
   until: result.rc == 0
