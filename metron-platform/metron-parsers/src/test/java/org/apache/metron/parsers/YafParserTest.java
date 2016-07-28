@@ -64,7 +64,7 @@ public class YafParserTest extends GrokParserTest {
     Map testData = new HashMap<String,String>();
     String input = "2016-01-28 15:29:48.512|2016-01-28 15:29:48.512|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
     testData.put(input,result);
-    return new HashMap<String,String>();
+    return testData;
 
   }
 

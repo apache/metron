@@ -55,13 +55,17 @@ public class SampleGrokParserTest extends GrokParserTest {
    * }
    */
   @Multiline
-  public String expectedParsedString;
+  public String result;
 
 
   @Override
   public Map getTestData() {
-    return new HashMap<String,String>();
-    //return "1453994987000|2016-01-28 15:29:48|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
+
+    Map testData = new HashMap<String,String>();
+    String input = "1453994987000|2016-01-28 15:29:48|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
+    testData.put(input,result);
+    return testData;
+
   }
 
   public String getGrokPath() {
