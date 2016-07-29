@@ -35,7 +35,6 @@
     src: "{{ metron_indexing_bundle_path }}"
     dest: "{{ metron_directory }}"
 
-
 - name: Copy Metron Parsers bundle
   copy:
     src: "{{ metron_parsers_bundle_path }}"
@@ -59,6 +58,10 @@
 - name: Copy Metron MaaS bundle
   copy:
     src: "{{ metron_maas_bundle_path }}"
+
+- name: Copy Metron Profiler bundle
+  copy:
+    src: "{{ metron_profiler_bundle_path }}"
     dest: "{{ metron_directory }}"
 
 - name: Unbundle Metron bundles
@@ -75,4 +78,5 @@
     - tar xzvf metron-common*.tar.gz
     - tar xzvf metron-pcap-backend*.tar.gz
     - tar xzvf metron-maas-service*.tar.gz
+    - tar xzvf metron-profiler*.tar.gz
     - rm *.tar.gz

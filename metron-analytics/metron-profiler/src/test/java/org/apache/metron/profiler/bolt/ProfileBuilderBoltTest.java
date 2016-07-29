@@ -1,0 +1,204 @@
+/*
+ *
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package org.apache.metron.profiler.bolt;
+
+import backtype.storm.Constants;
+import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.Values;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
+import org.apache.metron.test.bolt.BaseBoltTest;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+
+/**
+ * Tests the ProfileBuilderBolt.
+ */
+public class ProfileBuilderBoltTest extends BaseBoltTest {
+
+  /**
+   * {
+   *   "ip_src_addr": "10.0.0.1",
+   *   "ip_dst_addr": "10.0.0.20"
+   * }
+   */
+  @Multiline
+  private String input;
+
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "onlyif": "true",
+   *   "init": {
+   *     "x": "10",
+   *     "y": "20"
+   *   },
+   *   "update": {
+   *     "x": "ADD(x, 10)",
+   *     "y": "ADD(y, 20)"
+   *   },
+   *   "result": "TO_LONG(ADD(x, y))"
+   * }
+   */
+  @Multiline
+  private String profile;
+
+  private JSONObject message;
+
+  public static Tuple mockTickTuple() {
+    return mockTuple(Constants.SYSTEM_COMPONENT_ID, Constants.SYSTEM_TICK_STREAM_ID);
+  }
+
+  public static Tuple mockTuple(String componentId, String streamId) {
+    Tuple tuple = mock(Tuple.class);
+    when(tuple.getSourceComponent()).thenReturn(componentId);
+    when(tuple.getSourceStreamId()).thenReturn(streamId);
+    return tuple;
+  }
+
+  @Before
+  public void setup() throws Exception {
+
+    // parse the input message
+    JSONParser parser = new JSONParser();
+    message = (JSONObject) parser.parse(input);
+
+    // the tuple will contain the original message
+    when(tuple.getValueByField(eq("message"))).thenReturn(message);
+
+    // the tuple will contain the 'fully resolved' name of the entity
+    when(tuple.getStringByField(eq("entity"))).thenReturn("10.0.0.1");
+
+    // the tuple will contain the profile definition
+    ProfileConfig profileConfig = JSONUtils.INSTANCE.load(profile, ProfileConfig.class);
+    when(tuple.getValueByField(eq("profile"))).thenReturn(profileConfig);
+  }
+
+  /**
+   * Create a ProfileBuilderBolt to test
+   */
+  private ProfileBuilderBolt createBolt() throws IOException {
+
+    ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
+    bolt.setCuratorFramework(client);
+    bolt.setTreeCache(cache);
+    bolt.setExecutor(new DefaultStellarExecutor());
+
+    bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+    return bolt;
+  }
+
+  /**
+   * Ensure that the bolt can update a profile based on new messages that it receives.
+   */
+  @Test
+  public void testUpdateProfile() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+
+    // validate that x=10+10+10 y=20+20+20
+    assertThat(bolt.getExecutor().getState().get("x"), equalTo(10+10+10));
+    assertThat(bolt.getExecutor().getState().get("y"), equalTo(20+20+20));
+  }
+
+  /**
+   * Ensure that the bolt can flush the profile when a tick tuple is received.
+   */
+  @Test
+  public void testFlushProfile() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+
+    // execute - the tick tuple triggers a flush of the profile
+    bolt.execute(mockTickTuple());
+
+    // capture the ProfileMeasurement that should be emitted
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+    verify(outputCollector, times(1)).emit(refEq(tuple), arg.capture());
+
+    Values actual = arg.getValue();
+    ProfileMeasurement measurement = (ProfileMeasurement) actual.get(0);
+
+    // verify
+    assertThat(measurement.getValue(), equalTo(90.0));
+    assertThat(measurement.getEntity(), equalTo("10.0.0.1"));
+    assertThat(measurement.getProfileName(), equalTo("test"));
+  }
+
+  /**
+   * What happens if we try to flush, but have yet to receive any messages to
+   * apply to the profile?
+   *
+   * The ProfileBuilderBolt will not have received the data necessary from the
+   * ProfileSplitterBolt, like the entity and profile name, that is required
+   * to perform the flush.  The flush has to be skipped until this information
+   * is received from the Splitter.
+   */
+  @Test
+  public void testFlushProfileWithNoMessages() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+
+    // no messages have been received before a flush occurs
+    bolt.execute(mockTickTuple());
+    bolt.execute(mockTickTuple());
+    bolt.execute(mockTickTuple());
+
+    // no ProfileMeasurement should be written to the ProfileStore
+    verify(outputCollector, times(0)).emit(any(Values.class));
+  }
+
+  /**
+   * The executor's state should be cleared after a flush.
+   */
+  @Test
+  public void testStateClearedAfterFlush() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+
+    // execute - should clear state from previous tuples
+    bolt.execute(mockTickTuple());
+
+    assertThat(bolt.getExecutor().getState().size(), equalTo(0));
+  }
+}
