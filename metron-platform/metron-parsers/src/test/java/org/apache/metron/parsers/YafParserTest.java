@@ -20,19 +20,11 @@ package org.apache.metron.parsers;
 import org.adrianwalker.multilinestring.Multiline;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class YafParserTest extends GrokParserTest {
-
-  @Override
-  public String getRawMessage() {
-    return "2016-01-28 15:29:48.512|2016-01-28 15:29:48.512|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
-  }
-
-  @Override
-  public String getGrokPath() {
-    return "../metron-parsers/src/main/resources/patterns/yaf";
-  }
 
   /**
    * {
@@ -64,12 +56,24 @@ public class YafParserTest extends GrokParserTest {
    }
    */
   @Multiline
-  public String expectedParsedString;
+  public String result;
 
   @Override
-  public String getExpectedParsedString() {
-    return expectedParsedString;
+  public Map getTestData() {
+
+    Map testData = new HashMap<String,String>();
+    String input = "2016-01-28 15:29:48.512|2016-01-28 15:29:48.512|   0.000|   0.000|  6|                          216.21.170.221|   80|                               10.0.2.15|39468|      AS|       0|       0|       0|22efa001|00000000|000|000|       1|      44|       0|       0|    0|idle";
+    testData.put(input,result);
+    return testData;
+
   }
+
+  @Override
+  public String getGrokPath() {
+    return "../metron-parsers/src/main/resources/patterns/yaf";
+  }
+
+
 
   @Override
   public String getGrokPatternLabel() {
