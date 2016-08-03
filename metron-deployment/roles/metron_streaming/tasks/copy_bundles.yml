@@ -56,6 +56,11 @@
     src: "{{ metron_pcap_bundle_path }}"
     dest: "{{ metron_directory }}"
 
+- name: Copy Metron MaaS bundle
+  copy:
+    src: "{{ metron_maas_bundle_path }}"
+    dest: "{{ metron_directory }}"
+
 - name: Unbundle Metron bundles
   shell: "{{ item }}"
   args:
@@ -69,6 +74,7 @@
     - tar xzvf metron-data-management*.tar.gz
     - tar xzvf metron-common*.tar.gz
     - tar xzvf metron-pcap-backend*.tar.gz
+    - tar xzvf metron-maas-service*.tar.gz
     - rm *.tar.gz
 
 - name: Add *-site.xml files to topology jars

@@ -25,6 +25,7 @@
     <description>Metron Top Level Project</description>
     <url>https://metron.incubator.apache.org/</url>
     <modules>
+            <module>metron-analytics</module>
             <module>metron-platform</module>
     </modules>
     <properties>
