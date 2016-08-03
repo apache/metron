@@ -30,8 +30,8 @@
     src: "../roles/ambari_slave/files/hostname.sh"
     dest: "/var/lib/ambari-agent/hostname.sh"
     mode: 0744
-    owner: "{{ ambari_user }}"
-    group: "{{ ambari_user }}"
+    owner: "{{ ambari_installation_user }}"
+    group: "{{ ambari_installation_user }}"
 
 - name: Configure ambari-server hostname in ambari-agent configuration
   lineinfile:

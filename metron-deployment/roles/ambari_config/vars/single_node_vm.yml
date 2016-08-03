@@ -83,7 +83,7 @@ configurations:
 
 blueprint:
   stack_name: HDP
-  stack_version: 2.3
+  stack_version: "{{ hdp_stack }}"
   groups:
     - name : host_group_1
       cardinality: 1

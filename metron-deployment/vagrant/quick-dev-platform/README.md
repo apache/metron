@@ -52,8 +52,8 @@ As with the Full Development Platform (`metron-deployment/vagrant/full-dev-platf
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
- - [Metron](http://node1:8080)
- - [Ambari](http://node1:5000)
+ - [Ambari](http://node1:8080)
+ - [Metron](http://node1:5000)
  - [Services](http://node1:2812)
 
 ### Working with Metron
