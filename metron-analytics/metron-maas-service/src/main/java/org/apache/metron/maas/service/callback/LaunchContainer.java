@@ -30,6 +30,7 @@ import org.apache.metron.maas.service.runner.Runner;
 import org.apache.metron.maas.service.runner.Runner.RunnerOptions;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -83,40 +84,6 @@ public class LaunchContainer implements Runnable {
     // resources too.
     // In this scenario, if a shell script is specified, we need to have it
     // copied and made available to the container.
-      /*if (!scriptPath.isEmpty()) {
-        Path renamedScriptPath = null;
-        if (Shell.WINDOWS) {
-          renamedScriptPath = new Path(scriptPath + ".bat");
-        } else {
-          renamedScriptPath = new Path(scriptPath + ".sh");
-        }
-
-        try {
-          // rename the script file based on the underlying OS syntax.
-          renameScriptFile(renamedScriptPath);
-        } catch (Exception e) {
-          LOG.error(
-                  "Not able to add suffix (.bat/.sh) to the shell script filename",
-                  e);
-          return;
-        }
-
-        URL yarnUrl = null;
-        try {
-          yarnUrl = ConverterUtils.getYarnUrlFromURI(
-                  new URI(renamedScriptPath.toString()));
-        } catch (URISyntaxException e) {
-          LOG.error("Error when trying to use shell script path specified"
-                  + " in env, path=" + renamedScriptPath, e);
-          return;
-        }
-        LocalResource shellRsrc = LocalResource.newInstance(yarnUrl,
-                LocalResourceType.FILE, LocalResourceVisibility.APPLICATION,
-                shellScriptPathLen, shellScriptPathTimestamp);
-        localResources.put(Shell.WINDOWS ? ExecBatScripStringtPath :
-                ExecShellStringPath, shellRsrc);
-        shellCommand = Shell.WINDOWS ? windows_command : linux_bash_command;
-      }*/
 
     // Set the necessary command to execute on the allocated container
     Map<String, String> env = new HashMap<>();
@@ -131,7 +98,6 @@ public class LaunchContainer implements Runnable {
       classPathEnv.append(System.getProperty("java.class.path"));
     //}
     env.put("CLASSPATH", classPathEnv.toString());
-
     // Construct the command to be executed on the launched container
     String command = ApplicationConstants.Environment.JAVA_HOME.$$() + "/bin/java "
             + Runner.class.getName() + " "
@@ -140,10 +106,9 @@ public class LaunchContainer implements Runnable {
             ,RunnerOptions.ZK_ROOT.of(zkRoot)
             ,RunnerOptions.SCRIPT.of(modelScript)
             ,RunnerOptions.NAME.of(request.getName())
+            ,RunnerOptions.HOSTNAME.of(containerHostname())
             ,RunnerOptions.VERSION.of(request.getVersion())
     )
-//            + " 1>" + "/tmp/stdout"
-//            + " 2>" + "/tmp/stderr";
             + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout"
             + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
     List<String> commands = new ArrayList<String>();
@@ -200,5 +165,16 @@ public class LaunchContainer implements Runnable {
       return null;
     }
   }
-
+  private String containerHostname() {
+    String nodeHost = null;
+    try {
+      boolean hasProtocol = container.getNodeHttpAddress().startsWith("http");
+      java.net.URL nodehttpAddress = new java.net.URL((hasProtocol?"":"http://") + container.getNodeHttpAddress());
+      nodeHost = nodehttpAddress.getHost();
+    } catch (MalformedURLException e) {
+      LOG.error(e.getMessage(), e);
+      throw new IllegalStateException("Unable to parse " + container.getNodeHttpAddress() + " into a URL");
+    }
+    return nodeHost;
+  }
 }

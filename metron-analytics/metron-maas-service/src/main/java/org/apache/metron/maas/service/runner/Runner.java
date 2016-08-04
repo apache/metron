@@ -42,7 +42,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.AbstractMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class Runner {
@@ -77,6 +79,11 @@ public class Runner {
     })
     ,CONTAINER_ID("ci", code -> {
       Option o = new Option(code, "container_id", true, "Container ID");
+      o.setRequired(true);
+      return o;
+    })
+    ,HOSTNAME("hn", code -> {
+      Option o = new Option(code, "hostname", true, "Hostname for container");
       o.setRequired(true);
       return o;
     })
@@ -164,6 +171,7 @@ public class Runner {
     String name = RunnerOptions.NAME.get(cli);
     String version = RunnerOptions.VERSION.get(cli);
     String containerId = RunnerOptions.CONTAINER_ID.get(cli);
+    String hostname = RunnerOptions.HOSTNAME.get(cli);
     CuratorFramework client = null;
 
     LOG.error("Running script " + script);
@@ -206,7 +214,7 @@ public class Runner {
 
       try {
         LOG.info("Started " + cmd);
-        URL endpointUrl = readURL(cwd);
+        URL endpointUrl = correctLocalUrl(hostname, readURL(cwd));
         LOG.info("Read endpoint " + endpointUrl);
         ModelEndpoint endpoint = new ModelEndpoint();
         {
@@ -259,7 +267,24 @@ public class Runner {
     }
   }
 
-
+  private static Set<String> localAddresses = new HashSet<String>() {{
+    add("localhost");
+    add("127.0.0.1");
+    add("0.0.0.0");
+  }};
+  private static URL correctLocalUrl(String hostname, URL tmp)  {
+    if(hostname != null && hostname.length() > 0 && localAddresses.contains(tmp.getHost())) {
+      URL endpointUrl = null;
+      try {
+        endpointUrl = new URL(tmp.getProtocol(), hostname, tmp.getPort(), tmp.getFile());
+      } catch (MalformedURLException e) {
+        LOG.error("Unable to process " + hostname + " as a valid hostname", e);
+        return tmp;
+      }
+      return endpointUrl;
+    }
+    return tmp;
+  }
 
   private static URL readURL(File cwd) throws IOException, InterruptedException {
     String content = "";
