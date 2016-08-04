@@ -483,6 +483,7 @@ public class ApplicationMaster {
     maasHandler = new MaaSHandler(zkQuorum, zkRoot);
     try {
       maasHandler.start();
+      maasHandler.getDiscoverer().resetState();
       listener.initialize(amRMClient, nmClientAsync, maasHandler.getDiscoverer());
     } catch (Exception e) {
       throw new IllegalStateException("Unable to find zookeeper", e);

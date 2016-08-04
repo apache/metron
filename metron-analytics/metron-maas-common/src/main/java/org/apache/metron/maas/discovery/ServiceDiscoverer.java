@@ -55,6 +55,21 @@ public class ServiceDiscoverer implements Closeable{
     updateState();
   }
 
+  public void resetState() {
+    rwLock.readLock().lock();
+    ServiceInstance<ModelEndpoint> ep = null;
+    try {
+      for(Map.Entry<String, ServiceInstance<ModelEndpoint>> kv : containerToEndpoint.entrySet()) {
+        ep = kv.getValue();
+        serviceDiscovery.unregisterService(ep);
+      }
+    } catch (Exception e) {
+      LOG.error("Unable to unregister endpoint " + ep.getPayload(), e);
+    } finally {
+      rwLock.readLock().unlock();
+    }
+  }
+
   public ServiceDiscovery<ModelEndpoint> getServiceDiscovery() {
     return serviceDiscovery;
   }
