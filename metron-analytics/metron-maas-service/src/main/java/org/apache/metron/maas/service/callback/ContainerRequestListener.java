@@ -91,6 +91,11 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
     return state;
   }
 
+  private void removeContainer(ContainerId id) {
+    containers.remove(id);
+    state.removeContainer(id);
+  }
+
   public void requestContainers(int number, Resource characteristic) {
     Priority pri = Priority.newInstance(0);
     state.getQueue(characteristic);
@@ -111,7 +116,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
               + containerStatus.getState() + ", exitStatus="
               + containerStatus.getExitStatus() + ", diagnostics="
               + containerStatus.getDiagnostics());
-
+      removeContainer(containerStatus.getContainerId());
       serviceDiscoverer.unregisterByContainer(containerStatus.getContainerId() + "");
       // non complete containers should not be here
       assert (containerStatus.getState() == ContainerState.COMPLETE);
@@ -195,7 +200,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
       throw new IllegalStateException("onContainerStopped returned null container ID!");
     }
     serviceDiscoverer.unregisterByContainer(containerId.getContainerId() + "");
-    containers.remove(containerId);
+    removeContainer(containerId);
   }
 
     @Override
@@ -226,7 +231,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
     public void onStartContainerError(ContainerId containerId, Throwable t) {
       LOG.error("Failed to start Container " + containerId);
       serviceDiscoverer.unregisterByContainer(containerId.getContainerId() + "");
-      containers.remove(containerId);
+      removeContainer(containerId);
     }
 
     @Override
@@ -238,6 +243,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
     @Override
     public void onStopContainerError(ContainerId containerId, Throwable t) {
       LOG.error("Failed to stop Container " + containerId);
-      containers.remove(containerId);
+      serviceDiscoverer.unregisterByContainer(containerId.getContainerId() + "");
+      removeContainer(containerId);
     }
 }

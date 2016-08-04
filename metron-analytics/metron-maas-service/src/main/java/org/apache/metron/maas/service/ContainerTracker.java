@@ -19,6 +19,7 @@ package org.apache.metron.maas.service;
 
 import com.google.common.collect.Maps;
 import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.metron.maas.config.Model;
 import org.apache.metron.maas.config.ModelRequest;
@@ -49,6 +50,19 @@ public class ContainerTracker {
         acceptedContainersByResource.put(key,queue );
       }
       return queue;
+    }
+  }
+
+  public void removeContainer(ContainerId container) {
+    synchronized(acceptedContainersByResource) {
+      for(Map.Entry<Model, List<Container>> kv : launchedContainers.entrySet()) {
+        for(Iterator<Container> it = kv.getValue().iterator();it.hasNext();) {
+          Container c = it.next();
+          if(c.getId().equals(container)) {
+            it.remove();
+          }
+        }
+      }
     }
   }
   public List<Container> getList(ModelRequest request) {
