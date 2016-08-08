@@ -19,7 +19,7 @@
 package org.apache.metron.common.field.validation;
 
 import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.query.PredicateProcessor;
+import org.apache.metron.common.stellar.StellarPredicateProcessor;
 
 import java.util.Map;
 
@@ -51,7 +51,7 @@ public class QueryValidation implements FieldValidation {
       return true;
     }
     else {
-      PredicateProcessor processor = new PredicateProcessor();
+      StellarPredicateProcessor processor = new StellarPredicateProcessor();
       return processor.parse(condition, new MapVariableResolver(input, validationConfig, globalConfig));
     }
   }
@@ -63,7 +63,7 @@ public class QueryValidation implements FieldValidation {
       throw new IllegalStateException("You must specify a condition.");
     }
     try {
-      new PredicateProcessor().validate(condition);
+      new StellarPredicateProcessor().validate(condition);
     }
     catch(Exception e) {
       throw new IllegalStateException("Invalid condition: " + condition, e);

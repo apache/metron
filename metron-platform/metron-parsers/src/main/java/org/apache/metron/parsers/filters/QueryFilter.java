@@ -19,7 +19,7 @@
 package org.apache.metron.parsers.filters;
 
 import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.query.PredicateProcessor;
+import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class QueryFilter implements MessageFilter<JSONObject> {
   public static final String QUERY_STRING_CONF = "filter.query";
-  private PredicateProcessor processor = new PredicateProcessor();
+  private StellarPredicateProcessor processor = new StellarPredicateProcessor();
   private String query;
 
   public QueryFilter()

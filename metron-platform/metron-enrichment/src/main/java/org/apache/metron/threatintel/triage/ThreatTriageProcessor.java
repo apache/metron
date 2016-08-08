@@ -23,7 +23,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.query.PredicateProcessor;
+import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.dsl.VariableResolver;
 
 import javax.annotation.Nullable;
@@ -45,7 +45,7 @@ public class ThreatTriageProcessor implements Function<Map, Double> {
   @Override
   public Double apply(@Nullable Map input) {
     List<Number> scores = new ArrayList<>();
-    PredicateProcessor predicateProcessor = new PredicateProcessor();
+    StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
     VariableResolver resolver = new MapVariableResolver(input, sensorConfig.getConfiguration(), threatIntelConfig.getConfig());
     for(Map.Entry<String, Number> kv : threatTriageConfig.getRiskLevelRules().entrySet()) {
       if(predicateProcessor.parse(kv.getKey(), resolver)) {

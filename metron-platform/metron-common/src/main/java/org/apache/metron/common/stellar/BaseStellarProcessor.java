@@ -16,45 +16,41 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.stellar;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import org.apache.metron.common.dsl.ErrorListener;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.query.generated.PredicateLexer;
-import org.apache.metron.common.query.generated.PredicateParser;
-
-import java.util.Map;
+import org.apache.metron.common.stellar.generated.StellarLexer;
+import org.apache.metron.common.stellar.generated.StellarParser;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-
-public class PredicateProcessor {
-
-  public boolean parse(String rule, VariableResolver resolver) {
+public class BaseStellarProcessor<T> {
+  Class<T> clazz;
+  public BaseStellarProcessor(Class<T> clazz) {
+    this.clazz = clazz;
+  }
+  public T parse(String rule, VariableResolver resolver) {
     if (rule == null || isEmpty(rule.trim())) {
-      return true;
+      return null;
     }
     ANTLRInputStream input = new ANTLRInputStream(rule);
-    PredicateLexer lexer = new PredicateLexer(input);
+    StellarLexer lexer = new StellarLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ErrorListener());
     TokenStream tokens = new CommonTokenStream(lexer);
-    PredicateParser parser = new PredicateParser(tokens);
+    StellarParser parser = new StellarParser(tokens);
+
+    StellarCompiler treeBuilder = new StellarCompiler(resolver);
+    parser.addParseListener(treeBuilder);
     parser.removeErrorListeners();
     parser.addErrorListener(new ErrorListener());
-    QueryCompiler treeBuilder = new QueryCompiler(resolver);
-    parser.removeParseListeners();
-    parser.addParseListener(treeBuilder);
-    parser.single_rule();
-    return treeBuilder.getResult();
+    parser.transformation();
+    return clazz.cast(treeBuilder.getResult());
   }
 
   public boolean validate(String rule) throws ParseException {

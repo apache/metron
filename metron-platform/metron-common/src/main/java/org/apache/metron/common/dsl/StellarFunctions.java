@@ -16,24 +16,50 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.dsl;
 
 import org.apache.commons.net.util.SubnetUtils;
+import org.apache.metron.common.dsl.functions.DateFunctions;
+import org.apache.metron.common.dsl.functions.MapFunctions;
+import org.apache.metron.common.dsl.functions.NetworkFunctions;
+import org.apache.metron.common.dsl.functions.StringFunctions;
+import org.apache.metron.common.field.transformation.IPProtocolTransformation;
 import org.apache.metron.common.field.validation.network.DomainValidation;
 import org.apache.metron.common.field.validation.network.EmailValidation;
 import org.apache.metron.common.field.validation.network.IPValidation;
 import org.apache.metron.common.field.validation.network.URLValidation;
 import org.apache.metron.common.field.validation.primitive.DateValidation;
 import org.apache.metron.common.field.validation.primitive.IntegerValidation;
+import org.apache.metron.common.utils.ConversionUtils;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public enum LogicalFunctions implements Predicate<List<Object>> {
-  IS_EMPTY ( list -> {
+public enum StellarFunctions implements Function<List<Object>, Object> {
+  TO_LOWER(strings -> strings.get(0)==null?null:strings.get(0).toString().toLowerCase())
+  ,TO_UPPER(strings -> strings.get(0) == null?null:strings.get(0).toString().toUpperCase())
+  ,TO_STRING(strings -> strings.get(0) == null?null:strings.get(0).toString())
+  ,TO_INTEGER(strings -> strings.get(0) == null?null: ConversionUtils.convert(strings.get(0), Integer.class))
+  ,TO_DOUBLE(strings -> strings.get(0) == null?null: ConversionUtils.convert(strings.get(0), Double.class))
+  ,TRIM(strings -> strings.get(0) == null?null:strings.get(0).toString().trim())
+  ,JOIN(new StringFunctions.JoinFunction())
+  ,SPLIT(new StringFunctions.SplitFunction())
+  ,GET_FIRST(new StringFunctions.GetFirst())
+  ,GET_LAST(new StringFunctions.GetLast())
+  ,GET(new StringFunctions.Get())
+  ,MAP_GET(new MapFunctions.MapGet())
+  ,DOMAIN_TO_TLD(new NetworkFunctions.ExtractTLD())
+  ,DOMAIN_REMOVE_TLD(new NetworkFunctions.RemoveTLD())
+  ,DOMAIN_REMOVE_SUBDOMAINS(new NetworkFunctions.RemoveSubdomains())
+  ,URL_TO_HOST(new NetworkFunctions.URLToHost())
+  ,URL_TO_PORT(new NetworkFunctions.URLToPort())
+  ,URL_TO_PATH(new NetworkFunctions.URLToPath())
+  ,URL_TO_PROTOCOL(new NetworkFunctions.URLToProtocol())
+  ,TO_EPOCH_TIMESTAMP(new DateFunctions.ToTimestamp())
+  ,PROTOCOL_TO_NAME(new IPProtocolTransformation())
+  ,IS_EMPTY ( list -> {
     if(list.size() == 0) {
       throw new IllegalStateException("IS_EMPTY expects one string arg");
     }
@@ -94,12 +120,12 @@ public enum LogicalFunctions implements Predicate<List<Object>> {
     }
     return str.matches(pattern);
   })
-  , IS_IP(new IPValidation())
-  , IS_DOMAIN(new DomainValidation())
-  , IS_EMAIL(new EmailValidation())
-  , IS_URL(new URLValidation())
-  , IS_DATE(new DateValidation())
-  , IS_INTEGER(new IntegerValidation())
+  , IS_IP(new Predicate2Transformation(new IPValidation()))
+  , IS_DOMAIN(new Predicate2Transformation(new DomainValidation()))
+  , IS_EMAIL(new Predicate2Transformation(new EmailValidation()))
+  , IS_URL(new Predicate2Transformation(new URLValidation()))
+  , IS_DATE(new Predicate2Transformation(new DateValidation()))
+  , IS_INTEGER(new Predicate2Transformation(new IntegerValidation()))
   , MAP_EXISTS(list -> {
       if(list.size() < 2) {
         return false;
@@ -113,13 +139,26 @@ public enum LogicalFunctions implements Predicate<List<Object>> {
     }
   )
   ;
-  Predicate<List<Object>> func;
-  LogicalFunctions(Predicate<List<Object>> func) {
+  private static class Predicate2Transformation implements Function<List<Object>, Object> {
+    Predicate<List<Object>> pred;
+    public Predicate2Transformation(Predicate<List<Object>> pred) {
+      this.pred = pred;
+    }
+
+    @Override
+    public Object apply(List<Object> objects) {
+      return pred.test(objects);
+    }
+  }
+  Function<List<Object>, Object> func;
+  StellarFunctions(Function<List<Object>, Object> func) {
     this.func = func;
   }
-  @Nullable
+
+
+
   @Override
-  public boolean test(@Nullable List<Object> input) {
-    return func.test(input);
+  public Object apply(List<Object> input) {
+    return func.apply(input);
   }
 }

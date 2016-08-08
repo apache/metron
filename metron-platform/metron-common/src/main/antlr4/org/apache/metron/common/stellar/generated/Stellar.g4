@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-grammar Predicate;
+grammar Stellar;
 
 @header {
 //CHECKSTYLE:OFF
@@ -41,6 +41,7 @@ grammar Predicate;
 
 /* Lexical rules */
 
+COMMA : ',';
 AND : 'and'
     | '&&'
     | 'AND'
@@ -64,26 +65,30 @@ LT : '<';
 LTE : '<=';
 GT : '>';
 GTE : '>=';
-COMMA : ',';
+QUESTION : '?' | 'THEN' | 'then';
+COLON : ':' | 'ELSE' | 'else';
+IF : 'IF' | 'if';
+
+MINUS : '-';
+PLUS : '+';
+DIV : '/';
+MUL : '*';
 
 LBRACKET : '[';
 RBRACKET : ']';
 LPAREN : '(' ;
 RPAREN : ')' ;
-
 IN : 'in'
    ;
 NIN : 'not in'
    ;
-EXISTS : 'exists';
-INT_LITERAL     : '0'..'9'+ ;
-DOUBLE_LITERAL  : '0'..'9'+'.''0'..'9'+ ;
-
+EXISTS : 'exists' | 'EXISTS';
+INT_LITERAL     : MINUS? '0'..'9'+ ;
+DOUBLE_LITERAL  : MINUS? '0'..'9'+'.''0'..'9'+ ;
 IDENTIFIER : [a-zA-Z_][a-zA-Z_\.0-9]* ;
 fragment SCHAR:  ~['"\\\r\n];
 STRING_LITERAL : '"' SCHAR* '"'
                | '\'' SCHAR* '\'' ;
-SEMI : ';' ;
 
 
 // COMMENT and WS are stripped from the output token stream by sending
@@ -96,50 +101,62 @@ WS : [ \r\t\u000C\n]+ -> skip ;
 
 /* Parser rules */
 
-single_rule : logical_expr EOF;
+transformation : transformation_expr EOF;
 
-logical_expr
- : logical_expr AND logical_expr # LogicalExpressionAnd
- | logical_expr OR logical_expr  # LogicalExpressionOr
- | comparison_expr               # ComparisonExpression
- | LPAREN logical_expr RPAREN    # LogicalExpressionInParen
- | NOT LPAREN logical_expr RPAREN #NotFunc
- | logical_entity                # LogicalEntity
- ;
-
+transformation_expr:
+    comparison_expr               # ComparisonExpression
+  | LPAREN transformation_expr RPAREN #TransformationExpr
+  | transformation_entity #TransformationEntity
+  | transformation_expr AND transformation_expr #LogicalExpressionAnd
+  | transformation_expr OR transformation_expr #LogicalExpressionOr
+  | NOT LPAREN transformation_expr RPAREN #NotFunc
+  | transformation_expr QUESTION transformation_expr COLON transformation_expr #TernaryFunc
+  | IF transformation_expr QUESTION transformation_expr COLON transformation_expr #TernaryFunc
+  | arithmetic_expr               # ArithExpression
+  ;
 comparison_expr : comparison_operand comp_operator comparison_operand # ComparisonExpressionWithOperator
                 | identifier_operand IN identifier_operand #InExpression
                 | identifier_operand NIN identifier_operand #NInExpression
                 | LPAREN comparison_expr RPAREN # ComparisonExpressionParens
                 ;
-
-logical_entity : (TRUE | FALSE) # LogicalConst
-               | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
-               | IDENTIFIER LPAREN func_args RPAREN #LogicalFunc
+comparison_operand : identifier_operand #IdentifierOperand
+                   ;
+transformation_entity : identifier_operand
+  ;
+comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp
+              ;
+arith_operator_addition : (PLUS | MINUS) # ArithOp_plus
                ;
-
-list_entity : LBRACKET op_list RBRACKET
-            ;
+arith_operator_mul : (MUL | DIV) # ArithOp_mul
+               ;
 func_args : op_list
           ;
 op_list : identifier_operand
         | op_list COMMA identifier_operand
         ;
+list_entity : LBRACKET op_list RBRACKET
+            | LBRACKET RBRACKET;
 
-t_func : IDENTIFIER LPAREN func_args RPAREN #TransformationFunc
-       ;
+arithmetic_expr: arithmetic_expr_mul #ArithExpr_solo
+               | arithmetic_expr PLUS arithmetic_expr_mul #ArithExpr_plus
+               | arithmetic_expr MINUS arithmetic_expr_mul #ArithExpr_minus
+                ;
+arithmetic_expr_mul : arithmetic_operands #ArithExpr_mul_solo
+                    | arithmetic_expr_mul MUL arithmetic_expr_mul #ArithExpr_mul
+                    | arithmetic_expr_mul DIV arithmetic_expr_mul #ArithExpr_div
+                    ;
 
-identifier_operand : STRING_LITERAL # StringLiteral
-                   | IDENTIFIER     # LogicalVariable
-                   | t_func #id_tfunc
-                   | INT_LITERAL #IntegerLiteral
-                   | DOUBLE_LITERAL #DoubleLiteral
+functions : IDENTIFIER LPAREN func_args RPAREN #TransformationFunc
+          ;
+arithmetic_operands : functions #NumericFunctions
+                    | DOUBLE_LITERAL #DoubleLiteral
+                    | INT_LITERAL #IntLiteral
+                    | IDENTIFIER #Variable
+                    | LPAREN arithmetic_expr RPAREN #ParenArith
+                    ;
+identifier_operand : (TRUE | FALSE) # LogicalConst
+                   | arithmetic_expr #ArithmeticOperands
+                   | STRING_LITERAL # StringLiteral
                    | list_entity #List
+                   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
                    ;
-
-comparison_operand : identifier_operand #IdentifierOperand
-                   | logical_entity # LogicalConstComparison
-                   ;
-
-comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp
-              ;

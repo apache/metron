@@ -16,26 +16,24 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.transformation;
+package org.apache.metron.common.stellar;
 
-import org.apache.metron.common.utils.ReflectionUtils;
 
-public enum FieldTransformations {
-  IP_PROTOCOL(new IPProtocolTransformation())
-  ,REMOVE(new RemoveTransformation())
-  ,MTL(new MTLTransformation())
-  ,STELLAR(new MTLTransformation())
-  ;
-  FieldTransformation mapping;
-  FieldTransformations(FieldTransformation mapping) {
-    this.mapping = mapping;
+import org.apache.metron.common.dsl.VariableResolver;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
+
+  public StellarPredicateProcessor() {
+    super(Boolean.class);
   }
-  public static FieldTransformation get(String mapping) {
-    try {
-      return FieldTransformations.valueOf(mapping).mapping;
+
+  @Override
+  public Boolean parse(String rule, VariableResolver resolver) {
+    if(rule == null || isEmpty(rule.trim())) {
+      return true;
     }
-    catch(Exception ex) {
-      return ReflectionUtils.createInstance(mapping);
-    }
+    return super.parse(rule, resolver);
   }
 }

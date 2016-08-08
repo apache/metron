@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.stellar;
 
-public interface BooleanOp {
-  boolean op(boolean left, boolean right);
+public class StellarProcessor extends BaseStellarProcessor<Object> {
+
+  public StellarProcessor() {
+    super(Object.class);
+  }
 }

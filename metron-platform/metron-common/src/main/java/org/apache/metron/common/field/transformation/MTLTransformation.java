@@ -20,7 +20,7 @@ package org.apache.metron.common.field.transformation;
 
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.transformation.TransformationProcessor;
+import org.apache.metron.common.stellar.StellarProcessor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +36,7 @@ public class MTLTransformation implements FieldTransformation {
   {
     Map<String, Object> ret = new HashMap<>();
     VariableResolver resolver = new MapVariableResolver(ret, input,fieldMappingConfig, sensorConfig);
-    TransformationProcessor processor = new TransformationProcessor();
+    StellarProcessor processor = new StellarProcessor();
     for(String oField : outputField) {
       Object transformObj = fieldMappingConfig.get(oField);
       if(transformObj != null) {
