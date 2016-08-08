@@ -65,6 +65,7 @@ configurations:
   - storm-site:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
       storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'
+      topology.classpath: '{{ topology_classpath }}'
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
 

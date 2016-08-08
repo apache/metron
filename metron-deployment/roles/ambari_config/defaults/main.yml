@@ -33,3 +33,4 @@ mapred_map_java_opts : -Xmx1024m
 mapred_reduce_java_opts : -Xmx1024m
 mapred_map_mem_mb : 1229
 mapred_reduce_mem_mb : 1229
+topology_classpath: '/etc/hbase/conf:/etc/hadoop/conf'
