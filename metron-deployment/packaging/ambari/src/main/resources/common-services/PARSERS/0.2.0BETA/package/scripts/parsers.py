@@ -17,16 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from ambari_commons import OSCheck
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.expect import expect
 
-if OSCheck.is_windows_family():
-    from params_windows import *
-else:
-    from params_linux import *
 
-java_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
+def parsers_init():
+    import params
+    params.HdfsResource(params.metron_apps_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.metron_user,
+                        mode=0775,
+                        source=params.local_grok_patterns_dir)
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+def get_parsers(params):
+    return params.parsers.replace(' ', '').split(',')
