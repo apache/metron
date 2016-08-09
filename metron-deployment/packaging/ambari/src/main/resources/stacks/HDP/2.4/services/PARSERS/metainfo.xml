@@ -4,20 +4,8 @@
     <services>
         <service>
             <name>PARSERS</name>
-            <displayName>Parsers</displayName>
-            <comment>Parsers</comment>
             <version>0.2.0BETA</version>
             <extends>common-services/PARSERS/0.2.0BETA</extends>
-            <osSpecifics>
-                <osSpecific>
-                    <osFamily>any</osFamily>
-                    <packages>
-                        <package>
-                            <name>metron-parsers</name>
-                        </package>
-                    </packages>
-                </osSpecific>
-            </osSpecifics>
         </service>
     </services>
 </metainfo>

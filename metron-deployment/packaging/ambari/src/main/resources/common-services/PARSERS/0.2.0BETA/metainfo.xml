@@ -23,12 +23,30 @@
             <displayName>Parsers</displayName>
             <comment>Parsers</comment>
             <version>0.2.0BETA</version>
+
             <components>
                 <component>
                     <name>PARSER_MASTER</name>
                     <displayName>Parsers Master-Eligible Node</displayName>
                     <category>MASTER</category>
                     <cardinality>1</cardinality>
+                    <versionAdvertised>true</versionAdvertised>
+                    <dependencies>
+                        <dependency>
+                            <name>HDFS/HDFS_CLIENT</name>
+                            <scope>host</scope>
+                            <auto-deploy>
+                                <enabled>true</enabled>
+                            </auto-deploy>
+                        </dependency>
+                        <dependency>
+                            <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+                            <scope>cluster</scope>
+                            <auto-deploy>
+                                <enabled>true</enabled>
+                            </auto-deploy>
+                        </dependency>
+                    </dependencies>
                     <commandScript>
                         <script>scripts/parsers_master.py</script>
                         <scriptType>PYTHON</scriptType>
@@ -36,25 +54,36 @@
                     </commandScript>
                 </component>
             </components>
+
             <osSpecifics>
                 <osSpecific>
                     <osFamily>any</osFamily>
                     <packages>
                         <package>
+                            <name>metron-common</name>
                             <name>metron-parsers</name>
                         </package>
                     </packages>
                 </osSpecific>
             </osSpecifics>
+
             <commandScript>
                 <script>scripts/service_check.py</script>
                 <scriptType>PYTHON</scriptType>
                 <timeout>300</timeout>
             </commandScript>
+
+            <requiredServices>
+                <service>HDFS</service>
+                <service>KAFKA</service>
+                <service>STORM</service>
+                <service>ZOOKEEPER</service>
+            </requiredServices>
+
             <configuration-dependencies>
-                <config-type>parsers-env</config-type>
+                <config-type>metron-parsers</config-type>
             </configuration-dependencies>
-            <restartRequiredAfterChange>true</restartRequiredAfterChange>
+
         </service>
     </services>
 </metainfo>

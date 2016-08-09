@@ -17,16 +17,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from ambari_commons import OSCheck
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.expect import expect
+from __future__ import print_function
 
-if OSCheck.is_windows_family():
-    from params_windows import *
-else:
-    from params_linux import *
+import sys
 
-java_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
+from resource_management.libraries.script import Script
+from resource_management.core.resources.system import Execute
+import subprocess
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+class ServiceCheck(Script):
+    def service_check(self, env):
+        import params
+        env.set_params(params)
+
+        doc = '{"name": "Ambari Smoke test"}'
+        index = "ambari_smoke_test"
+
+        print("Running parsers service check", file=sys.stdout)
+        exit(0)
+
+if __name__ == "__main__":
+    ServiceCheck().execute()

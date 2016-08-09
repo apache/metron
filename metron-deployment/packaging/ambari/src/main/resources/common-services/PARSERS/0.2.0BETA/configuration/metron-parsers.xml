@@ -22,10 +22,36 @@
         <name>metron_home</name>
         <value>/usr/metron/0.2.0BETA</value>
         <description>Metron home directory</description>
+        <display-name>Metron home</display-name>
     </property>
     <property>
         <name>parsers</name>
         <value>bluecoat,bro,snort,squid,websphere,yaf</value>
         <description>Metron parsers to deploy</description>
+        <display-name>Metron parsers</display-name>
+    </property>
+    <property>
+        <name>metron_apps_hdfs_dir</name>
+        <value>/apps/metron</value>
+        <description>Metron apps HDFS dir</description>
+        <display-name>Metron apps HDFS dir</display-name>
+    </property>
+    <property>
+        <name>metron_zookeeper_config_dir</name>
+        <value>config/zookeeper</value>
+        <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
+        <display-name>Metron Zookeeper config dir</display-name>
+    </property>
+    <property>
+        <name>metron_user</name>
+        <value>metron</value>
+        <property-type>USER</property-type>
+        <description>The user for Metron</description>
+        <display-name>Metron User</display-name>
+    </property>
+    <property>
+        <name>metron_group</name>
+        <value>metron</value>
+        <description>The group for Metron</description>
     </property>
 </configuration>
