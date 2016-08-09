@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MTLTransformation implements FieldTransformation {
+public class StellarTransformation implements FieldTransformation {
   @Override
   public Map<String, Object> map( Map<String, Object> input
                                 , List<String> outputField

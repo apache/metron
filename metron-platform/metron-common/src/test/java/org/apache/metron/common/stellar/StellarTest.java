@@ -103,10 +103,7 @@ public class StellarTest {
 
   }
 
-  @Test
-  public void testComparisons() {
 
-  }
   @Test
   public void testHappyPath() {
     String query = "TO_UPPER(TRIM(foo))";
