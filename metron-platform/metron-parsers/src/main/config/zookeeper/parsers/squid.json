@@ -8,7 +8,7 @@
   },
   "fieldTransformations" : [
     {
-      "transformation" : "MTL"
+      "transformation" : "STELLAR"
     ,"output" : [ "full_hostname", "domain_without_subdomains" ]
     ,"config" : {
       "full_hostname" : "URL_TO_HOST(url)"
