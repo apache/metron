@@ -35,8 +35,11 @@ config = Script.get_config()
 hostname = config['hostname']
 metron_home = config['configurations']['metron-parsers']['metron_home']
 parsers = config['configurations']['metron-parsers']['parsers']
+metron_user = config['configurations']['metron-parsers']['metron_user']
+metron_group = config['configurations']['metron-parsers']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-parsers']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format("{metron_home}/{metron_zookeeper_config_dir}")
+yum_repo_type = 'local'
 
 # hadoop params
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
@@ -44,14 +47,17 @@ hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 # zookeeper
-# zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
-zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-zookeeper_url = format("{hostname}:{zookeeper_port}")
-
-# kafka
-kafka_host = config['clusterHostInfo']['kafka_broker_hosts'][0]
-# TODO
-kafka_port = 6667
+zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
+has_zk_host = not len(zk_hosts) == 0
+zookeeper_quorum = None
+if has_zk_host:
+    if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
+        zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
+    else:
+        zookeeper_clientPort = '2181'
+    zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
+    # last port config
+    zookeeper_quorum += ':' + zookeeper_clientPort
 
 metron_apps_dir = config['configurations']['metron-parsers']['metron_apps_hdfs_dir']
 

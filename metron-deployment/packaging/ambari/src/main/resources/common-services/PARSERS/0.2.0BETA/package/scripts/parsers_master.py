@@ -17,88 +17,51 @@ limitations under the License.
 
 """
 
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
-from parsers import parsers_init
+
+from commands import Commands
 
 
-class Parsers(Script):
+class ParsersMaster(Script):
 
     def install(self, env):
-        import params
+        from params import params
         env.set_params(params)
-        parser_list = params.parsers.replace(' ', '').split(',')
-
-        print 'Install the Master'
-        ## TODO - this will become a remote yum repo instead of local
-        Execute("yum -y install createrepo")
-        Execute("createrepo /localrepo")
-        Execute("chmod -R o-w+r /localrepo")
-        Execute("echo \"[METRON-0.2.0BETA]\n"
-                "name=Metron 0.2.0BETA packages\n"
-                "baseurl=file:///localrepo\n"
-                "gpgcheck=0\n"
-                "enabled=1\" > /etc/yum.repos.d/local.repo")
-
-        print 'Install RPM packages'
+        commands = Commands(params)
+        commands.setup_repo()
+        Logger.info('Install RPM packages')
         self.install_packages(env)
-
-        print 'Upload grok patterns'
-        parsers_init()
-
-        print 'Setup Kafka topics'
-        for parser in parser_list:
-            Execute(format("""/usr/hdp/current/kafka-broker/bin/kafka-topics.sh \
-                        --zookeeper {zookeeper_url} \
-                        --create \
-                        --topic {} \
-                        --partitions {} \
-                        --replication-factor {} \
-                        --config retention.bytes={}""").format(parser,1,1,10 * 1024 * 1024 * 1024))
-#        {{ kafka_home }}/bin/kafka-topics.sh \
-#            --zookeeper {{ zookeeper_url }} \
-#            --create \
-#            --topic {{ item.topic }} \
-#            --partitions {{ item.num_partitions }} \
-#            --replication-factor {{ item.replication_factor }} \
-#            --config retention.bytes={{ item.retention_gb * 1024 * 1024 * 1024 }}
-
-        print 'Load parser config'
-        #Execute(format("{metron_home + "/bin/zk_load_configs.sh --mode PUSH -i {{ zookeeper_config_path }} -z {zookeeper_url}")
-        Execute(format("{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_url}"))
+        commands.init_parsers()
+        commands.init_kafka_topics()
+        commands.init_parser_config()
 
     def start(self, env, upgrade_type=None):
-        import params
+        from params import params
         env.set_params(params)
-        parser_list = params.parsers.replace(' ', '').split(',')
-        print 'Start the Master'
-        for parser in parser_list:
-            print 'Starting ' + parser
-            start_cmd = params.metron_home + '/bin/start_parser_topology.sh -s ' + parser + ' -z localhost:2181'
-            Execute(start_cmd)
-        print 'Finished starting parser topologies'
+        commands = Commands(params)
+        commands.start_parser_topologies()
 
     def stop(self, env, upgrade_type=None):
-        import params
+        from params import params
         env.set_params(params)
-        parser_list = params.parsers.replace(' ', '').split(',')
-        print 'Stopping parsers'
-        for parser in parser_list:
-            print 'Stopping ' + parser
-            stop_cmd = 'storm kill ' + parser
-            Execute(stop_cmd)
-        print 'Done'
+        commands = Commands(params)
+        commands.stop_parser_topologies()
 
     def status(self, env):
-        import params
+        from params import params
         env.set_params(params)
-        print 'Status of the Master'
+        Logger.info('Status of the Master')
 
     def restart(self, env):
-        import params
+        from params import params
         env.set_params(params)
-        print 'Restarting the Master'
+        Logger.info('Restarting the parser topologies')
+        self.stop(env)
+        self.start(env)
+        Logger.info('Done restarting the parser topologies')
 
 if __name__ == "__main__":
-    Parsers().execute()
+    ParsersMaster().execute()
