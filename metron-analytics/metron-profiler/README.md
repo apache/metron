@@ -130,7 +130,7 @@ This section will describe the steps required to get your first profile running.
 3. Create a table within HBase that will store the profile data. The table name and column family must match the Profiler topology configuration stored at `/usr/metron/0.2.0BETA/config/profiler.properties`.
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
-    hbase(main):001:0> create 'profiler1', 'cfProfile'
+    hbase(main):001:0> create 'profiler', 'cfProfile'
     ```
 
 4. Shorten the flush intervals to more immediately see results.  Edit the Profiler topology properties located at `/usr/metron/0.2.0BETA/config/profiler.properties`.  Alter the following two properties.
@@ -171,7 +171,7 @@ This section will describe the steps required to get your first profile running.
 9. Check the HBase table to validate that the Profiler is working. 
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
-    hbase(main):001:0> count 'profiler1'
+    hbase(main):001:0> count 'profiler'
     ``` 
 
 ## Design
