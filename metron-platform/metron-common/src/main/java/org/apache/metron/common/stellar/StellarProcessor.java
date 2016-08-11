@@ -18,6 +18,13 @@
 
 package org.apache.metron.common.stellar;
 
+/**
+ * The Stellar Processor is intended to allow for general transformations using the Stellar
+ * domain specific language.  In contrast to the StellarPredicateProcessor where
+ * the output of the stellar statement is always a boolean, this is intended for use when you
+ * need non-predicate transformation.  In java parlance, this is similar to a java.util.function.Function
+ * rather than a java.util.function.Predicate
+ */
 public class StellarProcessor extends BaseStellarProcessor<Object> {
 
   public StellarProcessor() {

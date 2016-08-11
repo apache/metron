@@ -23,6 +23,12 @@ import org.apache.metron.common.dsl.VariableResolver;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+/**
+ * The Stellar Predicate Processor is intended to allow for specific predicate transformations using the Stellar
+ * domain specific language.  In contrast to the StellarProcessor, which is a general purpose transformation
+ * tool, the output of the stellar statement is always a boolean.  In java parlance, this is like a
+ * java.util.function.Predicate
+ */
 public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
 
   public StellarPredicateProcessor() {
