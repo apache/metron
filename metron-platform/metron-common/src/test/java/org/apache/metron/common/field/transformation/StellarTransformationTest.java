@@ -29,12 +29,12 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-public class MTLTransformationTest {
+public class StellarTransformationTest {
   /**
    {
     "fieldTransformations" : [
           {
-           "transformation" : "MTL"
+           "transformation" : "STELLAR"
           ,"output" : "utc_timestamp"
           ,"config" : {
             "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', 'UTC')"
@@ -44,15 +44,15 @@ public class MTLTransformationTest {
    }
    */
   @Multiline
-  public static String mtlConfig;
+  public static String stellarConfig;
   /**
    * Test the happy path.  This ensures that a simple transformation, converting a timestamp in a yyyy-MM-dd HH:mm:ss
    * format can be converted to the expected UTC MS since Epoch.
    */
   @Test
-  public void testMTL() throws Exception {
+  public void testStellar() throws Exception {
 
-    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(mtlConfig));
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(stellarConfig));
     FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
       put("timestamp", "2016-01-05 17:02:30");
@@ -68,9 +68,9 @@ public class MTLTransformationTest {
    * 2. do any transformation.
    */
   @Test
-  public void testMTL_negative() throws Exception {
+  public void testStellar_negative() throws Exception {
 
-    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(mtlConfig));
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(stellarConfig));
     FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
     //no input fields => no transformation
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
@@ -84,7 +84,7 @@ public class MTLTransformationTest {
    {
     "fieldTransformations" : [
           {
-           "transformation" : "MTL"
+           "transformation" : "STELLAR"
           ,"output" : [ "utc_timestamp", "url_host", "url_protocol" ]
           ,"config" : {
             "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC') )"
@@ -103,7 +103,7 @@ public class MTLTransformationTest {
    }
    */
   @Multiline
-  public static String mtlConfig_multi;
+  public static String stellarConfig_multi;
 
   /**
    * A more complicated test where we are transforming multiple fields:
@@ -114,9 +114,9 @@ public class MTLTransformationTest {
    * 3. Extract the protocol of the URL field
    **/
   @Test
-  public void testMTL_multi() throws Exception {
+  public void testStellar_multi() throws Exception {
 
-    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(mtlConfig_multi));
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(stellarConfig_multi));
     FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
     {
       //We need a timestamp field, a URL field and a data center field

@@ -18,11 +18,8 @@
 
 package org.apache.metron.common.field.validation;
 
-import org.apache.metron.common.query.BooleanOp;
-
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class SimpleValidation implements FieldValidation, Predicate<List<Object>> {

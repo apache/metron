@@ -66,7 +66,7 @@ public class QueryValidationTest extends BaseValidationTest{
           {
            "validation" : "MQL"
           ,"config" : {
-              "condition" : "exi"
+              "condition" : "exi and "
                       }
           }
                          ]

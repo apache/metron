@@ -21,7 +21,7 @@ package org.apache.metron.common.configuration.enrichment.threatintel;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.aggregator.Aggregator;
 import org.apache.metron.common.aggregator.Aggregators;
-import org.apache.metron.common.query.PredicateProcessor;
+import org.apache.metron.common.stellar.StellarPredicateProcessor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class ThreatTriageConfig {
 
   public void setRiskLevelRules(Map<String, Number> riskLevelRules) {
     this.riskLevelRules = riskLevelRules;
-    PredicateProcessor processor = new PredicateProcessor();
+    StellarPredicateProcessor processor = new StellarPredicateProcessor();
     for(String rule : riskLevelRules.keySet()) {
       processor.validate(rule);
     }

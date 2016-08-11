@@ -20,7 +20,7 @@ package org.apache.metron.pcap.filter.query;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.query.PredicateProcessor;
+import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
@@ -53,7 +53,7 @@ public class QueryPcapFilter implements PcapFilter {
   }
 
   private String queryString = null;
-  private PredicateProcessor predicateProcessor = new PredicateProcessor();
+  private StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
 
   @Override
   public void configure(Iterable<Map.Entry<String, String>> config) {

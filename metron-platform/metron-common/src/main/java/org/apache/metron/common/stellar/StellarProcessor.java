@@ -16,8 +16,18 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.query;
+package org.apache.metron.common.stellar;
 
-public interface BooleanOp {
-  boolean op(boolean left, boolean right);
+/**
+ * The Stellar Processor is intended to allow for general transformations using the Stellar
+ * domain specific language.  In contrast to the StellarPredicateProcessor where
+ * the output of the stellar statement is always a boolean, this is intended for use when you
+ * need non-predicate transformation.  In java parlance, this is similar to a java.util.function.Function
+ * rather than a java.util.function.Predicate
+ */
+public class StellarProcessor extends BaseStellarProcessor<Object> {
+
+  public StellarProcessor() {
+    super(Object.class);
+  }
 }

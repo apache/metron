@@ -16,25 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.field.transformation;
+package org.apache.metron.common.stellar;
 
-import org.apache.metron.common.utils.ReflectionUtils;
-
-public enum FieldTransformations {
-  IP_PROTOCOL(new IPProtocolTransformation())
-  ,REMOVE(new RemoveTransformation())
-  ,STELLAR(new StellarTransformation())
-  ;
-  FieldTransformation mapping;
-  FieldTransformations(FieldTransformation mapping) {
-    this.mapping = mapping;
-  }
-  public static FieldTransformation get(String mapping) {
-    try {
-      return FieldTransformations.valueOf(mapping).mapping;
-    }
-    catch(Exception ex) {
-      return ReflectionUtils.createInstance(mapping);
-    }
-  }
+public interface BooleanOp {
+  boolean op(boolean left, boolean right);
 }
