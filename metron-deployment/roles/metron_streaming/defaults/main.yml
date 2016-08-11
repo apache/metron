@@ -30,6 +30,7 @@ metron_indexing_bundle_name: metron-indexing-{{ metron_version }}-archive.tar.gz
 metron_solr_bundle_name: metron-solr-{{ metron_version }}-archive.tar.gz
 metron_elasticsearch_bundle_name: metron-elasticsearch-{{ metron_version }}-archive.tar.gz
 metron_parsers_bundle_name: metron-parsers-{{ metron_version }}-archive.tar.gz
+metron_maas_bundle_name: metron-maas-service-{{ metron_version }}-archive.tar.gz
 metron_pcap_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-pcap-backend/target/{{ metron_pcap_bundle_name }}"
 metron_common_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-common/target/{{ metron_common_bundle_name }}"
 metron_data_management_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-data-management/target/{{ metron_data_management_bundle_name }}"
@@ -38,6 +39,7 @@ metron_indexing_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-in
 metron_solr_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-solr/target/{{ metron_solr_bundle_name }}"
 metron_elasticsearch_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-elasticsearch/target/{{ metron_elasticsearch_bundle_name }}"
 metron_parsers_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-parsers/target/{{ metron_parsers_bundle_name }}"
+metron_maas_bundle_path: "{{ playbook_dir }}/../../metron-analytics/metron-maas-service/target/{{ metron_maas_bundle_name }}"
 
 config_path: "{{ metron_directory }}/config"
 zookeeper_config_path: "{{ config_path }}/zookeeper"
