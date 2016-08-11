@@ -30,27 +30,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StellarTest {
+
   @Test
   public void testIfThenElse() {
     {
       String query = "if 1 < 2 then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, ImmutableMap.of("foo", "casey ")));
+      Assert.assertEquals("one", run(query, new HashMap<>()));
     }
     {
       String query = "if 1 + 1 < 2 then 'one' else 'two'";
-      Assert.assertEquals("two", run(query, ImmutableMap.of("foo", "casey ")));
+      Assert.assertEquals("two", run(query, new HashMap<>()));
     }
     {
       String query = "1 < 2 ? 'one' : 'two'";
-      Assert.assertEquals("one", run(query, ImmutableMap.of("foo", "casey ")));
+      Assert.assertEquals("one", run(query, new HashMap<>()));
     }
     {
       String query = "if not(1 < 2) then 'one' else 'two'";
-      Assert.assertEquals("two", run(query, ImmutableMap.of("foo", "casey ")));
+      Assert.assertEquals("two", run(query, new HashMap<>()));
     }
     {
       String query = "if 1 == 1.000001 then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, ImmutableMap.of("foo", "casey ")));
+      Assert.assertEquals("one", run(query, new HashMap<>()));
     }
     {
       String query = "if one < two then 'one' else 'two'";
@@ -66,11 +67,11 @@ public class StellarTest {
   public void testNumericOperations() {
     {
       String query = "TO_INTEGER(1 + 2*2 + 3 - 4 - 0.5)";
-      Assert.assertEquals(3, (Integer)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(3, (Integer)run(query, new HashMap<>()), 1e-6);
     }
     {
       String query = "1 + 2*2 + 3 - 4 - 0.5";
-      Assert.assertEquals(3.5, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(3.5, (Double)run(query, new HashMap<>()), 1e-6);
     }
     {
       String query = "2*one*(1 + 2*2 + 3 - 4)";
@@ -100,7 +101,6 @@ public class StellarTest {
       String query = "1 + 2*3";
       Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
-
   }
 
 
@@ -138,6 +138,7 @@ public class StellarTest {
                             )
                        );
   }
+
   @Test
   public void testTLDExtraction() {
     String query = "DOMAIN_TO_TLD(foo)";
@@ -156,6 +157,7 @@ public class StellarTest {
     Assert.assertEquals("google.co.uk", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
     Assert.assertEquals("google.com", run(query, ImmutableMap.of("foo", "www.google.com")));
   }
+
   @Test
   public void testURLToHost() {
     String query = "URL_TO_HOST(foo)";
@@ -188,6 +190,7 @@ public class StellarTest {
     Assert.assertEquals(null, run(query, ImmutableMap.of("foo", 6)));
     Assert.assertEquals("chicken", run(query, ImmutableMap.of("protocol", "chicken")));
   }
+
   @Test
   public void testDateConversion() {
     long expected =1452013350000L;
@@ -219,6 +222,7 @@ public class StellarTest {
     Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
     Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
   }
+
   @Test
   public void testGet() {
     Map<String, Object> variables = ImmutableMap.of("foo", "www.google.co.uk");
@@ -227,11 +231,14 @@ public class StellarTest {
     Assert.assertEquals("google", run("GET_LAST(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'))", variables));
     Assert.assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
   }
+
   private static Object run(String rule, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule));
     return processor.parse(rule, x -> variables.get(x));
-  }@Test
+  }
+
+  @Test
   public void testValidation() throws Exception {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
     try {
@@ -253,6 +260,7 @@ public class StellarTest {
   public static boolean runPredicate(String rule, Map resolver) {
     return runPredicate(rule, new MapVariableResolver(resolver));
   }
+
   public static boolean runPredicate(String rule, VariableResolver resolver) {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule));
@@ -392,6 +400,7 @@ public class StellarTest {
     Assert.assertFalse(runPredicate("num > num2", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("num == 7 && num > 2", v -> variableMap.get(v)));
   }
+
   @Test
   public void testLogicalFunctions() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{

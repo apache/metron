@@ -72,19 +72,6 @@ public class StellarCompiler extends StellarBaseListener {
     }
   }
 
-
-
-
-  /*@Override
-  public void enterArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
-    tokenStack.push(new Token<>(new ArithmeticMarkers.PlusMarker(), ArithmeticMarkers.PlusMarker.class));
-  }
-
-  @Override
-  public void enterArithExpr_minus(StellarParser.ArithExpr_minusContext ctx) {
-    tokenStack.push(new Token<>(new ArithmeticMarkers.MinusMarker(), ArithmeticMarkers.MinusMarker.class));
-  }*/
-
   @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
     Token<?> right = popStack();
