@@ -65,8 +65,8 @@ Any platform that supports these tools is suitable, but the following instructio
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
- - [Metron](http://node1:8080)
- - [Ambari](http://node1:5000)
+ - [Ambari](http://node1:8080)
+ - [Metron](http://node1:5000)
  - [Services](http://node1:2812)
 
 Connecting to the host through SSH is as simple as running the following command.

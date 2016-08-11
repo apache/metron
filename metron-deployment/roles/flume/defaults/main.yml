@@ -15,18 +15,5 @@
 #  limitations under the License.
 #
 ---
-- name: Generate ssh key pair for "{{ ambari_user }}"
-  user: name={{ ambari_user }} generate_ssh_key=yes
-
-- name: Fetch the generated public key
-  fetch: src=~{{ ambari_user }}/.ssh/id_rsa.pub dest=/tmp/keys/{{ inventory_hostname }}.pub flat=yes
-
-- name: Add key pairs to existing authorized_keys
-  authorized_key: user={{ ambari_user }} key="{{ lookup('file', '/tmp/keys/{{ item }}.pub') }}"
-  with_items:
-    - "{{ play_hosts }}"
-
-- name: Remove local copy of ssh keys
-  local_action: file path=/tmp/keys/{{ inventory_hostname }}.pub state=absent
-  become: False
-
+hdp_repo_def: "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.2.0/hdp.repo"
+java_home: /usr/jdk64/jdk1.8.0_60

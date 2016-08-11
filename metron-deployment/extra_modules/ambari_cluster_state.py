@@ -233,7 +233,7 @@ def main():
 def get_clusters(ambari_url, user, password):
     r = get(ambari_url, user, password, '/api/v1/clusters')
     if r.status_code != 200:
-        msg = 'Coud not get cluster list: request code {0}, \
+        msg = 'Could not get cluster list: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
     clusters = json.loads(r.content)
@@ -252,7 +252,7 @@ def set_cluster_state(ambari_url, user, password, cluster_name, cluster_state):
     payload = json.dumps(request)
     r = put(ambari_url, user, password, path, payload)
     if r.status_code not in [202, 200]:
-        msg = 'Coud not set cluster state: request code {0}, \
+        msg = 'Could not set cluster state: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
     return r
@@ -266,7 +266,7 @@ def create_cluster(ambari_url, user, password, cluster_name, blueprint_name, con
     f.close()
     r = post(ambari_url, user, password, path, data)
     if r.status_code != 202:
-        msg = 'Coud not create cluster: request code {0}, \
+        msg = 'Could not create cluster: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
     return r
@@ -276,7 +276,7 @@ def get_request_status(ambari_url, user, password, cluster_name, request_id):
     path = '/api/v1/clusters/{0}/requests/{1}'.format(cluster_name, request_id)
     r = get(ambari_url, user, password, path)
     if r.status_code != 200:
-        msg = 'Coud not get cluster request status: request code {0}, \
+        msg = 'Could not get cluster request status: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
     service = json.loads(r.content)
@@ -305,7 +305,7 @@ def get_blueprints(ambari_url, user, password):
     path = '/api/v1/blueprints'
     r = get(ambari_url, user, password, path)
     if r.status_code != 200:
-        msg = 'Coud not get blueprint list: request code {0}, \
+        msg = 'Could not get blueprint list: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
 
@@ -321,7 +321,7 @@ def create_blueprint(ambari_url, user, password, blueprint_name, blueprint_data)
     path = "/api/v1/blueprints/" + blueprint_name
     r = post(ambari_url, user, password, path, data)
     if r.status_code != 201:
-        msg = 'Coud not create blueprint: request code {0}, \
+        msg = 'Could not create blueprint: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
     return r
@@ -336,7 +336,7 @@ def delete_cluster(ambari_url, user, password, cluster_name):
     path = '/api/v1/clusters/{0}'.format(cluster_name)
     r = delete(ambari_url, user, password, path)
     if r.status_code != 200:
-        msg = 'Coud not delete cluster: request code {0}, \
+        msg = 'Could not delete cluster: request code {0}, \
                     request message {1}'.format(r.status_code, r.content)
         raise Exception(msg)
     return r
