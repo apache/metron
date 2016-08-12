@@ -20,17 +20,27 @@ kibana_master
 """
 
 
-from kibana import kibana
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import File
+from resource_management.core.source import InlineTemplate
 
+import errno
+import os
 
 class Kibana(Script):
+
     def install(self, env):
+
         import params
         env.set_params(params)
 
-        print 'Install the Master'
+        Logger.info("Install Kibana Master")
+
         #TODO: Figure this out for all supported OSes
         Execute('rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch')
         Execute("echo \"[kibana-4.x]\n"
@@ -41,45 +51,95 @@ class Kibana(Script):
                 "enabled=1\" > /etc/yum.repos.d/kibana.repo")
 
         self.install_packages(env)
+        self.loadtemplate(env)
 
     def configure(self, env):
+
         import params
         env.set_params(params)
 
-        print 'Install plugins'
-        kibana()
+        Logger.info("Configure Kibana for Metron")
+
+        directories = [params.log_dir, params.pid_dir, params.conf_dir]
+        Directory(directories,
+          # recursive=True,
+          mode=0755,
+          owner=params.kibana_user,
+          group=params.kibana_user
+          )
+
+        File("{}/kibana.yml".format(params.conf_dir),
+            owner=params.kibana_user,
+            content=InlineTemplate(params.kibana_yml_template)
+        )
 
     def stop(self, env):
+
         import params
         env.set_params(params)
-        stop_cmd = format("service kibana stop")
-        print 'Stop the Master'
-        Execute(stop_cmd)
+
+        Logger.info("Stop Kibana Master")
+
+        Execute("service kibana stop")
 
     def start(self, env):
+
         import params
         env.set_params(params)
 
         self.configure(env)
-        start_cmd = format("service kibana start")
-        print 'Start the Master'
-        Execute(start_cmd)
+
+        Logger.info("Start the Master")
+
+        Execute("service kibana start")
 
     def restart(self,env):
+
         import params
         env.set_params(params)
 
         self.configure(env)
-        restart_cmd = format("service kibana restart")
-        print 'Restarting the Master'
-        Execute(restart_cmd)
+
+        Logger.info("Restarting the Master")
+
+        Execute("service kibana restart")
 
     def status(self, env):
+
         import params
         env.set_params(params)
-        status_cmd = format("service kibana status")
-        print 'Status of the Master'
-        Execute(status_cmd)
+
+        Logger.info("Status of the Master")
+
+        Execute("service kibana status")
+
+    @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+    def loadtemplate(self,env):
+
+        from dashboard.dashboardindex import DashboardIndex
+
+        import params
+        env.set_params(params)
+
+        hostname = format("{es_host}")
+        port = int(format("{es_port}"))
+
+        Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname,port))
+        di = DashboardIndex(host=hostname,port=port)
+
+        #Loads Kibana Dashboard definition from disk and replaces .kibana on index
+        templateFile = './cache/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p'
+        if not os.path.isfile(templateFile):
+            raise IOError(
+                errno.ENOENT, os.strerror(errno.ENOENT), templateFile)
+
+        Logger.info("Deleting .kibana index from Elasticsearch")
+
+        di.es.indices.delete(index='.kibana', ignore=[400, 404])
+
+        Logger.info("Loading .kibana index from %s" % templateFile)
+
+        di.put(data=di.load(filespec=templateFile))
 
 
 if __name__ == "__main__":
