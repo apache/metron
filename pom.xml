@@ -27,7 +27,6 @@
     <modules>
             <module>metron-analytics</module>
             <module>metron-platform</module>
-            <module>metron-analytics</module>
     </modules>
     <properties>
         <twitter>@ApacheMetron</twitter>

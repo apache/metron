@@ -199,7 +199,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
     // execute the 'result' expression
     String resultExpr = profileConfig.getResult();
-    Long result = executor.execute(resultExpr, new JSONObject(), Long.class);
+    Double result = executor.execute(resultExpr, new JSONObject(), Double.class);
 
     // emit the completed profile measurement
     measurement.setEnd(getTimestamp());

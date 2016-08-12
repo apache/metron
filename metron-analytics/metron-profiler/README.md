@@ -149,7 +149,7 @@ This section will describe the steps required to get your first profile running.
           "foreach": "ip_src_addr",
           "onlyif":  "true",
           "init":    { "sum": 0 },
-          "update":  { "sum": "ADD(sum,1)" },
+          "update":  { "sum": "sum + 1" },
           "result":  "TO_LONG(sum)"
         }
       ]

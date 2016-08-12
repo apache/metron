@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -93,11 +94,11 @@ public class DefaultStellarExecutorTest {
   public void testState() {
     executor.assign("two", "2", message);
     executor.assign("four", "4", message);
-    executor.assign("sum", "ADD(two, four)", message);
+    executor.assign("sum", "two + four", message);
 
     // verify
     Object var = executor.getState().get("sum");
-    assertThat(var, equalTo(6));
+    assertEquals(6.0, var);
   }
 
   /**
@@ -143,6 +144,6 @@ public class DefaultStellarExecutorTest {
    */
   @Test(expected = RuntimeException.class)
   public void testWrongType() {
-    executor.execute("ADD(2,2)", message, Boolean.class);
+    executor.execute("2 + 2", message, Boolean.class);
   }
 }

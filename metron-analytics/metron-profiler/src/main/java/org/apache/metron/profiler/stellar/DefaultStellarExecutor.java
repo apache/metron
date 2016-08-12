@@ -22,8 +22,8 @@ package org.apache.metron.profiler.stellar;
 
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.query.PredicateProcessor;
-import org.apache.metron.common.transformation.TransformationProcessor;
+import org.apache.metron.common.stellar.StellarPredicateProcessor;
+import org.apache.metron.common.stellar.StellarProcessor;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
@@ -111,54 +111,10 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   private Object execute(String expression, JSONObject message) {
 
-    Object result = null;
-    try {
-      result = executeTransformation(expression, message);
-
-    } finally {
-      // maybe the expression is a predicate, not a transformation
-      if(result == null) {
-        result = executePredicate(expression, message);
-      }
-
-      return result;
-    }
-  }
-
-  /**
-   * Executes Stella predicates using the TransformationProcessor.  There are two sets
-   * of functions in Stellar currently.  One can be executed with a
-   * PredicateProcessor and the other a TransformationProcessor.
-   * @param expression The expression to execute.
-   * @param message The message that is accessible when Stellar is executed.
-   */
-  private Object executeTransformation(String expression, JSONObject message) {
-
-    // vars can be resolved from the execution state or the current message
+    // vartables can be resolved from the execution state or the current message
     VariableResolver resolver = new MapVariableResolver(state, message);
 
-    TransformationProcessor processor = new TransformationProcessor();
-    return processor.parse(expression, resolver);
-  }
-
-  /**
-   * Executes Stella predicates using the PredicateProcessor.  There are two sets
-   * of functions in Stellar currently.  One can be executed with a
-   * PredicateProcessor and the other a TransformationProcessor.
-   * @param expression The expression to execute.
-   * @param message The message that is accessible when Stellar is executed.
-   */
-  private boolean executePredicate(String expression, JSONObject message) {
-
-    // vars can be resolved from the execution state or the input message
-    VariableResolver resolver = new MapVariableResolver(state, message);
-
-    PredicateProcessor processor = new PredicateProcessor();
-    boolean valid = processor.validate(expression);
-    if(!valid) {
-      throw new RuntimeException(String.format("Invalid predicate expression; expression=%s", expression));
-    }
-
+    StellarProcessor processor = new StellarProcessor();
     return processor.parse(expression, resolver);
   }
 }

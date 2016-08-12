@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -67,10 +68,10 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    *     "y": "20"
    *   },
    *   "update": {
-   *     "x": "ADD(x, 10)",
-   *     "y": "ADD(y, 20)"
+   *     "x": "x + 10",
+   *     "y": "y + 20"
    *   },
-   *   "result": "TO_LONG(ADD(x, y))"
+   *   "result": "x + y"
    * }
    */
   @Multiline
@@ -132,8 +133,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tuple);
 
     // validate that x=10+10+10 y=20+20+20
-    assertThat(bolt.getExecutor().getState().get("x"), equalTo(10+10+10));
-    assertThat(bolt.getExecutor().getState().get("y"), equalTo(20+20+20));
+    assertEquals(10+10+10.0, bolt.getExecutor().getState().get("x"));
+    assertEquals(20+20+20.0, bolt.getExecutor().getState().get("y"));
   }
 
   /**
