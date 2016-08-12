@@ -124,3 +124,9 @@ class Commands:
             stop_cmd = 'storm kill ' + parser
             Execute(stop_cmd)
         Logger.info('Done stopping parser topologies')
+
+    def restart_parser_topologies(self):
+        Logger.info('Restarting the parser topologies')
+        self.stop_parser_topologies()
+        self.start_parser_topologies()
+        Logger.info('Done restarting the parser topologies')

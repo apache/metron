@@ -18,15 +18,12 @@ limitations under the License.
 """
 
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
 
 from commands import Commands
 
 
 class ParsersMaster(Script):
-
     def install(self, env):
         from params import params
         env.set_params(params)
@@ -34,14 +31,18 @@ class ParsersMaster(Script):
         commands.setup_repo()
         Logger.info('Install RPM packages')
         self.install_packages(env)
-        commands.init_parsers()
-        commands.init_kafka_topics()
-        commands.init_parser_config()
+
+    def configure(self, env, upgrade_type=None, config_dir=None):
+        from params import params
+        env.set_params(params)
 
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
         commands = Commands(params)
+        commands.init_parsers()
+        commands.init_kafka_topics()
+        commands.init_parser_config()
         commands.start_parser_topologies()
 
     def stop(self, env, upgrade_type=None):
@@ -58,10 +59,9 @@ class ParsersMaster(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
-        Logger.info('Restarting the parser topologies')
-        self.stop(env)
-        self.start(env)
-        Logger.info('Done restarting the parser topologies')
+        commands = Commands(params)
+        commands.restart_parser_topologies()
+
 
 if __name__ == "__main__":
     ParsersMaster().execute()

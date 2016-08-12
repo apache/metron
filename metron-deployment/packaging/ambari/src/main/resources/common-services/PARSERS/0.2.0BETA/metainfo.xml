@@ -61,6 +61,8 @@
                     <packages>
                         <package>
                             <name>metron-common</name>
+                        </package>
+                        <package>
                             <name>metron-parsers</name>
                         </package>
                     </packages>
