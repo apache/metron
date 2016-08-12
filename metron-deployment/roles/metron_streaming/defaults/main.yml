@@ -56,6 +56,7 @@ metron_solr_properties_config_path: "{{ metron_directory }}/config/solr.properti
 metron_elasticsearch_properties_config_path: "{{ metron_directory }}/config/elasticsearch.properties"
 metron_enrichment_properties_config_path: "{{ metron_directory }}/config/enrichment.properties"
 metron_parsers_properties_config_path: "{{ metron_directory }}/config/parsers.properties"
+metron_profiler_properties_config_path: "{{ metron_directory }}/config/profiler.properties"
 
 hbase_config_path: "/etc/hbase/conf"
 hdfs_config_path: "/etc/hadoop/conf"

@@ -58,6 +58,7 @@
 - name: Copy Metron MaaS bundle
   copy:
     src: "{{ metron_maas_bundle_path }}"
+    dest: "{{ metron_directory }}"
 
 - name: Copy Metron Profiler bundle
   copy:
