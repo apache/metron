@@ -80,14 +80,13 @@ class Commands:
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
-        # TODO get HDP home from params
-        command_template = format("""{hadoop_home_dir}/kafka-broker/bin/kafka-topics.sh \
-                                --zookeeper {zookeeper_quorum} \
+        command_template = """{}/kafka-broker/bin/kafka-topics.sh \
+                                --zookeeper {} \
                                 --create \
                                 --topic {} \
                                 --partitions {} \
                                 --replication-factor {} \
-                                --config retention.bytes={}""")
+                                --config retention.bytes={}"""
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = 10
@@ -95,10 +94,24 @@ class Commands:
         Logger.info("Creating main topics for parsers")
         for parser_name in self.get_parser_list():
             Logger.info("Creating topic'{}'".format(parser_name))
-            Execute(command_template.format(parser_name, num_partitions, replication_factor, retention_bytes))
+            Execute(command_template.format(self.__params.hadoop_home_dir,
+                                            self.__params.zookeeper_quorum,
+                                            parser_name,
+                                            num_partitions,
+                                            replication_factor,
+                                            retention_bytes))
         Logger.info("Creating topics for error handling")
-        Execute(command_template.format("parser_invalid", num_partitions, replication_factor, retention_bytes))
-        Execute(command_template.format("parser_error", num_partitions, replication_factor, retention_bytes))
+        Execute(command_template.format(self.__params.hadoop_home_dir,
+                                        self.__params.zookeeper_quorum,
+                                        "parser_invalid",
+                                        num_partitions,
+                                        replication_factor,
+                                        retention_bytes))
+        Execute(command_template.format(self.__params.hadoop_home_dir,
+                                        self.__params.zookeeper_quorum,
+                                        "parser_error",
+                                        num_partitions, replication_factor,
+                                        retention_bytes))
         Logger.info("Done creating Kafka topics")
 
     def init_parser_config(self):
@@ -108,12 +121,12 @@ class Commands:
 
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {}".format(self.get_parser_list()))
-        start_cmd_template = format("""{metron_home}/bin/start_parser_topology.sh \
+        start_cmd_template = """{}/bin/start_parser_topology.sh \
                                     -s {} \
-                                    -z {zookeeper_quorum}""")
+                                    -z {}"""
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
-            Execute(start_cmd_template.format(parser))
+            Execute(start_cmd_template.format(self.__params.metron_home, parser, self.__params.zookeeper_quorum))
 
         Logger.info('Finished starting parser topologies')
 
