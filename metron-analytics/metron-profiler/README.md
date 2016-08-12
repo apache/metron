@@ -59,12 +59,12 @@ The ratio of DNS traffic to HTTP traffic for each host. The following configurat
     "foreach": "ip_src_addr",
     "onlyif": "protocol == 'DNS' or protocol == ‘HTTP’
     “init”: {
-      “num_dns”: 0,
-      “num_http”: 0
+      “num_dns”: 1,
+      “num_http”: 1
     },
     "update": {
-      "num_dns": "num_dns + IF_THEN_ELSE(protocol == ‘DNS’, 1, 0)",
-      "num_http": "num_http + IF_THEN_ELSE(protocol == ‘HTTP’, 1, 0)"
+      "num_dns": "num_dns + if protocol == ‘DNS’ then 1 else 0",
+      "num_http": "num_http + if protocol == ‘HTTP’ then 1 else 0"
     },
     "result": "num_dns / num_http"
   }
@@ -150,7 +150,7 @@ This section will describe the steps required to get your first profile running.
           "onlyif":  "true",
           "init":    { "sum": 0 },
           "update":  { "sum": "sum + 1" },
-          "result":  "TO_LONG(sum)"
+          "result":  "sum"
         }
       ]
     }

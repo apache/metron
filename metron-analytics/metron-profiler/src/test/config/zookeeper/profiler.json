@@ -6,8 +6,8 @@
       "foreach":  "ip_src_addr",
       "onlyif":   "STARTS_WITH(protocol, 'HTTP')",
       "init":     { "cnt": 0 },
-      "update":   { "cnt": "ADD(cnt, 1)" },
-      "result":   "TO_LONG(cnt)"
+      "update":   { "cnt": "cnt + 1" },
+      "result":   "cnt"
     }
   ]
 }
