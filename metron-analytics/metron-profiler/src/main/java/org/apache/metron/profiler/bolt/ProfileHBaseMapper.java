@@ -88,9 +88,38 @@ public class ProfileHBaseMapper implements HBaseMapper {
     cols.addColumn(cfBytes, QENTITY, Bytes.toBytes(measurement.getEntity()));
     cols.addColumn(cfBytes, QSTART, Bytes.toBytes(measurement.getStart()));
     cols.addColumn(cfBytes, QEND, Bytes.toBytes(measurement.getEnd()));
-    cols.addColumn(cfBytes, QVALUE, Bytes.toBytes(measurement.getValue()));
+    cols.addColumn(cfBytes, QVALUE, toBytes(measurement.getValue()));
 
     return cols;
+  }
+
+  /**
+   * Serialize a profile measurement's value.
+   *
+   * The profile's value could be any numeric data type depending on how it is defined
+   * by the user.  This implementation allows the user some flexibility to choose the
+   * appropriate data type that best suits their use case.
+   *
+   * @param value The value to serialize.
+   */
+  private byte[] toBytes(Object value) {
+    byte[] result;
+
+    if(value instanceof Integer) {
+      result = Bytes.toBytes((Integer) value);
+    } else if(value instanceof Double) {
+      result = Bytes.toBytes((Double) value);
+    } else if(value instanceof Short) {
+      result = Bytes.toBytes((Short) value);
+    } else if(value instanceof Long) {
+      result = Bytes.toBytes((Long) value);
+    } else if(value instanceof Float) {
+      result = Bytes.toBytes((Float) value);
+    } else {
+      throw new RuntimeException("Expected 'Number': actual=" + value);
+    }
+
+    return result;
   }
 
   /**

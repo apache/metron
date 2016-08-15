@@ -112,7 +112,7 @@ This creates a profile...
 
 ### Example 3
 
-The average response body length of HTTP traffic. The following configuration would be used to generate this profile.
+The average of the `length` field of HTTP traffic. The following configuration would be used to generate this profile.
 
 ```
 {
@@ -127,7 +127,7 @@ The average response body length of HTTP traffic. The following configuration wo
         "cnt": 0.0
       },
       "update": {
-        "sum": "sum + resp_body_len",
+        "sum": "sum + length",
         "cnt": "cnt + 1"
       },
       "result": "sum / cnt"
@@ -140,7 +140,7 @@ This creates a profile...
  * Named ‘example3’
  * That for each IP source address
  * Only if the 'protocol' field equals 'HTTP'
- * Accumulates the sum of response body length
+ * Accumulates the sum of length
  * Accumulates the number of messages
  * Calculates the average as the result
 

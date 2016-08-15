@@ -1,0 +1,13 @@
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "example1",
+      "foreach": "ip_src_addr",
+      "onlyif": "true",
+      "init": {},
+      "update": {},
+      "result": "TO_INTEGER(10.0)"
+    }
+  ]
+}
