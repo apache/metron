@@ -77,6 +77,17 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   @Multiline
   private String profile;
 
+  /**
+   *  {
+   *    "profile": "test",
+   *    "foreach": "ip_src_addr",
+   *    "update": {},
+   *    "result": 2
+   *  }
+   */
+  @Multiline
+  private String missingInit;
+
   private JSONObject message;
 
   public static Tuple mockTickTuple() {
@@ -90,8 +101,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     return tuple;
   }
 
-  @Before
-  public void setup() throws Exception {
+  public void setup(String profile) throws Exception {
 
     // parse the input message
     JSONParser parser = new JSONParser();
@@ -111,7 +121,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   /**
    * Create a ProfileBuilderBolt to test
    */
-  private ProfileBuilderBolt createBolt() throws IOException {
+  private ProfileBuilderBolt createBolt() throws Exception {
 
     ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
     bolt.setCuratorFramework(client);
@@ -127,7 +137,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    */
   @Test
   public void testUpdateProfile() throws Exception {
-
+    // setup
+    setup(profile);
     ProfileBuilderBolt bolt = createBolt();
     bolt.execute(tuple);
     bolt.execute(tuple);
@@ -144,6 +155,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   public void testFlushProfile() throws Exception {
 
     // setup
+    setup(profile);
     ProfileBuilderBolt bolt = createBolt();
     bolt.execute(tuple);
     bolt.execute(tuple);
@@ -175,7 +187,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    */
   @Test
   public void testFlushProfileWithNoMessages() throws Exception {
-
+    setup(profile);
     ProfileBuilderBolt bolt = createBolt();
 
     // no messages have been received before a flush occurs
@@ -200,6 +212,31 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     // execute - should clear state from previous tuples
     bolt.execute(mockTickTuple());
 
+    // verify
     assertThat(bolt.getExecutor().getState().size(), equalTo(0));
+  }
+
+  /**
+   * The user need not define 'init' in the profile definition if it is not needed.
+   */
+  @Test
+  public void testMissingInit() throws Exception {
+
+    // setup
+    setup(missingInit);
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+    bolt.execute(mockTickTuple());
+
+    // capture the ProfileMeasurement that should be emitted
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+    verify(outputCollector, times(1)).emit(refEq(tuple), arg.capture());
+
+    Values actual = arg.getValue();
+    ProfileMeasurement measurement = (ProfileMeasurement) actual.get(0);
+
+    // verify
+    assertThat(measurement.getValue(), equalTo(2));
   }
 }

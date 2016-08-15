@@ -26,6 +26,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
@@ -115,7 +116,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
     // is this message needed by this profile?
     String onlyIf = profile.getOnlyif();
-    if (executor.execute(onlyIf, message, Boolean.class)) {
+    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, message, Boolean.class)) {
 
       // what is the name of the entity in this message?
       String entity = executor.execute(profile.getForeach(), message, String.class);

@@ -106,7 +106,24 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    * }
    */
   @Multiline
-  private String invalidOnlyIf;
+  private String invalidIf;
+
+  /**
+   * {
+   *   "inputTopic": "enrichment",
+   *   "profiles": [
+   *      {
+   *        "profile": "test",
+   *        "foreach": "ip_src_addr",
+   *        "init": {},
+   *        "update": {},
+   *        "result": 2
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String missingIf;
 
   private JSONObject message;
 
@@ -201,12 +218,31 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    * What happens when invalid Stella code is used for 'onlyif'?
    */
   @Test(expected = org.apache.metron.common.dsl.ParseException.class)
-  public void testOnlyIfInvalid() throws Exception {
+  public void testInvalidIf() throws Exception {
 
     // setup
-    ProfileSplitterBolt bolt = createBolt(invalidOnlyIf);
+    ProfileSplitterBolt bolt = createBolt(invalidIf);
 
     // execute
     bolt.execute(tuple);
+  }
+
+  /**
+   * If the 'onlyif' is not defined, this should be interpreted as 'true'.
+   */
+  @Test
+  public void testMissingIf() throws Exception {
+
+    // setup
+    ProfileSplitterBolt bolt = createBolt(missingIf);
+
+    // execute
+    bolt.execute(tuple);
+
+    // a tuple should be emitted for the downstream profile builder
+    verify(outputCollector, times(1)).emit(refEq(tuple), any(Values.class));
+
+    // the original tuple should be ack'd
+    verify(outputCollector, times(1)).ack(tuple);
   }
 }
