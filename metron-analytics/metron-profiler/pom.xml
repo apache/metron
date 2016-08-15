@@ -141,7 +141,6 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
             <version>${global_hbase_version}</version>
-            <!--<scope>provided</scope>-->
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -187,6 +186,12 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>${global_mockito_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.tempus-fugit</groupId>
+            <artifactId>tempus-fugit</artifactId>
+            <version>1.2-20140129.191141-5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

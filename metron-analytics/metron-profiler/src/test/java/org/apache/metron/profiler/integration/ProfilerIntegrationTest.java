@@ -24,6 +24,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
@@ -32,36 +33,36 @@ import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.profiler.bolt.ProfileHBaseMapper;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.code.tempusfugit.temporal.Duration.seconds;
+import static com.google.code.tempusfugit.temporal.Timeout.timeout;
+import static com.google.code.tempusfugit.temporal.WaitFor.waitOrTimeout;
 
 /**
  * An integration test of the Profiler topology.
  */
 public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
+  private static final String TEST_RESOURCES = "../../metron-analytics/metron-profiler/src/test";
   private static final String FLUX_PATH = "../metron-profiler/src/main/flux/profiler/remote.yaml";
 
   /**
    * {
    * "ip_src_addr": "10.0.0.1",
    * "protocol": "HTTPS",
-   * "length": "10"
+   * "length": 10,
+   * "bytes_in": 234
    * }
    */
   @Multiline
@@ -71,11 +72,23 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * {
    * "ip_src_addr": "10.0.0.2",
    * "protocol": "HTTP",
-   * "length": "20"
+   * "length": 20,
+   * "bytes_in": 390
    * }
    */
   @Multiline
   private String message2;
+
+  /**
+   * {
+   * "ip_src_addr": "10.0.0.3",
+   * "protocol": "DNS",
+   * "length": 30,
+   * "bytes_in": 560
+   * }
+   */
+  @Multiline
+  private String message3;
 
   private FluxTopologyComponent fluxComponent;
   private KafkaWithZKComponent kafkaComponent;
@@ -86,6 +99,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String tableName = "profiler";
   private static final String columnFamily = "cfProfile";
 
+  /**
+   * A TableProvider that allows us to mock HBase.
+   */
   public static class MockTableProvider implements TableProvider, Serializable {
 
     MockHTable.Provider provider = new MockHTable.Provider();
@@ -96,13 +112,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @Before
-  public void setup() throws Exception {
+  public void setup(String pathToConfig) throws Exception {
 
     // create input messages for the profiler to consume
-    input = Stream.of(message1, message2)
+    input = Stream.of(message1, message2, message3)
             .map(Bytes::toBytes)
-            .map(m -> Collections.nCopies(10, m))
+            .map(m -> Collections.nCopies(5, m))
             .flatMap(l -> l.stream())
             .collect(Collectors.toList());
 
@@ -130,8 +145,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // upload profiler configuration to zookeeper
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
-            .withGlobalConfigsPath("../../metron-analytics/metron-profiler/src/test/config/zookeeper")
-            .withProfilerConfigsPath("../../metron-analytics/metron-profiler/src/test/config/zookeeper");
+            .withGlobalConfigsPath(pathToConfig)
+            .withProfilerConfigsPath(pathToConfig);
 
     // load flux definition for the profiler topology
     fluxComponent = new FluxTopologyComponent.Builder()
@@ -159,39 +174,53 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Tests the Profiler topology by ensuring that at least one ProfileMeasurement is persisted
-   * within a mock HBase table.
+   * Tests the first example contained within the README.
    */
   @Test
-  public void testProfiler() throws Exception {
+  public void testExample1() throws Exception {
 
-    // start the topology
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
+
+    // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
-
-    // write test messages to the input topic
     kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
 
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+  }
 
-    // keep trying to verify until we timeout - a bit ugly, wish JUnit had a mechanism for this
-    int retry = 0;
-    int maxRetry = 60;
-    while(true) {
-      try {
-        // verify - ensure that at least one profile measurement was persisted
-        List<Put> puts = profilerTable.getPutLog();
-        assertTrue(puts.size() > 0);
+  /**
+   * Tests the second example contained within the README.
+   */
+  @Test
+  public void testExample2() throws Exception {
 
-        // success!
-        break;
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
 
-      } catch (AssertionError e) {
-        TimeUnit.SECONDS.sleep(3);
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
 
-        // if too many retries, give up the ghost
-        if(retry++ >= maxRetry) {
-          throw new Exception((retry-1) + " retry attempts failed", e);
-        }
-      }
-    }
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+  }
+
+  /**
+   * Tests the third example contained within the README.
+   */
+  @Test
+  public void testExample3() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
   }
 }

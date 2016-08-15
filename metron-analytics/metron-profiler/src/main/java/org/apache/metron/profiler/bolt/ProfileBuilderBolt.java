@@ -30,6 +30,7 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
@@ -119,8 +120,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       doExecute(input);
       collector.ack(input);
 
-    } catch (IOException e) {
-      LOG.error("exception: {}", e);
+    } catch (Throwable e) {
+      LOG.error("exception processing tuple: " + input, e);
       collector.reportError(e);
     }
   }
@@ -169,9 +170,14 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     measurement.setProfileName(profileConfig.getProfile());
 
     // execute the 'init' expression
-    JSONObject message = (JSONObject) input.getValueByField("message");
-    Map<String, String> expressions = profileConfig.getInit();
-    expressions.forEach((var, expr) -> executor.assign(var, expr, message));
+    try {
+      JSONObject message = (JSONObject) input.getValueByField("message");
+      Map<String, String> expressions = profileConfig.getInit();
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
+
+    } catch(ParseException e) {
+      throw new ParseException("Bad 'init' expression", e);
+    }
   }
 
   /**
@@ -182,8 +188,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     JSONObject message = (JSONObject) input.getValueByField("message");
 
     // execute each of the 'update' expressions
-    Map<String, String> expressions = profileConfig.getUpdate();
-    expressions.forEach((var, expr) -> executor.assign(var, expr, message));
+    try {
+      Map<String, String> expressions = profileConfig.getUpdate();
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
+
+    } catch(ParseException e) {
+      throw new ParseException("Bad 'update' expression", e);
+    }
   }
 
   /**
@@ -198,8 +209,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             measurement.getProfileName(), measurement.getEntity(), measurement.getStart()));
 
     // execute the 'result' expression
-    String resultExpr = profileConfig.getResult();
-    Double result = executor.execute(resultExpr, new JSONObject(), Double.class);
+    Double result;
+    try {
+      String resultExpr = profileConfig.getResult();
+       result = executor.execute(resultExpr, new JSONObject(), Double.class);
+    } catch(ParseException e) {
+      throw new ParseException("Bad 'result' expression", e);
+    }
 
     // emit the completed profile measurement
     measurement.setEnd(getTimestamp());

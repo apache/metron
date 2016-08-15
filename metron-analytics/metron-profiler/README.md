@@ -21,94 +21,128 @@ The Profiler configuration requires a JSON-formatted set of elements, many of wh
 
 ### Examples
 
-Examples of the types of profiles that can be collected include the following.  Each shows the configuration that would be required to produce the profile.
+Examples of the types of profiles that can be built include the following.  Each shows the configuration that would be required to produce the profile.  These examples assume a fictitious input messages that looks something like the following.
+
+```
+{
+  "ip_src_addr": "10.0.0.1",
+  "protocol": "HTTPS",
+  "length": "10",
+  "bytes_in": "234"
+},
+{
+  "ip_src_addr": "10.0.0.2",
+  "protocol": "HTTP",
+  "length": "20",
+  "bytes_in": "390"
+},
+{
+  "ip_src_addr": "10.0.0.3",
+  "protocol": "DNS",
+  "length": "30",
+  "bytes_in": "560"
+}
+```
 
 ### Example 1
 
-The total number of bytes received for each host. The following configuration would be used to generate this profile.
+The total number of bytes of HTTP data for each host. The following configuration would be used to generate this profile.
 
 ```
-{ "profiler": [
-  {
-    "profile": "sum_bytes_in",
-    "foreach": "ip_src_addr",
-    "onlyif":  "EXISTS(is_local)",
-    “init”:    { “sum”: 0 },
-    "update":  { "sum": "sum + bytes_in" },
-    "result":  "sum"
-  }
-]}
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "example1",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'HTTP'",
+      "init": {
+        "total_bytes": 0.0
+      },
+      "update": {
+        "total_bytes": "total_bytes + bytes_in"
+      },
+      "result": "total_bytes"
+    }
+  ]
+}
 ```
 
 This creates a profile...
- * Named ‘sum_bytes_in’
+ * Named ‘example1’
  * That for each IP source address
- * Only if it is on the local network
- * Initializes a counter ‘sum’ to 0
- * Updates ‘sum’ by adding the value of ‘bytes_in’ from each message
- * After the window expires, ‘sum’ becomes the result
+ * Only if the 'protocol' field equals 'HTTP'
+ * Initializes a counter ‘total_bytes’ to zero
+ * Adds to ‘total_bytes’ the value of the message's ‘bytes_in’ field
+ * Returns ‘total_bytes’ as the result
 
 ### Example 2
 
 The ratio of DNS traffic to HTTP traffic for each host. The following configuration would be used to generate this profile.
 
 ```
-{ "profiler": [
-  {
-    "profile": "ratio_dns_to_http",
-    "foreach": "ip_src_addr",
-    "onlyif": "protocol == 'DNS' or protocol == ‘HTTP’
-    “init”: {
-      “num_dns”: 1,
-      “num_http”: 1
-    },
-    "update": {
-      "num_dns": "num_dns + if protocol == ‘DNS’ then 1 else 0",
-      "num_http": "num_http + if protocol == ‘HTTP’ then 1 else 0"
-    },
-    "result": "num_dns / num_http"
-  }
-]}
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "example2",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'DNS' or protocol == 'HTTP'",
+      "init": {
+        "num_dns": 1.0,
+        "num_http": 1.0
+      },
+      "update": {
+        "num_dns": "num_dns + (if protocol == 'DNS' then 1 else 0)",
+        "num_http": "num_http + (if protocol == 'HTTP' then 1 else 0)"
+      },
+      "result": "num_dns / num_http"
+    }
+  ]
+}
 ```
 
 This creates a profile...
- * Named ‘ratio_dns_to_http’
+ * Named ‘example2’
  * That for each IP source address
- * Only if the message is either DNS or HTTP
+ * Only if the 'protocol' field equals 'HTTP' or 'DNS'
  * Accumulates the number of DNS requests 
  * Accumulates the number of HTTP requests
- * After the window expires, the ratio of these is the result
+ * Returns the ratio of these as the result
 
 ### Example 3
 
 The average response body length of HTTP traffic. The following configuration would be used to generate this profile.
 
 ```
-{ "profiler": [
+{
+  "inputTopic": "indexing",
+  "profiles": [
     {
-      "profile": "http_mean_resp_body_len",
+      "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      “init”: {
-        “sum”: 0,
-        “cnt”: 0
+      "init": {
+        "sum": 0.0,
+        "cnt": 0.0
       },
       "update": {
         "sum": "sum + resp_body_len",
         "cnt": "cnt + 1"
       },
-      "result": "sum / cnt",
+      "result": "sum / cnt"
     }
- ]}
+  ]
+}
 ```
 
 This creates a profile...
- * Named ‘http_mean_resp_body_len’
+ * Named ‘example3’
  * That for each IP source address
- * That is either HTTP or HTTPS
+ * Only if the 'protocol' field equals 'HTTP'
  * Accumulates the sum of response body length
- * Accumulates the count of messages
- * After the window period expires, the average is calculated
+ * Accumulates the number of messages
+ * Calculates the average as the result
 
 ## Getting Started
 
