@@ -23,6 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.parsers.filters.AbstractMessageFilter;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.filters.GenericMessageFilter;
@@ -38,8 +39,8 @@ import java.util.Map;
 public class FiltersTest {
   @Test
   public void testDefault() {
-    Assert.assertTrue(Filters.get("DEFAULT", null).emitTuple(null));
-    Assert.assertTrue(Filters.get(GenericMessageFilter.class.getName(), null).emitTuple(null));
+    Assert.assertTrue(Filters.get("DEFAULT", null).emitTuple(null, null));
+    Assert.assertTrue(Filters.get(GenericMessageFilter.class.getName(), null).emitTuple(null, null));
   }
 
   @Test
@@ -49,8 +50,8 @@ public class FiltersTest {
         put("filter.query", "exists(foo)");
       }};
       MessageFilter<JSONObject> filter = Filters.get("QUERY", config);
-      Assert.assertTrue(filter.emitTuple(new JSONObject(ImmutableMap.of("foo", 1))));
-      Assert.assertFalse(filter.emitTuple(new JSONObject(ImmutableMap.of("bar", 1))));
+      Assert.assertTrue(filter.emitTuple(new JSONObject(ImmutableMap.of("foo", 1)), Context.EMPTY_CONTEXT()));
+      Assert.assertFalse(filter.emitTuple(new JSONObject(ImmutableMap.of("bar", 1)), Context.EMPTY_CONTEXT()));
     }
 
   }

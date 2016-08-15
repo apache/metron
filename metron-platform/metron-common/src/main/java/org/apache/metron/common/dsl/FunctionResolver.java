@@ -15,28 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.filters;
+package org.apache.metron.common.dsl;
 
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.json.simple.JSONObject;
+import java.util.function.Function;
 
-import java.io.Serializable;
-import java.util.Map;
-
-public class GenericMessageFilter implements MessageFilter<JSONObject>{
-
-	private static final long serialVersionUID = 3626397212398318852L;
-
-	public GenericMessageFilter() {
-	}
-
-	public boolean emitTuple(JSONObject message, Context context) {
-		return true;
-	}
-
-	@Override
-	public void configure(Map<String, Object> config) {
-
-	}
+public interface FunctionResolver extends Function<String, StellarFunction> {
+  void initializeFunctions(Context context);
 }

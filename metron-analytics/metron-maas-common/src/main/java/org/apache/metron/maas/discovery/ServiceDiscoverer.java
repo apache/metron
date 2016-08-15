@@ -17,6 +17,9 @@
  */
 package org.apache.metron.maas.discovery;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
@@ -30,6 +33,11 @@ import org.apache.metron.maas.config.ModelEndpoint;
 import java.io.Closeable;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -40,8 +48,16 @@ public class ServiceDiscoverer implements Closeable{
   private ServiceDiscovery<ModelEndpoint> serviceDiscovery;
   private Map<Model, List<ModelEndpoint>> state = new HashMap<>();
   private Map<String, ServiceInstance<ModelEndpoint>> containerToEndpoint = new HashMap<>();
+  private Map<String, String> modelToCurrentVersion = new HashMap<>();
+  private Cache<URL, Boolean> blacklist;
 
   public ServiceDiscoverer(CuratorFramework client, String root) {
+    blacklist = CacheBuilder.newBuilder()
+                            .concurrencyLevel(4)
+                            .weakKeys()
+                            .expireAfterWrite(10, TimeUnit.MINUTES)
+                            .build();
+
     JsonInstanceSerializer<ModelEndpoint> serializer = new JsonInstanceSerializer<>(ModelEndpoint.class);
     serviceDiscovery = ServiceDiscoveryBuilder.builder(ModelEndpoint.class)
                 .client(client)
@@ -76,12 +92,19 @@ public class ServiceDiscoverer implements Closeable{
 
   private void updateState() {
     Map<Model, List<ModelEndpoint>> state = new HashMap<>();
+    Map<String, String> modelToVersion = new HashMap<>();
     Map<String, ServiceInstance<ModelEndpoint>> containerToEndpoint = new HashMap<>();
     try {
       for(String name : serviceDiscovery.queryForNames()) {
         for(ServiceInstance<ModelEndpoint> endpoint: serviceDiscovery.queryForInstances(name)) {
           ModelEndpoint ep = endpoint.getPayload();
           LOG.info("Found model endpoint " + ep);
+          String currentVersion = modelToVersion.getOrDefault(ep.getName(), ep.getVersion());
+          modelToVersion.put( ep.getName()
+                            , currentVersion.compareTo(ep.getVersion()) < 0
+                            ? ep.getVersion()
+                            : currentVersion
+                            );
           containerToEndpoint.put(ep.getContainerId(), endpoint);
           Model model = new Model(ep.getName(), ep.getVersion());
           List<ModelEndpoint> endpoints = state.get(model);
@@ -93,6 +116,7 @@ public class ServiceDiscoverer implements Closeable{
         }
       }
       rwLock.writeLock().lock();
+      this.modelToCurrentVersion = modelToVersion;
       this.state = state;
       this.containerToEndpoint = containerToEndpoint;
       rwLock.writeLock().unlock();
@@ -143,14 +167,59 @@ public class ServiceDiscoverer implements Closeable{
     }
   }
 
+  public void blacklist(ModelEndpoint endpoint) {
+    blacklist(toUrl(endpoint.getEndpoint().getUrl()));
+  }
+
+  public void blacklist(URL url) {
+    rwLock.writeLock().lock();
+    blacklist.put(url, true);
+    rwLock.writeLock().unlock();
+  }
+
+  public ModelEndpoint getEndpoint(String modelName) {
+    String version = null;
+    rwLock.readLock().lock();
+    version = modelToCurrentVersion.get(modelName);
+    rwLock.readLock().unlock();
+    if(version == null) {
+      throw new IllegalStateException("Unable to find version for " + modelName);
+    }
+    return getEndpoint(modelName, version);
+  }
+
+  private static URL toUrl(String url) {
+    try {
+      return new URL(url);
+    } catch (MalformedURLException e) {
+      throw new IllegalStateException("Endpoint does not refer to an actual URL");
+    }
+  }
+
+  public ModelEndpoint getEndpoint(String modelName, String modelVersion) {
+    return getEndpoint(new Model(modelName, modelVersion));
+  }
   public ModelEndpoint getEndpoint(Model model) {
     rwLock.readLock().lock();
     try {
       List<ModelEndpoint> endpoints = state.get(model);
       ModelEndpoint ret = null;
       if(endpoints != null) {
-        int i = ThreadLocalRandom.current().nextInt(endpoints.size());
-        ret = endpoints.get(i);
+        for(int j = 0;j < 10;++j) {
+          int i = ThreadLocalRandom.current().nextInt(endpoints.size());
+          ret = endpoints.get(i);
+          try {
+            if (blacklist.asMap().containsKey(toUrl(ret.getEndpoint().getUrl()))) {
+              continue;
+            }
+            else {
+              return ret;
+            }
+          }
+          catch(IllegalStateException ise) {
+
+          }
+        }
       }
       return ret;
     }

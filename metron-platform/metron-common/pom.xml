@@ -38,6 +38,11 @@
     </repositories>
     <dependencies>
         <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-maas-common</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
             <version>1.5.1</version>

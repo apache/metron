@@ -17,10 +17,12 @@
  */
 package org.apache.metron.maas.config;
 
+import com.google.common.base.Joiner;
+
 import java.io.Serializable;
 
 public class ModelEndpoint implements Serializable {
-  private String url;
+  private Endpoint endpoint;
   private String name;
   private String version;
   private String containerId;
@@ -29,26 +31,22 @@ public class ModelEndpoint implements Serializable {
     return containerId;
   }
 
+  public Endpoint getEndpoint() {
+    return endpoint;
+  }
+
+  public void setEndpoint(Endpoint endpoint) {
+    this.endpoint = endpoint;
+  }
+
   @Override
   public String toString() {
-    return "ModelEndpoint{" +
-            "url='" + url + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", containerId='" + containerId + '\'' +
-            '}';
+    return name + ":" + version + " @ " + endpoint.getUrl()
+                + " serving:\n\t" + Joiner.on("\n\t").join(getEndpoint().getEndpoints().entrySet());
   }
 
   public void setContainerId(String containerId) {
     this.containerId = containerId;
-  }
-
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
   }
 
   public String getName() {
@@ -74,17 +72,19 @@ public class ModelEndpoint implements Serializable {
 
     ModelEndpoint that = (ModelEndpoint) o;
 
-    if (getUrl() != null ? !getUrl().equals(that.getUrl()) : that.getUrl() != null) return false;
+    if (getEndpoint() != null ? !getEndpoint().equals(that.getEndpoint()) : that.getEndpoint() != null) return false;
     if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
-    return getVersion() != null ? getVersion().equals(that.getVersion()) : that.getVersion() == null;
+    if (getVersion() != null ? !getVersion().equals(that.getVersion()) : that.getVersion() != null) return false;
+    return getContainerId() != null ? getContainerId().equals(that.getContainerId()) : that.getContainerId() == null;
 
   }
 
   @Override
   public int hashCode() {
-    int result = getUrl() != null ? getUrl().hashCode() : 0;
+    int result = getEndpoint() != null ? getEndpoint().hashCode() : 0;
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
+    result = 31 * result + (getContainerId() != null ? getContainerId().hashCode() : 0);
     return result;
   }
 }

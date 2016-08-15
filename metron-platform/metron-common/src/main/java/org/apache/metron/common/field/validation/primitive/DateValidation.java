@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.field.validation.primitive;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 
 import java.text.ParseException;
@@ -80,6 +81,7 @@ public class DateValidation implements FieldValidation, Predicate<List<Object>> 
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
                         , Map<String, Object> globalConfig
+                        , Context context
                         )
   {
     String format = Config.FORMAT.get(validationConfig, String.class);

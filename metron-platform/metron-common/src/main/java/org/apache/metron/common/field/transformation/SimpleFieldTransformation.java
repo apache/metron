@@ -19,6 +19,7 @@
 package org.apache.metron.common.field.transformation;
 
 import com.google.common.collect.Iterables;
+import org.apache.metron.common.dsl.Context;
 
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ public abstract class SimpleFieldTransformation implements FieldTransformation {
                                 , List<String> outputField
                                 , Map<String, Object> fieldMappingConfig
                                 , Map<String, Object> sensorConfig
+                                , Context context
                                 )
   {
     Object value = (input == null || input.values() == null && input.values().isEmpty())

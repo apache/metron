@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -166,8 +167,8 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(outputCollector, times(1)).ack(tuple);
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
     when(parser.validate(eq(messages.get(1)))).thenReturn(true);
-    when(filter.emitTuple(messages.get(0))).thenReturn(false);
-    when(filter.emitTuple(messages.get(1))).thenReturn(true);
+    when(filter.emitTuple(eq(messages.get(0)), any())).thenReturn(false);
+    when(filter.emitTuple(eq(messages.get(1)), any())).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(tuple);
     verify(writer, times(1)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage2));
@@ -205,7 +206,7 @@ public void testImplicitBatchOfOne() throws Exception {
   verify(batchWriter, times(1)).init(any(), any());
   when(parser.validate(any())).thenReturn(true);
   when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
-  when(filter.emitTuple(any())).thenReturn(true);
+  when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
   parserBolt.withMessageFilter(filter);
   parserBolt.execute(t1);
   verify(outputCollector, times(1)).ack(t1);
@@ -276,7 +277,7 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
-    when(filter.emitTuple(any())).thenReturn(true);
+    when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
@@ -311,7 +312,7 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
-    when(filter.emitTuple(any())).thenReturn(true);
+    when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     writeNonBatch(outputCollector, parserBolt, t1);
     writeNonBatch(outputCollector, parserBolt, t2);
@@ -357,7 +358,7 @@ public void testImplicitBatchOfOne() throws Exception {
     doThrow(new Exception()).when(batchWriter).write(any(), any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parse(any())).thenReturn(ImmutableList.of(new JSONObject()));
-    when(filter.emitTuple(any())).thenReturn(true);
+    when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     parserBolt.execute(t2);
