@@ -20,14 +20,14 @@
     <services>
         <service>
             <name>PARSERS</name>
-            <displayName>Parsers</displayName>
+            <displayName>Metron Parsers</displayName>
             <comment>Parsers</comment>
             <version>0.2.0BETA</version>
 
             <components>
                 <component>
                     <name>PARSER_MASTER</name>
-                    <displayName>Parsers Master-Eligible Node</displayName>
+                    <displayName>Metron Parser Topologies</displayName>
                     <category>MASTER</category>
                     <cardinality>1</cardinality>
                     <versionAdvertised>true</versionAdvertised>
@@ -41,6 +41,13 @@
                         </dependency>
                         <dependency>
                             <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+                            <scope>cluster</scope>
+                            <auto-deploy>
+                                <enabled>true</enabled>
+                            </auto-deploy>
+                        </dependency>
+                        <dependency>
+                            <name>KAFKA/KAFKA_BROKER</name>
                             <scope>cluster</scope>
                             <auto-deploy>
                                 <enabled>true</enabled>
@@ -85,6 +92,13 @@
             <configuration-dependencies>
                 <config-type>metron-parsers</config-type>
             </configuration-dependencies>
+
+            <quickLinksConfigurations>
+                <quickLinksConfiguration>
+                    <fileName>quicklinks.json</fileName>
+                    <default>true</default>
+                </quickLinksConfiguration>
+            </quickLinksConfigurations>
 
         </service>
     </services>

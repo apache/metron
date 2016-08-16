@@ -80,7 +80,7 @@ class Commands:
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
-        command_template = """{}/kafka-broker/bin/kafka-topics.sh \
+        command_template = """{}/kafka-topics.sh \
                                 --zookeeper {} \
                                 --create \
                                 --topic {} \
@@ -94,20 +94,20 @@ class Commands:
         Logger.info("Creating main topics for parsers")
         for parser_name in self.get_parser_list():
             Logger.info("Creating topic'{}'".format(parser_name))
-            Execute(command_template.format(self.__params.hadoop_home_dir,
+            Execute(command_template.format(self.__params.kafka_bin_dir,
                                             self.__params.zookeeper_quorum,
                                             parser_name,
                                             num_partitions,
                                             replication_factor,
                                             retention_bytes))
         Logger.info("Creating topics for error handling")
-        Execute(command_template.format(self.__params.hadoop_home_dir,
+        Execute(command_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
                                         "parser_invalid",
                                         num_partitions,
                                         replication_factor,
                                         retention_bytes))
-        Execute(command_template.format(self.__params.hadoop_home_dir,
+        Execute(command_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
                                         "parser_error",
                                         num_partitions, replication_factor,
