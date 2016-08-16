@@ -1,0 +1,47 @@
+{
+  "type": "full-release",
+  "name": "metron-ambari.mpack",
+  "version": "1.0.0.0",
+  "description": "Ambari Management Pack for Apache Metron",
+  "prerequisites": {
+    "min-ambari-version": "2.2.0.0",
+    "min-stack-versions": [
+      {
+        "stack_name": "HDP",
+        "stack_version": "2.3.0"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "name": "METRON-common-services",
+      "type" : "service-definitions",
+      "source_dir" : "common-services"
+    },
+    {
+      "name" : "METRON-addon-services",
+      "type" : "stack-addon-service-definitions",
+      "source_dir": "addon-services",
+      "service_versions_map": [
+        {
+          "service_name" : "KIBANA",
+          "service_version" : "4.5.1",
+          "applicable_stacks" : [
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.3"
+            },
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.4"
+            },
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
