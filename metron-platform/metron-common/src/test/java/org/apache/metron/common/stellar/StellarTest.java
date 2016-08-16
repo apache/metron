@@ -23,11 +23,15 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.junit.Assert;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static org.junit.Assert.*;
 
 public class StellarTest {
 
@@ -35,31 +39,31 @@ public class StellarTest {
   public void testIfThenElse() {
     {
       String query = "if 1 < 2 then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, new HashMap<>()));
+      assertEquals("one", run(query, new HashMap<>()));
     }
     {
       String query = "if 1 + 1 < 2 then 'one' else 'two'";
-      Assert.assertEquals("two", run(query, new HashMap<>()));
+      assertEquals("two", run(query, new HashMap<>()));
     }
     {
       String query = "1 < 2 ? 'one' : 'two'";
-      Assert.assertEquals("one", run(query, new HashMap<>()));
+      assertEquals("one", run(query, new HashMap<>()));
     }
     {
       String query = "if not(1 < 2) then 'one' else 'two'";
-      Assert.assertEquals("two", run(query, new HashMap<>()));
+      assertEquals("two", run(query, new HashMap<>()));
     }
     {
       String query = "if 1 == 1.000001 then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, new HashMap<>()));
+      assertEquals("one", run(query, new HashMap<>()));
     }
     {
       String query = "if one < two then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "two", 2)));
+      assertEquals("one", run(query, ImmutableMap.of("one", 1, "two", 2)));
     }
     {
       String query = "if one == very_nearly_one then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)));
+      assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)));
     }
   }
 
@@ -67,39 +71,39 @@ public class StellarTest {
   public void testNumericOperations() {
     {
       String query = "TO_INTEGER(1 + 2*2 + 3 - 4 - 0.5)";
-      Assert.assertEquals(3, (Integer)run(query, new HashMap<>()), 1e-6);
+      assertEquals(3, (Integer)run(query, new HashMap<>()), 1e-6);
     }
     {
       String query = "1 + 2*2 + 3 - 4 - 0.5";
-      Assert.assertEquals(3.5, (Double)run(query, new HashMap<>()), 1e-6);
+      assertEquals(3.5, (Double)run(query, new HashMap<>()), 1e-6);
     }
     {
       String query = "2*one*(1 + 2*2 + 3 - 4)";
-      Assert.assertEquals(8, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(8, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "2*(1 + 2 + 3 - 4)";
-      Assert.assertEquals(4, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(4, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "1 + 2 + 3 - 4 - 2";
-      Assert.assertEquals(0, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(0, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "1 + 2 + 3 + 4";
-      Assert.assertEquals(10, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(10, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "(one + 2)*3";
-      Assert.assertEquals(9, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(9, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "TO_INTEGER((one + 2)*3.5)";
-      Assert.assertEquals(10, (Integer)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(10, (Integer)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "1 + 2*3";
-      Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
   }
 
@@ -107,31 +111,31 @@ public class StellarTest {
   @Test
   public void testHappyPath() {
     String query = "TO_UPPER(TRIM(foo))";
-    Assert.assertEquals("CASEY", run(query, ImmutableMap.of("foo", "casey ")));
+    assertEquals("CASEY", run(query, ImmutableMap.of("foo", "casey ")));
   }
 
   @Test
   public void testJoin() {
     String query = "JOIN( [ TO_UPPER(TRIM(foo)), 'bar' ], ',')";
-    Assert.assertEquals("CASEY,bar", run(query, ImmutableMap.of("foo", "casey ")));
+    assertEquals("CASEY,bar", run(query, ImmutableMap.of("foo", "casey ")));
   }
 
   @Test
   public void testSplit() {
     String query = "JOIN( SPLIT(foo, ':'), ',')";
-    Assert.assertEquals("casey,bar", run(query, ImmutableMap.of("foo", "casey:bar")));
+    assertEquals("casey,bar", run(query, ImmutableMap.of("foo", "casey:bar")));
   }
 
   @Test
   public void testMapGet() {
     String query = "MAP_GET(dc, dc2tz, 'UTC')";
-    Assert.assertEquals("UTC"
+    assertEquals("UTC"
                        , run(query, ImmutableMap.of("dc", "nyc"
                                                    ,"dc2tz", ImmutableMap.of("la", "PST")
                                                    )
                             )
                        );
-    Assert.assertEquals("EST"
+    assertEquals("EST"
                        , run(query, ImmutableMap.of("dc", "nyc"
                                                    ,"dc2tz", ImmutableMap.of("nyc", "EST")
                                                    )
@@ -142,53 +146,53 @@ public class StellarTest {
   @Test
   public void testTLDExtraction() {
     String query = "DOMAIN_TO_TLD(foo)";
-    Assert.assertEquals("co.uk", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
+    assertEquals("co.uk", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
   }
 
   @Test
   public void testTLDRemoval() {
     String query = "DOMAIN_REMOVE_TLD(foo)";
-    Assert.assertEquals("www.google", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
+    assertEquals("www.google", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
   }
 
   @Test
   public void testSubdomainRemoval() {
     String query = "DOMAIN_REMOVE_SUBDOMAINS(foo)";
-    Assert.assertEquals("google.co.uk", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
-    Assert.assertEquals("google.com", run(query, ImmutableMap.of("foo", "www.google.com")));
+    assertEquals("google.co.uk", run(query, ImmutableMap.of("foo", "www.google.co.uk")));
+    assertEquals("google.com", run(query, ImmutableMap.of("foo", "www.google.com")));
   }
 
   @Test
   public void testURLToHost() {
     String query = "URL_TO_HOST(foo)";
-    Assert.assertEquals("www.google.co.uk", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
+    assertEquals("www.google.co.uk", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
   }
 
   @Test
   public void testURLToPort() {
     String query = "URL_TO_PORT(foo)";
-    Assert.assertEquals(80, run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
+    assertEquals(80, run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
   }
 
   @Test
   public void testURLToProtocol() {
     String query = "URL_TO_PROTOCOL(foo)";
-    Assert.assertEquals("http", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
+    assertEquals("http", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
   }
 
   @Test
   public void testURLToPath() {
     String query = "URL_TO_PATH(foo)";
-    Assert.assertEquals("/my/path", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
+    assertEquals("/my/path", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
   }
 
   @Test
   public void testProtocolToName() {
     String query = "PROTOCOL_TO_NAME(protocol)";
-    Assert.assertEquals("TCP", run(query, ImmutableMap.of("protocol", "6")));
-    Assert.assertEquals("TCP", run(query, ImmutableMap.of("protocol", 6)));
-    Assert.assertEquals(null, run(query, ImmutableMap.of("foo", 6)));
-    Assert.assertEquals("chicken", run(query, ImmutableMap.of("protocol", "chicken")));
+    assertEquals("TCP", run(query, ImmutableMap.of("protocol", "6")));
+    assertEquals("TCP", run(query, ImmutableMap.of("protocol", 6)));
+    assertEquals(null, run(query, ImmutableMap.of("foo", 6)));
+    assertEquals("chicken", run(query, ImmutableMap.of("protocol", "chicken")));
   }
 
   @Test
@@ -196,45 +200,45 @@ public class StellarTest {
     long expected =1452013350000L;
     {
       String query = "TO_EPOCH_TIMESTAMP(foo, 'yyyy-MM-dd HH:mm:ss', 'UTC')";
-      Assert.assertEquals(expected, run(query, ImmutableMap.of("foo", "2016-01-05 17:02:30")));
+      assertEquals(expected, run(query, ImmutableMap.of("foo", "2016-01-05 17:02:30")));
     }
     {
       String query = "TO_EPOCH_TIMESTAMP(foo, 'yyyy-MM-dd HH:mm:ss')";
       Long ts = (Long) run(query, ImmutableMap.of("foo", "2016-01-05 17:02:30"));
       //is it within 24 hours of the UTC?
-      Assert.assertTrue(Math.abs(ts - expected) < 8.64e+7);
+      assertTrue(Math.abs(ts - expected) < 8.64e+7);
     }
   }
 
   @Test
   public void testToString() {
-    Assert.assertEquals("5", run("TO_STRING(foo)", ImmutableMap.of("foo", 5)));
+    assertEquals("5", run("TO_STRING(foo)", ImmutableMap.of("foo", 5)));
   }
 
   @Test
   public void testToInteger() {
-    Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", "5")));
-    Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", 5)));
+    assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", "5")));
+    assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", 5)));
   }
 
   @Test
   public void testToDouble() {
-    Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
-    Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
+    assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
+    assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
   }
 
   @Test
   public void testGet() {
     Map<String, Object> variables = ImmutableMap.of("foo", "www.google.co.uk");
-    Assert.assertEquals("www", run("GET_FIRST(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'))", variables));
-    Assert.assertEquals("www", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 0)", variables));
-    Assert.assertEquals("google", run("GET_LAST(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'))", variables));
-    Assert.assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
+    assertEquals("www", run("GET_FIRST(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'))", variables));
+    assertEquals("www", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 0)", variables));
+    assertEquals("google", run("GET_LAST(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'))", variables));
+    assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
   }
 
   private static Object run(String rule, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
+    assertTrue(rule + " not valid.", processor.validate(rule));
     return processor.parse(rule, x -> variables.get(x));
   }
 
@@ -243,14 +247,14 @@ public class StellarTest {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
     try {
       processor.validate("'foo'");
-      Assert.fail("Invalid rule found to be valid - lone value.");
+      fail("Invalid rule found to be valid - lone value.");
     }
     catch(ParseException e) {
 
     }
     try {
       processor.validate("enrichedField1 == 'enrichedValue1");
-      Assert.fail("Invalid rule found to be valid - unclosed single quotes.");
+      fail("Invalid rule found to be valid - unclosed single quotes.");
     }
     catch(ParseException e) {
 
@@ -263,7 +267,7 @@ public class StellarTest {
 
   public static boolean runPredicate(String rule, VariableResolver resolver) {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
+    assertTrue(rule + " not valid.", processor.validate(rule));
     return processor.parse(rule, resolver);
   }
 
@@ -275,17 +279,17 @@ public class StellarTest {
       put("spaced", "metron is great");
       put("foo.bar", "casey");
     }};
-    Assert.assertTrue(runPredicate("'casey' == foo.bar", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'casey' == foo", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'casey' != foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'stella' == 'stella'", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'stella' == foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo== foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("empty== ''", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("spaced == 'metron is great'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate(null, v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate(" ", v -> variableMap.get(v)));
+    assertTrue(runPredicate("'casey' == foo.bar", v -> variableMap.get(v)));
+    assertTrue(runPredicate("'casey' == foo", v -> variableMap.get(v)));
+    assertFalse(runPredicate("'casey' != foo", v -> variableMap.get(v)));
+    assertTrue(runPredicate("'stella' == 'stella'", v -> variableMap.get(v)));
+    assertFalse(runPredicate("'stella' == foo", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo== foo", v -> variableMap.get(v)));
+    assertTrue(runPredicate("empty== ''", v -> variableMap.get(v)));
+    assertTrue(runPredicate("spaced == 'metron is great'", v -> variableMap.get(v)));
+    assertTrue(runPredicate(null, v -> variableMap.get(v)));
+    assertTrue(runPredicate("", v -> variableMap.get(v)));
+    assertTrue(runPredicate(" ", v -> variableMap.get(v)));
   }
 
   @Test
@@ -295,14 +299,14 @@ public class StellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertFalse(runPredicate("not('casey' == foo and true)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("not(not('casey' == foo and true))", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("('casey' == foo) && ( false != true )", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("('casey' == foo) and (FALSE == TRUE)", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'casey' == foo and FALSE", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'casey' == foo and true", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("TRUE", v -> variableMap.get(v)));
+    assertFalse(runPredicate("not('casey' == foo and true)", v -> variableMap.get(v)));
+    assertTrue(runPredicate("not(not('casey' == foo and true))", v -> variableMap.get(v)));
+    assertTrue(runPredicate("('casey' == foo) && ( false != true )", v -> variableMap.get(v)));
+    assertFalse(runPredicate("('casey' == foo) and (FALSE == TRUE)", v -> variableMap.get(v)));
+    assertFalse(runPredicate("'casey' == foo and FALSE", v -> variableMap.get(v)));
+    assertTrue(runPredicate("'casey' == foo and true", v -> variableMap.get(v)));
+    assertTrue(runPredicate("true", v -> variableMap.get(v)));
+    assertTrue(runPredicate("TRUE", v -> variableMap.get(v)));
   }
 
   @Test
@@ -312,13 +316,13 @@ public class StellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ foo, 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and foo == 'casey'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ 'casey' ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in [ 'casey', 'david' ]", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in [ foo, 'david' ]", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in [ 'casey', 'david' ] and foo == 'casey'", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in [ 'casey' ]", v -> variableMap.get(v)));
+    assertFalse(runPredicate("foo not in [ 'casey', 'david' ]", v -> variableMap.get(v)));
+    assertFalse(runPredicate("foo not in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
   }
 
   @Test
@@ -328,9 +332,9 @@ public class StellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("exists(foo)", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("exists(bar)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("exists(bar) or true", v -> variableMap.get(v)));
+    assertTrue(runPredicate("exists(foo)", v -> variableMap.get(v)));
+    assertFalse(runPredicate("exists(bar)", v -> variableMap.get(v)));
+    assertTrue(runPredicate("exists(bar) or true", v -> variableMap.get(v)));
   }
 
   @Test
@@ -341,10 +345,10 @@ public class StellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("true and TO_UPPER(foo) == 'CASEY'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ TO_LOWER('CASEY'), 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
+    assertTrue(runPredicate("true and TO_UPPER(foo) == 'CASEY'", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in [ TO_LOWER('CASEY'), 'david' ]", v -> variableMap.get(v)));
+    assertTrue(runPredicate("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
+    assertFalse(runPredicate("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
   }
 
   @Test
@@ -357,10 +361,10 @@ public class StellarTest {
       put("spaced", "metron is great");
       put("myList", ImmutableList.of("casey", "apple", "orange"));
     }};
-    Assert.assertTrue(runPredicate("foo in SPLIT(bar, '.')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in myList", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in myList", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in SPLIT(bar, '.')", v -> variableMap.get(v)));
+    assertFalse(runPredicate("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
+    assertTrue(runPredicate("foo in myList", v -> variableMap.get(v)));
+    assertFalse(runPredicate("foo not in myList", v -> variableMap.get(v)));
   }
 
   @Test
@@ -373,7 +377,7 @@ public class StellarTest {
       put("spaced", "metron is great");
       put("myMap", ImmutableMap.of("casey", "apple"));
     }};
-    Assert.assertTrue(runPredicate("MAP_EXISTS(foo, myMap)", v -> variableMap.get(v)));
+    assertTrue(runPredicate("MAP_EXISTS(foo, myMap)", v -> variableMap.get(v)));
   }
 
   @Test
@@ -389,16 +393,16 @@ public class StellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("num == 7", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < num2", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < TO_DOUBLE(num2)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < TO_DOUBLE(num4)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < 100", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num == num3", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("num == num2", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num == num2 || true", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("num > num2", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num == 7 && num > 2", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num == 7", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num < num2", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num < TO_DOUBLE(num2)", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num < TO_DOUBLE(num4)", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num < 100", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num == num3", v -> variableMap.get(v)));
+    assertFalse(runPredicate("num == num2", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num == num2 || true", v -> variableMap.get(v)));
+    assertFalse(runPredicate("num > num2", v -> variableMap.get(v)));
+    assertTrue(runPredicate("num == 7 && num > 2", v -> variableMap.get(v)));
   }
 
   @Test
@@ -412,20 +416,19 @@ public class StellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(other_ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(blah, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true and STARTS_WITH(foo, 'ca')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true and STARTS_WITH(TO_UPPER(foo), 'CA')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("(true and STARTS_WITH(TO_UPPER(foo), 'CA')) || true", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true and ENDS_WITH(foo, 'sey')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24') and IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip_src_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
+    assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
+    assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
+    assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
+    assertFalse(runPredicate("IN_SUBNET(other_ip, '192.168.0.0/24')", v -> variableMap.get(v)));
+    assertFalse(runPredicate("IN_SUBNET(blah, '192.168.0.0/24')", v -> variableMap.get(v)));
+    assertTrue(runPredicate("true and STARTS_WITH(foo, 'ca')", v -> variableMap.get(v)));
+    assertTrue(runPredicate("true and STARTS_WITH(TO_UPPER(foo), 'CA')", v -> variableMap.get(v)));
+    assertTrue(runPredicate("(true and STARTS_WITH(TO_UPPER(foo), 'CA')) || true", v -> variableMap.get(v)));
+    assertTrue(runPredicate("true and ENDS_WITH(foo, 'sey')", v -> variableMap.get(v)));
+    assertTrue(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24') and IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
+    assertTrue(runPredicate("IN_SUBNET(ip_src_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
+    assertFalse(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
+    assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
+    assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
   }
-
 }

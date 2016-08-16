@@ -39,11 +39,15 @@ public class SummaryStatisticsFunctions {
 
   /**
    * Initialize the summary statistics.
+   *
+   *  STATS_INIT ()
    */
   public static Function<List<Object>, Object> Init = (objects) -> new SummaryStatistics();
 
   /**
    * Add an input value to those that are used to calculate the summary statistics.
+   *
+   *  STATS_ADD (value, stats)
    */
   public static Function<List<Object>, Object> Add = (objects) -> {
     double value = convert(objects.get(0), Double.class);
@@ -54,9 +58,11 @@ public class SummaryStatisticsFunctions {
 
   /**
    * Calculates the mean.
+   *
+   *  STATS_MEAN (stats)
    */
   public static Function<List<Object>, Object> Mean = (objects ->
-          convert(objects.get(0), SummaryStatistics.class).getGeometricMean());
+          convert(objects.get(0), SummaryStatistics.class).getMean());
 
   /**
    * Calculates the geometric mean.
@@ -94,4 +100,39 @@ public class SummaryStatisticsFunctions {
   public static Function<List<Object>, Object> PopulationVariance = (objects ->
           convert(objects.get(0), SummaryStatistics.class).getPopulationVariance());
 
+  /**
+   * Calculates the variance.
+   */
+  public static Function<List<Object>, Object> Variance = (objects ->
+          convert(objects.get(0), SummaryStatistics.class).getVariance());
+
+  /**
+   * Calculates the second moment.
+   */
+  public static Function<List<Object>, Object> SecondMoment = (objects ->
+          convert(objects.get(0), SummaryStatistics.class).getSecondMoment());
+
+  /**
+   * Calculates the quadratic mean.
+   */
+  public static Function<List<Object>, Object> QuadraticMean = (objects ->
+          convert(objects.get(0), SummaryStatistics.class).getQuadraticMean());
+
+  /**
+   * Calculates the standard deviation.
+   */
+  public static Function<List<Object>, Object> StandardDeviation = (objects ->
+          convert(objects.get(0), SummaryStatistics.class).getStandardDeviation());
+
+  /**
+   * Calculates the sum of logs.
+   */
+  public static Function<List<Object>, Object> SumLogs = (objects ->
+          convert(objects.get(0), SummaryStatistics.class).getSumOfLogs());
+
+  /**
+   * Calculates the sum of squares.
+   */
+  public static Function<List<Object>, Object> SumSquares = (objects ->
+          convert(objects.get(0), SummaryStatistics.class).getSumsq());
 }

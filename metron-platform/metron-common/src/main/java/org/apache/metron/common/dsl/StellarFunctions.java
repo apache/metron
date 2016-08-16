@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.dsl;
 
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.metron.common.dsl.functions.*;
 import org.apache.metron.common.field.transformation.IPProtocolTransformation;
@@ -84,7 +85,24 @@ public enum StellarFunctions implements Function<List<Object>, Object> {
   IS_EMAIL(new Predicate2Transformation(new EmailValidation())),
   IS_URL(new Predicate2Transformation(new URLValidation())),
   IS_DATE(new Predicate2Transformation(new DateValidation())),
-  IS_INTEGER(new Predicate2Transformation(new IntegerValidation()));
+  IS_INTEGER(new Predicate2Transformation(new IntegerValidation())),
+
+  // summary statistics
+  STATS_INIT(SummaryStatisticsFunctions.Init),
+  STATS_ADD(SummaryStatisticsFunctions.Add),
+  STATS_COUNT(SummaryStatisticsFunctions.Count),
+  STATS_MEAN(SummaryStatisticsFunctions.Mean),
+  STATS_GEOMETRIC_MEAN(SummaryStatisticsFunctions.GeometricMean),
+  STATS_MAX(SummaryStatisticsFunctions.Max),
+  STATS_MIN(SummaryStatisticsFunctions.Min),
+  STATS_SUM(SummaryStatisticsFunctions.Sum),
+  STATS_POPULATION_VARIANCE(SummaryStatisticsFunctions.PopulationVariance),
+  STATS_VARIANCE(SummaryStatisticsFunctions.Variance),
+  STATS_SECOND_MOMENT(SummaryStatisticsFunctions.SecondMoment),
+  STATS_QUADRATIC_MEAN(SummaryStatisticsFunctions.QuadraticMean),
+  STATS_SD(SummaryStatisticsFunctions.StandardDeviation),
+  STATS_SUM_LOGS(SummaryStatisticsFunctions.SumLogs),
+  STATS_SUM_SQUARES(SummaryStatisticsFunctions.SumSquares);
 
   /**
    * The function to apply.
