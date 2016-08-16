@@ -122,15 +122,9 @@ The average of the `length` field of HTTP traffic. The following configuration w
       "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      "init": {
-        "sum": 0.0,
-        "cnt": 0.0
-      },
-      "update": {
-        "sum": "sum + length",
-        "cnt": "cnt + 1"
-      },
-      "result": "sum / cnt"
+      "init":   { "s": "STATS_INIT(0)" },
+      "update": { "_": "STATS_ADD(length, s)" },
+      "result": "STATS_MEAN(s)"
     }
   ]
 }
