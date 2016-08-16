@@ -23,24 +23,43 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class MapFunctions {
-  public static class MapGet implements Function<List<Object>, Object> {
-    @Override
-    public Object apply(List<Object> objects) {
-      Object keyObj = objects.get(0);
-      Object mapObj = objects.get(1);
-      Object defaultObj = null;
-      if(objects.size() >= 3) {
-        defaultObj = objects.get(2);
-      }
-      if(keyObj == null || mapObj == null) {
-        return defaultObj;
-      }
-      Map<Object, Object> map = (Map)mapObj;
-      Object ret = map.get(keyObj);
-      if(ret == null && defaultObj != null) {
-        return defaultObj;
-      }
-      return ret;
+
+  /**
+   * Get the value of a key from a map.
+   *
+   *  MAP_GET (key, map, [default-value])
+   */
+  public static Function<List<Object>, Object> MapGet = args -> {
+    Object keyObj = args.get(0);
+    Object mapObj = args.get(1);
+
+    Object defaultVal = null;
+    if(args.size() >= 3) {
+      defaultVal = args.get(2);
     }
-  }
+
+    if(keyObj == null || mapObj == null) {
+      return defaultVal;
+    }
+
+    Map<Object, Object> map = (Map)mapObj;
+    Object value = map.get(keyObj);
+    return (value == null && defaultVal != null) ? defaultVal : value;
+  };
+
+  /**
+   * Does a key exist in a map?
+   *
+   *  MAP_EXISTS (key, map)
+   */
+  public static Function<List<Object>, Object> MapExists = args -> {
+    if (args.size() < 2) {
+      return false;
+    }
+
+    Object key = args.get(0);
+    Object mapObj = args.get(1);
+
+    return (key != null && mapObj != null && mapObj instanceof Map) ? ((Map) mapObj).containsKey(key) : false;
+  };
 }
