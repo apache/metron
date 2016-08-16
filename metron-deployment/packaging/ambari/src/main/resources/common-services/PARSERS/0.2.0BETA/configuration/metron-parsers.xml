@@ -26,7 +26,7 @@
     </property>
     <property>
         <name>parsers</name>
-        <value>bluecoat,bro,snort,squid,websphere,yaf</value>
+        <value>bro,snort,yaf</value>
         <description>Metron parsers to deploy</description>
         <display-name>Metron parsers</display-name>
     </property>

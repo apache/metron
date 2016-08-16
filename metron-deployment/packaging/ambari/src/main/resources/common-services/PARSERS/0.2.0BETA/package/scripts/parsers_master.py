@@ -62,6 +62,18 @@ class ParsersMaster(Script):
         commands = Commands(params)
         commands.restart_parser_topologies()
 
+    def kafkabuild(self, env, upgrade_type=None):
+        from params import params
+        env.set_params(params)
+        commands = Commands(params)
+        commands.init_kafka_topics()
+
+    def zookeeperbuild(self, env, upgrade_type=None):
+        from params import params
+        env.set_params(params)
+        commands = Commands(params)
+        commands.init_parser_config()
+
 
 if __name__ == "__main__":
     ParsersMaster().execute()
