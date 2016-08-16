@@ -48,7 +48,7 @@ hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 kafka_home = os.path.join(stack_root, "current", "kafka-broker")
-kafka_bin_dir = os.path.join(kafka_home, "bin", "kafka")
+kafka_bin_dir = os.path.join(kafka_home, "bin")
 
 # zookeeper
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])

@@ -59,6 +59,24 @@
                         <scriptType>PYTHON</scriptType>
                         <timeout>600</timeout>
                     </commandScript>
+                    <customCommands>
+                        <customCommand>
+                            <name>KAFKABUILD</name>
+                            <commandScript>
+                                <script>scripts/parsers_master.py</script>
+                                <scriptType>PYTHON</scriptType>
+                                <timeout>600</timeout>
+                            </commandScript>
+                        </customCommand>
+                        <customCommand>
+                            <name>ZOOKEEPERBUILD</name>
+                            <commandScript>
+                                <script>scripts/parsers_master.py</script>
+                                <scriptType>PYTHON</scriptType>
+                                <timeout>600</timeout>
+                            </commandScript>
+                        </customCommand>
+                    </customCommands>
                 </component>
             </components>
 
@@ -66,6 +84,9 @@
                 <osSpecific>
                     <osFamily>any</osFamily>
                     <packages>
+                        <package>
+                            <name>java-1.8.0-openjdk-devel</name>
+                        </package>
                         <package>
                             <name>metron-common</name>
                         </package>
