@@ -128,7 +128,7 @@ class Kibana(Script):
         di = DashboardIndex(host=hostname,port=port)
 
         #Loads Kibana Dashboard definition from disk and replaces .kibana on index
-        templateFile = './cache/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p'
+        templateFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),'dashboard','dashboard.p')
         if not os.path.isfile(templateFile):
             raise IOError(
                 errno.ENOENT, os.strerror(errno.ENOENT), templateFile)
