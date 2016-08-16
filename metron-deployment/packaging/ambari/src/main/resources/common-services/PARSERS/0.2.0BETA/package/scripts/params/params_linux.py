@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import functools
+import os
 
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
@@ -42,9 +43,12 @@ metron_zookeeper_config_path = format("{metron_home}/{metron_zookeeper_config_di
 yum_repo_type = 'local'
 
 # hadoop params
+stack_root = Script.get_stack_root()
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+kafka_home = os.path.join(stack_root, "current", "kafka-broker")
+kafka_bin_dir = os.path.join(kafka_home, "bin", "kafka")
 
 # zookeeper
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
