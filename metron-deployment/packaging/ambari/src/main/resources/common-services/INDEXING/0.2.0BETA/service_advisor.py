@@ -30,13 +30,13 @@ except Exception as e:
     print("Failed to load parent service_advisor file '{}'".format(PARENT_FILE))
 
 
-class MetronIndexingServiceAdvisor(service_advisor.ServiceAdvisor):
+class INDEXING020BETAServiceAdvisor(service_advisor.ServiceAdvisor):
     # colocate Metron Parser Master with KAFKA_BROKERs
-    def colocateService(self, stackAdvisor, hostsComponentsMap, serviceComponents):
+    def colocateService(self, hostsComponentsMap, serviceComponents):
         indexingMasterComponent = [component for component in serviceComponents if
                                   component["StackServiceComponents"]["component_name"] == "INDEXING_MASTER"]
         indexingMasterComponent = indexingMasterComponent[0]
-        if not stackAdvisor.isComponentHostsPopulated(indexingMasterComponent):
+        if not self.isComponentHostsPopulated(indexingMasterComponent):
             for hostName in hostsComponentsMap.keys():
                 hostComponents = hostsComponentsMap[hostName]
                 if ({"name": "KAFKA_BROKER"} in hostComponents) and {"name": "INDEXING_MASTER"} not in hostComponents:
@@ -44,21 +44,19 @@ class MetronIndexingServiceAdvisor(service_advisor.ServiceAdvisor):
                 if ({"name": "KAFKA_BROKER"} not in hostComponents) and {"name": "INDEXING_MASTER"} in hostComponents:
                     hostsComponentsMap[hostName].remove({"name": "INDEXING_MASTER"})
 
-    def getComponentLayoutValidations(self, stackAdvisor, services, hosts):
+    def getServiceComponentLayoutValidations(self, services, hosts):
         componentsListList = [service["components"] for service in services["services"]]
         componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
-        hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-        hostsCount = len(hostsList)
 
-        masterHosts = self.getHosts(componentsList, "INDEXING_MASTER")
-        expectedMasterHosts = set(self.getHosts(componentsList, "KAFKA_BROKER"))
+        indexingHosts = self.getHosts(componentsList, "INDEXING_MASTER")
+        brokerHosts = self.getHosts(componentsList, "KAFKA_BROKER")
 
         items = []
 
-        mismatchHosts = sorted(expectedMasterHosts.symmetric_difference(set(masterHosts)))
+        mismatchHosts = sorted(set(indexingHosts).symmetric_difference(set(brokerHosts)))
         if len(mismatchHosts) > 0:
             hostsString = ', '.join(mismatchHosts)
-            message = "Metron Parsers Master must be installed on Kafka Brokers. " \
+            message = "Metron Indexing Master must be installed on Kafka Brokers. " \
                       "The following {0} host(s) do not satisfy the colocation recommendation: {1}".format(
                 len(mismatchHosts), hostsString)
             items.append(

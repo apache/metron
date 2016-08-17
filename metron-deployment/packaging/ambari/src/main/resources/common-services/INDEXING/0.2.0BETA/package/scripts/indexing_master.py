@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 
@@ -34,7 +35,6 @@ class Indexing(Script):
         env.set_params(params)
         commands = Commands(params)
         commands.init_kafka_topics()
-        commands.init_indexing_config()
         commands.start_indexing_topology()
 
     def stop(self, env, upgrade_type=None):
@@ -46,7 +46,10 @@ class Indexing(Script):
     def status(self, env):
         import params
         env.set_params(params)
-        Logger.info('Status of the Master')
+        commands = Commands(params)
+
+        if not commands.is_topology_active():
+            raise ComponentIsNotRunning()
 
     def restart(self, env):
         import params
@@ -59,12 +62,6 @@ class Indexing(Script):
         env.set_params(params)
         commands = Commands(params)
         commands.init_kafka_topics()
-
-    def zookeeperbuild(self, env, upgrade_type=None):
-        import params
-        env.set_params(params)
-        commands = Commands(params)
-        commands.init_indexing_config()
 
 
 if __name__ == "__main__":
