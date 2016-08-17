@@ -1,0 +1,17 @@
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "example1",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'HTTP'",
+      "init": {
+        "total_bytes": 0.0
+      },
+      "update": {
+        "total_bytes": "total_bytes + bytes_in"
+      },
+      "result": "total_bytes"
+    }
+  ]
+}
