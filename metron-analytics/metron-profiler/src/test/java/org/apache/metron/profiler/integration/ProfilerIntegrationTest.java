@@ -192,9 +192,26 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
-    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
     double actual = readInteger(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
     Assert.assertEquals(10.0, actual, 0.01);
+  }
+
+  @Test
+  public void testPercentiles() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/percentiles");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - the 70th percentile of 5 x 20s = 20.0
+    double actual = readDouble(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(20.0, actual, 0.01);
   }
 
   /**
@@ -229,7 +246,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     throw new IllegalStateException("No results found");
   }
 
-  public void setup(String pathToConfig) throws Exception {
+  private void setup(String pathToConfig) throws Exception {
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)
@@ -248,7 +265,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.salt.divisor", "10");
       setProperty("profiler.hbase.table", tableName);
       setProperty("profiler.hbase.batch", "10");
-      setProperty("profiler.hbase.flush.interval.seconds", "2");
+      setProperty("profiler.hbase.flush.interval.seconds", "1");
       setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
     }};
 

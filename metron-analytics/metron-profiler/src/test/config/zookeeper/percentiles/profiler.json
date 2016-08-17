@@ -1,0 +1,13 @@
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "example3",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'HTTP'",
+      "init":   { "s": "STATS_INIT(100)" },
+      "update": { "_": "STATS_ADD(length, s)" },
+      "result": "STATS_PERCENTILE(0.7, s)"
+    }
+  ]
+}
