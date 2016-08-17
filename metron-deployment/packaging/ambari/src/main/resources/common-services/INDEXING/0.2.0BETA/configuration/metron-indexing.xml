@@ -29,12 +29,6 @@
         <display-name>Metron apps HDFS dir</display-name>
     </property>
     <property>
-        <name>metron_zookeeper_config_dir</name>
-        <value>config/zookeeper</value>
-        <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
-        <display-name>Metron Zookeeper config dir</display-name>
-    </property>
-    <property>
         <name>metron_user</name>
         <value>metron</value>
         <property-type>USER</property-type>
@@ -50,10 +44,5 @@
         <name>metron_indexing_topology</name>
         <value>indexing</value>
         <description>The Storm topology name for Indexing</description>
-    </property>
-    <property>
-        <name>metron_indexing_topic_retention</name>
-        <value>10</value>
-        <description>Topic retention, in gb</description>
     </property>
 </configuration>

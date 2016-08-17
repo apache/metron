@@ -18,33 +18,24 @@ limitations under the License.
 import os
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import format
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script import Script
 
-# server configurations
+# Server configurations
 config = Script.get_config()
 
 hostname = config['hostname']
 metron_home = config['configurations']['metron-indexing']['metron_home']
-metron_zookeeper_config_dir = config['configurations']['metron-indexing']['metron_zookeeper_config_dir']
-metron_zookeeper_config_path = format("{metron_home}/{metron_zookeeper_config_dir}")
 metron_indexing_topology = config['configurations']['metron-indexing']['metron_indexing_topology']
 yum_repo_type = 'local'
 
-# hadoop params
+# Hadoop params
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
-# Kafka
-stack_root = Script.get_stack_root()
-kafka_home = os.path.join(stack_root, "current", "kafka-broker")
-kafka_bin_dir = os.path.join(kafka_home, "bin")
-metron_indexing_topic_retention = config['configurations']['metron-indexing']['metron_indexing_topic_retention']
-
-# zookeeper
+# Zookeeper
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 has_zk_host = not len(zk_hosts) == 0
 zookeeper_quorum = None
@@ -57,7 +48,19 @@ if has_zk_host:
     # last port config
     zookeeper_quorum += ':' + zookeeper_clientPort
 
-# kafka
-kafka_host = config['clusterHostInfo']['kafka_broker_hosts'][0]
-# TODO
-kafka_port = 6667
+# Kafka
+stack_root = Script.get_stack_root()
+kafka_home = os.path.join(stack_root, "current", "kafka-broker")
+kafka_bin_dir = os.path.join(kafka_home, "bin")
+metron_indexing_topic_retention = config['configurations']['metron-indexing']['metron_indexing_topic_retention']
+
+kafka_hosts = default("/clusterHostInfo/kafka_broker_hosts", [])
+has_kafka_host = not len(kafka_hosts) == 0
+kafka_brokers = None
+if has_kafka_host:
+    if 'port' in config['configurations']['kafka-broker']:
+        kafka_broker_port = config['configurations']['kafka-broker']['port']
+    else:
+        kafka_broker_port = '6667'
+    kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
+    kafka_brokers += ':' + kafka_broker_port
