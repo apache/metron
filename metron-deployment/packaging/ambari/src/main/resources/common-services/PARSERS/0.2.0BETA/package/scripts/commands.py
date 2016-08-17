@@ -18,8 +18,11 @@ limitations under the License.
 
 """
 
+import os
+
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import Template
 from resource_management.libraries.functions import format
 
 
@@ -27,16 +30,27 @@ from resource_management.libraries.functions import format
 class Commands:
     __params = None
     __parser_list = None
+    __configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__parser_list = self.__get_parsers(params)
+        self.__configured = os.path.isfile(self.__params.configured_flag_file)
 
     # get list of parsers
     def __get_parsers(self, params):
         return params.parsers.replace(' ', '').split(',')
+
+    def is_configured(self):
+        return self.__configured
+
+    def set_configured(self):
+        File(self.__params.configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
 
     def init_parsers(self):
         Logger.info(
@@ -48,6 +62,12 @@ class Commands:
                                    owner=self.__params.metron_user,
                                    mode=0775,
                                    source=self.__params.local_grok_patterns_dir)
+
+        Logger.info("Creating global.json file")
+        File(self.__params.metron_zookeeper_config_path + '/global.json',
+             content=Template("metron-global.json"),
+             owner=self.__params.metron_user,
+             mode=0775)
         Logger.info("Done initializing parser configuration")
 
     def get_parser_list(self):
@@ -117,16 +137,20 @@ class Commands:
     def init_parser_config(self):
         Logger.info('Loading parser config into ZooKeeper')
         Execute(format(
-            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"))
+            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
+            path=format("{java_home}/bin")
+        )
 
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {}".format(self.get_parser_list()))
         start_cmd_template = """{}/bin/start_parser_topology.sh \
-                                    -s {} \
-                                    -z {}"""
+                                    -k {} \
+                                    -z {} \
+                                    -s {}"""
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
-            Execute(start_cmd_template.format(self.__params.metron_home, parser, self.__params.zookeeper_quorum))
+            Execute(start_cmd_template.format(self.__params.metron_home, self.__params.kafka_brokers,
+                                              self.__params.zookeeper_quorum, parser))
 
         Logger.info('Finished starting parser topologies')
 

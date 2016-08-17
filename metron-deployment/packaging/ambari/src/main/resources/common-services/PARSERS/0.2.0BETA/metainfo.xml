@@ -85,9 +85,6 @@
                     <osFamily>any</osFamily>
                     <packages>
                         <package>
-                            <name>java-1.8.0-openjdk-devel</name>
-                        </package>
-                        <package>
                             <name>metron-common</name>
                         </package>
                         <package>

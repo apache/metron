@@ -40,9 +40,11 @@ class ParsersMaster(Script):
         from params import params
         env.set_params(params)
         commands = Commands(params)
-        commands.init_parsers()
-        commands.init_kafka_topics()
-        commands.init_parser_config()
+        if not commands.is_configured():
+            commands.init_parsers()
+            commands.init_kafka_topics()
+            commands.init_parser_config()
+            commands.set_configured()
         commands.start_parser_topologies()
 
     def stop(self, env, upgrade_type=None):
@@ -73,6 +75,12 @@ class ParsersMaster(Script):
         env.set_params(params)
         commands = Commands(params)
         commands.init_parser_config()
+
+    def starttopologies(self, env, upgrade_type=None):
+        from params import params
+        env.set_params(params)
+        commands = Commands(params)
+        commands.start_parser_topologies()
 
 
 if __name__ == "__main__":
