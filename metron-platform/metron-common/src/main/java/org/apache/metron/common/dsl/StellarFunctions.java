@@ -18,8 +18,6 @@
 
 package org.apache.metron.common.dsl;
 
-import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-import org.apache.commons.net.util.SubnetUtils;
 import org.apache.metron.common.dsl.functions.*;
 import org.apache.metron.common.field.transformation.IPProtocolTransformation;
 import org.apache.metron.common.field.validation.network.DomainValidation;
@@ -28,10 +26,8 @@ import org.apache.metron.common.field.validation.network.IPValidation;
 import org.apache.metron.common.field.validation.network.URLValidation;
 import org.apache.metron.common.field.validation.primitive.DateValidation;
 import org.apache.metron.common.field.validation.primitive.IntegerValidation;
-import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -88,21 +84,24 @@ public enum StellarFunctions implements Function<List<Object>, Object> {
   IS_INTEGER(new Predicate2Transformation(new IntegerValidation())),
 
   // summary statistics
-  STATS_INIT(SummaryStatisticsFunctions.Init),
-  STATS_ADD(SummaryStatisticsFunctions.Add),
-  STATS_COUNT(SummaryStatisticsFunctions.Count),
-  STATS_MEAN(SummaryStatisticsFunctions.Mean),
-  STATS_GEOMETRIC_MEAN(SummaryStatisticsFunctions.GeometricMean),
-  STATS_MAX(SummaryStatisticsFunctions.Max),
-  STATS_MIN(SummaryStatisticsFunctions.Min),
-  STATS_SUM(SummaryStatisticsFunctions.Sum),
-  STATS_POPULATION_VARIANCE(SummaryStatisticsFunctions.PopulationVariance),
-  STATS_VARIANCE(SummaryStatisticsFunctions.Variance),
-  STATS_SECOND_MOMENT(SummaryStatisticsFunctions.SecondMoment),
-  STATS_QUADRATIC_MEAN(SummaryStatisticsFunctions.QuadraticMean),
-  STATS_SD(SummaryStatisticsFunctions.StandardDeviation),
-  STATS_SUM_LOGS(SummaryStatisticsFunctions.SumLogs),
-  STATS_SUM_SQUARES(SummaryStatisticsFunctions.SumSquares);
+  STATS_INIT(StellarStatisticsFunctions.Init),
+  STATS_ADD(StellarStatisticsFunctions.Add),
+  STATS_COUNT(StellarStatisticsFunctions.Count),
+  STATS_MEAN(StellarStatisticsFunctions.Mean),
+  STATS_GEOMETRIC_MEAN(StellarStatisticsFunctions.GeometricMean),
+  STATS_MAX(StellarStatisticsFunctions.Max),
+  STATS_MIN(StellarStatisticsFunctions.Min),
+  STATS_SUM(StellarStatisticsFunctions.Sum),
+  STATS_POPULATION_VARIANCE(StellarStatisticsFunctions.PopulationVariance),
+  STATS_VARIANCE(StellarStatisticsFunctions.Variance),
+  STATS_SECOND_MOMENT(StellarStatisticsFunctions.SecondMoment),
+  STATS_QUADRATIC_MEAN(StellarStatisticsFunctions.QuadraticMean),
+  STATS_SD(StellarStatisticsFunctions.StandardDeviation),
+  STATS_SUM_LOGS(StellarStatisticsFunctions.SumLogs),
+  STATS_SUM_SQUARES(StellarStatisticsFunctions.SumSquares),
+  STATS_KURTOSIS(StellarStatisticsFunctions.Kurtosis),
+  STATS_SKEWNESS(StellarStatisticsFunctions.Skewness),
+  STATS_PERCENTILE(StellarStatisticsFunctions.Percentile);
 
   /**
    * The function to apply.
