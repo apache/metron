@@ -40,6 +40,8 @@ metron_user = config['configurations']['metron-parsers']['metron_user']
 metron_group = config['configurations']['metron-parsers']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-parsers']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format("{metron_home}/{metron_zookeeper_config_dir}")
+configured_flag_file = metron_zookeeper_config_path + '/../metron_is_configured'
+#metron_global_config_content = config['configurations']['global.json']['content']
 yum_repo_type = 'local'
 
 # hadoop params
@@ -63,10 +65,23 @@ if has_zk_host:
     # last port config
     zookeeper_quorum += ':' + zookeeper_clientPort
 
+# Kafka
+kafka_hosts = default("/clusterHostInfo/kafka_broker_hosts", [])
+has_kafka_host = not len(kafka_hosts) == 0
+kafka_brokers = None
+if has_kafka_host:
+    if 'port' in config['configurations']['kafka-broker']:
+        kafka_broker_port = config['configurations']['kafka-broker']['port']
+    else:
+        kafka_broker_port = '6667'
+    kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
+    kafka_brokers += ':' + kafka_broker_port
+
 metron_apps_dir = config['configurations']['metron-parsers']['metron_apps_hdfs_dir']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
 hdfs_grok_patterns_dir = format("{metron_apps_dir}/patterns")
+
 
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
