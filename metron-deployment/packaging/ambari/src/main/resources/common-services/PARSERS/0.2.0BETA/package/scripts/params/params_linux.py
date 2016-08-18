@@ -39,7 +39,7 @@ parsers = config['configurations']['metron-parsers']['parsers']
 metron_user = config['configurations']['metron-parsers']['metron_user']
 metron_group = config['configurations']['metron-parsers']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-parsers']['metron_zookeeper_config_dir']
-metron_zookeeper_config_path = format("{metron_home}/{metron_zookeeper_config_dir}")
+metron_zookeeper_config_path = metron_home + "/" + metron_zookeeper_config_dir
 configured_flag_file = metron_zookeeper_config_path + '/../metron_is_configured'
 yum_repo_type = 'local'
 
@@ -80,7 +80,6 @@ metron_apps_dir = config['configurations']['metron-parsers']['metron_apps_hdfs_d
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
 hdfs_grok_patterns_dir = format("{metron_apps_dir}/patterns")
-
 
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']

@@ -26,7 +26,7 @@ from commands import Commands
 
 class ServiceCheck(Script):
     def service_check(self, env):
-        import params
+        from params import params
         env.set_params(params)
         commands = Commands(params)
         all_found = commands.topologies_active()
