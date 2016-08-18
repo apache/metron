@@ -25,6 +25,7 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
@@ -80,16 +81,16 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   @Override
   public <T> T execute(String expr, JSONObject message, Class<T> clazz) {
-    Object result = execute(expr, message);
+    Object resultObject = execute(expr, message);
 
-    // ensure the result type is as expected
-    if (clazz.isAssignableFrom(result.getClass())) {
-      return (T) result;
-
-    } else {
-      throw new RuntimeException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
-              clazz.getSimpleName(), result.getClass().getSimpleName(), expr));
+    // perform type conversion, if necessary
+    T result = ConversionUtils.convert(resultObject, clazz);
+    if(result == null) {
+      throw new IllegalArgumentException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
+              clazz.getSimpleName(), resultObject.getClass().getSimpleName(), expr));
     }
+
+    return result;
   }
 
   @Override

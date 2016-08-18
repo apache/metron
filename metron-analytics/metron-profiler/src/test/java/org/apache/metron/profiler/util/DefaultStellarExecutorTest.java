@@ -143,7 +143,19 @@ public class DefaultStellarExecutorTest {
    * An exception is expected if an expression results in an unexpected type.
    */
   @Test(expected = RuntimeException.class)
-  public void testWrongType() {
+  public void testExecuteWithWrongType() {
     executor.execute("2 + 2", message, Boolean.class);
   }
+
+  /**
+   * A best effort should be made to do sensible type conversions.
+   */
+  @Test
+  public void testExecuteWithTypeConversion() {
+    executor.execute("2", message, Double.class);
+    executor.execute("2", message, Float.class);
+    executor.execute("2", message, Short.class);
+    executor.execute("2", message, Long.class);
+  }
+
 }
