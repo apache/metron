@@ -21,7 +21,7 @@ The Profiler configuration requires a JSON-formatted set of elements, many of wh
 | update  	| Required  	| A set of expressions that is executed when a message is applied to the profile.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can include 0 or more variables/expressions.  	    |
 | result  	| Required  	| A Stellar expression that is executed when the window period expires.  The expression is expected to in some way summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	    |
 
-### Examples
+#### Examples
 
 Examples of the types of profiles that can be built include the following.  Each shows the configuration that would be required to produce the profile.  These examples assume a fictitious input messages that looks something like the following.
 
@@ -46,7 +46,7 @@ Examples of the types of profiles that can be built include the following.  Each
 }
 ```
 
-### Example 1
+#### Example 1
 
 The total number of bytes of HTTP data for each host. The following configuration would be used to generate this profile.
 
@@ -78,7 +78,7 @@ This creates a profile...
  * Adds to ‘total_bytes’ the value of the message's ‘bytes_in’ field
  * Returns ‘total_bytes’ as the result
 
-### Example 2
+#### Example 2
 
 The ratio of DNS traffic to HTTP traffic for each host. The following configuration would be used to generate this profile.
 
@@ -112,7 +112,7 @@ This creates a profile...
  * Accumulates the number of HTTP requests
  * Returns the ratio of these as the result
 
-### Example 3
+#### Example 3
 
 The average response body length of HTTP traffic. The following configuration would be used to generate this profile.
 
@@ -145,6 +145,22 @@ This creates a profile...
  * Accumulates the sum of response body length
  * Accumulates the number of messages
  * Calculates the average as the result
+
+### Topology Configuration
+
+The Profiler topology also accepts the following configuration settings.
+
+| Setting   | Description   |
+|---        |---            |
+| profiler.workers | The number of worker processes to create for the topology.   |
+| profiler.executors | The number of executors to spawn per component.  |
+| profiler.input.topic | The name of the Kafka topic from which to consume data.  |
+| profiler.flush.interval.seconds | The duration of a profile's sliding window before it is flushed. |
+| profiler.hbase.salt.divisor  |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
+| profiler.hbase.table | The name of the HBase table that profiles are written to.  |
+| profiler.hbase.batch | The number of puts that are written in a single batch.  |
+| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
+
 
 ## Getting Started
 
@@ -210,9 +226,11 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> count 'profiler'
     ``` 
 
-## Design
+## Implementation
 
 The Profiler is implemented as a Storm topology using the following bolts and spouts.
+
+## Topology
 
 ### KafkaSpout
 
@@ -229,3 +247,4 @@ This bolt maintains all of the state required to build a Profile.  When the wind
 ### HBaseBolt
 
 A bolt that is responsible for writing to HBase.  Most profiles will be flushed every 15 minutes or so.  If each ProfileBuilderBolt were responsible for writing to HBase itself, there would be little to no opportunity to optimize these writes.  By aggregating the writes from multiple Profile-Entity pairs these writes can be batched, for example.
+
