@@ -109,6 +109,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     this.parser = new JSONParser();
   }
 
+  /**
+   * The builder emits a single field, 'measurement', which contains a ProfileMeasurement. A
+   * ProfileMeasurement is emitted when a time window expires and a flush occurs.
+   */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     // once the time window expires, a complete ProfileMeasurement is emitted
@@ -179,7 +183,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
-      throw new ParseException("Bad 'init' expression", e);
+      String msg = format("Bad 'init' expression: %s, profile=%s, entity=%s, start=%d",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity(), measurement.getStart());
+      throw new ParseException(msg, e);
     }
   }
 
@@ -196,7 +202,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
-      throw new ParseException("Bad 'update' expression", e);
+      String msg = format("Bad 'update' expression: %s, profile=%s, entity=%s, start=%d",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity(), measurement.getStart());
+      throw new ParseException(msg, e);
     }
   }
 
