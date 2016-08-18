@@ -97,7 +97,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private MockHTable profilerTable;
 
   private static final String tableName = "profiler";
-  private static final String columnFamily = "cfProfile";
+  private static final String columnFamily = "P";
 
   /**
    * A TableProvider that allows us to mock HBase.

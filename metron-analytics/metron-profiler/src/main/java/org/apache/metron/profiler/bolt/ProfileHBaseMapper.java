@@ -48,7 +48,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
   private String columnFamily;
 
   public ProfileHBaseMapper() {
-    setColumnFamily("cfProfile");
+    setColumnFamily("P");
   }
 
   /**
