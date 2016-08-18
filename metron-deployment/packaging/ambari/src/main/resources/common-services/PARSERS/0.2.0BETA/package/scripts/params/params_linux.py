@@ -41,7 +41,6 @@ metron_group = config['configurations']['metron-parsers']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-parsers']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format("{metron_home}/{metron_zookeeper_config_dir}")
 configured_flag_file = metron_zookeeper_config_path + '/../metron_is_configured'
-#metron_global_config_content = config['configurations']['global.json']['content']
 yum_repo_type = 'local'
 
 # hadoop params

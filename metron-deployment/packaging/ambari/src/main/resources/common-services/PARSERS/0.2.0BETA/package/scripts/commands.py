@@ -19,6 +19,9 @@ limitations under the License.
 """
 
 import os
+import re
+import subprocess
+import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
@@ -51,6 +54,14 @@ class Commands:
              content="",
              owner=self.__params.metron_user,
              mode=0775)
+
+    # Possible storm topology status states
+    # http://storm.apache.org/releases/0.10.0/javadocs/backtype/storm/generated/TopologyStatus.html
+    class StormStatus:
+        ACTIVE = "ACTIVE"
+        INACTIVE = "INACTIVE"
+        KILLED = "KILLED"
+        REBALANCING = "REBALANCING"
 
     def init_parsers(self):
         Logger.info(
@@ -165,5 +176,47 @@ class Commands:
     def restart_parser_topologies(self):
         Logger.info('Restarting the parser topologies')
         self.stop_parser_topologies()
+        attempt_count = 0
+        while self.topologies_active():
+            if attempt_count > 2:
+                raise Exception("Unable to stop topologies")
+            attempt_count += 1
+            time.sleep(10)
         self.start_parser_topologies()
         Logger.info('Done restarting the parser topologies')
+
+    def topologies_active(self):
+        cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (stdout, stderr) = cmd_open.communicate()
+        stdout_lines = stdout.splitlines()
+        all_active = False
+        if stdout_lines:
+            all_active = True
+            status_lines = self.__get_status_lines(stdout_lines)
+            for parser in self.get_parser_list():
+                parser_found=False
+                is_active=False
+                for line in status_lines:
+                    items = re.sub('[\s]+', ' ', line).split()
+                    if items and items[0] == parser:
+                        status = items[1]
+                        parser_found=True
+                        is_active = self.__is_active(status)
+                all_active &= parser_found and is_active
+        return all_active
+
+    def __get_status_lines(self, lines):
+        status_lines=[]
+        do_stat = False
+        skipped = 0
+        for line in lines:
+            if line.startswith("Topology_name"):
+                do_stat = True
+            if do_stat and skipped == 2:
+                status_lines += [line]
+            elif do_stat:
+                skipped += 1
+        return status_lines
+
+    def __is_active(self, status):
+        return status == self.StormStatus.ACTIVE

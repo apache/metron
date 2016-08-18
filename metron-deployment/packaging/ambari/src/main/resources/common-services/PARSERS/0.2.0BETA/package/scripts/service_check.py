@@ -19,21 +19,20 @@ limitations under the License.
 """
 from __future__ import print_function
 
-import sys
-
 from resource_management.libraries.script import Script
+
+from commands import Commands
 
 
 class ServiceCheck(Script):
     def service_check(self, env):
         import params
         env.set_params(params)
+        commands = Commands(params)
+        all_found = commands.topologies_active()
 
-        doc = '{"name": "Ambari Smoke test"}'
-        index = "ambari_smoke_test"
+        exit(int(all_found))
 
-        print("Running parsers service check", file=sys.stdout)
-        exit(0)
 
 if __name__ == "__main__":
     ServiceCheck().execute()
