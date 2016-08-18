@@ -1,8 +1,16 @@
 {
-    "_comment" : "Record format:",
-    "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
-    "general_deps" : {
-        "_comment" : "dependencies for all cases",
-        "PARSER_MASTER-START" : ["NAMENODE-START", "ZOOKEEPER_SERVER-START", "KAFKA_BROKER-START"]
-    }
+  "_comment": "Record format:",
+  "_comment": "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
+  "general_deps": {
+    "_comment": "dependencies for Metron Parsers",
+    "PARSER_MASTER-START": [
+      "NAMENODE-START",
+      "ZOOKEEPER_SERVER-START",
+      "KAFKA_BROKER-START",
+      "STORM_REST_API-START"
+    ],
+    "PARSER_MASTER_SERVICE_CHECK-SERVICE_CHECK": [
+      "PARSER_MASTER-START"
+    ]
+  }
 }

@@ -32,13 +32,12 @@ except Exception as e:
     print("Failed to load parent service_advisor file '{}'".format(PARENT_FILE))
 
 
-class MetronParsersServiceAdvisor(service_advisor.ServiceAdvisor):
+class PARSERS020BETAServiceAdvisor(service_advisor.ServiceAdvisor):
     # colocate Metron Parser Master with KAFKA_BROKERs
-    def colocateService(self, stackAdvisor, hostsComponentsMap, serviceComponents):
+    def TODO_colocateService(self, hostsComponentsMap, serviceComponents):
         parsersMasterComponent = [component for component in serviceComponents if
-                                  component["StackServiceComponents"]["component_name"] == "PARSER_MASTER"]
-        parsersMasterComponent = parsersMasterComponent[0]
-        if not stackAdvisor.isComponentHostsPopulated(parsersMasterComponent):
+                                  component["StackServiceComponents"]["component_name"] == "PARSER_MASTER"][0]
+        if not self.isComponentHostsPopulated(parsersMasterComponent):
             for hostName in hostsComponentsMap.keys():
                 hostComponents = hostsComponentsMap[hostName]
                 if ({"name": "KAFKA_BROKER"} in hostComponents) and {"name": "PARSER_MASTER"} not in hostComponents:
@@ -46,7 +45,7 @@ class MetronParsersServiceAdvisor(service_advisor.ServiceAdvisor):
                 if ({"name": "KAFKA_BROKER"} not in hostComponents) and {"name": "PARSER_MASTER"} in hostComponents:
                     hostsComponentsMap[hostName].remove({"name": "PARSER_MASTER"})
 
-    def getComponentLayoutValidations(self, stackAdvisor, services, hosts):
+    def TODO_getServiceComponentLayoutValidations(self, services, hosts):
         componentsListList = [service["components"] for service in services["services"]]
         componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
         hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
