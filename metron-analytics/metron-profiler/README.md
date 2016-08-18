@@ -12,12 +12,14 @@ Any field contained within a message can be used to generate a profile.  A profi
 
 The Profiler configuration requires a JSON-formatted set of elements, many of which can contain Stellar code.  The configuration contains the following elements.
 
-* `profile` A unique name identifying the profile.
-* `foreach` A separate profile is maintained for each of these.  This is effectively the entity that the profile is describing.  For example, if `ip_src_addr` then a separate profile would be maintained for each unique IP source address.
-* `onlyif` A message is only applied to a profile if this condition is true. This allows the incoming messages to be filtered.
-* `init` A set of variables and Stellar code that describes how they are initialized at the beginning of each window period.
-* `update` A set of variables along with Stellar code that describes how those variables are updated by each message.
-* `result` Stellar code that is executed at the end of a window period.  This field must result in a Long that becomes part of the profile.
+| Name 	    |            	| Description 	|
+|---	    |---	        |---	        |
+| profile  	| Required   	| A unique name identifying the profile.  The field is treated as a string. |
+| foreach  	| Required  	| A separate profile is maintained *for each* of these.  This is effectively the entity that the profile is describing.  The field is expected to contain a Stellar expression whose result is the entity name.  For example, if `ip_src_addr` then a separate profile would be maintained for each unique IP source address in the data; 10.0.0.1, 10.0.0.2, etc. | 
+| onlyif  	| Optional  	| An expression that determines if a message should be applied to the profile.  A Stellar expression is expected that when executed returns a boolean.  A message is only applied to a profile if this condition is true. This allows a profile to filter the messages that it receives. |
+| init  	| Optional  	| A set of expressions that is executed at the start of a window period.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can contain 0 or more variables/expressions. At the start of each window period the expression is executed once and stored in a variable with the given name. |
+| update  	| Required  	| A set of expressions that is executed when a message is applied to the profile.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can include 0 or more variables/expressions.  	    |
+| result  	| Required  	| A Stellar expression that is executed when the window period expires.  The expression is expected to in some way summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	    |
 
 ### Examples
 
