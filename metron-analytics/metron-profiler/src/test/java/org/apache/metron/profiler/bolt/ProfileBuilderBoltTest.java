@@ -64,8 +64,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    *   "foreach": "ip_src_addr",
    *   "onlyif": "true",
    *   "init": {
-   *     "x": "10",
-   *     "y": "20"
+   *     "x": 10,
+   *     "y": 20
    *   },
    *   "update": {
    *     "x": "x + 10",
@@ -76,6 +76,19 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    */
   @Multiline
   private String profile;
+
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "onlyif": "true",
+   *   "init":   { "x": 10 },
+   *   "update": { "x": "x + 'string'" },
+   *   "result": "x"
+   * }
+   */
+  @Multiline
+  private String profileWithBadUpdate;
 
   private JSONObject message;
 
@@ -201,5 +214,24 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(mockTickTuple());
 
     assertThat(bolt.getExecutor().getState().size(), equalTo(0));
+  }
+
+  /**
+   * What happens when the profile contains a bad Stellar expression?
+   */
+  @Test
+  public void testUpdateWithBadProfile() throws Exception {
+
+    // setup - ensure the bad profile is used
+    ProfileConfig profileConfig = JSONUtils.INSTANCE.load(profileWithBadUpdate, ProfileConfig.class);
+    when(tuple.getValueByField(eq("profile"))).thenReturn(profileConfig);
+
+    // execute
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+
+    // verify - expect the tuple to be acked and an error reported
+    verify(outputCollector, times(1)).ack(eq(tuple));
+    verify(outputCollector, times(1)).reportError(any());
   }
 }

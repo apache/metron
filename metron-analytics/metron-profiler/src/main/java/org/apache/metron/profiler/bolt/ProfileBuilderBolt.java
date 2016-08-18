@@ -118,11 +118,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   public void execute(Tuple input) {
     try {
       doExecute(input);
-      collector.ack(input);
 
     } catch (Throwable e) {
       LOG.error("exception processing tuple: " + input, e);
       collector.reportError(e);
+
+    } finally {
+      collector.ack(input);
     }
   }
 
@@ -132,7 +134,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * and reset the execution environment.
    * @param input The tuple to execute.
    */
-  private void doExecute(Tuple input) throws IOException {
+  private void doExecute(Tuple input) {
 
     if(!isTickTuple(input)) {
 
@@ -158,7 +160,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * of each window period.
    * @param input The input tuple
    */
-  private void init(Tuple input) throws IOException {
+  private void init(Tuple input) {
 
     // save the profile definition - needed later during a flush
     profileConfig = (ProfileConfig) input.getValueByField("profile");
@@ -184,7 +186,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * Update the Profile based on data contained in a new message.
    * @param input The tuple containing a new message.
    */
-  private void update(Tuple input) throws IOException {
+  private void update(Tuple input) {
     JSONObject message = (JSONObject) input.getValueByField("message");
 
     // execute each of the 'update' expressions
@@ -204,7 +206,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * and emits the ProfileMeasurement.  Clears all state in preparation for
    * the next window period.
    */
-  private void flush(Tuple tickTuple) throws IOException {
+  private void flush(Tuple tickTuple) {
     LOG.info(String.format("Flushing profile: profile=%s, entity=%s, start=%d",
             measurement.getProfileName(), measurement.getEntity(), measurement.getStart()));
 
