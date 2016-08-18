@@ -38,8 +38,9 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
+
+import static java.lang.String.format;
 
 /**
  * A bolt that is responsible for building a Profile.
@@ -120,7 +121,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       doExecute(input);
 
     } catch (Throwable e) {
-      LOG.error("exception processing tuple: " + input, e);
+      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
       collector.reportError(e);
 
     } finally {

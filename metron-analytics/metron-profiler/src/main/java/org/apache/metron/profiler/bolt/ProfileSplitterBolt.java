@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 /**
  * The bolt responsible for filtering incoming messages and directing
  * each to the one or more bolts responsible for building a Profile.  Each
@@ -80,8 +82,11 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       doExecute(input);
 
     } catch (IllegalArgumentException | ParseException | UnsupportedEncodingException e) {
-      LOG.error("Unexpected exception", e);
+      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
       collector.reportError(e);
+
+    } finally {
+      collector.ack(input);
     }
   }
 
@@ -101,8 +106,6 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     for (ProfileConfig profile: config.getProfiles()) {
       applyProfile(profile, input, message);
     }
-
-    collector.ack(input);
   }
 
   /**
