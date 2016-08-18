@@ -18,17 +18,15 @@
 package org.apache.metron.enrichment.bolt;
 
 import backtype.storm.task.TopologyContext;
+import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.utils.MessageUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
 
@@ -52,13 +50,17 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
       String errorMessage = "Unable to find source type for message: " + message;
       throw new IllegalStateException(errorMessage);
     }
-    Map<String, List<String>>  fieldMap = getFieldMap(sourceType);
+    Map<String, Object>  fieldMap = getFieldMap(sourceType);
+    Map<String, ConfigHandler> handlerMap = getFieldToHandlerMap(sourceType);
     if(fieldMap != null) {
-      for (String enrichmentType : getFieldMap(sourceType).keySet()) {
-        streamIds.add(enrichmentType);
+      for (String enrichmentType : fieldMap.keySet()) {
+        ConfigHandler handler = handlerMap.get(enrichmentType);
+        for(String subgroup : handler.getType().getSubgroups(handler.getConfig())) {
+          streamIds.add(Joiner.on(":").join(enrichmentType, subgroup));
+        }
       }
     }
-    streamIds.add("message");
+    streamIds.add("message:");
     return streamIds;
   }
 
@@ -84,7 +86,21 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
     return  message;
   }
 
-  public Map<String, List<String>> getFieldMap(String sourceType) {
+ protected Map<String, ConfigHandler> getFieldToHandlerMap(String sensorType) {
+    if(sensorType != null) {
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
+      if (config != null) {
+        return config.getEnrichment().getEnrichmentConfigs();
+      } else {
+        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+      }
+    } else {
+      LOG.error("Trying to retrieve a field map with sensor type of null");
+    }
+    return new HashMap<>();
+  }
+
+  public Map<String, Object> getFieldMap(String sourceType) {
     if(sourceType != null) {
       SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
       if (config != null && config.getEnrichment() != null) {

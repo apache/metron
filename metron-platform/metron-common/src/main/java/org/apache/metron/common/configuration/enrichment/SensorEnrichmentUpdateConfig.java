@@ -116,13 +116,13 @@ public class SensorEnrichmentUpdateConfig {
     Map<String, SensorEnrichmentConfig> sourceConfigsChanged = new HashMap<>();
     for (Map.Entry<String, FieldList> kv : sensorToFieldList.entrySet()) {
       SensorEnrichmentConfig config = findConfigBySensorType(scHandler, sourceConfigsChanged, kv.getKey());
-      Map<String, List<String> > fieldMap = null;
-      Map<String, List<String> > fieldToTypeMap = null;
+      Map<String, Object > fieldMap = null;
+      Map<String, List<String>> fieldToTypeMap = null;
       List<String> fieldList = null;
       if(kv.getValue().type == Type.THREAT_INTEL) {
         fieldMap = config.getThreatIntel().getFieldMap();
         if(fieldMap!= null) {
-          fieldList = fieldMap.get(Constants.SIMPLE_HBASE_THREAT_INTEL);
+          fieldList = (List<String>)fieldMap.get(Constants.SIMPLE_HBASE_THREAT_INTEL);
         } else {
           fieldMap = new HashMap<>();
         }
@@ -139,7 +139,7 @@ public class SensorEnrichmentUpdateConfig {
       else if(kv.getValue().type == Type.ENRICHMENT) {
         fieldMap = config.getEnrichment().getFieldMap();
         if(fieldMap!= null) {
-          fieldList = fieldMap.get(Constants.SIMPLE_HBASE_ENRICHMENT);
+          fieldList = (List<String>)fieldMap.get(Constants.SIMPLE_HBASE_ENRICHMENT);
         } else {
           fieldMap = new HashMap<>();
         }
@@ -180,7 +180,7 @@ public class SensorEnrichmentUpdateConfig {
           final HashSet<String> types = new HashSet<>(fieldToType.getValue());
           int sizeBefore = 0;
           if(fieldToTypeMap.containsKey(field)) {
-            List<String> typeList = fieldToTypeMap.get(field);
+            List<String> typeList = (List<String>)fieldToTypeMap.get(field);
             sizeBefore = new HashSet<>(typeList).size();
             types.addAll(typeList);
           }

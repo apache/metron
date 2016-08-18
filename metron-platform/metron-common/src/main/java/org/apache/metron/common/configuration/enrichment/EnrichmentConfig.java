@@ -18,12 +18,16 @@
 
 package org.apache.metron.common.configuration.enrichment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class EnrichmentConfig {
-  private Map<String, List<String>> fieldMap = new HashMap<>();
+  private Map<String, Object> fieldMap = new HashMap<>();
+  private Map<String, ConfigHandler> enrichmentConfigs = new HashMap<>();
   private Map<String, List<String>> fieldToTypeMap = new HashMap<>();
   private Map<String, Object> config = new HashMap<>();
 
@@ -35,12 +39,26 @@ public class EnrichmentConfig {
     this.config = config;
   }
 
-  public Map<String, List<String>> getFieldMap() {
+  public Map<String, Object> getFieldMap() {
     return fieldMap;
   }
 
-  public void setFieldMap(Map<String, List<String>> fieldMap) {
+  @JsonIgnore
+  public Map<String, ConfigHandler> getEnrichmentConfigs() {
+    return enrichmentConfigs;
+  }
+
+
+  public void setFieldMap(Map<String, Object> fieldMap) {
     this.fieldMap = fieldMap;
+    for(Map.Entry<String, Object> kv : fieldMap.entrySet()) {
+      if(kv.getValue() instanceof List) {
+        enrichmentConfigs.put(kv.getKey(), new ConfigHandler((List<String>)kv.getValue()));
+      }
+      else {
+        enrichmentConfigs.put(kv.getKey(), new ConfigHandler(kv.getKey(), (Map<String, Object>)kv.getValue()));
+      }
+    }
   }
 
   public Map<String, List<String>> getFieldToTypeMap() {

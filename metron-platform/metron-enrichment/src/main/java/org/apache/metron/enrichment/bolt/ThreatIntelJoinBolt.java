@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.bolt;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
@@ -27,6 +28,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,9 +40,22 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
-
   @Override
-  public Map<String, List<String>> getFieldMap(String sourceType) {
+  protected Map<String, ConfigHandler> getFieldToHandlerMap(String sensorType) {
+    if(sensorType != null) {
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
+      if (config != null) {
+        return config.getThreatIntel().getEnrichmentConfigs();
+      } else {
+        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+      }
+    } else {
+      LOG.error("Trying to retrieve a field map with sensor type of null");
+    }
+    return new HashMap<>();
+  }
+  @Override
+  public Map<String, Object> getFieldMap(String sourceType) {
     SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
     if(config != null) {
       return config.getThreatIntel().getFieldMap();

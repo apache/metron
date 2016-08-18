@@ -21,6 +21,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import com.google.common.collect.ImmutableList;
 import junit.framework.Assert;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
@@ -28,6 +29,7 @@ import org.json.simple.JSONObject;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,7 +69,7 @@ public class SplitBoltTest extends BaseEnrichmentBoltTest {
     }
 
     @Override
-    public Map<String, JSONObject> splitMessage(JSONObject message) {
+    public Map<String, List<JSONObject>> splitMessage(JSONObject message) {
       return null;
     }
 
@@ -90,20 +92,20 @@ public class SplitBoltTest extends BaseEnrichmentBoltTest {
     doCallRealMethod().when(splitBolt).reloadCallback(anyString(), any(ConfigurationType.class));
     splitBolt.prepare(new HashMap(), topologyContext, outputCollector);
     splitBolt.declareOutputFields(declarer);
-    verify(declarer, times(1)).declareStream(eq("message"), argThat(new FieldsMatcher("key", "message")));
+    verify(declarer, times(1)).declareStream(eq("message"), argThat(new FieldsMatcher("key", "message", "subgroup")));
     for(String streamId: streamIds) {
       verify(declarer, times(1)).declareStream(eq(streamId), argThat(new FieldsMatcher("key", "message")));
     }
     verify(declarer, times(1)).declareStream(eq("error"), argThat(new FieldsMatcher("message")));
 
     JSONObject sampleMessage = splitBolt.generateMessage(tuple);
-    Map<String, JSONObject> streamMessageMap = new HashMap<>();
-    streamMessageMap.put("geo", geoMessage);
-    streamMessageMap.put("host", hostMessage);
-    streamMessageMap.put("hbaseEnrichment", hbaseEnrichmentMessage);
+    Map<String, List<JSONObject>> streamMessageMap = new HashMap<>();
+    streamMessageMap.put("geo", ImmutableList.of(geoMessage));
+    streamMessageMap.put("host", ImmutableList.of(hostMessage));
+    streamMessageMap.put("hbaseEnrichment", ImmutableList.of(hbaseEnrichmentMessage));
     doReturn(streamMessageMap).when(splitBolt).splitMessage(sampleMessage);
     splitBolt.execute(tuple);
-    verify(outputCollector, times(1)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, sampleMessage)));
+    verify(outputCollector, times(1)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, sampleMessage, "")));
     verify(outputCollector, times(1)).emit(eq("geo"), eq(new Values(key, geoMessage)));
     verify(outputCollector, times(1)).emit(eq("host"), eq(new Values(key, hostMessage)));
     verify(outputCollector, times(1)).emit(eq("hbaseEnrichment"), eq(new Values(key, hbaseEnrichmentMessage)));

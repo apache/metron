@@ -18,13 +18,14 @@
 package org.apache.metron.enrichment.bolt;
 
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.utils.ConversionUtils;
 
 public class CacheKey {
   private String field;
-  private String value;
+  private Object value;
   private SensorEnrichmentConfig config;
 
-  public CacheKey(String field, String value, SensorEnrichmentConfig config) {
+  public CacheKey(String field, Object value, SensorEnrichmentConfig config) {
     this.field = field;
     this.value = value;
     this.config = config;
@@ -34,10 +35,17 @@ public class CacheKey {
     return field;
   }
 
-  public String getValue() {
+  public Object getValue() {
     return value;
   }
 
+  public <T> T getValue(Class<T> clazz) {
+    return clazz.cast(getValue());
+  }
+
+  public <T> T coerceValue(Class<T> clazz) {
+    return ConversionUtils.convert(getValue(), clazz);
+  }
   public SensorEnrichmentConfig getConfig() {
     return config;
   }

@@ -35,6 +35,10 @@ public class GeoAdapter extends JdbcAdapter {
 
   }
 
+  @Override
+	public String getOutputPrefix(CacheKey value) {
+		return value.getField();
+	}
 
   @SuppressWarnings("unchecked")
   @Override
@@ -45,10 +49,10 @@ public class GeoAdapter extends JdbcAdapter {
       return enriched;
     }
     try {
-      InetAddress addr = InetAddress.getByName(value.getValue());
+      InetAddress addr = InetAddress.getByName(value.getValue(String.class));
       if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
               || addr.isSiteLocalAddress() || addr.isMulticastAddress()
-              || !ipvalidator.isValidInet4Address(value.getValue())) {
+              || !ipvalidator.isValidInet4Address(value.getValue(String.class))) {
         return new JSONObject();
       }
       String locidQuery = "select IPTOLOCID(\"" + value.getValue()

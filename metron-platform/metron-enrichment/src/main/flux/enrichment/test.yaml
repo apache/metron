@@ -20,6 +20,19 @@ config:
 
 components:
 # Enrichment
+    -   id: "stellarEnrichmentAdapter"
+        className: "org.apache.metron.enrichment.adapters.stellar.StellarAdapter"
+        configMethods:
+            -   name: "ofType"
+                args:
+                    - "ENRICHMENT"
+
+    -   id: "stellarEnrichment"
+        className: "org.apache.metron.enrichment.configuration.Enrichment"
+        constructorArgs:
+            -   "stellar"
+            -   ref: "stellarEnrichmentAdapter"
+
     -   id: "geoEnrichmentAdapter"
         className: "org.apache.metron.enrichment.integration.mock.MockGeoAdapter"
     -   id: "geoEnrichment"
@@ -72,8 +85,21 @@ components:
             -   name: "add"
                 args:
                     - ref: "simpleHBaseEnrichment"
+            -   name: "add"
+                args:
+                    - ref: "stellarEnrichment"
 # Threat Intel
-
+    -   id: "stellarThreatIntelAdapter"
+        className: "org.apache.metron.enrichment.adapters.stellar.StellarAdapter"
+        configMethods:
+            -   name: "ofType"
+                args:
+                    - "THREAT_INTEL"
+    -   id: "stellarThreatIntelEnrichment"
+        className: "org.apache.metron.enrichment.configuration.Enrichment"
+        constructorArgs:
+            -   "stellar"
+            -   ref: "stellarThreatIntelAdapter"
     -   id: "simpleHBaseThreatIntelConfig"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelConfig"
         configMethods:
@@ -110,7 +136,9 @@ components:
             -   name: "add"
                 args:
                     - ref: "simpleHBaseThreatIntelEnrichment"
-
+            -   name: "add"
+                args:
+                    - ref: "stellarThreatIntelEnrichment"
 
 #indexing
     -   id: "kafkaWriter"
@@ -172,6 +200,18 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+    -   id: "stellarEnrichmentBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "stellarEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
     -   id: "hostEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
@@ -229,6 +269,18 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+    -   id: "stellarThreatIntelBolt"
+        className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withEnrichment"
+                args:
+                    - ref: "stellarThreatIntelEnrichment"
+            -   name: "withMaxCacheSize"
+                args: [10000]
+            -   name: "withMaxTimeRetain"
+                args: [10]
     -   id: "threatIntelJoinBolt"
         className: "org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt"
         constructorArgs:
@@ -273,6 +325,14 @@ streams:
             type: FIELDS
             args: ["key"]
 
+    -   name: "enrichmentSplit -> stellar"
+        from: "enrichmentSplitBolt"
+        to: "stellarEnrichmentBolt"
+        grouping:
+            streamId: "stellar"
+            type: FIELDS
+            args: ["key"]
+
     -   name: "enrichmentSplit -> simpleHBaseEnrichmentBolt"
         from: "enrichmentSplitBolt"
         to: "simpleHBaseEnrichmentBolt"
@@ -293,6 +353,13 @@ streams:
         to: "enrichmentJoinBolt"
         grouping:
             streamId: "geo"
+            type: FIELDS
+            args: ["key"]
+    -   name: "stellar -> join"
+        from: "stellarEnrichmentBolt"
+        to: "enrichmentJoinBolt"
+        grouping:
+            streamId: "stellar"
             type: FIELDS
             args: ["key"]
 
@@ -328,12 +395,27 @@ streams:
             streamId: "hbaseThreatIntel"
             type: FIELDS
             args: ["key"]
+    -   name: "threatSplit -> stellarThreatIntel"
+        from: "threatIntelSplitBolt"
+        to: "stellarThreatIntelBolt"
+        grouping:
+            streamId: "stellar"
+            type: FIELDS
+            args: ["key"]
 
     -   name: "simpleHBaseThreatIntel -> join"
         from: "simpleHBaseThreatIntelBolt"
         to: "threatIntelJoinBolt"
         grouping:
             streamId: "hbaseThreatIntel"
+            type: FIELDS
+            args: ["key"]
+
+    -   name: "stellarThreatIntel -> join"
+        from: "stellarThreatIntelBolt"
+        to: "threatIntelJoinBolt"
+        grouping:
+            streamId: "stellar"
             type: FIELDS
             args: ["key"]
     -   name: "threatIntelSplit -> threatIntelJoin"

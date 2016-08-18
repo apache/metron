@@ -37,7 +37,7 @@ public class ThreatIntelSplitterBoltTest extends BaseEnrichmentBoltTest {
     threatIntelSplitterBolt.setTreeCache(cache);
     threatIntelSplitterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
     threatIntelSplitterBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
-    Map<String, List<String>> fieldMap = threatIntelSplitterBolt.getFieldMap(sensorType);
+    Map<String, Object> fieldMap = threatIntelSplitterBolt.getFieldMap(sensorType);
     Assert.assertTrue(fieldMap.containsKey(threatIntelType));
     String fieldName = threatIntelSplitterBolt.getKeyName(threatIntelType, "field");
     Assert.assertEquals("threatintels.hbaseThreatIntel.field", fieldName);
