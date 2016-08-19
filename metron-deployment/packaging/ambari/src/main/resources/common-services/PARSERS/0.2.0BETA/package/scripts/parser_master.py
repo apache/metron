@@ -27,7 +27,7 @@ from commands import Commands
 class ParserMaster(Script):
     def get_component_name(self):
         # TODO add this at some point - currently will cause problems with hdp-select
-        #return "parser-master"
+        # return "parser-master"
         pass
 
     def install(self, env):
@@ -66,41 +66,11 @@ class ParserMaster(Script):
         if not commands.topologies_running():
             raise ComponentIsNotRunning()
 
-#        from params import status_params
-#        env.set_params(params)
-#        commands = Commands(params)
-#        if not commands.topologies_running():
-#            raise ComponentIsNotRunning()
-
-#        from params import status_params
-#        env.set_params(status_params)
-#        commands = Commands(params)
-#        if not commands.topologies_running():
-#            raise ComponentIsNotRunning()
-
     def restart(self, env):
         from params import params
         env.set_params(params)
         commands = Commands(params)
         commands.restart_parser_topologies()
-
-    def kafkabuild(self, env, upgrade_type=None):
-        from params import params
-        env.set_params(params)
-        commands = Commands(params)
-        commands.init_kafka_topics()
-
-    def zookeeperbuild(self, env, upgrade_type=None):
-        from params import params
-        env.set_params(params)
-        commands = Commands(params)
-        commands.init_parser_config()
-
-    def starttopologies(self, env, upgrade_type=None):
-        from params import params
-        env.set_params(params)
-        commands = Commands(params)
-        commands.start_parser_topologies()
 
 
 if __name__ == "__main__":
