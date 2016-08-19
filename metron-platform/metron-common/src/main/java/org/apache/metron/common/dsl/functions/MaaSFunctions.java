@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.hadoop.security.authorize.Service;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
@@ -230,7 +229,7 @@ public class MaaSFunctions {
       ret.put("url", ep.getUrl());
       ret.put("name", name);
       ret.put("version", version);
-      for(Map.Entry<String, String> kv : ep.getEndpoints().entrySet()) {
+      for(Map.Entry<String, String> kv : ep.getFunctions().entrySet()) {
         ret.put("endpoint:" + kv.getKey(), kv.getValue());
       }
       return ret;

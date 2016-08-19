@@ -17,6 +17,9 @@
  */
 package org.apache.metron.maas.config;
 
+/**
+ * The actions available to be taken by the Model as a Service ApplicationMaster
+ */
 public enum Action {
   ADD, REMOVE;
 }

@@ -20,12 +20,20 @@ package org.apache.metron.maas.config;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * An endpoint for a service being deployed.  An endpoint is constituted by a URL and
+ * a set of functions which it exposes.
+ */
 public class Endpoint {
   String url;
-  Map<String, String> endpoints = new HashMap<String, String>(){{
+  Map<String, String> functions = new HashMap<String, String>(){{
     put("apply", "apply");
   }};
 
+  /**
+   * Retrieve the URL associated with the endpoint
+   * @return a URL
+   */
   public String getUrl() {
     return url;
   }
@@ -34,12 +42,24 @@ public class Endpoint {
     this.url = url;
   }
 
-  public Map<String, String> getEndpoints() {
-    return endpoints;
+  /**
+   * Retrieve the functions (or functions) exposed.  The key of the map is the logical alias
+   * for an endpoint function that you can use across multiple services (i.e. 'apply')
+   * and the value is the realized endpoint function name.
+   *
+   * For instance, if I have a service bound to localhost:8080 and exposes /foo and /bar and
+   * for your organization or use you've decided to call functions which are used for enrichment 'enrich'
+   * and functions which are used for data science as 'ds', you can alias /foo to 'enrich'
+   * and /bar to 'ds' by creating a map which maps the 'enrich' to 'foo' and 'ds' to 'bar'.
+   *
+   * @return
+   */
+  public Map<String, String> getFunctions() {
+    return functions;
   }
 
-  public void setEndpoints(Map<String, String> endpoints) {
-    this.endpoints = endpoints;
+  public void setFunctions(Map<String, String> functions) {
+    this.functions = functions;
   }
 
 
@@ -47,7 +67,7 @@ public class Endpoint {
   public String toString() {
     return "Endpoint{" +
             "url='" + url + '\'' +
-            ", endpoints=" + endpoints +
+            ", functions=" + functions +
             '}';
   }
 
@@ -59,14 +79,14 @@ public class Endpoint {
     Endpoint endpoint = (Endpoint) o;
 
     if (getUrl() != null ? !getUrl().equals(endpoint.getUrl()) : endpoint.getUrl() != null) return false;
-    return getEndpoints() != null ? getEndpoints().equals(endpoint.getEndpoints()) : endpoint.getEndpoints() == null;
+    return getFunctions() != null ? getFunctions().equals(endpoint.getFunctions()) : endpoint.getFunctions() == null;
 
   }
 
   @Override
   public int hashCode() {
     int result = getUrl() != null ? getUrl().hashCode() : 0;
-    result = 31 * result + (getEndpoints() != null ? getEndpoints().hashCode() : 0);
+    result = 31 * result + (getFunctions() != null ? getFunctions().hashCode() : 0);
     return result;
   }
 }

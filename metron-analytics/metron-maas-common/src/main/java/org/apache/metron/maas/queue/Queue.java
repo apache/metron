@@ -21,6 +21,10 @@ import org.apache.metron.maas.config.ModelRequest;
 
 import java.util.Map;
 
+/**
+ * A basic interface for a queue of requests
+ * @param <T>
+ */
 public interface Queue<T> {
   T dequeue();
   void enqueue(T request);

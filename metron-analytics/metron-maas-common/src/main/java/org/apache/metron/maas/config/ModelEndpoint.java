@@ -42,7 +42,7 @@ public class ModelEndpoint implements Serializable {
   @Override
   public String toString() {
     return name + ":" + version + " @ " + endpoint.getUrl()
-                + " serving:\n\t" + Joiner.on("\n\t").join(getEndpoint().getEndpoints().entrySet());
+                + " serving:\n\t" + Joiner.on("\n\t").join(getEndpoint().getFunctions().entrySet());
   }
 
   public void setContainerId(String containerId) {
