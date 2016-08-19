@@ -17,13 +17,19 @@ limitations under the License.
 
 """
 
+from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 
 from commands import Commands
 
 
-class ParsersMaster(Script):
+class ParserMaster(Script):
+    def get_component_name(self):
+        # TODO add this at some point - currently will cause problems with hdp-select
+        #return "parser-master"
+        pass
+
     def install(self, env):
         from params import params
         env.set_params(params)
@@ -54,9 +60,23 @@ class ParsersMaster(Script):
         commands.stop_parser_topologies()
 
     def status(self, env):
-        from params import params
-        env.set_params(params)
-        Logger.info('Status of the Master')
+        from params import status_params
+        env.set_params(status_params)
+        commands = Commands(status_params)
+        if not commands.topologies_running():
+            raise ComponentIsNotRunning()
+
+#        from params import status_params
+#        env.set_params(params)
+#        commands = Commands(params)
+#        if not commands.topologies_running():
+#            raise ComponentIsNotRunning()
+
+#        from params import status_params
+#        env.set_params(status_params)
+#        commands = Commands(params)
+#        if not commands.topologies_running():
+#            raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params
@@ -84,4 +104,4 @@ class ParsersMaster(Script):
 
 
 if __name__ == "__main__":
-    ParsersMaster().execute()
+    ParserMaster().execute()

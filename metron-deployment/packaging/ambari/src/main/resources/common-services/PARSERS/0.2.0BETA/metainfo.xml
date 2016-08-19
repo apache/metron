@@ -55,28 +55,13 @@
                         </dependency>
                     </dependencies>
                     <commandScript>
-                        <script>scripts/parsers_master.py</script>
+                        <script>scripts/parser_master.py</script>
                         <scriptType>PYTHON</scriptType>
                         <timeout>600</timeout>
                     </commandScript>
-                    <customCommands>
-                        <customCommand>
-                            <name>KAFKABUILD</name>
-                            <commandScript>
-                                <script>scripts/parsers_master.py</script>
-                                <scriptType>PYTHON</scriptType>
-                                <timeout>600</timeout>
-                            </commandScript>
-                        </customCommand>
-                        <customCommand>
-                            <name>ZOOKEEPERBUILD</name>
-                            <commandScript>
-                                <script>scripts/parsers_master.py</script>
-                                <scriptType>PYTHON</scriptType>
-                                <timeout>600</timeout>
-                            </commandScript>
-                        </customCommand>
-                    </customCommands>
+                    <configuration-dependencies>
+                        <config-type>metron-parsers</config-type>
+                    </configuration-dependencies>
                 </component>
             </components>
 
