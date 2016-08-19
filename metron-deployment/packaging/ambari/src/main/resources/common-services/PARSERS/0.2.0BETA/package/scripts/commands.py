@@ -177,36 +177,49 @@ class Commands:
         Logger.info('Restarting the parser topologies')
         self.stop_parser_topologies()
         attempt_count = 0
-        while self.topologies_active():
+        while self.topologies_exist():
             if attempt_count > 2:
-                raise Exception("Unable to stop topologies")
+                raise Exception("Unable to kill topologies")
             attempt_count += 1
             time.sleep(10)
         self.start_parser_topologies()
         Logger.info('Done restarting the parser topologies')
 
-    def topologies_active(self):
+    def topologies_exist(self):
         cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = cmd_open.communicate()
         stdout_lines = stdout.splitlines()
-        all_active = False
         if stdout_lines:
-            all_active = True
             status_lines = self.__get_status_lines(stdout_lines)
             for parser in self.get_parser_list():
-                parser_found=False
-                is_active=False
+                for line in status_lines:
+                    items = re.sub('[\s]+', ' ', line).split()
+                    if items and items[0] == parser:
+                        return True
+        return False
+
+    def topologies_running(self):
+        cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (stdout, stderr) = cmd_open.communicate()
+        stdout_lines = stdout.splitlines()
+        all_running = False
+        if stdout_lines:
+            all_running = True
+            status_lines = self.__get_status_lines(stdout_lines)
+            for parser in self.get_parser_list():
+                parser_found = False
+                is_running = False
                 for line in status_lines:
                     items = re.sub('[\s]+', ' ', line).split()
                     if items and items[0] == parser:
                         status = items[1]
-                        parser_found=True
-                        is_active = self.__is_active(status)
-                all_active &= parser_found and is_active
-        return all_active
+                        parser_found = True
+                        is_running = self.__is_running(status)
+                all_running &= parser_found and is_running
+        return all_running
 
     def __get_status_lines(self, lines):
-        status_lines=[]
+        status_lines = []
         do_stat = False
         skipped = 0
         for line in lines:
@@ -218,5 +231,5 @@ class Commands:
                 skipped += 1
         return status_lines
 
-    def __is_active(self, status):
-        return status == self.StormStatus.ACTIVE
+    def __is_running(self, status):
+        return status in [self.StormStatus.ACTIVE, self.StormStatus.REBALANCING]

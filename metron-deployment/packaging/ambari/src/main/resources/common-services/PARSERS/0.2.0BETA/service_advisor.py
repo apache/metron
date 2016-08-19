@@ -32,7 +32,7 @@ except Exception as e:
     print("Failed to load parent service_advisor file '{}'".format(PARENT_FILE))
 
 
-class PARSERS020BETAServiceAdvisor(service_advisor.ServiceAdvisor):
+class TODO_PARSERS020BETAServiceAdvisor(service_advisor.ServiceAdvisor):
     # colocate Metron Parser Master with KAFKA_BROKERs
     def TODO_colocateService(self, hostsComponentsMap, serviceComponents):
         parsersMasterComponent = [component for component in serviceComponents if

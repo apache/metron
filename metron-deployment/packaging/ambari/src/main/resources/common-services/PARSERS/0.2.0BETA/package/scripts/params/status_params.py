@@ -34,13 +34,12 @@ from resource_management.libraries.script import Script
 config = Script.get_config()
 
 hostname = config['hostname']
-#print(config['configurations'])
+
 metron_home = config['configurations']['metron-parsers']['metron_home']
 parsers = config['configurations']['metron-parsers']['parsers']
 metron_user = config['configurations']['metron-parsers']['metron_user']
 metron_group = config['configurations']['metron-parsers']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-parsers']['metron_zookeeper_config_dir']
-#metron_zookeeper_config_path = metron_home + "/" + metron_zookeeper_config_dir
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
 configured_flag_file = metron_zookeeper_config_path + '/../metron_is_configured'
 yum_repo_type = 'local'
