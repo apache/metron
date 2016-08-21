@@ -40,6 +40,7 @@
   uri:
     url: "http://{{ inventory_hostname }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
     method: PUT
+    body_format: "json"
     body: "{{ lookup('file',item) }}"
     status_code: 200
   with_fileglob: ./files/es_templates/*.template
@@ -48,6 +49,7 @@
   uri:
     url: "http://{{ inventory_hostname }}:{{ elasticsearch_web_port }}/_template/{{ item | basename | replace('.template','') }}"
     method: HEAD
+    body_format: "json"
     body: "{{ lookup('file',item) }}"
     status_code: 200
   with_fileglob: ./files/es_templates/*.template
