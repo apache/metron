@@ -66,8 +66,8 @@
     state=present
   with_items:
     - { regexp: '^# *cluster\.name:', line: 'cluster.name: metron' }
-    - { regexp: '^# *network\.host:', line: 'network.host: _{{
-    elasticsearch_network_interface  }}:ipv4_' }
+    - { regexp: '^# *network\.host:', line: 'network.host: ["_{{
+    elasticsearch_network_interface  }}:ipv4_","_local:ipv4_"]' }
     - { regexp: '^# *discovery\.zen\.ping\.unicast\.hosts:',
     line: 'discovery.zen.ping.unicast.hosts: [ {{ es_hosts }} ]'}
     - { regexp: '^# *path\.data', line: 'path.data: {{     elasticsearch_data_dir }}' }
