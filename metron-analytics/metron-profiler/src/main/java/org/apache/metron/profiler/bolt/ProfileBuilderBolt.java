@@ -85,11 +85,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   private transient JSONParser parser;
 
-  /**
-   * Stellar context
-   */
-  private Context stellarContext;
-
   private OutputCollector collector;
 
   /**
@@ -111,10 +106,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   }
 
   protected void initializeStellar() {
-    stellarContext = new Context.Builder()
-                         .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-                         .build();
-    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
+    Context context = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(context);
+    executor.setContext(context);
   }
 
   @Override
@@ -196,7 +192,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     try {
       JSONObject message = (JSONObject) input.getValueByField("message");
       Map<String, String> expressions = profileConfig.getInit();
-      expressions.forEach((var, expr) -> executor.assign(var, expr, message, stellarContext));
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
       String msg = format("Bad 'init' expression: %s, profile=%s, entity=%s, start=%d",
@@ -215,7 +211,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     // execute each of the 'update' expressions
     try {
       Map<String, String> expressions = profileConfig.getUpdate();
-      expressions.forEach((var, expr) -> executor.assign(var, expr, message, stellarContext));
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
       String msg = format("Bad 'update' expression: %s, profile=%s, entity=%s, start=%d",
@@ -239,7 +235,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     Object result;
     try {
       String resultExpr = profileConfig.getResult();
-      result = executor.execute(resultExpr, new JSONObject(), Object.class, stellarContext);
+      result = executor.execute(resultExpr, new JSONObject(), Object.class);
     
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);

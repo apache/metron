@@ -18,7 +18,9 @@
 package org.apache.metron.common.configuration.profiler;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,36 +29,57 @@ import java.util.Map;
 public class ProfileConfig implements Serializable {
 
   /**
-   * The name of the profile.
+   * A unique name identifying the profile.  The field is treated as a string.
    */
   private String profile;
 
   /**
-   * Stella code that when executed results in the name of the entity being profiled.  A
-   * profile is created 'for-each' of these; hence the name.
+   * A separate profile is maintained for each of these.  This is effectively the
+   * entity that the profile is describing.  The field is expected to contain a
+   * Stellar expression whose result is the entity name.  For example, if `ip_src_addr`
+   * then a separate profile would be maintained for each unique IP source address in
+   * the data; 10.0.0.1, 10.0.0.2, etc.
    */
   private String foreach;
 
   /**
-   * Stella code that when executed determines whether a message should be included in this
-   * profile.
+   * An expression that determines if a message should be applied to the profile.  A
+   * Stellar expression is expected that when executed returns a boolean.  A message
+   * is only applied to a profile if this condition is true. This allows a profile
+   * to filter the messages that it receives.
    */
   private String onlyif;
 
   /**
-   * Stella code that when executed results in a single measurement that is stored with the Profile.
-   */
-  private String result;
-
-  /**
-   * Defines how the state is initialized before any messages are received.
+   * A set of expressions that is executed at the start of a window period.  A map is
+   * expected where the key is the variable name and the value is a Stellar expression.
+   * The map can contain 0 or more variables/expressions. At the start of each window
+   * period the expression is executed once and stored in a variable with the given
+   * name.
    */
   private Map<String, String> init = new HashMap<>();
 
   /**
-   * Defines how the state is updated when a new message is received.
+   * A set of expressions that is executed when a message is applied to the profile.
+   * A map is expected where the key is the variable name and the value is a Stellar
+   * expression.  The map can include 0 or more variables/expressions.
    */
   private Map<String, String> update = new HashMap<>();
+
+  /**
+   * A list of Stellar expressions that is executed in order and used to group the
+   * resulting profile data.
+   * TODO
+   */
+  private List<String> groupBy = new ArrayList<>();
+
+  /**
+   * A Stellar expression that is executed when the window period expires.  The
+   * expression is expected to in some way summarize the messages that were applied
+   * to the profile over the window period.  The expression must result in a numeric
+   * value such as a Double, Long, Float, Short, or Integer.
+   */
+  private String result;
 
   public String getProfile() {
     return profile;

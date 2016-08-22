@@ -20,6 +20,8 @@
 
 package org.apache.metron.profiler;
 
+import java.util.List;
+
 /**
  * Represents a single data point within a Profile.
  *
@@ -52,6 +54,11 @@ public class ProfileMeasurement {
    * The actual measurement itself.
    */
   private Object value;
+
+  /**
+   * A set of expressions used to group the profile measurements when persisted.
+   */
+  private List<String> groupBy;
 
   public String getProfileName() {
     return profileName;
@@ -93,6 +100,14 @@ public class ProfileMeasurement {
     this.value = value;
   }
 
+  public List<String> getGroupBy() {
+    return groupBy;
+  }
+
+  public void setGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -104,8 +119,8 @@ public class ProfileMeasurement {
     if (end != that.end) return false;
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
-    return value != null ? value.equals(that.value) : that.value == null;
-
+    if (value != null ? !value.equals(that.value) : that.value != null) return false;
+    return groupBy != null ? groupBy.equals(that.groupBy) : that.groupBy == null;
   }
 
   @Override
@@ -115,6 +130,7 @@ public class ProfileMeasurement {
     result = 31 * result + (int) (start ^ (start >>> 32));
     result = 31 * result + (int) (end ^ (end >>> 32));
     result = 31 * result + (value != null ? value.hashCode() : 0);
+    result = 31 * result + (groupBy != null ? groupBy.hashCode() : 0);
     return result;
   }
 
@@ -126,6 +142,7 @@ public class ProfileMeasurement {
             ", start=" + start +
             ", end=" + end +
             ", value=" + value +
+            ", groupBy=" + groupBy +
             '}';
   }
 }
