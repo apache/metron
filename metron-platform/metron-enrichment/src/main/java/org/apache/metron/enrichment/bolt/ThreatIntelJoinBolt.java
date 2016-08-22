@@ -17,10 +17,15 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import backtype.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.dsl.FunctionResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.functions.ConversionFunctions;
+import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.json.simple.JSONObject;
@@ -34,9 +39,16 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   protected static final Logger LOG = LoggerFactory
           .getLogger(ThreatIntelJoinBolt.class);
-
+  FunctionResolver functionResolver;
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
+  }
+
+  @Override
+  public void prepare(Map map, TopologyContext topologyContext) {
+    super.prepare(map, topologyContext);
+    functionResolver = StellarFunctions.FUNCTION_RESOLVER();
+    functionResolver.initializeFunctions(context);
   }
 
   @Override
@@ -63,6 +75,13 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
         }
       }
     }
+    else {
+      Object isAlertObj = ret.get("is_alert");
+      isAlert = ConversionUtils.convert(isAlertObj, Boolean.class);
+      if(!isAlert) {
+        ret.remove("is_alert");
+      }
+    }
     if(isAlert) {
       ret.put("is_alert" , "true");
       String sourceType = MessageUtils.getSensorType(ret);
@@ -86,7 +105,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           LOG.debug(sourceType + ": Empty rules!");
         }
 
-        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config);
+        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, context);
         Double triageLevel = threatTriageProcessor.apply(ret);
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules().entrySet());

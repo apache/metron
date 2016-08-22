@@ -73,7 +73,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
     List<Object> emptyKeys = new ArrayList<>();
     for(Object key : message.keySet()) {
       Object value = message.get(key);
-      if(value.toString().length() == 0) {
+      if(value == null || value.toString().length() == 0) {
         emptyKeys.add(key);
       }
     }

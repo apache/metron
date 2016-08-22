@@ -21,13 +21,83 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.metron.common.dsl.BaseStellarFunction;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 public class StringFunctions {
-  public static class JoinFunction implements Function<List<Object>, Object> {
+  public static class RegexpMatch extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> list) {
+      if(list.size() < 2) {
+        throw new IllegalStateException("REGEXP_MATCH expects two args: [string, pattern] where pattern is a regexp pattern");
+      }
+      String pattern = (String) list.get(1);
+      String str = (String) list.get(0);
+      if(str == null || pattern == null) {
+        return false;
+      }
+      return str.matches(pattern);
+    }
+  }
+
+  public static class EndsWith extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> list) {
+      if(list.size() < 2) {
+        throw new IllegalStateException("ENDS_WITH expects two args: [string, suffix] where suffix is the string fragment that the string should end with");
+      }
+      String prefix = (String) list.get(1);
+      String str = (String) list.get(0);
+      if(str == null || prefix == null) {
+        return false;
+      }
+      return str.endsWith(prefix);
+    }
+  }
+  public static class StartsWith extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> list) {
+      if(list.size() < 2) {
+        throw new IllegalStateException("STARTS_WITH expects two args: [string, prefix] where prefix is the string fragment that the string should start with");
+      }
+      String prefix = (String) list.get(1);
+      String str = (String) list.get(0);
+      if(str == null || prefix == null) {
+        return false;
+      }
+      return str.startsWith(prefix);
+    }
+  }
+  public static class ToLower extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> strings) {
+      return strings.get(0)==null?null:strings.get(0).toString().toLowerCase();
+    }
+  }
+  public static class ToUpper extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> strings) {
+      return strings.get(0)==null?null:strings.get(0).toString().toUpperCase();
+    }
+  }
+  public static class ToString extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> strings) {
+      return strings.get(0)==null?null:strings.get(0).toString();
+    }
+  }
+  public static class Trim extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> strings) {
+      return strings.get(0)==null?null:strings.get(0).toString().trim();
+    }
+  }
+  public static class JoinFunction extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
@@ -35,7 +105,7 @@ public class StringFunctions {
       return Joiner.on(delim).join(Iterables.filter(arg1, x -> x != null));
     }
   }
-  public static class SplitFunction implements Function<List<Object>, Object> {
+  public static class SplitFunction extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
       List ret = new ArrayList();
@@ -49,14 +119,14 @@ public class StringFunctions {
     }
   }
 
-  public static class GetLast implements Function<List<Object>, Object> {
+  public static class GetLast extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
       return Iterables.getLast(arg1, null);
     }
   }
-  public static class GetFirst implements Function<List<Object>, Object> {
+  public static class GetFirst extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);
@@ -64,7 +134,7 @@ public class StringFunctions {
     }
   }
 
-  public static class Get implements Function<List<Object>, Object> {
+  public static class Get extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
       List<Object> arg1 = (List<Object>) args.get(0);

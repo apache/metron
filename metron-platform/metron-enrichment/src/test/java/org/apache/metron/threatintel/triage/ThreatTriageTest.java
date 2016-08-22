@@ -21,6 +21,8 @@ package org.apache.metron.threatintel.triage;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.utils.JSONUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,7 +55,7 @@ public class ThreatTriageTest {
 
   private static ThreatTriageProcessor getProcessor(String config) throws IOException {
     SensorEnrichmentConfig c = JSONUtils.INSTANCE.load(config, SensorEnrichmentConfig.class);
-    return new ThreatTriageProcessor(c);
+    return new ThreatTriageProcessor(c, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
   }
 
   @Test
@@ -61,7 +63,7 @@ public class ThreatTriageTest {
     ThreatTriageProcessor threatTriageProcessor = getProcessor(smokeTestProcessorConfig);
     Assert.assertEquals("Expected a score of 0"
                        , 0d
-                       ,new ThreatTriageProcessor(new SensorEnrichmentConfig()).apply(new HashMap<Object, Object>() {{
+                       ,new ThreatTriageProcessor(new SensorEnrichmentConfig(), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT()).apply(new HashMap<Object, Object>() {{
                           put("user.type", "admin");
                           put("asset.type", "web");
                                         }}

@@ -17,10 +17,12 @@
  */
 package org.apache.metron.parsers.interfaces;
 
+import org.apache.metron.common.dsl.Context;
+
 import java.io.Serializable;
 import java.util.Map;
 
 public interface MessageFilter<T> extends Configurable{
 
-	boolean emitTuple(T message);
+	boolean emitTuple(T message, Context context);
 }

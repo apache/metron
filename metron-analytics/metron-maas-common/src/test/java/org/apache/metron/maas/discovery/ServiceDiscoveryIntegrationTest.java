@@ -26,6 +26,7 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceInstanceBuilder;
 import org.apache.curator.x.discovery.ServiceType;
+import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.config.Model;
 import org.apache.metron.maas.config.ModelEndpoint;
 import org.junit.After;
@@ -54,7 +55,7 @@ public class ServiceDiscoveryIntegrationTest {
   }
 
   private ServiceInstance<ModelEndpoint> createInstance(ModelEndpoint ep) throws Exception {
-    URL url = new URL(ep.getUrl());
+    URL url = new URL(ep.getEndpoint().getUrl());
     ServiceInstanceBuilder<ModelEndpoint> builder = ServiceInstance.<ModelEndpoint> builder()
             .address(url.getHost())
             .id(ep.getContainerId())
@@ -75,7 +76,10 @@ public class ServiceDiscoveryIntegrationTest {
     ep.setName(name);
     ep.setVersion(version);
     ep.setContainerId(containerId.incrementAndGet() + "");
-    ep.setUrl("http://localhost:9080/ep1");
+    ep.setEndpoint(new Endpoint() {{
+              setUrl("http://localhost:9080/ep1");
+                   }}
+    );
     registerService(ep);
   }
   @Test

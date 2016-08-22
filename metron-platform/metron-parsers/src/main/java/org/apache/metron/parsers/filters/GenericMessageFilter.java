@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.filters;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
@@ -30,7 +31,7 @@ public class GenericMessageFilter implements MessageFilter<JSONObject>{
 	public GenericMessageFilter() {
 	}
 
-	public boolean emitTuple(JSONObject message) {
+	public boolean emitTuple(JSONObject message, Context context) {
 		return true;
 	}
 

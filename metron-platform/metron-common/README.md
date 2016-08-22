@@ -47,6 +47,8 @@ The query language supports the following:
     * `URL_TO_PORT(url)` : Returns the port from a URL
     * `URL_TO_PATH(url)` : Returns the path from a URL
     * `TO_EPOCH_TIMESTAMP(dateTime, format, timezone)` : Returns the epoch timestamp of the `dateTime` given the `format`.  If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the `timezone` optionally.
+    * `MODEL_APPLY(endpoint, function?, model_args)` : Returns the output of a model deployed via model which is deployed at endpoint.  `endpoint` is a map containing `name`, `version`, `url` for the REST endpoint, `function` is the endpoint path and is optional, and `model_args` is a dictionary of arguments for the model (these become request params).
+    * `MAAS_GET_ENDPOINT(model_name, model_version?)` : Inspects zookeeper and returns a map containing the `name`, `version` and `url` for the model referred to by `model_name` and `model_version`.  If `model_version` is not specified, the most current model associated with `model_name` is returned.  In the instance where more than one model is deployed, a random one is selected with uniform probability.
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:

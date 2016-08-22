@@ -32,6 +32,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.*;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
+import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.ModelEndpoint;
@@ -214,13 +215,15 @@ public class Runner {
 
       try {
         LOG.info("Started " + cmd);
-        URL endpointUrl = correctLocalUrl(hostname, readURL(cwd));
-        LOG.info("Read endpoint " + endpointUrl);
+        Endpoint ep = readEndpoint(cwd);
+        URL endpointUrl =correctLocalUrl(hostname, ep.getUrl());
+        ep.setUrl(endpointUrl.toString());
+        LOG.info("Read endpoint " + ep);
         ModelEndpoint endpoint = new ModelEndpoint();
         {
           endpoint.setName(name);
           endpoint.setContainerId(containerId);
-          endpoint.setUrl(endpointUrl.toString());
+          endpoint.setEndpoint(ep);
           endpoint.setVersion(version);
         };
         ServiceInstanceBuilder<ModelEndpoint> builder = ServiceInstance.<ModelEndpoint> builder()
@@ -272,7 +275,8 @@ public class Runner {
     add("127.0.0.1");
     add("0.0.0.0");
   }};
-  private static URL correctLocalUrl(String hostname, URL tmp)  {
+  private static URL correctLocalUrl(String hostname, String tmpUrl) throws MalformedURLException {
+    URL tmp = new URL(tmpUrl);
     if(hostname != null && hostname.length() > 0 && localAddresses.contains(tmp.getHost())) {
       URL endpointUrl = null;
       try {
@@ -286,7 +290,7 @@ public class Runner {
     return tmp;
   }
 
-  private static URL readURL(File cwd) throws IOException, InterruptedException {
+  private static Endpoint readEndpoint(File cwd) throws Exception {
     String content = "";
     File f = new File(cwd, "endpoint.dat");
     for(int i = 0;i < NUM_ATTEMPTS;i++) {
@@ -298,10 +302,11 @@ public class Runner {
         }
         if(content != null && content.length() > 0) {
           try {
-            URL url = new URL(content);
-            return url;
+            Endpoint ep = ConfigUtil.INSTANCE.read(content.getBytes(), Endpoint.class);
+            return ep;
           }
-          catch(MalformedURLException mue) {
+          catch(Exception ex) {
+            LOG.error("Unable to parse " + content + ": " + ex.getMessage(), ex);
           }
         }
       }

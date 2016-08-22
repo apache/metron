@@ -19,10 +19,7 @@
 package org.apache.metron.common.dsl;
 
 import org.apache.commons.net.util.SubnetUtils;
-import org.apache.metron.common.dsl.functions.DateFunctions;
-import org.apache.metron.common.dsl.functions.MapFunctions;
-import org.apache.metron.common.dsl.functions.NetworkFunctions;
-import org.apache.metron.common.dsl.functions.StringFunctions;
+import org.apache.metron.common.dsl.functions.*;
 import org.apache.metron.common.field.transformation.IPProtocolTransformation;
 import org.apache.metron.common.field.validation.network.DomainValidation;
 import org.apache.metron.common.field.validation.network.EmailValidation;
@@ -37,13 +34,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public enum StellarFunctions implements Function<List<Object>, Object> {
-  TO_LOWER(strings -> strings.get(0)==null?null:strings.get(0).toString().toLowerCase())
-  ,TO_UPPER(strings -> strings.get(0) == null?null:strings.get(0).toString().toUpperCase())
-  ,TO_STRING(strings -> strings.get(0) == null?null:strings.get(0).toString())
-  ,TO_INTEGER(strings -> strings.get(0) == null?null: ConversionUtils.convert(strings.get(0), Integer.class))
-  ,TO_DOUBLE(strings -> strings.get(0) == null?null: ConversionUtils.convert(strings.get(0), Double.class))
-  ,TRIM(strings -> strings.get(0) == null?null:strings.get(0).toString().trim())
+public enum StellarFunctions implements StellarFunction {
+  TO_LOWER(new StringFunctions.ToLower())
+  ,TO_UPPER(new StringFunctions.ToUpper())
+  ,TO_STRING(new StringFunctions.ToString())
+  ,TO_INTEGER(new ConversionFunctions.Cast<>(Integer.class))
+  ,TO_DOUBLE(new ConversionFunctions.Cast<>(Double.class))
+  ,TRIM(new StringFunctions.Trim())
   ,JOIN(new StringFunctions.JoinFunction())
   ,SPLIT(new StringFunctions.SplitFunction())
   ,GET_FIRST(new StringFunctions.GetFirst())
@@ -59,87 +56,22 @@ public enum StellarFunctions implements Function<List<Object>, Object> {
   ,URL_TO_PROTOCOL(new NetworkFunctions.URLToProtocol())
   ,TO_EPOCH_TIMESTAMP(new DateFunctions.ToTimestamp())
   ,PROTOCOL_TO_NAME(new IPProtocolTransformation())
-  ,IS_EMPTY ( list -> {
-    if(list.size() == 0) {
-      throw new IllegalStateException("IS_EMPTY expects one string arg");
-    }
-    String val = (String) list.get(0);
-    return val == null || val.isEmpty() ? true:false;
-  })
-  ,IN_SUBNET( list -> {
-    if(list.size() < 2) {
-      throw new IllegalStateException("IN_SUBNET expects at least two args: [ip, cidr1, cidr2, ...]"
-                                     + " where cidr is the subnet mask in cidr form"
-                                     );
-    }
-    String ip = (String) list.get(0);
-    if(ip == null) {
-      return false;
-    }
-    boolean inSubnet = false;
-    for(int i = 1;i < list.size() && !inSubnet;++i) {
-      String cidr = (String) list.get(1);
-      if(cidr == null) {
-        continue;
-      }
-      inSubnet |= new SubnetUtils(cidr).getInfo().isInRange(ip);
-    }
-
-    return inSubnet;
-  })
-  ,STARTS_WITH( list -> {
-    if(list.size() < 2) {
-      throw new IllegalStateException("STARTS_WITH expects two args: [string, prefix] where prefix is the string fragment that the string should start with");
-    }
-    String prefix = (String) list.get(1);
-    String str = (String) list.get(0);
-    if(str == null || prefix == null) {
-      return false;
-    }
-    return str.startsWith(prefix);
-  })
-  ,ENDS_WITH( list -> {
-    if(list.size() < 2) {
-      throw new IllegalStateException("ENDS_WITH expects two args: [string, suffix] where suffix is the string fragment that the string should end with");
-    }
-    String prefix = (String) list.get(1);
-    String str = (String) list.get(0);
-    if(str == null || prefix == null) {
-      return false;
-    }
-    return str.endsWith(prefix);
-  })
-  ,REGEXP_MATCH( list -> {
-     if(list.size() < 2) {
-      throw new IllegalStateException("REGEXP_MATCH expects two args: [string, pattern] where pattern is a regexp pattern");
-    }
-    String pattern = (String) list.get(1);
-    String str = (String) list.get(0);
-    if(str == null || pattern == null) {
-      return false;
-    }
-    return str.matches(pattern);
-  })
+  ,IS_EMPTY ( new DataStructureFunctions.IsEmpty())
+  ,IN_SUBNET( new NetworkFunctions.InSubnet())
+  ,STARTS_WITH( new StringFunctions.StartsWith())
+  ,ENDS_WITH( new StringFunctions.EndsWith())
+  ,REGEXP_MATCH( new StringFunctions.RegexpMatch())
   , IS_IP(new Predicate2Transformation(new IPValidation()))
   , IS_DOMAIN(new Predicate2Transformation(new DomainValidation()))
   , IS_EMAIL(new Predicate2Transformation(new EmailValidation()))
   , IS_URL(new Predicate2Transformation(new URLValidation()))
   , IS_DATE(new Predicate2Transformation(new DateValidation()))
   , IS_INTEGER(new Predicate2Transformation(new IntegerValidation()))
-  , MAP_EXISTS(list -> {
-      if(list.size() < 2) {
-        return false;
-      }
-      Object key = list.get(0);
-      Object mapObj = list.get(1);
-      if(key != null && mapObj != null && mapObj instanceof Map) {
-        return ((Map)mapObj).containsKey(key);
-      }
-      return false;
-    }
-  )
+  , MAP_EXISTS( new MapFunctions.MapExists())
+  , MAAS_GET_ENDPOINT( new MaaSFunctions.GetEndpoint())
+  , MODEL_APPLY(new MaaSFunctions.ModelApply())
   ;
-  private static class Predicate2Transformation implements Function<List<Object>, Object> {
+  private static class Predicate2Transformation extends BaseStellarFunction {
     Predicate<List<Object>> pred;
     public Predicate2Transformation(Predicate<List<Object>> pred) {
       this.pred = pred;
@@ -150,15 +82,43 @@ public enum StellarFunctions implements Function<List<Object>, Object> {
       return pred.test(objects);
     }
   }
-  Function<List<Object>, Object> func;
-  StellarFunctions(Function<List<Object>, Object> func) {
+  StellarFunction func;
+  StellarFunctions(StellarFunction func) {
     this.func = func;
   }
 
 
 
   @Override
-  public Object apply(List<Object> input) {
-    return func.apply(input);
+  public Object apply(List<Object> input, Context context) {
+    return func.apply(input, context);
+  }
+  @Override
+  public void initialize(Context context) {
+    func.initialize(context);
+  }
+
+  public static FunctionResolver FUNCTION_RESOLVER() {
+    return new FunctionResolver() {
+      @Override
+      public void initializeFunctions(Context context) {
+        for(StellarFunctions s : StellarFunctions.values()) {
+          s.initialize(context);
+        }
+      }
+
+      @Override
+      public StellarFunction apply(String s) {
+        StellarFunctions func  = null;
+        try {
+          func = StellarFunctions.valueOf(s);
+          return func;
+        }
+        catch(Exception e) {
+          throw new IllegalStateException("Unable to resolve function " + s);
+        }
+      }
+    };
+
   }
 }

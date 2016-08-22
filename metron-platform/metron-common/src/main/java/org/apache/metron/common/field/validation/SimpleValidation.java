@@ -18,6 +18,8 @@
 
 package org.apache.metron.common.field.validation;
 
+import org.apache.metron.common.dsl.Context;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -27,6 +29,7 @@ public abstract class SimpleValidation implements FieldValidation, Predicate<Lis
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
                         , Map<String, Object> globalConfig
+                        , Context context
                         )
   {
     Predicate<Object> predicate = getPredicate();

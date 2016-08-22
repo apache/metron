@@ -23,6 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class StellarTransformationTest {
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
       put("timestamp", "2016-01-05 17:02:30");
     }});
-    handler.transformAndUpdate(input, new HashMap<>());
+    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
     long expected = 1452013350000L;
     Assert.assertEquals(expected, input.get("utc_timestamp"));
     Assert.assertTrue(input.containsKey("timestamp"));
@@ -75,7 +76,7 @@ public class StellarTransformationTest {
     //no input fields => no transformation
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
     }});
-    handler.transformAndUpdate(input, new HashMap<>());
+    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
     Assert.assertFalse(input.containsKey("utc_timestamp"));
     Assert.assertTrue(input.isEmpty());
   }
@@ -126,7 +127,7 @@ public class StellarTransformationTest {
         //looking up the data center in portland, which doesn't exist in the map, so we default to UTC
         put("dc", "portland");
       }});
-      handler.transformAndUpdate(input, c.getParserConfig());
+      handler.transformAndUpdate(input, c.getParserConfig(), Context.EMPTY_CONTEXT());
       long expected = 1452013350000L;
       Assert.assertEquals(expected, input.get("utc_timestamp"));
       Assert.assertEquals("caseystella.com", input.get("url_host"));
@@ -141,7 +142,7 @@ public class StellarTransformationTest {
         put("url", "https://caseystella.com/blog");
         put("dc", "london");
       }});
-      handler.transformAndUpdate(input, c.getParserConfig());
+      handler.transformAndUpdate(input, c.getParserConfig(), Context.EMPTY_CONTEXT());
       long expected = 1452013350000L;
       Assert.assertEquals(expected, input.get("utc_timestamp"));
       Assert.assertEquals("caseystella.com", input.get("url_host"));
@@ -155,7 +156,7 @@ public class StellarTransformationTest {
         put("timestamp", "2016-01-05 17:02:30");
         put("url", "https://caseystella.com/blog");
       }});
-      handler.transformAndUpdate(input, c.getParserConfig());
+      handler.transformAndUpdate(input, c.getParserConfig(), Context.EMPTY_CONTEXT());
       long expected = 1452013350000L;
       Assert.assertEquals(expected, input.get("utc_timestamp"));
       Assert.assertEquals("caseystella.com", input.get("url_host"));

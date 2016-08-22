@@ -24,6 +24,9 @@ import org.apache.metron.maas.queue.ZKQueue;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The base configuration for Model as a Service
+ */
 public class MaaSConfig {
   private QueueHandler queue = QueueHandler.ZOOKEEPER;
   private Map<String, Object> queueConfig = new HashMap<String, Object>() {{
@@ -31,6 +34,10 @@ public class MaaSConfig {
   }};
   private String serviceRoot = "/maas/service";
 
+  /**
+   * Return the zookeeper path for the discovery service.  This is defaulted to /maas/service
+   * @return
+   */
   public String getServiceRoot() {
     return serviceRoot;
   }
@@ -40,6 +47,11 @@ public class MaaSConfig {
   }
 
 
+  /**
+   * Get the distributed queue implementation handler.  By default, we use a queue in zookeeper
+   * as implemented by Apache Curator.
+   * @return
+   */
   public QueueHandler getQueue() {
     return queue;
   }

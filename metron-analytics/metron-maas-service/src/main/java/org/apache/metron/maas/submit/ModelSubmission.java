@@ -203,7 +203,7 @@ public class ModelSubmission {
           String modelTitle = "Model " + kv.getKey().getName() + " @ " + kv.getKey().getVersion();
           System.out.println(modelTitle);
           for(ModelEndpoint endpoint : kv.getValue()){
-            System.out.println("\t" + endpoint.getContainerId() + " at " + endpoint.getUrl());
+            System.out.println(endpoint);
           }
         }
       }

@@ -21,6 +21,7 @@ package org.apache.metron.common.field.validation;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.FieldValidator;
+import org.apache.metron.common.dsl.Context;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -42,7 +43,9 @@ public class BaseValidationTest {
 
     FieldValidator validator = getValidator(configurations);
     return validator.isValid(new JSONObject(input)
-                                       ,configurations.getGlobalConfig()
+                            ,configurations.getGlobalConfig()
+                            , Context.EMPTY_CONTEXT()
+
                             );
   }
 }
