@@ -22,6 +22,7 @@ package org.apache.metron.hbase.client;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -62,8 +63,11 @@ public class HBaseClientTest {
 
   @BeforeClass
   public static void startHBase() throws Exception {
-    util = new HBaseTestingUtility();
-    util.startMiniCluster();
+    Configuration config = HBaseConfiguration.create();
+    config.set("hbase.master.hostname", "localhost");
+    config.set("hbase.regionserver.hostname", "localhost");
+    util = new HBaseTestingUtility(config);
+    util.startMiniCluster(1);
   }
 
   @AfterClass
