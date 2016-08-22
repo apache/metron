@@ -97,6 +97,23 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    *      {
    *        "profile": "test",
    *        "foreach": "ip_src_addr",
+   *        "init": {},
+   *        "update": {},
+   *        "result": 2
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String onlyIfMissing;
+
+  /**
+   * {
+   *   "inputTopic": "enrichment",
+   *   "profiles": [
+   *      {
+   *        "profile": "test",
+   *        "foreach": "ip_src_addr",
    *        "onlyif": "NOT-VALID",
    *        "init": {},
    *        "update": {},
@@ -106,7 +123,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    * }
    */
   @Multiline
-  private String invalidOnlyIf;
+  private String onlyIfInvalid;
 
   private JSONObject message;
 
@@ -137,12 +154,11 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   }
 
   /**
-   * What happens when a message is received that is needed by a profile?
-   *
-   * This occurs when a profile's 'onlyif' expression is true.
+   * What happens when a profile's 'onlyif' expression is true?  The message
+   * should be applied to the profile.
    */
   @Test
-  public void testMessageNeededByProfile() throws Exception {
+  public void testOnlyIfTrue() throws Exception {
 
     // setup
     ProfileSplitterBolt bolt = createBolt(onlyIfTrue);
@@ -158,12 +174,31 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   }
 
   /**
-   * What happens when a message is received that is NOT needed by a profile?
-   *
-   * This occurs when a profile's 'onlyif' expression is false
+   * All messages are applied to a profile where 'onlyif' is missing.  A profile with no
+   * 'onlyif' is treated the same as if 'onlyif=true'.
    */
   @Test
-  public void testMessageNotNeededByProfile() throws Exception {
+  public void testOnlyIfMissing() throws Exception {
+
+    // setup
+    ProfileSplitterBolt bolt = createBolt(onlyIfMissing);
+
+    // execute
+    bolt.execute(tuple);
+
+    // a tuple should be emitted for the downstream profile builder
+    verify(outputCollector, times(1)).emit(refEq(tuple), any(Values.class));
+
+    // the original tuple should be ack'd
+    verify(outputCollector, times(1)).ack(tuple);
+  }
+
+  /**
+   * What happens when a profile's 'onlyif' expression is false?  The message
+   * should NOT be applied to the profile.
+   */
+  @Test
+  public void testOnlyIfFalse() throws Exception {
 
     // setup
     ProfileSplitterBolt bolt = createBolt(onlyIfFalse);
@@ -204,7 +239,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   public void testOnlyIfInvalid() throws Exception {
 
     // setup
-    ProfileSplitterBolt bolt = createBolt(invalidOnlyIf);
+    ProfileSplitterBolt bolt = createBolt(onlyIfInvalid);
 
     // execute
     bolt.execute(tuple);
