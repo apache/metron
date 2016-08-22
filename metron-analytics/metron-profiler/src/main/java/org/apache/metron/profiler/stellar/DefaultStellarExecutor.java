@@ -20,10 +20,11 @@
 
 package org.apache.metron.profiler.stellar;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
@@ -108,7 +109,7 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
     try {
       VariableResolver resolver = new MapVariableResolver(state, msg);
       StellarProcessor processor = new StellarProcessor();
-      return processor.parse(expr, resolver);
+      return processor.parse(expr, resolver, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
 
     } catch (ParseException e) {
       throw new ParseException(String.format("Bad expression: expr=%s, msg=%s, state=%s", expr, msg, state));
