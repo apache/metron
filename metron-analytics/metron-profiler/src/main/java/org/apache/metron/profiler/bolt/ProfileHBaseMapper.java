@@ -40,7 +40,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
    * to generate the salt.  Ideally, this constant should be roughly equal to the number of
    * nodes in the Hbase cluster.
    */
-  private int saltDivisor = 10;
+  private int saltDivisor;
 
   /**
    * The name of the column family.
@@ -48,7 +48,8 @@ public class ProfileHBaseMapper implements HBaseMapper {
   private String columnFamily;
 
   public ProfileHBaseMapper() {
-    setColumnFamily("cfProfile");
+    setColumnFamily("P");
+    setSaltDivisor(1000);
   }
 
   /**
@@ -96,9 +97,9 @@ public class ProfileHBaseMapper implements HBaseMapper {
   /**
    * Serialize a profile measurement's value.
    *
-   * The profile's value could be any numeric data type depending on how it is defined
-   * by the user.  This implementation allows the user some flexibility to choose the
-   * appropriate data type that best suits their use case.
+   * The value produced by a Profile definition can be any numeric data type.  The data
+   * type depends on how the profile is defined by the user.  The user should be able to
+   * choose the data type that is most suitable for their use case.
    *
    * @param value The value to serialize.
    */

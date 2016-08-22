@@ -20,11 +20,13 @@
 
 package org.apache.metron.profiler.stellar;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
@@ -80,16 +82,16 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   @Override
   public <T> T execute(String expr, JSONObject message, Class<T> clazz) {
-    Object result = execute(expr, message);
+    Object resultObject = execute(expr, message);
 
-    // ensure the result type is as expected
-    if (clazz.isAssignableFrom(result.getClass())) {
-      return (T) result;
-
-    } else {
-      throw new RuntimeException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
-              clazz.getSimpleName(), result.getClass().getSimpleName(), expr));
+    // perform type conversion, if necessary
+    T result = ConversionUtils.convert(resultObject, clazz);
+    if(result == null) {
+      throw new IllegalArgumentException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
+              clazz.getSimpleName(), resultObject.getClass().getSimpleName(), expr));
     }
+
+    return result;
   }
 
   @Override
@@ -107,7 +109,7 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
     try {
       VariableResolver resolver = new MapVariableResolver(state, msg);
       StellarProcessor processor = new StellarProcessor();
-      return processor.parse(expr, resolver);
+      return processor.parse(expr, resolver, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
 
     } catch (ParseException e) {
       throw new ParseException(String.format("Bad expression: expr=%s, msg=%s, state=%s", expr, msg, state));

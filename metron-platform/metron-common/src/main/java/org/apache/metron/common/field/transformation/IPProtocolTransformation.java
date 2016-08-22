@@ -20,6 +20,9 @@ package org.apache.metron.common.field.transformation;
 
 
 import org.apache.hadoop.yarn.util.ConverterUtils;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.HashMap;
@@ -27,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class IPProtocolTransformation extends SimpleFieldTransformation implements Function<List<Object>, Object> {
+public class IPProtocolTransformation extends SimpleFieldTransformation implements StellarFunction {
 
   private final static Map<Integer, String> PROTOCOLS = new HashMap<>();
 
@@ -183,7 +186,7 @@ public class IPProtocolTransformation extends SimpleFieldTransformation implemen
 
 
   @Override
-  public Object apply(List<Object> objects) {
+  public Object apply(List<Object> objects, Context context) throws ParseException {
     Object keyObj = objects.get(0);
     if(keyObj == null) {
       return keyObj;
@@ -197,5 +200,10 @@ public class IPProtocolTransformation extends SimpleFieldTransformation implemen
       return keyObj;
     }
     return ret;
+  }
+
+  @Override
+  public void initialize(Context context) {
+
   }
 }

@@ -21,6 +21,7 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.metron.common.dsl.BaseStellarFunction;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -102,7 +103,7 @@ public class DateFunctions {
   }
 
 
-  public static class ToTimestamp implements Function<List<Object>, Object> {
+  public static class ToTimestamp extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
       Object dateObj = objects.get(0);

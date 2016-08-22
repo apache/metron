@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.dsl.Context;
 
 import java.io.IOException;
 import java.util.Map;
@@ -43,6 +44,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
 
   protected CuratorFramework client;
   protected TreeCache cache;
+  protected org.apache.metron.common.dsl.Context context;
   private final CONFIG_T configurations = defaultConfigurations();
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
@@ -71,6 +73,9 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
         client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
       }
       client.start();
+      this.context = new Context.Builder()
+                                .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                                .build();
       if (cache == null) {
         cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
         TreeCacheListener listener = new TreeCacheListener() {

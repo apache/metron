@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 /**
  * A bolt that is responsible for building a Profile.
  *
@@ -108,6 +110,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     this.parser = new JSONParser();
   }
 
+  /**
+   * The builder emits a single field, 'measurement', which contains a ProfileMeasurement. A
+   * ProfileMeasurement is emitted when a time window expires and a flush occurs.
+   */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     // once the time window expires, a complete ProfileMeasurement is emitted
@@ -118,11 +124,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   public void execute(Tuple input) {
     try {
       doExecute(input);
-      collector.ack(input);
 
     } catch (Throwable e) {
-      LOG.error("exception processing tuple: " + input, e);
+      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
       collector.reportError(e);
+
+    } finally {
+      collector.ack(input);
     }
   }
 
@@ -132,7 +140,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * and reset the execution environment.
    * @param input The tuple to execute.
    */
-  private void doExecute(Tuple input) throws IOException {
+  private void doExecute(Tuple input) {
 
     if(!isTickTuple(input)) {
 
@@ -158,7 +166,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * of each window period.
    * @param input The input tuple
    */
-  private void init(Tuple input) throws IOException {
+  private void init(Tuple input) {
 
     // save the profile definition - needed later during a flush
     profileConfig = (ProfileConfig) input.getValueByField("profile");
@@ -176,7 +184,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
-      throw new ParseException("Bad 'init' expression", e);
+      String msg = format("Bad 'init' expression: %s, profile=%s, entity=%s, start=%d",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity(), measurement.getStart());
+      throw new ParseException(msg, e);
     }
   }
 
@@ -184,7 +194,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * Update the Profile based on data contained in a new message.
    * @param input The tuple containing a new message.
    */
-  private void update(Tuple input) throws IOException {
+  private void update(Tuple input) {
     JSONObject message = (JSONObject) input.getValueByField("message");
 
     // execute each of the 'update' expressions
@@ -193,7 +203,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
-      throw new ParseException("Bad 'update' expression", e);
+      String msg = format("Bad 'update' expression: %s, profile=%s, entity=%s, start=%d",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity(), measurement.getStart());
+      throw new ParseException(msg, e);
     }
   }
 
@@ -204,7 +216,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * and emits the ProfileMeasurement.  Clears all state in preparation for
    * the next window period.
    */
-  private void flush(Tuple tickTuple) throws IOException {
+  private void flush(Tuple tickTuple) {
     LOG.info(String.format("Flushing profile: profile=%s, entity=%s, start=%d",
             measurement.getProfileName(), measurement.getEntity(), measurement.getStart()));
 

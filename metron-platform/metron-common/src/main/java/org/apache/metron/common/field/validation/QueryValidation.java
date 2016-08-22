@@ -18,7 +18,9 @@
 
 package org.apache.metron.common.field.validation;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 
 import java.util.Map;
@@ -45,6 +47,7 @@ public class QueryValidation implements FieldValidation {
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
                         , Map<String, Object> globalConfig
+                        , Context context
                         ) {
     String condition = Config.CONDITION.get(validationConfig, String.class);
     if(condition == null) {
@@ -52,7 +55,7 @@ public class QueryValidation implements FieldValidation {
     }
     else {
       StellarPredicateProcessor processor = new StellarPredicateProcessor();
-      return processor.parse(condition, new MapVariableResolver(input, validationConfig, globalConfig));
+      return processor.parse(condition, new MapVariableResolver(input, validationConfig, globalConfig), StellarFunctions.FUNCTION_RESOLVER(), context);
     }
   }
 

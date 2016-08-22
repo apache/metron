@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 /**
  * The bolt responsible for filtering incoming messages and directing
  * each to the one or more bolts responsible for building a Profile.  Each
@@ -80,8 +82,11 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       doExecute(input);
 
     } catch (IllegalArgumentException | ParseException | UnsupportedEncodingException e) {
-      LOG.error("Unexpected exception", e);
+      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
       collector.reportError(e);
+
+    } finally {
+      collector.ack(input);
     }
   }
 
@@ -101,8 +106,6 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     for (ProfileConfig profile: config.getProfiles()) {
       applyProfile(profile, input, message);
     }
-
-    collector.ack(input);
   }
 
   /**
@@ -121,31 +124,21 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       String entity = executor.execute(profile.getForeach(), message, String.class);
 
       // emit a message for the bolt responsible for building this profile
-      collector.emit(input, new Values(entity, profile, copyMessage(input)));
+      collector.emit(input, new Values(entity, profile, message));
     }
   }
 
+  /**
+   * Each emitted tuple contains the following fields.
+   * <p><ol>
+   * <li> entity - The name of the entity.  The actual result of executing the Stellar expression.
+   * <li> profile - The profile definition that the message needs applied to.
+   * <li> message - The message containing JSON-formatted data that needs applied to a profile.
+   * </ol></p>
+   */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
-    // each emitted tuple contains the 'resolved' entity, the profile definition, and the input message
     declarer.declare(new Fields("entity", "profile", "message"));
-  }
-
-  /**
-   * Creates a deep copy of the original JSON message.
-   * @param input The input tuple.
-   */
-  private JSONObject copyMessage(Tuple input) throws ParseException, UnsupportedEncodingException {
-
-    // create a new message
-    byte[] data = input.getBinary(0);
-    JSONObject message = (JSONObject) parser.parse(new String(data, "UTF8"));
-
-    // stamp the message with a timestamp
-    message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
-
-    return message;
   }
 
   public StellarExecutor getExecutor() {

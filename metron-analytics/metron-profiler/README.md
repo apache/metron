@@ -12,12 +12,14 @@ Any field contained within a message can be used to generate a profile.  A profi
 
 The Profiler configuration requires a JSON-formatted set of elements, many of which can contain Stellar code.  The configuration contains the following elements.
 
-* `profile` A unique name identifying the profile.
-* `foreach` A separate profile is maintained for each of these.  This is effectively the entity that the profile is describing.  For example, if `ip_src_addr` then a separate profile would be maintained for each unique IP source address.
-* `onlyif` A message is only applied to a profile if this condition is true. This allows the incoming messages to be filtered.
-* `init` A set of variables and Stellar code that describes how they are initialized at the beginning of each window period.
-* `update` A set of variables along with Stellar code that describes how those variables are updated by each message.
-* `result` Stellar code that is executed at the end of a window period.  This field must result in a Long that becomes part of the profile.
+| Name 	    |            	| Description 	|
+|---	    |---	        |---	        |
+| profile  	| Required   	| A unique name identifying the profile.  The field is treated as a string. |
+| foreach  	| Required  	| A separate profile is maintained *for each* of these.  This is effectively the entity that the profile is describing.  The field is expected to contain a Stellar expression whose result is the entity name.  For example, if `ip_src_addr` then a separate profile would be maintained for each unique IP source address in the data; 10.0.0.1, 10.0.0.2, etc. | 
+| onlyif  	| Optional  	| An expression that determines if a message should be applied to the profile.  A Stellar expression is expected that when executed returns a boolean.  A message is only applied to a profile if this condition is true. This allows a profile to filter the messages that it receives. |
+| init  	| Optional  	| A set of expressions that is executed at the start of a window period.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can contain 0 or more variables/expressions. At the start of each window period the expression is executed once and stored in a variable with the given name. |
+| update  	| Required  	| A set of expressions that is executed when a message is applied to the profile.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can include 0 or more variables/expressions.  	    |
+| result  	| Required  	| A Stellar expression that is executed when the window period expires.  The expression is expected to in some way summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	    |
 
 ### Examples
 
@@ -44,7 +46,8 @@ Examples of the types of profiles that can be built include the following.  Each
 }
 ```
 
-### Example 1
+
+#### Example 1
 
 The total number of bytes of HTTP data for each host. The following configuration would be used to generate this profile.
 
@@ -76,7 +79,7 @@ This creates a profile...
  * Adds to ‘total_bytes’ the value of the message's ‘bytes_in’ field
  * Returns ‘total_bytes’ as the result
 
-### Example 2
+#### Example 2
 
 The ratio of DNS traffic to HTTP traffic for each host. The following configuration would be used to generate this profile.
 
@@ -110,7 +113,7 @@ This creates a profile...
  * Accumulates the number of HTTP requests
  * Returns the ratio of these as the result
 
-### Example 3
+#### Example 3
 
 The average of the `length` field of HTTP traffic. The following configuration would be used to generate this profile.
 
@@ -144,6 +147,21 @@ This creates a profile...
  * Accumulates the number of messages
  * Calculates the average as the result
 
+### Topology Configuration
+
+The Profiler topology also accepts the following configuration settings.
+
+| Setting   | Description   |
+|---        |---            |
+| profiler.workers | The number of worker processes to create for the topology.   |
+| profiler.executors | The number of executors to spawn per component.  |
+| profiler.input.topic | The name of the Kafka topic from which to consume data.  |
+| profiler.flush.interval.seconds | The duration of a profile's sliding window before it is flushed. |
+| profiler.hbase.salt.divisor  |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
+| profiler.hbase.table | The name of the HBase table that profiles are written to.  |
+| profiler.hbase.batch | The number of puts that are written in a single batch.  |
+| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
+
 ## Getting Started
 
 This section will describe the steps required to get your first profile running.
@@ -164,7 +182,7 @@ This section will describe the steps required to get your first profile running.
 3. Create a table within HBase that will store the profile data. The table name and column family must match the Profiler topology configuration stored at `/usr/metron/0.2.0BETA/config/profiler.properties`.
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
-    hbase(main):001:0> create 'profiler', 'cfProfile'
+    hbase(main):001:0> create 'profiler', 'P'
     ```
 
 4. Shorten the flush intervals to more immediately see results.  Edit the Profiler topology properties located at `/usr/metron/0.2.0BETA/config/profiler.properties`.  Alter the following two properties.
@@ -208,7 +226,9 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> count 'profiler'
     ``` 
 
-## Design
+## Implementation
+
+## Topology
 
 The Profiler is implemented as a Storm topology using the following bolts and spouts.
 
@@ -227,3 +247,4 @@ This bolt maintains all of the state required to build a Profile.  When the wind
 ### HBaseBolt
 
 A bolt that is responsible for writing to HBase.  Most profiles will be flushed every 15 minutes or so.  If each ProfileBuilderBolt were responsible for writing to HBase itself, there would be little to no opportunity to optimize these writes.  By aggregating the writes from multiple Profile-Entity pairs these writes can be batched, for example.
+

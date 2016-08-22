@@ -105,6 +105,7 @@ public class ProfileMeasurement {
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
     return value != null ? value.equals(that.value) : that.value == null;
+
   }
 
   @Override

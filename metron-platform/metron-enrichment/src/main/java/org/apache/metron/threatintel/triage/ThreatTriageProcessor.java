@@ -22,9 +22,8 @@ import com.google.common.base.Function;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
-import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.dsl.VariableResolver;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -35,10 +34,18 @@ public class ThreatTriageProcessor implements Function<Map, Double> {
   private SensorEnrichmentConfig sensorConfig;
   private ThreatIntelConfig threatIntelConfig;
   private ThreatTriageConfig threatTriageConfig;
-  public ThreatTriageProcessor(SensorEnrichmentConfig config) {
+  private Context context;
+  private FunctionResolver functionResolver;
+  public ThreatTriageProcessor( SensorEnrichmentConfig config
+                              , FunctionResolver functionResolver
+                              , Context context
+                              )
+  {
     this.threatIntelConfig = config.getThreatIntel();
     this.sensorConfig = config;
     this.threatTriageConfig = config.getThreatIntel().getTriageConfig();
+    this.functionResolver = functionResolver;
+    this.context = context;
   }
 
   @Nullable
@@ -48,7 +55,7 @@ public class ThreatTriageProcessor implements Function<Map, Double> {
     StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
     VariableResolver resolver = new MapVariableResolver(input, sensorConfig.getConfiguration(), threatIntelConfig.getConfig());
     for(Map.Entry<String, Number> kv : threatTriageConfig.getRiskLevelRules().entrySet()) {
-      if(predicateProcessor.parse(kv.getKey(), resolver)) {
+      if(predicateProcessor.parse(kv.getKey(), resolver, functionResolver, context)) {
         scores.add(kv.getValue());
       }
     }

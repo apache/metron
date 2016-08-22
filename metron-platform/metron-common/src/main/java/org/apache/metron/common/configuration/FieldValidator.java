@@ -19,6 +19,7 @@
 package org.apache.metron.common.configuration;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.field.validation.FieldValidations;
 import org.json.simple.JSONObject;
@@ -93,7 +94,7 @@ public class FieldValidator implements Serializable {
     return config;
   }
 
-  public boolean isValid(JSONObject inputData, Map<String, Object> globalConfig) {
+  public boolean isValid(JSONObject inputData, Map<String, Object> globalConfig, Context context) {
     Map<String, Object> in = inputData;
     if(input != null && !input.isEmpty()) {
       in = new HashMap<>();
@@ -102,7 +103,7 @@ public class FieldValidator implements Serializable {
         in.put(i,o);
       }
     }
-    return validation.isValid(in, config, globalConfig);
+    return validation.isValid(in, config, globalConfig, context);
   }
 
   public static List<FieldValidator> readValidations(Map<String, Object> globalConfig) {
