@@ -133,7 +133,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' each with 390 bytes
-    double actual = readDouble(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
     Assert.assertEquals(390.0 * 5, actual, 0.01);
   }
 
@@ -154,7 +154,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' and 5 'DNS' messages thus 5/5 = 1
-    double actual = readDouble(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
     Assert.assertEquals(5.0 / 5.0, actual, 0.01);
   }
 
@@ -175,7 +175,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readDouble(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
@@ -193,20 +193,19 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readInteger(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+    double actual = readInteger(ProfileHBaseMapper.QVALUE);
     Assert.assertEquals(10.0, actual, 0.01);
   }
 
   /**
    * Reads a Double value written by the Profiler.
-   * @param columnFamily The column family.
    * @param columnQual The column qualifier.
    */
-  private Double readDouble(byte[] columnFamily, byte[] columnQual) throws IOException {
-    ResultScanner scanner = profilerTable.getScanner(columnFamily, columnQual);
+  private Double readDouble(byte[] columnQual) throws IOException {
+    ResultScanner scanner = profilerTable.getScanner(Bytes.toBytes(columnFamily), columnQual);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+      byte[] raw = result.getValue(Bytes.toBytes(columnFamily), ProfileHBaseMapper.QVALUE);
       return Bytes.toDouble(raw);
     }
 
@@ -215,14 +214,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Reads an Integer value written by the Profiler.
-   * @param columnFamily The column family.
    * @param columnQual The column qualifier.
    */
-  private Integer readInteger(byte[] columnFamily, byte[] columnQual) throws IOException {
-    ResultScanner scanner = profilerTable.getScanner(columnFamily, columnQual);
+  private Integer readInteger(byte[] columnQual) throws IOException {
+    ResultScanner scanner = profilerTable.getScanner(Bytes.toBytes(columnFamily), columnQual);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(Bytes.toBytes("cfProfile"), ProfileHBaseMapper.QVALUE);
+      byte[] raw = result.getValue(Bytes.toBytes(columnFamily), ProfileHBaseMapper.QVALUE);
       return Bytes.toInt(raw);
     }
 
