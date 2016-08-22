@@ -1,0 +1,20 @@
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "example3",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'HTTP'",
+      "init": {
+        "sum": 0.0,
+        "cnt": 0.0
+      },
+      "update": {
+        "sum": "sum + resp_body_len",
+        "cnt": "cnt + 1"
+      },
+      "result": "sum / cnt"
+    }
+  ]
+}
+

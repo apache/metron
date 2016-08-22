@@ -78,3 +78,15 @@
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
     - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }
+
+- name: Configure Profiler topology
+  lineinfile: >
+    dest={{ metron_profiler_properties_config_path }}
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+  with_items:
+    - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
+    - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
+
+
+
