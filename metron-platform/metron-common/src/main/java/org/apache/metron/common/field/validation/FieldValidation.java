@@ -18,6 +18,8 @@
 
 package org.apache.metron.common.field.validation;
 
+import org.apache.metron.common.dsl.Context;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -25,6 +27,7 @@ public interface FieldValidation extends Serializable {
   boolean isValid( Map<String, Object> input
                  , Map<String, Object> validationConfig
                  , Map<String, Object> globalConfig
+                 , Context context
                  );
   void initialize(Map<String, Object> validationConfig, Map<String, Object> globalConfig);
 }

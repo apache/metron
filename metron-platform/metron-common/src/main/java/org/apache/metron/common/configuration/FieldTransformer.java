@@ -20,6 +20,7 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.json.simple.JSONObject;
@@ -105,21 +106,21 @@ public class FieldTransformer implements Serializable {
     }
   }
 
-  public Map<String, Object> transform(JSONObject input, Map<String, Object> sensorConfig) {
+  public Map<String, Object> transform(JSONObject input, Map<String, Object> sensorConfig, Context context) {
     if(getInput() == null || getInput().isEmpty()) {
-      return transformation.map(input, getOutput(), config, sensorConfig);
+      return transformation.map(input, getOutput(), config, sensorConfig, context);
     }
     else {
       Map<String, Object> in = new HashMap<>();
       for(String inputField : getInput()) {
         in.put(inputField, input.get(inputField));
       }
-      return transformation.map(in, getOutput(), config, sensorConfig);
+      return transformation.map(in, getOutput(), config, sensorConfig, context);
     }
   }
 
-  public void transformAndUpdate(JSONObject message, Map<String, Object> sensorConfig) {
-    Map<String, Object> currentValue = transform(message, sensorConfig);
+  public void transformAndUpdate(JSONObject message, Map<String, Object> sensorConfig, Context context) {
+    Map<String, Object> currentValue = transform(message, sensorConfig, context);
     if(currentValue != null) {
       for(Map.Entry<String, Object> kv : currentValue.entrySet()) {
         if(kv.getValue() == null) {

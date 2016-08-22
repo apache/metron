@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.field.validation.primitive;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 
 import java.util.Map;
@@ -44,6 +45,7 @@ public class RegexValidation implements FieldValidation {
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
                         , Map<String, Object> globalConfig
+                        , Context context
                         ) {
 
     String regex = Config.REGEX.get(validationConfig, String.class);

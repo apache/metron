@@ -20,7 +20,13 @@ package org.apache.metron.maas.queue;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * The set of queue handlers implemented
+ */
 public enum QueueHandler {
+  /**
+   * A distributed queue using zookeeper.
+   */
   ZOOKEEPER(config -> {
     Queue ret = new ZKQueue();
     ret.configure(config);
@@ -30,6 +36,12 @@ public enum QueueHandler {
   QueueHandler(Function<Map<String, Object>, Queue> creator) {
     this.queueCreator = creator;
   }
+
+  /**
+   * Create a queue handler of the specific type
+   * @param config
+   * @return
+   */
   public Queue create(Map<String, Object> config) {
     return queueCreator.apply(config);
   }

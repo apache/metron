@@ -21,9 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.common.dsl.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,7 +48,74 @@ public class StellarTest {
   }
 
   @Test
+  public void testFunctionEmptyArgs() {
+    {
+      String query = "STARTS_WITH(casey, 'case') or MAP_EXISTS()";
+      Assert.assertTrue((Boolean)run(query, ImmutableMap.of("casey", "casey")));
+    }
+    {
+      String query = "true or MAP_EXISTS()";
+      Assert.assertTrue((Boolean)run(query, new HashMap<>()));
+    }
+    {
+      String query = "MAP_EXISTS() or true";
+      Assert.assertTrue((Boolean)run(query, new HashMap<>()));
+    }
+  }
+  @Test
+  public void testNull() {
+    {
+      String query = "if 1 < 2 then NULL else true";
+      Assert.assertNull(run(query, new HashMap<>()));
+    }
+    {
+      String query = "1 < 2 ? NULL : true";
+      Assert.assertNull(run(query, new HashMap<>()));
+    }
+    {
+      String query = "null == null ? true : false";
+      Assert.assertTrue((Boolean)run(query, new HashMap<>()));
+    }
+  }
+
+  @Test
+  public void testMapConstant() {
+    {
+      String query = "MAP_GET('bar', { 'foo' : 1, 'bar' : 'bar'})";
+      Assert.assertEquals("bar", run(query, new HashMap<>()));
+    }
+    {
+      String query = "MAP_GET('blah', {  'blah' : 1 < 2 })";
+      Assert.assertEquals(true, run(query, new HashMap<>()));
+    }
+    {
+      String query = "MAP_GET('blah', {  'blah' : not(STARTS_WITH(casey, 'case')) })";
+      Assert.assertEquals(false, run(query, ImmutableMap.of("casey", "casey")));
+    }
+    {
+      String query = "MAP_GET('blah', {  'blah' : one })";
+      Assert.assertEquals(1, run(query, ImmutableMap.of("one", 1)));
+    }
+    {
+      String query = "MAP_GET('blah', {  'blah' : null })";
+      Assert.assertNull(run(query, new HashMap<>()));
+    }
+    {
+      String query = "MAP_GET('BLAH', {  TO_UPPER('blah') : null })";
+      Assert.assertNull(run(query, new HashMap<>()));
+    }
+    {
+      String query = "MAP_GET('BLAH', {  TO_UPPER('blah') : 1 < 2 })";
+      Assert.assertEquals(true, run(query, new HashMap<>()));
+    }
+  }
+
+  @Test
   public void testIfThenElse() {
+    {
+      String query = "if STARTS_WITH(casey, 'case') then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, ImmutableMap.of("casey", "casey")));
+    }
     {
       String query = "if 1 < 2 then 'one' else 'two'";
       Assert.assertEquals("one", run(query, new HashMap<>()));
@@ -59,10 +124,7 @@ public class StellarTest {
       String query = "if 1 + 1 < 2 then 'one' else 'two'";
       Assert.assertEquals("two", run(query, new HashMap<>()));
     }
-    {
-      String query = "1 < 2 ? 'one' : 'two'";
-      Assert.assertEquals("one", run(query, new HashMap<>()));
-    }
+
     {
       String query = "if not(1 < 2) then 'one' else 'two'";
       Assert.assertEquals("two", run(query, new HashMap<>()));
@@ -78,6 +140,22 @@ public class StellarTest {
     {
       String query = "if one == very_nearly_one then 'one' else 'two'";
       Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)));
+    }
+    {
+      String query = "1 < 2 ? 'one' : 'two'";
+      Assert.assertEquals("one", run(query, new HashMap<>()));
+    }
+    {
+      String query = "1 < 2 ? TO_UPPER('one') : 'two'";
+      Assert.assertEquals("ONE", run(query, new HashMap<>()));
+    }
+    {
+      String query = "1 < 2 ? one : 'two'";
+      Assert.assertEquals("one", run(query, ImmutableMap.of("one", "one")));
+    }
+    {
+      String query = "1 < 2 ? one*3 : 'two'";
+      Assert.assertTrue(Math.abs(3.0 - (double)run(query, ImmutableMap.of("one", 1))) < 1e-6);
     }
   }
 
@@ -250,12 +328,17 @@ public class StellarTest {
     Assert.assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
   }
 
-  private static Object run(String rule, Map<String, Object> variables) {
+  
+
+  public static Object run(String rule, Map<String, Object> variables) {
+    return run(rule, variables, Context.EMPTY_CONTEXT());
+  }
+  public static Object run(String rule, Map<String, Object> variables, Context context) {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule));
-    return processor.parse(rule, x -> variables.get(x));
+    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
-
+  
   @Test
   public void testValidation() throws Exception {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
@@ -276,13 +359,21 @@ public class StellarTest {
   }
 
   public static boolean runPredicate(String rule, Map resolver) {
-    return runPredicate(rule, new MapVariableResolver(resolver));
+    return runPredicate(rule, resolver, Context.EMPTY_CONTEXT());
+  }
+
+  public static boolean runPredicate(String rule, Map resolver, Context context) {
+    return runPredicate(rule, new MapVariableResolver(resolver), context);
   }
 
   public static boolean runPredicate(String rule, VariableResolver resolver) {
+    return runPredicate(rule, resolver, Context.EMPTY_CONTEXT());
+  }
+
+  public static boolean runPredicate(String rule, VariableResolver resolver, Context context) {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule));
-    return processor.parse(rule, resolver);
+    return processor.parse(rule, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test

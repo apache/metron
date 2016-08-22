@@ -20,6 +20,8 @@ package org.apache.metron.pcap.filter.query;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
@@ -69,7 +71,7 @@ public class QueryPcapFilter implements PcapFilter {
   public boolean test(PacketInfo input) {
     EnumMap<Constants.Fields, Object> fields = packetToFields(input);
     VariableResolver resolver = new PcapFieldResolver(fields);
-    return predicateProcessor.parse(queryString, resolver);
+    return predicateProcessor.parse(queryString, resolver, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
   }
 
   protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {

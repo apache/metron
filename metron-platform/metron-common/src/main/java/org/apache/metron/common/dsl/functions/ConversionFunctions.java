@@ -15,11 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.maas.config;
+package org.apache.metron.common.dsl.functions;
 
-/**
- * The actions available to be taken by the Model as a Service ApplicationMaster
- */
-public enum Action {
-  ADD, REMOVE;
+import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.utils.ConversionUtils;
+
+import java.util.List;
+
+public class ConversionFunctions {
+  public static class Cast<T> extends BaseStellarFunction {
+    Class<T> clazz;
+    public Cast(Class<T> clazz) {
+      this.clazz = clazz;
+    }
+
+    @Override
+    public Object apply(List<Object> strings ) {
+      return strings.get(0) == null?null: ConversionUtils.convert(strings.get(0), clazz);
+    }
+  }
 }

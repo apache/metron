@@ -21,17 +21,17 @@ package org.apache.metron.common.stellar;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
-import org.apache.metron.common.dsl.ErrorListener;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.stellar.generated.StellarBaseListener;
-import org.apache.metron.common.stellar.generated.StellarLexer;
-import org.apache.metron.common.stellar.generated.StellarParser;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.stellar.generated.StellarBaseListener;
+import org.apache.metron.common.stellar.generated.StellarLexer;
+import org.apache.metron.common.stellar.generated.StellarParser;
+
+import java.util.function.Function;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -69,7 +69,12 @@ public class BaseStellarProcessor<T> {
     return ret;
   }
 
-  public T parse(String rule, VariableResolver resolver) {
+  public T parse( String rule
+                , VariableResolver variableResolver
+                , Function<String, StellarFunction> functionResolver
+                , Context context
+                )
+  {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
@@ -80,7 +85,7 @@ public class BaseStellarProcessor<T> {
     TokenStream tokens = new CommonTokenStream(lexer);
     StellarParser parser = new StellarParser(tokens);
 
-    StellarCompiler treeBuilder = new StellarCompiler(resolver);
+    StellarCompiler treeBuilder = new StellarCompiler(variableResolver, functionResolver, context);
     parser.addParseListener(treeBuilder);
     parser.removeErrorListeners();
     parser.addErrorListener(new ErrorListener());
@@ -93,7 +98,7 @@ public class BaseStellarProcessor<T> {
   }
   public boolean validate(String rule, boolean throwException) throws ParseException {
     try {
-      parse(rule, x -> null);
+      parse(rule, x -> null, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
       return true;
     }
     catch(Throwable t) {

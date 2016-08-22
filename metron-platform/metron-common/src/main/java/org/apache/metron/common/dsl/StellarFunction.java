@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.maas.config;
+package org.apache.metron.common.dsl;
 
-/**
- * The actions available to be taken by the Model as a Service ApplicationMaster
- */
-public enum Action {
-  ADD, REMOVE;
+import java.util.List;
+
+public interface StellarFunction {
+  Object apply(List<Object> args, Context context) throws ParseException;
+  void initialize(Context context);
 }

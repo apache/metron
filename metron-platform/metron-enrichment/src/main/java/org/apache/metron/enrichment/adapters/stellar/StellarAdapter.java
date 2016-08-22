@@ -19,7 +19,9 @@ package org.apache.metron.enrichment.adapters.stellar;
 
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.enrichment.bolt.CacheKey;
@@ -29,6 +31,8 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.function.Function;
+
+import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CONTEXT_CONF;
 
 public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
 
@@ -69,6 +73,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
 
   @Override
   public JSONObject enrich(CacheKey value) {
+    Context stellarContext = (Context) value.getConfig().getConfiguration().get(STELLAR_CONTEXT_CONF);
     ConfigHandler handler = getHandler.apply(value.getConfig());
     Map<String, Object> globalConfig = value.getConfig().getConfiguration();
     Map<String, Object> sensorConfig = value.getConfig().getEnrichment().getConfig();
@@ -84,7 +89,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
       for (Map.Entry<String, Object> kv : stellarStatements.entrySet()) {
         if(kv.getValue() instanceof String) {
           String stellarStatement = (String) kv.getValue();
-          Object o = processor.parse(stellarStatement, resolver);
+          Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
           message.put(kv.getKey(), o);
         }
       }

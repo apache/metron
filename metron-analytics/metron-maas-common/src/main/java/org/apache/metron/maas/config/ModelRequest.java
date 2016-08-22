@@ -17,6 +17,9 @@
  */
 package org.apache.metron.maas.config;
 
+/**
+ * A container for a request for a model.
+ */
 public class ModelRequest {
 
   private String name;
@@ -26,6 +29,10 @@ public class ModelRequest {
   private Action action;
   private String path;
 
+  /**
+   * The path in the model store (right now HDFS) for the directory containing model's bits.
+   * @return
+   */
   public String getPath() {
     return path;
   }
@@ -34,6 +41,10 @@ public class ModelRequest {
     this.path = path;
   }
 
+  /**
+   * The action to perform
+   * @return
+   */
   public Action getAction() {
     return action;
   }
@@ -42,6 +53,10 @@ public class ModelRequest {
     this.action = action;
   }
 
+  /**
+   * The name of the model
+   * @return
+   */
   public String getName() {
     return name;
   }
@@ -50,6 +65,10 @@ public class ModelRequest {
     this.name = name;
   }
 
+  /**
+   * The version of the model
+   * @return
+   */
   public String getVersion() {
     return version;
   }
@@ -58,6 +77,10 @@ public class ModelRequest {
     this.version = version;
   }
 
+  /**
+   * The number of instances of the model to start
+   * @return
+   */
   public int getNumInstances() {
     return numInstances;
   }
@@ -66,6 +89,10 @@ public class ModelRequest {
     this.numInstances = numInstances;
   }
 
+  /**
+   * The amount of memory for the containers holding the model in megabytes
+   * @return
+   */
   public int getMemory() {
     return memory;
   }

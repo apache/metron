@@ -17,11 +17,17 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import backtype.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.FunctionResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.functions.ConversionFunctions;
+import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.json.simple.JSONObject;
@@ -36,10 +42,12 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   protected static final Logger LOG = LoggerFactory
           .getLogger(ThreatIntelJoinBolt.class);
-
+  private FunctionResolver functionResolver;
+  private org.apache.metron.common.dsl.Context stellarContext;
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
+
   @Override
   protected Map<String, ConfigHandler> getFieldToHandlerMap(String sensorType) {
     if(sensorType != null) {
@@ -54,6 +62,20 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     }
     return new HashMap<>();
   }
+
+  @Override
+  public void prepare(Map map, TopologyContext topologyContext) {
+    super.prepare(map, topologyContext);
+    initializeStellar();
+  }
+
+  protected void initializeStellar() {
+    this.stellarContext = new Context.Builder()
+                                .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                                .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
+  }
+
   @Override
   public Map<String, Object> getFieldMap(String sourceType) {
     SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
@@ -76,6 +98,13 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           isAlert = true;
           break;
         }
+      }
+    }
+    else {
+      Object isAlertObj = ret.get("is_alert");
+      isAlert = ConversionUtils.convert(isAlertObj, Boolean.class);
+      if(!isAlert) {
+        ret.remove("is_alert");
       }
     }
     if(isAlert) {
@@ -101,7 +130,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           LOG.debug(sourceType + ": Empty rules!");
         }
 
-        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config);
+        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, stellarContext);
         Double triageLevel = threatTriageProcessor.apply(ret);
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules().entrySet());

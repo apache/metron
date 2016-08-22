@@ -18,7 +18,9 @@
 
 package org.apache.metron.common.field.transformation;
 
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
 
@@ -32,6 +34,7 @@ public class StellarTransformation implements FieldTransformation {
                                 , List<String> outputField
                                 , Map<String, Object> fieldMappingConfig
                                 , Map<String, Object> sensorConfig
+                                , Context context
                                 )
   {
     Map<String, Object> ret = new HashMap<>();
@@ -40,7 +43,7 @@ public class StellarTransformation implements FieldTransformation {
     for(String oField : outputField) {
       Object transformObj = fieldMappingConfig.get(oField);
       if(transformObj != null) {
-        Object o = processor.parse(transformObj.toString(), resolver);
+        Object o = processor.parse(transformObj.toString(), resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
         if (o != null) {
           ret.put(oField, o);
         }

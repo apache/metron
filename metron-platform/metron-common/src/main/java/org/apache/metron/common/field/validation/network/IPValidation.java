@@ -19,6 +19,7 @@
 package org.apache.metron.common.field.validation.network;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 
 import java.util.List;
@@ -103,6 +104,7 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
                         , Map<String, Object> globalConfig
+                        , Context context
                         ) {
     IPType type = IPType.get(Config.TYPE.get(validationConfig, String.class));
     for(Object o : input.values()) {

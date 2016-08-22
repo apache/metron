@@ -32,6 +32,8 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -66,8 +68,9 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
+  public static final String STELLAR_CONTEXT_CONF = "stellarContext";
   private OutputCollector collector;
-
+  private Context stellarContext;
   protected String enrichmentType;
   protected EnrichmentAdapter<CacheKey> adapter;
   protected transient CacheLoader<CacheKey, JSONObject> loader;
@@ -149,6 +152,14 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
+    initializeStellar();
+  }
+
+  protected void initializeStellar() {
+    stellarContext = new Context.Builder()
+                         .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                         .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
   }
 
   @Override
@@ -194,6 +205,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               error = true;
               continue;
             }
+            config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
             CacheKey cacheKey= new CacheKey(field, value, config);
             try {
               adapter.logAccess(cacheKey);
@@ -243,5 +255,9 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @Override
   public void cleanup() {
     adapter.cleanup();
+  }
+
+  public Context getStellarContext() {
+    return stellarContext;
   }
 }

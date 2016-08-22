@@ -23,6 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
@@ -41,7 +42,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   public static class MockValidator implements FieldValidation{
 
     @Override
-    public boolean isValid(Map<String, Object> input, Map<String, Object> validationConfig, Map<String, Object> globalConfig) {
+    public boolean isValid(Map<String, Object> input, Map<String, Object> validationConfig, Map<String, Object> globalConfig, Context context) {
       if(input.get("action").equals("invalid")) {
         return false;
       }

@@ -21,6 +21,7 @@ import backtype.storm.tuple.Values;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.TestConstants;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
@@ -44,10 +45,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
@@ -142,7 +140,12 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     Enrichment<EnrichmentAdapter<CacheKey>> testEnrichment = new Enrichment<>();
     testEnrichment.setType(enrichmentType);
     testEnrichment.setAdapter(enrichmentAdapter);
-    GenericEnrichmentBolt genericEnrichmentBolt = new GenericEnrichmentBolt("zookeeperUrl");
+    GenericEnrichmentBolt genericEnrichmentBolt = new GenericEnrichmentBolt("zookeeperUrl") {
+      @Override
+      protected void initializeStellar() {
+        //do not initialize stellar here.
+      }
+    };
     genericEnrichmentBolt.setCuratorFramework(client);
     genericEnrichmentBolt.setTreeCache(cache);
     genericEnrichmentBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
@@ -184,6 +187,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
     SensorEnrichmentConfig sensorEnrichmentConfig = SensorEnrichmentConfig.
             fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.SAMPLE_CONFIG_PATH).get(sensorType));
+    sensorEnrichmentConfig.getConfiguration().put(GenericEnrichmentBolt.STELLAR_CONTEXT_CONF, genericEnrichmentBolt.getStellarContext());
     CacheKey cacheKey1 = new CacheKey("field1", "value1", sensorEnrichmentConfig);
     CacheKey cacheKey2 = new CacheKey("field2", "value2", sensorEnrichmentConfig);
     genericEnrichmentBolt.cache.invalidateAll();

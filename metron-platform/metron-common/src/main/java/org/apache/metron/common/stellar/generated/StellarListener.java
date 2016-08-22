@@ -39,65 +39,17 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitTransformation(StellarParser.TransformationContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ComparisonExpression}
+	 * Enter a parse tree produced by the {@code ConditionalExpr}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterComparisonExpression(StellarParser.ComparisonExpressionContext ctx);
+	void enterConditionalExpr(StellarParser.ConditionalExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ComparisonExpression}
+	 * Exit a parse tree produced by the {@code ConditionalExpr}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitComparisonExpression(StellarParser.ComparisonExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code TernaryFunc}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterTernaryFunc(StellarParser.TernaryFuncContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code TernaryFunc}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitTernaryFunc(StellarParser.TernaryFuncContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code NotFunc}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterNotFunc(StellarParser.NotFuncContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code NotFunc}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitNotFunc(StellarParser.NotFuncContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code TransformationEntity}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterTransformationEntity(StellarParser.TransformationEntityContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code TransformationEntity}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitTransformationEntity(StellarParser.TransformationEntityContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code ArithExpression}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterArithExpression(StellarParser.ArithExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ArithExpression}
-	 * labeled alternative in {@link StellarParser#transformation_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitArithExpression(StellarParser.ArithExpressionContext ctx);
+	void exitConditionalExpr(StellarParser.ConditionalExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code TransformationExpr}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
@@ -111,41 +63,89 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitTransformationExpr(StellarParser.TransformationExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code LogicalExpressionAnd}
+	 * Enter a parse tree produced by the {@code ArithExpression}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterLogicalExpressionAnd(StellarParser.LogicalExpressionAndContext ctx);
+	void enterArithExpression(StellarParser.ArithExpressionContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code LogicalExpressionAnd}
+	 * Exit a parse tree produced by the {@code ArithExpression}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitLogicalExpressionAnd(StellarParser.LogicalExpressionAndContext ctx);
+	void exitArithExpression(StellarParser.ArithExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code LogicalExpressionOr}
+	 * Enter a parse tree produced by the {@code TransformationEntity}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterLogicalExpressionOr(StellarParser.LogicalExpressionOrContext ctx);
+	void enterTransformationEntity(StellarParser.TransformationEntityContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code LogicalExpressionOr}
+	 * Exit a parse tree produced by the {@code TransformationEntity}
 	 * labeled alternative in {@link StellarParser#transformation_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitLogicalExpressionOr(StellarParser.LogicalExpressionOrContext ctx);
+	void exitTransformationEntity(StellarParser.TransformationEntityContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ComparisonExpressionWithOperator}
+	 * Enter a parse tree produced by the {@code ComparisonExpression}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterComparisonExpression(StellarParser.ComparisonExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ComparisonExpression}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitComparisonExpression(StellarParser.ComparisonExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TernaryFuncWithoutIf}
+	 * labeled alternative in {@link StellarParser#conditional_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterTernaryFuncWithoutIf(StellarParser.TernaryFuncWithoutIfContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TernaryFuncWithoutIf}
+	 * labeled alternative in {@link StellarParser#conditional_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitTernaryFuncWithoutIf(StellarParser.TernaryFuncWithoutIfContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TernaryFuncWithIf}
+	 * labeled alternative in {@link StellarParser#conditional_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterTernaryFuncWithIf(StellarParser.TernaryFuncWithIfContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TernaryFuncWithIf}
+	 * labeled alternative in {@link StellarParser#conditional_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitTernaryFuncWithIf(StellarParser.TernaryFuncWithIfContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code NotFunc}
 	 * labeled alternative in {@link StellarParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx);
+	void enterNotFunc(StellarParser.NotFuncContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ComparisonExpressionWithOperator}
+	 * Exit a parse tree produced by the {@code NotFunc}
 	 * labeled alternative in {@link StellarParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx);
+	void exitNotFunc(StellarParser.NotFuncContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ComparisonExpressionParens}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterComparisonExpressionParens(StellarParser.ComparisonExpressionParensContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ComparisonExpressionParens}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitComparisonExpressionParens(StellarParser.ComparisonExpressionParensContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code InExpression}
 	 * labeled alternative in {@link StellarParser#comparison_expr}.
@@ -159,6 +159,30 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitInExpression(StellarParser.InExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ComparisonExpressionWithOperator}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ComparisonExpressionWithOperator}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code LogicalExpressionAnd}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterLogicalExpressionAnd(StellarParser.LogicalExpressionAndContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LogicalExpressionAnd}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitLogicalExpressionAnd(StellarParser.LogicalExpressionAndContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code NInExpression}
 	 * labeled alternative in {@link StellarParser#comparison_expr}.
 	 * @param ctx the parse tree
@@ -171,17 +195,29 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitNInExpression(StellarParser.NInExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ComparisonExpressionParens}
+	 * Enter a parse tree produced by the {@code LogicalExpressionOr}
 	 * labeled alternative in {@link StellarParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterComparisonExpressionParens(StellarParser.ComparisonExpressionParensContext ctx);
+	void enterLogicalExpressionOr(StellarParser.LogicalExpressionOrContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ComparisonExpressionParens}
+	 * Exit a parse tree produced by the {@code LogicalExpressionOr}
 	 * labeled alternative in {@link StellarParser#comparison_expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitComparisonExpressionParens(StellarParser.ComparisonExpressionParensContext ctx);
+	void exitLogicalExpressionOr(StellarParser.LogicalExpressionOrContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code operand}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterOperand(StellarParser.OperandContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code operand}
+	 * labeled alternative in {@link StellarParser#comparison_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitOperand(StellarParser.OperandContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code IdentifierOperand}
 	 * labeled alternative in {@link StellarParser#comparison_operand}.
@@ -270,6 +306,26 @@ public interface StellarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitList_entity(StellarParser.List_entityContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link StellarParser#kv_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterKv_list(StellarParser.Kv_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link StellarParser#kv_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitKv_list(StellarParser.Kv_listContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link StellarParser#map_entity}.
+	 * @param ctx the parse tree
+	 */
+	void enterMap_entity(StellarParser.Map_entityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link StellarParser#map_entity}.
+	 * @param ctx the parse tree
+	 */
+	void exitMap_entity(StellarParser.Map_entityContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ArithExpr_solo}
 	 * labeled alternative in {@link StellarParser#arithmetic_expr}.
@@ -462,6 +518,30 @@ public interface StellarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitList(StellarParser.ListContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MapConst}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterMapConst(StellarParser.MapConstContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MapConst}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitMapConst(StellarParser.MapConstContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code NullConst}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterNullConst(StellarParser.NullConstContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code NullConst}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitNullConst(StellarParser.NullConstContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ExistsFunc}
 	 * labeled alternative in {@link StellarParser#identifier_operand}.

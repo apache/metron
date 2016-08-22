@@ -15,49 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.common.dsl.functions;
 
 import org.apache.metron.common.dsl.BaseStellarFunction;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
-public class MapFunctions {
-  public static class MapExists extends BaseStellarFunction {
+public class DataStructureFunctions {
+  public static class IsEmpty extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> list) {
-      if(list.size() < 2) {
-        return false;
+      if(list.size() == 0) {
+        throw new IllegalStateException("IS_EMPTY expects one string arg");
       }
-      Object key = list.get(0);
-      Object mapObj = list.get(1);
-      if(key != null && mapObj != null && mapObj instanceof Map) {
-        return ((Map)mapObj).containsKey(key);
+      Object o = list.get(0);
+      if(o instanceof Collection) {
+        return ((Collection)o).isEmpty();
       }
-      return false;
-    }
-  }
-  public static class MapGet extends BaseStellarFunction {
-    @Override
-    public Object apply(List<Object> objects) {
-      Object keyObj = objects.get(0);
-      Object mapObj = objects.get(1);
-      Object defaultObj = null;
-      if(objects.size() >= 3) {
-        defaultObj = objects.get(2);
+      else if(o instanceof String) {
+        String val = (String) list.get(0);
+        return val == null || val.isEmpty() ? true : false;
       }
-      if(keyObj == null || mapObj == null) {
-        return defaultObj;
+      else {
+        throw new IllegalStateException("IS_EMPTY expects a collection or string");
       }
-      Map<Object, Object> map = (Map)mapObj;
-      Object ret = map.get(keyObj);
-      if(ret == null && defaultObj != null) {
-        return defaultObj;
-      }
-      return ret;
     }
   }
 }
