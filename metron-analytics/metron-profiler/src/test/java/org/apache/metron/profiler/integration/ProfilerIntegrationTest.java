@@ -197,6 +197,24 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(10.0, actual, 0.01);
   }
 
+  @Test
+  public void testPercentiles() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/percentiles");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - the 70th percentile of 5 x 20s = 20.0
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(20.0, actual, 0.01);
+  }
+
   /**
    * Reads a Double value written by the Profiler.
    * @param columnQual The column qualifier.

@@ -30,22 +30,24 @@ import static org.apache.metron.common.utils.ConversionUtils.convert;
 /**
  * Provides Stellar functions that can calculate summary statistics on
  * streams of data.
- *
- * These functions are limited to those that can be calculated in a
- * single-pass so that the values are not stored in memory.  This leverages
- * the commons-math SummaryStatistics class.
  */
-public class SummaryStatisticsFunctions {
+public class StellarStatisticsFunctions {
 
   /**
    * Initialize the summary statistics.
    *
-   *  STATS_INIT ()
+   *  STATS_INIT (window_size)
+   *
+   * @param window_size The number of input data values to maintain in a rolling window
+   *                    in memory.  If equal to 0, then no rolling window is maintained.
+   *                    Using no rolling window is less memory intensive, but cannot
+   *                    calculate certain statistics like percentiles and kurtosis.
    */
   public static class Init extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return new SummaryStatistics();
+      int windowSize = (args.size() > 0 && args.get(0) instanceof Number) ? ((Number) args.get(0)).intValue() : 0;
+      return new StellarStatistics(windowSize);
     }
   }
 
@@ -58,7 +60,7 @@ public class SummaryStatisticsFunctions {
     @Override
     public Object apply(List<Object> args) {
       double value = convert(args.get(0), Double.class);
-      SummaryStatistics stats = convert(args.get(1), SummaryStatistics.class);
+      StellarStatistics stats = convert(args.get(1), StellarStatistics.class);
       stats.addValue(value);
       return null;
     }
@@ -72,7 +74,7 @@ public class SummaryStatisticsFunctions {
   public static class Mean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getMean();
+      return convert(args.get(0), StellarStatistics.class).getMean();
     }
   }
 
@@ -82,7 +84,7 @@ public class SummaryStatisticsFunctions {
   public static class GeometricMean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getGeometricMean();
+      return convert(args.get(0), StellarStatistics.class).getGeometricMean();
     }
   }
 
@@ -92,7 +94,7 @@ public class SummaryStatisticsFunctions {
   public static class Sum extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSum();
+      return convert(args.get(0), StellarStatistics.class).getSum();
     }
   }
 
@@ -102,7 +104,7 @@ public class SummaryStatisticsFunctions {
   public static class Max extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getMax();
+      return convert(args.get(0), StellarStatistics.class).getMax();
     }
   }
 
@@ -112,7 +114,7 @@ public class SummaryStatisticsFunctions {
   public static class Min extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getMin();
+      return convert(args.get(0), StellarStatistics.class).getMin();
     }
   }
 
@@ -122,7 +124,7 @@ public class SummaryStatisticsFunctions {
   public static class Count extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getN();
+      return convert(args.get(0), StellarStatistics.class).getCount();
     }
   }
 
@@ -132,7 +134,7 @@ public class SummaryStatisticsFunctions {
   public static class PopulationVariance extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getPopulationVariance();
+      return convert(args.get(0), StellarStatistics.class).getPopulationVariance();
     }
   }
 
@@ -142,7 +144,7 @@ public class SummaryStatisticsFunctions {
   public static class Variance extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getVariance();
+      return convert(args.get(0), StellarStatistics.class).getVariance();
     }
   }
 
@@ -152,7 +154,7 @@ public class SummaryStatisticsFunctions {
   public static class SecondMoment extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSecondMoment();
+      return convert(args.get(0), StellarStatistics.class).getSecondMoment();
     }
   }
 
@@ -162,7 +164,7 @@ public class SummaryStatisticsFunctions {
   public static class QuadraticMean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getQuadraticMean();
+      return convert(args.get(0), StellarStatistics.class).getQuadraticMean();
     }
   }
 
@@ -172,7 +174,7 @@ public class SummaryStatisticsFunctions {
   public static class StandardDeviation extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getStandardDeviation();
+      return convert(args.get(0), StellarStatistics.class).getStandardDeviation();
     }
   }
 
@@ -182,7 +184,7 @@ public class SummaryStatisticsFunctions {
   public static class SumLogs extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSumOfLogs();
+      return convert(args.get(0), StellarStatistics.class).getSumLogs();
     }
   }
 
@@ -192,7 +194,38 @@ public class SummaryStatisticsFunctions {
   public static class SumSquares extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSumsq();
+      return convert(args.get(0), StellarStatistics.class).getSumSquares();
+    }
+  }
+
+  /**
+   * Calculates the kurtosis.
+   */
+  public static class Kurtosis extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      return convert(args.get(0), StellarStatistics.class).getKurtosis();
+    }
+  }
+
+  /**
+   * Calculates the skewness.
+   */
+  public static class Skewness extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      return convert(args.get(0), StellarStatistics.class).getSkewness();
+    }
+  }
+
+  /**
+   * Calculates the Pth percentile.
+   */
+  public static class Percentile extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      double p = convert(args.get(0), Double.class);
+      return convert(args.get(1), StellarStatistics.class).getPercentile(p);
     }
   }
 }
