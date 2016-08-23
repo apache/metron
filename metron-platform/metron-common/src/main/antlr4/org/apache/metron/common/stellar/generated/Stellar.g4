@@ -110,7 +110,6 @@ transformation : transformation_expr EOF;
 transformation_expr:
    conditional_expr #ConditionalExpr
   |  LPAREN transformation_expr RPAREN #TransformationExpr
-
   | arithmetic_expr               # ArithExpression
   | transformation_entity #TransformationEntity
   | comparison_expr               # ComparisonExpression
@@ -119,7 +118,7 @@ conditional_expr :  comparison_expr QUESTION transformation_expr COLON transform
                  | IF comparison_expr THEN transformation_expr ELSE transformation_expr #TernaryFuncWithIf
                  ;
 
-comparison_expr : comparison_operand comp_operator comparison_operand # ComparisonExpressionWithOperator
+comparison_expr : identifier_operand comp_operator identifier_operand # ComparisonExpressionWithOperator
                 | identifier_operand IN identifier_operand #InExpression
                 | identifier_operand NIN identifier_operand #NInExpression
                 | comparison_expr AND comparison_expr #LogicalExpressionAnd
@@ -128,8 +127,6 @@ comparison_expr : comparison_operand comp_operator comparison_operand # Comparis
                 | LPAREN comparison_expr RPAREN # ComparisonExpressionParens
                 | identifier_operand #operand
                 ;
-comparison_operand : identifier_operand #IdentifierOperand
-                   ;
 transformation_entity : identifier_operand
   ;
 comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp
@@ -143,6 +140,8 @@ func_args : LPAREN op_list RPAREN
           ;
 op_list : identifier_operand
         | op_list COMMA identifier_operand
+        | conditional_expr
+        | op_list COMMA conditional_expr
         ;
 list_entity : LBRACKET op_list RBRACKET
             | LBRACKET RBRACKET;
@@ -170,6 +169,7 @@ arithmetic_operands : functions #NumericFunctions
                     | INT_LITERAL #IntLiteral
                     | IDENTIFIER #Variable
                     | LPAREN arithmetic_expr RPAREN #ParenArith
+                    | LPAREN conditional_expr RPAREN#condExpr
                     ;
 identifier_operand : (TRUE | FALSE) # LogicalConst
                    | arithmetic_expr #ArithmeticOperands
@@ -178,4 +178,5 @@ identifier_operand : (TRUE | FALSE) # LogicalConst
                    | map_entity #MapConst
                    | NULL #NullConst
                    | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
+                   | LPAREN conditional_expr RPAREN#condExpr_paren
                    ;
