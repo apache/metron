@@ -116,7 +116,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     threatIntelJoinBolt.withMaxCacheSize(100);
     threatIntelJoinBolt.withMaxTimeRetain(10000);
     threatIntelJoinBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
-    Map<String, List<String>> fieldMap = threatIntelJoinBolt.getFieldMap("incorrectSourceType");
+    Map<String, Object> fieldMap = threatIntelJoinBolt.getFieldMap("incorrectSourceType");
     Assert.assertNull(fieldMap);
     fieldMap = threatIntelJoinBolt.getFieldMap(sensorType);
     Assert.assertTrue(fieldMap.containsKey("hbaseThreatIntel"));

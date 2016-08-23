@@ -30,7 +30,9 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
@@ -83,6 +85,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   private transient JSONParser parser;
 
+  /**
+   * Stellar context
+   */
+  private Context stellarContext;
+
   private OutputCollector collector;
 
   /**
@@ -103,11 +110,19 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     return conf;
   }
 
+  protected void initializeStellar() {
+    stellarContext = new Context.Builder()
+                         .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                         .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
+  }
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     this.parser = new JSONParser();
+    initializeStellar();
   }
 
   /**
@@ -181,7 +196,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     try {
       JSONObject message = (JSONObject) input.getValueByField("message");
       Map<String, String> expressions = profileConfig.getInit();
-      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message, stellarContext));
 
     } catch(ParseException e) {
       String msg = format("Bad 'init' expression: %s, profile=%s, entity=%s, start=%d",
@@ -200,7 +215,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     // execute each of the 'update' expressions
     try {
       Map<String, String> expressions = profileConfig.getUpdate();
-      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message, stellarContext));
 
     } catch(ParseException e) {
       String msg = format("Bad 'update' expression: %s, profile=%s, entity=%s, start=%d",
@@ -224,8 +239,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     Object result;
     try {
       String resultExpr = profileConfig.getResult();
-      result = executor.execute(resultExpr, new JSONObject(), Object.class);
-
+      result = executor.execute(resultExpr, new JSONObject(), Object.class, stellarContext);
+    
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);
     }

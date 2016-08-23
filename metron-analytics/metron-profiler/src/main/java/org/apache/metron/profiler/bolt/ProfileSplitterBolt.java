@@ -30,12 +30,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.reflect.generic.Types;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
@@ -64,6 +67,12 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   private StellarExecutor executor;
 
   /**
+   * Stellar context
+   */
+  private Context stellarContext;
+
+
+  /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration for this bolt.
    */
   public ProfileSplitterBolt(String zookeeperUrl) {
@@ -75,6 +84,14 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     this.parser = new JSONParser();
+    initializeStellar();
+  }
+
+  protected void initializeStellar() {
+    stellarContext = new Context.Builder()
+                         .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                         .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
   }
 
   @Override
@@ -119,10 +136,10 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
     // is this message needed by this profile?
     String onlyIf = profile.getOnlyif();
-    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, message, Boolean.class)) {
+    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, message, Boolean.class, stellarContext)) {
 
       // what is the name of the entity in this message?
-      String entity = executor.execute(profile.getForeach(), message, String.class);
+      String entity = executor.execute(profile.getForeach(), message, String.class, stellarContext);
 
       // emit a message for the bolt responsible for building this profile
       collector.emit(input, new Values(entity, profile, message));

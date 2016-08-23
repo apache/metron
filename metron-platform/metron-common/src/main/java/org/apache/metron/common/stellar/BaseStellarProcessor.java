@@ -21,7 +21,13 @@ package org.apache.metron.common.stellar;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarLexer;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
@@ -34,6 +40,35 @@ public class BaseStellarProcessor<T> {
   public BaseStellarProcessor(Class<T> clazz) {
     this.clazz = clazz;
   }
+
+  public Set<String> variablesUsed(String rule) {
+    if (rule == null || isEmpty(rule.trim())) {
+      return null;
+    }
+    ANTLRInputStream input = new ANTLRInputStream(rule);
+    StellarLexer lexer = new StellarLexer(input);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(new ErrorListener());
+    TokenStream tokens = new CommonTokenStream(lexer);
+    StellarParser parser = new StellarParser(tokens);
+    final Set<String> ret = new HashSet<>();
+    parser.addParseListener(new StellarBaseListener() {
+      @Override
+      public void exitVariable(StellarParser.VariableContext ctx) {
+        ret.add(ctx.getText());
+      }
+      @Override
+      public void exitExistsFunc(StellarParser.ExistsFuncContext ctx) {
+        String variable = ctx.getChild(2).getText();
+        ret.add(variable);
+      }
+    });
+    parser.removeErrorListeners();
+    parser.addErrorListener(new ErrorListener());
+    parser.transformation();
+    return ret;
+  }
+
   public T parse( String rule
                 , VariableResolver variableResolver
                 , Function<String, StellarFunction> functionResolver

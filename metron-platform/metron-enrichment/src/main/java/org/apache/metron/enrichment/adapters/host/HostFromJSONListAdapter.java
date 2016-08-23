@@ -41,6 +41,11 @@ public class HostFromJSONListAdapter extends AbstractHostAdapter {
   }
 
   @Override
+	public String getOutputPrefix(CacheKey value) {
+		return value.getField();
+	}
+
+  @Override
   public boolean initializeAdapter()
   {
 
@@ -58,7 +63,7 @@ public class HostFromJSONListAdapter extends AbstractHostAdapter {
   @SuppressWarnings("unchecked")
   @Override
   public JSONObject enrich(CacheKey k) {
-    String metadata = k.getValue();
+    String metadata = k.getValue(String.class);
 
     if(!_known_hosts.containsKey(metadata))
       return new JSONObject();

@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,7 +55,11 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
 
     @Override
     public Set<String> getStreamIds(JSONObject value) {
-      return streamIds;
+      HashSet<String> ret = new HashSet<>();
+      for(String s : streamIds) {
+        ret.add(s + ":");
+      }
+      return ret;
     }
 
     @Override
@@ -114,6 +119,10 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     verify(outputCollector, times(0)).ack(tuple);
     when(tuple.getSourceStreamId()).thenReturn("hbaseEnrichment");
     when(tuple.getValueByField("message")).thenReturn(hbaseEnrichmentMessage);
+    joinBolt.execute(tuple);
+    when(tuple.getSourceStreamId()).thenReturn("stellar");
+    when(tuple.getValueByField("message")).thenReturn(new JSONObject());
+    verify(outputCollector, times(0)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, joinedMessage)));
     joinBolt.execute(tuple);
     verify(outputCollector, times(1)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, joinedMessage)));
     verify(outputCollector, times(1)).ack(tuple);

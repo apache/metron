@@ -20,14 +20,32 @@ package org.apache.metron.common.stellar;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.metron.common.dsl.*;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class StellarTest {
+
+  @Test
+  public void testVariablesUsed() {
+    StellarProcessor processor = new StellarProcessor();
+    {
+      Assert.assertEquals(new HashSet<>(), processor.variablesUsed("if 1 < 2 then 'one' else 'two'"));
+    }
+    {
+      Assert.assertEquals(ImmutableSet.of("one")
+                         , processor.variablesUsed("if 1 < 2 then one else 'two'"));
+    }
+    {
+      Assert.assertEquals(ImmutableSet.of("one", "two")
+                         , processor.variablesUsed("if 1 < 2 then one else two"));
+    }
+  }
 
   @Test
   public void testFunctionEmptyArgs() {

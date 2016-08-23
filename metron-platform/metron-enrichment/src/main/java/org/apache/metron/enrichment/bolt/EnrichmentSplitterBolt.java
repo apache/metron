@@ -22,6 +22,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.common.utils.MessageUtils;
@@ -35,119 +36,139 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
-    protected static final Logger LOG = LoggerFactory.getLogger(EnrichmentSplitterBolt.class);
-    private List<Enrichment> enrichments;
-    protected String messageFieldName;
-    private transient JSONParser parser;
+  protected static final Logger LOG = LoggerFactory.getLogger(EnrichmentSplitterBolt.class);
+  private List<Enrichment> enrichments;
+  protected String messageFieldName;
+  private transient JSONParser parser;
 
 
-    public EnrichmentSplitterBolt(String zookeeperUrl) {
-        super(zookeeperUrl);
+  public EnrichmentSplitterBolt(String zookeeperUrl) {
+    super(zookeeperUrl);
+  }
+
+  public EnrichmentSplitterBolt withEnrichments(List<Enrichment> enrichments) {
+    this.enrichments = enrichments;
+    return this;
+  }
+
+  public EnrichmentSplitterBolt withMessageFieldName(String messageFieldName) {
+    this.messageFieldName = messageFieldName;
+    return this;
+  }
+  @Override
+  public void prepare(Map map, TopologyContext topologyContext) {
+    parser = new JSONParser();
+  }
+  @Override
+  public String getKey(Tuple tuple, JSONObject message) {
+    String key = null;
+    try {
+      key = tuple.getStringByField("key");
     }
-
-    public EnrichmentSplitterBolt withEnrichments(List<Enrichment> enrichments) {
-        this.enrichments = enrichments;
-        return this;
+    catch(Throwable t) {
+      //swallowing this just in case.
     }
-
-    public EnrichmentSplitterBolt withMessageFieldName(String messageFieldName) {
-        this.messageFieldName = messageFieldName;
-        return this;
+    if(key != null) {
+      return key;
     }
-    @Override
-    public void prepare(Map map, TopologyContext topologyContext) {
-        parser = new JSONParser();
+    else {
+      return UUID.randomUUID().toString();
     }
-    @Override
-    public String getKey(Tuple tuple, JSONObject message) {
-        String key = null;
-        try {
-            key = tuple.getStringByField("key");
-        }
-        catch(Throwable t) {
-            //swallowing this just in case.
-        }
-        if(key != null) {
-            return key;
-        }
-        else {
-            return UUID.randomUUID().toString();
-        }
+  }
+
+  @Override
+  public JSONObject generateMessage(Tuple tuple) {
+    JSONObject message = null;
+    if (messageFieldName == null) {
+      byte[] data = tuple.getBinary(0);
+      try {
+        message = (JSONObject) parser.parse(new String(data, "UTF8"));
+        message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
+      } catch (ParseException | UnsupportedEncodingException e) {
+        e.printStackTrace();
+      }
+    } else {
+      message = (JSONObject) tuple.getValueByField(messageFieldName);
+      message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
     }
+    return message;
+  }
 
-    @Override
-    public JSONObject generateMessage(Tuple tuple) {
-        JSONObject message = null;
-        if (messageFieldName == null) {
-            byte[] data = tuple.getBinary(0);
-            try {
-                message = (JSONObject) parser.parse(new String(data, "UTF8"));
-                message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
-            } catch (ParseException | UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        } else {
-            message = (JSONObject) tuple.getValueByField(messageFieldName);
-            message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
-        }
-        return message;
+  @Override
+  public Set<String> getStreamIds() {
+    Set<String> streamIds = new HashSet<>();
+    for(Enrichment enrichment: enrichments) {
+      streamIds.add(enrichment.getType());
     }
+    return streamIds;
+  }
 
-    @Override
-    public Set<String> getStreamIds() {
-        Set<String> streamIds = new HashSet<>();
-        for(Enrichment enrichment: enrichments) {
-            streamIds.add(enrichment.getType());
-        }
-        return streamIds;
+  @SuppressWarnings("unchecked")
+  @Override
+  public Map<String, List<JSONObject>> splitMessage(JSONObject message) {
+    Map<String, List<JSONObject>> streamMessageMap = new HashMap<>();
+    String sensorType = MessageUtils.getSensorType(message);
+    Map<String, Object> enrichmentFieldMap = getFieldMap(sensorType);
+    Map<String, ConfigHandler> fieldToHandler = getFieldToHandlerMap(sensorType);
+    Set<String> enrichmentTypes = new HashSet<>(enrichmentFieldMap.keySet());
+    enrichmentTypes.addAll(fieldToHandler.keySet());
+    for (String enrichmentType : enrichmentTypes) {
+      Object fields = enrichmentFieldMap.get(enrichmentType);
+      ConfigHandler retriever = fieldToHandler.get(enrichmentType);
+
+      List<JSONObject> enrichmentObject = retriever.getType()
+              .splitByFields( message
+                      , fields
+                      , field -> getKeyName(enrichmentType, field)
+                      , retriever.getConfig()
+              );
+      for(JSONObject eo : enrichmentObject) {
+        eo.put(Constants.SENSOR_TYPE, sensorType);
+      }
+      streamMessageMap.put(enrichmentType, enrichmentObject);
     }
+    message.put(getClass().getSimpleName().toLowerCase() + ".splitter.end.ts", "" + System.currentTimeMillis());
+    return streamMessageMap;
+  }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Map<String, JSONObject> splitMessage(JSONObject message) {
-        Map<String, JSONObject> streamMessageMap = new HashMap<>();
-        String sensorType = MessageUtils.getSensorType(message);
-        Map<String, List<String>> enrichmentFieldMap = getFieldMap(sensorType);
-        for (String enrichmentType : enrichmentFieldMap.keySet()) {
-            List<String> fields = enrichmentFieldMap.get(enrichmentType);
-            JSONObject enrichmentObject = new JSONObject();
-            if (fields != null && fields.size() > 0) {
-                for (String field : fields) {
-                    enrichmentObject.put(getKeyName(enrichmentType, field), message.get(field));
-                }
-                enrichmentObject.put(Constants.SENSOR_TYPE, sensorType);
-                streamMessageMap.put(enrichmentType, enrichmentObject);
-            }
-        }
-        message.put(getClass().getSimpleName().toLowerCase() + ".splitter.end.ts", "" + System.currentTimeMillis());
-        return streamMessageMap;
+  protected Map<String, ConfigHandler> getFieldToHandlerMap(String sensorType) {
+    if(sensorType != null) {
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
+      if (config != null) {
+        return config.getEnrichment().getEnrichmentConfigs();
+      } else {
+        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+      }
+    } else {
+      LOG.error("Trying to retrieve a field map with sensor type of null");
     }
-
-    protected Map<String, List<String>> getFieldMap(String sensorType) {
-        if(sensorType != null) {
-            SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
-            if (config != null) {
-                return config.getEnrichment().getFieldMap();
-            } else {
-                LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
-            }
-        } else {
-            LOG.error("Trying to retrieve a field map with sensor type of null");
-        }
-        return new HashMap<>();
+    return new HashMap<>();
+  }
+  protected Map<String, Object > getFieldMap(String sensorType) {
+    if(sensorType != null) {
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
+      if (config != null) {
+        return config.getEnrichment().getFieldMap();
+      } else {
+        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+      }
+    } else {
+      LOG.error("Trying to retrieve a field map with sensor type of null");
     }
+    return new HashMap<>();
+  }
 
-    protected String getKeyName(String type, String field) {
-        return EnrichmentUtils.getEnrichmentKey(type, field);
-    }
+  protected String getKeyName(String type, String field) {
+    return EnrichmentUtils.getEnrichmentKey(type, field);
+  }
 
-    @Override
-    public void declareOther(OutputFieldsDeclarer declarer) {
+  @Override
+  public void declareOther(OutputFieldsDeclarer declarer) {
 
-    }
+  }
 
-    @Override
-    public void emitOther(Tuple tuple, JSONObject message) {
+  @Override
+  public void emitOther(Tuple tuple, JSONObject message) {
 
-    }
+  }
 }
