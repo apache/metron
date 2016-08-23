@@ -114,7 +114,7 @@ This creates a profile...
 
 #### Example 3
 
-The average response body length of HTTP traffic. The following configuration would be used to generate this profile.
+The average of a field called `length`. The following configuration would be used to generate this profile.
 
 ```
 {
@@ -124,15 +124,9 @@ The average response body length of HTTP traffic. The following configuration wo
       "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      "init": {
-        "sum": 0.0,
-        "cnt": 0.0
-      },
-      "update": {
-        "sum": "sum + resp_body_len",
-        "cnt": "cnt + 1"
-      },
-      "result": "sum / cnt"
+      "init":   { "s": "STATS_INIT(0)" },
+      "update": { "_": "STATS_ADD(length, s)" },
+      "result": "STATS_MEAN(s)"
     }
   ]
 }
@@ -141,9 +135,9 @@ The average response body length of HTTP traffic. The following configuration wo
 This creates a profile...
  * Named ‘example3’
  * That for each IP source address
- * Only if the 'protocol' field equals 'HTTP'
- * Accumulates the sum of response body length
- * Accumulates the number of messages
+ * Only if the 'protocol' field is 'HTTP'
+ * Initializes the Stats library
+ * Adds the `length` field from each message
  * Calculates the average as the result
 
 ### Topology Configuration

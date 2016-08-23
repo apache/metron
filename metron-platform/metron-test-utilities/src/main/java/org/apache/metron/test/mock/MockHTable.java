@@ -200,7 +200,7 @@ public class MockHTable implements HTableInterface {
   @Override
   public void batch(List<? extends Row> list, Object[] objects) throws IOException, InterruptedException {
     Object[] results = batch(list);
-    System.arraycopy(results, 0, objects, 0, objects.length);
+    System.arraycopy(results, 0, objects, 0, results.length);
   }
 
   /**

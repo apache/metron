@@ -40,7 +40,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
    * to generate the salt.  Ideally, this constant should be roughly equal to the number of
    * nodes in the Hbase cluster.
    */
-  private int saltDivisor = 10;
+  private int saltDivisor;
 
   /**
    * The name of the column family.
@@ -49,6 +49,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
 
   public ProfileHBaseMapper() {
     setColumnFamily("P");
+    setSaltDivisor(1000);
   }
 
   /**
