@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.enrichment.configuration.Enrichment;
@@ -46,10 +47,13 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
     host.setType("host");
     final Enrichment hbaseEnrichment = new Enrichment();
     hbaseEnrichment.setType("hbaseEnrichment");
+    final Enrichment stellarEnrichment = new Enrichment();
+    stellarEnrichment.setType("stellar");
     List<Enrichment> enrichments = new ArrayList<Enrichment>() {{
       add(geo);
       add(host);
       add(hbaseEnrichment);
+      add(stellarEnrichment);
     }};
 
     EnrichmentSplitterBolt enrichmentSplitterBolt = new EnrichmentSplitterBolt("zookeeperUrl").withEnrichments(enrichments);
@@ -76,11 +80,11 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
     Set<String> actualStreamIds = enrichmentSplitterBolt.getStreamIds();
     Assert.assertEquals(streamIds, actualStreamIds);
 
-    Map<String, JSONObject> actualSplitMessages = enrichmentSplitterBolt.splitMessage(sampleMessage);
-    Assert.assertEquals(3, actualSplitMessages.size());
-    Assert.assertEquals(geoMessage, actualSplitMessages.get("geo"));
-    Assert.assertEquals(hostMessage, actualSplitMessages.get("host"));
-    Assert.assertEquals(hbaseEnrichmentMessage, actualSplitMessages.get("hbaseEnrichment"));
+    Map<String, List<JSONObject> > actualSplitMessages = enrichmentSplitterBolt.splitMessage(sampleMessage);
+    Assert.assertEquals(enrichments.size(), actualSplitMessages.size());
+    Assert.assertEquals(ImmutableList.of(geoMessage), actualSplitMessages.get("geo"));
+    Assert.assertEquals(ImmutableList.of(hostMessage), actualSplitMessages.get("host"));
+    Assert.assertEquals(ImmutableList.of(hbaseEnrichmentMessage), actualSplitMessages.get("hbaseEnrichment"));
 
 
   }

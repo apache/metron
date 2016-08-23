@@ -64,8 +64,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    *   "foreach": "ip_src_addr",
    *   "onlyif": "true",
    *   "init": {
-   *     "x": 10,
-   *     "y": 20
+   *     "x": "10",
+   *     "y": "20"
    *   },
    *   "update": {
    *     "x": "x + 10",

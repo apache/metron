@@ -31,6 +31,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
 
   public String sampleSensorEnrichmentConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "enrichments/test.json";
   protected Set<String> streamIds = new HashSet<>();
+  protected Set<String> joinStreamIds = new HashSet<>();
   protected String key = "someKey";
   protected String sensorType = "test";
 
@@ -87,7 +88,14 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
     hostMessage = (JSONObject) parser.parse(hostMessageString);
     hbaseEnrichmentMessage = (JSONObject) parser.parse(hbaseEnrichmentMessageString);
     streamIds.add("geo");
+    streamIds.add("stellar");
     streamIds.add("host");
     streamIds.add("hbaseEnrichment");
+    joinStreamIds.add("geo:");
+    joinStreamIds.add("stellar:");
+    joinStreamIds.add("stellar:numeric");
+    joinStreamIds.add("host:");
+    joinStreamIds.add("hbaseEnrichment:");
+    joinStreamIds.add("message:");
   }
 }

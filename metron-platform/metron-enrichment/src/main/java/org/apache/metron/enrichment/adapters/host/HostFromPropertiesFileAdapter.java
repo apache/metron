@@ -44,6 +44,11 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	}
 
 	@Override
+	public String getOutputPrefix(CacheKey value) {
+		return value.getField();
+	}
+
+	@Override
 	public void logAccess(CacheKey value) {
 
 	}

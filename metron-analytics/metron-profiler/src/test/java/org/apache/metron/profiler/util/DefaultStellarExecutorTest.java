@@ -21,6 +21,7 @@
 package org.apache.metron.profiler.util;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -66,7 +67,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testAssign() {
-    executor.assign("foo", "2", message);
+    executor.assign("foo", "2", message, Context.EMPTY_CONTEXT());
 
     // verify
     Object var = executor.getState().get("foo");
@@ -79,7 +80,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testAssignWithVariableResolution() {
-    executor.assign("foo", "ip_src_addr", message);
+    executor.assign("foo", "ip_src_addr", message, Context.EMPTY_CONTEXT());
 
     // verify
     Object var = executor.getState().get("foo");
@@ -92,9 +93,9 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testState() {
-    executor.assign("two", "2", message);
-    executor.assign("four", "4", message);
-    executor.assign("sum", "two + four", message);
+    executor.assign("two", "2", message, Context.EMPTY_CONTEXT());
+    executor.assign("four", "4", message, Context.EMPTY_CONTEXT());
+    executor.assign("sum", "two + four", message, Context.EMPTY_CONTEXT());
 
     // verify
     Object var = executor.getState().get("sum");
@@ -106,7 +107,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testClearState() {
-    executor.assign("two", "2", message);
+    executor.assign("two", "2", message, Context.EMPTY_CONTEXT());
     executor.clearState();
 
     // verify
@@ -122,7 +123,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testExecuteTransformation() {
-    String actual = executor.execute("TO_UPPER('lowercase')", message, String.class);
+    String actual = executor.execute("TO_UPPER('lowercase')", message, String.class, Context.EMPTY_CONTEXT());
     assertThat(actual, equalTo("LOWERCASE"));
   }
 
@@ -135,7 +136,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testExecutePredicate() {
-    boolean actual = executor.execute("IS_INTEGER(2)", message, Boolean.class);
+    boolean actual = executor.execute("IS_INTEGER(2)", message, Boolean.class, Context.EMPTY_CONTEXT());
     assertThat(actual, equalTo(true));
   }
 
@@ -144,7 +145,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test(expected = RuntimeException.class)
   public void testExecuteWithWrongType() {
-    executor.execute("2 + 2", message, Boolean.class);
+    executor.execute("2 + 2", message, Boolean.class, Context.EMPTY_CONTEXT());
   }
 
   /**
@@ -152,10 +153,9 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testExecuteWithTypeConversion() {
-    executor.execute("2", message, Double.class);
-    executor.execute("2", message, Float.class);
-    executor.execute("2", message, Short.class);
-    executor.execute("2", message, Long.class);
+    executor.execute("2", message, Double.class, Context.EMPTY_CONTEXT());
+    executor.execute("2", message, Float.class, Context.EMPTY_CONTEXT());
+    executor.execute("2", message, Short.class, Context.EMPTY_CONTEXT());
+    executor.execute("2", message, Long.class, Context.EMPTY_CONTEXT());
   }
-
 }

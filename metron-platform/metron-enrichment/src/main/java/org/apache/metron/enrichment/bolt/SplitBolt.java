@@ -26,6 +26,7 @@ import backtype.storm.tuple.Values;
 import org.apache.metron.common.bolt.ConfiguredBolt;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,7 +54,7 @@ public abstract class SplitBolt<T extends Cloneable> extends
 
   @Override
   public final void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declareStream("message", new Fields("key", "message"));
+    declarer.declareStream("message", new Fields("key", "message", "subgroup"));
     for (String streamId : getStreamIds()) {
       declarer.declareStream(streamId, new Fields("key", "message"));
     }
@@ -64,15 +65,22 @@ public abstract class SplitBolt<T extends Cloneable> extends
   public void emit(Tuple tuple, T message) {
     if (message == null) return;
     String key = getKey(tuple, message);
-    Map<String, T> streamMessageMap = splitMessage(message);
+    Map<String, List<T>> streamMessageMap = splitMessage(message);
     for (String streamId : streamMessageMap.keySet()) {
-      T streamMessage = streamMessageMap.get(streamId);
-      if (streamMessage == null) {
-        streamMessage = getDefaultMessage(streamId);
+      List<T> streamMessages = streamMessageMap.get(streamId);
+      if(streamMessages != null) {
+        for(T streamMessage : streamMessages) {
+          if (streamMessage == null) {
+            streamMessage = getDefaultMessage(streamId);
+          }
+          collector.emit(streamId, new Values(key, streamMessage));
+        }
       }
-      collector.emit(streamId, new Values(key, streamMessage));
+      else {
+        throw new IllegalArgumentException("Enrichment must send some list of messages, not null.");
+      }
     }
-    collector.emit("message", tuple, new Values(key, message));
+    collector.emit("message", tuple, new Values(key, message, ""));
     collector.ack(tuple);
     emitOther(tuple, message);
   }
@@ -90,7 +98,7 @@ public abstract class SplitBolt<T extends Cloneable> extends
 
   public abstract T generateMessage(Tuple tuple);
 
-  public abstract Map<String, T> splitMessage(T message);
+  public abstract Map<String, List<T>> splitMessage(T message);
 
   public abstract void declareOther(OutputFieldsDeclarer declarer);
 

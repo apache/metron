@@ -21,7 +21,9 @@ import backtype.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.functions.ConversionFunctions;
@@ -32,6 +34,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,20 +42,42 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   protected static final Logger LOG = LoggerFactory
           .getLogger(ThreatIntelJoinBolt.class);
-  FunctionResolver functionResolver;
+  private FunctionResolver functionResolver;
+  private org.apache.metron.common.dsl.Context stellarContext;
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
 
   @Override
-  public void prepare(Map map, TopologyContext topologyContext) {
-    super.prepare(map, topologyContext);
-    functionResolver = StellarFunctions.FUNCTION_RESOLVER();
-    functionResolver.initializeFunctions(context);
+  protected Map<String, ConfigHandler> getFieldToHandlerMap(String sensorType) {
+    if(sensorType != null) {
+      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sensorType);
+      if (config != null) {
+        return config.getThreatIntel().getEnrichmentConfigs();
+      } else {
+        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+      }
+    } else {
+      LOG.error("Trying to retrieve a field map with sensor type of null");
+    }
+    return new HashMap<>();
   }
 
   @Override
-  public Map<String, List<String>> getFieldMap(String sourceType) {
+  public void prepare(Map map, TopologyContext topologyContext) {
+    super.prepare(map, topologyContext);
+    initializeStellar();
+  }
+
+  protected void initializeStellar() {
+    this.stellarContext = new Context.Builder()
+                                .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                                .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
+  }
+
+  @Override
+  public Map<String, Object> getFieldMap(String sourceType) {
     SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
     if(config != null) {
       return config.getThreatIntel().getFieldMap();
@@ -105,7 +130,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           LOG.debug(sourceType + ": Empty rules!");
         }
 
-        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, context);
+        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, stellarContext);
         Double triageLevel = threatTriageProcessor.apply(ret);
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules().entrySet());

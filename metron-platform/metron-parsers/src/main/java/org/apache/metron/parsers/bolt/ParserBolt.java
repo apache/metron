@@ -27,6 +27,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.parsers.filters.Filters;
@@ -49,6 +50,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private MessageParser<JSONObject> parser;
   private MessageFilter<JSONObject> filter = new GenericMessageFilter();
   private WriterHandler writer;
+  private org.apache.metron.common.dsl.Context stellarContext;
   public ParserBolt( String zookeeperUrl
                    , String sensorType
                    , MessageParser<JSONObject> parser
@@ -91,9 +93,15 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       throw new IllegalStateException("Unable to retrieve a parser config for " + getSensorType());
     }
     parser.configure(config.getParserConfig());
-    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(super.context);
+    initializeStellar();
   }
 
+  protected void initializeStellar() {
+    this.stellarContext = new Context.Builder()
+                                .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                                .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
+  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -109,11 +117,11 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
-          if (parser.validate(message) && filter != null && filter.emitTuple(message, super.context)) {
+          if (parser.validate(message) && filter != null && filter.emitTuple(message, stellarContext)) {
             message.put(Constants.SENSOR_TYPE, getSensorType());
             for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
               if (handler != null) {
-                handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), super.context);
+                handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
               }
             }
             numWritten++;
@@ -146,7 +154,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private boolean isGloballyValid(JSONObject input, List<FieldValidator> validators) {
     for(FieldValidator validator : validators) {
-      if(!validator.isValid(input, getConfigurations().getGlobalConfig(), super.context)) {
+      if(!validator.isValid(input, getConfigurations().getGlobalConfig(), stellarContext)) {
         return false;
       }
     }

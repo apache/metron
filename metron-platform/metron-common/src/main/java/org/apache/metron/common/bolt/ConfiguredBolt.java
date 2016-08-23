@@ -44,7 +44,6 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
 
   protected CuratorFramework client;
   protected TreeCache cache;
-  protected org.apache.metron.common.dsl.Context context;
   private final CONFIG_T configurations = defaultConfigurations();
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
@@ -65,6 +64,8 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   }
   protected abstract CONFIG_T defaultConfigurations();
 
+
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     try {
@@ -73,9 +74,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
         client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
       }
       client.start();
-      this.context = new Context.Builder()
-                                .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-                                .build();
+
       if (cache == null) {
         cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
         TreeCacheListener listener = new TreeCacheListener() {

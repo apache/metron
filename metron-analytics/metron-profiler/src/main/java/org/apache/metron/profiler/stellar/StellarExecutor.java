@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.stellar;
 
+import org.apache.metron.common.dsl.Context;
 import org.json.simple.JSONObject;
 
 import java.util.Map;
@@ -39,8 +40,9 @@ public interface StellarExecutor {
    * @param variable The name of the variable to assign to.
    * @param expression The expression to execute.
    * @param message The message that provides additional context for the expression.
+   * @param stellarContext The context which holds global state for Stellar functions
    */
-  void assign(String variable, String expression, JSONObject message);
+  void assign(String variable, String expression, JSONObject message, Context stellarContext);
 
   /**
    * Execute a Stellar expression and return the result.
@@ -49,8 +51,9 @@ public interface StellarExecutor {
    * @param message The message that is accessible when Stellar is executed.
    * @param clazz The expected class of the expression's result.
    * @param <T> The expected class of the expression's result.
+   * @param stellarContext The context which holds global state for Stellar functions
    */
-  <T> T execute(String expression, JSONObject message, Class<T> clazz);
+  <T> T execute(String expression, JSONObject message, Class<T> clazz, Context stellarContext);
 
   /**
    * The current state of the Stellar execution environment.

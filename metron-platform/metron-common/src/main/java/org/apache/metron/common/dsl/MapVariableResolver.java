@@ -29,7 +29,9 @@ public class MapVariableResolver implements VariableResolver {
   public MapVariableResolver(Map variableMappingOne, Map... variableMapping) {
     variableMappings.add(variableMappingOne);
     for(Map m : variableMapping) {
-      this.variableMappings.add(m);
+      if(m != null && m.size() > 0) {
+        this.variableMappings.add(m);
+      }
     }
   }
   @Override

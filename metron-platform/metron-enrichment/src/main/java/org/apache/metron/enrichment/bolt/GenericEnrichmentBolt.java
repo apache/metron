@@ -27,10 +27,13 @@ import backtype.storm.tuple.Values;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -65,8 +68,9 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
+  public static final String STELLAR_CONTEXT_CONF = "stellarContext";
   private OutputCollector collector;
-
+  private Context stellarContext;
   protected String enrichmentType;
   protected EnrichmentAdapter<CacheKey> adapter;
   protected transient CacheLoader<CacheKey, JSONObject> loader;
@@ -148,11 +152,19 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
+    initializeStellar();
+  }
+
+  protected void initializeStellar() {
+    stellarContext = new Context.Builder()
+                         .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                         .build();
+    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
   }
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declareStream(enrichmentType, new Fields("key", "message"));
+    declarer.declareStream(enrichmentType, new Fields("key", "message", "subgroup"));
     declarer.declareStream("error", new Fields("message"));
   }
 
@@ -161,6 +173,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   public void execute(Tuple tuple) {
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
+    String subGroup = "";
 
     JSONObject enrichedMessage = new JSONObject();
     enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".begin.ts", "" + System.currentTimeMillis());
@@ -177,23 +190,27 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
         throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
       }
       boolean error = false;
+      String prefix = null;
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
-        String value = (String) rawMessage.get(field);
+        Object value =  rawMessage.get(field);
         if (field.equals(Constants.SENSOR_TYPE)) {
           enrichedMessage.put(Constants.SENSOR_TYPE, value);
         } else {
           JSONObject enrichedField = new JSONObject();
-          if (value != null && value.length() != 0) {
+          if (value != null) {
             SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
               LOG.error("Unable to find " + config);
               error = true;
               continue;
             }
+            config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
             CacheKey cacheKey= new CacheKey(field, value, config);
             try {
               adapter.logAccess(cacheKey);
+              prefix = adapter.getOutputPrefix(cacheKey);
+              subGroup = adapter.getStreamSubGroup(enrichmentType, field);
               enrichedField = cache.getUnchecked(cacheKey);
               if (enrichedField == null)
                 throw new Exception("[Metron] Could not enrich string: "
@@ -205,12 +222,15 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               continue;
             }
           }
-          if (!enrichedField.isEmpty()) {
+          if ( !enrichedField.isEmpty()) {
             for (Object enrichedKey : enrichedField.keySet()) {
-              enrichedMessage.put(field + "." + enrichedKey, enrichedField.get(enrichedKey));
+              if(!StringUtils.isEmpty(prefix)) {
+                enrichedMessage.put(field + "." + enrichedKey, enrichedField.get(enrichedKey));
+              }
+              else {
+                enrichedMessage.put(enrichedKey, enrichedField.get(enrichedKey));
+              }
             }
-          } else {
-            enrichedMessage.put(field, "");
           }
         }
       }
@@ -220,13 +240,13 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
         throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
       }
       if (enrichedMessage != null && !enrichedMessage.isEmpty()) {
-        collector.emit(enrichmentType, new Values(key, enrichedMessage));
+        collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
       }
     } catch (Exception e) {
       LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
       JSONObject error = ErrorUtils.generateErrorMessage("Enrichment problem: " + rawMessage, e);
       if (key != null) {
-        collector.emit(enrichmentType, new Values(key, enrichedMessage));
+        collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
       }
       collector.emit("error", new Values(error));
     }
@@ -235,5 +255,9 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @Override
   public void cleanup() {
     adapter.cleanup();
+  }
+
+  public Context getStellarContext() {
+    return stellarContext;
   }
 }

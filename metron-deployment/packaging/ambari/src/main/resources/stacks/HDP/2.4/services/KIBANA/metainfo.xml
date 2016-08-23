@@ -22,26 +22,8 @@
     <services>
         <service>
             <name>KIBANA</name>
-            <displayName>Kibana</displayName>
-            <comment>Kibana dashboard for Elasticsearch</comment>
-            <version>4.5.1</version>
             <extends>common-services/KIBANA/4.5.1</extends>
-            <osSpecifics>
-                <osSpecific>
-                    <osFamily>any</osFamily>
-                    <packages>
-                        <package>
-                            <name>kibana-4.5.1</name>
-                        </package>
-                    </packages>
-                </osSpecific>
-            </osSpecifics>
-            <quickLinksConfigurations>
-                <quickLinksConfiguration>
-                    <fileName>quicklinks.json</fileName>
-                    <default>true</default>
-                </quickLinksConfiguration>
-            </quickLinksConfigurations>
         </service>
     </services>
 </metainfo>
+

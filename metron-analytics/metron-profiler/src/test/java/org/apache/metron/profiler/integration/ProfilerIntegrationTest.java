@@ -179,6 +179,24 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
+  @Test
+  public void testWriteInteger() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/write-integer");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
+    double actual = readInteger(ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(10.0, actual, 0.01);
+  }
+
   /**
    * Reads a Double value written by the Profiler.
    * @param columnQual The column qualifier.
@@ -211,7 +229,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     throw new IllegalStateException("No results found");
   }
 
-  private void setup(String pathToConfig) throws Exception {
+  public void setup(String pathToConfig) throws Exception {
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)
