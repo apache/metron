@@ -51,7 +51,7 @@ public class ProfileMeasurement {
   /**
    * The actual measurement itself.
    */
-  private double value;
+  private Object value;
 
   public String getProfileName() {
     return profileName;
@@ -85,11 +85,11 @@ public class ProfileMeasurement {
     this.end = end;
   }
 
-  public double getValue() {
+  public Object getValue() {
     return value;
   }
 
-  public void setValue(double value) {
+  public void setValue(Object value) {
     this.value = value;
   }
 
@@ -102,21 +102,19 @@ public class ProfileMeasurement {
 
     if (start != that.start) return false;
     if (end != that.end) return false;
-    if (Double.compare(that.value, value) != 0) return false;
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
-    return entity != null ? entity.equals(that.entity) : that.entity == null;
+    if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
+    return value != null ? value.equals(that.value) : that.value == null;
+
   }
 
   @Override
   public int hashCode() {
-    int result;
-    long temp;
-    result = profileName != null ? profileName.hashCode() : 0;
+    int result = profileName != null ? profileName.hashCode() : 0;
     result = 31 * result + (entity != null ? entity.hashCode() : 0);
     result = 31 * result + (int) (start ^ (start >>> 32));
     result = 31 * result + (int) (end ^ (end >>> 32));
-    temp = Double.doubleToLongBits(value);
-    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    result = 31 * result + (value != null ? value.hashCode() : 0);
     return result;
   }
 

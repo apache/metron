@@ -38,6 +38,7 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -220,10 +221,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             measurement.getProfileName(), measurement.getEntity(), measurement.getStart()));
 
     // execute the 'result' expression
-    Double result;
+    Object result;
     try {
       String resultExpr = profileConfig.getResult();
-       result = executor.execute(resultExpr, new JSONObject(), Double.class);
+      result = executor.execute(resultExpr, new JSONObject(), Object.class);
+
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);
     }

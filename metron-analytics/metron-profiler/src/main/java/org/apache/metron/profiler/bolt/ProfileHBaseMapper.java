@@ -40,7 +40,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
    * to generate the salt.  Ideally, this constant should be roughly equal to the number of
    * nodes in the Hbase cluster.
    */
-  private int saltDivisor = 10;
+  private int saltDivisor;
 
   /**
    * The name of the column family.
@@ -49,6 +49,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
 
   public ProfileHBaseMapper() {
     setColumnFamily("P");
+    setSaltDivisor(1000);
   }
 
   /**
@@ -88,9 +89,38 @@ public class ProfileHBaseMapper implements HBaseMapper {
     cols.addColumn(cfBytes, QENTITY, Bytes.toBytes(measurement.getEntity()));
     cols.addColumn(cfBytes, QSTART, Bytes.toBytes(measurement.getStart()));
     cols.addColumn(cfBytes, QEND, Bytes.toBytes(measurement.getEnd()));
-    cols.addColumn(cfBytes, QVALUE, Bytes.toBytes(measurement.getValue()));
+    cols.addColumn(cfBytes, QVALUE, toBytes(measurement.getValue()));
 
     return cols;
+  }
+
+  /**
+   * Serialize a profile measurement's value.
+   *
+   * The value produced by a Profile definition can be any numeric data type.  The data
+   * type depends on how the profile is defined by the user.  The user should be able to
+   * choose the data type that is most suitable for their use case.
+   *
+   * @param value The value to serialize.
+   */
+  private byte[] toBytes(Object value) {
+    byte[] result;
+
+    if(value instanceof Integer) {
+      result = Bytes.toBytes((Integer) value);
+    } else if(value instanceof Double) {
+      result = Bytes.toBytes((Double) value);
+    } else if(value instanceof Short) {
+      result = Bytes.toBytes((Short) value);
+    } else if(value instanceof Long) {
+      result = Bytes.toBytes((Long) value);
+    } else if(value instanceof Float) {
+      result = Bytes.toBytes((Float) value);
+    } else {
+      throw new RuntimeException("Expected 'Number': actual=" + value);
+    }
+
+    return result;
   }
 
   /**

@@ -157,5 +157,4 @@ public class DefaultStellarExecutorTest {
     executor.execute("2", message, Short.class);
     executor.execute("2", message, Long.class);
   }
-
 }

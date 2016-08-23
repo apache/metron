@@ -10,7 +10,7 @@
         "cnt": 0.0
       },
       "update": {
-        "sum": "sum + resp_body_len",
+        "sum": "sum + length",
         "cnt": "cnt + 1"
       },
       "result": "sum / cnt"

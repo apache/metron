@@ -21,7 +21,7 @@ The Profiler configuration requires a JSON-formatted set of elements, many of wh
 | update  	| Required  	| A set of expressions that is executed when a message is applied to the profile.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can include 0 or more variables/expressions.  	    |
 | result  	| Required  	| A Stellar expression that is executed when the window period expires.  The expression is expected to in some way summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	    |
 
-#### Examples
+### Examples
 
 Examples of the types of profiles that can be built include the following.  Each shows the configuration that would be required to produce the profile.  These examples assume a fictitious input messages that looks something like the following.
 
@@ -45,6 +45,7 @@ Examples of the types of profiles that can be built include the following.  Each
   "bytes_in": "560"
 }
 ```
+
 
 #### Example 1
 
@@ -114,7 +115,7 @@ This creates a profile...
 
 #### Example 3
 
-The average response body length of HTTP traffic. The following configuration would be used to generate this profile.
+The average of the `length` field of HTTP traffic. The following configuration would be used to generate this profile.
 
 ```
 {
@@ -129,7 +130,7 @@ The average response body length of HTTP traffic. The following configuration wo
         "cnt": 0.0
       },
       "update": {
-        "sum": "sum + resp_body_len",
+        "sum": "sum + length",
         "cnt": "cnt + 1"
       },
       "result": "sum / cnt"
@@ -142,7 +143,7 @@ This creates a profile...
  * Named ‘example3’
  * That for each IP source address
  * Only if the 'protocol' field equals 'HTTP'
- * Accumulates the sum of response body length
+ * Accumulates the sum of length
  * Accumulates the number of messages
  * Calculates the average as the result
 
@@ -160,7 +161,6 @@ The Profiler topology also accepts the following configuration settings.
 | profiler.hbase.table | The name of the HBase table that profiles are written to.  |
 | profiler.hbase.batch | The number of puts that are written in a single batch.  |
 | profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
-
 
 ## Getting Started
 
@@ -228,9 +228,9 @@ This section will describe the steps required to get your first profile running.
 
 ## Implementation
 
-The Profiler is implemented as a Storm topology using the following bolts and spouts.
-
 ## Topology
+
+The Profiler is implemented as a Storm topology using the following bolts and spouts.
 
 ### KafkaSpout
 
