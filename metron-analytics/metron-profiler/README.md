@@ -125,8 +125,7 @@ The average of the `length` field of HTTP traffic. The following configuration w
       "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      "init":   { "s": "STATS_INIT()" },
-      "update": { "_": "STATS_ADD(length, s)" },
+      "update": { "s": "STATS_ADD(s, length)" },
       "result": "STATS_MEAN(s)"
     }
   ]
@@ -137,7 +136,6 @@ This creates a profile...
  * Named ‘example3’
  * That for each IP source address
  * Only if the 'protocol' field is 'HTTP'
- * Initializes the Stats library
  * Adds the `length` field from each message
  * Calculates the average as the result
 
