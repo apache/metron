@@ -18,8 +18,14 @@
 
 package org.apache.metron.common.dsl;
 
-import org.apache.commons.net.util.SubnetUtils;
-import org.apache.metron.common.dsl.functions.*;
+import org.apache.metron.common.dsl.functions.ConversionFunctions;
+import org.apache.metron.common.dsl.functions.DataStructureFunctions;
+import org.apache.metron.common.dsl.functions.DateFunctions;
+import org.apache.metron.common.dsl.functions.MaaSFunctions;
+import org.apache.metron.common.dsl.functions.MapFunctions;
+import org.apache.metron.common.dsl.functions.NetworkFunctions;
+import org.apache.metron.common.dsl.functions.StringFunctions;
+import org.apache.metron.common.dsl.functions.SummaryStatisticsFunctions;
 import org.apache.metron.common.field.transformation.IPProtocolTransformation;
 import org.apache.metron.common.field.validation.network.DomainValidation;
 import org.apache.metron.common.field.validation.network.EmailValidation;
@@ -27,50 +33,78 @@ import org.apache.metron.common.field.validation.network.IPValidation;
 import org.apache.metron.common.field.validation.network.URLValidation;
 import org.apache.metron.common.field.validation.primitive.DateValidation;
 import org.apache.metron.common.field.validation.primitive.IntegerValidation;
-import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public enum StellarFunctions implements StellarFunction {
-  TO_LOWER(new StringFunctions.ToLower())
-  ,TO_UPPER(new StringFunctions.ToUpper())
-  ,TO_STRING(new StringFunctions.ToString())
-  ,TO_INTEGER(new ConversionFunctions.Cast<>(Integer.class))
-  ,TO_DOUBLE(new ConversionFunctions.Cast<>(Double.class))
-  ,TRIM(new StringFunctions.Trim())
-  ,JOIN(new StringFunctions.JoinFunction())
-  ,SPLIT(new StringFunctions.SplitFunction())
-  ,GET_FIRST(new StringFunctions.GetFirst())
-  ,GET_LAST(new StringFunctions.GetLast())
-  ,GET(new StringFunctions.Get())
-  ,MAP_GET(new MapFunctions.MapGet())
-  ,DOMAIN_TO_TLD(new NetworkFunctions.ExtractTLD())
-  ,DOMAIN_REMOVE_TLD(new NetworkFunctions.RemoveTLD())
-  ,DOMAIN_REMOVE_SUBDOMAINS(new NetworkFunctions.RemoveSubdomains())
-  ,URL_TO_HOST(new NetworkFunctions.URLToHost())
-  ,URL_TO_PORT(new NetworkFunctions.URLToPort())
-  ,URL_TO_PATH(new NetworkFunctions.URLToPath())
-  ,URL_TO_PROTOCOL(new NetworkFunctions.URLToProtocol())
-  ,TO_EPOCH_TIMESTAMP(new DateFunctions.ToTimestamp())
-  ,PROTOCOL_TO_NAME(new IPProtocolTransformation())
-  ,IS_EMPTY ( new DataStructureFunctions.IsEmpty())
-  ,IN_SUBNET( new NetworkFunctions.InSubnet())
-  ,STARTS_WITH( new StringFunctions.StartsWith())
-  ,ENDS_WITH( new StringFunctions.EndsWith())
-  ,REGEXP_MATCH( new StringFunctions.RegexpMatch())
-  , IS_IP(new Predicate2Transformation(new IPValidation()))
-  , IS_DOMAIN(new Predicate2Transformation(new DomainValidation()))
-  , IS_EMAIL(new Predicate2Transformation(new EmailValidation()))
-  , IS_URL(new Predicate2Transformation(new URLValidation()))
-  , IS_DATE(new Predicate2Transformation(new DateValidation()))
-  , IS_INTEGER(new Predicate2Transformation(new IntegerValidation()))
-  , MAP_EXISTS( new MapFunctions.MapExists())
-  , MAAS_GET_ENDPOINT( new MaaSFunctions.GetEndpoint())
-  , MODEL_APPLY(new MaaSFunctions.ModelApply())
-  ;
+
+  // string functions
+  TO_LOWER(new StringFunctions.ToLower()),
+  TO_UPPER(new StringFunctions.ToUpper()),
+  TRIM(new StringFunctions.Trim()),
+  JOIN(new StringFunctions.JoinFunction()),
+  SPLIT(new StringFunctions.SplitFunction()),
+  GET_FIRST(new StringFunctions.GetFirst()),
+  GET_LAST(new StringFunctions.GetLast()),
+  GET(new StringFunctions.Get()),
+  STARTS_WITH( new StringFunctions.StartsWith()),
+  ENDS_WITH( new StringFunctions.EndsWith()),
+  REGEXP_MATCH( new StringFunctions.RegexpMatch()),
+
+  // conversion functions
+  TO_STRING(new StringFunctions.ToString()),
+  TO_INTEGER(new ConversionFunctions.Cast<>(Integer.class)),
+  TO_DOUBLE(new ConversionFunctions.Cast<>(Double.class)),
+
+  // map functions
+  MAP_GET(new MapFunctions.MapGet()),
+  MAP_EXISTS( new MapFunctions.MapExists()),
+
+  // network functions
+  DOMAIN_TO_TLD(new NetworkFunctions.ExtractTLD()),
+  DOMAIN_REMOVE_TLD(new NetworkFunctions.RemoveTLD()),
+  DOMAIN_REMOVE_SUBDOMAINS(new NetworkFunctions.RemoveSubdomains()),
+  URL_TO_HOST(new NetworkFunctions.URLToHost()),
+  URL_TO_PORT(new NetworkFunctions.URLToPort()),
+  URL_TO_PATH(new NetworkFunctions.URLToPath()),
+  URL_TO_PROTOCOL(new NetworkFunctions.URLToProtocol()),
+  IN_SUBNET( new NetworkFunctions.InSubnet()),
+  PROTOCOL_TO_NAME(new IPProtocolTransformation()),
+
+  // date functions
+  TO_EPOCH_TIMESTAMP(new DateFunctions.ToTimestamp()),
+
+  // validation functions
+  IS_EMPTY ( new DataStructureFunctions.IsEmpty()),
+  IS_IP(new Predicate2Transformation(new IPValidation())),
+  IS_DOMAIN(new Predicate2Transformation(new DomainValidation())),
+  IS_EMAIL(new Predicate2Transformation(new EmailValidation())),
+  IS_URL(new Predicate2Transformation(new URLValidation())),
+  IS_DATE(new Predicate2Transformation(new DateValidation())),
+  IS_INTEGER(new Predicate2Transformation(new IntegerValidation())),
+
+  // model-as-a-service functions
+  MAAS_GET_ENDPOINT( new MaaSFunctions.GetEndpoint()),
+  MODEL_APPLY(new MaaSFunctions.ModelApply()),
+
+  // summary statistics
+  STATS_INIT(new SummaryStatisticsFunctions.Init()),
+  STATS_ADD(new SummaryStatisticsFunctions.Add()),
+  STATS_COUNT(new SummaryStatisticsFunctions.Count()),
+  STATS_MEAN(new SummaryStatisticsFunctions.Mean()),
+  STATS_GEOMETRIC_MEAN(new SummaryStatisticsFunctions.GeometricMean()),
+  STATS_MAX(new SummaryStatisticsFunctions.Max()),
+  STATS_MIN(new SummaryStatisticsFunctions.Min()),
+  STATS_SUM(new SummaryStatisticsFunctions.Sum()),
+  STATS_POPULATION_VARIANCE(new SummaryStatisticsFunctions.PopulationVariance()),
+  STATS_VARIANCE(new SummaryStatisticsFunctions.Variance()),
+  STATS_SECOND_MOMENT(new SummaryStatisticsFunctions.SecondMoment()),
+  STATS_QUADRATIC_MEAN(new SummaryStatisticsFunctions.QuadraticMean()),
+  STATS_SD(new SummaryStatisticsFunctions.StandardDeviation()),
+  STATS_SUM_LOGS(new SummaryStatisticsFunctions.SumLogs()),
+  STATS_SUM_SQUARES(new SummaryStatisticsFunctions.SumSquares());
+
   private static class Predicate2Transformation extends BaseStellarFunction {
     Predicate<List<Object>> pred;
     public Predicate2Transformation(Predicate<List<Object>> pred) {
@@ -82,12 +116,12 @@ public enum StellarFunctions implements StellarFunction {
       return pred.test(objects);
     }
   }
+
   StellarFunction func;
+
   StellarFunctions(StellarFunction func) {
     this.func = func;
   }
-
-
 
   @Override
   public Object apply(List<Object> input, Context context) {
