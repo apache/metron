@@ -38,8 +38,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static java.lang.String.format;
 
 /**
  * Tests the statistical summary functions of Stellar.
@@ -96,40 +94,15 @@ public class StellarStatisticsFunctionsTest {
     assertNotNull(result);
     variables.put("stats", result);
 
-    // add some values
-    values = Arrays.asList(10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0);
-    values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
-  }
-
-  @Test
-  public void testAddManyIntegers() throws Exception {
-    statsInit(windowSize);
-    Object result = run("STATS_COUNT(stats)", variables);
-    double countAtStart = (double) result;
-
-    run("STATS_ADD(stats, 10, 20, 30, 40, 50)", variables);
-
-    Object actual = run("STATS_COUNT(stats)", variables);
-    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
-  }
-
-  @Test
-  public void testAddManyFloats() throws Exception {
-    statsInit(windowSize);
-    Object result = run("STATS_COUNT(stats)", variables);
-    double countAtStart = (double) result;
-
-    run("STATS_ADD(stats, 10.0, 20.0, 30.0, 40.0, 50.0)", variables);
-
-    Object actual = run("STATS_COUNT(stats)", variables);
-    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+    // add the test data
+    values.stream().forEach(val -> run("STATS_ADD(" + val + ",stats)", variables));
   }
 
   @Test
   public void testCount() throws Exception {
     statsInit(windowSize);
     Object actual = run("STATS_COUNT(stats)", variables);
-    assertEquals(stats.getN(), (double) actual, 0.1);
+    assertEquals(stats.getN(), (Long) actual, 0.1);
   }
 
   @Test
@@ -137,13 +110,6 @@ public class StellarStatisticsFunctionsTest {
     statsInit(windowSize);
     Object actual = run("STATS_MEAN(stats)", variables);
     assertEquals(stats.getMean(), (Double) actual, 0.1);
-  }
-
-  @Test
-  public void testGeometricMean() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
-    assertEquals(stats.getGeometricMean(), (Double) actual, 0.1);
   }
 
   @Test
@@ -182,6 +148,13 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
+  public void testGeometricMean() throws Exception {
+    statsInit(windowSize);
+    Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
+    assertEquals(stats.getGeometricMean(), (Double) actual, 0.1);
+  }
+
+  @Test
   public void testPopulationVariance() throws Exception {
     statsInit(windowSize);
     Object actual = run("STATS_POPULATION_VARIANCE(stats)", variables);
@@ -193,6 +166,19 @@ public class StellarStatisticsFunctionsTest {
     statsInit(windowSize);
     Object actual = run("STATS_QUADRATIC_MEAN(stats)", variables);
     assertEquals(stats.getQuadraticMean(), (Double) actual, 0.1);
+  }
+
+  @Test
+  public void testSecondMomentNoWindow() throws Exception {
+    statsInit(0);
+    Object actual = run("STATS_SECOND_MOMENT(stats)", variables);
+    assertEquals(summaryStats.getSecondMoment(), (Double) actual, 0.1);
+  }
+
+  @Test(expected = ParseException.class)
+  public void testSecondMomentWithWindow() throws Exception {
+    statsInit(100);
+    Object actual = run("STATS_SECOND_MOMENT(stats)", variables);
   }
 
   @Test
@@ -245,26 +231,14 @@ public class StellarStatisticsFunctionsTest {
   public void testPercentileNoWindow() throws Exception {
     statsInit(0);
     final double percentile = 0.9;
-    Object actual = run(format("STATS_PERCENTILE(stats, %f)", percentile), variables);
+    Object actual = run("STATS_PERCENTILE(" + percentile + ", stats)", variables);
   }
 
   @Test
   public void testPercentileWithWindow() throws Exception {
     statsInit(100);
     final double percentile = 0.9;
-    Object actual = run(format("STATS_PERCENTILE(stats, %f)", percentile), variables);
+    Object actual = run("STATS_PERCENTILE(" + percentile + ", stats)", variables);
     assertEquals(stats.getPercentile(percentile), (Double) actual, 0.1);
-  }
-
-  @Test
-  public void testWithNull() throws Exception {
-    Object actual = run("STATS_MEAN(null)", variables);
-    assertTrue(((Double)actual).isNaN());
-
-    actual = run("STATS_COUNT(null)", variables);
-    assertTrue(((Double)actual).isNaN());
-
-    actual = run("STATS_VARIANCE(null)", variables);
-    assertTrue(((Double)actual).isNaN());
   }
 }

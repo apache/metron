@@ -164,6 +164,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
     bolt.setExecutor(new DefaultStellarExecutor());
+    bolt.setPeriodsPerHour(4);
 
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     return bolt;
