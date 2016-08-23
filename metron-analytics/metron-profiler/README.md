@@ -125,7 +125,7 @@ The average of the `length` field of HTTP traffic. The following configuration w
       "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      "init":   { "s": "STATS_INIT(0)" },
+      "init":   { "s": "STATS_INIT()" },
       "update": { "_": "STATS_ADD(length, s)" },
       "result": "STATS_MEAN(s)"
     }
