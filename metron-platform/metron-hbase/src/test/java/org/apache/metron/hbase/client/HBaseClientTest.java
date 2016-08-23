@@ -70,7 +70,6 @@ public class HBaseClientTest {
     Configuration config = HBaseConfiguration.create();
     config.set("hbase.master.hostname", "localhost");
     config.set("hbase.regionserver.hostname", "localhost");
-
     util = new HBaseTestingUtility(config);
     util.startMiniCluster();
   }
