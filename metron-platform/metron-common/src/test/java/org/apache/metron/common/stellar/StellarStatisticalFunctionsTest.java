@@ -33,6 +33,9 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import static java.lang.String.format;
 
 /**
  * Tests the statistical summary functions of Stellar.
@@ -43,9 +46,10 @@ public class StellarStatisticalFunctionsTest {
   private Map<String, Object> variables;
   private SummaryStatistics stats;
 
-  private static Object run(String rule, Map<String, Object> variables) {
+  private static Object run(String expr, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    assertTrue(processor.validate(expr));
+    return processor.parse(expr, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
   }
 
   @Before
@@ -59,7 +63,7 @@ public class StellarStatisticalFunctionsTest {
 
     // add some values
     values = Arrays.asList(10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0);
-    values.stream().forEach(val -> run("STATS_ADD(" + val + ",stats)", variables));
+    values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
 
     // add the same values to the StatisticalSummary object that is used for validation
     stats = new SummaryStatistics();
@@ -67,9 +71,31 @@ public class StellarStatisticalFunctionsTest {
   }
 
   @Test
+  public void testAddManyIntegers() throws Exception {
+    Object result = run("STATS_COUNT(stats)", variables);
+    double countAtStart = (double) result;
+
+    run("STATS_ADD(stats, 10, 20, 30, 40, 50)", variables);
+
+    Object actual = run("STATS_COUNT(stats)", variables);
+    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+  }
+
+  @Test
+  public void testAddManyFloats() throws Exception {
+    Object result = run("STATS_COUNT(stats)", variables);
+    double countAtStart = (double) result;
+
+    run("STATS_ADD(stats, 10.0, 20.0, 30.0, 40.0, 50.0)", variables);
+
+    Object actual = run("STATS_COUNT(stats)", variables);
+    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+  }
+
+  @Test
   public void testCount() throws Exception {
     Object actual = run("STATS_COUNT(stats)", variables);
-    assertEquals(stats.getN(), (Long) actual, 0.1);
+    assertEquals(stats.getN(), (Double) actual, 0.1);
   }
 
   @Test
@@ -142,5 +168,17 @@ public class StellarStatisticalFunctionsTest {
   public void testVariance() throws Exception {
     Object actual = run("STATS_VARIANCE(stats)", variables);
     assertEquals(stats.getVariance(), (Double) actual, 0.1);
+  }
+
+  @Test
+  public void testWithNull() throws Exception {
+    Object actual = run("STATS_MEAN(null)", variables);
+    assertTrue(((Double)actual).isNaN());
+
+    actual = run("STATS_COUNT(null)", variables);
+    assertTrue(((Double)actual).isNaN());
+
+    actual = run("STATS_VARIANCE(null)", variables);
+    assertTrue(((Double)actual).isNaN());
   }
 }

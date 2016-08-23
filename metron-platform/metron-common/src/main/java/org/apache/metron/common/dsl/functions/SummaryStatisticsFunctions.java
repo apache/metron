@@ -23,6 +23,7 @@ package org.apache.metron.common.dsl.functions;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.metron.common.utils.ConversionUtils.convert;
@@ -38,6 +39,15 @@ import static org.apache.metron.common.utils.ConversionUtils.convert;
 public class SummaryStatisticsFunctions {
 
   /**
+   * Initializes the summary statistics.
+   *
+   * Initialization can occur from either STATS_INIT and STATS_ADD.
+   */
+  private static SummaryStatistics statsInit(List<Object> args) {
+    return new SummaryStatistics();
+  }
+
+  /**
    * Initialize the summary statistics.
    *
    *  STATS_INIT ()
@@ -45,22 +55,32 @@ public class SummaryStatisticsFunctions {
   public static class Init extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return new SummaryStatistics();
+      return statsInit(args);
     }
   }
 
   /**
    * Add an input value to those that are used to calculate the summary statistics.
    *
-   *  STATS_ADD (value, stats)
+   *  STATS_ADD (stats, value [, value2, value3, ...])
    */
   public static class Add extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      double value = convert(args.get(0), Double.class);
-      SummaryStatistics stats = convert(args.get(1), SummaryStatistics.class);
-      stats.addValue(value);
-      return null;
+
+      // initialize a stats object, if one does not already exist
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      if(stats == null) {
+        stats = statsInit(Collections.emptyList());
+      }
+
+      // add each of the numeric values
+      for(int i=1; i<args.size(); i++) {
+        double value = convert(args.get(i), Double.class);
+        stats.addValue(value);
+      }
+
+      return stats;
     }
   }
 
@@ -72,7 +92,8 @@ public class SummaryStatisticsFunctions {
   public static class Mean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getMean();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getMean() : Double.NaN;
     }
   }
 
@@ -82,7 +103,8 @@ public class SummaryStatisticsFunctions {
   public static class GeometricMean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getGeometricMean();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getGeometricMean() : Double.NaN;
     }
   }
 
@@ -92,7 +114,8 @@ public class SummaryStatisticsFunctions {
   public static class Sum extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSum();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getSum() : Double.NaN;
     }
   }
 
@@ -102,7 +125,8 @@ public class SummaryStatisticsFunctions {
   public static class Max extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getMax();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getMax() : Double.NaN;
     }
   }
 
@@ -112,7 +136,8 @@ public class SummaryStatisticsFunctions {
   public static class Min extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getMin();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getMin() : Double.NaN;
     }
   }
 
@@ -122,7 +147,8 @@ public class SummaryStatisticsFunctions {
   public static class Count extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getN();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? convert(stats.getN(), Double.class) : Double.NaN;
     }
   }
 
@@ -132,7 +158,8 @@ public class SummaryStatisticsFunctions {
   public static class PopulationVariance extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getPopulationVariance();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getPopulationVariance() : Double.NaN;
     }
   }
 
@@ -142,7 +169,8 @@ public class SummaryStatisticsFunctions {
   public static class Variance extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getVariance();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getVariance() : Double.NaN;
     }
   }
 
@@ -152,7 +180,8 @@ public class SummaryStatisticsFunctions {
   public static class SecondMoment extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSecondMoment();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getSecondMoment() : Double.NaN;
     }
   }
 
@@ -162,7 +191,8 @@ public class SummaryStatisticsFunctions {
   public static class QuadraticMean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getQuadraticMean();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getQuadraticMean() : Double.NaN;
     }
   }
 
@@ -172,7 +202,8 @@ public class SummaryStatisticsFunctions {
   public static class StandardDeviation extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getStandardDeviation();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getStandardDeviation() : Double.NaN;
     }
   }
 
@@ -182,7 +213,8 @@ public class SummaryStatisticsFunctions {
   public static class SumLogs extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSumOfLogs();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getSumOfLogs() : Double.NaN;
     }
   }
 
@@ -192,7 +224,8 @@ public class SummaryStatisticsFunctions {
   public static class SumSquares extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      return convert(args.get(0), SummaryStatistics.class).getSumsq();
+      SummaryStatistics stats = convert(args.get(0), SummaryStatistics.class);
+      return (stats != null) ? stats.getSumsq() : Double.NaN;
     }
   }
 }
