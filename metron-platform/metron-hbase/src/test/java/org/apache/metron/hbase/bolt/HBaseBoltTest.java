@@ -22,30 +22,24 @@ package org.apache.metron.hbase.bolt;
 
 import backtype.storm.Constants;
 import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the HBaseBolt.
@@ -53,22 +47,12 @@ import static org.mockito.Mockito.*;
 public class HBaseBoltTest extends BaseBoltTest {
 
   private static final String tableName = "widgets";
-
-  @Mock
   private HBaseClient client;
-
-  @Mock
   private Tuple tuple1;
-
-  @Mock
   private Tuple tuple2;
-
   private Widget widget1;
-
   private Widget widget2;
-
   private HBaseMapper mapper;
-
 
   @Before
   public void setupTuples() throws Exception {
@@ -84,19 +68,18 @@ public class HBaseBoltTest extends BaseBoltTest {
 
   @Before
   public void setup() throws Exception {
-
-    // create a mapper
     mapper = new WidgetMapper();
-
+    tuple1 = mock(Tuple.class);
+    tuple2 = mock(Tuple.class);
+    client = mock(HBaseClient.class);
   }
 
   /**
    * Create a ProfileBuilderBolt to test
    */
-  private HBaseBolt createBolt() throws IOException {
+  private HBaseBolt createBolt(int batchSize) throws IOException {
     HBaseBolt bolt = new HBaseBolt(tableName, mapper)
-            .withBatchSize(2);
-
+            .withBatchSize(batchSize);
     bolt.prepare(Collections.emptyMap(), topologyContext, outputCollector);
     bolt.setClient(client);
     return bolt;
@@ -109,21 +92,23 @@ public class HBaseBoltTest extends BaseBoltTest {
    */
   @Test
   public void testBatchReady() throws Exception {
-    HBaseBolt bolt = createBolt();
+    HBaseBolt bolt = createBolt(2);
     bolt.execute(tuple1);
     bolt.execute(tuple2);
+
+    // batch size is 2, received 2 tuples - flush the batch
     verify(client, times(1)).batchMutate(any(List.class));
   }
 
   /**
-   * What happens if the batch is not full?
-   *
-   * If the batch size is 2 and we have only received 2 tuple, the batch should not be flushed.
+   * If the batch size is NOT reached, the batch should NOT be flushed.
    */
   @Test
   public void testBatchNotReady() throws Exception {
-    HBaseBolt bolt = createBolt();
+    HBaseBolt bolt = createBolt(2);
     bolt.execute(tuple1);
+
+    // batch size is 2, but only 1 tuple received - do not flush batch
     verify(client, times(0)).batchMutate(any(List.class));
   }
 
@@ -132,13 +117,13 @@ public class HBaseBoltTest extends BaseBoltTest {
    */
   @Test
   public void testTimeFlush() throws Exception {
-    HBaseBolt bolt = createBolt();
+    HBaseBolt bolt = createBolt(2);
 
     // the batch is not ready to write
     bolt.execute(tuple1);
     verify(client, times(0)).batchMutate(any(List.class));
 
-    // the batch should be written after the tick tuple
+    // the batch should be flushed after the tick tuple
     bolt.execute(mockTickTuple());
     verify(client, times(1)).batchMutate(any(List.class));
   }

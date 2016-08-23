@@ -64,8 +64,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    *   "foreach": "ip_src_addr",
    *   "onlyif": "true",
    *   "init": {
-   *     "x": 10,
-   *     "y": 20
+   *     "x": "10",
+   *     "y": "20"
    *   },
    *   "update": {
    *     "x": "x + 10",
@@ -75,7 +75,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * }
    */
   @Multiline
-  private String profile;
+  private String basicProfile;
 
   /**
    * {
@@ -103,6 +103,28 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   @Multiline
   private String profileWithBadInit;
 
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "update": { "x": "2" },
+   *   "result": "x"
+   * }
+   */
+  @Multiline
+  private String profileWithNoInit;
+
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "init": { "x": "2" },
+   *   "result": "x"
+   * }
+   */
+  @Multiline
+  private String profileWithNoUpdate;
+
   private JSONObject message;
 
   public static Tuple mockTickTuple() {
@@ -116,8 +138,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     return tuple;
   }
 
-  @Before
-  public void setup() throws Exception {
+  public void setup(String profile) throws Exception {
 
     // parse the input message
     JSONParser parser = new JSONParser();
@@ -152,8 +173,9 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * Ensure that the bolt can update a profile based on new messages that it receives.
    */
   @Test
-  public void testUpdateProfile() throws Exception {
+  public void testProfileUpdate() throws Exception {
 
+    setup(basicProfile);
     ProfileBuilderBolt bolt = createBolt();
     bolt.execute(tuple);
     bolt.execute(tuple);
@@ -164,12 +186,46 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   }
 
   /**
+   * If the 'init' field is not defined, then the profile should
+   * behave as normal, but with no variable initialization.
+   */
+  @Test
+  public void testProfileWithNoInit() throws Exception {
+
+    setup(profileWithNoInit);
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+
+    // validate
+    assertEquals(2, bolt.getExecutor().getState().get("x"));
+  }
+
+  /**
+   * If the 'update' field is not defined, then no updates should occur as messages
+   * are received.
+   */
+  @Test
+  public void testProfileWithNoUpdate() throws Exception {
+
+    setup(profileWithNoUpdate);
+    ProfileBuilderBolt bolt = createBolt();
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+    bolt.execute(tuple);
+
+    // validate
+    assertEquals(2, bolt.getExecutor().getState().get("x"));
+  }
+
+  /**
    * Ensure that the bolt can flush the profile when a tick tuple is received.
    */
   @Test
-  public void testFlushProfile() throws Exception {
+  public void testProfileFlush() throws Exception {
 
     // setup
+    setup(basicProfile);
     ProfileBuilderBolt bolt = createBolt();
     bolt.execute(tuple);
     bolt.execute(tuple);
@@ -200,8 +256,9 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * is received from the Splitter.
    */
   @Test
-  public void testFlushProfileWithNoMessages() throws Exception {
+  public void testProfileFlushWithNoMessages() throws Exception {
 
+    setup(basicProfile);
     ProfileBuilderBolt bolt = createBolt();
 
     // no messages have been received before a flush occurs
@@ -219,6 +276,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   @Test
   public void testStateClearedAfterFlush() throws Exception {
 
+    setup(basicProfile);
     ProfileBuilderBolt bolt = createBolt();
     bolt.execute(tuple);
     bolt.execute(tuple);
@@ -236,8 +294,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   public void testProfileWithBadUpdate() throws Exception {
 
     // setup - ensure the bad profile is used
-    ProfileConfig profileConfig = JSONUtils.INSTANCE.load(profileWithBadUpdate, ProfileConfig.class);
-    when(tuple.getValueByField(eq("profile"))).thenReturn(profileConfig);
+    setup(profileWithBadUpdate);
 
     // execute
     ProfileBuilderBolt bolt = createBolt();
@@ -255,8 +312,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   public void testProfileWithBadInit() throws Exception {
 
     // setup - ensure the bad profile is used
-    ProfileConfig profileConfig = JSONUtils.INSTANCE.load(profileWithBadInit, ProfileConfig.class);
-    when(tuple.getValueByField(eq("profile"))).thenReturn(profileConfig);
+    setup(profileWithBadInit);
 
     // execute
     ProfileBuilderBolt bolt = createBolt();

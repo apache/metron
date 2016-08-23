@@ -23,7 +23,7 @@ package org.apache.metron.profiler.integration;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
@@ -36,12 +36,16 @@ import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.profiler.bolt.ProfileHBaseMapper;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,6 +116,117 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  /**
+   * Tests the first example contained within the README.
+   */
+  @Test
+  public void testExample1() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - there are 5 'HTTP' each with 390 bytes
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(390.0 * 5, actual, 0.01);
+  }
+
+  /**
+   * Tests the second example contained within the README.
+   */
+  @Test
+  public void testExample2() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - there are 5 'HTTP' and 5 'DNS' messages thus 5/5 = 1
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(5.0 / 5.0, actual, 0.01);
+  }
+
+  /**
+   * Tests the third example contained within the README.
+   */
+  @Test
+  public void testExample3() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
+    double actual = readDouble(ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(20.0, actual, 0.01);
+  }
+
+  @Test
+  public void testWriteInteger() throws Exception {
+
+    setup(TEST_RESOURCES + "/config/zookeeper/write-integer");
+
+    // start the topology and write test messages to kafka
+    fluxComponent.submitTopology();
+    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+            timeout(seconds(90)));
+
+    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
+    double actual = readInteger(ProfileHBaseMapper.QVALUE);
+    Assert.assertEquals(10.0, actual, 0.01);
+  }
+
+  /**
+   * Reads a Double value written by the Profiler.
+   * @param columnQual The column qualifier.
+   */
+  private Double readDouble(byte[] columnQual) throws IOException {
+    ResultScanner scanner = profilerTable.getScanner(Bytes.toBytes(columnFamily), columnQual);
+
+    for (Result result : scanner) {
+      byte[] raw = result.getValue(Bytes.toBytes(columnFamily), ProfileHBaseMapper.QVALUE);
+      return Bytes.toDouble(raw);
+    }
+
+    throw new IllegalStateException("No results found");
+  }
+
+  /**
+   * Reads an Integer value written by the Profiler.
+   * @param columnQual The column qualifier.
+   */
+  private Integer readInteger(byte[] columnQual) throws IOException {
+    ResultScanner scanner = profilerTable.getScanner(Bytes.toBytes(columnFamily), columnQual);
+
+    for (Result result : scanner) {
+      byte[] raw = result.getValue(Bytes.toBytes(columnFamily), ProfileHBaseMapper.QVALUE);
+      return Bytes.toInt(raw);
+    }
+
+    throw new IllegalStateException("No results found");
+  }
+
   public void setup(String pathToConfig) throws Exception {
 
     // create input messages for the profiler to consume
@@ -171,56 +286,5 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     if (runner != null) {
       runner.stop();
     }
-  }
-
-  /**
-   * Tests the first example contained within the README.
-   */
-  @Test
-  public void testExample1() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
-  }
-
-  /**
-   * Tests the second example contained within the README.
-   */
-  @Test
-  public void testExample2() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
-  }
-
-  /**
-   * Tests the third example contained within the README.
-   */
-  @Test
-  public void testExample3() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
   }
 }

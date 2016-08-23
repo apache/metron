@@ -201,6 +201,8 @@
                         <exclude>metron-ui/lib/public/css/font-awesome.min.css</exclude>
                         <exclude>metron-ui/lib/public/font/**</exclude>
                         <exclude>metron-ui/node_modules/**</exclude>
+			<!-- pickle file - binary format -->
+			<exclude>metron-deployment/packaging/ambari/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/*.p</exclude>
                     </excludes>
                 </configuration>
             </plugin>

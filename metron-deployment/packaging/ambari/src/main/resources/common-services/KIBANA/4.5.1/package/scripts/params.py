@@ -23,6 +23,7 @@ Kibana Params configurations
 
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import format
+from urlparse import urlparse
 
 # server configurations
 config = Script.get_config()
@@ -37,6 +38,9 @@ log_dir = config['configurations']['kibana-env']['kibana_log_dir']
 pid_dir = config['configurations']['kibana-env']['kibana_pid_dir']
 pid_file = format("{pid_dir}/kibanasearch.pid")
 es_url = config['configurations']['kibana-env']['kibana_es_url']
+parsed = urlparse(es_url)
+es_host = parsed.netloc.split(':')[0]
+es_port = parsed.netloc.split(':')[1]
 kibana_port = config['configurations']['kibana-env']['kibana_server_port']
 hostname = config['hostname']
 java64_home = config['hostLevelParams']['java_home']

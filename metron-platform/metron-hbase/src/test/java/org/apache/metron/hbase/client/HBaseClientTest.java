@@ -24,23 +24,30 @@ import backtype.storm.tuple.Tuple;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Durability;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
 import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
 import org.apache.storm.hbase.bolt.mapper.HBaseProjectionCriteria;
 import org.apache.storm.hbase.common.ColumnList;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the HBaseClient
@@ -52,13 +59,10 @@ public class HBaseClientTest {
   private static HBaseTestingUtility util;
   private HBaseClient client;
   private HTableInterface table;
-
   private Tuple tuple1;
   private Tuple tuple2;
-
   private Widget widget1;
   private Widget widget2;
-
   private HBaseMapper mapper;
 
   @BeforeClass
@@ -67,7 +71,7 @@ public class HBaseClientTest {
     config.set("hbase.master.hostname", "localhost");
     config.set("hbase.regionserver.hostname", "localhost");
     util = new HBaseTestingUtility(config);
-    util.startMiniCluster(1);
+    util.startMiniCluster();
   }
 
   @AfterClass

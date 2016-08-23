@@ -158,5 +158,4 @@ public class DefaultStellarExecutorTest {
     executor.execute("2", message, Short.class, Context.EMPTY_CONTEXT());
     executor.execute("2", message, Long.class, Context.EMPTY_CONTEXT());
   }
-
 }
