@@ -219,18 +219,6 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitOperand(StellarParser.OperandContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code IdentifierOperand}
-	 * labeled alternative in {@link StellarParser#comparison_operand}.
-	 * @param ctx the parse tree
-	 */
-	void enterIdentifierOperand(StellarParser.IdentifierOperandContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code IdentifierOperand}
-	 * labeled alternative in {@link StellarParser#comparison_operand}.
-	 * @param ctx the parse tree
-	 */
-	void exitIdentifierOperand(StellarParser.IdentifierOperandContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link StellarParser#transformation_entity}.
 	 * @param ctx the parse tree
 	 */
@@ -471,6 +459,18 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitParenArith(StellarParser.ParenArithContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code condExpr}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void enterCondExpr(StellarParser.CondExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code condExpr}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void exitCondExpr(StellarParser.CondExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code LogicalConst}
 	 * labeled alternative in {@link StellarParser#identifier_operand}.
 	 * @param ctx the parse tree
@@ -554,4 +554,16 @@ public interface StellarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExistsFunc(StellarParser.ExistsFuncContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code condExpr_paren}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterCondExpr_paren(StellarParser.CondExpr_parenContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code condExpr_paren}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitCondExpr_paren(StellarParser.CondExpr_parenContext ctx);
 }
