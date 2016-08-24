@@ -2,12 +2,12 @@
   "inputTopic": "indexing",
   "profiles": [
     {
-      "profile": "example3",
+      "profile": "percentiles",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
       "init":   { "s": "STATS_INIT(100)" },
-      "update": { "_": "STATS_ADD(length, s)" },
-      "result": "STATS_PERCENTILE(0.7, s)"
+      "update": { "s": "STATS_ADD(s, length)" },
+      "result": "STATS_PERCENTILE(s, 0.7)"
     }
   ]
 }
