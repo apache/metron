@@ -100,6 +100,9 @@ public class MaaSFunctions {
                                  " [endpoint method:string], model_args:map"
                                  );
       }
+      if(!isInitialized) {
+        return null;
+      }
       int i = 0;
       if(args.size() == 0) {
         return null;
@@ -267,7 +270,7 @@ public class MaaSFunctions {
           isValidState = true;
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
-          return;
+          throw new IllegalStateException("Unable to initialize MAAS_GET_ENDPOINT", e);
         }
       }
       finally {
