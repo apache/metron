@@ -181,17 +181,6 @@ public class StellarStatisticsFunctions {
   }
 
   /**
-   * Calculates the second moment.
-   */
-  public static class SecondMoment extends BaseStellarFunction {
-    @Override
-    public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
-      return (stats != null) ? stats.getSecondMoment() : Double.NaN;
-    }
-  }
-
-  /**
    * Calculates the quadratic mean.
    */
   public static class QuadraticMean extends BaseStellarFunction {

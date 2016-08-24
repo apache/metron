@@ -196,19 +196,6 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
-  public void testSecondMomentNoWindow() throws Exception {
-    statsInit(0);
-    Object actual = run("STATS_SECOND_MOMENT(stats)", variables);
-    assertEquals(summaryStats.getSecondMoment(), (Double) actual, 0.1);
-  }
-
-  @Test(expected = ParseException.class)
-  public void testSecondMomentWithWindow() throws Exception {
-    statsInit(100);
-    Object actual = run("STATS_SECOND_MOMENT(stats)", variables);
-  }
-
-  @Test
   public void testSumLogsNoWindow() throws Exception {
     statsInit(0);
     Object actual = run("STATS_SUM_LOGS(stats)", variables);

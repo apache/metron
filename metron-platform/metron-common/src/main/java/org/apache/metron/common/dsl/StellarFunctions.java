@@ -99,7 +99,6 @@ public enum StellarFunctions implements StellarFunction {
   STATS_SUM(new StellarStatisticsFunctions.Sum()),
   STATS_POPULATION_VARIANCE(new StellarStatisticsFunctions.PopulationVariance()),
   STATS_VARIANCE(new StellarStatisticsFunctions.Variance()),
-  STATS_SECOND_MOMENT(new StellarStatisticsFunctions.SecondMoment()),
   STATS_QUADRATIC_MEAN(new StellarStatisticsFunctions.QuadraticMean()),
   STATS_SD(new StellarStatisticsFunctions.StandardDeviation()),
   STATS_SUM_LOGS(new StellarStatisticsFunctions.SumLogs()),

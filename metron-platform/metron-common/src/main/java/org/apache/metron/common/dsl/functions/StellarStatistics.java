@@ -149,14 +149,6 @@ public class StellarStatistics implements Serializable {
     }
   }
 
-  public double getSecondMoment() {
-    if(descStats != null) {
-      throw new NotImplementedException("second moment not available if 'windowSize' > 0");
-    } else {
-      return summStats.getSecondMoment();
-    }
-  }
-
   public double getQuadraticMean() {
     if(descStats != null) {
       return descStats.getQuadraticMean();
