@@ -125,15 +125,8 @@ The average of the `length` field of HTTP traffic. The following configuration w
       "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      "init": {
-        "sum": 0.0,
-        "cnt": 0.0
-      },
-      "update": {
-        "sum": "sum + length",
-        "cnt": "cnt + 1"
-      },
-      "result": "sum / cnt"
+      "update": { "s": "STATS_ADD(s, length)" },
+      "result": "STATS_MEAN(s)"
     }
   ]
 }
@@ -142,9 +135,8 @@ The average of the `length` field of HTTP traffic. The following configuration w
 This creates a profile...
  * Named ‘example3’
  * That for each IP source address
- * Only if the 'protocol' field equals 'HTTP'
- * Accumulates the sum of length
- * Accumulates the number of messages
+ * Only if the 'protocol' field is 'HTTP'
+ * Adds the `length` field from each message
  * Calculates the average as the result
 
 ### Topology Configuration

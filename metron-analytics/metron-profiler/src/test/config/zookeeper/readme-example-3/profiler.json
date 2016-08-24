@@ -5,16 +5,8 @@
       "profile": "example3",
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'HTTP'",
-      "init": {
-        "sum": 0.0,
-        "cnt": 0.0
-      },
-      "update": {
-        "sum": "sum + length",
-        "cnt": "cnt + 1"
-      },
-      "result": "sum / cnt"
+      "update": { "s": "STATS_ADD(s, length)" },
+      "result": "STATS_MEAN(s)"
     }
   ]
 }
-

@@ -202,10 +202,11 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * @param columnQual The column qualifier.
    */
   private Double readDouble(byte[] columnQual) throws IOException {
-    ResultScanner scanner = profilerTable.getScanner(Bytes.toBytes(columnFamily), columnQual);
+    final byte[] cf = Bytes.toBytes(columnFamily);
+    ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(Bytes.toBytes(columnFamily), ProfileHBaseMapper.QVALUE);
+      byte[] raw = result.getValue(cf, ProfileHBaseMapper.QVALUE);
       return Bytes.toDouble(raw);
     }
 
@@ -217,10 +218,11 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * @param columnQual The column qualifier.
    */
   private Integer readInteger(byte[] columnQual) throws IOException {
-    ResultScanner scanner = profilerTable.getScanner(Bytes.toBytes(columnFamily), columnQual);
+    final byte[] cf = Bytes.toBytes(columnFamily);
+    ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(Bytes.toBytes(columnFamily), ProfileHBaseMapper.QVALUE);
+      byte[] raw = result.getValue(cf, ProfileHBaseMapper.QVALUE);
       return Bytes.toInt(raw);
     }
 
@@ -246,7 +248,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.salt.divisor", "10");
       setProperty("profiler.hbase.table", tableName);
       setProperty("profiler.hbase.batch", "10");
-      setProperty("profiler.hbase.flush.interval.seconds", "2");
+      setProperty("profiler.hbase.flush.interval.seconds", "1");
       setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
     }};
 
