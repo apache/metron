@@ -240,6 +240,9 @@ public class StellarCompiler extends StellarBaseListener {
     StellarFunction func = null;
     try {
       func = functionResolver.apply(funcName);
+      if(!func.isInitialized()) {
+        func.initialize(context);
+      }
     }
     catch(Exception iae) {
       throw new ParseException("Unable to find string function " + funcName + ".  Valid functions are "
