@@ -193,6 +193,7 @@ public class MaaSFunctions {
         LOG.error(ex.getMessage(), ex);
       }
       finally {
+        //We always want to set initialize to true because we don't want to keep trying to initialize over and over
         isInitialized = true;
       }
     }
