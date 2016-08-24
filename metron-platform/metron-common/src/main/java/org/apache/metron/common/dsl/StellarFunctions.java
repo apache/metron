@@ -25,7 +25,7 @@ import org.apache.metron.common.dsl.functions.MaaSFunctions;
 import org.apache.metron.common.dsl.functions.MapFunctions;
 import org.apache.metron.common.dsl.functions.NetworkFunctions;
 import org.apache.metron.common.dsl.functions.StringFunctions;
-import org.apache.metron.common.dsl.functions.SummaryStatisticsFunctions;
+import org.apache.metron.common.dsl.functions.StellarStatisticsFunctions;
 import org.apache.metron.common.field.transformation.IPProtocolTransformation;
 import org.apache.metron.common.field.validation.network.DomainValidation;
 import org.apache.metron.common.field.validation.network.EmailValidation;
@@ -89,21 +89,23 @@ public enum StellarFunctions implements StellarFunction {
   MODEL_APPLY(new MaaSFunctions.ModelApply()),
 
   // summary statistics
-  STATS_INIT(new SummaryStatisticsFunctions.Init()),
-  STATS_ADD(new SummaryStatisticsFunctions.Add()),
-  STATS_COUNT(new SummaryStatisticsFunctions.Count()),
-  STATS_MEAN(new SummaryStatisticsFunctions.Mean()),
-  STATS_GEOMETRIC_MEAN(new SummaryStatisticsFunctions.GeometricMean()),
-  STATS_MAX(new SummaryStatisticsFunctions.Max()),
-  STATS_MIN(new SummaryStatisticsFunctions.Min()),
-  STATS_SUM(new SummaryStatisticsFunctions.Sum()),
-  STATS_POPULATION_VARIANCE(new SummaryStatisticsFunctions.PopulationVariance()),
-  STATS_VARIANCE(new SummaryStatisticsFunctions.Variance()),
-  STATS_SECOND_MOMENT(new SummaryStatisticsFunctions.SecondMoment()),
-  STATS_QUADRATIC_MEAN(new SummaryStatisticsFunctions.QuadraticMean()),
-  STATS_SD(new SummaryStatisticsFunctions.StandardDeviation()),
-  STATS_SUM_LOGS(new SummaryStatisticsFunctions.SumLogs()),
-  STATS_SUM_SQUARES(new SummaryStatisticsFunctions.SumSquares());
+  STATS_INIT(new StellarStatisticsFunctions.Init()),
+  STATS_ADD(new StellarStatisticsFunctions.Add()),
+  STATS_COUNT(new StellarStatisticsFunctions.Count()),
+  STATS_MEAN(new StellarStatisticsFunctions.Mean()),
+  STATS_GEOMETRIC_MEAN(new StellarStatisticsFunctions.GeometricMean()),
+  STATS_MAX(new StellarStatisticsFunctions.Max()),
+  STATS_MIN(new StellarStatisticsFunctions.Min()),
+  STATS_SUM(new StellarStatisticsFunctions.Sum()),
+  STATS_POPULATION_VARIANCE(new StellarStatisticsFunctions.PopulationVariance()),
+  STATS_VARIANCE(new StellarStatisticsFunctions.Variance()),
+  STATS_QUADRATIC_MEAN(new StellarStatisticsFunctions.QuadraticMean()),
+  STATS_SD(new StellarStatisticsFunctions.StandardDeviation()),
+  STATS_SUM_LOGS(new StellarStatisticsFunctions.SumLogs()),
+  STATS_SUM_SQUARES(new StellarStatisticsFunctions.SumSquares()),
+  STATS_KURTOSIS(new StellarStatisticsFunctions.Kurtosis()),
+  STATS_SKEWNESS(new StellarStatisticsFunctions.Skewness()),
+  STATS_PERCENTILE(new StellarStatisticsFunctions.Percentile());
 
   private static class Predicate2Transformation extends BaseStellarFunction {
     Predicate<List<Object>> pred;

@@ -1,0 +1,13 @@
+{
+  "inputTopic": "indexing",
+  "profiles": [
+    {
+      "profile": "percentiles",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'HTTP'",
+      "init":   { "s": "STATS_INIT(100)" },
+      "update": { "s": "STATS_ADD(s, length)" },
+      "result": "STATS_PERCENTILE(s, 0.7)"
+    }
+  ]
+}
