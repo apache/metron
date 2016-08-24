@@ -151,7 +151,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <excludes>
+                  <excludes>
+                        <exclude>dependencies_with_url.csv</exclude>
                         <exclude>**/README.md</exclude>
                         <exclude>**/VERSION</exclude>
                         <exclude>**/*.json</exclude>
@@ -173,36 +174,8 @@
                         <exclude>**/target/**</exclude>
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
                         <exclude>**/files/opensoc-ui</exclude>
-                        <exclude>metron-ui/lib/public/css/normalize.min.css</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/pcap/lib/showdown.js</exclude>
-                        <!-- 3rd party bundled javascript dependencies -->
-                        <exclude>metron-ui/lib/public/vendor/**</exclude>
-                        <!-- Kibana panels copied from kibana and bundled -->
-                        <exclude>metron-ui/lib/public/app/panels/dashcontrol/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/filtering/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/histogram/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/hits/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/map/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/query/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/sparklines/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/table/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/terms/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/text/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/timepicker/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/trends/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/bettermap/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/column/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/derivequeries/**</exclude>
-                        <exclude>metron-ui/lib/public/app/panels/stats/**</exclude>
-                        <exclude>metron-ui/lib/public/app/partials/**</exclude>
-                        <exclude>metron-ui/lib/public/app/services/**</exclude>
-                        <exclude>metron-ui/lib/public/app/services/**</exclude>
-                        <!-- fontawesome fonts are declared in the license, so we can exclude here -->
-                        <exclude>metron-ui/lib/public/css/font-awesome.min.css</exclude>
-                        <exclude>metron-ui/lib/public/font/**</exclude>
-                        <exclude>metron-ui/node_modules/**</exclude>
-			<!-- pickle file - binary format -->
-			<exclude>metron-deployment/packaging/ambari/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/*.p</exclude>
+                        <!-- pickle file - binary format -->
+                  			<exclude>metron-deployment/packaging/ambari/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/*.p</exclude>
                     </excludes>
                 </configuration>
             </plugin>
