@@ -32,6 +32,30 @@ import java.util.Map;
 public class StellarTest {
 
   @Test
+  public void testIfThenElseBug1() {
+    String query = "50 + (true == true ? 10 : 20)";
+    Assert.assertEquals(60.0, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void testIfThenElseBug2() {
+    String query = "50 + (true == false ? 10 : 20)";
+    Assert.assertEquals(70.0, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void testIfThenElseBug3() {
+    String query = "50 * (true == false ? 2 : 10) + 20";
+    Assert.assertEquals(520.0, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void testIfThenElseBug4() {
+    String query = "TO_INTEGER(true == true ? 10 : 20 )";
+    Assert.assertEquals(10, run(query, new HashMap<>()));
+  }
+
+  @Test
   public void testVariablesUsed() {
     StellarProcessor processor = new StellarProcessor();
     {
