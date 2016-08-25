@@ -18,20 +18,19 @@
 
 package org.apache.metron.common.field.transformation;
 
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.dsl.VariableResolver;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class RemoveTransformation implements FieldTransformation {
   public static final String CONDITION_CONF = "condition";
   public static final StellarPredicateProcessor PASSTHROUGH_PROCESSOR = new StellarPredicateProcessor() {
     @Override
-    public Boolean parse(String rule, VariableResolver resolver) {
+    public Boolean parse(String rule, VariableResolver resolver, Function<String, StellarFunction> functionResolver, Context context) {
       return true;
     }
 
@@ -69,10 +68,11 @@ public class RemoveTransformation implements FieldTransformation {
                                 , final List<String> outputFields
                                 , Map<String, Object> fieldMappingConfig
                                 , Map<String, Object> sensorConfig
+                                , Context context
                                 ) {
     String condition = getCondition(fieldMappingConfig);
     StellarPredicateProcessor processor = getPredicateProcessor(condition);
-    if(processor.parse(condition, new MapVariableResolver(input))) {
+    if(processor.parse(condition, new MapVariableResolver(input), StellarFunctions.FUNCTION_RESOLVER(), context)) {
       return new HashMap<String, Object>() {{
         for(String outputField : outputFields) {
           put(outputField, null);

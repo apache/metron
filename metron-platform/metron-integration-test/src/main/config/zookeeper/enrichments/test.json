@@ -14,7 +14,15 @@
       "hbaseEnrichment": [
         "ip_src_addr",
         "ip_dst_addr"
-      ]
+      ],
+      "stellar" : {
+        "config" : {
+          "numeric" : {
+                      "foo": "1 + 1"
+                      }
+          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+        }
+      }
     }
   ,"fieldToTypeMap": {
       "ip_src_addr": [
@@ -30,7 +38,12 @@
       "hbaseThreatIntel": [
         "ip_src_addr",
         "ip_dst_addr"
-      ]
+      ],
+      "stellar" : {
+        "config" : {
+          "bar" : "TO_UPPER(source.type)"
+        }
+      }
     },
     "fieldToTypeMap": {
       "ip_src_addr": [

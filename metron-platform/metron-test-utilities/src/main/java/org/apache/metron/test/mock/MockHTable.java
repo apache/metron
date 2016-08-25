@@ -118,7 +118,6 @@ public class MockHTable implements HTableInterface {
     }
   }
 
-
   @Override
   public byte[] getTableName() {
     return Bytes.toBytes(tableName);
@@ -200,8 +199,8 @@ public class MockHTable implements HTableInterface {
 
   @Override
   public void batch(List<? extends Row> list, Object[] objects) throws IOException, InterruptedException {
-    throw new UnsupportedOperationException();
-
+    Object[] results = batch(list);
+    System.arraycopy(results, 0, objects, 0, results.length);
   }
 
   /**

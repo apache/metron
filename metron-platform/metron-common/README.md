@@ -47,6 +47,8 @@ The query language supports the following:
     * `URL_TO_PORT(url)` : Returns the port from a URL
     * `URL_TO_PATH(url)` : Returns the path from a URL
     * `TO_EPOCH_TIMESTAMP(dateTime, format, timezone)` : Returns the epoch timestamp of the `dateTime` given the `format`.  If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the `timezone` optionally.
+    * `MODEL_APPLY(endpoint, function?, model_args)` : Returns the output of a model deployed via model which is deployed at endpoint.  `endpoint` is a map containing `name`, `version`, `url` for the REST endpoint, `function` is the endpoint path and is optional, and `model_args` is a dictionary of arguments for the model (these become request params).
+    * `MAAS_GET_ENDPOINT(model_name, model_version?)` : Inspects zookeeper and returns a map containing the `name`, `version` and `url` for the model referred to by `model_name` and `model_version`.  If `model_version` is not specified, the most current model associated with `model_name` is returned.  In the instance where more than one model is deployed, a random one is selected with uniform probability.
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:
@@ -149,12 +151,64 @@ The configuration is a complex JSON object with the following top level fields:
 | Field            | Description                                                                                                                                                                                                                   | Example                                                          |
 |------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
 | `fieldToTypeMap` | In the case of a simple HBase enrichment (i.e. a key/value lookup), the mapping between fields and the enrichment types associated with those fields must be known.  This enrichment type is used as part of the HBase key. | `"fieldToTypeMap" : { "ip_src_addr" : [ "asset_enrichment" ] }`  |
-| `fieldMap`       | The map of enrichment bolts names to fields in the JSON messages.,Each field is sent to the enrichment referenced in the key.                                                                                                 | `"fieldMap": {"hbaseEnrichment": ["ip_src_addr","ip_dst_addr"]}` |
-| `config`         | The general configuration for the enrichment                                                                                                                                                                                  | `"config": {"typeToColumnFamily": { "asset_enrichment","cf" } }` |
+| `fieldMap`       | The map of enrichment bolts names to configuration handlers which know how to split the message up.  The simplest of which is just a list of fields.  More complex examples would be the stellar enrichment which provides stellar statements.  Each field is sent to the enrichment referenced in the key.                                                                                                 | `"fieldMap": {"hbaseEnrichment": ["ip_src_addr","ip_dst_addr"]}` |
+| `config`         | The general configuration for the enrichment                                                                                                                                                                                  | `"config": {"typeToColumnFamily": { "asset_enrichment" : "cf" } }` |
 
 The `config` map is intended to house enrichment specific configuration.
 For instance, for the `hbaseEnrichment`, the mappings between the
 enrichment types to the column families is specified.
+
+The `fieldMap`contents are of interest because they contain the routing and configuration information for the enrichments.  When we say 'routing', we mean how the messages get split up and sent to the enrichment adapter bolts.  The simplest, by far, is just providing a simple list as in
+```
+    "fieldMap": {
+      "geo": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "host": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "hbaseEnrichment": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ]
+      }
+```
+For the `geo`, `host` and `hbaseEnrichment`, this is sufficient.  However, more complex enrichments may contain their own configuration.  Currently, the `stellar` enrichment requires a more complex configuration, such as:
+```
+    "fieldMap": {
+       ...
+      "stellar" : {
+        "config" : {
+          "numeric" : {
+                      "foo": "1 + 1"
+                      }
+          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+        }
+      }
+    }
+```
+
+Whereas the simpler enrichments just need a set of fields explicitly stated so they can be separated from the message and sent to the enrichment adapter bolt for enrichment and ultimately joined back in the join bolt, the stellar enrichment has its set of required fields implicitly stated through usage.  For instance, if your stellar statement references a field, it should be included and if not, then it should not be included.  We did not want to require users to make explicit the implicit.
+
+The other way in which the stellar enrichment is somewhat more complex is in how the statements are executed.  In the general purpose case for a list of fields, those fields are used to create a message to send to the enrichment adapter bolt and that bolt's worker will handle the fields one by one in serial for a given message.  For stellar enrichment, we wanted to have a more complex design so that users could specify the groups of stellar statements sent to the same worker in the same message (and thus executed sequentially).  Consider the following configuration:
+```
+    "fieldMap": {
+      "stellar" : {
+        "config" : {
+          "numeric" : {
+                      "foo": "1 + 1"
+                      "bar" : TO_LOWER(source.type)"
+                      }
+         ,"text" : {
+                   "ALL_CAPS" : "TO_UPPER(source.type)"
+                   }
+        }
+      }
+    }
+```
+We have a group called `numeric` whose stellar statements will be executed sequentially.  In parallel to that, we have the group of stellar statements under the group `text` executing.  The intent here is to allow you to not force higher latency operations to be done sequentially.
 
 ###The `threatIntel` Configuration 
 

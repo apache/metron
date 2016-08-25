@@ -61,7 +61,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 	}
 
 	public JSONObject enrich(CacheKey k) {
-		String metadata = k.getValue();
+		String metadata = k.getValue(String.class);
 		JSONObject output = new JSONObject();
 		LOGGER.debug("=======Looking Up For:" + metadata);
 		output.putAll(getCIFObject(metadata));
@@ -134,5 +134,10 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 	@Override
 	public void cleanup() {
 
+	}
+
+	@Override
+	public String getOutputPrefix(CacheKey value) {
+		return value.getField();
 	}
 }

@@ -1,0 +1,114 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "profiler"
+
+config:
+    topology.workers: ${profiler.workers}
+    topology.acker.executors: ${profiler.executors}
+
+components:
+
+    -   id: "defaultExecutor"
+        className: "org.apache.metron.profiler.stellar.DefaultStellarExecutor"
+
+    -   id: "hbaseMapper"
+        className: "org.apache.metron.profiler.bolt.ProfileHBaseMapper"
+        properties:
+            - name: "saltDivisor"
+              value: ${profiler.hbase.salt.divisor}
+
+    -   id: "zkHosts"
+        className: "storm.kafka.ZkHosts"
+        constructorArgs:
+            - "${kafka.zk}"
+
+    -   id: "kafkaConfig"
+        className: "org.apache.metron.common.spout.kafka.SpoutConfig"
+        constructorArgs:
+            # zookeeper hosts
+            - ref: "zkHosts"
+            # topic name
+            - "${profiler.input.topic}"
+            # zk root
+            - ""
+            # id
+            - "indexing"
+        configMethods:
+            -   name: "from"
+                args:
+                    - "${kafka.start}"
+
+spouts:
+
+    -   id: "kafkaSpout"
+        className: "storm.kafka.KafkaSpout"
+        constructorArgs:
+            - ref: "kafkaConfig"
+
+bolts:
+
+    -   id: "splitterBolt"
+        className: "org.apache.metron.profiler.bolt.ProfileSplitterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        properties:
+            - name: "executor"
+              ref: "defaultExecutor"
+
+    -   id: "builderBolt"
+        className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        properties:
+            - name: "executor"
+              ref: "defaultExecutor"
+            - name: "flushFrequency"
+              value: ${profiler.flush.interval.seconds}
+
+    -   id: "hbaseBolt"
+        className: "org.apache.metron.hbase.bolt.HBaseBolt"
+        constructorArgs:
+            - "${profiler.hbase.table}"
+            - ref: "hbaseMapper"
+        configMethods:
+            - name: "withTableProvider"
+              args: ["${hbase.provider.impl}"]
+            - name: "withBatchSize"
+              args: [${profiler.hbase.batch}]
+            - name: "withFlushIntervalSecs"
+              args: [${profiler.hbase.flush.interval.seconds}]
+
+streams:
+
+    -   name: "spout -> splitter"
+        from: "kafkaSpout"
+        to: "splitterBolt"
+        grouping:
+            type: SHUFFLE
+
+    -   name: "splitter -> builder"
+        from: "splitterBolt"
+        to: "builderBolt"
+        grouping:
+            type: FIELDS
+            args: ["entity", "profile", "message"]
+
+    -   name: "builder -> hbase"
+        from: "builderBolt"
+        to: "hbaseBolt"
+        grouping:
+            type: SHUFFLE

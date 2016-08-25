@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.filters;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
@@ -66,7 +67,7 @@ public class BroMessageFilter implements MessageFilter<JSONObject>{
    * @return      False if message if filtered and True if message is not filtered
    */
 
-  public boolean emitTuple(JSONObject message) {
+  public boolean emitTuple(JSONObject message, Context context) {
     String protocol = (String) message.get(_key);
     return _known_protocols.contains(protocol);
   }

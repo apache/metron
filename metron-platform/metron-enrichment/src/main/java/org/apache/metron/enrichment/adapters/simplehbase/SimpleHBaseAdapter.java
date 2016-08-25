@@ -76,7 +76,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       try {
         for (LookupKV<EnrichmentKey, EnrichmentValue> kv :
                 lookup.get(Iterables.transform(enrichmentTypes
-                                              , new EnrichmentUtils.TypeToKey( value.getValue()
+                                              , new EnrichmentUtils.TypeToKey( value.getValue(String.class)
                                                                              , lookup.getTable()
                                                                              , value.getConfig().getEnrichment()
                                                                              )
@@ -125,5 +125,10 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     } catch (Exception e) {
       _LOG.error("Unable to cleanup access tracker", e);
     }
+  }
+
+  @Override
+  public String getOutputPrefix(CacheKey value) {
+    return value.getField();
   }
 }
