@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.hadoop.security.authorize.Service;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
@@ -183,10 +184,21 @@ public class MaaSFunctions {
 
     @Override
     public synchronized void initialize(Context context) {
+
       try {
         Optional<ServiceDiscoverer> discovererOpt = (Optional) (context.getCapability(Context.Capabilities.SERVICE_DISCOVERER));
         if (discovererOpt.isPresent()) {
           discoverer = discovererOpt.get();
+        }
+        else {
+          Optional<Object> clientOptional = context.getCapability(Context.Capabilities.ZOOKEEPER_CLIENT);
+          CuratorFramework client = null;
+          if (clientOptional.isPresent() && clientOptional.get() instanceof CuratorFramework) {
+            client = (CuratorFramework) clientOptional.get();
+          } else {
+            throw new IllegalStateException("Unable to initialize function: Cannot find zookeeper client.");
+          }
+          discoverer = createDiscoverer(client);
         }
       }
       catch(Exception ex) {
@@ -202,6 +214,13 @@ public class MaaSFunctions {
     public boolean isInitialized() {
       return isInitialized;
     }
+  }
+
+  private static ServiceDiscoverer createDiscoverer(CuratorFramework client) throws Exception {
+    MaaSConfig config = ConfigUtil.INSTANCE.read(client, "/metron/maas/config", new MaaSConfig(), MaaSConfig.class);
+    ServiceDiscoverer discoverer = new ServiceDiscoverer(client, config.getServiceRoot());
+    discoverer.start();
+    return discoverer;
   }
 
   public static class GetEndpoint implements StellarFunction {
@@ -261,12 +280,10 @@ public class MaaSFunctions {
         if (clientOptional.isPresent() && clientOptional.get() instanceof CuratorFramework) {
           client = (CuratorFramework) clientOptional.get();
         } else {
-          return;
+          throw new IllegalStateException("Unable to initialize function: Cannot find zookeeper client.");
         }
         try {
-          MaaSConfig config = ConfigUtil.INSTANCE.read(client, "/metron/maas/config", new MaaSConfig(), MaaSConfig.class);
-          discoverer = new ServiceDiscoverer(client, config.getServiceRoot());
-          discoverer.start();
+          discoverer = createDiscoverer(client);
           context.addCapability(Context.Capabilities.SERVICE_DISCOVERER, () -> discoverer);
           isValidState = true;
         } catch (Exception e) {
