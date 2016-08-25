@@ -51,6 +51,7 @@ class Kibana(Script):
                 "enabled=1\" > /etc/yum.repos.d/kibana.repo")
 
         self.install_packages(env)
+        self.loadtemplate(env)
 
     def configure(self, env):
 

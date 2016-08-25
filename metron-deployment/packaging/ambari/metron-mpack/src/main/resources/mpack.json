@@ -40,6 +40,24 @@
               "stack_version" : "2.5"
             }
           ]
+        },
+        {
+          "service_name" : "ELASTICSEARCH",
+          "service_version" : "2.3.3",
+          "applicable_stacks" : [
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.3"
+            },
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.4"
+            },
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.5"
+            }
+          ]
         }
       ]
     }
