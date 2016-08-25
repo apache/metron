@@ -43,6 +43,18 @@
       <filtered>true</filtered>
     </fileSet>
     <fileSet>
+      <directory>${project.basedir}/src/main/resources/ddl</directory>
+      <outputDirectory>/ddl</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+      <excludes>
+        <exclude>**/*.formatted</exclude>
+        <exclude>**/*.filtered</exclude>
+      </excludes>
+      <fileMode>0755</fileMode>
+      <lineEnding>unix</lineEnding>
+      <filtered>true</filtered>
+    </fileSet>
+    <fileSet>
       <directory>${project.basedir}/src/main/flux</directory>
       <outputDirectory>/flux</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
