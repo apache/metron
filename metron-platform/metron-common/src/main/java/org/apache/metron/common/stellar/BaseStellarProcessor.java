@@ -94,12 +94,16 @@ public class BaseStellarProcessor<T> {
   }
 
   public boolean validate(String rule) throws ParseException {
-    return validate(rule, true);
+    return validate(rule, true, Context.EMPTY_CONTEXT());
   }
 
-  public boolean validate(String rule, boolean throwException) throws ParseException {
+  public boolean validate(String rule, Context context) throws ParseException {
+    return validate(rule, true, context);
+  }
+
+  public boolean validate(String rule, boolean throwException, Context context) throws ParseException {
     try {
-      parse(rule, x -> null, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+      parse(rule, x -> null, StellarFunctions.FUNCTION_RESOLVER(), context);
       return true;
     }
     catch(Throwable t) {
