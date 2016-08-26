@@ -32,7 +32,6 @@
 		<tag>HEAD</tag>
 		<url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
 	</scm>
-
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -43,6 +42,7 @@
 	<modules>
 		<module>metron-maas-service</module>
 		<module>metron-maas-common</module>
+		<module>metron-profiler</module>
 	</modules>
 	<dependencies>
 		<dependency>
@@ -60,7 +60,6 @@
 	</dependencies>
 	<build>
 		<plugins>
-
 		</plugins>
 	</build>
 	<reporting>
@@ -114,6 +113,13 @@
 			<url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
 			<snapshots>
 				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>sonatype.org</id>
+			<url>https://oss.sonatype.org/content/groups/public/</url>
+			<snapshots>
+				<enabled>true</enabled>
 			</snapshots>
 		</repository>
     </repositories>

@@ -22,15 +22,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
 import java.util.Map;
 
 public enum ConfigurationType implements Function<String, Object> {
-  GLOBAL("global"
-          ,"."
-          , s -> {
+
+  GLOBAL("global",".", s -> {
     try {
       return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
       });
@@ -38,28 +38,36 @@ public enum ConfigurationType implements Function<String, Object> {
       throw new RuntimeException("Unable to load " + s, e);
     }
   }),
-  PARSER("parsers"
-          ,"parsers"
-          , s -> {
+
+  PARSER("parsers","parsers", s -> {
     try {
       return JSONUtils.INSTANCE.load(s, SensorParserConfig.class);
     } catch (IOException e) {
       throw new RuntimeException("Unable to load " + s, e);
     }
   }),
-  ENRICHMENT("enrichments"
-          ,"enrichments"
-          , s -> {
+
+  ENRICHMENT("enrichments","enrichments", s -> {
     try {
       return JSONUtils.INSTANCE.load(s, SensorEnrichmentConfig.class);
     } catch (IOException e) {
       throw new RuntimeException("Unable to load " + s, e);
     }
+  }),
+
+  PROFILER("profiler","profiler", s -> {
+    try {
+      return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to load " + s, e);
+    }
   });
+
   String name;
   String directory;
   String zookeeperRoot;
   Function<String,?> deserializer;
+
   ConfigurationType(String name, String directory, Function<String, ?> deserializer) {
     this.name = name;
     this.directory = directory;
@@ -67,16 +75,18 @@ public enum ConfigurationType implements Function<String, Object> {
     this.deserializer = deserializer;
   }
 
-  public String getName() { return name; }
+  public String getName() {
+    return name;
+  }
 
   public String getDirectory() {
     return directory;
   }
 
-  public Object deserialize(String s)
-  {
+  public Object deserialize(String s) {
     return deserializer.apply(s);
   }
+
   @Override
   public Object apply(String s) {
     return deserialize(s);

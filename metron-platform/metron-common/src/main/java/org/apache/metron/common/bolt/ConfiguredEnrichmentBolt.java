@@ -18,7 +18,6 @@
 package org.apache.metron.common.bolt;
 
 import org.apache.log4j.Logger;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;

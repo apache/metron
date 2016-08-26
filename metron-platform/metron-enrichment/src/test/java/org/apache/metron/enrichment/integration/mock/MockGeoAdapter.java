@@ -61,4 +61,9 @@ public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
   public void cleanup() {
 
   }
+
+  @Override
+  public String getOutputPrefix(CacheKey value) {
+    return value.getField();
+  }
 }

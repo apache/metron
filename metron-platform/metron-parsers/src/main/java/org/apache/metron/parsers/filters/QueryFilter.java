@@ -18,9 +18,8 @@
 
 package org.apache.metron.parsers.filters;
 
-import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
@@ -30,6 +29,7 @@ public class QueryFilter implements MessageFilter<JSONObject> {
   public static final String QUERY_STRING_CONF = "filter.query";
   private StellarPredicateProcessor processor = new StellarPredicateProcessor();
   private String query;
+  private FunctionResolver functionResolver = StellarFunctions.FUNCTION_RESOLVER();
 
   public QueryFilter()
   {
@@ -42,13 +42,16 @@ public class QueryFilter implements MessageFilter<JSONObject> {
     if(o instanceof String) {
       query= o.toString();
     }
-
-    processor.validate(query, true);
+    Context stellarContext = (Context) config.get("stellarContext");
+    if(stellarContext == null) {
+      stellarContext = Context.EMPTY_CONTEXT();
+    }
+    processor.validate(query, true, stellarContext);
   }
 
   @Override
-  public boolean emitTuple(JSONObject message) {
+  public boolean emitTuple(JSONObject message, Context context) {
     VariableResolver resolver = new MapVariableResolver(message);
-    return processor.parse(query, resolver);
+    return processor.parse(query, resolver, functionResolver, context);
   }
 }

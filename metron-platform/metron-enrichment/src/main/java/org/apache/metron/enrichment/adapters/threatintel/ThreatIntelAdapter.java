@@ -57,7 +57,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     List<String> enrichmentTypes = value.getConfig().getThreatIntel().getFieldToTypeMap().get(value.getField());
     if(enrichmentTypes != null) {
       for(String enrichmentType : enrichmentTypes) {
-        lookup.getAccessTracker().logAccess(new EnrichmentKey(enrichmentType, value.getValue()));
+        lookup.getAccessTracker().logAccess(new EnrichmentKey(enrichmentType, value.getValue(String.class)));
       }
     }
   }
@@ -77,7 +77,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       try {
         for (Boolean isThreat :
                 lookup.exists(Iterables.transform(enrichmentTypes
-                                                 , new EnrichmentUtils.TypeToKey(value.getValue()
+                                                 , new EnrichmentUtils.TypeToKey(value.getValue(String.class)
                                                                                 , lookup.getTable()
                                                                                 , value.getConfig().getThreatIntel()
                                                                                 )
@@ -141,5 +141,10 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     } catch (Exception e) {
       throw new RuntimeException("Unable to cleanup access tracker", e);
     }
+  }
+
+  @Override
+  public String getOutputPrefix(CacheKey value) {
+    return value.getField();
   }
 }

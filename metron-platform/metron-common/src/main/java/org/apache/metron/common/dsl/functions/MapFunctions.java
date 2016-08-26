@@ -18,12 +18,29 @@
 
 package org.apache.metron.common.dsl.functions;
 
+import org.apache.metron.common.dsl.BaseStellarFunction;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 public class MapFunctions {
-  public static class MapGet implements Function<List<Object>, Object> {
+  public static class MapExists extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> list) {
+      if(list.size() < 2) {
+        return false;
+      }
+      Object key = list.get(0);
+      Object mapObj = list.get(1);
+      if(key != null && mapObj != null && mapObj instanceof Map) {
+        return ((Map)mapObj).containsKey(key);
+      }
+      return false;
+    }
+  }
+  public static class MapGet extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
       Object keyObj = objects.get(0);

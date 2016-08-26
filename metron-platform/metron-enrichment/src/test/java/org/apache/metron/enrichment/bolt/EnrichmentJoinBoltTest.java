@@ -74,8 +74,7 @@ public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
     enrichmentJoinBolt.withMaxTimeRetain(10000);
     enrichmentJoinBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     Set<String> actualStreamIds = enrichmentJoinBolt.getStreamIds(sampleMessage);
-    streamIds.add("message");
-    Assert.assertEquals(streamIds, actualStreamIds);
+    Assert.assertEquals(joinStreamIds, actualStreamIds);
     Map<String, JSONObject> streamMessageMap = new HashMap<>();
     streamMessageMap.put("message", sampleMessage);
     streamMessageMap.put("enriched", enrichedMessage);
