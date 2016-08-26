@@ -134,14 +134,13 @@ public enum StellarFunctions implements StellarFunction {
     func.initialize(context);
   }
 
+  @Override
+  public boolean isInitialized() {
+    return func.isInitialized();
+  }
+
   public static FunctionResolver FUNCTION_RESOLVER() {
     return new FunctionResolver() {
-      @Override
-      public void initializeFunctions(Context context) {
-        for(StellarFunctions s : StellarFunctions.values()) {
-          s.initialize(context);
-        }
-      }
 
       @Override
       public StellarFunction apply(String s) {
