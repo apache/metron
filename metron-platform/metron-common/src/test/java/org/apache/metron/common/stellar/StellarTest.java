@@ -21,15 +21,36 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
 import org.junit.Assert;
 import org.junit.Test;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
+
 public class StellarTest {
+
+  @Test
+  public void ensureDocumentation() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
+    for (Class<?> clazz : reflections.getSubTypesOf(StellarFunction.class)) {
+      if (clazz.isAnnotationPresent(Stellar.class)) {
+        Stellar annotation = clazz.getAnnotation(Stellar.class);
+        Assert.assertFalse("Must specify a name for " + clazz.getName(),StringUtils.isEmpty(annotation.name()));
+        Assert.assertFalse("Must specify a description annotation for " + clazz.getName(),StringUtils.isEmpty(annotation.description()));
+        Assert.assertTrue("Must specify a non-empty params for " + clazz.getName(), annotation.params().length > 0);
+        Assert.assertTrue("Must specify a non-empty params for " + clazz.getName(), StringUtils.isNoneEmpty(annotation.params()));
+        Assert.assertFalse("Must specify a returns annotation for " + clazz.getName(), StringUtils.isEmpty(annotation.returns()));
+      }
+    }
+  }
 
   @Test
   public void testIfThenElseBug1() {

@@ -17,10 +17,17 @@
  */
 package org.apache.metron.common.dsl;
 
-import java.util.function.Function;
+import java.util.List;
+import java.util.function.Predicate;
 
-public interface FunctionResolver extends Function<String, StellarFunction> {
-  Iterable<StellarFunctionInfo> getFunctionInfo();
-  Iterable<String> getFunctions();
-  void initialize(Context context);
+public class Predicate2StellarFunction extends BaseStellarFunction {
+  Predicate<List<Object>> pred;
+  public Predicate2StellarFunction(Predicate<List<Object>> pred) {
+    this.pred = pred;
+  }
+
+  @Override
+  public Object apply(List<Object> objects) {
+    return pred.test(objects);
+  }
 }

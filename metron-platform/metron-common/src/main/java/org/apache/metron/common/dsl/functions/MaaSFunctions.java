@@ -24,6 +24,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.security.authorize.Service;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.maas.config.Endpoint;
@@ -80,6 +81,16 @@ public class MaaSFunctions {
       return result;
     }
   }
+
+  @Stellar(name="MODEL_APPLY"
+          , namespace="MAAS"
+          , description = "Returns the output of a model deployed via model which is deployed at endpoint. NOTE: Results are cached at the client for 10 minutes."
+          , params = { "endpoint - a map containing name, version, url for the REST endpoint"
+                     , "function - the optional endpoint path, default is 'apply'"
+                     , "model_args - dictionary of arguments for the model (these become request params)."
+                     }
+          , returns = "The output of the model deployed as a REST endpoint in Map form.  Assumes REST endpoint returns a JSON Map."
+          )
   public static class ModelApply implements StellarFunction {
     private boolean isInitialized = false;
     private ServiceDiscoverer discoverer;
@@ -223,6 +234,16 @@ public class MaaSFunctions {
     return discoverer;
   }
 
+  @Stellar(name="GET_ENDPOINT"
+          , namespace="MAAS"
+          , description="Inspects zookeeper and returns a map containing the name, version and url for the model referred to by the input params"
+          , params = {
+                      "model_name - the name of the model"
+                     ,"model_version - the optional version of the model.  If it is not specified, the most current version is used."
+                     }
+          , returns = "A map containing the name, version, url for the REST endpoint (fields named name, version and url).  " +
+                      "Note that the output of this function is suitable for input into the first argument of MAAS_MODEL_APPLY."
+          )
   public static class GetEndpoint implements StellarFunction {
     ServiceDiscoverer discoverer;
     private boolean isInitialized = false;
