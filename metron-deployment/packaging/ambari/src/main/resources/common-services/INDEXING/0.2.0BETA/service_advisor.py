@@ -31,7 +31,7 @@ except Exception as e:
 
 
 class INDEXING020BETAServiceAdvisor(service_advisor.ServiceAdvisor):
-    # colocate Metron Parser Master with KAFKA_BROKERs
+    # colocate Metron Indexing Master with KAFKA_BROKERs
     def colocateService(self, hostsComponentsMap, serviceComponents):
         indexingMasterComponent = [component for component in serviceComponents if
                                   component["StackServiceComponents"]["component_name"] == "INDEXING_MASTER"]

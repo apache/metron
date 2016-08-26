@@ -34,7 +34,10 @@ class Indexing(Script):
         import params
         env.set_params(params)
         commands = Commands(params)
-        commands.init_kafka_topics()
+        if not commands.is_configured():
+            commands.init_kafka_topics()
+            commands.set_configured()
+
         commands.start_indexing_topology()
 
     def stop(self, env, upgrade_type=None):

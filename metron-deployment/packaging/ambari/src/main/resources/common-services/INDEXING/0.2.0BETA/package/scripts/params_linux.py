@@ -30,6 +30,9 @@ metron_home = config['configurations']['metron-indexing']['metron_home']
 metron_indexing_topology = config['configurations']['metron-indexing']['metron_indexing_topology']
 yum_repo_type = 'local'
 
+metron_config_path = format('{metron_home}/config')
+configured_flag_file = metron_config_path + '/metron_enrichment_is_configured'
+
 # Hadoop params
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")

@@ -15,23 +15,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import subprocess
 import time
 
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 
 
 # Wrap major operations and functionality in this class
 class Commands:
     __params = None
     __indexing = None
+    __configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__indexing = params.metron_indexing_topology
+        self.__configured = os.path.isfile(self.__params.configured_flag_file)
+
+    def is_configured(self):
+        return self.__configured
+
+    def set_configured(self):
+        File(self.__params.configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
 
     def setup_repo(self):
         def local_repo():
@@ -61,12 +73,13 @@ class Commands:
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
         command_template = """{}/kafka-topics.sh \
-                                --zookeeper {} \
-                                --create \
-                                --topic {} \
-                                --partitions {} \
-                                --replication-factor {} \
-                                --config retention.bytes={}"""
+                                    --zookeeper {} \
+                                    --create \
+                                    --if-not-exists \
+                                    --topic {} \
+                                    --partitions {} \
+                                    --replication-factor {} \
+                                    --config retention.bytes={}"""
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = 10
@@ -85,8 +98,8 @@ class Commands:
     def start_indexing_topology(self):
         Logger.info("Starting Metron indexing topology: {}".format(self.__indexing))
         start_cmd_template = """{}/bin/start_elasticsearch_topology.sh \
-                                    -s {} \
-                                    -z {}"""
+                                        -s {} \
+                                        -z {}"""
         Logger.info('Starting ' + self.__indexing)
         Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum))
 
@@ -119,6 +132,7 @@ class Commands:
 
     def is_topology_active(self):
         cmd_retrieve = "storm list | grep 'indexing'"
+
         proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (stdout, stderr) = proc.communicate()
         Logger.info("Retrieval response is: %s" % stdout)
