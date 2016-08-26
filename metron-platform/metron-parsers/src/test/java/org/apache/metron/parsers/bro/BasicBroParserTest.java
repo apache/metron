@@ -25,7 +25,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 
-import java.text.DecimalFormat;
 import java.util.Map;
 
 public class BasicBroParserTest extends TestCase {
@@ -62,7 +61,7 @@ public class BasicBroParserTest extends TestCase {
 						Pair.of(new Double(12345678.111111), "12345678.111111")
 		};
 		for (Pair pair : pairs) {
-			assertEquals("Format did not match", pair.getRight(), new DecimalFormat("0.0#####").format(pair.getLeft()));
+			assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));
 		}
 	}
 

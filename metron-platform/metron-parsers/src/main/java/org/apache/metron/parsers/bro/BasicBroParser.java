@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,13 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class BasicBroParser extends BasicParser {
 
-  protected static final Logger _LOG = LoggerFactory
-          .getLogger(BasicBroParser.class);
-  public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.0#####");
+  protected static final Logger _LOG = LoggerFactory.getLogger(BasicBroParser.class);
+  public static final ThreadLocal<NumberFormat> DECIMAL_FORMAT = new ThreadLocal<NumberFormat>() {
+    @Override
+    protected NumberFormat initialValue() {
+      return new DecimalFormat("0.0#####");
+    }
+  };
   private JSONCleaner cleaner = new JSONCleaner();
 
   @Override
@@ -92,7 +97,7 @@ public class BasicBroParser extends BasicParser {
         Object raw = payload.get(k);
         String value = raw.toString();
         if (raw instanceof Double) {
-          value = DECIMAL_FORMAT.format(raw);
+          value = DECIMAL_FORMAT.get().format(raw);
         }
         originalString += " " + k.toString() + ":" + value;
       }
@@ -104,7 +109,7 @@ public class BasicBroParser extends BasicParser {
       if (payload.containsKey(Constants.Fields.TIMESTAMP.getName())) {
         try {
           Double broTimestamp = ((Number) payload.get(Constants.Fields.TIMESTAMP.getName())).doubleValue();
-          String broTimestampFormatted = DECIMAL_FORMAT.format(broTimestamp);
+          String broTimestampFormatted = DECIMAL_FORMAT.get().format(broTimestamp);
           timestamp = convertToMillis(broTimestamp);
           payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
           payload.put("bro_timestamp", broTimestampFormatted);
@@ -143,10 +148,6 @@ public class BasicBroParser extends BasicParser {
 
   private Long convertToMillis(Double timestampSeconds) {
     return ((Double) (timestampSeconds * 1000)).longValue();
-  }
-
-  private Long convertToMillis(String timestampSeconds) {
-    return ((Double) (Double.parseDouble(timestampSeconds) * 1000)).longValue();
   }
 
   private boolean replaceKey(JSONObject payload, String toKey, String[] fromKeys) {
