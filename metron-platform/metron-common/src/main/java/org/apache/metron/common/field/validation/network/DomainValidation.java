@@ -19,6 +19,8 @@
 package org.apache.metron.common.field.validation.network;
 
 import org.apache.commons.validator.routines.DomainValidator;
+import org.apache.metron.common.dsl.Predicate2StellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.field.validation.SimpleValidation;
 
@@ -26,6 +28,20 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class DomainValidation extends SimpleValidation {
+
+  @Stellar(name="IS_DOMAIN"
+          ,description = "Tests if a string is a valid domain.  Domain names are evaluated according" +
+          " to the standards RFC1034 section 3, and RFC1123 section 2.1."
+          ,params = {
+              "address - The String to test"
+                    }
+          , returns = "True if the string is a valid domain and false otherwise.")
+  public static class IS_DOMAIN extends Predicate2StellarFunction {
+
+    public IS_DOMAIN() {
+      super(new DomainValidation());
+    }
+  }
 
   @Override
   public Predicate<Object> getPredicate() {

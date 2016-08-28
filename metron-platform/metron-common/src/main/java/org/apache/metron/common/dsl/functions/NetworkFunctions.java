@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,6 +31,14 @@ import java.util.List;
 import java.util.function.Function;
 
 public class NetworkFunctions {
+  @Stellar(name="IN_SUBNET"
+          ,description = "Returns if an IP is within a subnet range."
+          ,params = {
+                     "ip - the IP address in String form"
+                    ,"cidr+ - one or more IP ranges specified in CIDR notation (e.g. 192.168.0.0/24)"
+                    }
+          ,returns = "True if the IP address is within at least one of the network ranges and false otherwise"
+          )
   public static class InSubnet extends BaseStellarFunction {
 
     @Override
@@ -55,6 +64,16 @@ public class NetworkFunctions {
       return inSubnet;
     }
   }
+
+  @Stellar(name="REMOVE_SUBDOMAINS"
+          ,namespace = "DOMAIN"
+          ,description = "Remove subdomains from a domain."
+          , params = {
+                      "domain - fully qualified domain name"
+                     }
+          , returns = "The domain without the subdomains.  " +
+                      "e.g. DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com'"
+          )
   public static class RemoveSubdomains extends BaseStellarFunction {
 
     @Override
@@ -81,6 +100,16 @@ public class NetworkFunctions {
       return null;
     }
   }
+
+  @Stellar(name="REMOVE_TLD"
+          ,namespace = "DOMAIN"
+          ,description = "Remove top level domain suffix from a domain."
+          , params = {
+                      "domain - fully qualified domain name"
+                     }
+          , returns = "The domain without the TLD.  " +
+                      "e.g. DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo'"
+          )
   public static class RemoveTLD extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
@@ -102,6 +131,15 @@ public class NetworkFunctions {
     }
   }
 
+  @Stellar(name="TO_TLD"
+          ,namespace = "DOMAIN"
+          ,description = "Extract the top level domain from a domain"
+          , params = {
+                      "domain - fully qualified domain name"
+                     }
+          , returns = "The TLD of the domain.  " +
+                      "e.g. DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk'"
+          )
   public static class ExtractTLD extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
@@ -114,6 +152,15 @@ public class NetworkFunctions {
     }
   }
 
+  @Stellar(name="TO_PORT"
+          ,namespace="URL"
+          ,description = "Extract the port from a URL.  " +
+                          "If the port is not explicitly stated in the URL, then an implicit port is inferred based on the protocol."
+          , params = {
+                      "url - URL in String form"
+                     }
+          , returns = "The port used in the URL as an Integer.  e.g. URL_TO_PORT('http://www.yahoo.com/foo') would yield 80"
+          )
   public static class URLToPort extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
@@ -126,6 +173,13 @@ public class NetworkFunctions {
     }
   }
 
+  @Stellar(name="TO_PATH"
+          ,namespace="URL"
+          ,description = "Extract the path from a URL."
+          , params = {
+                      "url - URL in String form"
+                     }
+          , returns = "The path from the URL as a String.  e.g. URL_TO_PATH('http://www.yahoo.com/foo') would yield 'foo'")
   public static class URLToPath extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
@@ -133,6 +187,15 @@ public class NetworkFunctions {
       return url == null?null:url.getPath();
     }
   }
+
+  @Stellar(name="TO_HOST"
+          ,namespace="URL"
+          ,description = "Extract the hostname from a URL."
+          , params = {
+                      "url - URL in String form"
+                     }
+          , returns = "The hostname from the URL as a String.  e.g. URL_TO_HOST('http://www.yahoo.com/foo') would yield 'www.yahoo.com'"
+          )
   public static class URLToHost extends BaseStellarFunction {
 
     @Override
@@ -142,6 +205,13 @@ public class NetworkFunctions {
     }
   }
 
+  @Stellar(name="TO_PROTOCOL"
+          ,namespace="URL"
+          ,description = "Extract the protocol from a URL."
+          , params = {
+                      "url - URL in String form"
+                     }
+          , returns = "The protocol from the URL as a String. e.g. URL_TO_PROTOCOL('http://www.yahoo.com/foo') would yield 'http'")
   public static class URLToProtocol extends BaseStellarFunction {
 
     @Override
@@ -150,6 +220,7 @@ public class NetworkFunctions {
       return url == null?null:url.getProtocol();
     }
   }
+
   private static InternetDomainName toDomainName(Object dnObj) {
     if(dnObj != null) {
       String dn = dnObj.toString();

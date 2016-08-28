@@ -22,12 +22,21 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 public class StringFunctions {
+
+  @Stellar(name="REGEXP_MATCH"
+          ,description = "Determines whether a regex matches a string"
+          , params = {
+             "string - The string to test"
+            ,"pattern - The proposed regex pattern"
+            }
+          , returns = "True if the regex pattern matches the string and false otherwise.")
   public static class RegexpMatch extends BaseStellarFunction {
 
     @Override
@@ -44,6 +53,13 @@ public class StringFunctions {
     }
   }
 
+  @Stellar(name="ENDS_WITH"
+          ,description = "Determines whether a string ends with a prefix"
+          , params = {
+             "string - The string to test"
+            ,"suffix - The proposed suffix"
+            }
+          , returns = "True if the string ends with the specified suffix and false otherwise.")
   public static class EndsWith extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> list) {
@@ -58,6 +74,15 @@ public class StringFunctions {
       return str.endsWith(prefix);
     }
   }
+
+  @Stellar(name="STARTS_WITH"
+          ,description = "Determines whether a string starts with a prefix"
+          , params = {
+             "string - The string to test"
+            ,"prefix - The proposed prefix"
+            }
+          , returns = "True if the string starts with the specified prefix and false otherwise."
+          )
   public static class StartsWith extends BaseStellarFunction {
 
     @Override
@@ -73,30 +98,60 @@ public class StringFunctions {
       return str.startsWith(prefix);
     }
   }
+
+  @Stellar( name="TO_LOWER"
+          , description = "Transforms the first argument to a lowercase string"
+          , params = { "input - String" }
+          , returns = "String"
+          )
   public static class ToLower extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> strings) {
       return strings.get(0)==null?null:strings.get(0).toString().toLowerCase();
     }
   }
+
+  @Stellar( name="TO_UPPER"
+          , description = "Transforms the first argument to an uppercase string"
+          , params = { "input - String" }
+          , returns = "String"
+          )
   public static class ToUpper extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> strings) {
       return strings.get(0)==null?null:strings.get(0).toString().toUpperCase();
     }
   }
+
+  @Stellar(name="TO_STRING"
+          , description = "Transforms the first argument to a string"
+          , params = { "input - Object" }
+          , returns = "String"
+          )
   public static class ToString extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> strings) {
       return strings.get(0)==null?null:strings.get(0).toString();
     }
   }
+
+  @Stellar(name="TRIM"
+          , description = "Trims whitespace from both sides of a string."
+          , params = { "input - String" }
+          , returns = "String"
+          )
   public static class Trim extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> strings) {
       return strings.get(0)==null?null:strings.get(0).toString().trim();
     }
   }
+
+  @Stellar( name="JOIN"
+          , description="Joins the components of the list with the specified delimiter."
+          , params = { "list - List of Strings", "delim - String delimiter"}
+          , returns = "String"
+          )
   public static class JoinFunction extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
@@ -105,6 +160,12 @@ public class StringFunctions {
       return Joiner.on(delim).join(Iterables.filter(arg1, x -> x != null));
     }
   }
+
+  @Stellar(name="SPLIT"
+          , description="Splits the string by the delimiter."
+          , params = { "input - String to split", "delim - String delimiter"}
+          , returns = "List of Strings"
+          )
   public static class SplitFunction extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
@@ -119,6 +180,11 @@ public class StringFunctions {
     }
   }
 
+  @Stellar(name="GET_LAST"
+          , description="Returns the last element of the list"
+          , params = { "input - List"}
+          , returns = "Last element of the list"
+          )
   public static class GetLast extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
@@ -126,6 +192,12 @@ public class StringFunctions {
       return Iterables.getLast(arg1, null);
     }
   }
+
+  @Stellar(name="GET_FIRST"
+          , description="Returns the first element of the list"
+          , params = { "input - List"}
+          , returns = "First element of the list"
+          )
   public static class GetFirst extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
@@ -134,6 +206,11 @@ public class StringFunctions {
     }
   }
 
+  @Stellar(name="GET"
+          , description="Returns the i'th element of the list "
+          , params = { "input - List", "i - the index (0-based)"}
+          , returns = "First element of the list"
+          )
   public static class Get extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {

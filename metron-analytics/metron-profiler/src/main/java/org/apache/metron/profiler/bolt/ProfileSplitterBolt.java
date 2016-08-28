@@ -90,6 +90,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     stellarContext = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .build();
+    StellarFunctions.initialize(stellarContext);
   }
 
   @Override

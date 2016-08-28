@@ -139,17 +139,17 @@ public class StellarMaaSIntegrationTest {
   @Test
   public void testModelApply() throws Exception {
     {
-      String stellar = "MAP_GET('is_malicious', MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), {'host': host}))";
+      String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), {'host': host}))";
       Object result = StellarTest.run(stellar, ImmutableMap.of("host", "badguy.com"), context);
       Assert.assertTrue((Boolean) result);
     }
     {
-      String stellar = "MAP_GET('is_malicious', MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), {'host': host}))";
+      String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), {'host': host}))";
       Object result = StellarTest.run(stellar, ImmutableMap.of("host", "youtube.com"), context);
       Assert.assertFalse((Boolean) result);
     }
     {
-      String stellar = "MAP_GET('is_malicious', MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), 'apply', {'host': host}))";
+      String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), 'apply', {'host': host}))";
       Object result = StellarTest.run(stellar, ImmutableMap.of("host", "youtube.com"), context);
       Assert.assertFalse((Boolean) result);
     }
@@ -159,7 +159,7 @@ public class StellarMaaSIntegrationTest {
   @Test
   public void testModelApplyNegative() {
     {
-      String stellar = "MAP_GET('is_malicious', MODEL_APPLY(MAAS_GET_ENDPOINT('dga', '2.0'), {'host': host}))";
+      String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga', '2.0'), {'host': host}))";
       Object result = StellarTest.run(stellar, ImmutableMap.of("host", "youtube.com"), context);
       Assert.assertNull( result);
     }

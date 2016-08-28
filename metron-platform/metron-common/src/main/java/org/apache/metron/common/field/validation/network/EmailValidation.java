@@ -19,12 +19,28 @@
 package org.apache.metron.common.field.validation.network;
 
 import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.metron.common.dsl.Predicate2StellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.field.validation.SimpleValidation;
 
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class EmailValidation extends SimpleValidation{
+public class EmailValidation extends SimpleValidation {
+
+  @Stellar(name="IS_EMAIL"
+          ,description = "Tests if a string is a valid email address"
+          ,params = {
+              "address - The String to test"
+                    }
+          , returns = "True if the string is a valid email address and false otherwise.")
+  public static class IS_EMAIL extends Predicate2StellarFunction {
+
+    public IS_EMAIL() {
+      super(new EmailValidation());
+    }
+  }
+
   @Override
   public Predicate<Object> getPredicate() {
     return email -> EmailValidator.getInstance().isValid(email == null?null:email.toString());

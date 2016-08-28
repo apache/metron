@@ -71,7 +71,7 @@ public class BaseStellarProcessor<T> {
 
   public T parse( String rule
                 , VariableResolver variableResolver
-                , Function<String, StellarFunction> functionResolver
+                , FunctionResolver functionResolver
                 , Context context
                 )
   {
