@@ -60,7 +60,6 @@ import java.util.Properties;
 import java.util.Set;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
-
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
