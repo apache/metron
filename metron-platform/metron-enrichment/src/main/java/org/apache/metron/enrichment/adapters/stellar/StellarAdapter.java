@@ -90,10 +90,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
         if(kv.getValue() instanceof String) {
           String stellarStatement = (String) kv.getValue();
           Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-          if(o == null) {
-            continue;
-          }
-          if(o instanceof Map) {
+          if(o != null && o instanceof Map) {
             for(Map.Entry<Object, Object> valueKv : ((Map<Object, Object>)o).entrySet()) {
               String newKey = ((kv.getKey().length() > 0)?kv.getKey() + "." : "" )+ valueKv.getKey();
               message.put(newKey, valueKv.getValue());
