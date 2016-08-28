@@ -23,9 +23,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 public class SimpleHBaseEnrichmentFunctions {
@@ -74,6 +71,10 @@ public class SimpleHBaseEnrichmentFunctions {
   }
 
 
+  private static Map<String, Object> getConfig(Context context) {
+    return (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG).orElse(new HashMap<>());
+  }
+
   private static synchronized void initializeTracker(Map<String, Object> config, TableProvider provider) throws IOException {
     if(tracker == null) {
       String accessTrackerType = (String) config.getOrDefault(ACCESS_TRACKER_TYPE_CONF, AccessTrackers.NOOP.toString());
@@ -82,6 +83,24 @@ public class SimpleHBaseEnrichmentFunctions {
     }
   }
 
+  private static TableProvider createProvider(String tableProviderClass) {
+    try {
+      Class<? extends TableProvider> providerClazz = (Class<? extends TableProvider>) Class.forName(tableProviderClass);
+      return providerClazz.newInstance();
+    } catch (Exception e) {
+      return new HTableProvider();
+    }
+  }
+
+  private static synchronized void initializeProvider( Map<String, Object> config) {
+    if(provider != null) {
+      return ;
+    }
+    else {
+      String tableProviderClass = (String) config.getOrDefault(TABLE_PROVIDER_TYPE_CONF, HTableProvider.class.getName());
+      provider = createProvider(tableProviderClass);
+    }
+  }
 
   @Stellar(name="EXISTS"
           ,namespace="ENRICHMENT"
@@ -158,28 +177,7 @@ public class SimpleHBaseEnrichmentFunctions {
 
   }
 
-  private static TableProvider createProvider(String tableProviderClass) {
-    try {
-      Class<? extends TableProvider> providerClazz = (Class<? extends TableProvider>) Class.forName(tableProviderClass);
-      return providerClazz.newInstance();
-    } catch (Exception e) {
-      return new HTableProvider();
-    }
-  }
 
-  private static Map<String, Object> getConfig(Context context) {
-    return (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG).orElse(new HashMap<>());
-  }
-
-  private static synchronized void initializeProvider( Map<String, Object> config) {
-    if(provider != null) {
-      return ;
-    }
-    else {
-      String tableProviderClass = (String) config.getOrDefault(TABLE_PROVIDER_TYPE_CONF, HTableProvider.class.getName());
-      provider = createProvider(tableProviderClass);
-    }
-  }
 
   @Stellar(name="GET"
           ,namespace="ENRICHMENT"
