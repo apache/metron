@@ -27,10 +27,10 @@ public class Context {
     Object get();
   }
   public enum Capabilities {
-      HBASE_PROVIDER
+    SENSOR_CONFIG
+    , GLOBAL_CONFIG
     , ZOOKEEPER_CLIENT
     , SERVICE_DISCOVERER;
-
   }
 
   public static class Builder {
@@ -40,8 +40,16 @@ public class Context {
       capabilityMap.put(s, capability);
       return this;
     }
+
     public Builder with(Enum<?> s, Capability capability) {
       capabilityMap.put(s.toString(), capability);
+      return this;
+    }
+    public Builder withAll(Map<String, Object> externalConfig) {
+      for(Map.Entry<String, Object> entry : externalConfig.entrySet()) {
+
+        capabilityMap.put(entry.getKey(), () -> entry.getValue());
+      }
       return this;
     }
     public Context build() {

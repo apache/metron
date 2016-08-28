@@ -21,6 +21,12 @@
                       "foo": "1 + 1"
                       }
           ,"ALL_CAPS" : "TO_UPPER(source.type)"
+          ,"src_enrichment" : {
+            "src_classification" : "ENRICHMENT_GET('playful_classification', ip_src_addr, 'enrichments', 'cf')"
+          }
+          ,"dst_enrichment" : {
+            "dst_classification" : "ENRICHMENT_GET('playful_classification', ip_dst_addr, 'enrichments', 'cf')"
+          }
         }
       }
     }
@@ -42,6 +48,7 @@
       "stellar" : {
         "config" : {
           "bar" : "TO_UPPER(source.type)"
+         ,"is_src_malicious" : "ENRICHMENT_EXISTS('malicious_ip', ip_src_addr, 'threat_intel', 'cf')"
         }
       }
     },
