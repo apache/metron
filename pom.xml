@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.2.0BETA</version>
+    <version>0.2.1BETA</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
@@ -176,7 +176,6 @@
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
                         <exclude>**/files/opensoc-ui</exclude>
                         <!-- pickle file - binary format -->
-                        <exclude>**/packaging/ambari/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/*.p</exclude>
                         <exclude>**/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p</exclude>
                     </excludes>
                 </configuration>

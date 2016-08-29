@@ -28,7 +28,7 @@ elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
 fi
 
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
-export METRON_VERSION=0.2.0BETA
+export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export DM_JAR=metron-maas-service-$METRON_VERSION-uber.jar
 CP=$METRON_HOME/lib/$DM_JAR
