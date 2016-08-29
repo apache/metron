@@ -47,9 +47,9 @@ class Indexing(Script):
         commands.stop_indexing_topology()
 
     def status(self, env):
-        import params
-        env.set_params(params)
-        commands = Commands(params)
+        import status_params
+        env.set_params(status_params)
+        commands = Commands(status_params)
 
         if not commands.is_topology_active():
             raise ComponentIsNotRunning()

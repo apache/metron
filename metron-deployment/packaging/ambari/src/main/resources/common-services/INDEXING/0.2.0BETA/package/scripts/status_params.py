@@ -15,4 +15,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+metron_indexing_topology = 'indexing'
 configured_flag_file = ""

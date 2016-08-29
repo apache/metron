@@ -26,14 +26,12 @@ from resource_management.core.resources.system import Execute, File
 # Wrap major operations and functionality in this class
 class Commands:
     __params = None
-    __indexing = None
     __configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
-        self.__indexing = params.metron_indexing_topology
         self.__configured = os.path.isfile(self.__params.configured_flag_file)
 
     def is_configured(self):
@@ -75,7 +73,6 @@ class Commands:
         command_template = """{}/kafka-topics.sh \
                                     --zookeeper {} \
                                     --create \
-                                    --if-not-exists \
                                     --topic {} \
                                     --partitions {} \
                                     --replication-factor {} \
@@ -86,28 +83,28 @@ class Commands:
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating topics for indexing")
 
-        Logger.info("Creating topic'{}'".format(self.__indexing))
+        Logger.info("Creating topic'{}'".format(self.__params.metron_indexing_topology))
         Execute(command_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
-                                        self.__indexing,
+                                        self.__params.metron_indexing_topology,
                                         num_partitions,
                                         replication_factor,
                                         retention_bytes))
         Logger.info("Done creating Kafka topics")
 
     def start_indexing_topology(self):
-        Logger.info("Starting Metron indexing topology: {}".format(self.__indexing))
+        Logger.info("Starting Metron indexing topology: {}".format(self.__params.metron_indexing_topology))
         start_cmd_template = """{}/bin/start_elasticsearch_topology.sh \
                                         -s {} \
                                         -z {}"""
-        Logger.info('Starting ' + self.__indexing)
-        Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum))
+        Logger.info('Starting ' + self.__params.metron_indexing_topology)
+        Execute(start_cmd_template.format(self.__params.metron_home, self.__params.metron_indexing_topology, self.__params.zookeeper_quorum))
 
         Logger.info('Finished starting indexing topology')
 
     def stop_indexing_topology(self):
-        Logger.info('Stopping ' + self.__indexing)
-        stop_cmd = 'storm kill ' + self.__indexing
+        Logger.info('Stopping ' + self.__params.metron_indexing_topology)
+        stop_cmd = 'storm kill ' + self.__params.metron_indexing_topology
         Execute(stop_cmd)
         Logger.info('Done stopping indexing topologies')
 
