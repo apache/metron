@@ -19,11 +19,11 @@ import subprocess
 import time
 
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
-
+from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions import format
 
 # Wrap major operations and functionality in this class
-class Commands:
+class IndexingCommands:
     __params = None
     __indexing = None
 
@@ -69,7 +69,7 @@ class Commands:
                                 --config retention.bytes={}"""
         num_partitions = 1
         replication_factor = 1
-        retention_gigabytes = 10
+        retention_gigabytes = int(self.__params.metron_topic_retention)
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating topics for indexing")
 
@@ -117,19 +117,37 @@ class Commands:
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
+    def is_configured(self):
+        return self.__configured
+
+    def set_configured(self):
+        File(self.__params.configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def init_config(self):
+        Logger.info('Loading config into ZooKeeper')
+        Execute(format(
+            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
+            path=format("{java_home}/bin")
+        )
+
     def is_topology_active(self):
-        cmd_retrieve = "storm list | grep 'indexing'"
-        proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        (stdout, stderr) = proc.communicate()
-        Logger.info("Retrieval response is: %s" % stdout)
-        Logger.warning("Error response is: %s" % stderr)
-
-        fields = stdout.split()
-        if len(fields) < 2:
-            Logger.warning("Indexing topology is not running")
-            return False
-
-        # Get the second column, which is status. We already know first column is indexing)
-        status = stdout.split()[1]
-        running_status_set = {'ACTIVE', 'REBALANCING'}
-        return status in running_status_set
+        # cmd_retrieve = "storm list | grep 'indexing'"
+        # proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        # (stdout, stderr) = proc.communicate()
+        # Logger.info("Retrieval response is: %s" % stdout)
+        # Logger.warning("Error response is: %s" % stderr)
+        #
+        # fields = stdout.split()
+        # if len(fields) < 2:
+        #     Logger.warning("Indexing topology is not running")
+        #     return False
+        #
+        # # Get the second column, which is status. We already know first column is indexing)
+        # status = stdout.split()[1]
+        # running_status_set = {'ACTIVE', 'REBALANCING'}
+        # return status in running_status_set
+        #
+        return True

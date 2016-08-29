@@ -6,72 +6,87 @@ regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import File
+from resource_management.core.source import InlineTemplate
+from indexing_commands import IndexingCommands
 
-from commands import Commands
 
+class Indexing(Script):
 
-class ParserMaster(Script):
-    def get_component_name(self):
-        # TODO add this at some point - currently will cause problems with hdp-select
-        # return "parser-master"
-        pass
+    __configured = False
 
     def install(self, env):
         from params import params
         env.set_params(params)
-        commands = Commands(params)
+        commands = IndexingCommands(params)
         commands.setup_repo()
         Logger.info('Install RPM packages')
         self.install_packages(env)
 
-    def configure(self, env, upgrade_type=None, config_dir=None):
+    def configure(self, env):
+
         from params import params
         env.set_params(params)
+
+        Logger.info("Configure Metron global.json")
+
+        directories = [params.metron_zookeeper_config_path]
+        Directory(directories,
+                  # recursive=True,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group
+                  )
+
+        File("{}/global.json".format(params.metron_zookeeper_config_path),
+             owner=params.metron_user,
+             content=InlineTemplate(params.global_json_template)
+             )
+        commands = IndexingCommands(params)
+        commands.init_config()
 
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
-        commands = Commands(params)
-        if not commands.is_configured():
-            commands.init_parsers()
-            commands.init_kafka_topics()
-            commands.init_parser_config()
-            commands.set_configured()
-        commands.start_parser_topologies()
+        self.configure(env)
+        commands = IndexingCommands(params)
+        commands.init_kafka_topics()
+        commands.start_indexing_topology()
 
     def stop(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
-        commands = Commands(params)
-        commands.stop_parser_topologies()
+        commands = IndexingCommands(params)
+        commands.stop_indexing_topology()
 
     def status(self, env):
-        from params import status_params
-        env.set_params(status_params)
-        commands = Commands(status_params)
-        if not commands.topologies_running():
-            raise ComponentIsNotRunning()
+        # from params import params
+        # env.set_params(params)
+        #
+        # commands = IndexingCommands(params)
+        #
+        # if not commands.is_topology_active():
+        raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params
         env.set_params(params)
-        commands = Commands(params)
-        commands.restart_parser_topologies()
+        self.configure(env)
+        commands = IndexingCommands(params)
+        commands.restart_indexing_topology()
 
 
 if __name__ == "__main__":
-    ParserMaster().execute()
+    Indexing().execute()

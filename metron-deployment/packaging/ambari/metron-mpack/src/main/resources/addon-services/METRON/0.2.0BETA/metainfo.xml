@@ -18,9 +18,9 @@
     <schemaVersion>2.0</schemaVersion>
     <services>
         <service>
-            <name>INDEXING</name>
+            <name>METRON</name>
             <version>0.2.0BETA</version>
-            <extends>common-services/INDEXING/0.2.0BETA</extends>
+            <extends>common-services/METRON/0.2.0BETA</extends>
         </service>
     </services>
 </metainfo>

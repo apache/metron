@@ -30,7 +30,7 @@ from resource_management.libraries.functions import format
 
 
 # Wrap major operations and functionality in this class
-class Commands:
+class ParserCommands:
     __params = None
     __parser_list = None
     __configured = False
@@ -55,14 +55,6 @@ class Commands:
              owner=self.__params.metron_user,
              mode=0775)
 
-    # Possible storm topology status states
-    # http://storm.apache.org/releases/0.10.0/javadocs/backtype/storm/generated/TopologyStatus.html
-    class StormStatus:
-        ACTIVE = "ACTIVE"
-        INACTIVE = "INACTIVE"
-        KILLED = "KILLED"
-        REBALANCING = "REBALANCING"
-
     def init_parsers(self):
         Logger.info(
             "Copying grok patterns from local directory '{}' to HDFS '{}'".format(self.__params.local_grok_patterns_dir,
@@ -74,11 +66,6 @@ class Commands:
                                    mode=0775,
                                    source=self.__params.local_grok_patterns_dir)
 
-        Logger.info("Creating global.json file")
-        File(self.__params.metron_zookeeper_config_path + '/global.json',
-             content=Template("metron-global.json"),
-             owner=self.__params.metron_user,
-             mode=0775)
         Logger.info("Done initializing parser configuration")
 
     def get_parser_list(self):
@@ -145,13 +132,6 @@ class Commands:
                                         retention_bytes))
         Logger.info("Done creating Kafka topics")
 
-    def init_parser_config(self):
-        Logger.info('Loading parser config into ZooKeeper')
-        Execute(format(
-            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
-            path=format("{java_home}/bin")
-        )
-
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {}".format(self.get_parser_list()))
         start_cmd_template = """{}/bin/start_parser_topology.sh \
@@ -185,6 +165,13 @@ class Commands:
         self.start_parser_topologies()
         Logger.info('Done restarting the parser topologies')
 
+    def init_config(self):
+        Logger.info('Loading config into ZooKeeper')
+        Execute(format(
+            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
+            path=format("{java_home}/bin")
+        )
+
     def topologies_exist(self):
         cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = cmd_open.communicate()
@@ -199,24 +186,26 @@ class Commands:
         return False
 
     def topologies_running(self):
-        cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (stdout, stderr) = cmd_open.communicate()
-        stdout_lines = stdout.splitlines()
-        all_running = False
-        if stdout_lines:
-            all_running = True
-            status_lines = self.__get_status_lines(stdout_lines)
-            for parser in self.get_parser_list():
-                parser_found = False
-                is_running = False
-                for line in status_lines:
-                    items = re.sub('[\s]+', ' ', line).split()
-                    if items and items[0] == parser:
-                        status = items[1]
-                        parser_found = True
-                        is_running = self.__is_running(status)
-                all_running &= parser_found and is_running
-        return all_running
+        #TODO - use Storm Rest Commands
+        # cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # (stdout, stderr) = cmd_open.communicate()
+        # stdout_lines = stdout.splitlines()
+        # all_running = False
+        # if stdout_lines:
+        #     all_running = True
+        #     status_lines = self.__get_status_lines(stdout_lines)
+        #     for parser in self.get_parser_list():
+        #         parser_found = False
+        #         is_running = False
+        #         for line in status_lines:
+        #             items = re.sub('[\s]+', ' ', line).split()
+        #             if items and items[0] == parser:
+        #                 status = items[1]
+        #                 parser_found = True
+        #                 is_running = self.__is_running(status)
+        #         all_running &= parser_found and is_running
+        # return all_running
+        return True
 
     def __get_status_lines(self, lines):
         status_lines = []
@@ -232,4 +221,4 @@ class Commands:
         return status_lines
 
     def __is_running(self, status):
-        return status in [self.StormStatus.ACTIVE, self.StormStatus.REBALANCING]
+        return status in ['ACTIVE', 'REBALANCING']

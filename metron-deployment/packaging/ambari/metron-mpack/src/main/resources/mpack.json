@@ -4,7 +4,7 @@
   "version": "1.0.0.0",
   "description": "Ambari Management Pack for Apache Metron",
   "prerequisites": {
-    "min-ambari-version": "2.2.0.0",
+    "min-ambari-version": "2.4.0.0",
     "min-stack-versions": [
       {
         "stack_name": "HDP",
@@ -57,6 +57,26 @@
               "stack_name" : "HDP",
               "stack_version" : "2.5"
             }
+
+          ]
+        },
+        {
+          "service_name" : "METRON",
+          "service_version" : "0.2.0BETA",
+          "applicable_stacks" : [
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.3"
+            },
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.4"
+            },
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.5"
+            }
+
           ]
         }
       ]
