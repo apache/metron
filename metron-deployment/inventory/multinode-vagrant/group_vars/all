@@ -35,7 +35,7 @@ elasticsearch_network_interface: eth1
 elasticsearch_web_port: 9200
 
 # metron variables
-metron_version: 0.2.0BETA
+metron_version: 0.2.1BETA
 pcapservice_port: 8081
 
 # sensors
