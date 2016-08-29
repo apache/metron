@@ -8,7 +8,7 @@ provides capabilities for log aggregation, full packet capture indexing,
 storage, advanced behavioral analytics and data enrichment, while applying
 the most current threat intelligence information to security telemetry
 within a single platform.
-
+ 
 Metron can be divided into 4 areas:
 
 1. **A mechanism to capture, store, and normalize any type of security

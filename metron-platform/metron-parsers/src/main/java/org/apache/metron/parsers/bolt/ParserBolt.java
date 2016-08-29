@@ -73,10 +73,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
+    initializeStellar();
     if(getSensorParserConfig() == null) {
       filter = new GenericMessageFilter();
     }
     else if(filter == null) {
+      getSensorParserConfig().getParserConfig().putIfAbsent("stellarContext", stellarContext);
       filter = Filters.get(getSensorParserConfig().getFilterClassName()
               , getSensorParserConfig().getParserConfig()
       );
@@ -93,14 +95,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       throw new IllegalStateException("Unable to retrieve a parser config for " + getSensorType());
     }
     parser.configure(config.getParserConfig());
-    initializeStellar();
   }
 
   protected void initializeStellar() {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .build();
-    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
   }
 
   @SuppressWarnings("unchecked")
