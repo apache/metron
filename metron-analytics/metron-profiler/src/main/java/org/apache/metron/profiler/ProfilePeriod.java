@@ -53,7 +53,8 @@ public class ProfilePeriod {
   private int period;
 
   /**
-   * The number of periods per hour.  This value must be a divisor of 60; 1, 2, 3, 4, 6, 10, etc.
+   * The number of periods per hour.  This value must be a divisor or multiple
+   * of 60; 1, 2, 4, 6, 240, etc.
    */
   private int periodsPerHour;
 
@@ -65,7 +66,8 @@ public class ProfilePeriod {
 
   /**
    * @param epochMillis A timestamp contained somewhere within the profile period.
-   * @param periodsPerHour The number of periods per hour. Must be an divisor or multiple of 60; 1, 2, 3, 4, 6, 240, etc.
+   * @param periodsPerHour The number of periods per hour. Must be a divisor or multiple
+   *                       of 60; 1, 2, 4, 6, 240, etc.
    */
   public ProfilePeriod(long epochMillis, int periodsPerHour) {
 
