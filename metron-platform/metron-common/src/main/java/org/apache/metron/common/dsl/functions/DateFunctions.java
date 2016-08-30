@@ -134,18 +134,41 @@ public class DateFunctions {
   }
 
   /**
+   * Gets the value from a list of arguments.
+   *
+   * If the argument at the specified position does not exist, a default value will be returned.
+   * If the argument at the specified position exists, but cannot be coerced to the right type, null is returned.
+   * Otherwise, the argument value is returned.
+   *
+   * @param args A list of arguments.
+   * @param position The position of the argument to get.
+   * @param clazz The type of class expected.
+   * @param defaultValue The default value.
+   * @param <T> The expected type of the argument.
+   */
+  private static <T> T getOrDefault(List<Object> args, int position, Class<T> clazz, T defaultValue) {
+      T result = defaultValue;
+      if(args.size() > position) {
+        result = ConversionUtils.convert(args.get(position), clazz);
+      }
+      return result;
+  }
+
+  /**
    * Stellar Function: DAY_OF_WEEK
    *
    * The numbered day within the week.  The first day of the week, Sunday, has a value of 1.
+   *
+   * If no argument is supplied, returns the current day of week.
    */
   public static class DayOfWeek extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
@@ -165,10 +188,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
@@ -188,10 +211,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
@@ -211,10 +234,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
@@ -234,10 +257,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
@@ -257,10 +280,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
@@ -280,10 +303,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expect epoch milliseconds
-      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
+      // expects epoch millis, otherwise defaults to current time
+      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
       if(epochMillis == null) {
-        return null;
+        return null;  // invalid argument
       }
 
       // create a calendar
