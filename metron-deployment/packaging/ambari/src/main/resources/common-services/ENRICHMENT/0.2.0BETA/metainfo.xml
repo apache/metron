@@ -151,13 +151,12 @@
                 <config-type>metron-enrichment</config-type>
             </configuration-dependencies>
 
-            <!--TODO Quicklinks-->
-            <!--<quickLinksConfigurations>-->
-                <!--<quickLinksConfiguration>-->
-                    <!--<fileName>quicklinks.json</fileName>-->
-                    <!--<default>true</default>-->
-                <!--</quickLinksConfiguration>-->
-            <!--</quickLinksConfigurations>-->
+            <quickLinksConfigurations>
+                <quickLinksConfiguration>
+                    <fileName>quicklinks.json</fileName>
+                    <default>true</default>
+                </quickLinksConfiguration>
+            </quickLinksConfigurations>
         </service>
     </services>
 </metainfo>
