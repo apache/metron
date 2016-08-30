@@ -31,7 +31,7 @@ except Exception as e:
 
 
 class ENRICHMENT020BETAServiceAdvisor(service_advisor.ServiceAdvisor):
-    # colocate Metron Parser Master with KAFKA_BROKERs
+    # colocate Metron Enrichment Master with KAFKA_BROKERs
     def colocateService(self, hostsComponentsMap, serviceComponents):
         enrichmentMasterComponent = [component for component in serviceComponents if
                                    component["StackServiceComponents"]["component_name"] == "ENRICHMENT_MASTER"]

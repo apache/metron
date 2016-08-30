@@ -37,6 +37,9 @@ geo_ip_ddl = metron_ddl_dir + '/geoip_ddl.sql'
 metron_enrichment_topology = status_params.metron_enrichment_topology
 yum_repo_type = 'local'
 
+metron_config_path = metron_home + '/config'
+configured_flag_file = metron_config_path + '/metron_enrichment_is_configured'
+
 # Hadoop params
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")

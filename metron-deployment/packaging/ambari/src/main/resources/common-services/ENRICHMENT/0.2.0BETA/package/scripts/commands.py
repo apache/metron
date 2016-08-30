@@ -15,23 +15,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import subprocess
 import time
 
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 
 
 # Wrap major operations and functionality in this class
 class Commands:
     __params = None
     __enrichment = None
+    __configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__enrichment = params.metron_enrichment_topology
+        self.__configured = os.path.isfile(self.__params.configured_flag_file)
+
+    def is_configured(self):
+        return self.__configured
+
+    def set_configured(self):
+        File(self.__params.configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
 
     def setup_repo(self):
         def local_repo():
