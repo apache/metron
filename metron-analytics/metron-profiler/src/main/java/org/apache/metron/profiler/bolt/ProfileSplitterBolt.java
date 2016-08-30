@@ -31,7 +31,6 @@ import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -88,7 +87,6 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     Context context = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .build();
-    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(context);
     executor.setContext(context);
   }
 

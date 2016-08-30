@@ -206,4 +206,9 @@ public class IPProtocolTransformation extends SimpleFieldTransformation implemen
   public void initialize(Context context) {
 
   }
+
+  @Override
+  public boolean isInitialized() {
+    return true;
+  }
 }

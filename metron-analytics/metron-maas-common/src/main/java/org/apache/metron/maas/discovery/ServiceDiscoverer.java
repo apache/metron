@@ -77,7 +77,7 @@ public class ServiceDiscoverer implements Closeable{
     try {
       Stat exists = client.checkExists().forPath(root);
       if(exists == null) {
-        client.create().forPath(root);
+        client.create().creatingParentsIfNeeded().forPath(root);
       }
     } catch (Exception e) {
       LOG.error("Unable to create path: " + e.getMessage(), e);

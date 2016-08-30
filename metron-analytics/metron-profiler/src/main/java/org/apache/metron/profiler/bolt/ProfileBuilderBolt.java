@@ -32,7 +32,6 @@ import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
@@ -40,7 +39,6 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -109,7 +107,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .build();
-    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(context);
     executor.setContext(context);
   }
 
