@@ -359,7 +359,7 @@ public class StellarTest {
   }
   public static Object run(String rule, Map<String, Object> variables, Context context) {
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
+    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
     return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
   

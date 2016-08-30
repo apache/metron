@@ -159,7 +159,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     stellarContext = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .build();
-    StellarFunctions.FUNCTION_RESOLVER().initializeFunctions(stellarContext);
   }
 
   @Override

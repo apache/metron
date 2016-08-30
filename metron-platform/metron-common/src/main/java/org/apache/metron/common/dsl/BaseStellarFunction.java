@@ -32,4 +32,9 @@ public abstract class BaseStellarFunction implements StellarFunction {
   public void initialize(Context context) {
 
   }
+
+  @Override
+  public boolean isInitialized() {
+    return true;
+  }
 }

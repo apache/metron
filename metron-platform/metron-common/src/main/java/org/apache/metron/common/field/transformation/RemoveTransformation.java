@@ -40,7 +40,7 @@ public class RemoveTransformation implements FieldTransformation {
     }
 
     @Override
-    public boolean validate(String rule, boolean throwException) throws ParseException {
+    public boolean validate(String rule, boolean throwException, Context context) throws ParseException {
       return true;
     }
   };
