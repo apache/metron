@@ -56,6 +56,7 @@ public enum StellarFunctions implements StellarFunction {
   TO_STRING(new StringFunctions.ToString()),
   TO_INTEGER(new ConversionFunctions.Cast<>(Integer.class)),
   TO_DOUBLE(new ConversionFunctions.Cast<>(Double.class)),
+  TO_LONG(new ConversionFunctions.Cast<>(Long.class)),
 
   // map functions
   MAP_GET(new MapFunctions.MapGet()),
@@ -74,6 +75,13 @@ public enum StellarFunctions implements StellarFunction {
 
   // date functions
   TO_EPOCH_TIMESTAMP(new DateFunctions.ToTimestamp()),
+  YEAR(new DateFunctions.Year()),
+  MONTH(new DateFunctions.MonthOfYear()),
+  DAY_OF_MONTH(new DateFunctions.DayOfMonth()),
+  DAY_OF_WEEK(new DateFunctions.DayOfWeek()),
+  WEEK_OF_MONTH(new DateFunctions.WeekOfMonth()),
+  WEEK_OF_YEAR(new DateFunctions.WeekOfYear()),
+  DAY_OF_YEAR(new DateFunctions.DayOfYear()),
 
   // validation functions
   IS_EMPTY ( new DataStructureFunctions.IsEmpty()),
