@@ -50,7 +50,7 @@
         <exclude>**/*.formatted</exclude>
         <exclude>**/*.filtered</exclude>
       </excludes>
-      <fileMode>0755</fileMode>
+      <fileMode>0644</fileMode>
       <lineEnding>unix</lineEnding>
       <filtered>true</filtered>
     </fileSet>
