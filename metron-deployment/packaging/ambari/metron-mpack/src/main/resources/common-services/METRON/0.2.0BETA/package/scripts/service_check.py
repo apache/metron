@@ -21,14 +21,15 @@ from __future__ import print_function
 
 from resource_management.libraries.script import Script
 from parser_commands import ParserCommands
+from indexing_commands import IndexingCommands
 
 
 class ServiceCheck(Script):
     def service_check(self, env):
         from params import params
-        env.set_params(params)
-        commands = ParserCommands(params)
-        all_found = commands.topologies_running(env)
+        parsercommands = ParserCommands(params)
+        indexingcommands = IndexingCommands(params)
+        all_found = parsercommands.topologies_running(env) and indexingcommands.is_topology_active(env)
         if all_found:
             exit(0)
         else:

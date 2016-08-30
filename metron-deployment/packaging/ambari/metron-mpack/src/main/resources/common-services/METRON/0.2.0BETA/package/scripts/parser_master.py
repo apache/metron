@@ -20,7 +20,6 @@ limitations under the License.
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Directory, File
 from parser_commands import ParserCommands
 import metron_service
 
@@ -38,33 +37,22 @@ class ParserMaster(Script):
         Logger.info('Install RPM packages')
         self.install_packages(env)
 
-        Logger.info('Create Metron Local Config Directory')
-        directories = [params.metron_zookeeper_config_path]
-        Directory(directories,
-              # recursive=True,
-              mode=0755,
-              owner=params.metron_user,
-              group=params.metron_group
-              )
-
-        #Default global.json to empty file
-        File("{}/global.json".format(params.metron_zookeeper_config_path),
-         owner=params.metron_user,
-         content="{}"
-         )
-        metron_service.init_config()
-
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
         env.set_params(params)
+        metron_service.load_global_config(params)
+        commands = ParserCommands(params)
+        if not commands.is_configured():
+            commands.init_parsers()
+            commands.init_kafka_topics()
+            commands.set_configured()
 
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = ParserCommands(params)
-        commands.init_parsers()
-        commands.init_kafka_topics()
         commands.start_parser_topologies()
 
     def stop(self, env, upgrade_type=None):
@@ -74,11 +62,11 @@ class ParserMaster(Script):
         commands.stop_parser_topologies()
 
     def status(self, env):
-        # from params import params
-        # env.set_params(params)
-        # commands = ParserCommands(params)
-        # if not commands.topologies_running(env):
-        raise ComponentIsNotRunning()
+        import status_params
+        env.set_params(status_params)
+        commands = ParserCommands(status_params)
+        if not commands.topologies_running(env):
+            raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params

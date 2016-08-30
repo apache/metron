@@ -76,7 +76,15 @@
         <description>Comma delimited list of Elasticsearch URLs. (eshost1:9200,eshost2:9200)</description>
     </property>
     <property>
-        <name>content</name>
+        <name>storm_rest_addr</name>
+        <value-attributes>
+            <editable-only-at-install>true</editable-only-at-install>
+            <overridable>false</overridable>
+        </value-attributes>
+        <value></value>
+    </property>
+    <property>
+        <name>global-json</name>
         <display-name>global.json template</display-name>
         <description>This is the jinja template for global.json file</description>
         <value>
@@ -88,6 +96,16 @@
         </value>
         <value-attributes>
             <type>content</type>
+        </value-attributes>
+    </property>
+    <property>
+        <name>elasticsearch-properties</name>
+        <display-name>elasticsearch.properties template</display-name>
+        <description>This is the jinja template for elasticsearch.properties file</description>
+        <value>
+        </value>
+        <value-attributes>
+            <type>elasticsearch-properties</type>
         </value-attributes>
     </property>
 </configuration>

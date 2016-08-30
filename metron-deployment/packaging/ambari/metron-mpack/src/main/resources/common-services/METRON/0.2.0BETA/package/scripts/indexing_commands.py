@@ -22,16 +22,31 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions import format
 
+import metron_service
+import os
+
+
 # Wrap major operations and functionality in this class
 class IndexingCommands:
     __params = None
     __indexing = None
+    __configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__indexing = params.metron_indexing_topology
+        self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
+
+    def is_configured(self):
+        return self.__configured
+
+    def set_configured(self):
+        File(self.__params.parsers_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
 
     def setup_repo(self):
         def local_repo():
@@ -126,22 +141,15 @@ class IndexingCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
+    def is_topology_active(self,env):
+        env.set_params(self.__params)
+        active = True
+        topologies = metron_service.get_running_topologies()
+        is_running = False
+        if 'indexing' in topologies:
+            is_running = topologies['indexing'] in ['ACTIVE','REBALANCING']
+        active &= is_running
+        if active == False:
+            raise ValueError(str(topologies))
 
-    def is_topology_active(self):
-        # cmd_retrieve = "storm list | grep 'indexing'"
-        # proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        # (stdout, stderr) = proc.communicate()
-        # Logger.info("Retrieval response is: %s" % stdout)
-        # Logger.warning("Error response is: %s" % stderr)
-        #
-        # fields = stdout.split()
-        # if len(fields) < 2:
-        #     Logger.warning("Indexing topology is not running")
-        #     return False
-        #
-        # # Get the second column, which is status. We already know first column is indexing)
-        # status = stdout.split()[1]
-        # running_status_set = {'ACTIVE', 'REBALANCING'}
-        # return status in running_status_set
-        #
-        return True
+        return active

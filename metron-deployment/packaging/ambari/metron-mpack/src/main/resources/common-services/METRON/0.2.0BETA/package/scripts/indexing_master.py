@@ -36,33 +36,21 @@ class Indexing(Script):
         self.install_packages(env)
 
     def configure(self, env):
-
         from params import params
         env.set_params(params)
 
-        Logger.info("Configure Metron global.json")
-
-        directories = [params.metron_zookeeper_config_path]
-        Directory(directories,
-                  # recursive=True,
-                  mode=0755,
-                  owner=params.metron_user,
-                  group=params.metron_group
-                  )
-
-        File("{}/global.json".format(params.metron_zookeeper_config_path),
-             owner=params.metron_user,
-             content=InlineTemplate(params.global_json_template)
-             )
         commands = IndexingCommands(params)
         metron_service.init_config()
+
+        if not commands.is_configured():
+            commands.init_kafka_topics()
+            commands.set_configured()
 
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
-        commands.init_kafka_topics()
         commands.start_indexing_topology()
 
     def stop(self, env, upgrade_type=None):
@@ -72,13 +60,11 @@ class Indexing(Script):
         commands.stop_indexing_topology()
 
     def status(self, env):
-        # from params import params
-        # env.set_params(params)
-        #
-        # commands = IndexingCommands(params)
-        #
-        # if not commands.is_topology_active():
-        raise ComponentIsNotRunning()
+        import status_params
+        env.set_params(status_params)
+        commands = IndexingCommands(status_params)
+        if not commands.is_topology_active(env):
+            raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params

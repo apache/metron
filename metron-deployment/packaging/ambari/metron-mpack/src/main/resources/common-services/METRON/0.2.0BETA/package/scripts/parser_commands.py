@@ -40,7 +40,7 @@ class ParserCommands:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__parser_list = self.__get_parsers(params)
-        self.__configured = os.path.isfile(self.__params.configured_flag_file)
+        self.__configured = os.path.isfile(self.__params.parsers_configured_flag_file)
 
     # get list of parsers
     def __get_parsers(self, params):
@@ -50,7 +50,7 @@ class ParserCommands:
         return self.__configured
 
     def set_configured(self):
-        File(self.__params.configured_flag_file,
+        File(self.__params.parsers_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -178,18 +178,19 @@ class ParserCommands:
                         return True
         return False
 
-    def topologies_running(self, env):
-        from params import params
-        env.set_params(params)
+    def topologies_running(self,env):
+        env.set_params(self.__params)
         all_running = True
         topologies = metron_service.get_running_topologies()
         for parser in self.get_parser_list():
+            parser_found = False
             if parser in topologies:
                 parser_found = True
                 is_running = topologies[parser] in ['ACTIVE','REBALANCING']
-                all_running &= parser_found and is_running
-            else:
-                all_running = False
+            all_running &= parser_found and is_running
+        if all_running == False:
+            raise ValueError(str(topologies))
+
         return all_running
 
     def __get_status_lines(self, lines):

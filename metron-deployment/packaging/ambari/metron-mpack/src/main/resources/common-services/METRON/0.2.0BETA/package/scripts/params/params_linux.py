@@ -40,8 +40,9 @@ metron_user = config['configurations']['metron-env']['metron_user']
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
-configured_flag_file = metron_zookeeper_config_path + '/../metron_is_configured'
-global_json_template = config['configurations']['metron-env']['content']
+parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
+indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
+global_json_template = config['configurations']['metron-env']['global-json']
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_url = config['configurations']['metron-env']['es_url']
 yum_repo_type = 'local'
@@ -68,14 +69,7 @@ if has_zk_host:
     zookeeper_quorum += ':' + zookeeper_clientPort
 
 #Storm
-storm_ui_hosts = default("/clusterHostInfo/storm_ui_server_hosts", [])
-has_storm_host = not len(storm_ui_hosts) == 0
-if has_storm_host:
-    if 'storm-site' in config['configurations'] and 'ui.port' in config['configurations']['storm-site']:
-        storm_ui_port = config['configurations']['storm-site']['ui.port']
-    else:
-        storm_ui_port = '8744'
-    storm_rest_addr = storm_ui_hosts[0] + ':' + storm_ui_port
+storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 
 # Kafka
 kafka_hosts = default("/clusterHostInfo/kafka_broker_hosts", [])

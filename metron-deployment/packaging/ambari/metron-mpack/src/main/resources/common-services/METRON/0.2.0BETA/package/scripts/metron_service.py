@@ -17,10 +17,12 @@ limitations under the License.
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format
-from resource_management.libraries.script import Script
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import InlineTemplate
 
 import subprocess
 import json
+
 
 def init_config():
     Logger.info('Loading config into ZooKeeper')
@@ -29,6 +31,7 @@ def init_config():
         path=format("{java_home}/bin")
     )
 
+
 def get_running_topologies():
     Logger.info('Getting Running Storm Topologies from Storm REST Server')
 
@@ -36,10 +39,34 @@ def get_running_topologies():
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (stdout, stderr) = proc.communicate()
 
-    stormjson = json.loads(stdout)
+    try:
+        stormjson = json.loads(stdout)
+    except ValueError:
+        return {}
+
     topologiesDict = {}
 
     for topology in stormjson['topologies']:
         topologiesDict[topology['name']] = topology['status']
 
+    Logger.info("Topologies: " + str(topologiesDict))
     return topologiesDict
+
+
+def load_global_config(params):
+    Logger.info('Create Metron Local Config Directory')
+    Logger.info("Configure Metron global.json")
+
+    directories = [params.metron_zookeeper_config_path]
+    Directory(directories,
+              # recursive=True,
+              mode=0755,
+              owner=params.metron_user,
+              group=params.metron_group
+              )
+
+    File("{}/global.json".format(params.metron_zookeeper_config_path),
+         owner=params.metron_user,
+         content=InlineTemplate(params.global_json_template)
+         )
+    init_config()
