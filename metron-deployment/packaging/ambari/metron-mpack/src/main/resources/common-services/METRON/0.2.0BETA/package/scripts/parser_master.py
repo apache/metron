@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Directory, File
 from parser_commands import ParserCommands
-
+import metron_service
 
 class ParserMaster(Script):
     def get_component_name(self):
@@ -52,7 +52,8 @@ class ParserMaster(Script):
          owner=params.metron_user,
          content="{}"
          )
-        commands.init_config()
+        metron_service.init_config()
+
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
@@ -75,10 +76,8 @@ class ParserMaster(Script):
     def status(self, env):
         # from params import params
         # env.set_params(params)
-        #
         # commands = ParserCommands(params)
-        #
-        # if not commands.topologies_running():
+        # if not commands.topologies_running(env):
         raise ComponentIsNotRunning()
 
     def restart(self, env):
@@ -86,6 +85,14 @@ class ParserMaster(Script):
         env.set_params(params)
         commands = ParserCommands(params)
         commands.restart_parser_topologies()
+
+    def servicechecktest(self,env):
+        from params import params
+        env.set_params(params)
+        from service_check import ServiceCheck
+        service_check = ServiceCheck()
+        Logger.info('Service Check Test')
+        service_check.service_check(env)
 
 if __name__ == "__main__":
     ParserMaster().execute()

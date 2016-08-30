@@ -20,7 +20,6 @@ limitations under the License.
 from __future__ import print_function
 
 from resource_management.libraries.script import Script
-
 from parser_commands import ParserCommands
 
 
@@ -29,7 +28,7 @@ class ServiceCheck(Script):
         from params import params
         env.set_params(params)
         commands = ParserCommands(params)
-        all_found = commands.topologies_running()
+        all_found = commands.topologies_running(env)
         if all_found:
             exit(0)
         else:

@@ -27,7 +27,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import Template
 from resource_management.libraries.functions import format
-
+import metron_service
 
 # Wrap major operations and functionality in this class
 class ParserCommands:
@@ -165,13 +165,6 @@ class ParserCommands:
         self.start_parser_topologies()
         Logger.info('Done restarting the parser topologies')
 
-    def init_config(self):
-        Logger.info('Loading config into ZooKeeper')
-        Execute(format(
-            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
-            path=format("{java_home}/bin")
-        )
-
     def topologies_exist(self):
         cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = cmd_open.communicate()
@@ -185,27 +178,19 @@ class ParserCommands:
                         return True
         return False
 
-    def topologies_running(self):
-        #TODO - use Storm Rest Commands
-        # cmd_open = subprocess.Popen(["storm", "list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # (stdout, stderr) = cmd_open.communicate()
-        # stdout_lines = stdout.splitlines()
-        # all_running = False
-        # if stdout_lines:
-        #     all_running = True
-        #     status_lines = self.__get_status_lines(stdout_lines)
-        #     for parser in self.get_parser_list():
-        #         parser_found = False
-        #         is_running = False
-        #         for line in status_lines:
-        #             items = re.sub('[\s]+', ' ', line).split()
-        #             if items and items[0] == parser:
-        #                 status = items[1]
-        #                 parser_found = True
-        #                 is_running = self.__is_running(status)
-        #         all_running &= parser_found and is_running
-        # return all_running
-        return True
+    def topologies_running(self, env):
+        from params import params
+        env.set_params(params)
+        all_running = True
+        topologies = metron_service.get_running_topologies()
+        for parser in self.get_parser_list():
+            if parser in topologies:
+                parser_found = True
+                is_running = topologies[parser] in ['ACTIVE','REBALANCING']
+                all_running &= parser_found and is_running
+            else:
+                all_running = False
+        return all_running
 
     def __get_status_lines(self, lines):
         status_lines = []

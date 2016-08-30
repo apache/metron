@@ -21,7 +21,7 @@ from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.source import InlineTemplate
 from indexing_commands import IndexingCommands
-
+import metron_service
 
 class Indexing(Script):
 
@@ -55,7 +55,7 @@ class Indexing(Script):
              content=InlineTemplate(params.global_json_template)
              )
         commands = IndexingCommands(params)
-        commands.init_config()
+        metron_service.init_config()
 
     def start(self, env, upgrade_type=None):
         from params import params

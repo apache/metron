@@ -126,12 +126,6 @@ class IndexingCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
-    def init_config(self):
-        Logger.info('Loading config into ZooKeeper')
-        Execute(format(
-            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
-            path=format("{java_home}/bin")
-        )
 
     def is_topology_active(self):
         # cmd_retrieve = "storm list | grep 'indexing'"
