@@ -21,24 +21,19 @@
 package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static java.lang.String.format;
 /**
  * Tests the ProfileHBaseMapper class.
  */
@@ -55,6 +50,7 @@ public class ProfileHBaseMapperTest {
 
     mapper = new ProfileHBaseMapper();
     mapper.setExecutor(executor);
+    mapper.setSaltDivisor(0);
 
     measurement = new ProfileMeasurement();
     measurement.setProfileName("profile");
