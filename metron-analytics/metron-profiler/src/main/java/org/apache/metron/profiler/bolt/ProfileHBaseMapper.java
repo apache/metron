@@ -65,7 +65,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
 
   public ProfileHBaseMapper() {
     setColumnFamily("P");
-    setSaltDivisor(0);
+    setSaltDivisor(1000);
   }
 
   /**

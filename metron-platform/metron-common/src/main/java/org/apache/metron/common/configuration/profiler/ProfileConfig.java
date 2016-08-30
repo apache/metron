@@ -69,7 +69,6 @@ public class ProfileConfig implements Serializable {
   /**
    * A list of Stellar expressions that is executed in order and used to group the
    * resulting profile data.
-   * TODO
    */
   private List<String> groupBy = new ArrayList<>();
 
