@@ -133,16 +133,6 @@
             <artifactId>storm-hdfs</artifactId>
             <version>${global_storm_version}</version>
             <scope>provided</scope>
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.apache.storm</groupId>-->
-                    <!--<artifactId>storm-core</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.apache.hadoop</groupId>-->
-                    <!--<artifactId>hadoop-client</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
