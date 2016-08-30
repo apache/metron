@@ -17,9 +17,6 @@ limitations under the License.
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Directory
-from resource_management.core.resources.system import File
-from resource_management.core.source import InlineTemplate
 from indexing_commands import IndexingCommands
 import metron_service
 
@@ -40,7 +37,7 @@ class Indexing(Script):
         env.set_params(params)
 
         commands = IndexingCommands(params)
-        metron_service.init_config()
+        metron_service.load_global_config(params)
 
         if not commands.is_configured():
             commands.init_kafka_topics()
@@ -71,7 +68,7 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
-        commands.restart_indexing_topology()
+        commands.restart_indexing_topology(env)
 
 
 if __name__ == "__main__":

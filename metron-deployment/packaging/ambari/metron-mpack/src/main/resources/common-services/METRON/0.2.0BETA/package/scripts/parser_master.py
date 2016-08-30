@@ -71,8 +71,9 @@ class ParserMaster(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = ParserCommands(params)
-        commands.restart_parser_topologies()
+        commands.restart_parser_topologies(env)
 
     def servicechecktest(self,env):
         from params import params

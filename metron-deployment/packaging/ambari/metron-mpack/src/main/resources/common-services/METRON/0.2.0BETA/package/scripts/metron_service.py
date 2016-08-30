@@ -69,4 +69,9 @@ def load_global_config(params):
          owner=params.metron_user,
          content=InlineTemplate(params.global_json_template)
          )
+
+    File("{}/elasticsearch.properties".format(params.metron_zookeeper_config_path + '/..'),
+         owner=params.metron_user,
+         content=InlineTemplate(params.global_properties_template))
+
     init_config()

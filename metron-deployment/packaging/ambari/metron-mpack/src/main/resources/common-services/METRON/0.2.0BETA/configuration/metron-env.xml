@@ -73,7 +73,7 @@
     <property require-input="true">
         <name>es_url</name>
         <value></value>
-        <description>Comma delimited list of Elasticsearch URLs. (eshost1:9200,eshost2:9200)</description>
+        <description>Comma delimited list of Elasticsearch URLs. (eshost1:9300,eshost2:9300)</description>
     </property>
     <property>
         <name>storm_rest_addr</name>
@@ -90,7 +90,7 @@
         <value>
 {
 "es.clustername": "{{ es_cluster_name }}",
-"es.ip": "[{{ es_url }}]",
+"es.ip": "{{ es_url }}",
 "es.date.format": "yyyy.MM.dd.HH"
 }
         </value>
@@ -100,12 +100,48 @@
     </property>
     <property>
         <name>elasticsearch-properties</name>
+        <description>The template for the elasticsearch.properties file.</description>
         <display-name>elasticsearch.properties template</display-name>
-        <description>This is the jinja template for elasticsearch.properties file</description>
         <value>
+##### Storm #####
+indexing.workers=1
+indexing.executors=0
+##### Kafka #####
+kafka.zk={{ zookeeper_quorum }}
+kafka.broker={{ kafka_brokers }}
+kafka.start=WHERE_I_LEFT_OFF
+##### Indexing #####
+index.input.topic=indexing
+index.error.topic=indexing_error
+writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
+##### Metrics #####
+#reporters
+org.apache.metron.metrics.reporter.graphite=true
+org.apache.metron.metrics.reporter.console=false
+org.apache.metron.metrics.reporter.jmx=false
+#Graphite Addresses
+org.apache.metron.metrics.graphite.address=localhost
+org.apache.metron.metrics.graphite.port=2023
+#TelemetryParserBolt
+org.apache.metron.metrics.TelemetryParserBolt.acks=true
+org.apache.metron.metrics.TelemetryParserBolt.emits=true
+org.apache.metron.metrics.TelemetryParserBolt.fails=true
+##### HDFS #####
+bolt.hdfs.batch.size=5000
+bolt.hdfs.field.delimiter=|
+bolt.hdfs.rotation.policy=org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
+bolt.hdfs.rotation.policy.units=DAYS
+bolt.hdfs.rotation.policy.count=1
+bolt.hdfs.file.rotation.size.in.mb=5
+bolt.hdfs.file.system.url={{ default_fs }}
+bolt.hdfs.wip.file.path=/paloalto/wip
+bolt.hdfs.finished.file.path=/paloalto/rotated
+bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
+index.hdfs.output=/tmp/metron/enriched
         </value>
         <value-attributes>
-            <type>elasticsearch-properties</type>
+            <type>content</type>
         </value-attributes>
+        <on-ambari-upgrade add="true"/>
     </property>
 </configuration>

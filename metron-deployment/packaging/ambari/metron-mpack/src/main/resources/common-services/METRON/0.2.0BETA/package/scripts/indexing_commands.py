@@ -113,30 +113,32 @@ class IndexingCommands:
         Execute(stop_cmd)
         Logger.info('Done stopping indexing topologies')
 
-    def restart_indexing_topology(self):
+    def restart_indexing_topology(self,env):
         Logger.info('Restarting the indexing topologies')
         self.stop_indexing_topology()
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0
-        topology_active = self.is_topology_active()
-        while topology_active and retries < 3:
+        topology_active = self.is_topology_active(env)
+        while self.is_topology_active(env) and retries < 3:
             Logger.info('Existing topology still active. Will wait and retry')
-            time.sleep(40)
-            topology_active = self.is_topology_active()
+            time.sleep(10)
             retries += 1
 
         if not topology_active:
+            Logger.info('Waiting for storm kill to complete')
+            time.sleep(30)
             self.start_indexing_topology()
             Logger.info('Done restarting the indexing topologies')
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
+
     def is_configured(self):
         return self.__configured
 
     def set_configured(self):
-        File(self.__params.configured_flag_file,
+        File(self.__params.indexing_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -149,7 +151,4 @@ class IndexingCommands:
         if 'indexing' in topologies:
             is_running = topologies['indexing'] in ['ACTIVE','REBALANCING']
         active &= is_running
-        if active == False:
-            raise ValueError(str(topologies))
-
         return active
