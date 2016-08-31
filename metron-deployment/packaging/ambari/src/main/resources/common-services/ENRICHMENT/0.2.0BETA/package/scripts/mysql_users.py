@@ -32,7 +32,6 @@ def mysql_adduser():
          content=StaticFile('addMysqlUser.sh')
          )
 
-    # TODO figure out password
     add_user_cmd = format("bash -x {mysql_adduser_path} {daemon_name} {metron_user} {enrichment_metron_user_passwd!p} {enrichment_host}")
     Execute(add_user_cmd,
             tries=3,
