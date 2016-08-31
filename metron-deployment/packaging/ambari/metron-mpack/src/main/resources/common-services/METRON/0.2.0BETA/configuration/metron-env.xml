@@ -77,10 +77,10 @@
     </property>
     <property>
         <name>storm_rest_addr</name>
-        <value-attributes>
-            <editable-only-at-install>true</editable-only-at-install>
-            <overridable>false</overridable>
-        </value-attributes>
+        <!--<value-attributes>-->
+            <!--<editable-only-at-install>true</editable-only-at-install>-->
+            <!--<overridable>false</overridable>-->
+        <!--</value-attributes>-->
         <value></value>
     </property>
     <property>
