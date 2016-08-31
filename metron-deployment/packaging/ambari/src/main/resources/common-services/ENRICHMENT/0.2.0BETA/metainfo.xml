@@ -145,6 +145,7 @@
                 <service>KAFKA</service>
                 <service>STORM</service>
                 <service>ZOOKEEPER</service>
+                <service>HBASE</service>
             </requiredServices>
 
             <configuration-dependencies>

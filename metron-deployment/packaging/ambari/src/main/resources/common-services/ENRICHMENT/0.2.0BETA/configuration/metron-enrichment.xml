@@ -49,7 +49,7 @@
         <name>metron_enrichment_db_password</name>
         <value></value>
         <property-type>PASSWORD</property-type>
-        <display-name>GeoIP Database Password</display-name>
+        <display-name>Metron Enrichment Database Password</display-name>
         <description>Password to use against database</description>
         <value-attributes>
             <type>password</type>

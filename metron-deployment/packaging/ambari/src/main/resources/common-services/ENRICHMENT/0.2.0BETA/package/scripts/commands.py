@@ -145,3 +145,20 @@ class Commands:
         status = stdout.split()[1]
         running_status_set = {'ACTIVE', 'REBALANCING'}
         return status in running_status_set
+
+    def create_hbase_tables(self):
+        add_enrichment_cmd = format("echo \"create 'enrichment','t'\" | hbase shell -n")
+        Execute(add_enrichment_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+                )
+
+        add_threatintel_cmd = format("echo \"create 'threatintel','t'\" | hbase shell -n")
+        Execute(add_threatintel_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+                )
