@@ -20,8 +20,10 @@ limitations under the License.
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
-from parser_commands import ParserCommands
+
 import metron_service
+from parser_commands import ParserCommands
+
 
 class ParserMaster(Script):
     def get_component_name(self):
@@ -62,7 +64,7 @@ class ParserMaster(Script):
         commands.stop_parser_topologies()
 
     def status(self, env):
-        import status_params
+        from params import status_params
         env.set_params(status_params)
         commands = ParserCommands(status_params)
         if not commands.topologies_running(env):
@@ -71,8 +73,9 @@ class ParserMaster(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = ParserCommands(params)
-        commands.restart_parser_topologies()
+        commands.restart_parser_topologies(env)
 
     def servicechecktest(self,env):
         from params import params

@@ -21,28 +21,39 @@ limitations under the License.
 import functools
 import os
 
+from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script import Script
 
+import status_params
+
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
+
 hostname = config['hostname']
 metron_home = config['configurations']['metron-env']['metron_home']
 parsers = config['configurations']['metron-env']['parsers']
+metron_ddl_dir = metron_home + '/ddl'
+geo_ip_ddl = metron_ddl_dir + '/geoip_ddl.sql'
+metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
 parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
-indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
+enrichment_configured_flag_file = metron_zookeeper_config_path + '/metron_enrichment_is_configured'
+indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 global_json_template = config['configurations']['metron-env']['global-json']
+global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_url = config['configurations']['metron-env']['es_url']
 yum_repo_type = 'local'
@@ -68,7 +79,7 @@ if has_zk_host:
     # last port config
     zookeeper_quorum += ':' + zookeeper_clientPort
 
-#Storm
+# Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 
 # Kafka
@@ -100,6 +111,28 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 dfs_type = default("/commandParams/dfs_type", "")
+
+# MYSQL
+if OSCheck.is_ubuntu_family():
+    mysql_configname = '/etc/mysql/my.cnf'
+else:
+    mysql_configname = '/etc/my.cnf'
+
+daemon_name = status_params.daemon_name
+mysql_user = "mysql"
+mysql_group = 'mysql'
+mysql_host = config['clusterHostInfo']['enrichment_mysql_host']
+
+mysql_adduser_path = tmp_dir + "/addMysqlUser.sh"
+mysql_deluser_path = tmp_dir + "/removeMysqlUser.sh"
+mysql_create_geoip_path = tmp_dir + "/createMysqlGeoIp.sh"
+
+enrichment_hosts = default("/clusterHostInfo/enrichment_host", [])
+enrichment_host = enrichment_hosts[0] if len(enrichment_hosts) > 0 else None
+enrichment_metron_user_passwd = config['configurations']['metron-enrichment']['metron_enrichment_db_password']
+enrichment_metron_user_passwd = unicode(enrichment_metron_user_passwd) if not is_empty(
+    enrichment_metron_user_passwd) else enrichment_metron_user_passwd
+mysql_process_name = status_params.mysql_process_name
 
 # create partial functions with common arguments for every HdfsResource call
 # to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code

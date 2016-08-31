@@ -83,6 +83,65 @@
         </component>
 
         <component>
+          <name>METRON_ENRICHMENT_MASTER</name>
+          <displayName>Enrichment Master</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/enrichment_master.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>METRON_ENRICHMENT_MYSQL_SERVER</name>
+          <displayName>MySQL Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <commandScript>
+            <script>scripts/mysql_server.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>CLEAN</name>
+              <commandScript>
+                <script>scripts/mysql_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
           <name>METRON_INDEXING</name>
           <displayName>Metron Indexing</displayName>
           <category>MASTER</category>
@@ -122,7 +181,6 @@
           </configuration-dependencies>
         </component>
 
-
       </components>
 
       <osSpecifics>
@@ -136,10 +194,40 @@
               <name>metron-parsers</name>
             </package>
             <package>
+              <name>metron-enrichment</name>
+            </package>
+            <package>
               <name>metron-indexing</name>
             </package>
             <package>
               <name>metron-elasticsearch</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>mysql-community-release</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>mysql-community-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>MySQL-python</package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6</osFamily>
+          <packages>
+            <package>
+              <name>mysql-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>mysql</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>
@@ -156,6 +244,7 @@
         <service>KAFKA</service>
         <service>STORM</service>
         <service>ZOOKEEPER</service>
+        <service>HBASE</service>
       </requiredServices>
 
       <configuration-dependencies>

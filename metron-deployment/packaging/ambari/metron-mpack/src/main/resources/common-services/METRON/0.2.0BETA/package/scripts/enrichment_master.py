@@ -14,64 +14,60 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from enrichment_commands import EnrichmentCommands
+
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 
-import metron_service
-from indexing_commands import IndexingCommands
 
-
-class Indexing(Script):
-
-    __configured = False
-
+class Enrichment(Script):
     def install(self, env):
         from params import params
         env.set_params(params)
-        commands = IndexingCommands(params)
+        commands = EnrichmentCommands(params)
         commands.setup_repo()
         Logger.info('Install RPM packages')
         self.install_packages(env)
 
-    def configure(self, env):
-        from params import params
-        env.set_params(params)
-
-        commands = IndexingCommands(params)
-        metron_service.load_global_config(params)
-
-        if not commands.is_configured():
-            commands.init_kafka_topics()
-            commands.set_configured()
-
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
-        self.configure(env)
-        commands = IndexingCommands(params)
-        commands.start_indexing_topology()
+        commands = EnrichmentCommands(params)
+
+        if not commands.is_configured():
+            commands.init_kafka_topics()
+            commands.create_hbase_tables()
+            commands.set_configured()
+
+        commands.start_enrichment_topology()
 
     def stop(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
-        commands = IndexingCommands(params)
-        commands.stop_indexing_topology()
+        commands = EnrichmentCommands(params)
+        commands.stop_enrichment_topology()
 
     def status(self, env):
         from params import status_params
         env.set_params(status_params)
-        commands = IndexingCommands(status_params)
-        if not commands.is_topology_active(env):
+        commands = EnrichmentCommands(status_params)
+
+        if not commands.is_topology_active():
             raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params
         env.set_params(params)
-        self.configure(env)
-        commands = IndexingCommands(params)
-        commands.restart_indexing_topology(env)
+        commands = EnrichmentCommands(params)
+        commands.restart_enrichment_topology()
+
+    def kafkabuild(self, env, upgrade_type=None):
+        from params import params
+        env.set_params(params)
+        commands = EnrichmentCommands(params)
+        commands.init_kafka_topics()
 
 
 if __name__ == "__main__":
-    Indexing().execute()
+    Enrichment().execute()

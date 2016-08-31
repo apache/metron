@@ -61,6 +61,23 @@
         <display-name>Metron parsers</display-name>
     </property>
     <property>
+        <name>metron_enrichment_db_user</name>
+        <value>root</value>
+        <description>Database username to use to connect to the database.</description>
+    </property>
+    <property>
+        <name>metron_enrichment_db_password</name>
+        <value></value>
+        <property-type>PASSWORD</property-type>
+        <display-name>Metron Enrichment Database Password</display-name>
+        <description>Password to use against database</description>
+        <value-attributes>
+            <type>password</type>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
         <name>metron_indexing_topology</name>
         <value>indexing</value>
         <description>The Storm topology name for Indexing</description>
