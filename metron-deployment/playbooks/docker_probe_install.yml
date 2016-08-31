@@ -1,0 +1,63 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# sensors
+#
+- hosts: localhost
+  tasks:
+  - name: add container to inventory
+    add_host:
+      name: amb-server
+      ansible_connection: docker
+      groups: sensors
+    changed_when: false
+    tags: add-host
+
+- hosts: sensors
+  vars:
+    metron_version: 0.2.0BETA
+    metron_directory: /usr/metron/{{ metron_version }}
+    bro_version: "2.4.1"
+    fixbuf_version: "1.7.1"
+    yaf_version: "2.8.0"
+    daq_version: "2.0.6-1"
+    pycapa_repo: "https://github.com/OpenSOC/pycapa.git"
+    pycapa_home: "/opt/pycapa"
+    snort_version: "2.9.8.0-1"
+    snort_alert_csv_path: "/var/log/snort/alert.csv"
+    threat_intel_bulk_load: False
+    sensor_test_mode: True
+    install_pycapa: False
+    install_bro: True
+    install_snort: True
+    install_yaf: True
+    install_pcap_replay: True
+    sniff_interface: eth0
+    pcap_replay_interface: "{{ sniff_interface }}"
+    pcapservice_port: 8081
+    kafka_broker_url: amb2.service.consul:6667,amb1.service.consul:6667,amb3.service.consul:6667,amb5.service.consul:6667,amb4.service.consul:6667
+  connection: docker
+  roles:
+    - { role: bro,                    tags: ['bro'] }
+    - { role: flume,                  tags: ['snort','flume'] }
+    - { role: snort,                  tags: ['snort'] }
+    - { role: yaf,                    tags: ['yaf'] }
+    - { role: pcap_replay,            tags: ['pcap-replay'] }
+    - { role: sensor-test-mode,       tags: ['sensor-test-mode'] }
+  tags:
+    - sensors
