@@ -153,11 +153,11 @@ class ParserCommands:
             Execute(stop_cmd)
         Logger.info('Done stopping parser topologies')
 
-    def restart_parser_topologies(self):
+    def restart_parser_topologies(self,env):
         Logger.info('Restarting the parser topologies')
         self.stop_parser_topologies()
         attempt_count = 0
-        while self.topologies_exist():
+        while self.topologies_running(env):
             if attempt_count > 2:
                 raise Exception("Unable to kill topologies")
             attempt_count += 1
@@ -188,9 +188,6 @@ class ParserCommands:
                 parser_found = True
                 is_running = topologies[parser] in ['ACTIVE','REBALANCING']
             all_running &= parser_found and is_running
-        if all_running == False:
-            raise ValueError(str(topologies))
-
         return all_running
 
     def __get_status_lines(self, lines):

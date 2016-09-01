@@ -33,7 +33,7 @@ parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parser
 
 #Indexing
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
-indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
+indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 
 #Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']

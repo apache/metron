@@ -23,7 +23,6 @@ from indexing_commands import IndexingCommands
 
 
 class Indexing(Script):
-
     __configured = False
 
     def install(self, env):
