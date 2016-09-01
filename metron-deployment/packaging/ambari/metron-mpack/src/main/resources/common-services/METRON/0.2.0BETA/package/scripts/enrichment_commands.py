@@ -34,13 +34,13 @@ class EnrichmentCommands:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__enrichment = params.metron_enrichment_topology
-        self.__configured = os.path.isfile(self.__params.configured_flag_file)
+        self.__configured = os.path.isfile(self.__params.enrichment_configured_flag_file)
 
     def is_configured(self):
         return self.__configured
 
     def set_configured(self):
-        File(self.__params.configured_flag_file,
+        File(self.__params.enrichment_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
