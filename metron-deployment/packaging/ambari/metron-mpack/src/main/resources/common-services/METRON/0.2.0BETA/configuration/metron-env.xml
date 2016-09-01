@@ -62,8 +62,13 @@
     </property>
     <property>
         <name>metron_enrichment_db_user</name>
-        <value>root</value>
+        <value>metron</value>
         <description>Database username to use to connect to the database.</description>
+    </property>
+    <property>
+        <name>metron_enrichment_db_port</name>
+        <value>3306</value>
+        <description>Database port to use to connect to the database.</description>
     </property>
     <property>
         <name>metron_enrichment_db_password</name>
