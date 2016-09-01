@@ -82,9 +82,9 @@ else:
     mysql_configname = '/etc/my.cnf'
 
 daemon_name = status_params.daemon_name
-mysql_user = "mysql"
-mysql_group = 'mysql'
-mysql_host = config['clusterHostInfo']['enrichment_mysql_host']
+# There will always be exactly one mysql_host
+mysql_host = config['clusterHostInfo']['enrichment_mysql_server_hosts'][0]
+mysql_port = config['configurations']['metron-enrichment']['metron_enrichment_db_port']
 
 mysql_adduser_path = tmp_dir + "/addMysqlUser.sh"
 mysql_deluser_path = tmp_dir + "/removeMysqlUser.sh"
@@ -94,6 +94,9 @@ enrichment_hosts = default("/clusterHostInfo/enrichment_host", [])
 enrichment_host = enrichment_hosts[0] if len(enrichment_hosts) > 0 else None
 
 metron_user = config['configurations']['metron-enrichment']['metron_user']
+user_group = config['configurations']['cluster-env']['user_group']
+
+enrichment_metron_user = config['configurations']['metron-enrichment']['metron_enrichment_db_user']
 enrichment_metron_user_passwd = config['configurations']['metron-enrichment']['metron_enrichment_db_password']
 enrichment_metron_user_passwd = unicode(enrichment_metron_user_passwd) if not is_empty(enrichment_metron_user_passwd) else enrichment_metron_user_passwd
 process_name = status_params.process_name

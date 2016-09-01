@@ -16,7 +16,10 @@ limitations under the License.
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import File
 from resource_management.libraries.script import Script
+from resource_management.core.source import Template
+from resource_management.libraries.functions.format import format
 
 from commands import Commands
 
@@ -29,6 +32,17 @@ class Enrichment(Script):
         commands.setup_repo()
         Logger.info('Install RPM packages')
         self.install_packages(env)
+        self.configure(env)
+
+    def configure(self, env, upgrade_type=None, config_dir=None):
+        import params
+        env.set_params(params)
+
+        File(format("{metron_config_path}/enrichment.properties"),
+             content=Template("enrichment.properties.j2"),
+             owner=params.metron_user,
+             group=params.user_group
+             )
 
     def start(self, env, upgrade_type=None):
         import params
