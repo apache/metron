@@ -36,14 +36,14 @@
         <display-name>Metron User</display-name>
     </property>
     <property>
-        <name>metron_group</name>
+        <name>metron_enrichment_db_user</name>
         <value>metron</value>
-        <description>The group for Metron</description>
+        <description>Database username to use to connect to the database.</description>
     </property>
     <property>
-        <name>metron_enrichment_db_user</name>
-        <value>root</value>
-        <description>Database username to use to connect to the database.</description>
+        <name>metron_enrichment_db_port</name>
+        <value>3306</value>
+        <description>Database port to use to connect to the database.</description>
     </property>
     <property>
         <name>metron_enrichment_db_password</name>
