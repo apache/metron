@@ -18,15 +18,15 @@ from __future__ import print_function
 
 from resource_management.libraries.script import Script
 
-from commands import Commands
+from enrichment_commands import EnrichmentCommands
 
 
 class ServiceCheck(Script):
     def service_check(self, env):
-        import params
+        from params import params
         env.set_params(params)
 
-        commands = Commands(params)
+        commands = EnrichmentCommands(params)
         if commands.is_topology_active():
             exit(0)
         else:
