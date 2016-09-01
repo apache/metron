@@ -142,5 +142,5 @@ class Commands:
 
         # Get the second column, which is status. We already know first column is indexing)
         status = stdout.split()[1]
-        running_status_set = {'ACTIVE', 'REBALANCING'}
+        running_status_set = ['ACTIVE', 'REBALANCING']
         return status in running_status_set
