@@ -20,11 +20,26 @@ package org.apache.metron.common.field.validation.primitive;
 
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.LongValidator;
+import org.apache.metron.common.dsl.Predicate2StellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.field.validation.SimpleValidation;
 
 import java.util.function.Predicate;
 
 public class IntegerValidation extends SimpleValidation{
+  @Stellar(name="IS_INTEGER"
+          , description = "Determine if an object is an integer or not."
+          , params = {
+              "x - An object which we wish to test is an integer"
+                     }
+          , returns = "True if the object can be converted to an integer and false otherwise."
+          )
+  public static class IS_INTEGER extends Predicate2StellarFunction {
+
+    public IS_INTEGER() {
+      super(new IntegerValidation());
+    }
+  }
   @Override
   public Predicate<Object> getPredicate() {
     return x -> LongValidator.getInstance().isValid(x == null?null:x.toString());

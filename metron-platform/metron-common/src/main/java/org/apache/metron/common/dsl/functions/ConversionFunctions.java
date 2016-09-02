@@ -18,11 +18,13 @@
 package org.apache.metron.common.dsl.functions;
 
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.List;
 
 public class ConversionFunctions {
+
   public static class Cast<T> extends BaseStellarFunction {
     Class<T> clazz;
     public Cast(Class<T> clazz) {
@@ -32,6 +34,30 @@ public class ConversionFunctions {
     @Override
     public Object apply(List<Object> strings ) {
       return strings.get(0) == null?null: ConversionUtils.convert(strings.get(0), clazz);
+    }
+  }
+
+  @Stellar(name="TO_INTEGER"
+          , description="Transforms the first argument to an integer"
+          , params = { "input - Object of string or numeric type"}
+          , returns = "Integer"
+          )
+  public static class TO_INTEGER extends Cast<Integer> {
+
+    public TO_INTEGER() {
+      super(Integer.class);
+    }
+  }
+
+  @Stellar(name="TO_DOUBLE"
+          , description="Transforms the first argument to a double precision number"
+          , params = { "input - Object of string or numeric type"}
+          , returns = "Double"
+          )
+  public static class TO_DOUBLE extends Cast<Double> {
+
+    public TO_DOUBLE() {
+      super(Double.class);
     }
   }
 }
