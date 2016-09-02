@@ -43,22 +43,46 @@ public class FunctionResolverSingleton implements FunctionResolver {
     return INSTANCE;
   }
 
-
-
+  /**
+   * Provides metadata about each Stellar function that is resolvable.
+   */
   @Override
   public Iterable<StellarFunctionInfo> getFunctionInfo() {
     return _getFunctions().values();
   }
 
+  /**
+   * The names of all Stellar functions that are resolvable.
+   */
   @Override
   public Iterable<String> getFunctions() {
     return _getFunctions().keySet();
   }
 
+  /**
+   * Initialize the function resolver.
+   * @param context Context used to initialize.
+   */
   @Override
   public void initialize(Context context) {
     //forces a load of the stellar functions.
     _getFunctions();
+  }
+
+  /**
+   * A 'factory reset' of the function resolver.
+   *
+   * Useful primarily for testing purposes only.
+   */
+  @Override
+  public void reset() {
+    lock.writeLock().lock();
+    try {
+      isInitialized.set(false);
+    }
+    finally {
+      lock.writeLock().unlock();
+    }
   }
 
   /**
@@ -147,8 +171,6 @@ public class FunctionResolverSingleton implements FunctionResolver {
   public static Collection<URL> effectiveClassPathUrls(ClassLoader... classLoaders) {
     return ClasspathHelper.forManifest(ClasspathHelper.forClassLoader(classLoaders));
   }
-
-
 
   private static Map.Entry<String, StellarFunctionInfo> create(Class<? extends StellarFunction> stellarClazz) {
     String fqn = getNameFromAnnotation(stellarClazz);

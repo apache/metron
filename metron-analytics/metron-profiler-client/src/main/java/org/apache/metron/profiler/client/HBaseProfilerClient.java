@@ -64,43 +64,57 @@ public class HBaseProfilerClient implements ProfilerClient {
   /**
    * Fetches all of the data values associated with a Profile.
    *
-   * @param profile The name of the profile.
-   * @param entity The name of the entity.
+   * @param profile     The name of the profile.
+   * @param entity      The name of the entity.
    * @param durationAgo How far in the past to fetch values from.
-   * @param unit The time unit of 'durationAgo'.
-   * @param groups The groups
-   * @param <T> The type of values stored by the Profile.
+   * @param unit        The time unit of 'durationAgo'.
+   * @param groups      The groups
+   * @param <T>         The type of values stored by the Profile.
    * @return A list of profile values.
    */
   @Override
   public <T> List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups) {
+    byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
+    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // find all the row keys that satisfy this fetch
     List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, durationAgo, unit);
-    byte[] columnFamilyBytes = Bytes.toBytes(columnBuilder.getColumnFamily());
-    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch
             .stream()
-            .map(k -> new Get(k).addColumn(columnFamilyBytes, columnQualifier))
+            .map(k -> new Get(k).addColumn(columnFamily, columnQualifier))
             .collect(Collectors.toList());
 
-    // submit the gets to HBase
-    try {
-      List<T> values = new ArrayList<>();
+    // get the 'gets'
+    return get(gets, columnQualifier, columnFamily, clazz);
+  }
 
+  /**
+   * Submits multiple Gets to HBase and deserialize the results.
+   *
+   * @param gets            The gets to submit to HBase.
+   * @param columnQualifier The column qualifier.
+   * @param columnFamily    The column family.
+   * @param clazz           The type expected in return.
+   * @param <T>             The type expected in return.
+   * @return
+   */
+  private <T> List<T> get(List<Get> gets, byte[] columnQualifier, byte[] columnFamily, Class<T> clazz) {
+    List<T> values = new ArrayList<>();
+
+    try {
       Result[] results = table.get(gets);
       Arrays.stream(results)
-              .filter(r -> r.containsColumn(columnFamilyBytes, columnQualifier))
-              .map(r -> r.getValue(columnFamilyBytes, columnQualifier))
+              .filter(r -> r.containsColumn(columnFamily, columnQualifier))
+              .map(r -> r.getValue(columnFamily, columnQualifier))
               .forEach(val -> values.add(Serializer.fromBytes(val, clazz)));
-
-      return values;
 
     } catch(IOException e) {
       throw new RuntimeException(e);
     }
+
+    return values;
   }
 
   public void setTable(HTableInterface table) {
