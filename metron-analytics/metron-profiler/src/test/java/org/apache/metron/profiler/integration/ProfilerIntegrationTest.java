@@ -34,6 +34,7 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.Assert;
@@ -94,6 +95,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Multiline
   private String message3;
 
+  private ColumnBuilder columnBuilder;
   private FluxTopologyComponent fluxComponent;
   private KafkaWithZKComponent kafkaComponent;
   private List<byte[]> input;
@@ -133,7 +135,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' each with 390 bytes
-    double actual = readDouble(ColumnBuilder.QVALUE);
+    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
     Assert.assertEquals(390.0 * 5, actual, 0.01);
   }
 
@@ -154,7 +156,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' and 5 'DNS' messages thus 5/5 = 1
-    double actual = readDouble(ColumnBuilder.QVALUE);
+    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
     Assert.assertEquals(5.0 / 5.0, actual, 0.01);
   }
 
@@ -175,7 +177,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readDouble(ColumnBuilder.QVALUE);
+    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
@@ -193,7 +195,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readInteger(ColumnBuilder.QVALUE);
+    double actual = readInteger(columnBuilder.getColumnQualifier("value"));
     Assert.assertEquals(10.0, actual, 0.01);
   }
 
@@ -211,7 +213,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - the 70th percentile of 5 x 20s = 20.0
-    double actual = readDouble(ColumnBuilder.QVALUE);
+    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
@@ -224,7 +226,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(cf, ColumnBuilder.QVALUE);
+      byte[] raw = result.getValue(cf, columnQual);
       return Bytes.toDouble(raw);
     }
 
@@ -240,7 +242,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(cf, ColumnBuilder.QVALUE);
+      byte[] raw = result.getValue(cf, columnQual);
       return Bytes.toInt(raw);
     }
 
@@ -248,6 +250,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   public void setup(String pathToConfig) throws Exception {
+    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)

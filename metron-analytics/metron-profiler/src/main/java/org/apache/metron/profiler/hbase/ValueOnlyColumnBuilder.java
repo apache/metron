@@ -48,13 +48,28 @@ public class ValueOnlyColumnBuilder implements ColumnBuilder {
   public ColumnList columns(ProfileMeasurement measurement) {
 
     ColumnList cols = new ColumnList();
-    cols.addColumn(columnFamilyBytes, QVALUE, Serializer.toBytes(measurement.getValue()));
+    cols.addColumn(columnFamilyBytes, getColumnQualifier("value"), Serializer.toBytes(measurement.getValue()));
 
     return cols;
+  }
+
+  @Override
+  public String getColumnFamily() {
+    return this.columnFamily;
   }
 
   public void setColumnFamily(String columnFamily) {
     this.columnFamily = columnFamily;
     this.columnFamilyBytes = Bytes.toBytes(columnFamily);
+  }
+
+  @Override
+  public byte[] getColumnQualifier(String fieldName) {
+
+    if("value".equals(fieldName)) {
+      return Bytes.toBytes("value");
+    }
+
+    throw new IllegalArgumentException(("unexpected field name: " + fieldName));
   }
 }

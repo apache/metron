@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler;
+package org.apache.metron.profiler.client;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,7 @@ public interface ProfilerClient {
    * @param clazz The type of values stored by the profile.
    * @param groups The groups used to sort the profile data.
    * @param <T> The type of values stored by the Profile.
-   * @return An array of profile values.
+   * @return A list of values.
    */
   <T> List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups);
 

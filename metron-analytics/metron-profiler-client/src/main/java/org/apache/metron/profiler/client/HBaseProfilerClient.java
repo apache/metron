@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler;
+package org.apache.metron.profiler.client;
 
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -51,16 +51,14 @@ public class HBaseProfilerClient implements ProfilerClient {
   private RowKeyBuilder rowKeyBuilder;
 
   /**
-   * The column family used to store the profile data.
+   * Knows how profiles are organized in HBase.
    */
-  private String columnFamily;
+  private ColumnBuilder columnBuilder;
 
-  private byte[] columnFamilyBytes;
-
-  public HBaseProfilerClient(HTableInterface table, RowKeyBuilder rowKeyBuilder, String columnFamily) {
+  public HBaseProfilerClient(HTableInterface table, RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder) {
     setTable(table);
     setRowKeyBuilder(rowKeyBuilder);
-    setColumnFamily(columnFamily);
+    setColumnBuilder(columnBuilder);
   }
 
   /**
@@ -79,11 +77,13 @@ public class HBaseProfilerClient implements ProfilerClient {
 
     // find all the row keys that satisfy this fetch
     List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, durationAgo, unit);
+    byte[] columnFamilyBytes = Bytes.toBytes(columnBuilder.getColumnFamily());
+    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch
             .stream()
-            .map(k -> new Get(k).addColumn(Bytes.toBytes(columnFamily), ColumnBuilder.QVALUE))
+            .map(k -> new Get(k).addColumn(columnFamilyBytes, columnQualifier))
             .collect(Collectors.toList());
 
     // submit the gets to HBase
@@ -92,8 +92,8 @@ public class HBaseProfilerClient implements ProfilerClient {
 
       Result[] results = table.get(gets);
       Arrays.stream(results)
-              .filter(r -> r.containsColumn(columnFamilyBytes, ColumnBuilder.QVALUE))
-              .map(r -> r.getValue(columnFamilyBytes, ColumnBuilder.QVALUE))
+              .filter(r -> r.containsColumn(columnFamilyBytes, columnQualifier))
+              .map(r -> r.getValue(columnFamilyBytes, columnQualifier))
               .forEach(val -> values.add(Serializer.fromBytes(val, clazz)));
 
       return values;
@@ -111,8 +111,7 @@ public class HBaseProfilerClient implements ProfilerClient {
     this.rowKeyBuilder = rowKeyBuilder;
   }
 
-  public void setColumnFamily(String columnFamily) {
-    this.columnFamily = columnFamily;
-    this.columnFamilyBytes = Bytes.toBytes(columnFamily);
+  public void setColumnBuilder(ColumnBuilder columnBuilder) {
+    this.columnBuilder = columnBuilder;
   }
 }

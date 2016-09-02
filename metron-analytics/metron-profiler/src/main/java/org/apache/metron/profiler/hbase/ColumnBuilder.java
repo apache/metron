@@ -20,7 +20,6 @@
 
 package org.apache.metron.profiler.hbase;
 
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.hbase.common.ColumnList;
 
@@ -37,9 +36,15 @@ public interface ColumnBuilder extends Serializable {
    */
   ColumnList columns(ProfileMeasurement measurement);
 
-  byte[] QPROFILE = Bytes.toBytes("profile");
-  byte[] QENTITY = Bytes.toBytes("entity");
-  byte[] QSTART = Bytes.toBytes("start");
-  byte[] QEND = Bytes.toBytes("end");
-  byte[] QVALUE = Bytes.toBytes("value");
+  /**
+   * Returns the column family used to store the ProfileMeasurement values.
+   * @return
+   */
+  String getColumnFamily();
+
+  /**
+   * Returns the column qualifiers for the given field of a ProfileMeasurement.
+   * @return The column qualifier used to store a ProfileMeasurement's field in HBase.
+   */
+  byte[] getColumnQualifier(String fieldName);
 }

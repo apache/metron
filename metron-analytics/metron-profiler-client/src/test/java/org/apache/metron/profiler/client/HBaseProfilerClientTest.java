@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler;
+package org.apache.metron.profiler.client;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -28,6 +28,8 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
@@ -91,10 +93,10 @@ public class HBaseProfilerClientTest {
     hbaseClient = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
     executor = new DefaultStellarExecutor();
     rowKeyBuilder = new SaltyRowKeyBuilder();
-    columnBuilder = new ValueOnlyColumnBuilder();
+    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
     // what we're actually testing
-    client = new HBaseProfilerClient(table, rowKeyBuilder, columnFamily);
+    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
   }
 
   /**
