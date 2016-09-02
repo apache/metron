@@ -40,7 +40,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import static java.lang.String.format;
+
 public class StellarCompiler extends StellarBaseListener {
+
   private Context context = null;
   private Stack<Token> tokenStack = new Stack<>();
   private FunctionResolver functionResolver;
@@ -230,28 +233,62 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitTransformationFunc(StellarParser.TransformationFuncContext ctx) {
-    String funcName = ctx.getChild(0).getText();
-    StellarFunction func = null;
-    try {
-      func = functionResolver.apply(funcName);
-      if (!func.isInitialized()) {
-        func.initialize(context);
-      }
-    } catch (Exception iae) {
-      throw new ParseException("Unable to find string function " + funcName + ".  Valid functions are "
-              + Joiner.on(',').join(functionResolver.getFunctions())
-      );
-    }
 
-    Token<?> left = popStack();
-    List<Object> argList = null;
-    if (left.getUnderlyingType().equals(List.class)) {
-      argList = (List<Object>) left.getValue();
-    } else {
-      throw new ParseException("Unable to process in clause because " + left.getValue() + " is not a set");
-    }
-    Object result = func.apply(argList, context);
+    // resolve and initialize the function
+    String functionName = ctx.getChild(0).getText();
+    StellarFunction function = resolveFunction(functionName);
+    initializeFunction(function, functionName);
+
+    // fetch the args, execute, and push result onto the stack
+    List<Object> args = getFunctionArguments(popStack());
+    Object result = function.apply(args, context);
     tokenStack.push(new Token<>(result, Object.class));
+  }
+
+  /**
+   * Get function arguments.
+   * @param token The token containing the function arguments.
+   * @return
+   */
+  private List<Object> getFunctionArguments(Token<?> token) {
+    if (token.getUnderlyingType().equals(List.class)) {
+      return (List<Object>) token.getValue();
+
+    } else {
+      throw new ParseException("Unable to process in clause because " + token.getValue() + " is not a set");
+    }
+  }
+
+  /**
+   * Resolves a function by name.
+   * @param funcName
+   * @return
+   */
+  private StellarFunction resolveFunction(String funcName) {
+    try {
+      return functionResolver.apply(funcName);
+
+    } catch (Exception e) {
+      String valid = Joiner.on(',').join(functionResolver.getFunctions());
+      String error = format("Unable to resolve function named '%s'.  Valid functions are %s", funcName, valid);
+      throw new ParseException(error, e);
+    }
+  }
+
+  /**
+   * Initialize a Stellar function.
+   * @param function The function to initialize.
+   * @param functionName The name of the functions.
+   */
+  private void initializeFunction(StellarFunction function, String functionName) {
+    try {
+      if (!function.isInitialized()) {
+        function.initialize(context);
+      }
+    } catch (Throwable t) {
+      String error = format("Unable to initialize function '%s'", functionName);
+      throw new ParseException(error, t);
+    }
   }
 
   @Override
