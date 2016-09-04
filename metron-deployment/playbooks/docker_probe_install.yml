@@ -50,7 +50,7 @@
     sniff_interface: eth0
     pcap_replay_interface: "{{ sniff_interface }}"
     pcapservice_port: 8081
-    kafka_broker_url: amb2.service.consul:6667,amb1.service.consul:6667,amb3.service.consul:6667,amb5.service.consul:6667,amb4.service.consul:6667
+    kafka_broker_url: amb4.service.consul:6667
   connection: docker
   roles:
     - { role: bro,                    tags: ['bro'] }
