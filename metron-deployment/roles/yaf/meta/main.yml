@@ -16,6 +16,7 @@
 #
 ---
 dependencies:
+  - ambari_gather_facts
   - build-tools
   - java_jdk
   - libselinux-python
