@@ -20,6 +20,7 @@ package org.apache.metron.common.stellar;
 
 
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.VariableResolver;
 
@@ -43,7 +44,7 @@ public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
   @Override
   public Boolean parse( String rule
                       , VariableResolver variableResolver
-                      , Function<String, StellarFunction> functionResolver
+                      , FunctionResolver functionResolver
                       , Context context
                       )
   {

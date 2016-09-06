@@ -42,8 +42,11 @@ public class QueryFilter implements MessageFilter<JSONObject> {
     if(o instanceof String) {
       query= o.toString();
     }
-
-    processor.validate(query, true);
+    Context stellarContext = (Context) config.get("stellarContext");
+    if(stellarContext == null) {
+      stellarContext = Context.EMPTY_CONTEXT();
+    }
+    processor.validate(query, true, stellarContext);
   }
 
   @Override

@@ -18,11 +18,17 @@
 package org.apache.metron.common.dsl.functions;
 
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 
 import java.util.Collection;
 import java.util.List;
 
 public class DataStructureFunctions {
+  @Stellar(name="IS_EMPTY"
+          , description="Returns true if string or collection is empty and false otherwise"
+          , params = { "input - Object of string or collection type (e.g. list)"}
+          , returns = "Boolean"
+          )
   public static class IsEmpty extends BaseStellarFunction {
 
     @Override
