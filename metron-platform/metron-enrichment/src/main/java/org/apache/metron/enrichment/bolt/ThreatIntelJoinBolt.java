@@ -70,6 +70,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .build();
+    StellarFunctions.initialize(stellarContext);
     this.functionResolver = StellarFunctions.FUNCTION_RESOLVER();
   }
 
