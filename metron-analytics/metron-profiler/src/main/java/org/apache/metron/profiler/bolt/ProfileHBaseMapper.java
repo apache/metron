@@ -21,14 +21,19 @@
 package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
 import org.apache.storm.hbase.common.ColumnList;
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Calendar;
+
+import static java.lang.String.format;
 
 /**
  * An HbaseMapper that defines how a ProfileMeasurement is persisted within an HBase table.
@@ -36,9 +41,20 @@ import java.util.Calendar;
 public class ProfileHBaseMapper implements HBaseMapper {
 
   /**
-   * A salt is prepended to the row key to help prevent hotspotting.  This constant is used
-   * to generate the salt.  Ideally, this constant should be roughly equal to the number of
-   * nodes in the Hbase cluster.
+   * Executes Stellar code and maintains state across multiple invocations.
+   */
+  private StellarExecutor executor;
+
+  /**
+   * A salt can be prepended to the row key to help prevent hot-spotting.  The salt
+   * divisor is used to generate the salt.
+   *
+   * If the salt divisor is 0, a salt will not be used.  By default, the salt is set
+   * to 0 and is not used in the row key.
+   *
+   * If the salt divisor is not 0, the salt will be prepended to the row key to help
+   * prevent hot-spotting.  When used this constant should be roughly equal to the
+   * number of nodes in the Hbase cluster.
    */
   private int saltDivisor;
 
@@ -61,18 +77,67 @@ public class ProfileHBaseMapper implements HBaseMapper {
   public byte[] rowKey(Tuple tuple) {
     ProfileMeasurement m = (ProfileMeasurement) tuple.getValueByField("measurement");
 
-    // create a calendar to determine day-of-week, etc
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTimeInMillis(m.getStart());
+    // execute the 'groupBy' expressions to determine the 'groups' used in the row key
+    String groups = executeGroupBy(m);
 
-    return Bytes.toBytes(getSalt(m.getStart()) +
-                    m.getProfileName() +
-                    calendar.get(Calendar.DAY_OF_WEEK) +
-                    calendar.get(Calendar.WEEK_OF_MONTH) +
-                    calendar.get(Calendar.MONTH) +
-                    calendar.get(Calendar.YEAR) +
-                    m.getEntity() +
-                    m.getStart());
+    // row key = profile + entity + [group1, ...] + timestamp
+    int length = m.getProfileName().length() + m.getEntity().length() + groups.length() + Long.BYTES;
+
+    ByteBuffer buffer;
+    if(saltDivisor > 0) {
+      // the row key needs to be prepended with a salt
+      byte[] salt = getSalt(m.getStart(), saltDivisor);
+      buffer = ByteBuffer
+              .allocate(length + salt.length)
+              .put(salt);
+
+    } else {
+      // no salt is needed
+      buffer = ByteBuffer
+              .allocate(length);
+    }
+
+    // append the remainder of the fields
+    buffer.put(m.getProfileName().getBytes())
+            .put(m.getEntity().getBytes())
+            .put(groups.getBytes())
+            .putLong(m.getStart());
+
+    buffer.flip();
+    return buffer.array();
+  }
+
+  /**
+   * Executes each of the 'groupBy' expressions.  The results of each
+   * are then appended to one another and returned as a String.
+   * @param m
+   * @return
+   */
+  private String executeGroupBy(ProfileMeasurement m) {
+
+    if(m.getGroupBy() == null || m.getGroupBy().size() == 0) {
+      // no groupBy expressions define
+      return "";
+    }
+
+    // allows each 'groupBy' expression to refer to the fields of the ProfileMeasurement
+    BeanMap measureAsMap = new BeanMap(m);
+    StringBuilder builder = new StringBuilder();
+
+    try {
+      // execute each of the 'groupBy' - build a String out of the results
+      for (String expr : m.getGroupBy()) {
+        Object result = executor.execute(expr, measureAsMap, Object.class);
+        builder.append(result);
+      }
+
+    } catch(Throwable e) {
+      String msg = format("Bad 'groupBy' expression: %s, profile=%s, entity=%s, start=%d",
+              e.getMessage(), m.getProfileName(), m.getEntity(), m.getStart());
+      throw new ParseException(msg, e);
+    }
+
+    return builder.toString();
   }
 
   /**
@@ -131,11 +196,12 @@ public class ProfileHBaseMapper implements HBaseMapper {
    *
    * @param epoch The timestamp in epoch millis to use in generating the salt.
    */
-  private int getSalt(long epoch) {
+  public static byte[] getSalt(long epoch, int saltDivisor) {
     try {
       MessageDigest digest = MessageDigest.getInstance("MD5");
       byte[] hash = digest.digest(Bytes.toBytes(epoch));
-      return Bytes.toInt(hash) % saltDivisor;
+      int salt = Bytes.toInt(hash) % saltDivisor;
+      return Bytes.toBytes(salt);
 
     } catch(NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
@@ -156,6 +222,14 @@ public class ProfileHBaseMapper implements HBaseMapper {
 
   public void setSaltDivisor(int saltDivisor) {
     this.saltDivisor = saltDivisor;
+  }
+
+  public StellarExecutor getExecutor() {
+    return executor;
+  }
+
+  public void setExecutor(StellarExecutor executor) {
+    this.executor = executor;
   }
 
   public static final byte[] QPROFILE = Bytes.toBytes("profile");

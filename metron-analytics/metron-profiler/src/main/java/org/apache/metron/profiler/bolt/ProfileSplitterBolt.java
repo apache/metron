@@ -66,12 +66,6 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   private StellarExecutor executor;
 
   /**
-   * Stellar context
-   */
-  private Context stellarContext;
-
-
-  /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration for this bolt.
    */
   public ProfileSplitterBolt(String zookeeperUrl) {
@@ -87,10 +81,11 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   }
 
   protected void initializeStellar() {
-    stellarContext = new Context.Builder()
+    Context context = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .build();
-    StellarFunctions.initialize(stellarContext);
+    StellarFunctions.initialize(context);
+    executor.setContext(context);
   }
 
   @Override
@@ -135,10 +130,10 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
     // is this message needed by this profile?
     String onlyIf = profile.getOnlyif();
-    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, message, Boolean.class, stellarContext)) {
+    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, message, Boolean.class)) {
 
       // what is the name of the entity in this message?
-      String entity = executor.execute(profile.getForeach(), message, String.class, stellarContext);
+      String entity = executor.execute(profile.getForeach(), message, String.class);
 
       // emit a message for the bolt responsible for building this profile
       collector.emit(input, new Values(entity, profile, message));
