@@ -24,7 +24,6 @@ import com.google.common.cache.LoadingCache;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.apache.metron.common.dsl.Stellar;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -85,7 +84,7 @@ public class DateFunctions {
                       return new ThreadLocal<SimpleDateFormat>() {
                         @Override
                         public SimpleDateFormat initialValue() {
-                          return format.toDateFormat();
+                        return format.toDateFormat();
                         }
                       };
                     }
@@ -147,8 +146,7 @@ public class DateFunctions {
   /**
    * Stellar Function: DAY_OF_WEEK
    *
-   * The numbered day within the week; [1, 7].  The first day of the week, Sunday, has a value of 1.  If no argument is
-   * supplied, returns the current day of week.
+   * The numbered day within the week.  The first day of the week, Sunday, has a value of 1.
    */
   @Stellar( name="DAY_OF_WEEK"
           , description="The numbered day within the week.  The first day of the week, Sunday, has a value of 1."
@@ -159,10 +157,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -176,8 +174,7 @@ public class DateFunctions {
   /**
    * Stellar Function: DAY_OF_MONTH
    *
-   * The day within the month.  The first day within the month has a value of 1. If no argument provided, uses
-   * system time.
+   * The day within the month.  The first day within the month has a value of 1.
    */
   @Stellar( name="DAY_OF_MONTH"
           , description="The numbered day within the month.  The first day within the month has a value of 1."
@@ -188,10 +185,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -205,7 +202,7 @@ public class DateFunctions {
   /**
    * Stellar Function: WEEK_OF_MONTH
    *
-   * The numbered week within the month; [1, 5].  If no argument provided, uses system time.
+   * The numbered week within the month.  The first week has a value of 1.
    */
   @Stellar( name="WEEK_OF_MONTH"
           , description="The numbered week within the month.  The first week within the month has a value of 1."
@@ -216,10 +213,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -233,8 +230,7 @@ public class DateFunctions {
   /**
    * Stellar Function: WEEK_OF_YEAR
    *
-   * The numbered week within the year; [1, 53].  The first week in the year has a value of 1. If no argument provided,
-   * uses system time.
+   * The numbered week within the year.  The first week in the year has a value of 1.
    */
   @Stellar( name="WEEK_OF_YEAR"
           , description="The numbered week within the year.  The first week in the year has a value of 1."
@@ -245,10 +241,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -262,7 +258,7 @@ public class DateFunctions {
   /**
    * Stellar Function: MONTH
    *
-   * A number representing the month; [0, 11].  The first month, January, has a value of 0.
+   * A number representing the month.  The first month, January, has a value of 0.
    */
   @Stellar( name="MONTH"
           , description="The number representing the month.  The first month, January, has a value of 0."
@@ -273,11 +269,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -303,10 +298,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -332,10 +327,10 @@ public class DateFunctions {
     @Override
     public Object apply(List<Object> args) {
 
-      // expects epoch millis, otherwise defaults to current time
-      Long epochMillis = getOrDefault(args, 0, Long.class, System.currentTimeMillis());
+      // expect epoch milliseconds
+      Long epochMillis = ConversionUtils.convert(args.get(0), Long.class);
       if(epochMillis == null) {
-        return null;  // invalid argument
+        return null;
       }
 
       // create a calendar
@@ -345,25 +340,5 @@ public class DateFunctions {
       return calendar.get(Calendar.DAY_OF_YEAR);
     }
   }
-
-  /**
-   * Gets the value from a list of arguments.
-   *
-   * If the argument at the specified position does not exist, a default value will be returned.
-   * If the argument at the specified position exists, but cannot be coerced to the right type, null is returned.
-   * Otherwise, the argument value is returned.
-   *
-   * @param args A list of arguments.
-   * @param position The position of the argument to get.
-   * @param clazz The type of class expected.
-   * @param defaultValue The default value.
-   * @param <T> The expected type of the argument.
-   */
-  private static <T> T getOrDefault(List<Object> args, int position, Class<T> clazz, T defaultValue) {
-    T result = defaultValue;
-    if(args.size() > position) {
-      result = ConversionUtils.convert(args.get(position), clazz);
-    }
-    return result;
-  }
 }
+
