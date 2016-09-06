@@ -17,10 +17,16 @@
  */
 package org.apache.metron.common.dsl;
 
-import java.util.function.Function;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface FunctionResolver extends Function<String, StellarFunction> {
-  Iterable<StellarFunctionInfo> getFunctionInfo();
-  Iterable<String> getFunctions();
-  void initialize(Context context);
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Stellar {
+  String namespace() default "";
+  String name();
+  String description() default "";
+  String returns() default "";
+  String[] params() default {};
 }
