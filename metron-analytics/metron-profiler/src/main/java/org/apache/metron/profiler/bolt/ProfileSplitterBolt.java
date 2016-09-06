@@ -31,6 +31,7 @@ import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -80,13 +81,10 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   }
 
   protected void initializeStellar() {
-    /*
-     * the context provides global configuration values that Stellar may need
-     * during initialization to connect to external resources like Zookeeper or HBase.
-     */
     Context context = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .build();
+    StellarFunctions.initialize(context);
     executor.setContext(context);
   }
 
