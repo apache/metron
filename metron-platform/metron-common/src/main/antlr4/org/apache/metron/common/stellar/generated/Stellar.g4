@@ -89,7 +89,7 @@ NIN : 'not in'
 EXISTS : 'exists' | 'EXISTS';
 INT_LITERAL     : MINUS? '0'..'9'+ ;
 DOUBLE_LITERAL  : MINUS? '0'..'9'+'.''0'..'9'+ ;
-IDENTIFIER : [a-zA-Z_][a-zA-Z_\.0-9]* ;
+IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]* ;
 fragment SCHAR:  ~['"\\\r\n];
 STRING_LITERAL : '"' SCHAR* '"'
                | '\'' SCHAR* '\'' ;

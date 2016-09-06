@@ -53,6 +53,22 @@ public class StellarTest {
   }
 
   @Test
+  public void testVariableResolution() {
+    {
+      String query = "bar:variable";
+      Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
+    }
+    {
+      String query = "JOIN(['foo', bar:variable], '')";
+      Assert.assertEquals("foobar", run(query, ImmutableMap.of("bar:variable", "bar")));
+    }
+    {
+      String query = "MAP_GET('bar', { 'foo' : 1, 'bar' : bar:variable})";
+      Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
+    }
+  }
+
+  @Test
   public void testIfThenElseBug1() {
     String query = "50 + (true == true ? 10 : 20)";
     Assert.assertEquals(60.0, run(query, new HashMap<>()));
