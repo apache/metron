@@ -42,11 +42,11 @@ class IndexingCommands:
     def is_configured(self):
         return self.__configured
 
-    def set_configured(self):
-        File(self.__params.parsers_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0775)
+    # def set_configured(self):
+    #     File(self.__params.parsers_configured_flag_file,
+    #          content="",
+    #          owner=self.__params.metron_user,
+    #          mode=0775)
 
     def setup_repo(self):
         def local_repo():
@@ -113,7 +113,7 @@ class IndexingCommands:
         Execute(stop_cmd)
         Logger.info('Done stopping indexing topologies')
 
-    def restart_indexing_topology(self,env):
+    def restart_indexing_topology(self, env):
         Logger.info('Restarting the indexing topologies')
         self.stop_indexing_topology()
 
@@ -133,9 +133,8 @@ class IndexingCommands:
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
-
-    def is_configured(self):
-        return self.__configured
+    # def is_configured(self):
+    #     return self.__configured
 
     def set_configured(self):
         File(self.__params.indexing_configured_flag_file,
@@ -143,12 +142,12 @@ class IndexingCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
-    def is_topology_active(self,env):
+    def is_topology_active(self, env):
         env.set_params(self.__params)
         active = True
         topologies = metron_service.get_running_topologies()
         is_running = False
         if 'indexing' in topologies:
-            is_running = topologies['indexing'] in ['ACTIVE','REBALANCING']
+            is_running = topologies['indexing'] in ['ACTIVE', 'REBALANCING']
         active &= is_running
         return active

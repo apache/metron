@@ -24,7 +24,7 @@ from resource_management.libraries.functions.format import format
 
 
 def mysql_service(daemon_name=None, action='start'):
-    status_cmd = format("pgrep -l '^{process_name}$'")
+    status_cmd = format("pgrep -l '^{mysql_process_name}$'")
     cmd = ('service', daemon_name, action)
 
     if action == 'status':
