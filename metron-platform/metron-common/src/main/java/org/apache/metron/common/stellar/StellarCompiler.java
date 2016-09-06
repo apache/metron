@@ -31,10 +31,10 @@ import java.util.function.Function;
 public class StellarCompiler extends StellarBaseListener {
   private Context context = null;
   private Stack<Token> tokenStack = new Stack<>();
-  private Function<String, StellarFunction> functionResolver;
+  private FunctionResolver functionResolver;
   private VariableResolver variableResolver;
   public StellarCompiler( VariableResolver variableResolver
-                        , Function<String, StellarFunction> functionResolver
+                        , FunctionResolver functionResolver
                         , Context context
                         )
   {
@@ -246,7 +246,7 @@ public class StellarCompiler extends StellarBaseListener {
     }
     catch(Exception iae) {
       throw new ParseException("Unable to find string function " + funcName + ".  Valid functions are "
-              + Joiner.on(',').join(StellarFunctions.values())
+              + Joiner.on(',').join(functionResolver.getFunctions())
       );
     }
 
