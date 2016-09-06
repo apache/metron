@@ -83,16 +83,16 @@ public class ProfileMeasurement {
     this.value = value;
   }
 
+  public ProfilePeriod getPeriod() {
+    return period;
+  }
+
   public List<String> getGroupBy() {
     return groupBy;
   }
 
   public void setGroupBy(List<String> groupBy) {
     this.groupBy = groupBy;
-  }
-
-  public ProfilePeriod getPeriod() {
-    return period;
   }
 
   @Override
@@ -107,6 +107,7 @@ public class ProfileMeasurement {
     if (value != null ? !value.equals(that.value) : that.value != null) return false;
     if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
     return period != null ? period.equals(that.period) : that.period == null;
+
   }
 
   @Override
