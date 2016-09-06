@@ -15,15 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import subprocess
+import os
 import time
-
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.functions import format
 
 import metron_service
-import os
 
 
 # Wrap major operations and functionality in this class
@@ -42,11 +39,11 @@ class IndexingCommands:
     def is_configured(self):
         return self.__configured
 
-    # def set_configured(self):
-    #     File(self.__params.parsers_configured_flag_file,
-    #          content="",
-    #          owner=self.__params.metron_user,
-    #          mode=0775)
+    def set_configured(self):
+        File(self.__params.indexing_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
 
     def setup_repo(self):
         def local_repo():
@@ -132,15 +129,6 @@ class IndexingCommands:
             Logger.info('Done restarting the indexing topologies')
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
-
-    # def is_configured(self):
-    #     return self.__configured
-
-    def set_configured(self):
-        File(self.__params.indexing_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0775)
 
     def is_topology_active(self, env):
         env.set_params(self.__params)
