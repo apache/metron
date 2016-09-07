@@ -166,7 +166,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     if(zkServer != null) {
       zkServer.shutdown();
     }
-
   }
 
   public List<byte[]> readMessages(String topic) {
