@@ -280,8 +280,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // upload profiler configuration to zookeeper
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
-            .withGlobalConfigsPath(pathToConfig)
-            .withProfilerConfigsPath(pathToConfig);
+            .withGlobalConfiguration(pathToConfig)
+            .withProfilerConfiguration(pathToConfig);
 
     // load flux definition for the profiler topology
     fluxComponent = new FluxTopologyComponent.Builder()

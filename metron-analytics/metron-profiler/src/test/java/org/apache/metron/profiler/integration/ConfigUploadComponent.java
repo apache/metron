@@ -20,100 +20,93 @@
 package org.apache.metron.profiler.integration;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 
-import static org.apache.metron.common.configuration.ConfigurationsUtils.*;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigFromFile;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeGlobalConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.readProfilerConfigFromFile;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
 
+
+/**
+ * Uploads configuration to Zookeeper.
+ */
 public class ConfigUploadComponent implements InMemoryComponent {
 
   private Properties topologyProperties;
-  private String globalConfigPath;
-  private String parserConfigsPath;
-  private String enrichmentConfigsPath;
-  private String profilerConfigPath;
-  private Optional<String> globalConfig = Optional.empty();
-  private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
+  private String globalConfiguration;
+  private String profilerConfiguration;
+
+  @Override
+  public void start() throws UnableToStartException {
+    try {
+      upload();
+    } catch (Exception e) {
+      throw new UnableToStartException(e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public void stop() {
+    // nothing to do
+  }
+
+  /**
+   * Uploads configuration to Zookeeper.
+   * @throws Exception
+   */
+  private void upload() throws Exception {
+    final String zookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      uploadGlobalConfig(client);
+      uploadProfilerConfig(client);
+    }
+  }
+
+  /**
+   * Upload the profiler configuration to Zookeeper.
+   * @param client The zookeeper client.
+   */
+  private void uploadProfilerConfig(CuratorFramework client) throws Exception {
+    if (profilerConfiguration != null) {
+      byte[] globalConfig = readProfilerConfigFromFile(profilerConfiguration);
+      if (globalConfig.length > 0) {
+        writeProfilerConfigToZookeeper(readProfilerConfigFromFile(profilerConfiguration), client);
+      }
+    }
+  }
+
+  /**
+   * Upload the global configuration to Zookeeper.
+   * @param client The zookeeper client.
+   */
+  private void uploadGlobalConfig(CuratorFramework client) throws Exception {
+    if (globalConfiguration == null) {
+      byte[] globalConfig = readGlobalConfigFromFile(globalConfiguration);
+      if (globalConfig.length > 0) {
+        writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfiguration), client);
+      }
+    }
+  }
 
   public ConfigUploadComponent withTopologyProperties(Properties topologyProperties) {
     this.topologyProperties = topologyProperties;
     return this;
   }
 
-  public ConfigUploadComponent withGlobalConfigsPath(String globalConfigPath) {
-    this.globalConfigPath = globalConfigPath;
+  public ConfigUploadComponent withGlobalConfiguration(String path) {
+    this.globalConfiguration = path;
     return this;
   }
 
-  public ConfigUploadComponent withParserConfigsPath(String parserConfigsPath) {
-    this.parserConfigsPath = parserConfigsPath;
+  public ConfigUploadComponent withProfilerConfiguration(String path) {
+    this.profilerConfiguration = path;
     return this;
-  }
-  public ConfigUploadComponent withEnrichmentConfigsPath(String enrichmentConfigsPath) {
-    this.enrichmentConfigsPath = enrichmentConfigsPath;
-    return this;
-  }
-
-  public ConfigUploadComponent withProfilerConfigsPath(String profilerConfigsPath) {
-    this.profilerConfigPath = profilerConfigsPath;
-    return this;
-  }
-
-  public ConfigUploadComponent withParserSensorConfig(String name, SensorParserConfig config) {
-    parserSensorConfigs.put(name, config);
-    return this;
-  }
-
-  public ConfigUploadComponent withGlobalConfig(String globalConfig) {
-    this.globalConfig = Optional.ofNullable(globalConfig);
-    return this;
-  }
-
-  @Override
-  public void start() throws UnableToStartException {
-    try {
-      final String zookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
-
-      if(globalConfigPath != null) {
-        uploadConfigsToZookeeper(globalConfigPath, parserConfigsPath, enrichmentConfigsPath, profilerConfigPath, zookeeperUrl);
-      }
-
-      for(Map.Entry<String, SensorParserConfig> kv : parserSensorConfigs.entrySet()) {
-        writeSensorParserConfigToZookeeper(kv.getKey(), kv.getValue(), zookeeperUrl);
-      }
-
-      if(globalConfig.isPresent()) {
-        writeGlobalConfigToZookeeper(globalConfig.get().getBytes(), zookeeperUrl);
-      }
-
-    } catch (Exception e) {
-      throw new UnableToStartException(e.getMessage(), e);
-    }
-  }
-
-  public SensorParserConfig getSensorParserConfig(String sensorType) {
-    SensorParserConfig sensorParserConfig = new SensorParserConfig();
-    CuratorFramework client = getClient(topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY));
-    client.start();
-    try {
-      sensorParserConfig = readSensorParserConfigFromZookeeper(sensorType, client);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      client.close();
-    }
-    return sensorParserConfig;
-  }
-
-  @Override
-  public void stop() {
-
   }
 }
