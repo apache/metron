@@ -40,20 +40,18 @@ public interface StellarExecutor {
    * @param variable The name of the variable to assign to.
    * @param expression The expression to execute.
    * @param message The message that provides additional context for the expression.
-   * @param stellarContext The context which holds global state for Stellar functions
    */
-  void assign(String variable, String expression, JSONObject message, Context stellarContext);
+  void assign(String variable, String expression, Map<String, Object> message);
 
   /**
    * Execute a Stellar expression and return the result.
    *
    * @param expression The expression to execute.
-   * @param message The message that is accessible when Stellar is executed.
+   * @param message A map of values, most often the JSON message itself, that is accessible within Stellar.
    * @param clazz The expected class of the expression's result.
    * @param <T> The expected class of the expression's result.
-   * @param stellarContext The context which holds global state for Stellar functions
    */
-  <T> T execute(String expression, JSONObject message, Class<T> clazz, Context stellarContext);
+  <T> T execute(String expression, Map<String, Object> message, Class<T> clazz);
 
   /**
    * The current state of the Stellar execution environment.
@@ -64,4 +62,11 @@ public interface StellarExecutor {
    * Removes all state from the execution environment.
    */
   void clearState();
+
+  /**
+   * Sets the Context for the Stellar execution environment.  This provides global data used
+   * to initialize Stellar functions.
+   * @param context The Stellar context.
+   */
+  void setContext(Context context);
 }

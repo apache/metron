@@ -110,7 +110,6 @@ public class StellarStatisticsFunctions {
     }
   }
 
-
   /**
    * Calculates the mean.
    *

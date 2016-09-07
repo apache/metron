@@ -27,7 +27,6 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -43,14 +42,22 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   private Map<String, Object> state;
 
+  /**
+   * Provides additional context for initializing certain Stellar functions.  For
+   * example, references to find Zookeeper or HBase.
+   */
+  private Context context;
+
   public DefaultStellarExecutor() {
     clearState();
+    context = Context.EMPTY_CONTEXT();
   }
 
   /**
    * @param initialState Initial state loaded into the execution environment.
    */
   public DefaultStellarExecutor(Map<String, Object> initialState) {
+    this();
     this.state = new HashMap<>(initialState);
   }
 
@@ -65,11 +72,10 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    * @param variable The variable name to assign to.
    * @param expression The expression to execute.
    * @param message The message that provides additional context for the expression.
-   * @param stellarContext The context which holds global state for Stellar functions
    */
   @Override
-  public void assign(String variable, String expression, JSONObject message, Context stellarContext) {
-    Object result = execute(expression, message, stellarContext);
+  public void assign(String variable, String expression, Map<String, Object> message) {
+    Object result = execute(expression, message);
     state.put(variable, result);
   }
 
@@ -80,11 +86,10 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    * @param message The message that is accessible when Stellar is executed.
    * @param clazz The expected class of the expression's result.
    * @param <T> The expected class of the expression's result.
-   * @param stellarContext The context which holds global state for Stellar functions
    */
   @Override
-  public <T> T execute(String expr, JSONObject message, Class<T> clazz, Context stellarContext) {
-    Object resultObject = execute(expr, message, stellarContext);
+  public <T> T execute(String expr, Map<String, Object> message, Class<T> clazz) {
+    Object resultObject = execute(expr, message);
 
     // perform type conversion, if necessary
     T result = ConversionUtils.convert(resultObject, clazz);
@@ -102,17 +107,26 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
   }
 
   /**
+   * Sets the Context for the Stellar execution environment.  This provides global data used
+   * to initialize Stellar functions.
+   * @param context The Stellar context.
+   */
+  @Override
+  public void setContext(Context context) {
+    this.context = context;
+  }
+
+  /**
    * Execute a Stellar expression.
    *
    * @param expr The expression to execute.
    * @param msg The message that is accessible when Stellar is executed.
-   * @param stellarContext The context which holds global state for Stellar functions
    */
-  private Object execute(String expr, JSONObject msg, Context stellarContext) {
+  private Object execute(String expr, Map<String, Object> msg) {
     try {
       VariableResolver resolver = new MapVariableResolver(state, msg);
       StellarProcessor processor = new StellarProcessor();
-      return processor.parse(expr, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+      return processor.parse(expr, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
 
     } catch (ParseException e) {
       throw new ParseException(String.format("Bad expression: expr=%s, msg=%s, state=%s", expr, msg, state));

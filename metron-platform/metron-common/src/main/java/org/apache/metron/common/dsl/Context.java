@@ -17,23 +17,28 @@
  */
 package org.apache.metron.common.dsl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class Context {
+public class Context implements Serializable {
+
   public interface Capability {
     Object get();
   }
+  
   public enum Capabilities {
     SENSOR_CONFIG
+    , HBASE_PROVIDER
     , GLOBAL_CONFIG
     , ZOOKEEPER_CLIENT
     , SERVICE_DISCOVERER;
   }
 
   public static class Builder {
+
     private Map<String, Capability> capabilityMap = new HashMap<>();
 
     public Builder with(String s, Capability capability) {
@@ -45,6 +50,7 @@ public class Context {
       capabilityMap.put(s.toString(), capability);
       return this;
     }
+    
     public Builder withAll(Map<String, Object> externalConfig) {
       for(Map.Entry<String, Object> entry : externalConfig.entrySet()) {
 
@@ -52,11 +58,12 @@ public class Context {
       }
       return this;
     }
-    public Context build() {
 
+    public Context build() {
       return new Context(capabilityMap);
     }
   }
+
   public static Context EMPTY_CONTEXT() {
     return
     new Context(new HashMap<>()){
@@ -66,15 +73,17 @@ public class Context {
       }
     };
   }
+
   private Map<String, Capability> capabilities;
-  private Context( Map<String, Capability> capabilities
-                 )
-  {
+
+  private Context( Map<String, Capability> capabilities) {
     this.capabilities = capabilities;
   }
+
   public Optional<Object> getCapability(Enum<?> capability) {
     return getCapability(capability.toString());
   }
+
   public Optional<Object> getCapability(String capability) {
     Capability c = capabilities.get(capability);
     if(c == null) {
