@@ -157,8 +157,12 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    kafkaServer.shutdown();
-    zkClient.close();
+    if(kafkaServer != null) {
+      kafkaServer.shutdown();
+    }
+    if(zkClient != null) {
+      zkClient.close();
+    }
     if(zkServer != null) {
       zkServer.shutdown();
     }
