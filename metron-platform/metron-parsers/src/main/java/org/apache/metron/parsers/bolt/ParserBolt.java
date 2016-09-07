@@ -73,12 +73,11 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
+    initializeStellar();
     if(getSensorParserConfig() == null) {
       filter = new GenericMessageFilter();
-      initializeStellar();
     }
     else if(filter == null) {
-      initializeStellar();
       getSensorParserConfig().getParserConfig().putIfAbsent("stellarContext", stellarContext);
       filter = Filters.get(getSensorParserConfig().getFilterClassName()
               , getSensorParserConfig().getParserConfig()
