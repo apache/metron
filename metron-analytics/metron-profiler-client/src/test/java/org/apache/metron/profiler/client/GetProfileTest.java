@@ -114,6 +114,8 @@ public class GetProfileTest {
    */
   @Test
   public void testWithNoGroups() {
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -122,7 +124,7 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
@@ -138,6 +140,8 @@ public class GetProfileTest {
    */
   @Test
   public void testWithOneGroup() {
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -146,7 +150,7 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
@@ -165,6 +169,8 @@ public class GetProfileTest {
    */
   @Test
   public void testWithTwoGroups() {
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -173,7 +179,7 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
@@ -211,14 +217,15 @@ public class GetProfileTest {
    */
   @Test
   public void testOutsideTimeHorizon() {
-    final int periodsPerHour = 4;
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
     final List<Object> group = Collections.emptyList();
 
     // setup - write a single value from 2 hours ago
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, 1, group, val -> expectedValue);
 
     // create a variable that contains the groups to use

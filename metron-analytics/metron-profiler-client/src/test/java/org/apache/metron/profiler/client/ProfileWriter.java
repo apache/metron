@@ -31,6 +31,7 @@ import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.storm.hbase.common.ColumnList;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -68,8 +69,9 @@ public class ProfileWriter {
       m = new ProfileMeasurement(
               prototype.getProfileName(),
               prototype.getEntity(),
-              next.getTimeInMillis(),
-              prototype.getPeriodsPerHour());
+              next.getStartTimeMillis(),
+              prototype.getPeriod().getDurationMillis(),
+              TimeUnit.MILLISECONDS);
 
       // generate the next value that should be written
       Object nextValue = valueGenerator.apply(m.getValue());

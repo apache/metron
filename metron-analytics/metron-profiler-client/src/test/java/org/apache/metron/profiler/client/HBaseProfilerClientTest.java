@@ -104,14 +104,18 @@ public class HBaseProfilerClientTest {
    */
   @Test
   public void testFetchOneGroup() throws Exception {
+
+    // setup
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
     final int count = hours * periodsPerHour;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
-    // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    // create two groups of measurements - one on weekdays and one on weekends
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
@@ -130,6 +134,8 @@ public class HBaseProfilerClientTest {
   public void testFetchNoGroup() {
 
     // setup
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -137,7 +143,7 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // create two groups of measurements - one on weekdays and one on weekends
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
@@ -155,6 +161,8 @@ public class HBaseProfilerClientTest {
    */
   @Test
   public void testFetchOutsideTimeWindow() throws Exception {
+    final long periodDuration = 15;
+    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int hours = 2;
     int numberToWrite = hours * periodsPerHour;
@@ -162,7 +170,7 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
 
     // setup - write some values to read later
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, numberToWrite, group, val -> 1000);
 
     // execute
