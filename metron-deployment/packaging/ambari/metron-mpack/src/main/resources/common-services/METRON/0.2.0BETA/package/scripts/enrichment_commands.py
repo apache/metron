@@ -129,7 +129,8 @@ class EnrichmentCommands:
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
-    def is_topology_active(self):
+    def is_topology_active(self, env):
+        env.set_params(self.__params)
         cmd_retrieve = "storm list | grep 'enrichment'"
         proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (stdout, stderr) = proc.communicate()
@@ -143,7 +144,7 @@ class EnrichmentCommands:
 
         # Get the second column, which is status. We already know first column is enrichment)
         status = stdout.split()[1]
-        running_status_set = {'ACTIVE', 'REBALANCING'}
+        running_status_set = ['ACTIVE', 'REBALANCING']
         return status in running_status_set
 
     def create_hbase_tables(self):

@@ -67,7 +67,7 @@ class Enrichment(Script):
         env.set_params(status_params)
         commands = EnrichmentCommands(status_params)
 
-        if not commands.is_topology_active():
+        if not commands.is_topology_active(env):
             raise ComponentIsNotRunning()
 
     def restart(self, env):
