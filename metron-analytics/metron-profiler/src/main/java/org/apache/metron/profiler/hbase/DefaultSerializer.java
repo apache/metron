@@ -22,11 +22,13 @@ package org.apache.metron.profiler.hbase;
 
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.Serializable;
+
 /**
  * Provides basic functionality to serialize and deserialize the allowed
  * value types for a ProfileMeasurement.
  */
-public class DefaultSerializer implements Serializer {
+public class DefaultSerializer implements Serializer, Serializable {
 
   /**
    * Serialize a profile measurement's value.
