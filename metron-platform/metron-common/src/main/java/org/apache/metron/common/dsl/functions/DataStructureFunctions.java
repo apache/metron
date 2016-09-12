@@ -19,11 +19,77 @@ package org.apache.metron.common.dsl.functions;
 
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.utils.BloomFilter;
+import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.SerializationUtils;
 
 import java.util.Collection;
 import java.util.List;
 
 public class DataStructureFunctions {
+
+  @Stellar(name="ADD"
+          , namespace="BLOOM"
+          , description="Adds an element to the bloom filter passed in"
+          , params = { "bloom - The bloom filter"
+                     , "value - The value to add"
+                     }
+          , returns = "Bloom Filter"
+          )
+  public static class BloomAdd extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      BloomFilter<Object> filter = (BloomFilter)args.get(0);
+      Object arg = args.get(1);
+      filter.add(arg);
+      return filter;
+    }
+  }
+
+  @Stellar(name="EXISTS"
+          , namespace="BLOOM"
+          , description="If the bloom filter contains the value"
+          , params = { "bloom - The bloom filter"
+                     , "value - The value to check"
+                     }
+          , returns = "True if the filter might contain the value and false otherwise"
+          )
+  public static class BloomExists extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      BloomFilter<Object> filter = (BloomFilter)args.get(0);
+      Object arg = args.get(1);
+      return filter.mightContain(arg);
+    }
+  }
+
+  @Stellar(name="INIT"
+         , namespace="BLOOM"
+          , description="Returns an empty bloom filter"
+          , params = { "expectedInsertions - The expected insertions"
+                     , "falsePositiveRate - The false positive rate you are willing to tolerate"
+                     }
+          , returns = "Bloom Filter"
+          )
+  public static class BloomInit extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      int expectedInsertions = 100000;
+      float falsePositiveRate = 0.01f;
+      if(args.size() > 1) {
+        expectedInsertions = ConversionUtils.convert(args.get(0), Integer.class);
+      }
+      if(args.size() > 2) {
+        falsePositiveRate= ConversionUtils.convert(args.get(1), Float.class);
+      }
+      return new BloomFilter<>(SerializationUtils.INSTANCE, expectedInsertions, falsePositiveRate);
+    }
+  }
+
+
   @Stellar(name="IS_EMPTY"
           , description="Returns true if string or collection is empty and false otherwise"
           , params = { "input - Object of string or collection type (e.g. list)"}

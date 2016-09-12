@@ -22,6 +22,9 @@ package org.apache.metron.common.dsl.functions;
 
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.math.stats.OnlineStatisticsProvider;
+import org.apache.metron.common.math.stats.StatisticsProvider;
+import org.apache.metron.common.math.stats.WindowedStatisticsProvider;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,13 +42,15 @@ public class StellarStatisticsFunctions {
    *
    * Initialization can occur from either STATS_INIT and STATS_ADD.
    */
-  private static StellarStatistics statsInit(List<Object> args) {
+  private static StatisticsProvider statsInit(List<Object> args) {
     int windowSize = 0;
     if(args.size() > 0 && args.get(0) instanceof Number) {
       windowSize = convert(args.get(0), Integer.class);
     }
-
-    return new StellarStatistics(windowSize);
+    if(windowSize > 0) {
+      return new WindowedStatisticsProvider(windowSize);
+    }
+    return new OnlineStatisticsProvider();
   }
 
   /**
@@ -67,7 +72,7 @@ public class StellarStatisticsFunctions {
                       "Using no rolling window is less memory intensive, but cannot " +
                       "calculate certain statistics like percentiles and kurtosis."
                       }
-          , returns = "A StellarStatistics object"
+          , returns = "A StatisticsProvider object"
           )
   public static class Init extends BaseStellarFunction {
     @Override
@@ -88,14 +93,14 @@ public class StellarStatisticsFunctions {
                       "stats - The Stellar statistics object.  If null, then a new one is initialized."
                      , "value+ - one or more numbers to add "
                      }
-          , returns = "A StellarStatistics object"
+          , returns = "A StatisticsProvider object"
           )
   public static class Add extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
 
       // initialize a stats object, if one does not already exist
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       if(stats == null) {
         stats = statsInit(Collections.emptyList());
       }
@@ -126,7 +131,7 @@ public class StellarStatisticsFunctions {
   public static class Mean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getMean() : Double.NaN;
     }
   }
@@ -145,7 +150,7 @@ public class StellarStatisticsFunctions {
   public static class GeometricMean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getGeometricMean() : Double.NaN;
     }
   }
@@ -164,7 +169,7 @@ public class StellarStatisticsFunctions {
   public static class Sum extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getSum() : Double.NaN;
     }
   }
@@ -182,7 +187,7 @@ public class StellarStatisticsFunctions {
   public static class Max extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getMax() : Double.NaN;
     }
   }
@@ -200,7 +205,7 @@ public class StellarStatisticsFunctions {
   public static class Min extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getMin() : Double.NaN;
     }
   }
@@ -217,7 +222,7 @@ public class StellarStatisticsFunctions {
   public static class Count extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? convert(stats.getCount(), Double.class) : Double.NaN;
     }
   }
@@ -234,7 +239,7 @@ public class StellarStatisticsFunctions {
   public static class PopulationVariance extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getPopulationVariance() : Double.NaN;
     }
   }
@@ -251,7 +256,7 @@ public class StellarStatisticsFunctions {
   public static class Variance extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getVariance() : Double.NaN;
     }
   }
@@ -268,7 +273,7 @@ public class StellarStatisticsFunctions {
   public static class QuadraticMean extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getQuadraticMean() : Double.NaN;
     }
   }
@@ -285,7 +290,7 @@ public class StellarStatisticsFunctions {
   public static class StandardDeviation extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getStandardDeviation() : Double.NaN;
     }
   }
@@ -302,7 +307,7 @@ public class StellarStatisticsFunctions {
   public static class SumLogs extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getSumLogs() : Double.NaN;
     }
   }
@@ -319,7 +324,7 @@ public class StellarStatisticsFunctions {
   public static class SumSquares extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getSumSquares() : Double.NaN;
     }
   }
@@ -336,7 +341,7 @@ public class StellarStatisticsFunctions {
   public static class Kurtosis extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getKurtosis() : Double.NaN;
     }
   }
@@ -353,7 +358,7 @@ public class StellarStatisticsFunctions {
   public static class Skewness extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       return (stats != null) ? stats.getSkewness() : Double.NaN;
     }
   }
@@ -375,7 +380,7 @@ public class StellarStatisticsFunctions {
   public static class Percentile extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      StellarStatistics stats = convert(args.get(0), StellarStatistics.class);
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       Double p = convert(args.get(1), Double.class);
 
       Double result;

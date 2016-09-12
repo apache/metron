@@ -141,9 +141,11 @@ public class StellarStatisticsFunctionsTest {
 
   @Test
   public void testGeometricMean() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
-    assertEquals(stats.getGeometricMean(), (Double) actual, 0.1);
+    if(windowSize > 0) {
+      statsInit(windowSize);
+      Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
+      assertEquals(stats.getGeometricMean(), (Double) actual, 0.1);
+    }
   }
 
   @Test
@@ -183,16 +185,20 @@ public class StellarStatisticsFunctionsTest {
 
   @Test
   public void testPopulationVariance() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_POPULATION_VARIANCE(stats)", variables);
-    assertEquals(stats.getPopulationVariance(), (Double) actual, 0.1);
+    if(windowSize > 0) {
+      statsInit(windowSize);
+      Object actual = run("STATS_POPULATION_VARIANCE(stats)", variables);
+      assertEquals(stats.getPopulationVariance(), (Double) actual, 0.1);
+    }
   }
 
   @Test
   public void testQuadraticMean() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_QUADRATIC_MEAN(stats)", variables);
-    assertEquals(stats.getQuadraticMean(), (Double) actual, 0.1);
+    if(windowSize > 0) {
+      statsInit(windowSize);
+      Object actual = run("STATS_QUADRATIC_MEAN(stats)", variables);
+      assertEquals(stats.getQuadraticMean(), (Double) actual, 0.1);
+    }
   }
 
   @Test
@@ -215,10 +221,11 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getSumsq(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testKurtosisNoWindow() throws Exception {
     statsInit(0);
-    run("STATS_KURTOSIS(stats)", variables);
+    Object actual = run("STATS_KURTOSIS(stats)", variables);
+    assertEquals(stats.getKurtosis(), (Double) actual, 0.1);
   }
 
   @Test
@@ -228,10 +235,11 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getKurtosis(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testSkewnessNoWindow() throws Exception {
     statsInit(0);
-    run("STATS_SKEWNESS(stats)", variables);
+    Object actual = run("STATS_SKEWNESS(stats)", variables);
+    assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
   @Test
@@ -241,11 +249,12 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testPercentileNoWindow() throws Exception {
     statsInit(0);
     final double percentile = 0.9;
     Object actual = run(format("STATS_PERCENTILE(stats, %f)", percentile), variables);
+    assertEquals(stats.getPercentile(percentile), (Double) actual, 1);
   }
 
   @Test
