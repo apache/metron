@@ -102,7 +102,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   public Map<String, Object> getComponentConfiguration() {
     Config conf = new Config();
 
-    // how frequently should the bold receive tick tuples?
+    // how frequently should the bolt receive tick tuples?
     long freqInSeconds = ((60 * 60) / periodsPerHour);
     conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, freqInSeconds);
 
