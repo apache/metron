@@ -31,6 +31,7 @@ import org.apache.metron.profiler.client.HBaseProfilerClient;
 import org.apache.metron.profiler.client.ProfilerClient;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.Serializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ import static java.lang.String.format;
 import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_COLUMN_BUILDER;
 import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_HBASE_TABLE;
 import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_ROW_KEY_BUILDER;
+import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_SERIALIZER;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -84,14 +86,17 @@ public class GetProfile implements StellarFunction {
   @Override
   public void initialize(Context context) {
 
-    Context.Capabilities[] required = { PROFILER_HBASE_TABLE, PROFILER_ROW_KEY_BUILDER, PROFILER_COLUMN_BUILDER };
+    // the required capabilities
+    Context.Capabilities[] required = {
+      PROFILER_HBASE_TABLE, PROFILER_ROW_KEY_BUILDER, PROFILER_COLUMN_BUILDER, PROFILER_SERIALIZER };
     validateContext(context, required);
 
     HTableInterface table = (HTableInterface) context.getCapability(PROFILER_HBASE_TABLE).get();
     RowKeyBuilder rowKeyBuilder = (RowKeyBuilder) context.getCapability(PROFILER_ROW_KEY_BUILDER).get();
     ColumnBuilder columnBuilder = (ColumnBuilder) context.getCapability(PROFILER_COLUMN_BUILDER).get();
+    Serializer serializer = (Serializer) context.getCapability(PROFILER_SERIALIZER).get();
 
-    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, serializer);
   }
 
   /**

@@ -26,6 +26,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.DefaultSerializer;
 import org.apache.metron.profiler.hbase.Serializer;
 
 import java.io.IOException;
@@ -55,10 +56,19 @@ public class HBaseProfilerClient implements ProfilerClient {
    */
   private ColumnBuilder columnBuilder;
 
-  public HBaseProfilerClient(HTableInterface table, RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder) {
+  /**
+   * Deserializes the value to bytes.
+   */
+  private Serializer serializer;
+
+  public HBaseProfilerClient(HTableInterface table,
+                             RowKeyBuilder rowKeyBuilder,
+                             ColumnBuilder columnBuilder,
+                             Serializer serializer) {
     setTable(table);
     setRowKeyBuilder(rowKeyBuilder);
     setColumnBuilder(columnBuilder);
+    setSerializer(serializer);
   }
 
   /**
@@ -69,11 +79,12 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param durationAgo How far in the past to fetch values from.
    * @param unit        The time unit of 'durationAgo'.
    * @param groups      The groups
-   * @param <T>         The type of values stored by the Profile.
+   * @param <T>         The type of numeric value stored by the Profile.
    * @return A list of profile values.
    */
   @Override
-  public <T> List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups) {
+  public <T extends Number>
+  List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
@@ -100,7 +111,7 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param <T>             The type expected in return.
    * @return
    */
-  private <T> List<T> get(List<Get> gets, byte[] columnQualifier, byte[] columnFamily, Class<T> clazz) {
+  private <T extends Number> List<T> get(List<Get> gets, byte[] columnQualifier, byte[] columnFamily, Class<T> clazz) {
     List<T> values = new ArrayList<>();
 
     try {
@@ -108,7 +119,7 @@ public class HBaseProfilerClient implements ProfilerClient {
       Arrays.stream(results)
               .filter(r -> r.containsColumn(columnFamily, columnQualifier))
               .map(r -> r.getValue(columnFamily, columnQualifier))
-              .forEach(val -> values.add(Serializer.fromBytes(val, clazz)));
+              .forEach(val -> values.add(serializer.fromBytes(val, clazz)));
 
     } catch(IOException e) {
       throw new RuntimeException(e);
@@ -127,5 +138,9 @@ public class HBaseProfilerClient implements ProfilerClient {
 
   public void setColumnBuilder(ColumnBuilder columnBuilder) {
     this.columnBuilder = columnBuilder;
+  }
+
+  public void setSerializer(Serializer serializer) {
+    this.serializer = serializer;
   }
 }

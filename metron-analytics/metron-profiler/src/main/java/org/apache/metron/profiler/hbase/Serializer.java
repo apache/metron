@@ -20,73 +20,26 @@
 
 package org.apache.metron.profiler.hbase;
 
-import org.apache.hadoop.hbase.util.Bytes;
-
 /**
- * Provides basic functionality to serialize and deserialize the allowed
- * value types for a ProfileMeasurement.
+ * Serializes and deserializes values.
+ *
+ * The value produced by a Profile definition can be any numeric data type.  The data
+ * type depends on how the profile is defined by the user.  The user should be able to
+ * choose the data type that is most suitable for their use case.
  */
-public class Serializer {
-
-  private Serializer() {
-    // do not instantiate
-  }
+public interface Serializer {
 
   /**
    * Serialize a profile measurement's value.
    *
-   * The value produced by a Profile definition can be any numeric data type.  The data
-   * type depends on how the profile is defined by the user.  The user should be able to
-   * choose the data type that is most suitable for their use case.
-   *
    * @param value The value to serialize.
    */
-  public static byte[] toBytes(Object value) {
-    byte[] result;
-
-    if(value instanceof Integer) {
-      result = Bytes.toBytes((Integer) value);
-    } else if(value instanceof Double) {
-      result = Bytes.toBytes((Double) value);
-    } else if(value instanceof Short) {
-      result = Bytes.toBytes((Short) value);
-    } else if(value instanceof Long) {
-      result = Bytes.toBytes((Long) value);
-    } else if(value instanceof Float) {
-      result = Bytes.toBytes((Float) value);
-    } else {
-      throw new RuntimeException("Expected 'Number': actual=" + value);
-    }
-
-    return result;
-  }
+  byte[] toBytes(Number value);
 
   /**
    * Deserialize a profile measurement's value.
    *
-   * The value produced by a Profile definition can be any numeric data type.  The data
-   * type depends on how the profile is defined by the user.  The user should be able to
-   * choose the data type that is most suitable for their use case.
-   *
    * @param value The value to deserialize.
    */
-  public static <T> T fromBytes(byte[] value, Class<T> clazz) {
-    T result;
-
-    if(clazz == Integer.class) {
-      result = clazz.cast(Bytes.toInt(value));
-    } else if(clazz == Double.class) {
-      result = clazz.cast(Bytes.toDouble(value));
-    } else if(clazz == Short.class) {
-      result = clazz.cast(Bytes.toShort(value));
-    } else if(clazz == Long.class) {
-      result = clazz.cast(Bytes.toLong(value));
-    } else if(clazz == Float.class) {
-      result = clazz.cast(Bytes.toFloat(value));
-    } else {
-      throw new RuntimeException("Expected 'Number': actual=" + clazz);
-    }
-
-    return result;
-  }
+  <T extends Number> T fromBytes(byte[] value, Class<T> clazz);
 }

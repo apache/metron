@@ -28,6 +28,7 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.Serializer;
 import org.apache.storm.hbase.common.ColumnList;
 
 import java.util.List;
@@ -38,16 +39,25 @@ import java.util.function.Function;
  */
 public class ProfileWriter {
 
+  /**
+   * Builds the row keys used to write profile measurements.
+   */
   private RowKeyBuilder rowKeyBuilder;
+
+  /**
+   * Defines the columnar structure of the profile measurements.
+   */
   private ColumnBuilder columnBuilder;
+
+  /**
+   * Supports batch interaction with HBase.
+   */
   private HBaseClient hbaseClient;
-  private HBaseProfilerClient client;
 
   public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table) {
     this.rowKeyBuilder = rowKeyBuilder;
     this.columnBuilder = columnBuilder;
     this.hbaseClient = new HBaseClient((c, t) -> table, table.getConfiguration(), table.getName().getNameAsString());
-    this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
   }
 
   /**
@@ -58,7 +68,8 @@ public class ProfileWriter {
    * @param group          The name of the group.
    * @param valueGenerator A function that consumes the previous ProfileMeasurement value and produces the next.
    */
-  public void write(ProfileMeasurement prototype, int count, List<Object> group, Function<Object, Object> valueGenerator) {
+  public <T extends Number>
+  void write(ProfileMeasurement prototype, int count, List<Object> group, Function<Object, T> valueGenerator) {
 
     ProfileMeasurement m = prototype;
     for(int i=0; i<count; i++) {
@@ -72,7 +83,7 @@ public class ProfileWriter {
               prototype.getPeriodsPerHour());
 
       // generate the next value that should be written
-      Object nextValue = valueGenerator.apply(m.getValue());
+      T nextValue = valueGenerator.apply(m.getValue());
       m.setValue(nextValue);
 
       // write the measurement

@@ -27,8 +27,10 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.DefaultSerializer;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.Serializer;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.profiler.stellar.StellarExecutor;
@@ -81,17 +83,17 @@ public class HBaseProfilerClientTest {
 
   @Before
   public void setup() throws Exception {
-
+    Serializer serializer = new DefaultSerializer();
     table = util.createTable(Bytes.toBytes(tableName), Bytes.toBytes(columnFamily));
     executor = new DefaultStellarExecutor();
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
-    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily, serializer);
     profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
 
     // what we're actually testing
-    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, serializer);
   }
 
   @After

@@ -26,8 +26,10 @@ import org.apache.metron.common.dsl.FunctionResolverSingleton;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.DefaultSerializer;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.Serializer;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.profiler.stellar.StellarExecutor;
@@ -46,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_HBASE_TABLE;
 import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_ROW_KEY_BUILDER;
 import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_COLUMN_BUILDER;
+import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_SERIALIZER;
 
 /**
  * Tests the GetProfile class.
@@ -64,19 +67,21 @@ public class GetProfileTest {
 
   @Before
   public void setup() {
+    Serializer serializer = new DefaultSerializer();
     state = new HashMap<>();
     final HTableInterface table = new MockHTable(tableName, columnFamily);
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
-    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily, serializer);
     profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
 
     // create the necessary context used during initialization
     Context context = new Context.Builder()
             .with(PROFILER_ROW_KEY_BUILDER, () -> new SaltyRowKeyBuilder())
-            .with(PROFILER_COLUMN_BUILDER, () -> new ValueOnlyColumnBuilder(columnFamily))
+            .with(PROFILER_COLUMN_BUILDER, () -> new ValueOnlyColumnBuilder(columnFamily, serializer))
             .with(PROFILER_HBASE_TABLE, () -> table)
+            .with(PROFILER_SERIALIZER, () -> serializer)
             .build();
 
     executor = new DefaultStellarExecutor();

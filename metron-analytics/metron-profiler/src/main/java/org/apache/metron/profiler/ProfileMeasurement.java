@@ -41,9 +41,9 @@ public class ProfileMeasurement {
   private String entity;
 
   /**
-   * The actual measurement itself.
+   * The actual numeric measurement.
    */
-  private Object value;
+  private Number value;
 
   /**
    * A set of expressions used to group the profile measurements when persisted.
@@ -81,11 +81,11 @@ public class ProfileMeasurement {
     return entity;
   }
 
-  public Object getValue() {
+  public Number getValue() {
     return value;
   }
 
-  public void setValue(Object value) {
+  public void setValue(Number value) {
     this.value = value;
   }
 

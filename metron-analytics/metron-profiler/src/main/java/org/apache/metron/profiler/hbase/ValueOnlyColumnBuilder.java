@@ -30,6 +30,11 @@ import org.apache.storm.hbase.common.ColumnList;
 public class ValueOnlyColumnBuilder implements ColumnBuilder {
 
   /**
+   * Serializes the value to bytes.
+   */
+  private Serializer serializer;
+
+  /**
    * The column family storing the profile data.
    */
   private String columnFamily;
@@ -38,17 +43,19 @@ public class ValueOnlyColumnBuilder implements ColumnBuilder {
 
   public ValueOnlyColumnBuilder() {
     setColumnFamily("P");
+    setSerializer(new DefaultSerializer());
   }
 
-  public ValueOnlyColumnBuilder(String columnFamily) {
+  public ValueOnlyColumnBuilder(String columnFamily, Serializer serializer) {
     setColumnFamily(columnFamily);
+    setSerializer(serializer);
   }
 
   @Override
   public ColumnList columns(ProfileMeasurement measurement) {
 
     ColumnList cols = new ColumnList();
-    cols.addColumn(columnFamilyBytes, getColumnQualifier("value"), Serializer.toBytes(measurement.getValue()));
+    cols.addColumn(columnFamilyBytes, getColumnQualifier("value"), serializer.toBytes(measurement.getValue()));
 
     return cols;
   }
@@ -65,11 +72,13 @@ public class ValueOnlyColumnBuilder implements ColumnBuilder {
 
   @Override
   public byte[] getColumnQualifier(String fieldName) {
-
     if("value".equals(fieldName)) {
       return Bytes.toBytes("value");
     }
-
     throw new IllegalArgumentException(("unexpected field name: " + fieldName));
+  }
+
+  public void setSerializer(Serializer serializer) {
+    this.serializer = serializer;
   }
 }
