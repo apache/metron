@@ -25,7 +25,7 @@ from resource_management.libraries.functions.format import format
 
 # Used to add metron access to the needed components
 def mysql_adduser():
-    import params
+    from params import params
 
     File(params.mysql_adduser_path,
          mode=0755,
@@ -43,7 +43,7 @@ def mysql_adduser():
 
 # Removes hive metron from components
 def mysql_deluser():
-    import params
+    from params import params
 
     File(params.mysql_deluser_path,
          mode=0755,

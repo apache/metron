@@ -21,8 +21,8 @@ from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.script import Script
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.script import Script
 
 import status_params
 

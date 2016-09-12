@@ -24,7 +24,7 @@ from resource_management.core.resources.system import Execute, File
 
 
 # Wrap major operations and functionality in this class
-class Commands:
+class EnrichmentCommands:
     __params = None
     __enrichment = None
     __configured = False
