@@ -28,6 +28,11 @@ import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -157,5 +162,19 @@ public class DefaultStellarExecutorTest {
     executor.execute("2", message, Float.class);
     executor.execute("2", message, Short.class);
     executor.execute("2", message, Long.class);
+  }
+
+  /**
+   * The executor must be serializable.
+   */
+  @Test
+  public void testSerializable() throws Exception {
+
+    // serialize
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    new ObjectOutputStream(bytes).writeObject(executor);
+
+    // deserialize - success when no exceptions
+    new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray())).readObject();
   }
 }

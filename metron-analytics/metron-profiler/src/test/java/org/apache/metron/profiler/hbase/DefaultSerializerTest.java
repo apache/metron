@@ -20,52 +20,60 @@
 
 package org.apache.metron.profiler.hbase;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests the Serializer.
+ * Tests the serializer.
  */
-public class SerializerTest {
+public class DefaultSerializerTest {
+
+  private DefaultSerializer serializer;
+
+  @Before
+  public void setup() {
+    serializer = new DefaultSerializer();
+  }
 
   @Test
   public void testInteger() {
     final int expected = 2;
-    byte[] raw = Serializer.toBytes(expected);
-    int actual = Serializer.fromBytes(raw, Integer.class);
+    byte[] raw = serializer.toBytes(expected);
+    int actual = serializer.fromBytes(raw, Integer.class);
     assertEquals(expected, actual);
   }
 
   @Test
   public void testDouble() {
     final double expected = 2.0;
-    byte[] raw = Serializer.toBytes(expected);
-    double actual = Serializer.fromBytes(raw, Double.class);
+    byte[] raw = serializer.toBytes(expected);
+    double actual = serializer.fromBytes(raw, Double.class);
     assertEquals(expected, actual, 0.01);
   }
 
   @Test
   public void testShort() {
     final short expected = 2;
-    byte[] raw = Serializer.toBytes(expected);
-    short actual = Serializer.fromBytes(raw, Short.class);
+    byte[] raw = serializer.toBytes(expected);
+    short actual = serializer.fromBytes(raw, Short.class);
     assertEquals(expected, actual);
   }
 
   @Test
   public void testLong() {
     final long expected = 2L;
-    byte[] raw = Serializer.toBytes(expected);
-    long actual = Serializer.fromBytes(raw, Long.class);
+    byte[] raw = serializer.toBytes(expected);
+    long actual = serializer.fromBytes(raw, Long.class);
     assertEquals(expected, actual);
   }
 
   @Test
   public void testFloat() {
     final Float expected = 2.2F;
-    byte[] raw = Serializer.toBytes(expected);
-    float actual = Serializer.fromBytes(raw, Float.class);
+    byte[] raw = serializer.toBytes(expected);
+    float actual = serializer.fromBytes(raw, Float.class);
     assertEquals(expected, actual, 0.01);
   }
 }

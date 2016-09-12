@@ -31,7 +31,11 @@ public class Context implements Serializable {
   public enum Capabilities {
     HBASE_PROVIDER,
     ZOOKEEPER_CLIENT,
-    SERVICE_DISCOVERER
+    SERVICE_DISCOVERER,
+    PROFILER_HBASE_TABLE,
+    PROFILER_ROW_KEY_BUILDER,
+    PROFILER_COLUMN_BUILDER,
+    PROFILER_SERIALIZER
   }
 
   public static class Builder {

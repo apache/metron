@@ -34,6 +34,7 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.DefaultSerializer;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
@@ -250,7 +251,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   public void setup(String pathToConfig) throws Exception {
-    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+    columnBuilder = new ValueOnlyColumnBuilder(columnFamily, new DefaultSerializer());
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)

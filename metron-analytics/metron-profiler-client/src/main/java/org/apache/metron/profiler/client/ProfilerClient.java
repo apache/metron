@@ -40,6 +40,6 @@ public interface ProfilerClient {
    * @param <T> The type of values stored by the Profile.
    * @return A list of values.
    */
-  <T> List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups);
-
+  <T extends Number>
+  List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups);
 }

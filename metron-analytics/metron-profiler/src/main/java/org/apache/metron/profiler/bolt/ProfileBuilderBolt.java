@@ -231,10 +231,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             measurement.getProfileName(), measurement.getEntity()));
 
     // execute the 'result' expression
-    Object result;
+    Number result;
     try {
       String resultExpr = profileConfig.getResult();
-      result = executor.execute(resultExpr, new JSONObject(), Object.class);
+      result = executor.execute(resultExpr, new JSONObject(), Number.class);
     
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);
