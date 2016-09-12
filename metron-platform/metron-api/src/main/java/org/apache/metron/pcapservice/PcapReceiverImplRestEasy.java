@@ -104,6 +104,7 @@ public class PcapReceiverImplRestEasy {
    * @param query Filter results based on this query
    * @param startTime Only return packets originating after this start time
    * @param endTime Only return packets originating before this end time
+ * @param numReducers Number of reducers to use
    * @param servlet_response
    * @return REST response
    * @throws IOException
@@ -114,6 +115,7 @@ public class PcapReceiverImplRestEasy {
           @QueryParam ("query") String query,
           @DefaultValue("-1") @QueryParam ("startTime")long startTime,
           @DefaultValue("-1") @QueryParam ("endTime")long endTime,
+          @DefaultValue("10") @QueryParam ("numReducers")int numReducers,
           @Context HttpServletResponse servlet_response)
 
           throws IOException {
@@ -139,6 +141,7 @@ public class PcapReceiverImplRestEasy {
               , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
               , startTime
               , endTime
+              , numReducers
               , query
               , CONFIGURATION.get()
               , FileSystem.get(CONFIGURATION.get())
@@ -184,6 +187,7 @@ public class PcapReceiverImplRestEasy {
           @QueryParam ("dstPort") String dstPort,
           @DefaultValue("-1") @QueryParam ("startTime")long startTime,
           @DefaultValue("-1") @QueryParam ("endTime")long endTime,
+          @DefaultValue("10") @QueryParam ("numReducers")int numReducers,
           @DefaultValue("false") @QueryParam ("includeReverseTraffic") boolean includeReverseTraffic,
           @Context HttpServletResponse servlet_response)
 
@@ -237,6 +241,7 @@ public class PcapReceiverImplRestEasy {
                                     , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
                                     , startTime
                                     , endTime
+                                    , numReducers
                                     , query
                                     , CONFIGURATION.get()
                                     , FileSystem.get(CONFIGURATION.get())

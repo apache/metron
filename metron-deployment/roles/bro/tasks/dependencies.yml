@@ -31,6 +31,8 @@
     - swig
     - zlib-devel
     - perl
+    - crontabs
+    - net-tools
   register: result
   until: result.rc == 0
   retries: 5
