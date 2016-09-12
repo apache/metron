@@ -48,21 +48,11 @@ An expression that determines if a message should be applied to the profile.  A 
 
 One or more Stellar expressions used to group the profile measurements when persisted. This is intended to sort the Profile data to allow for a contiguous scan when accessing subsets of the data. 
 
-The 'groupBy' expressions can refer to any field within a `org.apache.metron.profiler.ProfileMeasurement`.  This includes the following fields: 
-  * `profileName`: The name of the profile.
-  * `entity`: The name of the entity being profiled.
-  * `start`: The window start time in milliseconds from the epoch.
-  * `end`: The window end time in milliseconds from the epoch.
-  * `value`: The value calculated over the window period.
-  * `groupBy`: The set of 'groupBy' expressions; not the result of those expressions.
-
-A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this. 
+The 'groupBy' expressions can refer to any field within a `org.apache.metron.profiler.ProfileMeasurement`.  A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this. 
 
 ```
-"groupBy": [ "DAY_OF_WEEK(start)" ] 
+"groupBy": [ "DAY_OF_WEEK()" ] 
 ```
-
-*NOTE*: A series of date functions will be added to Stellar in a follow-on PR to enhance the types of groups that can be created.
 
 #### `init`
 
@@ -295,23 +285,27 @@ This section will describe the steps required to get your first profile running.
 
 ## Implementation
 
-## Topology
+## Key Classes
+
+* `ProfileMeasurement` - Represents a single data point within a Profile.  A Profile is effectively a time series.  To this end a Profile is composed of many ProfileMeasurement values which in aggregate form a time series.  
+
+* `ProfilePeriod` - The Profiler captures one `ProfileMeasurement` each `ProfilePeriod`.  A `ProfilePeriod` will occur at fixed, deterministic points in time.  This allows for efficient retrieval of profile data.
+
+* `RowKeyBuilder` - Builds row keys that can be used to read or write profile data to HBase.
+
+* `ColumnBuilder` - Defines the columns of data stored with a profile measurement.
+
+* `ProfileHBaseMapper` - Defines for the `HBaseBolt` how profile measurements are stored in HBase.  This class leverages a `RowKeyBuilder` and `ColumnBuilder`.
+
+## Storm Topology
 
 The Profiler is implemented as a Storm topology using the following bolts and spouts.
 
-### KafkaSpout
+* `KafkaSpout` - A spout that consumes messages from a single Kafka topic.  In most cases, the Profiler topology will consume messages from the `indexing` topic.  This topic contains fully enriched messages that are ready to be indexed.  This ensures that profiles can take advantage of all the available data elements.
 
-A spout that consumes messages from a single Kafka topic.  In most cases, the Profiler topology will consume messages from the `indexing` topic.  This topic contains fully enriched messages that are ready to be indexed.  This ensures that profiles can take advantage of all the available data elements.
+* `ProfileSplitterBolt` - The bolt responsible for filtering incoming messages and directing each to the one or more downstream bolts that are responsible for building a profile.  Each message may be needed by 0, 1 or even many profiles.  Each emitted tuple contains the 'resolved' entity name, the profile definition, and the input message.
 
-### ProfileSplitterBolt
- 
-The bolt responsible for filtering incoming messages and directing each to the one or more downstream bolts that are responsible for building a Profile.  Each message may be needed by 0, 1 or even many Profiles.  Each emitted tuple contains the 'resolved' entity name, the profile definition, and the input message.
+* `ProfileBuilderBolt` - This bolt maintains all of the state required to build a profile.  When the window period expires, the data is summarized as a `ProfileMeasurement`, all state is flushed, and the `ProfileMeasurement` is emitted.  Each instance of this bolt is responsible for maintaining the state for a single Profile-Entity pair.
 
-### ProfileBuilderBolt
-
-This bolt maintains all of the state required to build a Profile.  When the window period expires, the data is summarized as a ProfileMeasurement, all state is flushed, and the ProfileMeasurement is emitted.  Each instance of this bolt is responsible for maintaining the state for a single Profile-Entity pair.
-
-### HBaseBolt
-
-A bolt that is responsible for writing to HBase.  Most profiles will be flushed every 15 minutes or so.  If each ProfileBuilderBolt were responsible for writing to HBase itself, there would be little to no opportunity to optimize these writes.  By aggregating the writes from multiple Profile-Entity pairs these writes can be batched, for example.
+* `HBaseBolt` - A bolt that is responsible for writing to HBase.  Most profiles will be flushed every 15 minutes or so.  If each `ProfileBuilderBolt` were responsible for writing to HBase itself, there would be little to no opportunity to optimize these writes.  By aggregating the writes from multiple Profile-Entity pairs these writes can be batched, for example.
 

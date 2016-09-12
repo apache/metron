@@ -25,11 +25,28 @@ components:
     -   id: "defaultExecutor"
         className: "org.apache.metron.profiler.stellar.DefaultStellarExecutor"
 
-    -   id: "hbaseMapper"
-        className: "org.apache.metron.profiler.bolt.ProfileHBaseMapper"
+    -   id: "rowKeyBuilder"
+        className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
         properties:
             - name: "saltDivisor"
               value: ${profiler.hbase.salt.divisor}
+            - name: "periodsPerHour"
+              value: ${profiler.periods.per.hour}
+
+    -   id: "columnBuilder"
+        className: "org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder"
+        constructorArgs:
+            - "${profiler.hbase.column.family}"
+
+    -   id: "hbaseMapper"
+        className: "org.apache.metron.profiler.bolt.ProfileHBaseMapper"
+        properties:
+            - name: "rowKeyBuilder"
+              ref: "rowKeyBuilder"
+            - name: "columnBuilder"
+              ref: "columnBuilder"
+            - name: "executor"
+              ref: "defaultExecutor"
 
     -   id: "zkHosts"
         className: "storm.kafka.ZkHosts"
@@ -76,8 +93,8 @@ bolts:
         properties:
             - name: "executor"
               ref: "defaultExecutor"
-            - name: "flushFrequency"
-              value: ${profiler.flush.interval.seconds}
+            - name: "periodsPerHour"
+              value: ${profiler.periods.per.hour}
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
