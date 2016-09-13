@@ -21,7 +21,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class Context implements Serializable {
 
@@ -66,12 +65,12 @@ public class Context implements Serializable {
 
   public static Context EMPTY_CONTEXT() {
     return
-    new Context(new HashMap<>()){
-      @Override
-      public Optional<Object> getCapability(String capability) {
-        return Optional.empty();
-      }
-    };
+            new Context(new HashMap<>()){
+              @Override
+              public Optional<Object> getCapability(String capability) {
+                return Optional.empty();
+              }
+            };
   }
 
   private Map<String, Capability> capabilities;

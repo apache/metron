@@ -41,16 +41,6 @@ public class ProfileMeasurement {
   private String entity;
 
   /**
-   * When the measurement window was started in milliseconds since the epoch.
-   */
-  private long start;
-
-  /**
-   * When the measurement window closed in milliseconds since the epoch.
-   */
-  private long end;
-
-  /**
    * The actual measurement itself.
    */
   private Object value;
@@ -60,36 +50,35 @@ public class ProfileMeasurement {
    */
   private List<String> groupBy;
 
+  /**
+   * The number of profile periods per hour.
+   */
+  private int periodsPerHour;
+
+  /**
+   * The period in which the ProfileMeasurement was taken.
+   */
+  private ProfilePeriod period;
+
+  /**
+   * @param profileName The name of the profile.
+   * @param entity The name of the entity.
+   * @param epochMillis The timestamp when the measurement period has been started in milliseconds since the epoch.
+   * @param periodsPerHour The number of profile periods per hour.
+   */
+  public ProfileMeasurement(String profileName, String entity, long epochMillis, int periodsPerHour) {
+    this.profileName = profileName;
+    this.entity = entity;
+    this.periodsPerHour = periodsPerHour;
+    this.period = new ProfilePeriod(epochMillis, periodsPerHour);
+  }
+
   public String getProfileName() {
     return profileName;
   }
 
-  public void setProfileName(String profileName) {
-    this.profileName = profileName;
-  }
-
   public String getEntity() {
     return entity;
-  }
-
-  public void setEntity(String entity) {
-    this.entity = entity;
-  }
-
-  public long getStart() {
-    return start;
-  }
-
-  public void setStart(long start) {
-    this.start = start;
-  }
-
-  public long getEnd() {
-    return end;
-  }
-
-  public void setEnd(long end) {
-    this.end = end;
   }
 
   public Object getValue() {
@@ -100,6 +89,10 @@ public class ProfileMeasurement {
     this.value = value;
   }
 
+  public ProfilePeriod getPeriod() {
+    return period;
+  }
+
   public List<String> getGroupBy() {
     return groupBy;
   }
@@ -108,29 +101,33 @@ public class ProfileMeasurement {
     this.groupBy = groupBy;
   }
 
+  public int getPeriodsPerHour() {
+    return periodsPerHour;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileMeasurement that = (ProfileMeasurement) o;
-
-    if (start != that.start) return false;
-    if (end != that.end) return false;
+    if (periodsPerHour != that.periodsPerHour) return false;
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
     if (value != null ? !value.equals(that.value) : that.value != null) return false;
-    return groupBy != null ? groupBy.equals(that.groupBy) : that.groupBy == null;
+    if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
+    return period != null ? period.equals(that.period) : that.period == null;
+
   }
 
   @Override
   public int hashCode() {
     int result = profileName != null ? profileName.hashCode() : 0;
     result = 31 * result + (entity != null ? entity.hashCode() : 0);
-    result = 31 * result + (int) (start ^ (start >>> 32));
-    result = 31 * result + (int) (end ^ (end >>> 32));
     result = 31 * result + (value != null ? value.hashCode() : 0);
     result = 31 * result + (groupBy != null ? groupBy.hashCode() : 0);
+    result = 31 * result + periodsPerHour;
+    result = 31 * result + (period != null ? period.hashCode() : 0);
     return result;
   }
 
@@ -139,10 +136,10 @@ public class ProfileMeasurement {
     return "ProfileMeasurement{" +
             "profileName='" + profileName + '\'' +
             ", entity='" + entity + '\'' +
-            ", start=" + start +
-            ", end=" + end +
             ", value=" + value +
             ", groupBy=" + groupBy +
+            ", periodsPerHour=" + periodsPerHour +
+            ", period=" + period +
             '}';
   }
 }

@@ -22,18 +22,22 @@ package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 /**
  * Tests the ProfileHBaseMapper class.
  */
@@ -43,21 +47,20 @@ public class ProfileHBaseMapperTest {
   ProfileHBaseMapper mapper;
   ProfileMeasurement measurement;
   DefaultStellarExecutor executor;
+  RowKeyBuilder rowKeyBuilder;
 
   @Before
   public void setup() {
     executor = new DefaultStellarExecutor();
 
+    rowKeyBuilder = mock(RowKeyBuilder.class);
+
     mapper = new ProfileHBaseMapper();
     mapper.setExecutor(executor);
-    mapper.setSaltDivisor(0);
+    mapper.setRowKeyBuilder(rowKeyBuilder);
 
-    measurement = new ProfileMeasurement();
-    measurement.setProfileName("profile");
-    measurement.setEntity("entity");
+    measurement = new ProfileMeasurement("profile", "entity", 20000, 4);
     measurement.setValue(22);
-    measurement.setStart(20000);
-    measurement.setEnd(50000);
 
     // the tuple will contain the original message
     tuple = mock(Tuple.class);
@@ -65,175 +68,47 @@ public class ProfileHBaseMapperTest {
   }
 
   /**
-   * There is a single group in the 'groupBy' expression that simply returns the string "group1".
+   * The mapper should execute the 'groupBy' Stellar expressions and use that to generate
+   * a row key.
    */
   @Test
-  public void testRowKeyWithOneGroupBy() throws Exception {
-    // setup
-    measurement.setGroupBy(Arrays.asList("'group1'"));
+  public void testExecuteGroupBy() throws Exception {
 
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put("group1".getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
+    // setup - expression that refers to the ProfileMeasurement.end
+    measurement.setGroupBy(Arrays.asList("2 + 2"));
+
+    // execute
+    mapper.rowKey(tuple);
+
+    // capture the ProfileMeasurement that should be emitted
+    ArgumentCaptor<List> arg = ArgumentCaptor.forClass(List.class);
+    verify(rowKeyBuilder).rowKey(any(), arg.capture());
 
     // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    List<Object> actual = arg.getValue();
+    Assert.assertEquals(4.0, actual.get(0));
   }
 
   /**
-   * The user can define multiple 'groupBy' expressions.
+   * The mapper should execute each 'groupBy' Stellar expression and use that to generate
+   * a row key.  There can be multiple.
    */
   @Test
-  public void testRowKeyWithTwoGroupBy() throws Exception {
-    // setup
-    measurement.setGroupBy(Arrays.asList("'group1'", "'group2'"));
+  public void testExecuteMultipleGroupBys() throws Exception {
 
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put("group1".getBytes())
-            .put("group2".getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
+    // setup - expression that refers to the ProfileMeasurement.end
+    measurement.setGroupBy(Arrays.asList("2 + 2", "4 + 4"));
+
+    // execute
+    mapper.rowKey(tuple);
+
+    // capture the ProfileMeasurement that should be emitted
+    ArgumentCaptor<List> arg = ArgumentCaptor.forClass(List.class);
+    verify(rowKeyBuilder).rowKey(any(), arg.capture());
 
     // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
-  }
-
-  /**
-   * A 'groupBy' expression can return any type; not just Strings.
-   */
-  @Test
-  public void testRowKeyWithOneIntegerGroupBy() throws Exception {
-    // setup
-    measurement.setGroupBy(Arrays.asList("200"));
-
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put(Integer.valueOf(200).toString().getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
-
-    // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
-  }
-
-  /**
-   * A user does not have to define a 'groupBy'.  It is an optional field.
-   */
-  @Test
-  public void testRowKeyWithNoGroupBy() throws Exception {
-    // setup
-    measurement.setGroupBy(Collections.emptyList());
-
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
-
-    // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
-  }
-
-  /**
-   * A user does not have to define a 'groupBy'.  It is an optional field.
-   */
-  @Test
-  public void testRowKeyWithNullGroupBy() throws Exception {
-    // setup
-    measurement.setGroupBy(null);
-
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
-
-    // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
-  }
-
-  /**
-   * A 'groupBy' expression can refer to the fields within the ProfileMeasurement.  The
-   * most important fields likely being the starting and ending timestamp.  With these fields
-   * any calendar based group can be defined.  For example, the day of week, week of month, etc
-   * can all be calculated from these vaulues.
-   */
-  @Test
-  public void testRowKeyWithGroupByUsingMeasurementField() throws Exception {
-
-    // setup - the group expression refers to the 'end' timestamp contained within the ProfileMeasurement
-    measurement.setGroupBy(Arrays.asList("end"));
-
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put(Long.valueOf(measurement.getEnd()).toString().getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
-
-    // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
-  }
-
-  /**
-   * If the saltDivisor > 0, then the row key should be prepended with a salt.  This
-   * can be used to prevent hotspotting.
-   */
-  @Test
-  public void testRowKeyWithSalt() throws Exception {
-    // setup
-    mapper.setSaltDivisor(100);
-    measurement.setGroupBy(Collections.emptyList());
-
-    // the expected row key
-    ByteBuffer buffer = ByteBuffer
-            .allocate(100)
-            .put(ProfileHBaseMapper.getSalt(measurement.getStart(), mapper.getSaltDivisor()))
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .putLong(measurement.getStart());
-    buffer.flip();
-    final byte[] expected = new byte[buffer.limit()];
-    buffer.get(expected, 0, buffer.limit());
-
-    // validate
-    byte[] actual = mapper.rowKey(tuple);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    List<Object> actual = arg.getValue();
+    Assert.assertEquals(4.0, actual.get(0));
+    Assert.assertEquals(8.0, actual.get(1));
   }
 }
