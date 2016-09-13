@@ -30,8 +30,11 @@ service $mysqldservice start
 echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
 mysql -u root -e "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';"
 mysql -u root -e "CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';"
+
 mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';"
 mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'localhost';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'%' IDENTIFIED BY '$mysqldbpasswd';"
+
 if [ '$(mysql -u root -e "select user from mysql.user where user='$mysqldbuser' and host='$myhostname'" | grep "$mysqldbuser")' != '0' ]; then
   echo "Adding user $mysqldbuser@$myhostname";
   mysql -u root -e "CREATE USER '$mysqldbuser'@'$myhostname' IDENTIFIED BY '$mysqldbpasswd';";
