@@ -102,10 +102,10 @@ public class SerializerTest {
 
   @Test
   public void testMap() {
-    final Map<String, Object> expected = new HashMap<String, Object>(){{
-      put("foo", "bar");
-      put( "bar", 1.0);
-    }};
+    final Map<String, Object> expected = new HashMap<>();
+    expected.put("foo", "bar");
+    expected.put( "bar", 1.0);
+    ;
     byte[] raw = Serializer.toBytes(expected);
     Object actual = Serializer.fromBytes(raw, Object.class);
     assertEquals(expected, actual);
