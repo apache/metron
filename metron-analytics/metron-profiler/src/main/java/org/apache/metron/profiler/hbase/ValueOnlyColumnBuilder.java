@@ -21,6 +21,7 @@
 package org.apache.metron.profiler.hbase;
 
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.utils.Serializer;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.hbase.common.ColumnList;
 

@@ -26,7 +26,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.Serializer;
+import org.apache.metron.common.utils.Serializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
