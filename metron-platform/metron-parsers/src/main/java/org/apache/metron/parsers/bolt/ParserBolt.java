@@ -100,6 +100,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   protected void initializeStellar() {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                                .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
                                 .build();
     StellarFunctions.initialize(stellarContext);
   }

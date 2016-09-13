@@ -46,6 +46,7 @@ import java.util.*;
  */
 public class MockHTable implements HTableInterface {
 
+
   public static class Provider implements Serializable {
     private static Map<String, HTableInterface> _cache = new HashMap<>();
     public HTableInterface getTable(Configuration config, String tableName) throws IOException {
