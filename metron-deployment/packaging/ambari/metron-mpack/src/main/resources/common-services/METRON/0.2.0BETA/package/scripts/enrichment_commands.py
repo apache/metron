@@ -110,17 +110,17 @@ class EnrichmentCommands:
         Execute(stop_cmd)
         Logger.info('Done stopping enrichment topologies')
 
-    def restart_enrichment_topology(self):
+    def restart_enrichment_topology(self, env):
         Logger.info('Restarting the enrichment topologies')
         self.stop_enrichment_topology()
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0
-        topology_active = self.is_topology_active()
+        topology_active = self.is_topology_active(env)
         while topology_active and retries < 3:
             Logger.info('Existing topology still active. Will wait and retry')
             time.sleep(40)
-            topology_active = self.is_topology_active()
+            topology_active = self.is_topology_active(env)
             retries += 1
 
         if not topology_active:
