@@ -20,12 +20,36 @@ package org.apache.metron.common.dsl;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Describes a Stellar function.
+ */
 public class StellarFunctionInfo {
-  String description;
+
+  /**
+   * The name of the function.
+   */
   String name;
-  String[] params;
-  StellarFunction function;
+
+  /**
+   * A description of the function.  Used for documentation purposes.
+   */
+  String description;
+
+  /**
+   * A description of what the function returns.  Used for documentation purposes.
+   */
   String returns;
+
+  /**
+   * The function parameters.  Used for documentation purposes.
+   */
+  String[] params;
+
+  /**
+   * The actual function that can be executed.
+   */
+  StellarFunction function;
+
   public StellarFunctionInfo(String description, String name, String[] params, String returns, StellarFunction function) {
     this.description = description;
     this.name = name;
@@ -34,7 +58,9 @@ public class StellarFunctionInfo {
     this.returns = returns;
   }
 
-  public String getReturns() { return returns;}
+  public String getReturns() {
+    return returns;
+  }
 
   public String getDescription() {
     return description;
@@ -65,7 +91,6 @@ public class StellarFunctionInfo {
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
     if (!Arrays.equals(getParams(), that.getParams())) return false;
     return getReturns() != null ? getReturns().equals(that.getReturns()) : that.getReturns() == null;
-
   }
 
   @Override

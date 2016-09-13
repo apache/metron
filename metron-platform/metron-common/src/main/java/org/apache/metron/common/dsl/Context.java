@@ -31,7 +31,8 @@ public class Context implements Serializable {
   public enum Capabilities {
     HBASE_PROVIDER,
     ZOOKEEPER_CLIENT,
-    SERVICE_DISCOVERER
+    SERVICE_DISCOVERER,
+    GLOBAL_CONFIG
   }
 
   public static class Builder {

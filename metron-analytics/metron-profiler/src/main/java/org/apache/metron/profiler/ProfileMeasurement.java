@@ -51,6 +51,11 @@ public class ProfileMeasurement {
   private List<String> groupBy;
 
   /**
+   * The number of profile periods per hour.
+   */
+  private int periodsPerHour;
+
+  /**
    * The period in which the ProfileMeasurement was taken.
    */
   private ProfilePeriod period;
@@ -64,6 +69,7 @@ public class ProfileMeasurement {
   public ProfileMeasurement(String profileName, String entity, long epochMillis, int periodsPerHour) {
     this.profileName = profileName;
     this.entity = entity;
+    this.periodsPerHour = periodsPerHour;
     this.period = new ProfilePeriod(epochMillis, periodsPerHour);
   }
 
@@ -95,13 +101,17 @@ public class ProfileMeasurement {
     this.groupBy = groupBy;
   }
 
+  public int getPeriodsPerHour() {
+    return periodsPerHour;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileMeasurement that = (ProfileMeasurement) o;
-
+    if (periodsPerHour != that.periodsPerHour) return false;
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
     if (value != null ? !value.equals(that.value) : that.value != null) return false;
@@ -116,6 +126,7 @@ public class ProfileMeasurement {
     result = 31 * result + (entity != null ? entity.hashCode() : 0);
     result = 31 * result + (value != null ? value.hashCode() : 0);
     result = 31 * result + (groupBy != null ? groupBy.hashCode() : 0);
+    result = 31 * result + periodsPerHour;
     result = 31 * result + (period != null ? period.hashCode() : 0);
     return result;
   }
@@ -127,6 +138,7 @@ public class ProfileMeasurement {
             ", entity='" + entity + '\'' +
             ", value=" + value +
             ", groupBy=" + groupBy +
+            ", periodsPerHour=" + periodsPerHour +
             ", period=" + period +
             '}';
   }

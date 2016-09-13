@@ -23,20 +23,15 @@ package org.apache.metron.profiler.client;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.profiler.stellar.StellarExecutor;
-import org.apache.storm.hbase.common.ColumnList;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,10 +47,11 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests the HBaseProfilerClient.
  *
- * The naming used in this test attempts to be as similar to how the 'groupBy' functionality might be used 'in
- * the wild'.  This test involves reading and writing two separate groups originating from the same Profile and
- * Entity.  There is a 'weekdays' group which contains all measurements taken on weekdays.  There is also a
- * 'weekend' group which contains all measurements taken on weekends.
+ * The naming used in this test attempts to be as similar to how the 'groupBy'
+ * functionality might be used 'in the wild'.  This test involves reading and
+ * writing two separate groups originating from the same Profile and Entity.
+ * There is a 'weekdays' group which contains all measurements taken on weekdays.
+ * There is also a 'weekend' group which contains all measurements taken on weekends.
  */
 public class HBaseProfilerClientTest {
 
@@ -63,12 +59,10 @@ public class HBaseProfilerClientTest {
   private static final String columnFamily = "P";
 
   private HBaseProfilerClient client;
-  private HBaseClient hbaseClient;
-  private RowKeyBuilder rowKeyBuilder;
-  private ColumnBuilder columnBuilder;
   private HTableInterface table;
   private StellarExecutor executor;
   private static HBaseTestingUtility util;
+  private ProfileWriter profileWriter;
 
   @BeforeClass
   public static void startHBase() throws Exception {
@@ -88,43 +82,16 @@ public class HBaseProfilerClientTest {
   @Before
   public void setup() throws Exception {
 
-    // setup all of the necessary dependencies
     table = util.createTable(Bytes.toBytes(tableName), Bytes.toBytes(columnFamily));
-    hbaseClient = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
     executor = new DefaultStellarExecutor();
-    rowKeyBuilder = new SaltyRowKeyBuilder();
-    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+
+    // used to write values to be read during testing
+    RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
+    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
 
     // what we're actually testing
     client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
-  }
-
-  /**
-   * Writes profile measurements that can be used for testing.
-   * @param count The number of profile measurements to write.
-   * @param profileName Name of the profile.
-   * @param entityName Name of the entity.
-   * @param value The measurement value.
-   * @param periodsPerHour Number of profile periods per hour.
-   * @param startTime When measurements should start to be written.
-   * @param group The name of the group.
-   */
-  private void writeMeasurements(int count, String profileName, String entityName, int value, int periodsPerHour, long startTime, List<Object> group) {
-
-    // create the first measurement
-    ProfileMeasurement m = new ProfileMeasurement(profileName, entityName, startTime, periodsPerHour);
-    m.setValue(value);
-
-    for(int i=0; i<count; i++) {
-
-      // create a measurement for the next profile period
-      ProfilePeriod next = m.getPeriod().next();
-      m = new ProfileMeasurement(profileName, entityName, next.getTimeInMillis(), periodsPerHour);
-      m.setValue(value);
-
-      // write the measurement
-      write(m, group);
-    }
   }
 
   @After
@@ -133,25 +100,10 @@ public class HBaseProfilerClientTest {
   }
 
   /**
-   * Write a ProfileMeasurement.
-   * @param m The ProfileMeasurement to write.
-   * @param groups The groups to use when writing the ProfileMeasurement.
-   */
-  private void write(ProfileMeasurement m, List<Object> groups) {
-
-    byte[] rowKey = rowKeyBuilder.rowKey(m, groups);
-    ColumnList cols = columnBuilder.columns(m);
-
-    List<Mutation> mutations = hbaseClient.constructMutationReq(rowKey, cols, Durability.SKIP_WAL);
-    hbaseClient.batchMutate(mutations);
-  }
-
-  /**
    * The client should be able to distinguish between groups and only fetch those in the correct group.
    */
   @Test
   public void testFetchOneGroup() throws Exception {
-
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -159,8 +111,9 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    writeMeasurements(count, "profile1", "entity1", expectedValue, periodsPerHour, startTime, Arrays.asList("weekdays"));
-    writeMeasurements(count, "profile1", "entity1", 0, periodsPerHour, startTime, Arrays.asList("weekends"));
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
+    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
     // execute
     List<Integer> results = client.fetch("profile1", "entity1", hours, TimeUnit.HOURS, Integer.class, Arrays.asList("weekdays"));
@@ -184,11 +137,13 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // create two groups of measurements - one on weekdays and one on weekends
-    writeMeasurements(count, "profile1", "entity1", expectedValue, periodsPerHour, startTime, Arrays.asList("weekdays"));
-    writeMeasurements(count, "profile1", "entity1", 0, periodsPerHour, startTime, Arrays.asList("weekends"));
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
+    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
     // execute
-    List<Integer> results = client.fetch("profile1", "entity1", hours, TimeUnit.HOURS, Integer.class, Arrays.asList("does-not-exist"));
+    List<Object> doesNotExist = Arrays.asList("does-not-exist");
+    List<Integer> results = client.fetch("profile1", "entity1", hours, TimeUnit.HOURS, Integer.class, doesNotExist);
 
     // validate
     assertEquals(0, results.size());
@@ -200,13 +155,15 @@ public class HBaseProfilerClientTest {
    */
   @Test
   public void testFetchOutsideTimeWindow() throws Exception {
-
-    // setup - create some measurement values from a day ago
     final int periodsPerHour = 4;
     final int hours = 2;
+    int numberToWrite = hours * periodsPerHour;
     final List<Object> group = Arrays.asList("weekends");
     final long startTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
-    writeMeasurements(hours * periodsPerHour, "profile1", "entity1", 1000, 4, startTime, group);
+
+    // setup - write some values to read later
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    profileWriter.write(m, numberToWrite, group, val -> 1000);
 
     // execute
     List<Integer> results = client.fetch("profile1", "entity1", 2, TimeUnit.MILLISECONDS, Integer.class, group);
