@@ -3,9 +3,27 @@ package org.apache.metron.common.math.stats;
 import com.tdunning.math.stats.TDigest;
 import org.apache.commons.math3.util.FastMath;
 
+/**
+ * A (near) constant memory implementation of a statistics provider.
+ * For first order statistics, simple terms are stored and composed
+ * to return the statistics results.  This is intended to provide a
+ * mergeable implementation for a statistics provider.
+ */
 public class OnlineStatisticsProvider implements StatisticsProvider {
-  public static final int COMPRESSION = 150;
+  /**
+   * A sensible default for compression to use in the T-Digest.
+   * As per https://github.com/tdunning/t-digest/blob/master/src/main/java/com/tdunning/math/stats/TDigest.java#L86
+   * 100 is a sensible default and the number of centroids retained (to construct the sketch)
+   * is usually a smallish (usually < 10) multiple of the compression.
+   */
+  public static final int COMPRESSION = 100;
 
+
+  /**
+   * A distributional sketch that uses a variant of 1-D k-means to construct a tree of ranges
+   * that sketches the distribution.  See https://github.com/tdunning/t-digest#t-digest for
+   * more detail.
+   */
   private TDigest digest;
 
   private long n = 0;
@@ -14,19 +32,26 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
   private double sumOfLogs = 0;
   private Double min = null;
   private Double max = null;
-  //First standardized moment, E[X]
+
+  //\mu_1, E[X]
   private double M1 = 0;
-  //Second standardized moment: E[(X - \mu)^2]
+  //\mu_2: E[(X - \mu)^2]
   private double M2 = 0;
-  //Third standardized moment: E[(X - \mu)^3]
+  //\mu_3: E[(X - \mu)^3]
   private double M3 = 0;
-  //Fourth standardized moment: E[(X - \mu)^4]
+  //\mu_4: E[(X - \mu)^4]
   private double M4 = 0;
 
   public OnlineStatisticsProvider() {
     digest = TDigest.createAvlTreeDigest(COMPRESSION);
   }
 
+  /**
+   * Add a value.
+   * NOTE: This does not store the point, but only updates internal state.
+   * NOTE: This is NOT threadsafe.
+   * @param value
+   */
   @Override
   public void addValue(double value) {
     long n1 = n;
@@ -47,11 +72,9 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
 
     // Adjusting expected value: See Knuth TAOCP vol 2, 3rd edition, page 232
     M1 += delta_n;
-    // Adjusting the 3rd and 4th standardized moment, see http://www.johndcook.com/blog/skewness_kurtosis/
+    // Adjusting the \mu_i, see http://www.johndcook.com/blog/skewness_kurtosis/
     M4 += term1 * delta_n2 * (n*n - 3*n + 3) + 6 * delta_n2 * M2 - 4 * delta_n * M3;
     M3 += term1 * delta_n * (n - 2) - 3 * delta_n * M2;
-
-    // Adjusting second moment: See Knuth TAOCP vol 2, 3rd edition, page 232
     M2 += term1;
   }
 
@@ -115,16 +138,44 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
     return sumOfSquares;
   }
 
+  /**
+   * Unbiased kurtosis.
+   * See http://commons.apache.org/proper/commons-math/apidocs/org/apache/commons/math4/stat/descriptive/moment/Kurtosis.html
+   * @return
+   */
   @Override
   public double getKurtosis() {
-    return (1.0*getCount())*M4 / (M2*M2) - 3.0;
+    //kurtosis = { [n(n+1) / (n -1)(n - 2)(n-3)] \mu_4 / std^4 } - [3(n-1)^2 / (n-2)(n-3)]
+    if(n < 4) {
+      return Double.NaN;
+    }
+    double std = getStandardDeviation();
+    double t1 = (1.0*n)*(n+1)/((n-1)*(n-2)*(n-3));
+    double t3 = 3.0*((n-1)*(n-1))/((n-2)*(n-3));
+    return t1*(M4/FastMath.pow(std, 4))-t3;
   }
 
+  /**
+   * Unbiased skewness.
+   * See  http://commons.apache.org/proper/commons-math/apidocs/org/apache/commons/math4/stat/descriptive/moment/Skewness.html
+   * @return
+   */
   @Override
   public double getSkewness() {
-    return Math.sqrt(getCount()) * M3/ Math.pow(M2, 1.5);
+    //  skewness = [n / (n -1) (n - 2)] sum[(x_i - mean)^3] / std^3
+    if(n < 3) {
+      return Double.NaN;
+    }
+    double t1 = (1.0*n)/((n - 1)*(n-2));
+    double std = getStandardDeviation();
+    return t1*M3/FastMath.pow(std, 3);
   }
 
+  /**
+   * This returns an approximate percentile based on a t-digest.
+   * @param p
+   * @return
+   */
   @Override
   public double getPercentile(double p) {
     return digest.quantile(p/100.0);
@@ -136,12 +187,15 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
     OnlineStatisticsProvider a = this;
     OnlineStatisticsProvider b = (OnlineStatisticsProvider)provider;
 
+    //Combining the simple terms that obviously form a semigroup
     combined.n = a.n + b.n;
     combined.sum = a.sum + b.sum;
     combined.min = Math.min(a.min, b.min);
     combined.max = Math.max(a.max, b.max);
     combined.sumOfSquares = a.sumOfSquares + b.sumOfSquares;
     combined.sumOfLogs = a.sumOfLogs+ b.sumOfLogs;
+
+    // Adjusting the standardized moments, see http://www.johndcook.com/blog/skewness_kurtosis/
     double delta = b.M1 - a.M1;
     double delta2 = delta*delta;
     double delta3 = delta*delta2;
@@ -160,6 +214,8 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
             (combined.n*combined.n*combined.n);
     combined.M4 += 6.0*delta2 * (a.n*a.n*b.M2 + b.n*b.n*a.M2)/(combined.n*combined.n) +
             4.0*delta*(a.n*b.M3 - b.n*a.M3) / combined.n;
+
+    //Merging the distributional sketches
     combined.digest.add(a.digest);
     combined.digest.add(b.digest);
     return combined;

@@ -53,6 +53,41 @@ public class StellarStatisticsFunctions {
     return new OnlineStatisticsProvider();
   }
 
+  @Stellar( namespace="STATS"
+          , name="MERGE"
+          , description = "Merge statistic providers"
+          , params = {
+                      "statisticsProviders - A list of statistics providers"
+                      }
+          , returns = "A StatisticsProvider object"
+          )
+  public static class Merge extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() > 0) {
+        Object firstArg = args.get(0);
+        if(firstArg instanceof List) {
+          StatisticsProvider ret = null;
+          for(Object sp : (List)firstArg) {
+            if(sp instanceof StatisticsProvider) {
+              if(ret == null) {
+                ret = (StatisticsProvider)sp;
+              }
+              else {
+                ret = ret.merge((StatisticsProvider)sp);
+              }
+            }
+          }
+          return ret;
+        }
+        else {
+          return null;
+        }
+      }
+      return null;
+    }
+  }
+
   /**
    * Initialize the summary statistics.
    *

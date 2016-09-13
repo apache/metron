@@ -32,7 +32,7 @@ public class DataStructureFunctions {
           , namespace="BLOOM"
           , description="Adds an element to the bloom filter passed in"
           , params = { "bloom - The bloom filter"
-                     , "value - The value to add"
+                     , "value* - The values to add"
                      }
           , returns = "Bloom Filter"
           )
@@ -41,8 +41,12 @@ public class DataStructureFunctions {
     @Override
     public Object apply(List<Object> args) {
       BloomFilter<Object> filter = (BloomFilter)args.get(0);
-      Object arg = args.get(1);
-      filter.add(arg);
+      for(int i = 1;i < args.size();++i) {
+        Object arg = args.get(i);
+        if(arg != null) {
+          filter.add(args.get(i));
+        }
+      }
       return filter;
     }
   }
@@ -59,9 +63,18 @@ public class DataStructureFunctions {
 
     @Override
     public Object apply(List<Object> args) {
+      if(args.size() == 0) {
+        return false;
+      }
       BloomFilter<Object> filter = (BloomFilter)args.get(0);
-      Object arg = args.get(1);
-      return filter.mightContain(arg);
+      if(args.size() > 1) {
+        Object arg = args.get(1);
+        if(arg == null) {
+          return false;
+        }
+        return filter.mightContain(arg);
+      }
+      return false;
     }
   }
 
@@ -89,6 +102,40 @@ public class DataStructureFunctions {
     }
   }
 
+  @Stellar( name="MERGE"
+          , namespace="BLOOM"
+          , description="Returns a merged bloom filter"
+          , params = { "bloomfilters - A list of bloom filters to merge"
+                     }
+          , returns = "Bloom Filter or null if the list is empty"
+          )
+  public static class BloomMerge extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() > 0) {
+        Object firstArg = args.get(0);
+        if(firstArg instanceof List) {
+          BloomFilter ret = null;
+          for(Object bf : (List)firstArg) {
+            if(bf instanceof BloomFilter) {
+              if(ret == null) {
+                ret = (BloomFilter)bf;
+              }
+              else {
+                ret.merge((BloomFilter)bf);
+              }
+            }
+          }
+          return ret;
+        }
+        else {
+          return null;
+        }
+      }
+      return null;
+    }
+  }
 
   @Stellar(name="IS_EMPTY"
           , description="Returns true if string or collection is empty and false otherwise"

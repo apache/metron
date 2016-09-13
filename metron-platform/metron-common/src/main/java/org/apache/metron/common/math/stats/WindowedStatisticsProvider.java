@@ -10,6 +10,7 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;
  *
  * Used as an adapter to provide an interface to the underlying Commons
  * Math class that provide summary statistics for windows of data.
+ * NOTE: Windowed statistics providers cannot be merged.
  */
 public class WindowedStatisticsProvider implements StatisticsProvider {
 
