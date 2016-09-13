@@ -36,6 +36,15 @@ class IndexingCommands:
         self.__indexing = params.metron_indexing_topology
         self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
 
+    def is_configured(self):
+        return self.__configured
+
+    def set_configured(self):
+        File(self.__params.indexing_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
     def setup_repo(self):
         def local_repo():
             Logger.info("Setting up local repo")
