@@ -16,7 +16,10 @@
 #
 ---
 - name: Download Nodesource Yum Repository Setup
-  get_url: url={{ nodesource_repo_setup }} dest=/tmp/nodesource_setup_4.x
+  shell:
+    cmd: curl -s {{ nodesource_repo_setup }} -o /tmp/nodesource_setup_4.x
+    creates: /tmp/nodesource_setup_4.x
+    warn: false
 
 - name: Setup Nodesource Yum Repository
   shell: bash /tmp/nodesource_setup_4.x
