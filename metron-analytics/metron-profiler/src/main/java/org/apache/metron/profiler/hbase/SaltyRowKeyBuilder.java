@@ -77,21 +77,21 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param profile The name of the profile.
    * @param entity The name of the entity.
    * @param groups The group(s) used to sort the profile data.
-   * @param durationAgo How long ago?
-   * @param unit The time units of how long ago.
+   * @param start When the time horizon starts in epoch milliseconds.
+   * @param end When the time horizon ends in epoch milliseconds.
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   @Override
-  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit) {
+  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end) {
     List<byte[]> rowKeys = new ArrayList<>();
 
-    // find the time horizon
-    long endTime = System.currentTimeMillis();
-    long startTime = endTime - unit.toMillis(durationAgo);
+    // be forgiving of out-of-order start and end times; order is critical to this algorithm
+    end = Math.max(start, end);
+    start = Math.min(start, end);
 
     // find the starting period and advance until the end time is reached
-    ProfilePeriod period = new ProfilePeriod(startTime, periodDurationMillis, TimeUnit.MILLISECONDS);
-    while(period.getStartTimeMillis() <= endTime) {
+    ProfilePeriod period = new ProfilePeriod(start, periodDurationMillis, TimeUnit.MILLISECONDS);
+    while(period.getStartTimeMillis() <= end) {
 
       byte[] k = rowKey(profile, entity, period, groups);
       rowKeys.add(k);
