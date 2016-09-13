@@ -32,9 +32,7 @@ public class Context implements Serializable {
     HBASE_PROVIDER,
     ZOOKEEPER_CLIENT,
     SERVICE_DISCOVERER,
-    PROFILER_HBASE_TABLE,
-    PROFILER_ROW_KEY_BUILDER,
-    PROFILER_COLUMN_BUILDER
+    GLOBAL_CONFIG
   }
 
   public static class Builder {

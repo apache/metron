@@ -20,10 +20,12 @@
 
 package org.apache.metron.profiler.client;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionResolverSingleton;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
@@ -36,6 +38,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,9 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_HBASE_TABLE;
-import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_ROW_KEY_BUILDER;
-import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_COLUMN_BUILDER;
+import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE_PROVIDER;
 
 /**
  * Tests the GetProfile class.
@@ -58,6 +62,19 @@ public class GetProfileTest {
   private Map<String, Object> state;
   private ProfileWriter profileWriter;
 
+  /**
+   * A TableProvider that allows us to mock HBase.
+   */
+  public static class MockTableProvider implements TableProvider, Serializable {
+
+    MockHTable.Provider provider = new MockHTable.Provider();
+
+    @Override
+    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
+      return provider.getTable(config, tableName);
+    }
+  }
+
   private <T> T run(String expression, Class<T> clazz) {
     return executor.execute(expression, state, clazz);
   }
@@ -65,20 +82,26 @@ public class GetProfileTest {
   @Before
   public void setup() {
     state = new HashMap<>();
-    final HTableInterface table = new MockHTable(tableName, columnFamily);
+    final HTableInterface table = MockHTable.Provider.addToCache(tableName, columnFamily);
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
     profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
 
-    // create the necessary context used during initialization
+    // global properties
+    Map<String, Object> global = new HashMap<String, Object>() {{
+      put(PROFILER_HBASE_TABLE, tableName);
+      put(PROFILER_COLUMN_FAMILY, columnFamily);
+      put(PROFILER_HBASE_TABLE_PROVIDER, MockTableProvider.class.getName());
+    }};
+
+    // create the necessary context
     Context context = new Context.Builder()
-            .with(PROFILER_ROW_KEY_BUILDER, () -> new SaltyRowKeyBuilder())
-            .with(PROFILER_COLUMN_BUILDER, () -> new ValueOnlyColumnBuilder(columnFamily))
-            .with(PROFILER_HBASE_TABLE, () -> table)
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
             .build();
 
+    // initialize the executor with that context
     executor = new DefaultStellarExecutor();
     executor.setContext(context);
 

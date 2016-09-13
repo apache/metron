@@ -21,27 +21,32 @@
 package org.apache.metron.profiler.client.stellar;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.client.HBaseProfilerClient;
 import org.apache.metron.profiler.client.ProfilerClient;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_COLUMN_BUILDER;
-import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_HBASE_TABLE;
-import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_ROW_KEY_BUILDER;
+import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -76,6 +81,24 @@ import static org.apache.metron.common.dsl.Context.Capabilities.PROFILER_ROW_KEY
 )
 public class GetProfile implements StellarFunction {
 
+  /**
+   * A global property that defines the name of the HBase table storing profile definitions.
+   */
+  public static final String PROFILER_HBASE_TABLE = "profiler.hbase.table";
+
+  /**
+   * A global property that defines the name of the column family used to store profile data.
+   */
+  public static final String PROFILER_COLUMN_FAMILY = "profiler.column.family";
+
+  /**
+   * A global property that defines the name of the HBaseTableProvider implementation class.
+   */
+  public static final String PROFILER_HBASE_TABLE_PROVIDER = "profiler.hbase.table.provider";
+
+  /**
+   * A client that can retrieve profile values.
+   */
   private ProfilerClient client;
 
   /**
@@ -84,13 +107,15 @@ public class GetProfile implements StellarFunction {
   @Override
   public void initialize(Context context) {
 
-    Context.Capabilities[] required = { PROFILER_HBASE_TABLE, PROFILER_ROW_KEY_BUILDER, PROFILER_COLUMN_BUILDER };
-    validateContext(context, required);
+    // ensure the required capabilities are defined
+    Context.Capabilities[] required = { GLOBAL_CONFIG };
+    validateCapabilities(context, required);
+    Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
 
-    HTableInterface table = (HTableInterface) context.getCapability(PROFILER_HBASE_TABLE).get();
-    RowKeyBuilder rowKeyBuilder = (RowKeyBuilder) context.getCapability(PROFILER_ROW_KEY_BUILDER).get();
-    ColumnBuilder columnBuilder = (ColumnBuilder) context.getCapability(PROFILER_COLUMN_BUILDER).get();
-
+    // create the profiler client
+    ColumnBuilder columnBuilder = getColumnBuilder(global);
+    RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(global);
+    HTableInterface table = getTable(global);
     client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
   }
 
@@ -143,14 +168,14 @@ public class GetProfile implements StellarFunction {
   }
 
   /**
-   * Ensure that the context has all of the required capabilities.
+   * Ensure that the required capabilities are defined.
    * @param context The context to validate.
    * @param required The required capabilities.
    * @throws IllegalStateException if all of the required capabilities are not present in the Context.
    */
-  private void validateContext(Context context, Context.Capabilities[] required) throws IllegalStateException {
+  private void validateCapabilities(Context context, Context.Capabilities[] required) throws IllegalStateException {
 
-    // ensure that the required configuration is available
+    // collect the name of each missing capability
     String missing = Stream
             .of(required)
             .filter(c -> !context.getCapability(c).isPresent())
@@ -175,5 +200,70 @@ public class GetProfile implements StellarFunction {
     }
 
     return ConversionUtils.convert(args.get(index), clazz);
+  }
+
+  /**
+   * Creates the ColumnBuilder to use in accessing the profile data.
+   * @param global The global configuration.
+   */
+  private ColumnBuilder getColumnBuilder(Map<String, Object> global) {
+    // the builder is not currently configurable - but should be made so
+    ColumnBuilder columnBuilder;
+
+    if(global.containsKey(PROFILER_COLUMN_FAMILY)) {
+      String columnFamily = (String) global.get(PROFILER_COLUMN_FAMILY);
+      columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+
+    } else {
+      columnBuilder = new ValueOnlyColumnBuilder();
+    }
+
+    return columnBuilder;
+  }
+
+  /**
+   * Creates the ColumnBuilder to use in accessing the profile data.
+   * @param global The global configuration.
+   */
+  private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
+    // the builder is not currently configurable - but should be made so
+    return new SaltyRowKeyBuilder();
+  }
+
+  /**
+   * Create an HBase table used when accessing HBase.
+   * @param global The global configuration.
+   * @return
+   */
+  private HTableInterface getTable(Map<String, Object> global) {
+
+    String tableName = (String) global.getOrDefault(PROFILER_HBASE_TABLE, "profiler");
+    TableProvider provider = getTableProvider(global);
+
+    try {
+      return provider.getTable(HBaseConfiguration.create(), tableName);
+
+    } catch (IOException e) {
+      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName));
+    }
+  }
+
+  /**
+   * Create the TableProvider to use when accessing HBase.
+   * @param global The global configuration.
+   */
+  private TableProvider getTableProvider(Map<String, Object> global) {
+    String clazzName = (String) global.getOrDefault(PROFILER_HBASE_TABLE_PROVIDER, HTableProvider.class.getName());
+
+    TableProvider provider;
+    try {
+      Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(clazzName);
+      provider = clazz.newInstance();
+
+    } catch (Exception e) {
+      provider = new HTableProvider();
+    }
+
+    return provider;
   }
 }
