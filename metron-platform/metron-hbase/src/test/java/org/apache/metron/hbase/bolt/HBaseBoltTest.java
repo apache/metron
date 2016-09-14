@@ -97,7 +97,7 @@ public class HBaseBoltTest extends BaseBoltTest {
     bolt.execute(tuple2);
 
     // batch size is 2, received 2 tuples - flush the batch
-    verify(client, times(1)).batchMutate(any(List.class));
+    verify(client, times(1)).mutate();
   }
 
   /**
@@ -109,7 +109,7 @@ public class HBaseBoltTest extends BaseBoltTest {
     bolt.execute(tuple1);
 
     // batch size is 2, but only 1 tuple received - do not flush batch
-    verify(client, times(0)).batchMutate(any(List.class));
+    verify(client, times(0)).mutate();
   }
 
   /**
@@ -121,11 +121,11 @@ public class HBaseBoltTest extends BaseBoltTest {
 
     // the batch is not ready to write
     bolt.execute(tuple1);
-    verify(client, times(0)).batchMutate(any(List.class));
+    verify(client, times(0)).mutate();
 
     // the batch should be flushed after the tick tuple
     bolt.execute(mockTickTuple());
-    verify(client, times(1)).batchMutate(any(List.class));
+    verify(client, times(1)).mutate();
   }
 
   private static Tuple mockTuple(String componentId, String streamId) {
