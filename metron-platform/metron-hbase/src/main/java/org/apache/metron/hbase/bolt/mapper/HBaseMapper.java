@@ -22,6 +22,7 @@ package org.apache.metron.hbase.bolt.mapper;
 
 import backtype.storm.tuple.Tuple;
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Maps a <code>backtype.storm.tuple.Tuple</code> object
@@ -35,17 +36,21 @@ public interface HBaseMapper extends Serializable {
   /**
    * Given a tuple, return the HBase rowkey.
    *
-   * @param tuple
-   * @return
+   * @param tuple The tuple to map to Hbase
    */
   byte[] rowKey(Tuple tuple);
 
   /**
    * Given a tuple, return a list of HBase columns to insert.
    *
-   * @param tuple
-   * @return
+   * @param tuple The tuple to map to Hbase
    */
   ColumnList columns(Tuple tuple);
 
+  /**
+   * Given a tuple, return the time to live.
+   *
+   * @param tuple The tuple to map to Hbase
+   */
+  Optional<Long> getTTL(Tuple tuple);
 }

@@ -22,6 +22,8 @@ package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.lang.StringUtils;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -34,6 +36,7 @@ import org.apache.metron.hbase.bolt.mapper.ColumnList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -70,7 +73,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
 
   /**
    * Define the row key for a ProfileMeasurement.
-   * @param tuple The tuple containing a ProfileMeasurement.
+   * @param tuple The tuple to map to Hbase.
    * @return The Hbase row key.
    */
   @Override
@@ -82,12 +85,24 @@ public class ProfileHBaseMapper implements HBaseMapper {
 
   /**
    * Defines how the fields within a ProfileMeasurement are mapped to HBase.
-   * @param tuple The tuple containing the ProfileMeasurement.
+   * @param tuple The tuple to map to Hbase.
    */
   @Override
   public ColumnList columns(Tuple tuple) {
     ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
     return columnBuilder.columns(measurement);
+  }
+
+  /**
+   * The time-to-live can be defined differently for each profile.
+   * @param tuple The tuple to map to Hbase.
+   * @return
+   */
+  @Override
+  public Optional<Long> getTTL(Tuple tuple) {
+    // TTL not yet supported for profiles
+    Optional result = Optional.empty();
+    return result;
   }
 
   /**

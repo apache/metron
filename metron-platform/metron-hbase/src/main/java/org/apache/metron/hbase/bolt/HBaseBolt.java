@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A bolt that writes to HBase.
@@ -155,10 +156,17 @@ public class HBaseBolt extends BaseRichBolt {
    * @param tuple Contains the data elements that need written to HBase.
    */
   private void save(Tuple tuple) {
-    byte[] rowKey = this.mapper.rowKey(tuple);
-    ColumnList cols = this.mapper.columns(tuple);
+    byte[] rowKey = mapper.rowKey(tuple);
+    ColumnList cols = mapper.columns(tuple);
     Durability durability = writeToWAL ? Durability.SYNC_WAL : Durability.SKIP_WAL;
-    hbaseClient.addMutation(rowKey, cols, durability);
+
+    Optional<Long> ttl = mapper.getTTL(tuple);
+    if(ttl.isPresent()) {
+      hbaseClient.addMutation(rowKey, cols, durability, ttl.get());
+    } else {
+      hbaseClient.addMutation(rowKey, cols, durability);
+    }
+
     batchHelper.addBatch(tuple);
   }
 
