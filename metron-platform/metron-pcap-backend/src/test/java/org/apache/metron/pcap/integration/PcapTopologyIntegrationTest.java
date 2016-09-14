@@ -276,6 +276,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(4, pcapEntries)
                         , getTimestamp(5, pcapEntries)
+                        , 10
                         , new EnumMap<>(Constants.Fields.class)
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -292,6 +293,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(4, pcapEntries)
                         , getTimestamp(5, pcapEntries)
+                        , 10
                         , ""
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -307,6 +309,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
+                        , 10
                         , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                           put(Constants.Fields.DST_ADDR, "207.28.210.1");
                         }}
@@ -325,6 +328,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
+                        , 10
                         , "ip_dst_addr == '207.28.210.1'"
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -340,6 +344,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
+                        , 10
                         , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                           put(Constants.Fields.PROTOCOL, "foo");
                         }}
@@ -358,6 +363,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
+                        , 10
                         , "protocol == 'foo'"
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -373,6 +379,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , 10
                         , new EnumMap<>(Constants.Fields.class)
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -389,6 +396,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , 10
                         , ""
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -403,6 +411,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , 10
                         , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
                           put(Constants.Fields.DST_PORT, "22");
                         }}
@@ -433,6 +442,7 @@ public class PcapTopologyIntegrationTest {
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , 10
                         , "ip_dst_port == '22'"
                         , new Configuration()
                         , FileSystem.get(new Configuration())

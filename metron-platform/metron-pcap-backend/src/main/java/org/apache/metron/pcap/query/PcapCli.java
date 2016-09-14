@@ -93,6 +93,7 @@ public class PcapCli {
                 new Path(config.getBaseOutputPath()),
                 startTime,
                 endTime,
+                config.getNumReducers(),
                 config.getFixedFields(),
                 hadoopConf,
                 FileSystem.get(hadoopConf),
@@ -128,6 +129,7 @@ public class PcapCli {
                 new Path(config.getBaseOutputPath()),
                 startTime,
                 endTime,
+                config.getNumReducers(),
                 config.getQuery(),
                 hadoopConf,
                 FileSystem.get(hadoopConf),
@@ -146,7 +148,12 @@ public class PcapCli {
     String timestamp = clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ");
     String outFileName = String.format("pcap-data-%s.pcap", timestamp);
     try {
-      resultsWriter.write(results, outFileName);
+      if(results.size() > 0) {
+        resultsWriter.write(results, outFileName);
+      }
+      else {
+        System.out.println("No results returned.");
+      }
     } catch (IOException e) {
       LOGGER.error("Unable to write file", e);
       return -1;

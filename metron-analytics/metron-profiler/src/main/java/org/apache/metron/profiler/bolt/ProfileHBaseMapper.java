@@ -21,14 +21,22 @@
 package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.commons.beanutils.BeanMap;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
 import org.apache.storm.hbase.common.ColumnList;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * An HbaseMapper that defines how a ProfileMeasurement is persisted within an HBase table.
@@ -36,20 +44,28 @@ import java.util.Calendar;
 public class ProfileHBaseMapper implements HBaseMapper {
 
   /**
-   * A salt is prepended to the row key to help prevent hotspotting.  This constant is used
-   * to generate the salt.  Ideally, this constant should be roughly equal to the number of
-   * nodes in the Hbase cluster.
+   * Executes Stellar code and maintains state across multiple invocations.
    */
-  private int saltDivisor;
+  private StellarExecutor executor;
 
   /**
-   * The name of the column family.
+   * Generates the row keys necessary to store profile data in HBase.
    */
-  private String columnFamily;
+  private RowKeyBuilder rowKeyBuilder;
+
+  /**
+   * Generates the ColumnList necesary to store profile data in HBase.
+   */
+  private ColumnBuilder columnBuilder;
 
   public ProfileHBaseMapper() {
-    setColumnFamily("P");
-    setSaltDivisor(1000);
+    setRowKeyBuilder(new SaltyRowKeyBuilder());
+    setColumnBuilder(new ValueOnlyColumnBuilder());
+  }
+
+  public ProfileHBaseMapper(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder) {
+    setRowKeyBuilder(rowKeyBuilder);
+    setColumnBuilder(columnBuilder);
   }
 
   /**
@@ -60,19 +76,8 @@ public class ProfileHBaseMapper implements HBaseMapper {
   @Override
   public byte[] rowKey(Tuple tuple) {
     ProfileMeasurement m = (ProfileMeasurement) tuple.getValueByField("measurement");
-
-    // create a calendar to determine day-of-week, etc
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTimeInMillis(m.getStart());
-
-    return Bytes.toBytes(getSalt(m.getStart()) +
-                    m.getProfileName() +
-                    calendar.get(Calendar.DAY_OF_WEEK) +
-                    calendar.get(Calendar.WEEK_OF_MONTH) +
-                    calendar.get(Calendar.MONTH) +
-                    calendar.get(Calendar.YEAR) +
-                    m.getEntity() +
-                    m.getStart());
+    List<Object> groups = executeGroupBy(m);
+    return rowKeyBuilder.rowKey(m, groups);
   }
 
   /**
@@ -82,85 +87,48 @@ public class ProfileHBaseMapper implements HBaseMapper {
   @Override
   public ColumnList columns(Tuple tuple) {
     ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
-
-    byte[] cfBytes = Bytes.toBytes(columnFamily);
-    ColumnList cols = new ColumnList();
-    cols.addColumn(cfBytes, QPROFILE, Bytes.toBytes(measurement.getProfileName()));
-    cols.addColumn(cfBytes, QENTITY, Bytes.toBytes(measurement.getEntity()));
-    cols.addColumn(cfBytes, QSTART, Bytes.toBytes(measurement.getStart()));
-    cols.addColumn(cfBytes, QEND, Bytes.toBytes(measurement.getEnd()));
-    cols.addColumn(cfBytes, QVALUE, toBytes(measurement.getValue()));
-
-    return cols;
+    return columnBuilder.columns(measurement);
   }
 
   /**
-   * Serialize a profile measurement's value.
-   *
-   * The value produced by a Profile definition can be any numeric data type.  The data
-   * type depends on how the profile is defined by the user.  The user should be able to
-   * choose the data type that is most suitable for their use case.
-   *
-   * @param value The value to serialize.
+   * Executes each of the 'groupBy' expressions.  The result of each
+   * expression are the groups used to sort the data as part of the
+   * row key.
+   * @param m The profile measurement.
+   * @return The result of executing the 'groupBy' expressions.
    */
-  private byte[] toBytes(Object value) {
-    byte[] result;
+  private List<Object> executeGroupBy(ProfileMeasurement m) {
+    List<Object> groups = new ArrayList<>();
 
-    if(value instanceof Integer) {
-      result = Bytes.toBytes((Integer) value);
-    } else if(value instanceof Double) {
-      result = Bytes.toBytes((Double) value);
-    } else if(value instanceof Short) {
-      result = Bytes.toBytes((Short) value);
-    } else if(value instanceof Long) {
-      result = Bytes.toBytes((Long) value);
-    } else if(value instanceof Float) {
-      result = Bytes.toBytes((Float) value);
-    } else {
-      throw new RuntimeException("Expected 'Number': actual=" + value);
+    if(!isEmpty(m.getGroupBy())) {
+      try {
+        // allows each 'groupBy' expression to refer to the fields of the ProfileMeasurement
+        BeanMap measureAsMap = new BeanMap(m);
+
+        for (String expr : m.getGroupBy()) {
+          Object result = executor.execute(expr, measureAsMap, Object.class);
+          groups.add(result);
+        }
+
+      } catch(Throwable e) {
+        String msg = format("Bad 'groupBy' expression: %s, profile=%s, entity=%s",
+                e.getMessage(), m.getProfileName(), m.getEntity());
+        throw new ParseException(msg, e);
+      }
     }
 
-    return result;
+    return groups;
   }
 
-  /**
-   * Calculates a salt value that is used as part of the row key.
-   *
-   * The salt is calculated as 'md5(timestamp) % N' where N is a configurable value that ideally
-   * is close to the number of nodes in the Hbase cluster.
-   *
-   * @param epoch The timestamp in epoch millis to use in generating the salt.
-   */
-  private int getSalt(long epoch) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("MD5");
-      byte[] hash = digest.digest(Bytes.toBytes(epoch));
-      return Bytes.toInt(hash) % saltDivisor;
-
-    } catch(NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
+  public void setExecutor(StellarExecutor executor) {
+    this.executor = executor;
   }
 
-  public String getColumnFamily() {
-    return columnFamily;
+  public void setRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
+    this.rowKeyBuilder = rowKeyBuilder;
   }
 
-  public void setColumnFamily(String columnFamily) {
-    this.columnFamily = columnFamily;
+  public void setColumnBuilder(ColumnBuilder columnBuilder) {
+    this.columnBuilder = columnBuilder;
   }
-
-  public int getSaltDivisor() {
-    return saltDivisor;
-  }
-
-  public void setSaltDivisor(int saltDivisor) {
-    this.saltDivisor = saltDivisor;
-  }
-
-  public static final byte[] QPROFILE = Bytes.toBytes("profile");
-  public static final byte[] QENTITY = Bytes.toBytes("entity");
-  public static final byte[] QSTART = Bytes.toBytes("start");
-  public static final byte[] QEND = Bytes.toBytes("end");
-  public static final byte[] QVALUE = Bytes.toBytes("value");
 }

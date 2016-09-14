@@ -19,13 +19,11 @@
 # configure snort to alert on every packet
 #
 - name: Configure snort to use a set of test rules
-  become: True
   lineinfile:
     dest: /etc/snort/snort.conf
     line: "include $RULE_PATH/test.rules"
 
 - name: Create a snort alert for testing that alerts on every packet
-  become: True
   lineinfile:
     dest: /etc/snort/rules/test.rules
     line: "alert tcp any any -> any any (msg:'snort test alert'; sid:999158; )"

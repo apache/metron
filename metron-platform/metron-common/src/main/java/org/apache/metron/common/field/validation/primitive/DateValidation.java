@@ -19,6 +19,8 @@
 package org.apache.metron.common.field.validation.primitive;
 
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.Predicate2StellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.field.validation.FieldValidation;
 
 import java.text.ParseException;
@@ -29,6 +31,21 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class DateValidation implements FieldValidation, Predicate<List<Object>> {
+
+  @Stellar(name="IS_DATE"
+          ,description = "Determines if a string passed is a date of a given format."
+          ,params = {
+            "date - The date in string form."
+          , "format - The format of the date."
+                    }
+          ,returns = "True if the date is of the specified format and false otherwise."
+          )
+  public static class IS_DATE extends Predicate2StellarFunction {
+
+    public IS_DATE() {
+      super(new DateValidation());
+    }
+  }
 
   /**
    * Evaluates this predicate on the given argument.

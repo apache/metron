@@ -45,9 +45,11 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the HBaseClient
@@ -128,6 +130,10 @@ public class HBaseClientTest {
     Get get1 = client.constructGetRequests(rowKey1, criteria);
     Result[] results = client.batchGet(Arrays.asList(get1));
     Assert.assertEquals(1, results.length);
+
+    // validate
+    assertEquals(1, results.length);
+    assertEquals(widget1, toWidget(results[0]));
   }
 
   @Test
@@ -152,6 +158,24 @@ public class HBaseClientTest {
     Get get1 = client.constructGetRequests(rowKey1, criteria);
     Get get2 = client.constructGetRequests(rowKey2, criteria);
     Result[] results = client.batchGet(Arrays.asList(get1, get2));
-    Assert.assertEquals(2, results.length);
+
+    // validate
+    assertEquals(2, results.length);
+    List<Widget> expected = Arrays.asList(widget1, widget2);
+    for(Result result : results) {
+      Widget widget = toWidget(result);
+      Assert.assertThat(expected, hasItem(widget));
+    }
+  }
+
+  /**
+   * Transforms the HBase Result to a Widget.
+   * @param result The HBase Result.
+   * @return The Widget.
+   */
+  private Widget toWidget(Result result) {
+    int cost = Bytes.toInt(result.getValue(WidgetMapper.CF, WidgetMapper.QCOST));
+    String name = Bytes.toString(result.getValue(WidgetMapper.CF, WidgetMapper.QNAME));
+    return new Widget(name, cost);
   }
 }

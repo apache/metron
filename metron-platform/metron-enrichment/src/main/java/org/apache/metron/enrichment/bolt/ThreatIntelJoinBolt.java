@@ -19,14 +19,12 @@ package org.apache.metron.enrichment.bolt;
 
 import backtype.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.functions.ConversionFunctions;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
@@ -35,15 +33,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
-  protected static final Logger LOG = LoggerFactory
-          .getLogger(ThreatIntelJoinBolt.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(ThreatIntelJoinBolt.class);
   private FunctionResolver functionResolver;
   private org.apache.metron.common.dsl.Context stellarContext;
+
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -73,6 +70,8 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .build();
+    StellarFunctions.initialize(stellarContext);
+    this.functionResolver = StellarFunctions.FUNCTION_RESOLVER();
   }
 
   @Override

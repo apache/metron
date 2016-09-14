@@ -71,7 +71,8 @@ public class PcapCliTest {
             "-ip_dst_addr", "192.168.1.2",
             "-ip_src_port", "8081",
             "-ip_dst_port", "8082",
-            "-protocol", "6"
+            "-protocol", "6",
+            "-num_reducers", "10"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
 
@@ -86,7 +87,7 @@ public class PcapCliTest {
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
     }};
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -107,7 +108,8 @@ public class PcapCliTest {
             "-ip_src_port", "8081",
             "-ip_dst_port", "8082",
             "-protocol", "6",
-            "-include_reverse"
+            "-include_reverse",
+            "-num_reducers", "10"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
 
@@ -122,7 +124,7 @@ public class PcapCliTest {
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "true");
     }};
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -144,7 +146,8 @@ public class PcapCliTest {
             "-ip_src_port", "8081",
             "-ip_dst_port", "8082",
             "-protocol", "6",
-            "-include_reverse"
+            "-include_reverse",
+            "-num_reducers", "10"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
 
@@ -161,7 +164,7 @@ public class PcapCliTest {
 
     long startAsNanos = asNanos("2016-06-13-18:35.00", "yyyy-MM-dd-HH:mm.ss");
     long endAsNanos = asNanos("2016-06-15-18:35.00", "yyyy-MM-dd-HH:mm.ss");
-    when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -184,6 +187,7 @@ public class PcapCliTest {
     String[] args = {
             "query",
             "-start_time", "500",
+            "-num_reducers", "10",
             "-query", "some query string"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
@@ -192,7 +196,7 @@ public class PcapCliTest {
     Path base_output_path = new Path(CliConfig.BASE_OUTPUT_PATH_DEFAULT);
     String query = "some query string";
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -206,6 +210,7 @@ public class PcapCliTest {
             "query",
             "-start_time", "500",
             "-end_time", "1000",
+            "-num_reducers", "10",
             "-base_path", "/base/path",
             "-base_output_path", "/base/output/path",
             "-query", "some query string"
@@ -216,7 +221,7 @@ public class PcapCliTest {
     Path base_output_path = new Path("/base/output/path");
     String query = "some query string";
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -235,6 +240,7 @@ public class PcapCliTest {
               "fixed",
               "-start_time", "500",
               "-end_time", "1000",
+              "-num_reducers", "10",
               "-base_path", "/base/path",
               "-base_output_path", "/base/output/path",
               "-query", "THIS IS AN ERROR"
@@ -259,6 +265,7 @@ public class PcapCliTest {
               "query",
               "-start_time", "500",
               "-end_time", "1000",
+              "-num_reducers", "10",
               "-base_path", "/base/path",
               "-base_output_path", "/base/output/path",
               "-ip_src_addr", "THIS IS AN ERROR"

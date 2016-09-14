@@ -90,7 +90,7 @@ public class StixExtractor implements Extractor {
     }
 
     public static Iterable<String> split(StringObjectPropertyType value) {
-        final ConditionTypeEnum condition = value.getCondition();
+        final ConditionTypeEnum condition = value.getCondition() == null?ConditionTypeEnum.EQUALS:value.getCondition();
         final ConditionApplicationEnum applyCondition = value.getApplyCondition();
         List<String> tokens = new ArrayList<>();
         if(condition == ConditionTypeEnum.EQUALS && applyCondition == ConditionApplicationEnum.ANY) {

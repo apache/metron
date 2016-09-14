@@ -40,7 +40,6 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -65,9 +64,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private StellarExecutor executor;
 
   /**
-   * The number of seconds between when the Profile is flushed.
+   * The number of times per hour that a profile is flushed and a measurement
+   * is written.  This should be a divisor or multiple of 60; 1, 2, 3, 4, 6, 240, etc.
    */
-  private int flushFrequency;
+  private int periodsPerHour;
 
   /**
    * A ProfileMeasurement is created and emitted each window period.  A Profile
@@ -85,11 +85,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   private transient JSONParser parser;
 
-  /**
-   * Stellar context
-   */
-  private Context stellarContext;
-
   private OutputCollector collector;
 
   /**
@@ -106,14 +101,21 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   @Override
   public Map<String, Object> getComponentConfiguration() {
     Config conf = new Config();
-    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, getFlushFrequency());
+
+    // how frequently should the bolt receive tick tuples?
+    long freqInSeconds = ((60 * 60) / periodsPerHour);
+    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, freqInSeconds);
+
     return conf;
   }
 
   protected void initializeStellar() {
-    stellarContext = new Context.Builder()
-                         .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-                         .build();
+    Context context = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+            .build();
+    StellarFunctions.initialize(context);
+    executor.setContext(context);
   }
 
   @Override
@@ -157,18 +159,12 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private void doExecute(Tuple input) {
 
     if(!isTickTuple(input)) {
-
-      // if this is the first tuple in a window period, initialization is needed
       if (!isInitialized()) {
         init(input);
       }
-
-      // update the profile with data from a new message
       update(input);
 
     } else {
-
-      // flush the profile - can only flush if it has been initialized
       if(isInitialized()) {
         flush(input);
       }
@@ -186,20 +182,21 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     profileConfig = (ProfileConfig) input.getValueByField("profile");
 
     // create the measurement which will be saved at the end of the window period
-    measurement = new ProfileMeasurement();
-    measurement.setStart(getTimestamp());
-    measurement.setEntity(input.getStringByField("entity"));
-    measurement.setProfileName(profileConfig.getProfile());
+    measurement = new ProfileMeasurement(
+            profileConfig.getProfile(),
+            input.getStringByField("entity"),
+            getTimestamp(),
+            periodsPerHour);
 
     // execute the 'init' expression
     try {
       JSONObject message = (JSONObject) input.getValueByField("message");
       Map<String, String> expressions = profileConfig.getInit();
-      expressions.forEach((var, expr) -> executor.assign(var, expr, message, stellarContext));
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
-      String msg = format("Bad 'init' expression: %s, profile=%s, entity=%s, start=%d",
-              e.getMessage(), measurement.getProfileName(), measurement.getEntity(), measurement.getStart());
+      String msg = format("Bad 'init' expression: %s, profile=%s, entity=%s",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity());
       throw new ParseException(msg, e);
     }
   }
@@ -214,11 +211,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     // execute each of the 'update' expressions
     try {
       Map<String, String> expressions = profileConfig.getUpdate();
-      expressions.forEach((var, expr) -> executor.assign(var, expr, message, stellarContext));
+      expressions.forEach((var, expr) -> executor.assign(var, expr, message));
 
     } catch(ParseException e) {
-      String msg = format("Bad 'update' expression: %s, profile=%s, entity=%s, start=%d",
-              e.getMessage(), measurement.getProfileName(), measurement.getEntity(), measurement.getStart());
+      String msg = format("Bad 'update' expression: %s, profile=%s, entity=%s",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity());
       throw new ParseException(msg, e);
     }
   }
@@ -231,21 +228,20 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * the next window period.
    */
   private void flush(Tuple tickTuple) {
-    LOG.info(String.format("Flushing profile: profile=%s, entity=%s, start=%d",
-            measurement.getProfileName(), measurement.getEntity(), measurement.getStart()));
+    LOG.info(String.format("Flushing profile: profile=%s, entity=%s",
+            measurement.getProfileName(), measurement.getEntity()));
 
     // execute the 'result' expression
     Object result;
     try {
       String resultExpr = profileConfig.getResult();
-      result = executor.execute(resultExpr, new JSONObject(), Object.class, stellarContext);
+      result = executor.execute(resultExpr, new JSONObject(), Object.class);
     
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);
     }
 
     // emit the completed profile measurement
-    measurement.setEnd(getTimestamp());
     measurement.setValue(result);
     emit(measurement, tickTuple);
 
@@ -298,11 +294,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     this.executor = executor;
   }
 
-  public int getFlushFrequency() {
-    return flushFrequency;
+  public void setPeriodsPerHour(int periodsPerHour) {
+    this.periodsPerHour = periodsPerHour;
   }
 
-  public void setFlushFrequency(int flushFrequency) {
-    this.flushFrequency = flushFrequency;
-  }
+
 }

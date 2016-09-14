@@ -30,6 +30,7 @@ public class CliConfig {
   private String baseOutputPath;
   private long startTime;
   private long endTime;
+  private int numReducers = 0;
   private DateFormat dateFormat;
 
   public CliConfig() {
@@ -38,6 +39,10 @@ public class CliConfig {
     baseOutputPath = BASE_OUTPUT_PATH_DEFAULT;
     startTime = -1L;
     endTime = -1L;
+  }
+
+  public int getNumReducers() {
+    return numReducers;
   }
 
   public boolean showHelp() {
@@ -90,5 +95,9 @@ public class CliConfig {
 
   public DateFormat getDateFormat() {
     return dateFormat;
+  }
+
+  public void setNumReducers(int numReducers) {
+    this.numReducers = numReducers;
   }
 }

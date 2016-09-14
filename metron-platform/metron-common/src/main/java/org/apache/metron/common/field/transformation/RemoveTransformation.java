@@ -30,7 +30,7 @@ public class RemoveTransformation implements FieldTransformation {
   public static final String CONDITION_CONF = "condition";
   public static final StellarPredicateProcessor PASSTHROUGH_PROCESSOR = new StellarPredicateProcessor() {
     @Override
-    public Boolean parse(String rule, VariableResolver resolver, Function<String, StellarFunction> functionResolver, Context context) {
+    public Boolean parse(String rule, VariableResolver resolver, FunctionResolver functionResolver, Context context) {
       return true;
     }
 

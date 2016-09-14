@@ -36,6 +36,7 @@ public class CliParser {
     options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", CliConfig.BASE_PATH_DEFAULT)));
     options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'", CliConfig.BASE_OUTPUT_PATH_DEFAULT)));
     options.addOption(newOption("st", "start_time", true, "(required) Packet start time range.", true));
+    options.addOption(newOption("nr", "num_reducers", true, "Number of reducers to use", true));
     options.addOption(newOption("et", "end_time", true, "Packet end time range. Default is current system time."));
     options.addOption(newOption("df", "date_format", true, "Date format to use for parsing start_time and end_time. Default is to use time in millis since the epoch."));
     return options;
@@ -76,6 +77,13 @@ public class CliParser {
       } catch (NumberFormatException nfe) {
         //no-op
       }
+    }
+    if (commandLine.hasOption("num_reducers")) {
+      int numReducers = Integer.parseInt(commandLine.getOptionValue("num_reducers"));
+      config.setNumReducers(numReducers);
+    }
+    else {
+      config.setNumReducers(10);
     }
     if (commandLine.hasOption("end_time")) {
       try {

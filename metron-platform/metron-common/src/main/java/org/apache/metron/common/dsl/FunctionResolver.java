@@ -19,5 +19,31 @@ package org.apache.metron.common.dsl;
 
 import java.util.function.Function;
 
+/**
+ * Responsible for function resolution in Stellar.
+ */
 public interface FunctionResolver extends Function<String, StellarFunction> {
+
+  /**
+   * Provides metadata about each Stellar function that is resolvable.
+   */
+  Iterable<StellarFunctionInfo> getFunctionInfo();
+
+  /**
+   * The names of all Stellar functions that are resolvable.
+   */
+  Iterable<String> getFunctions();
+
+  /**
+   * Initialize the function resolver.
+   * @param context Context used to initialize.
+   */
+  void initialize(Context context);
+
+  /**
+   * A 'factory reset' of the function resolver.
+   *
+   * Useful primarily for testing purposes only.
+   */
+  void reset();
 }
