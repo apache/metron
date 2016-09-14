@@ -20,8 +20,15 @@
 
 package org.apache.metron.common.math.stats;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.tdunning.math.stats.AVLTreeDigest;
 import com.tdunning.math.stats.TDigest;
 import org.apache.commons.math3.util.FastMath;
+
+import java.nio.ByteBuffer;
 
 /**
  * A (near) constant memory implementation of a statistics provider.
@@ -29,7 +36,7 @@ import org.apache.commons.math3.util.FastMath;
  * to return the statistics results.  This is intended to provide a
  * mergeable implementation for a statistics provider.
  */
-public class OnlineStatisticsProvider implements StatisticsProvider {
+public class OnlineStatisticsProvider implements StatisticsProvider, KryoSerializable {
   /**
    * A sensible default for compression to use in the T-Digest.
    * As per https://github.com/tdunning/t-digest/blob/master/src/main/java/com/tdunning/math/stats/TDigest.java#L86
@@ -121,12 +128,12 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
 
   @Override
   public double getMin() {
-    return min;
+    return min == null?Double.NaN:min;
   }
 
   @Override
   public double getMax() {
-    return max;
+    return max == null?Double.NaN:max;
   }
 
   @Override
@@ -256,5 +263,89 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
     combined.digest.add(b.digest);
     checkFlowError(combined.sumOfSquares, sum, combined.sumOfSquares, combined.M1, combined.M2, combined.M3, combined.M4);
     return combined;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    OnlineStatisticsProvider that = (OnlineStatisticsProvider) o;
+
+    if (n != that.n) return false;
+    if (Double.compare(that.sum, sum) != 0) return false;
+    if (Double.compare(that.sumOfSquares, sumOfSquares) != 0) return false;
+    if (Double.compare(that.sumOfLogs, sumOfLogs) != 0) return false;
+    if (Double.compare(that.M1, M1) != 0) return false;
+    if (Double.compare(that.M2, M2) != 0) return false;
+    if (Double.compare(that.M3, M3) != 0) return false;
+    if (Double.compare(that.M4, M4) != 0) return false;
+    if (digest != null ? !digest.equals(that.digest) : that.digest != null) return false;
+    if (min != null ? !min.equals(that.min) : that.min != null) return false;
+    return max != null ? max.equals(that.max) : that.max == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result;
+    long temp;
+    result = digest != null ? digest.hashCode() : 0;
+    result = 31 * result + (int) (n ^ (n >>> 32));
+    temp = Double.doubleToLongBits(sum);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(sumOfSquares);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(sumOfLogs);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    result = 31 * result + (min != null ? min.hashCode() : 0);
+    result = 31 * result + (max != null ? max.hashCode() : 0);
+    temp = Double.doubleToLongBits(M1);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(M2);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(M3);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(M4);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    return result;
+  }
+
+  @Override
+  public void write(Kryo kryo, Output output) {
+    //storing tdigest
+    ByteBuffer outBuffer = ByteBuffer.allocate(digest.byteSize());
+    digest.asBytes(outBuffer);
+    byte[] tdigestSerialized = outBuffer.array();
+    output.writeInt(tdigestSerialized.length);
+    output.writeBytes(tdigestSerialized);
+    output.writeLong(n);
+    output.writeDouble(sum);
+    output.writeDouble(sumOfSquares);
+    output.writeDouble(sumOfLogs);
+    output.writeDouble(getMin());
+    output.writeDouble(getMax());
+    output.writeDouble(M1);
+    output.writeDouble(M2);
+    output.writeDouble(M3);
+    output.writeDouble(M4);
+  }
+
+  @Override
+  public void read(Kryo kryo, Input input) {
+    int digestSize = input.readInt();
+    byte[] digestBytes = input.readBytes(digestSize);
+    ByteBuffer digestBuff = ByteBuffer.wrap(digestBytes);
+    digest = AVLTreeDigest.fromBytes(digestBuff);
+    n = input.readLong();
+    sum = input.readDouble();
+    sumOfSquares = input.readDouble();
+    sumOfLogs = input.readDouble();
+    min = input.readDouble();
+    max = input.readDouble();
+    M1 = input.readDouble();
+    M2 = input.readDouble();
+    M3 = input.readDouble();
+    M4 = input.readDouble();
   }
 }

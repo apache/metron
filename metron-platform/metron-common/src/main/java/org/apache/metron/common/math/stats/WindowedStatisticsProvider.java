@@ -128,4 +128,20 @@ public class WindowedStatisticsProvider implements StatisticsProvider {
   public StatisticsProvider merge(StatisticsProvider provider) {
     throw new UnsupportedOperationException("Windowed Statistics cannot be merged.");
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    WindowedStatisticsProvider that = (WindowedStatisticsProvider) o;
+
+    return descStats != null ? descStats.equals(that.descStats) : that.descStats == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    return descStats != null ? descStats.hashCode() : 0;
+  }
 }

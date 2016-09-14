@@ -97,6 +97,21 @@ public class OnlineStatisticsProviderTest {
     validateStatisticsProvider(aggregatedProvider, summaryStats, stats);
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testOverflow() {
+    OnlineStatisticsProvider statsProvider = new OnlineStatisticsProvider();
+    statsProvider.addValue(Double.MAX_VALUE + 1);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testUnderflow() {
+    OnlineStatisticsProvider statsProvider = new OnlineStatisticsProvider();
+    double d = 3e-305;
+    for(int i = 0;i < 5;++i,d/=100000) {
+      statsProvider.addValue(d);
+    }
+  }
+
   @Test
   public void testNormallyDistributedRandomData() {
     List<Double> values = new ArrayList<>();
