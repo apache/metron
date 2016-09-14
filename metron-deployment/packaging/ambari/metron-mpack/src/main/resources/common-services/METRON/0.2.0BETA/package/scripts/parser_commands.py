@@ -132,10 +132,10 @@ class ParserCommands:
 
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))
-        start_cmd_template = """{1}/bin/start_parser_topology.sh \
-                                    -k {2} \
-                                    -z {3} \
-                                    -s {4}"""
+        start_cmd_template = """{0}/bin/start_parser_topology.sh \
+                                    -k {1} \
+                                    -z {2} \
+                                    -s {3}"""
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
             Execute(start_cmd_template.format(self.__params.metron_home, self.__params.kafka_brokers,
