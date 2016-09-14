@@ -106,7 +106,7 @@ public class HBaseClient implements Closeable {
    * @param durability       The durability of the mutation.
    * @param timeToLiveMillis The time to live in milliseconds.
    */
-  public void addMutation(byte[] rowKey, ColumnList cols, Durability durability, long timeToLiveMillis) {
+  public void addMutation(byte[] rowKey, ColumnList cols, Durability durability, Long timeToLiveMillis) {
 
     if (cols.hasColumns()) {
       Put put = createPut(rowKey, cols, durability, timeToLiveMillis);
