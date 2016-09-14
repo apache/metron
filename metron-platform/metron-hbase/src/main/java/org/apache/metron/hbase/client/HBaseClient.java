@@ -20,22 +20,24 @@
 
 package org.apache.metron.hbase.client;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.security.UserProvider;
+import org.apache.hadoop.hbase.client.Durability;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Increment;
+import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.storm.hbase.bolt.mapper.HBaseProjectionCriteria;
 import org.apache.storm.hbase.common.ColumnList;
-import org.apache.storm.hbase.security.HBaseSecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A client that interacts with HBase.
@@ -43,19 +45,42 @@ import java.util.Map;
 public class HBaseClient implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(HBaseClient.class);
+
+  /**
+   * The batch of queued Mutations.
+   */
+  List<Mutation> mutations;
+
+  /**
+   * The batch of queued Gets.
+   */
+  List<Get> gets;
+
+  /**
+   * The HBase table this client interacts with.
+   */
   private HTableInterface table;
 
   public HBaseClient(TableProvider provider, final Configuration configuration, final String tableName) {
+    this.mutations = new ArrayList<>();
+    this.gets = new ArrayList<>();
     try {
       this.table = provider.getTable(configuration, tableName);
-
-    } catch(Exception e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public List<Mutation> constructMutationReq(byte[] rowKey, ColumnList cols, Durability durability) {
-    List<Mutation> mutations = Lists.newArrayList();
+  /**
+   * Add a Mutation such as a Put or Increment to the batch.  The Mutation is only queued for
+   * later execution.
+   *
+   * @param rowKey     The row key of the Mutation.
+   * @param cols       The columns affected by the Mutation.
+   * @param durability The durability of the mutation.
+   * @return
+   */
+  public void addMutation(byte[] rowKey, ColumnList cols, Durability durability) {
 
     if (cols.hasColumns()) {
       Put put = createPut(rowKey, cols, durability);
@@ -70,14 +95,51 @@ public class HBaseClient implements Closeable {
     if (mutations.isEmpty()) {
       mutations.add(new Put(rowKey));
     }
-
-    return mutations;
   }
 
-  public void batchMutate(List<Mutation> mutations) {
+  /**
+   * Adds a Mutation such as a Put or Increment with a time to live.  The Mutation is only queued
+   * for later execution.
+   *
+   * @param rowKey           The row key of the Mutation.
+   * @param cols             The columns affected by the Mutation.
+   * @param durability       The durability of the mutation.
+   * @param timeToLiveMillis The time to live in milliseconds.
+   */
+  public void addMutation(byte[] rowKey, ColumnList cols, Durability durability, long timeToLiveMillis) {
+
+    if (cols.hasColumns()) {
+      Put put = createPut(rowKey, cols, durability, timeToLiveMillis);
+      mutations.add(put);
+    }
+
+    if (cols.hasCounters()) {
+      Increment inc = createIncrement(rowKey, cols, durability, timeToLiveMillis);
+      mutations.add(inc);
+    }
+
+    if (mutations.isEmpty()) {
+      Put put = new Put(rowKey);
+      put.setTTL(timeToLiveMillis);
+      mutations.add(put);
+    }
+  }
+
+  /**
+   * Remove all queued Mutations from the batch.
+   */
+  public void clearMutations() {
+    mutations.clear();
+  }
+
+  /**
+   * Submits all queued Mutations.
+   */
+  public void mutate() {
     Object[] result = new Object[mutations.size()];
     try {
       table.batch(mutations, result);
+      mutations.clear();
 
     } catch (InterruptedException | IOException e) {
       LOG.warn("Error performing a mutation to HBase.", e);
@@ -85,25 +147,41 @@ public class HBaseClient implements Closeable {
     }
   }
 
-  public Get constructGetRequests(byte[] rowKey, HBaseProjectionCriteria projectionCriteria) {
+  /**
+   * Adds a Get to the batch.
+   *
+   * @param rowKey   The row key of the Get
+   * @param criteria Defines the columns/families that will be retrieved.
+   */
+  public void addGet(byte[] rowKey, HBaseProjectionCriteria criteria) {
     Get get = new Get(rowKey);
 
-    if (projectionCriteria != null) {
-      for (byte[] columnFamily : projectionCriteria.getColumnFamilies()) {
-        get.addFamily(columnFamily);
-      }
-
-      for (HBaseProjectionCriteria.ColumnMetaData columnMetaData : projectionCriteria.getColumns()) {
-        get.addColumn(columnMetaData.getColumnFamily(), columnMetaData.getQualifier());
-      }
+    if (criteria != null) {
+      criteria.getColumnFamilies().forEach(cf -> get.addFamily(cf));
+      criteria.getColumns().forEach(col -> get.addColumn(col.getColumnFamily(), col.getQualifier()));
     }
 
-    return get;
+    // queue the get
+    this.gets.add(get);
   }
 
-  public Result[] batchGet(List<Get> gets) {
+  /**
+   * Clears all queued Gets from the batch.
+   */
+  public void clearGets() {
+    gets.clear();
+  }
+
+  /**
+   * Submit all queued Gets.
+   *
+   * @return The Result of each queued Get.
+   */
+  public Result[] getAll() {
     try {
-      return table.get(gets);
+      Result[] results = table.get(gets);
+      gets.clear();
+      return results;
 
     } catch (Exception e) {
       LOG.warn("Could not perform HBase lookup.", e);
@@ -111,6 +189,9 @@ public class HBaseClient implements Closeable {
     }
   }
 
+  /**
+   * Close the table.
+   */
   @Override
   public void close() throws IOException {
     table.close();
@@ -118,48 +199,78 @@ public class HBaseClient implements Closeable {
 
   /**
    * Creates an HBase Put.
-   * @param rowKey The row key.
-   * @param cols The columns to put.
+   *
+   * @param rowKey     The row key.
+   * @param cols       The columns to put.
    * @param durability The durability of the put.
    */
   private Put createPut(byte[] rowKey, ColumnList cols, Durability durability) {
     Put put = new Put(rowKey);
     put.setDurability(durability);
-
-    for (ColumnList.Column col : cols.getColumns()) {
-      if (col.getTs() > 0) {
-        put.add(col.getFamily(),
-                col.getQualifier(),
-                col.getTs(),
-                col.getValue());
-
-      } else {
-        put.add(col.getFamily(),
-                col.getQualifier(),
-                col.getValue());
-      }
-    }
-
+    addColumns(cols, put);
     return put;
   }
 
   /**
+   * Creates an HBase Put.
+   *
+   * @param rowKey           The row key.
+   * @param cols             The columns to put.
+   * @param durability       The durability of the put.
+   * @param timeToLiveMillis The TTL in milliseconds.
+   */
+  private Put createPut(byte[] rowKey, ColumnList cols, Durability durability, long timeToLiveMillis) {
+    Put put = new Put(rowKey);
+    put.setDurability(durability);
+    put.setTTL(timeToLiveMillis);
+    addColumns(cols, put);
+    return put;
+  }
+
+  /**
+   * Adds the columns to the Put
+   *
+   * @param cols The columns to add.
+   * @param put  The Put.
+   */
+  private void addColumns(ColumnList cols, Put put) {
+    for (ColumnList.Column col : cols.getColumns()) {
+
+      if (col.getTs() > 0) {
+        put.add(col.getFamily(), col.getQualifier(), col.getTs(), col.getValue());
+
+      } else {
+        put.add(col.getFamily(), col.getQualifier(), col.getValue());
+      }
+    }
+  }
+
+  /**
    * Creates an HBase Increment for a counter.
-   * @param rowKey The row key.
-   * @param cols The columns to include.
+   *
+   * @param rowKey     The row key.
+   * @param cols       The columns to include.
    * @param durability The durability of the increment.
    */
   private Increment createIncrement(byte[] rowKey, ColumnList cols, Durability durability) {
     Increment inc = new Increment(rowKey);
     inc.setDurability(durability);
+    cols.getCounters().forEach(cnt -> inc.addColumn(cnt.getFamily(), cnt.getQualifier(), cnt.getIncrement()));
+    return inc;
+  }
 
-    for (ColumnList.Counter cnt : cols.getCounters()) {
-      inc.addColumn(
-              cnt.getFamily(),
-              cnt.getQualifier(),
-              cnt.getIncrement());
-    }
-
+  /**
+   * Creates an HBase Increment for a counter.
+   *
+   * @param rowKey     The row key.
+   * @param cols       The columns to include.
+   * @param durability The durability of the increment.
+   */
+  private Increment createIncrement(byte[] rowKey, ColumnList cols, Durability durability, long timeToLiveMillis) {
+    Increment inc = new Increment(rowKey);
+    inc.setDurability(durability);
+    inc.setTTL(timeToLiveMillis);
+    cols.getCounters().forEach(cnt -> inc.addColumn(cnt.getFamily(), cnt.getQualifier(), cnt.getIncrement()));
     return inc;
   }
 }

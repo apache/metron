@@ -82,7 +82,6 @@ public class HBaseBolt extends BaseRichBolt {
    */
   protected String tableProvider = "org.apache.metron.hbase.HTableProvider";
 
-  private List<Mutation> batchMutations;
   private BatchHelper batchHelper;
   protected OutputCollector collector;
   protected transient HBaseClient hbaseClient;
@@ -90,7 +89,6 @@ public class HBaseBolt extends BaseRichBolt {
   public HBaseBolt(String tableName, HBaseMapper mapper) {
     this.tableName = tableName;
     this.mapper = mapper;
-    this.batchMutations = new LinkedList<>();
   }
 
   public HBaseBolt writeToWAL(boolean writeToWAL) {
@@ -151,7 +149,7 @@ public class HBaseBolt extends BaseRichBolt {
 
     } catch (Exception e) {
       batchHelper.fail(e);
-      batchMutations.clear();
+      hbaseClient.clearMutations();
     }
   }
 
@@ -163,8 +161,7 @@ public class HBaseBolt extends BaseRichBolt {
     byte[] rowKey = this.mapper.rowKey(tuple);
     ColumnList cols = this.mapper.columns(tuple);
     Durability durability = writeToWAL ? Durability.SYNC_WAL : Durability.SKIP_WAL;
-    List<Mutation> mutations = hbaseClient.constructMutationReq(rowKey, cols, durability);
-    batchMutations.addAll(mutations);
+    hbaseClient.addMutation(rowKey, cols, durability);
     batchHelper.addBatch(tuple);
   }
 
@@ -172,9 +169,8 @@ public class HBaseBolt extends BaseRichBolt {
    * Flush all saved operations.
    */
   private void flush() {
-    this.hbaseClient.batchMutate(batchMutations);
+    this.hbaseClient.mutate();
     batchHelper.ack();
-    batchMutations.clear();
   }
 
   /**
