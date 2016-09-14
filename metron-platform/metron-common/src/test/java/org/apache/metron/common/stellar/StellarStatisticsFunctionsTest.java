@@ -102,6 +102,11 @@ public class StellarStatisticsFunctionsTest {
     values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
   }
 
+  @Test(expected=ParseException.class)
+  public void testOverflow() throws Exception {
+   run(format("STATS_ADD(STATS_INIT(), %f)", (Double.MAX_VALUE + 1)), new HashMap<>());
+  }
+
   @Test
   public void testMergeProviders() throws Exception {
     List<StatisticsProvider> providers = new ArrayList<>();
