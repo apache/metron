@@ -18,33 +18,34 @@
  *
  */
 
-package org.apache.metron.profiler.hbase;
+package org.apache.metron.hbase.bolt.mapper;
 
-import org.apache.metron.hbase.bolt.mapper.ColumnList;
-import org.apache.metron.profiler.ProfileMeasurement;
-
+import backtype.storm.tuple.Tuple;
 import java.io.Serializable;
 
 /**
- * Defines how fields in a ProfileMeasurement will be mapped to columns in HBase.
+ * Maps a <code>backtype.storm.tuple.Tuple</code> object
+ * to a row in an HBase table.
+ *
+ * Original code based on the Apache Storm project. See
+ * https://github.com/apache/storm/tree/master/external/storm-hbase.
  */
-public interface ColumnBuilder extends Serializable {
+public interface HBaseMapper extends Serializable {
 
   /**
-   * Generate the columns used to store a ProfileMeasurement.
-   * @param measurement The profile measurement.
-   */
-  ColumnList columns(ProfileMeasurement measurement);
-
-  /**
-   * Returns the column family used to store the ProfileMeasurement values.
+   * Given a tuple, return the HBase rowkey.
+   *
+   * @param tuple
    * @return
    */
-  String getColumnFamily();
+  byte[] rowKey(Tuple tuple);
 
   /**
-   * Returns the column qualifiers for the given field of a ProfileMeasurement.
-   * @return The column qualifier used to store a ProfileMeasurement's field in HBase.
+   * Given a tuple, return a list of HBase columns to insert.
+   *
+   * @param tuple
+   * @return
    */
-  byte[] getColumnQualifier(String fieldName);
+  ColumnList columns(Tuple tuple);
+
 }

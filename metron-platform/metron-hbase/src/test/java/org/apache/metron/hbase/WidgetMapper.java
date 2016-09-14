@@ -22,10 +22,9 @@ package org.apache.metron.hbase;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
-import org.apache.storm.hbase.common.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 
-import java.util.Calendar;
 
 /**
  * Maps a Widget to HBase.  Used only for testing.
