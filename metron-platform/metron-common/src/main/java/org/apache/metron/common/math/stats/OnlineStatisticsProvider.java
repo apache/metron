@@ -96,6 +96,22 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
     M4 += term1 * delta_n2 * (n*n - 3*n + 3) + 6 * delta_n2 * M2 - 4 * delta_n * M3;
     M3 += term1 * delta_n * (n - 2) - 3 * delta_n * M2;
     M2 += term1;
+    checkFlowError(sumOfSquares, sum, sumOfSquares, M1, M2, M3, M4);
+
+  }
+
+  private void checkFlowError(double sumOfSquares, double sum, double... vals) {
+    //overflow
+    for(double val : vals) {
+      if(Double.isInfinite(val)) {
+        throw new IllegalStateException("Double overflow!");
+      }
+    }
+    //underflow.  It is sufficient to check sumOfSquares because sumOfSquares is going to converge to 0 faster than sum
+    //in the situation where we're looking at an underflow.
+    if(sumOfSquares == 0.0 && sum > 0) {
+      throw new IllegalStateException("Double overflow!");
+    }
   }
 
   @Override
@@ -238,6 +254,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider {
     //Merging the distributional sketches
     combined.digest.add(a.digest);
     combined.digest.add(b.digest);
+    checkFlowError(combined.sumOfSquares, sum, combined.sumOfSquares, combined.M1, combined.M2, combined.M3, combined.M4);
     return combined;
   }
 }

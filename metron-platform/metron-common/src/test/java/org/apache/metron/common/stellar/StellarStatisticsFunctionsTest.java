@@ -262,32 +262,19 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
-  public void testKurtosisNoWindow() throws Exception {
-    statsInit(0);
+  public void testKurtosis() throws Exception {
+    statsInit(windowSize);
     Object actual = run("STATS_KURTOSIS(stats)", variables);
     assertEquals(stats.getKurtosis(), (Double) actual, 0.1);
   }
 
   @Test
-  public void testKurtosisWithWindow() throws Exception {
-    statsInit(100);
-    Object actual = run("STATS_KURTOSIS(stats)", variables);
-    assertEquals(stats.getKurtosis(), (Double) actual, 0.1);
-  }
-
-  @Test
-  public void testSkewnessNoWindow() throws Exception {
-    statsInit(0);
+  public void testSkewness() throws Exception {
+    statsInit(windowSize);
     Object actual = run("STATS_SKEWNESS(stats)", variables);
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testSkewnessWithWindow() throws Exception {
-    statsInit(100);
-    Object actual = run("STATS_SKEWNESS(stats)", variables);
-    assertEquals(stats.getSkewness(), (Double) actual, 0.1);
-  }
 
   @Test
   public void testPercentileNoWindow() throws Exception {
