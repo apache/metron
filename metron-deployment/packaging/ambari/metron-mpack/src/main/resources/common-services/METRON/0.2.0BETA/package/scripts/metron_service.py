@@ -16,7 +16,7 @@ limitations under the License.
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import format
+from resource_management.libraries.functions import format as ambari_format
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate
 
@@ -26,16 +26,16 @@ import json
 
 def init_config():
     Logger.info('Loading config into ZooKeeper')
-    Execute(format(
+    Execute(ambari_format(
         "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
-        path=format("{java_home}/bin")
+        path=ambari_format("{java_home}/bin")
     )
 
 
 def get_running_topologies():
     Logger.info('Getting Running Storm Topologies from Storm REST Server')
 
-    cmd = format('curl {storm_rest_addr}/api/v1/topology/summary')
+    cmd = ambari_format('curl {storm_rest_addr}/api/v1/topology/summary')
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (stdout, stderr) = proc.communicate()
 
@@ -65,12 +65,12 @@ def load_global_config(params):
               group=params.metron_group
               )
 
-    File("{}/global.json".format(params.metron_zookeeper_config_path),
+    File("{0}/global.json".format(params.metron_zookeeper_config_path),
          owner=params.metron_user,
          content=InlineTemplate(params.global_json_template)
          )
 
-    File("{}/elasticsearch.properties".format(params.metron_zookeeper_config_path + '/..'),
+    File("{0}/elasticsearch.properties".format(params.metron_zookeeper_config_path + '/..'),
          owner=params.metron_user,
          content=InlineTemplate(params.global_properties_template))
 

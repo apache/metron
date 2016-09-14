@@ -25,8 +25,6 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
-from resource_management.core.source import Template
-from resource_management.libraries.functions import format
 import metron_service
 
 # Wrap major operations and functionality in this class
@@ -57,7 +55,7 @@ class ParserCommands:
 
     def init_parsers(self):
         Logger.info(
-            "Copying grok patterns from local directory '{}' to HDFS '{}'".format(self.__params.local_grok_patterns_dir,
+            "Copying grok patterns from local directory '{0}' to HDFS '{1}'".format(self.__params.local_grok_patterns_dir,
                                                                                   self.__params.metron_apps_dir))
         self.__params.HdfsResource(self.__params.metron_apps_dir,
                                    type="directory",
@@ -94,24 +92,24 @@ class ParserCommands:
         if repo_type in yum_repo_types:
             yum_repo_types[repo_type]()
         else:
-            raise ValueError("Unsupported repo type '{}'".format(repo_type))
+            raise ValueError("Unsupported repo type '{0}'".format(repo_type))
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
-        command_template = """{}/kafka-topics.sh \
-                                --zookeeper {} \
+        command_template = """{0}/kafka-topics.sh \
+                                --zookeeper {1} \
                                 --create \
-                                --topic {} \
-                                --partitions {} \
-                                --replication-factor {} \
-                                --config retention.bytes={}"""
+                                --topic {2} \
+                                --partitions {3} \
+                                --replication-factor {4} \
+                                --config retention.bytes={5}"""
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = 10
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating main topics for parsers")
         for parser_name in self.get_parser_list():
-            Logger.info("Creating topic'{}'".format(parser_name))
+            Logger.info("Creating topic'{0}'".format(parser_name))
             Execute(command_template.format(self.__params.kafka_bin_dir,
                                             self.__params.zookeeper_quorum,
                                             parser_name,
@@ -133,11 +131,11 @@ class ParserCommands:
         Logger.info("Done creating Kafka topics")
 
     def start_parser_topologies(self):
-        Logger.info("Starting Metron parser topologies: {}".format(self.get_parser_list()))
-        start_cmd_template = """{}/bin/start_parser_topology.sh \
-                                    -k {} \
-                                    -z {} \
-                                    -s {}"""
+        Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))
+        start_cmd_template = """{1}/bin/start_parser_topology.sh \
+                                    -k {2} \
+                                    -z {3} \
+                                    -s {4}"""
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
             Execute(start_cmd_template.format(self.__params.metron_home, self.__params.kafka_brokers,

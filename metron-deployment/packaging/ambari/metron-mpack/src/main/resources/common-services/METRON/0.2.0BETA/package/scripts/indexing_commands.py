@@ -68,24 +68,24 @@ class IndexingCommands:
         if repo_type in yum_repo_types:
             yum_repo_types[repo_type]()
         else:
-            raise ValueError("Unsupported repo type '{}'".format(repo_type))
+            raise ValueError("Unsupported repo type '{0}'".format(repo_type))
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
-        command_template = """{}/kafka-topics.sh \
-                                --zookeeper {} \
+        command_template = """{0}/kafka-topics.sh \
+                                --zookeeper {1} \
                                 --create \
-                                --topic {} \
-                                --partitions {} \
-                                --replication-factor {} \
-                                --config retention.bytes={}"""
+                                --topic {2} \
+                                --partitions {3} \
+                                --replication-factor {4} \
+                                --config retention.bytes={5}"""
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = int(self.__params.metron_topic_retention)
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating topics for indexing")
 
-        Logger.info("Creating topic'{}'".format(self.__indexing))
+        Logger.info("Creating topic'{0}'".format(self.__indexing))
         Execute(command_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
                                         self.__indexing,
@@ -95,10 +95,10 @@ class IndexingCommands:
         Logger.info("Done creating Kafka topics")
 
     def start_indexing_topology(self):
-        Logger.info("Starting Metron indexing topology: {}".format(self.__indexing))
-        start_cmd_template = """{}/bin/start_elasticsearch_topology.sh \
-                                    -s {} \
-                                    -z {}"""
+        Logger.info("Starting Metron indexing topology: {0}".format(self.__indexing))
+        start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
+                                    -s {1} \
+                                    -z {2}"""
         Logger.info('Starting ' + self.__indexing)
         Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum))
 

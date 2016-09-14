@@ -68,24 +68,24 @@ class EnrichmentCommands:
         if repo_type in yum_repo_types:
             yum_repo_types[repo_type]()
         else:
-            raise ValueError("Unsupported repo type '{}'".format(repo_type))
+            raise ValueError("Unsupported repo type '{0}'".format(repo_type))
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
-        command_template = """{}/kafka-topics.sh \
-                                --zookeeper {} \
+        command_template = """{0}/kafka-topics.sh \
+                                --zookeeper {1} \
                                 --create \
-                                --topic {} \
-                                --partitions {} \
-                                --replication-factor {} \
-                                --config retention.bytes={}"""
+                                --topic {2} \
+                                --partitions {3} \
+                                --replication-factor {4} \
+                                --config retention.bytes={5}"""
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = 10
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating topics for enrichment")
 
-        Logger.info("Creating topic'{}'".format(self.__enrichment))
+        Logger.info("Creating topic'{0}'".format(self.__enrichment))
         Execute(command_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
                                         self.__enrichment,
@@ -95,10 +95,10 @@ class EnrichmentCommands:
         Logger.info("Done creating Kafka topics")
 
     def start_enrichment_topology(self):
-        Logger.info("Starting Metron enrichment topology: {}".format(self.__enrichment))
-        start_cmd_template = """{}/bin/start_enrichment_topology.sh \
-                                    -s {} \
-                                    -z {}"""
+        Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment))
+        start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
+                                    -s {1} \
+                                    -z {2}"""
         Logger.info('Starting ' + self.__enrichment)
         Execute(start_cmd_template.format(self.__params.metron_home, self.__enrichment, self.__params.zookeeper_quorum))
 
