@@ -24,6 +24,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.util.Util;
 import com.esotericsoftware.reflectasm.ConstructorAccess;
 import de.javakaffee.kryoserializers.*;
 import de.javakaffee.kryoserializers.cglib.CGLibProxySerializer;
@@ -65,7 +66,9 @@ public class Serializer {
     protected Kryo initialValue() {
       Kryo ret = new Kryo();
       ret.setReferences(true);
-      //ret.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+      ret.setInstantiatorStrategy(new
+
+              DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 
       ret.register(Arrays.asList("").getClass(), new ArraysAsListSerializer());
       ret.register(Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer());
@@ -95,6 +98,79 @@ public class Serializer {
       return ret;
     }
   };
+
+  static private class DefaultInstantiatorStrategy implements org.objenesis.strategy.InstantiatorStrategy {
+    private InstantiatorStrategy fallbackStrategy;
+
+    public DefaultInstantiatorStrategy () {
+    }
+
+    public DefaultInstantiatorStrategy (InstantiatorStrategy fallbackStrategy) {
+      this.fallbackStrategy = fallbackStrategy;
+    }
+
+    public void setFallbackInstantiatorStrategy (final InstantiatorStrategy fallbackStrategy) {
+      this.fallbackStrategy = fallbackStrategy;
+    }
+
+    public InstantiatorStrategy getFallbackInstantiatorStrategy () {
+      return fallbackStrategy;
+    }
+
+    public ObjectInstantiator newInstantiatorOf (final Class type) {
+      if (!Util.isAndroid) {
+        // Use ReflectASM if the class is not a non-static member class.
+        Class enclosingType = type.getEnclosingClass();
+        boolean isNonStaticMemberClass = enclosingType != null && type.isMemberClass()
+                && !Modifier.isStatic(type.getModifiers());
+        if (!isNonStaticMemberClass) {
+          try {
+            final ConstructorAccess access = ConstructorAccess.get(type);
+            return new ObjectInstantiator() {
+              public Object newInstance () {
+                try {
+                  return access.newInstance();
+                } catch (Exception ex) {
+                  throw new KryoException("Error constructing instance of class: " + className(type), ex);
+                }
+              }
+            };
+          } catch (Exception ignored) {
+          }
+        }
+      }
+      // Reflection.
+      try {
+        Constructor ctor;
+        try {
+          ctor = type.getConstructor((Class[])null);
+        } catch (Exception ex) {
+          ctor = type.getDeclaredConstructor((Class[])null);
+          ctor.setAccessible(true);
+        }
+        final Constructor constructor = ctor;
+        return new ObjectInstantiator() {
+          public Object newInstance () {
+            try {
+              return constructor.newInstance();
+            } catch (Exception ex) {
+              throw new KryoException("Error constructing instance of class: " + className(type), ex);
+            }
+          }
+        };
+      } catch (Exception ignored) {
+      }
+      if (fallbackStrategy == null) {
+        if (type.isMemberClass() && !Modifier.isStatic(type.getModifiers()))
+          throw new KryoException("Class cannot be created (non-static member class): " + className(type));
+        else
+          throw new KryoException("Class cannot be created (missing no-arg constructor): " + className(type));
+      }
+      // InstantiatorStrategy.
+      return fallbackStrategy.newInstantiatorOf(type);
+    }
+  }
+
 
   private Serializer() {
     // do not instantiate

@@ -22,6 +22,7 @@ package org.apache.metron.common.utils;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.Serializer;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -118,6 +119,18 @@ public class SerializerTest {
     expected.add("bar");
     byte[] raw = Serializer.toBytes(expected);
     Object actual = Serializer.fromBytes(raw, Object.class);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testBloomFilter() {
+    final BloomFilter<Object> expected = new BloomFilter<>(new BloomFilter.DefaultSerializer<>(), 10000, 0.01);
+    expected.add("foo");
+    expected.add("bar");
+    byte[] raw = Serializer.toBytes(expected);
+    BloomFilter<Object> actual = (BloomFilter)Serializer.fromBytes(raw, Object.class);
+    Assert.assertTrue(actual.mightContain("foo"));
+    Assert.assertFalse(actual.mightContain("timothy"));
     assertEquals(expected, actual);
   }
 

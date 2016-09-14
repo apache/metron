@@ -45,6 +45,13 @@ public class BloomFilter<T> implements Serializable {
       return super.hashCode() * 31;
     }
   }
+
+  public static class DefaultSerializer<T> implements Function<T, byte[]> {
+    @Override
+    public byte[] apply(T t) {
+      return Serializer.toBytes(t);
+    }
+  }
   private com.google.common.hash.BloomFilter<T> filter;
   public BloomFilter(Function<T, byte[]> serializer, int expectedInsertions, double falsePositiveRate) {
     filter = com.google.common.hash.BloomFilter.create(new BloomFunnel<T>(serializer), expectedInsertions, falsePositiveRate);
@@ -60,4 +67,19 @@ public class BloomFilter<T> implements Serializable {
     filter.putAll(filter2.filter);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    BloomFilter<?> that = (BloomFilter<?>) o;
+
+    return filter != null ? filter.equals(that.filter) : that.filter == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    return filter != null ? filter.hashCode() : 0;
+  }
 }
