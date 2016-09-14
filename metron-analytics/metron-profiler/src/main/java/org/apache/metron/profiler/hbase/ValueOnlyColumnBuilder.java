@@ -22,7 +22,7 @@ package org.apache.metron.profiler.hbase;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.storm.hbase.common.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
 
 /**
  * A ColumnBuilder that writes only the value of a ProfileMeasurement.

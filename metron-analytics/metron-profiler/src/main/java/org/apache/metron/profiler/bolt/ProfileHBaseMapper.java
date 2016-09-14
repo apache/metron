@@ -23,14 +23,14 @@ package org.apache.metron.profiler.bolt;
 import backtype.storm.tuple.Tuple;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.stellar.StellarExecutor;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
-import org.apache.storm.hbase.common.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
 
 import java.util.ArrayList;
 import java.util.List;

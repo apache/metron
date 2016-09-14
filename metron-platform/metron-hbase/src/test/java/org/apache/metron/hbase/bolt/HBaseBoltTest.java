@@ -24,17 +24,15 @@ import backtype.storm.Constants;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
+import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.test.bolt.BaseBoltTest;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
