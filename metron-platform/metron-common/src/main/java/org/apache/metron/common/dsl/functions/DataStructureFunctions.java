@@ -21,7 +21,7 @@ import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.utils.BloomFilter;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.SerializationUtils;
+import org.apache.metron.common.utils.SerDeUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -98,7 +98,7 @@ public class DataStructureFunctions {
       if(args.size() > 2) {
         falsePositiveRate= ConversionUtils.convert(args.get(1), Float.class);
       }
-      return new BloomFilter<>(SerializationUtils.INSTANCE, expectedInsertions, falsePositiveRate);
+      return new BloomFilter<>(SerDeUtils.SERIALIZER, expectedInsertions, falsePositiveRate);
     }
   }
 

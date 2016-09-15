@@ -21,7 +21,6 @@
 package org.apache.metron.common.stellar;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -31,12 +30,15 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.math.stats.OnlineStatisticsProviderTest;
 import org.apache.metron.common.math.stats.StatisticsProvider;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -65,6 +67,37 @@ public class StellarStatisticsFunctionsTest {
     return Arrays.asList(new Object[][] {{ 0 }, { 100 }});
   }
 
+  private static void tolerantAssertEquals( Function<StatisticsProvider, Number> func
+                                          , StatisticsProvider left
+                                          , StatisticsProvider right
+                                          )
+
+  {
+    tolerantAssertEquals(func, left, right, null);
+  }
+
+  private static void tolerantAssertEquals( Function<StatisticsProvider, Number> func
+                                          , StatisticsProvider left
+                                          , StatisticsProvider right
+                                          , Double epsilon
+                                          )
+  {
+    try {
+      Number leftVal = func.apply(left);
+      Number rightVal = func.apply(left);
+      if(epsilon != null) {
+        Assert.assertEquals((double)leftVal, (double)rightVal, epsilon);
+      }
+      else {
+        Assert.assertEquals(leftVal, rightVal);
+      }
+    }
+    catch(UnsupportedOperationException uoe) {
+      //ignore
+    }
+
+  }
+
   /**
    * Runs a Stellar expression.
    * @param expr The expression to run.
@@ -72,7 +105,44 @@ public class StellarStatisticsFunctionsTest {
    */
   private static Object run(String expr, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(expr, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    Object ret = processor.parse(expr, x-> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    byte[] raw = SerDeUtils.toBytes(ret);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    if(ret instanceof StatisticsProvider) {
+      StatisticsProvider left = (StatisticsProvider)ret;
+      StatisticsProvider right = (StatisticsProvider)actual;
+      //N
+      tolerantAssertEquals(prov -> prov.getCount(), left, right);
+      //sum
+      tolerantAssertEquals(prov -> prov.getSum(), left, right, 1e-3);
+      //sum of squares
+      tolerantAssertEquals(prov -> prov.getSumSquares(), left, right, 1e-3);
+      //sum of squares
+      tolerantAssertEquals(prov -> prov.getSumLogs(), left, right, 1e-3);
+      //Mean
+      tolerantAssertEquals(prov -> prov.getMean(), left, right, 1e-3);
+      //Quadratic Mean
+      tolerantAssertEquals(prov -> prov.getQuadraticMean(), left, right, 1e-3);
+      //SD
+      tolerantAssertEquals(prov -> prov.getStandardDeviation(), left, right, 1e-3);
+      //Variance
+      tolerantAssertEquals(prov -> prov.getVariance(), left, right, 1e-3);
+      //Min
+      tolerantAssertEquals(prov -> prov.getMin(), left, right, 1e-3);
+      //Max
+      tolerantAssertEquals(prov -> prov.getMax(), left, right, 1e-3);
+      //Kurtosis
+      tolerantAssertEquals(prov -> prov.getKurtosis(), left, right, 1e-3);
+      //Skewness
+      tolerantAssertEquals(prov -> prov.getSkewness(), left, right, 1e-3);
+      for (double d = 10.0; d < 100.0; d += 10) {
+        final double pctile = d;
+        //This is a sketch, so we're a bit more forgiving here in our choice of \epsilon.
+        tolerantAssertEquals(prov -> prov.getPercentile(pctile), left, right, 1e-2);
+
+      }
+    }
+    return ret;
   }
 
   @Before
