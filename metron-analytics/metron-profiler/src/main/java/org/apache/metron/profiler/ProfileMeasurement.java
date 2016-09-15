@@ -21,6 +21,7 @@
 package org.apache.metron.profiler;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a single data point within a Profile.
@@ -51,26 +52,21 @@ public class ProfileMeasurement {
   private List<String> groupBy;
 
   /**
-   * The number of profile periods per hour.
-   */
-  private int periodsPerHour;
-
-  /**
    * The period in which the ProfileMeasurement was taken.
    */
   private ProfilePeriod period;
 
   /**
    * @param profileName The name of the profile.
-   * @param entity The name of the entity.
-   * @param epochMillis The timestamp when the measurement period has been started in milliseconds since the epoch.
-   * @param periodsPerHour The number of profile periods per hour.
+   * @param entity The name of the entity being profiled.
+   * @param whenMillis When the measurement was taken in epoch milliseconds.
+   * @param periodDuration The duration of each profile period.
+   * @param periodUnits The units of the duration of each profile period.
    */
-  public ProfileMeasurement(String profileName, String entity, long epochMillis, int periodsPerHour) {
+  public ProfileMeasurement(String profileName, String entity, long whenMillis, long periodDuration, TimeUnit periodUnits) {
     this.profileName = profileName;
     this.entity = entity;
-    this.periodsPerHour = periodsPerHour;
-    this.period = new ProfilePeriod(epochMillis, periodsPerHour);
+    this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
   }
 
   public String getProfileName() {
@@ -85,10 +81,6 @@ public class ProfileMeasurement {
     return value;
   }
 
-  public void setValue(Object value) {
-    this.value = value;
-  }
-
   public ProfilePeriod getPeriod() {
     return period;
   }
@@ -97,12 +89,12 @@ public class ProfileMeasurement {
     return groupBy;
   }
 
-  public void setGroupBy(List<String> groupBy) {
-    this.groupBy = groupBy;
+  public void setValue(Object value) {
+    this.value = value;
   }
 
-  public int getPeriodsPerHour() {
-    return periodsPerHour;
+  public void setGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
   }
 
   @Override
@@ -111,7 +103,6 @@ public class ProfileMeasurement {
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileMeasurement that = (ProfileMeasurement) o;
-    if (periodsPerHour != that.periodsPerHour) return false;
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
     if (value != null ? !value.equals(that.value) : that.value != null) return false;
@@ -126,7 +117,6 @@ public class ProfileMeasurement {
     result = 31 * result + (entity != null ? entity.hashCode() : 0);
     result = 31 * result + (value != null ? value.hashCode() : 0);
     result = 31 * result + (groupBy != null ? groupBy.hashCode() : 0);
-    result = 31 * result + periodsPerHour;
     result = 31 * result + (period != null ? period.hashCode() : 0);
     return result;
   }
@@ -138,7 +128,6 @@ public class ProfileMeasurement {
             ", entity='" + entity + '\'' +
             ", value=" + value +
             ", groupBy=" + groupBy +
-            ", periodsPerHour=" + periodsPerHour +
             ", period=" + period +
             '}';
   }

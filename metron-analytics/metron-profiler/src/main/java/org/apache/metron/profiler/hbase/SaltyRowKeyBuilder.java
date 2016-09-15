@@ -56,19 +56,18 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   private int saltDivisor;
 
   /**
-   * An hour is divided into multiple periods.  This defines how many periods
-   * will exist within each given hour.
+   * The duration of each profile period in milliseconds.
    */
-  private int periodsPerHour;
+  private long periodDurationMillis;
 
   public SaltyRowKeyBuilder() {
     this.saltDivisor = 1000;
-    this.periodsPerHour = 4;
+    this.periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
   }
 
-  public SaltyRowKeyBuilder(int saltDivisor, int periodsPerHour) {
+  public SaltyRowKeyBuilder(int saltDivisor, long duration, TimeUnit units) {
     this.saltDivisor = saltDivisor;
-    this.periodsPerHour = periodsPerHour;
+    this.periodDurationMillis = units.toMillis(duration);
   }
 
   /**
@@ -91,8 +90,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     long startTime = endTime - unit.toMillis(durationAgo);
 
     // find the starting period and advance until the end time is reached
-    ProfilePeriod period = new ProfilePeriod(startTime, periodsPerHour);
-    while(period.getTimeInMillis() <= endTime) {
+    ProfilePeriod period = new ProfilePeriod(startTime, periodDurationMillis, TimeUnit.MILLISECONDS);
+    while(period.getStartTimeMillis() <= endTime) {
 
       byte[] k = rowKey(profile, entity, period, groups);
       rowKeys.add(k);
@@ -113,6 +112,14 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   @Override
   public byte[] rowKey(ProfileMeasurement m, List<Object> groups) {
     return rowKey(m.getProfileName(), m.getEntity(), m.getPeriod(), groups);
+  }
+
+  public void withPeriodDuration(long duration, TimeUnit units) {
+    periodDurationMillis = units.toMillis(duration);
+  }
+
+  public void setSaltDivisor(int saltDivisor) {
+    this.saltDivisor = saltDivisor;
   }
 
   /**
@@ -176,11 +183,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   private static byte[] timeKey(ProfilePeriod period) {
     return ByteBuffer
-            .allocate(4 * Integer.BYTES)
-            .putInt(period.getYear())
-            .putInt(period.getDayOfYear())
-            .putInt(period.getHour())
-            .putInt(period.getPeriod())
+            .allocate(Long.BYTES)
+            .putLong(period.getPeriod())
             .array();
   }
 
@@ -207,5 +211,4 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     }
   }
 
-  private static final double MINS_PER_HOUR = 60.0;
 }

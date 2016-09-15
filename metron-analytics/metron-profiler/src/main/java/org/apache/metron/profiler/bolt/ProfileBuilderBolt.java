@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
@@ -64,10 +65,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private StellarExecutor executor;
 
   /**
-   * The number of times per hour that a profile is flushed and a measurement
-   * is written.  This should be a divisor or multiple of 60; 1, 2, 3, 4, 6, 240, etc.
+   * The duration of each profile period in milliseconds.
    */
-  private int periodsPerHour;
+  private long periodDurationMillis;
 
   /**
    * A ProfileMeasurement is created and emitted each window period.  A Profile
@@ -100,12 +100,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   @Override
   public Map<String, Object> getComponentConfiguration() {
-    Config conf = new Config();
-
     // how frequently should the bolt receive tick tuples?
-    long freqInSeconds = ((60 * 60) / periodsPerHour);
-    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, freqInSeconds);
-
+    Config conf = new Config();
+    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, TimeUnit.MILLISECONDS.toSeconds(periodDurationMillis));
     return conf;
   }
 
@@ -186,7 +183,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             profileConfig.getProfile(),
             input.getStringByField("entity"),
             getTimestamp(),
-            periodsPerHour);
+            periodDurationMillis,
+            TimeUnit.MILLISECONDS);
 
     // execute the 'init' expression
     try {
@@ -294,9 +292,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     this.executor = executor;
   }
 
-  public void setPeriodsPerHour(int periodsPerHour) {
-    this.periodsPerHour = periodsPerHour;
+  public void setPeriodDurationMillis(long periodDurationMillis) {
+    this.periodDurationMillis = periodDurationMillis;
   }
 
-
+  public void withPeriodDuration(int duration, TimeUnit units) {
+    setPeriodDurationMillis(units.toMillis(duration));
+  }
 }

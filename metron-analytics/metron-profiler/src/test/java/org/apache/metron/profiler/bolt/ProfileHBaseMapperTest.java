@@ -31,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -59,7 +60,7 @@ public class ProfileHBaseMapperTest {
     mapper.setExecutor(executor);
     mapper.setRowKeyBuilder(rowKeyBuilder);
 
-    measurement = new ProfileMeasurement("profile", "entity", 20000, 4);
+    measurement = new ProfileMeasurement("profile", "entity", 20000, 15, TimeUnit.MINUTES);
     measurement.setValue(22);
 
     // the tuple will contain the original message

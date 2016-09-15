@@ -30,8 +30,9 @@ components:
         properties:
             - name: "saltDivisor"
               value: ${profiler.hbase.salt.divisor}
-            - name: "periodsPerHour"
-              value: ${profiler.periods.per.hour}
+        configMethods:
+            - name: "withPeriodDuration"
+              args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
 
     -   id: "columnBuilder"
         className: "org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder"
@@ -93,8 +94,9 @@ bolts:
         properties:
             - name: "executor"
               ref: "defaultExecutor"
-            - name: "periodsPerHour"
-              value: ${profiler.periods.per.hour}
+        configMethods:
+            - name: "withPeriodDuration"
+              args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"

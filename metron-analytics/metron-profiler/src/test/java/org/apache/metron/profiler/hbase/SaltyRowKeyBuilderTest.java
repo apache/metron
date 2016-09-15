@@ -47,17 +47,15 @@ import static org.mockito.Mockito.when;
 public class SaltyRowKeyBuilderTest {
 
   private static final int saltDivisor = 1000;
-  private static final int periodsPerHour = 4;
+  private static final long periodDuration = 15;
+  private static final TimeUnit periodUnits = TimeUnit.MINUTES;
 
   private SaltyRowKeyBuilder rowKeyBuilder;
   private ProfileMeasurement measurement;
   private Tuple tuple;
 
   /**
-   * Thu, Aug 25 2016 09:27:10 EST
    * Thu, Aug 25 2016 13:27:10 GMT
-   *
-   * 238th day of the year
    */
   private long AUG2016 = 1472131630748L;
 
@@ -65,7 +63,7 @@ public class SaltyRowKeyBuilderTest {
   public void setup() throws Exception {
 
     // a profile measurement
-    measurement = new ProfileMeasurement("profile", "entity", AUG2016, periodsPerHour);
+    measurement = new ProfileMeasurement("profile", "entity", AUG2016, periodDuration, periodUnits);
     measurement.setValue(22);
 
     // the tuple will contain the original message
@@ -79,7 +77,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithOneGroup() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodsPerHour);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList("group1");
 
     // the expected row key
@@ -89,10 +87,7 @@ public class SaltyRowKeyBuilderTest {
             .put(measurement.getProfileName().getBytes())
             .put(measurement.getEntity().getBytes())
             .put("group1".getBytes())
-            .putInt(2016)
-            .putInt(238)
-            .putInt(13)
-            .putInt(1);
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
@@ -109,7 +104,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithTwoGroups() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodsPerHour);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList("group1","group2");
 
     // the expected row key
@@ -120,10 +115,7 @@ public class SaltyRowKeyBuilderTest {
             .put(measurement.getEntity().getBytes())
             .put("group1".getBytes())
             .put("group2".getBytes())
-            .putInt(2016)
-            .putInt(238)
-            .putInt(13)
-            .putInt(1);
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
@@ -140,7 +132,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithOneIntegerGroup() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodsPerHour);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList(200);
 
     // the expected row key
@@ -150,10 +142,7 @@ public class SaltyRowKeyBuilderTest {
             .put(measurement.getProfileName().getBytes())
             .put(measurement.getEntity().getBytes())
             .put("200".getBytes())
-            .putInt(2016)
-            .putInt(238)
-            .putInt(13)
-            .putInt(1);
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
@@ -170,7 +159,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithMixedGroups() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodsPerHour);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList(200, "group1");
 
     // the expected row key
@@ -181,10 +170,7 @@ public class SaltyRowKeyBuilderTest {
             .put(measurement.getEntity().getBytes())
             .put("200".getBytes())
             .put("group1".getBytes())
-            .putInt(2016)
-            .putInt(238)
-            .putInt(13)
-            .putInt(1);
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
@@ -201,7 +187,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithNoGroup() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodsPerHour);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Collections.emptyList();
 
     // the expected row key
@@ -210,10 +196,7 @@ public class SaltyRowKeyBuilderTest {
             .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
             .put(measurement.getProfileName().getBytes())
             .put(measurement.getEntity().getBytes())
-            .putInt(2016)
-            .putInt(238)
-            .putInt(13)
-            .putInt(1);
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
@@ -233,16 +216,16 @@ public class SaltyRowKeyBuilderTest {
 
     // setup
     List<Object> groups = Collections.emptyList();
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodsPerHour);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
 
     // a dummy profile measurement
     long oldest = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hoursAgo);
-    ProfileMeasurement m = new ProfileMeasurement("profile", "entity", oldest, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile", "entity", oldest, periodDuration, periodUnits);
     m.setValue(22);
 
     // generate a list of expected keys
     List<byte[]> expectedKeys = new ArrayList<>();
-    for  (int i=0; i<(hoursAgo * periodsPerHour)+1; i++) {
+    for  (int i=0; i<(hoursAgo * 4)+1; i++) {
 
       // generate the expected key
       byte[] rk = rowKeyBuilder.rowKey(m, groups);
@@ -250,7 +233,7 @@ public class SaltyRowKeyBuilderTest {
 
       // advance to the next period
       ProfilePeriod next = m.getPeriod().next();
-      m = new ProfileMeasurement("profile", "entity", next.getTimeInMillis(), periodsPerHour);
+      m = new ProfileMeasurement("profile", "entity", next.getStartTimeMillis(), periodDuration, periodUnits);
     }
 
     // execute

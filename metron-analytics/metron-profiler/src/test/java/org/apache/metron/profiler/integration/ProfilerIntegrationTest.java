@@ -265,7 +265,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
       setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("profiler.periods.per.hour", "240");
+      setProperty("profiler.period.duration", "5");
+      setProperty("profiler.period.duration.units", "SECONDS");
       setProperty("profiler.hbase.salt.divisor", "10");
       setProperty("profiler.hbase.table", tableName);
       setProperty("profiler.hbase.column.family", columnFamily);
