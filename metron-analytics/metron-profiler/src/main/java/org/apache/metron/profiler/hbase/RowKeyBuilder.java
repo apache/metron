@@ -34,7 +34,7 @@ public interface RowKeyBuilder extends Serializable {
 
   /**
    * Build a row key for a given ProfileMeasurement.
-   * <p>
+   * 
    * This method is useful when writing ProfileMeasurements to HBase.
    *
    * @param measurement The profile measurement.
@@ -46,22 +46,14 @@ public interface RowKeyBuilder extends Serializable {
   /**
    * Builds a list of row keys necessary to retrieve a profile's measurements over
    * a time horizon.
-   * <p>
+   *
    * This method is useful when attempting to read ProfileMeasurements stored in HBase.
    *
-<<<<<<< HEAD
-   * @param profile     The name of the profile.
-   * @param entity      The name of the entity.
-   * @param groups      The group(s) used to sort the profile data.
-   * @param durationAgo How long ago?
-   * @param unit        The time units of how long ago.
-=======
    * @param profile The name of the profile.
    * @param entity The name of the entity.
    * @param groups The group(s) used to sort the profile data.
    * @param start When the time horizon starts in epoch milliseconds.
    * @param end When the time horizon ends in epoch milliseconds.
->>>>>>> cf79756... METRON-413 Allow Start/End Time Range Search in Profiler Client API
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end);
