@@ -53,6 +53,7 @@ public class BloomFilter<T> implements Serializable {
     }
   }
   private com.google.common.hash.BloomFilter<T> filter;
+
   public BloomFilter(Function<T, byte[]> serializer, int expectedInsertions, double falsePositiveRate) {
     filter = com.google.common.hash.BloomFilter.create(new BloomFunnel<T>(serializer), expectedInsertions, falsePositiveRate);
   }

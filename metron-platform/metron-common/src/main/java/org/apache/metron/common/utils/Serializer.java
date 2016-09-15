@@ -66,9 +66,7 @@ public class Serializer {
     protected Kryo initialValue() {
       Kryo ret = new Kryo();
       ret.setReferences(true);
-      ret.setInstantiatorStrategy(new
-
-              DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+      ret.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 
       ret.register(Arrays.asList("").getClass(), new ArraysAsListSerializer());
       ret.register(Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer());
