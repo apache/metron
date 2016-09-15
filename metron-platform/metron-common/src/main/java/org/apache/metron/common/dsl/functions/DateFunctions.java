@@ -109,6 +109,7 @@ public class DateFunctions {
     return sdf.parse(date).getTime();
   }
 
+
   /**
    * Stellar Function: TO_EPOCH_TIMESTAMP
    */

@@ -235,6 +235,11 @@
             <artifactId>kryo-serializers</artifactId>
             <version>0.38</version>
         </dependency>
+        <dependency>
+            <groupId>com.tdunning</groupId>
+            <artifactId>t-digest</artifactId>
+            <version>3.1</version>
+        </dependency>
     </dependencies>
 
     <reporting>
