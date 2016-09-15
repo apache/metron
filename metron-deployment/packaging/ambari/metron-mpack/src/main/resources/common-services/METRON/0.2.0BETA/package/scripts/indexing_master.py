@@ -16,6 +16,10 @@ limitations under the License.
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import File
+from resource_management.core.source import StaticFile
+from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.script import Script
 
 import metron_service
@@ -70,6 +74,46 @@ class Indexing(Script):
         self.configure(env)
         commands = IndexingCommands(params)
         commands.restart_indexing_topology(env)
+
+    def elasticsearch_template_install(self, env):
+        from params import params
+        env.set_params(params)
+
+        File(params.bro_index_path,
+             mode=0755,
+             content=StaticFile('bro_index.template')
+             )
+
+        File(params.snort_index_path,
+             mode=0755,
+             content=StaticFile('snort_index.template')
+             )
+
+        File(params.yaf_index_path,
+             mode=0755,
+             content=StaticFile('yaf_index.template')
+             )
+
+        bro_cmd = ambari_format(
+            'curl -s -XPOST http://{es_url}/_template/bro_index -d @roles/metron_elasticsearch_templates/files/es_templates/bro_index.template')
+        Execute(bro_cmd, logoutput=True)
+        snort_cmd = ambari_format(
+            'curl -s -XPOST http://{es_url}/_template/snort_index -d @roles/metron_elasticsearch_templates/files/es_templates/snort_index.template')
+        Execute(snort_cmd, logoutput=True)
+        yaf_cmd = ambari_format(
+            'curl -s -XPOST http://{es_url}/_template/yaf_index -d @roles/metron_elasticsearch_templates/files/es_templates/yaf_index.template')
+        Execute(yaf_cmd, logoutput=True)
+
+    def elasticsearch_template_delete(self, env):
+        from params import params
+        env.set_params(params)
+
+        bro_cmd = ambari_format('curl -s -XDELETE "http://{es_url}/bro_index*"')
+        Execute(bro_cmd, logoutput=True)
+        snort_cmd = ambari_format('curl -s -XDELETE "http://{es_url}/snort_index*"')
+        Execute(snort_cmd, logoutput=True)
+        yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_url}/yaf_index*"')
+        Execute(yaf_cmd, logoutput=True)
 
 
 if __name__ == "__main__":

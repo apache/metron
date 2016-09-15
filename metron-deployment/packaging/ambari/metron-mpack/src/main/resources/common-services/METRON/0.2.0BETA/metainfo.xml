@@ -166,11 +166,28 @@
             <script>scripts/indexing_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>ELASTICSEARCH_TEMPLATE_INSTALL</name>
+              <commandScript>
+                <script>scripts/indexing_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+               </commandScript>
+              </customCommand>
+              <customCommand>
+                <name>ELASTICSEARCH_TEMPLATE_DELETE</name>
+                <commandScript>
+                  <script>scripts/indexing_master.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </customCommand>
+          </customCommands>
           <configuration-dependencies>
             <config-type>metron-indexing</config-type>
           </configuration-dependencies>
         </component>
-
       </components>
 
       <osSpecifics>

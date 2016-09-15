@@ -161,3 +161,8 @@ threatintel_cf = status_params.threatintel_cf
 
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
+
+# ES Templates
+bro_index_path = tmp_dir + "/bro_index.template"
+snort_index_path = tmp_dir + "/snort_index.template"
+yaf_index_path = tmp_dir + "/yaf_index.template"
