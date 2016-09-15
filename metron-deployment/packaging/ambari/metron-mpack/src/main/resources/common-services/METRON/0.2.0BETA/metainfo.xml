@@ -67,16 +67,6 @@
             <script>scripts/parser_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <customCommands>
-            <customCommand>
-              <name>SERVICECHECKTEST</name>
-              <background>false</background>
-              <commandScript>
-                <script>scripts/parser_master.py</script>
-                <scriptType>PYTHON</scriptType>
-              </commandScript>
-            </customCommand>
-          </customCommands>
           <configuration-dependencies>
             <config-type>metron-parsers</config-type>
           </configuration-dependencies>
@@ -84,7 +74,7 @@
 
         <component>
           <name>METRON_ENRICHMENT_MASTER</name>
-          <displayName>Enrichment Master</displayName>
+          <displayName>Metron Enrichment</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>

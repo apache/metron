@@ -35,7 +35,7 @@ def init_config():
 def get_running_topologies():
     Logger.info('Getting Running Storm Topologies from Storm REST Server')
 
-    cmd = ambari_format('curl {storm_rest_addr}/api/v1/topology/summary')
+    cmd = ambari_format('curl --max-time 3 {storm_rest_addr}/api/v1/topology/summary')
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (stdout, stderr) = proc.communicate()
 
