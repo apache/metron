@@ -33,7 +33,7 @@ class Indexing(Script):
         Logger.info('Install RPM packages')
         self.install_packages(env)
 
-    def configure(self, env):
+    def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
         env.set_params(params)
 

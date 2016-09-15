@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import format as ambari_format
-from resource_management.core.resources.system import Directory, File
-from resource_management.core.source import InlineTemplate
-
-import subprocess
 import json
+import subprocess
+
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.resources.system import Execute
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions import format as ambari_format
 
 
 def init_config():
@@ -59,7 +59,6 @@ def load_global_config(params):
 
     directories = [params.metron_zookeeper_config_path]
     Directory(directories,
-              # recursive=True,
               mode=0755,
               owner=params.metron_user,
               group=params.metron_group

@@ -17,9 +17,9 @@ limitations under the License.
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File
-from resource_management.libraries.script import Script
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.script import Script
 
 from enrichment_commands import EnrichmentCommands
 
@@ -74,7 +74,7 @@ class Enrichment(Script):
         from params import params
         env.set_params(params)
         commands = EnrichmentCommands(params)
-        commands.restart_enrichment_topology()
+        commands.restart_enrichment_topology(env)
 
     def kafkabuild(self, env, upgrade_type=None):
         from params import params

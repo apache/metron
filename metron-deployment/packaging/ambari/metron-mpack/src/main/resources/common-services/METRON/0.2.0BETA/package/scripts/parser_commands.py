@@ -25,7 +25,9 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+
 import metron_service
+
 
 # Wrap major operations and functionality in this class
 class ParserCommands:
@@ -56,7 +58,7 @@ class ParserCommands:
     def init_parsers(self):
         Logger.info(
             "Copying grok patterns from local directory '{0}' to HDFS '{1}'".format(self.__params.local_grok_patterns_dir,
-                                                                                  self.__params.metron_apps_dir))
+                                                                                    self.__params.metron_apps_dir))
         self.__params.HdfsResource(self.__params.metron_apps_dir,
                                    type="directory",
                                    action="create_on_execute",
@@ -105,7 +107,7 @@ class ParserCommands:
                                 --config retention.bytes={5}"""
         num_partitions = 1
         replication_factor = 1
-        retention_gigabytes = 10
+        retention_gigabytes = int(self.__params.metron_topic_retention)
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating main topics for parsers")
         for parser_name in self.get_parser_list():
@@ -151,7 +153,7 @@ class ParserCommands:
             Execute(stop_cmd)
         Logger.info('Done stopping parser topologies')
 
-    def restart_parser_topologies(self,env):
+    def restart_parser_topologies(self, env):
         Logger.info('Restarting the parser topologies')
         self.stop_parser_topologies()
         attempt_count = 0
@@ -176,15 +178,16 @@ class ParserCommands:
                         return True
         return False
 
-    def topologies_running(self,env):
+    def topologies_running(self, env):
         env.set_params(self.__params)
         all_running = True
         topologies = metron_service.get_running_topologies()
         for parser in self.get_parser_list():
             parser_found = False
+            is_running = False
             if parser in topologies:
                 parser_found = True
-                is_running = topologies[parser] in ['ACTIVE','REBALANCING']
+                is_running = topologies[parser] in ['ACTIVE', 'REBALANCING']
             all_running &= parser_found and is_running
         return all_running
 

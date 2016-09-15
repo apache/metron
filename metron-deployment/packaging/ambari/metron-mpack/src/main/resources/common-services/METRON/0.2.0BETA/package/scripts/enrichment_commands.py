@@ -81,7 +81,7 @@ class EnrichmentCommands:
                                 --config retention.bytes={5}"""
         num_partitions = 1
         replication_factor = 1
-        retention_gigabytes = 10
+        retention_gigabytes = int(self.__params.metron_topic_retention)
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating topics for enrichment")
 

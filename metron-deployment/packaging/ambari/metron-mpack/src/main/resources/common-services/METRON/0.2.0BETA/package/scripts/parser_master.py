@@ -39,7 +39,6 @@ class ParserMaster(Script):
         Logger.info('Install RPM packages')
         self.install_packages(env)
 
-
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
         env.set_params(params)
@@ -77,13 +76,14 @@ class ParserMaster(Script):
         commands = ParserCommands(params)
         commands.restart_parser_topologies(env)
 
-    def servicechecktest(self,env):
+    def servicechecktest(self, env):
         from params import params
         env.set_params(params)
         from service_check import ServiceCheck
         service_check = ServiceCheck()
         Logger.info('Service Check Test')
         service_check.service_check(env)
+
 
 if __name__ == "__main__":
     ParserMaster().execute()

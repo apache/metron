@@ -20,8 +20,9 @@ limitations under the License.
 from __future__ import print_function
 
 from resource_management.libraries.script import Script
-from parser_commands import ParserCommands
+
 from indexing_commands import IndexingCommands
+from parser_commands import ParserCommands
 
 
 class ServiceCheck(Script):

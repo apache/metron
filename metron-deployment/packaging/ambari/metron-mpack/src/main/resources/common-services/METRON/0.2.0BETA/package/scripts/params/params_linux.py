@@ -103,7 +103,6 @@ hdfs_grok_patterns_dir = format("{metron_apps_dir}/patterns")
 
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
