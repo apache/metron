@@ -46,7 +46,7 @@ if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
 else:
     daemon_name = 'mysqld'
 
-# Indexing
+# ing
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 

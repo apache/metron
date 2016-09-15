@@ -136,7 +136,7 @@ class IndexingCommands:
         active = True
         topologies = metron_service.get_running_topologies()
         is_running = False
-        if 'indexing' in topologies:
-            is_running = topologies['indexing'] in ['ACTIVE', 'REBALANCING']
+        if self.__indexing in topologies:
+            is_running = topologies[self.__indexing] in ['ACTIVE', 'REBALANCING']
         active &= is_running
         return active

@@ -16,11 +16,12 @@ limitations under the License.
 """
 
 import os
-import subprocess
 import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+
+import metron_service
 
 
 # Wrap major operations and functionality in this class
@@ -35,7 +36,7 @@ class EnrichmentCommands:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__enrichment_topology = params.metron_enrichment_topology
-        self.__enrichment_topology = params.metron_enrichment_topic
+        self.__enrichment_topic = params.metron_enrichment_topic
         self.__configured = os.path.isfile(self.__params.enrichment_configured_flag_file)
 
     def is_configured(self):
@@ -133,21 +134,14 @@ class EnrichmentCommands:
 
     def is_topology_active(self, env):
         env.set_params(self.__params)
-        cmd_retrieve = "storm list | grep '{0}'".format(self.__enrichment_topology)
-        proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        (stdout, stderr) = proc.communicate()
-        Logger.info("Retrieval response is: %s" % stdout)
-        Logger.warning("Error response is: %s" % stderr)
 
-        fields = stdout.split()
-        if len(fields) < 2:
-            Logger.warning("Enrichment topology is not running")
-            return False
-
-        # Get the second column, which is status. We already know first column is enrichment)
-        status = stdout.split()[1]
-        running_status_set = ['ACTIVE', 'REBALANCING']
-        return status in running_status_set
+        active = True
+        topologies = metron_service.get_running_topologies()
+        is_running = False
+        if self.__enrichment_topology in topologies:
+            is_running = topologies[self.__enrichment_topology] in ['ACTIVE', 'REBALANCING']
+        active &= is_running
+        return active
 
     def create_hbase_tables(self):
         add_enrichment_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.enrichment_table, self.__params.enrichment_cf)
