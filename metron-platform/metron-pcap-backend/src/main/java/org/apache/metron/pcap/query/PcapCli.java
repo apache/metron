@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class PcapCli {
   private static final Logger LOGGER = LoggerFactory.getLogger(PcapCli.class);
@@ -59,7 +58,7 @@ public class PcapCli {
       return -1;
     }
     String jobType = args[0];
-    List<byte[]> results = new ArrayList<>();
+    Iterable<byte[]> results = new ArrayList<>();
     String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
     Configuration hadoopConf = new Configuration();
     String[] otherArgs = null;
@@ -76,6 +75,7 @@ public class PcapCli {
         config = fixedParser.parse(otherArgs);
       } catch (ParseException | java.text.ParseException e) {
         System.err.println(e.getMessage());
+        System.err.flush();
         fixedParser.printHelp();
         return -1;
       }
@@ -148,12 +148,12 @@ public class PcapCli {
     String timestamp = clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ");
     String outFileName = String.format("pcap-data-%s.pcap", timestamp);
     try {
-      if(results.size() > 0) {
+//      if(results.size() > 0) {
         resultsWriter.write(results, outFileName);
-      }
-      else {
-        System.out.println("No results returned.");
-      }
+//      }
+//      else {
+//        System.out.println("No results returned.");
+//      }
     } catch (IOException e) {
       LOGGER.error("Unable to write file", e);
       return -1;

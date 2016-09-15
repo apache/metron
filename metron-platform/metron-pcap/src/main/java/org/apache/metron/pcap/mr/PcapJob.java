@@ -176,7 +176,7 @@ public class PcapJob {
     return ret;
   }
 
-  private List<byte[]> readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
+  private Iterable<byte[]> readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
     List<byte[]> ret = new ArrayList<>();
     for(RemoteIterator<LocatedFileStatus> it= fs.listFiles(outputPath, false);it.hasNext();) {
       Path p = it.next().getPath();
@@ -201,7 +201,7 @@ public class PcapJob {
     return ret;
   }
 
-  public <T> List<byte[]> query(Path basePath
+  public <T> Iterable<byte[]> query(Path basePath
                             , Path baseOutputPath
                             , long beginNS
                             , long endNS

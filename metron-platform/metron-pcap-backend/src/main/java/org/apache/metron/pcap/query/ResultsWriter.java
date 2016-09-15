@@ -27,14 +27,14 @@ import java.util.List;
 
 public class ResultsWriter {
 
-  public void write(List<byte[]> pcaps, String outPath) throws IOException {
+  public void write(Iterable<byte[]> pcaps, String outPath) throws IOException {
     File out = new File(outPath);
     try (FileOutputStream fos = new FileOutputStream(out)) {
       fos.write(mergePcaps(pcaps));
     }
   }
 
-  public byte[] mergePcaps(List<byte[]> pcaps) throws IOException {
+  public byte[] mergePcaps(Iterable<byte[]> pcaps) throws IOException {
     if (pcaps == null) {
       return new byte[]{};
     }

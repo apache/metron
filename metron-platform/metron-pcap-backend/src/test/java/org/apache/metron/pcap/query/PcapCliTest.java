@@ -71,13 +71,12 @@ public class PcapCliTest {
             "-ip_dst_addr", "192.168.1.2",
             "-ip_src_port", "8081",
             "-ip_dst_port", "8082",
-            "-protocol", "6",
-            "-num_reducers", "10"
+            "-protocol", "6"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
 
-    Path base_path = new Path(CliConfig.BASE_PATH_DEFAULT);
-    Path base_output_path = new Path(CliConfig.BASE_OUTPUT_PATH_DEFAULT);
+    Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
+    Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
     EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
       put(Constants.Fields.SRC_ADDR, "192.168.1.1");
       put(Constants.Fields.DST_ADDR, "192.168.1.2");
@@ -187,13 +186,12 @@ public class PcapCliTest {
     String[] args = {
             "query",
             "-start_time", "500",
-            "-num_reducers", "10",
             "-query", "some query string"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
 
-    Path base_path = new Path(CliConfig.BASE_PATH_DEFAULT);
-    Path base_output_path = new Path(CliConfig.BASE_OUTPUT_PATH_DEFAULT);
+    Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
+    Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
     String query = "some query string";
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
@@ -229,54 +227,76 @@ public class PcapCliTest {
     Mockito.verify(resultsWriter).write(pcaps, "pcap-data-20160615183527162+0000.pcap");
   }
 
+  // INVALID OPTION CHECKS
+
   @Test
   public void invalid_fixed_filter_arg_prints_help() throws Exception {
+    String[] args = {
+            "fixed",
+            "-start_time", "500",
+            "-end_time", "1000",
+            "-num_reducers", "10",
+            "-base_path", "/base/path",
+            "-base_output_path", "/base/output/path",
+            "-query", "THIS IS AN ERROR"
+    };
+    assertCliError(args, "Fixed", "Unrecognized option: -query");
+  }
+
+  /**
+   *
+   * @param args PcapJob args
+   * @param type Fixed|Query
+   * @param optMsg Expected error message
+   */
+  public void assertCliError(String[] args, String type, String optMsg) {
     PrintStream originalOutStream = System.out;
+    PrintStream originalErrOutStream = System.err;
     try {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      PrintStream testStream = new PrintStream(new BufferedOutputStream(bos));
-      System.setOut(testStream);
-      String[] args = {
-              "fixed",
-              "-start_time", "500",
-              "-end_time", "1000",
-              "-num_reducers", "10",
-              "-base_path", "/base/path",
-              "-base_output_path", "/base/output/path",
-              "-query", "THIS IS AN ERROR"
-      };
+      PrintStream outStream = new PrintStream(new BufferedOutputStream(bos));
+      System.setOut(outStream);
+
+      ByteArrayOutputStream ebos = new ByteArrayOutputStream();
+      PrintStream errOutStream = new PrintStream(new BufferedOutputStream(ebos));
+      System.setErr(errOutStream);
 
       PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
       assertThat("Expect errors on run", cli.run(args), equalTo(-1));
-      assertThat(bos.toString(), bos.toString().contains("usage: Fixed filter options"), equalTo(true));
+      assertThat("Expect missing required option error: " + ebos.toString(), ebos.toString().contains(optMsg), equalTo(true));
+      assertThat("Expect usage to be printed: " + bos.toString(), bos.toString().contains("usage: " + type + " filter options"), equalTo(true));
     } finally {
       System.setOut(originalOutStream);
+      System.setErr(originalErrOutStream);
     }
   }
 
   @Test
   public void invalid_query_filter_arg_prints_help() throws Exception {
-    PrintStream originalOutStream = System.out;
-    try {
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      PrintStream outStream = new PrintStream(new BufferedOutputStream(bos));
-      System.setOut(outStream);
-      String[] args = {
-              "query",
-              "-start_time", "500",
-              "-end_time", "1000",
-              "-num_reducers", "10",
-              "-base_path", "/base/path",
-              "-base_output_path", "/base/output/path",
-              "-ip_src_addr", "THIS IS AN ERROR"
-      };
+    String[] args = {
+            "query",
+            "-start_time", "500",
+            "-end_time", "1000",
+            "-num_reducers", "10",
+            "-base_path", "/base/path",
+            "-base_output_path", "/base/output/path",
+            "-ip_src_addr", "THIS IS AN ERROR"
+    };
+    assertCliError(args, "Query", "");
+  }
 
-      PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
-      assertThat("Expect errors on run", cli.run(args), equalTo(-1));
-      assertThat(bos.toString(), bos.toString().contains("usage: Query filter options"), equalTo(true));
-    } finally {
-      System.setOut(originalOutStream);
-    }
+  @Test
+  public void missing_start_time_arg_prints_error_and_help() throws Exception {
+    String[] args = {
+            "fixed",
+            "-ip_src_addr", "192.168.1.1",
+            "-ip_dst_addr", "192.168.1.2",
+            "-ip_src_port", "8081",
+            "-ip_dst_port", "8082",
+            "-protocol", "6",
+            "-num_reducers", "10"
+    };
+    assertCliError(args, "Fixed", "Missing required option: st");
   }
 
 }
