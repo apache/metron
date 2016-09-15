@@ -21,7 +21,6 @@
 package org.apache.metron.common.utils;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.utils.Serializer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,26 +34,26 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests the Serializer.
  */
-public class SerializerTest {
+public class SerDeUtilsTest {
 
   @Test
   public void testInteger() {
     final int expected = 2;
-    byte[] raw = Serializer.toBytes(expected);
-    int actual = Serializer.fromBytes(raw, Integer.class);
+    byte[] raw = SerDeUtils.toBytes(expected);
+    int actual = SerDeUtils.fromBytes(raw, Integer.class);
     assertEquals(expected, actual);
   }
 
   @Test
   public void testDouble() {
     final double expected = 2.0;
-    byte[] raw = Serializer.toBytes(expected);
+    byte[] raw = SerDeUtils.toBytes(expected);
     {
-      double actual = Serializer.fromBytes(raw, Double.class);
+      double actual = SerDeUtils.fromBytes(raw, Double.class);
       assertEquals(expected, actual, 0.01);
     }
     {
-      double actual = (double)Serializer.fromBytes(raw, Object.class);
+      double actual = (double) SerDeUtils.fromBytes(raw, Object.class);
       assertEquals(expected, actual, 0.01);
     }
   }
@@ -62,13 +61,13 @@ public class SerializerTest {
   @Test
   public void testShort() {
     final short expected = 2;
-    byte[] raw = Serializer.toBytes(expected);
+    byte[] raw = SerDeUtils.toBytes(expected);
     {
-      short actual = Serializer.fromBytes(raw, Short.class);
+      short actual = SerDeUtils.fromBytes(raw, Short.class);
       assertEquals(expected, actual);
     }
     {
-      short actual = (short)Serializer.fromBytes(raw, Object.class);
+      short actual = (short) SerDeUtils.fromBytes(raw, Object.class);
       assertEquals(expected, actual);
     }
   }
@@ -76,13 +75,13 @@ public class SerializerTest {
   @Test
   public void testLong() {
     final long expected = 2L;
-    byte[] raw = Serializer.toBytes(expected);
+    byte[] raw = SerDeUtils.toBytes(expected);
     {
-      long actual = Serializer.fromBytes(raw, Long.class);
+      long actual = SerDeUtils.fromBytes(raw, Long.class);
       assertEquals(expected, actual);
     }
     {
-      long actual = (Long)Serializer.fromBytes(raw, Object.class);
+      long actual = (Long) SerDeUtils.fromBytes(raw, Object.class);
       assertEquals(expected, actual);
     }
   }
@@ -90,13 +89,13 @@ public class SerializerTest {
   @Test
   public void testFloat() {
     final Float expected = 2.2F;
-    byte[] raw = Serializer.toBytes(expected);
+    byte[] raw = SerDeUtils.toBytes(expected);
     {
-      float actual = Serializer.fromBytes(raw, Float.class);
+      float actual = SerDeUtils.fromBytes(raw, Float.class);
       assertEquals(expected, actual, 0.01);
     }
     {
-      float actual = (float)Serializer.fromBytes(raw, Object.class);
+      float actual = (float) SerDeUtils.fromBytes(raw, Object.class);
       assertEquals(expected, actual, 0.01);
     }
   }
@@ -107,8 +106,8 @@ public class SerializerTest {
     expected.put("foo", "bar");
     expected.put( "bar", 1.0);
     ;
-    byte[] raw = Serializer.toBytes(expected);
-    Object actual = Serializer.fromBytes(raw, Object.class);
+    byte[] raw = SerDeUtils.toBytes(expected);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
     assertEquals(expected, actual);
   }
 
@@ -117,8 +116,8 @@ public class SerializerTest {
     final List<String> expected = new ArrayList<String>();
     expected.add("foo");
     expected.add("bar");
-    byte[] raw = Serializer.toBytes(expected);
-    Object actual = Serializer.fromBytes(raw, Object.class);
+    byte[] raw = SerDeUtils.toBytes(expected);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
     assertEquals(expected, actual);
   }
 
@@ -127,8 +126,8 @@ public class SerializerTest {
     final BloomFilter<Object> expected = new BloomFilter<>(new BloomFilter.DefaultSerializer<>(), 10000, 0.01);
     expected.add("foo");
     expected.add("bar");
-    byte[] raw = Serializer.toBytes(expected);
-    BloomFilter<Object> actual = (BloomFilter)Serializer.fromBytes(raw, Object.class);
+    byte[] raw = SerDeUtils.toBytes(expected);
+    BloomFilter<Object> actual = (BloomFilter) SerDeUtils.fromBytes(raw, Object.class);
     Assert.assertTrue(actual.mightContain("foo"));
     Assert.assertFalse(actual.mightContain("timothy"));
     assertEquals(expected, actual);
@@ -210,8 +209,8 @@ public class SerializerTest {
   @Test
   public void testArbitraryPojo() {
     final ArbitraryPojo expected = new ArbitraryPojo();
-    byte[] raw = Serializer.toBytes(expected);
-    Object actual = Serializer.fromBytes(raw, Object.class);
+    byte[] raw = SerDeUtils.toBytes(expected);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
     assertEquals(expected, actual);
   }
 }

@@ -28,7 +28,7 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
-import org.apache.metron.common.utils.Serializer;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
@@ -228,7 +228,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     for (Result result : scanner) {
       byte[] raw = result.getValue(cf, columnQual);
-      return Serializer.fromBytes(raw, Double.class);
+      return SerDeUtils.fromBytes(raw, Double.class);
     }
 
     throw new IllegalStateException("No results found");
@@ -244,7 +244,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     for (Result result : scanner) {
       byte[] raw = result.getValue(cf, columnQual);
-      return Serializer.fromBytes(raw, Integer.class);
+      return SerDeUtils.fromBytes(raw, Integer.class);
     }
 
     throw new IllegalStateException("No results found");

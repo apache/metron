@@ -21,7 +21,6 @@
 package org.apache.metron.common.stellar;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -31,7 +30,7 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.math.stats.OnlineStatisticsProviderTest;
 import org.apache.metron.common.math.stats.StatisticsProvider;
-import org.apache.metron.common.utils.Serializer;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,8 +106,9 @@ public class StellarStatisticsFunctionsTest {
   private static Object run(String expr, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
     Object ret = processor.parse(expr, x-> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
-    byte[] raw = Serializer.toBytes(ret);
-    Object actual = Serializer.fromBytes(raw, Object.class);
+    byte[] raw = SerDeUtils.toBytes(ret);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    Assert.assertEquals(ret, actual);
     if(ret instanceof StatisticsProvider) {
       StatisticsProvider left = (StatisticsProvider)ret;
       StatisticsProvider right = (StatisticsProvider)actual;

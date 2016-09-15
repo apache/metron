@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
-import org.apache.metron.common.utils.Serializer;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reflections.Reflections;
@@ -395,12 +395,23 @@ public class StellarTest {
   public static Object run(String rule, Map<String, Object> variables) {
     return run(rule, variables, Context.EMPTY_CONTEXT());
   }
+
+  /**
+   * This ensures the basic contract of a stellar expression is adhered to:
+   * 1. Validate works on the expression
+   * 2. The output can be serialized and deserialized properly
+   *
+   * @param rule
+   * @param variables
+   * @param context
+   * @return
+   */
   public static Object run(String rule, Map<String, Object> variables, Context context) {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
     Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
-    byte[] raw = Serializer.toBytes(ret);
-    Object actual = Serializer.fromBytes(raw, Object.class);
+    byte[] raw = SerDeUtils.toBytes(ret);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
     Assert.assertEquals(ret, actual);
     return ret;
   }

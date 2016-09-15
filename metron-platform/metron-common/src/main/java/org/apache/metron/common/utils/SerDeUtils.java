@@ -35,8 +35,6 @@ import de.javakaffee.kryoserializers.guava.ImmutableSetSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaDateTimeSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateTimeSerializer;
-import de.javakaffee.kryoserializers.protobuf.ProtobufSerializer;
-import de.javakaffee.kryoserializers.wicket.MiniMapSerializer;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.storm.shade.org.joda.time.DateTime;
 import org.objenesis.instantiator.ObjectInstantiator;
@@ -52,6 +50,7 @@ import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.esotericsoftware.kryo.util.Util.className;
 
@@ -59,8 +58,8 @@ import static com.esotericsoftware.kryo.util.Util.className;
  * Provides basic functionality to serialize and deserialize the allowed
  * value types for a ProfileMeasurement.
  */
-public class Serializer {
-  protected static final Logger LOG = LoggerFactory.getLogger(Serializer.class);
+public class SerDeUtils {
+  protected static final Logger LOG = LoggerFactory.getLogger(SerDeUtils.class);
   private static ThreadLocal<Kryo> kryo = new ThreadLocal<Kryo>() {
     @Override
     protected Kryo initialValue() {
@@ -97,6 +96,12 @@ public class Serializer {
     }
   };
 
+  /**
+   * This was backported from a more recent version of kryo than we currently run.  The reason why it exists is
+   * that we want a strategy for instantiation of classes which attempts a no-arg constructor first and THEN falls
+   * back to reflection for performance reasons alone (this is, after all, in the critical path).
+   *
+   */
   static private class DefaultInstantiatorStrategy implements org.objenesis.strategy.InstantiatorStrategy {
     private InstantiatorStrategy fallbackStrategy;
 
@@ -169,8 +174,39 @@ public class Serializer {
     }
   }
 
+  public static Serializer SERIALIZER = new Serializer();
 
-  private Serializer() {
+  private static class Serializer implements Function<Object, byte[]> {
+    /**
+     * Serializes the given Object into bytes.
+     *
+     */
+    @Override
+    public byte[] apply(Object o) {
+      return toBytes(o);
+    }
+  }
+
+  public static class Deserializer<T> implements Function<byte[], T> {
+
+    private Class<T> clazz;
+    public Deserializer(Class<T> clazz) {
+      this.clazz = clazz;
+    }
+    /**
+     * Deserializes the given bytes.
+     *
+     * @param bytes the function argument
+     * @return the function result
+     */
+    @Override
+    public T apply(byte[] bytes) {
+      return fromBytes(bytes, clazz);
+    }
+  }
+
+
+  private SerDeUtils() {
     // do not instantiate
   }
 

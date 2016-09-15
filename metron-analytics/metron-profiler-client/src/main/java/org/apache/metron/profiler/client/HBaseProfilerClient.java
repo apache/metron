@@ -26,7 +26,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.common.utils.Serializer;
+import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class HBaseProfilerClient implements ProfilerClient {
       Arrays.stream(results)
               .filter(r -> r.containsColumn(columnFamily, columnQualifier))
               .map(r -> r.getValue(columnFamily, columnQualifier))
-              .forEach(val -> values.add(Serializer.fromBytes(val, clazz)));
+              .forEach(val -> values.add(SerDeUtils.fromBytes(val, clazz)));
 
     } catch(IOException e) {
       throw new RuntimeException(e);

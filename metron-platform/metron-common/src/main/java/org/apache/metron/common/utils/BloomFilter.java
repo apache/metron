@@ -49,7 +49,7 @@ public class BloomFilter<T> implements Serializable {
   public static class DefaultSerializer<T> implements Function<T, byte[]> {
     @Override
     public byte[] apply(T t) {
-      return Serializer.toBytes(t);
+      return SerDeUtils.toBytes(t);
     }
   }
   private com.google.common.hash.BloomFilter<T> filter;

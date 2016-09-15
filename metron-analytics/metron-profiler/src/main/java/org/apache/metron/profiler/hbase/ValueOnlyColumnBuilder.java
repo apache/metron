@@ -21,7 +21,7 @@
 package org.apache.metron.profiler.hbase;
 
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.utils.Serializer;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.hbase.common.ColumnList;
 
@@ -49,7 +49,7 @@ public class ValueOnlyColumnBuilder implements ColumnBuilder {
   public ColumnList columns(ProfileMeasurement measurement) {
 
     ColumnList cols = new ColumnList();
-    cols.addColumn(columnFamilyBytes, getColumnQualifier("value"), Serializer.toBytes(measurement.getValue()));
+    cols.addColumn(columnFamilyBytes, getColumnQualifier("value"), SerDeUtils.toBytes(measurement.getValue()));
 
     return cols;
   }
