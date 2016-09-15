@@ -43,16 +43,16 @@ def elastic():
               group=params.elastic_user
               )
 
-    print "Master env: ""{}/elastic-env.sh".format(params.conf_dir)
-    File("{}/elastic-env.sh".format(params.conf_dir),
+    print "Master env: ""{0}/elastic-env.sh".format(params.conf_dir)
+    File("{0}/elastic-env.sh".format(params.conf_dir),
          owner=params.elastic_user,
          content=InlineTemplate(params.elastic_env_sh_template)
          )
 
     configurations = params.config['configurations']['elastic-site']
 
-    print "Master yml: ""{}/elasticsearch.yml".format(params.conf_dir)
-    File("{}/elasticsearch.yml".format(params.conf_dir),
+    print "Master yml: ""{0}/elasticsearch.yml".format(params.conf_dir)
+    File("{0}/elasticsearch.yml".format(params.conf_dir),
          content=Template(
              "elasticsearch.master.yaml.j2",
              configurations=configurations),

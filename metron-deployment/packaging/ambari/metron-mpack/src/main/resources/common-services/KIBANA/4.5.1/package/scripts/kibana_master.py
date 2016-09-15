@@ -19,29 +19,27 @@ kibana_master
 
 """
 
-
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.script import Script
-from resource_management.libraries.functions.format import format
-from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Directory
-from resource_management.core.resources.system import File
-from resource_management.core.source import InlineTemplate
-
 import errno
 import os
 
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import File
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.script import Script
+
+
 class Kibana(Script):
-
     def install(self, env):
-
         import params
         env.set_params(params)
 
         Logger.info("Install Kibana Master")
 
-        #TODO: Figure this out for all supported OSes
+        # TODO: Figure this out for all supported OSes
         Execute('rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch')
         Execute("echo \"[kibana-4.x]\n"
                 "name=Kibana repository for 4.5.x packages\n"
@@ -52,8 +50,7 @@ class Kibana(Script):
 
         self.install_packages(env)
 
-    def configure(self, env):
-
+    def configure(self, env, upgrade_type=None, config_dir=None):
         import params
         env.set_params(params)
 
@@ -61,19 +58,18 @@ class Kibana(Script):
 
         directories = [params.log_dir, params.pid_dir, params.conf_dir]
         Directory(directories,
-          # recursive=True,
-          mode=0755,
-          owner=params.kibana_user,
-          group=params.kibana_user
-          )
+                  # recursive=True,
+                  mode=0755,
+                  owner=params.kibana_user,
+                  group=params.kibana_user
+                  )
 
         File("{}/kibana.yml".format(params.conf_dir),
-            owner=params.kibana_user,
-            content=InlineTemplate(params.kibana_yml_template)
-        )
+             owner=params.kibana_user,
+             content=InlineTemplate(params.kibana_yml_template)
+             )
 
-    def stop(self, env):
-
+    def stop(self, env, upgrade_type=None):
         import params
         env.set_params(params)
 
@@ -81,8 +77,7 @@ class Kibana(Script):
 
         Execute("service kibana stop")
 
-    def start(self, env):
-
+    def start(self, env, upgrade_type=None):
         import params
         env.set_params(params)
 
@@ -92,8 +87,7 @@ class Kibana(Script):
 
         Execute("service kibana start")
 
-    def restart(self,env):
-
+    def restart(self, env):
         import params
         env.set_params(params)
 
@@ -104,7 +98,6 @@ class Kibana(Script):
         Execute("service kibana restart")
 
     def status(self, env):
-
         import params
         env.set_params(params)
 
@@ -113,8 +106,7 @@ class Kibana(Script):
         Execute("service kibana status")
 
     @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-    def loadtemplate(self,env):
-
+    def loadtemplate(self, env):
         from dashboard.dashboardindex import DashboardIndex
 
         import params
@@ -123,11 +115,11 @@ class Kibana(Script):
         hostname = format("{es_host}")
         port = int(format("{es_port}"))
 
-        Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname,port))
-        di = DashboardIndex(host=hostname,port=port)
+        Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname, port))
+        di = DashboardIndex(host=hostname, port=port)
 
-        #Loads Kibana Dashboard definition from disk and replaces .kibana on index
-        templateFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),'dashboard','dashboard.p')
+        # Loads Kibana Dashboard definition from disk and replaces .kibana on index
+        templateFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard.p')
         if not os.path.isfile(templateFile):
             raise IOError(
                 errno.ENOENT, os.strerror(errno.ENOENT), templateFile)

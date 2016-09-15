@@ -26,14 +26,16 @@ from resource_management.core.resources.system import Execute, File
 # Wrap major operations and functionality in this class
 class EnrichmentCommands:
     __params = None
-    __enrichment = None
+    __enrichment_topology = None
+    __enrichment_topic = None
     __configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
-        self.__enrichment = params.metron_enrichment_topology
+        self.__enrichment_topology = params.metron_enrichment_topology
+        self.__enrichment_topology = params.metron_enrichment_topic
         self.__configured = os.path.isfile(self.__params.enrichment_configured_flag_file)
 
     def is_configured(self):
@@ -85,28 +87,28 @@ class EnrichmentCommands:
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
         Logger.info("Creating topics for enrichment")
 
-        Logger.info("Creating topic'{0}'".format(self.__enrichment))
+        Logger.info("Creating topic'{0}'".format(self.__enrichment_topic))
         Execute(command_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
-                                        self.__enrichment,
+                                        self.__enrichment_topic,
                                         num_partitions,
                                         replication_factor,
                                         retention_bytes))
         Logger.info("Done creating Kafka topics")
 
     def start_enrichment_topology(self):
-        Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment))
+        Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
         start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
                                     -s {1} \
                                     -z {2}"""
-        Logger.info('Starting ' + self.__enrichment)
-        Execute(start_cmd_template.format(self.__params.metron_home, self.__enrichment, self.__params.zookeeper_quorum))
+        Logger.info('Starting ' + self.__enrichment_topology)
+        Execute(start_cmd_template.format(self.__params.metron_home, self.__enrichment_topology, self.__params.zookeeper_quorum))
 
         Logger.info('Finished starting enrichment topology')
 
     def stop_enrichment_topology(self):
-        Logger.info('Stopping ' + self.__enrichment)
-        stop_cmd = 'storm kill ' + self.__enrichment
+        Logger.info('Stopping ' + self.__enrichment_topology)
+        stop_cmd = 'storm kill ' + self.__enrichment_topology
         Execute(stop_cmd)
         Logger.info('Done stopping enrichment topologies')
 
@@ -131,7 +133,7 @@ class EnrichmentCommands:
 
     def is_topology_active(self, env):
         env.set_params(self.__params)
-        cmd_retrieve = "storm list | grep 'enrichment'"
+        cmd_retrieve = "storm list | grep '{0}'".format(self.__enrichment_topology)
         proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (stdout, stderr) = proc.communicate()
         Logger.info("Retrieval response is: %s" % stdout)
@@ -148,7 +150,7 @@ class EnrichmentCommands:
         return status in running_status_set
 
     def create_hbase_tables(self):
-        add_enrichment_cmd = format("echo \"create 'enrichment','t'\" | hbase shell -n")
+        add_enrichment_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.enrichment_table, self.__params.enrichment_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
                 try_sleep=5,
@@ -156,7 +158,7 @@ class EnrichmentCommands:
                 path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
                 )
 
-        add_threatintel_cmd = format("echo \"create 'threatintel','t'\" | hbase shell -n")
+        add_threatintel_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.threatintel_table, self.__params.threatintel_cf)
         Execute(add_threatintel_cmd,
                 tries=3,
                 try_sleep=5,

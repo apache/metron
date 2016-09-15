@@ -19,11 +19,11 @@ limitations under the License.
 """
 from __future__ import print_function
 
+import subprocess
 import sys
 
-from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
-import subprocess
+from resource_management.libraries.script import Script
 
 
 class ServiceCheck(Script):

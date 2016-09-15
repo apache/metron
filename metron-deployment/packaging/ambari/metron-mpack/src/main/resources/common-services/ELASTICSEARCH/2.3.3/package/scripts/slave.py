@@ -42,14 +42,14 @@ def slave():
               cd_access="a"
               )
 
-    File("{}/elastic-env.sh".format(params.conf_dir),
+    File("{0}/elastic-env.sh".format(params.conf_dir),
          owner=params.elastic_user,
          content=InlineTemplate(params.elastic_env_sh_template)
          )
 
     configurations = params.config['configurations']['elastic-site']
 
-    File("{}/elasticsearch.yml".format(params.conf_dir),
+    File("{0}/elasticsearch.yml".format(params.conf_dir),
          content=Template(
              "elasticsearch.slave.yaml.j2",
              configurations=configurations),

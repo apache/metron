@@ -20,10 +20,10 @@ Kibana Params configurations
 
 """
 
-
-from resource_management.libraries.script import Script
-from resource_management.libraries.functions import format
 from urlparse import urlparse
+
+from resource_management.libraries.functions import format
+from resource_management.libraries.script import Script
 
 # server configurations
 config = Script.get_config()

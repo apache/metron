@@ -17,9 +17,10 @@ limitations under the License.
 
 """
 
-from elastic import elastic
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
+
+from elastic import elastic
 
 
 class Elasticsearch(Script):
@@ -74,6 +75,7 @@ class Elasticsearch(Script):
         restart_cmd = format("service elasticsearch restart")
         print 'Restarting the Master'
         Execute(restart_cmd)
+
 
 if __name__ == "__main__":
     Elasticsearch().execute()

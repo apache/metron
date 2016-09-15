@@ -43,7 +43,6 @@ metron_home = status_params.metron_home
 parsers = status_params.parsers
 metron_ddl_dir = metron_home + '/ddl'
 geo_ip_ddl = metron_ddl_dir + '/geoip_ddl.sql'
-metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_indexing_topology = status_params.metron_indexing_topology
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_group = config['configurations']['metron-env']['metron_group']
@@ -153,3 +152,12 @@ HdfsResource = functools.partial(
     immutable_paths=get_not_managed_resources(),
     dfs_type=dfs_type
 )
+
+# HBase
+enrichment_table = status_params.enrichment_table
+enrichment_cf = status_params.enrichment_cf
+threatintel_table = status_params.threatintel_table
+threatintel_cf = status_params.threatintel_cf
+
+metron_enrichment_topology = status_params.metron_enrichment_topology
+metron_enrichment_topic = status_params.metron_enrichment_topic

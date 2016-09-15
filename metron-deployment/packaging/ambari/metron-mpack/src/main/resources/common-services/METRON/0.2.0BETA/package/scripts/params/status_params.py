@@ -32,7 +32,14 @@ metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_di
 parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
 
 # Enrichment
-metron_enrichment_topology = 'enrichments'
+metron_enrichment_topology = 'enrichment'
+metron_enrichment_topic = 'enrichments'
+
+enrichment_table = 'enrichment'
+enrichment_cf = 't'
+threatintel_table = 'threatintel'
+threatintel_cf = 't'
+
 mysql_process_name = 'mysqld'
 if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
     daemon_name = 'mysql'

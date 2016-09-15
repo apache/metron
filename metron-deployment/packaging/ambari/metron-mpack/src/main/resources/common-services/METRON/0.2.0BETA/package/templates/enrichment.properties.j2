@@ -60,8 +60,8 @@ org.apache.metron.metrics.TelemetryIndexingBolt.fails=true
 ##### Host Enrichment #####
 
 hbase.provider.impl=org.apache.metron.hbase.HTableProvider
-enrichment.simple.hbase.table=enrichment
-enrichment.simple.hbase.cf=t
+enrichment.simple.hbase.table={{enrichment_table}}
+enrichment.simple.hbase.cf={{enrichment_cf}}
 org.apache.metron.enrichment.host.known_hosts=[{"ip":"10.1.128.236", "local":"YES", "type":"webserver", "asset_value" : "important"},\
 {"ip":"10.1.128.237", "local":"UNKNOWN", "type":"unknown", "asset_value" : "important"},\
 {"ip":"10.60.10.254", "local":"YES", "type":"printer", "asset_value" : "important"}]
@@ -79,10 +79,10 @@ bolt.hbase.partitioner.region.info.refresh.interval.mins=60
 
 ##### Threat Intel #####
 
-threat.intel.tracker.table=threatintel
-threat.intel.tracker.cf=t
-threat.intel.simple.hbase.table=threatintel
-threat.intel.simple.hbase.cf=t
+threat.intel.tracker.table={{threatintel_table}}
+threat.intel.tracker.cf={{threatintel_cf}}
+threat.intel.simple.hbase.table={{threatintel_table}}
+threat.intel.simple.hbase.cf={{threatintel_cf}}
 threat.intel.ip.table=
 threat.intel.ip.cf=
 
