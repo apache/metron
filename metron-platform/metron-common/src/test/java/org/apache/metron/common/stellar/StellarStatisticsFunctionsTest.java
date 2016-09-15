@@ -108,7 +108,6 @@ public class StellarStatisticsFunctionsTest {
     Object ret = processor.parse(expr, x-> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
     byte[] raw = SerDeUtils.toBytes(ret);
     Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(ret, actual);
     if(ret instanceof StatisticsProvider) {
       StatisticsProvider left = (StatisticsProvider)ret;
       StatisticsProvider right = (StatisticsProvider)actual;
