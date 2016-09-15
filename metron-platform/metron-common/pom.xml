@@ -73,6 +73,7 @@
             <version>${global_storm_version}</version>
             <scope>provided</scope>
             <exclusions>
+
                 <exclusion>
                     <artifactId>servlet-api</artifactId>
                     <groupId>javax.servlet</groupId>
@@ -230,6 +231,11 @@
             <version>0.9.10</version>
         </dependency>
         <dependency>
+            <groupId>de.javakaffee</groupId>
+            <artifactId>kryo-serializers</artifactId>
+            <version>0.38</version>
+        </dependency>
+        <dependency>
             <groupId>com.tdunning</groupId>
             <artifactId>t-digest</artifactId>
             <version>3.1</version>
@@ -317,6 +323,14 @@
                                 <relocation>
                                     <pattern>org.apache.commons.beanutils</pattern>
                                     <shadedPattern>org.apache.metron.beanutils</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.esotericsoftware</pattern>
+                                    <shadedPattern>org.apache.metron.esotericsoftware</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>de.javakaffee</pattern>
+                                    <shadedPattern>org.apache.metron.javakaffee</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
