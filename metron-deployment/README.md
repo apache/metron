@@ -3,6 +3,8 @@ This set of playbooks can be used to deploy an Ambari-managed Hadoop cluster, Me
 playbooks. These playbooks currently only target RHEL/CentOS 6.x operating
 systems.
 
+In addition, an Ambari Management Pack can be built which can be deployed in conjuction with RPMs detailed later.
+
 ## Prerequisites
 The following tools are required to run these scripts:
 
@@ -91,6 +93,38 @@ installed
 Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.  This also provides a good
 example of how to run a full end-to-end Metron install.
 
+## Ambari Management Pack
+An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.
+
+This will set up
+- Metron Parsers
+- Enrichment
+- Indexing
+- GeoIP database on MySQL
+- Optional Elasticsearch
+- Optional Kibana
+
+### Prerequisites
+- A cluster managed by Ambari
+- Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#RPM) for further information.
+
+### Building Management Pack
+From `metron-deployment` run
+```
+mvn clean package
+```
+
+A tar.gz that can be used with Ambari can be found at `metron-deployment/packaging/ambari/metron-mpack/target/`
+
+### Installing Management Pack
+Place the mpack's tar.gz onto the node running Ambari Server. From the command line on this node, run
+```
+ambari-server install-mpack --mpack=<mpack_location> --verbose
+```
+
+This will make the services available in Ambari in the same manner as any services in a stack, e.g. through Add Services or during cluster install.
+
+
 ## RPM
 RPMs can be built to install the components in metron-platform. These RPMs are built in a Docker container and placed into `target`.
 
@@ -111,7 +145,7 @@ Components in the RPMs:
 ### Building RPMs
 From `metron-deployment` run
 ```
-mvn clean package
+mvn clean package -Pbuild-rpms
 ```
 
 The output RPM files will land in `target/RPMS/noarch`.  They can be installed with the standard
