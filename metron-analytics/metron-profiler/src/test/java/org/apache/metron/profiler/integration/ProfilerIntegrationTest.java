@@ -220,15 +220,17 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Reads a Double value written by the Profiler.
-   * @param columnQual The column qualifier.
+   * @param column The column qualifier.
    */
-  private Double readDouble(byte[] columnQual) throws IOException {
+  private Double readDouble(byte[] column) throws IOException {
     final byte[] cf = Bytes.toBytes(columnFamily);
-    ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
+    ResultScanner scanner = profilerTable.getScanner(cf, column);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(cf, columnQual);
-      return SerDeUtils.fromBytes(raw, Double.class);
+      if(result.containsColumn(cf, column)) {
+        byte[] raw = result.getValue(cf, column);
+        return SerDeUtils.fromBytes(raw, Double.class);
+      }
     }
 
     throw new IllegalStateException("No results found");
@@ -236,15 +238,17 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Reads an Integer value written by the Profiler.
-   * @param columnQual The column qualifier.
+   * @param column The column qualifier.
    */
-  private Integer readInteger(byte[] columnQual) throws IOException {
+  private Integer readInteger(byte[] column) throws IOException {
     final byte[] cf = Bytes.toBytes(columnFamily);
-    ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
+    ResultScanner scanner = profilerTable.getScanner(cf, column);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(cf, columnQual);
-      return SerDeUtils.fromBytes(raw, Integer.class);
+      if(result.containsColumn(cf, column)) {
+        byte[] raw = result.getValue(cf, column);
+        return SerDeUtils.fromBytes(raw, Integer.class);
+      }
     }
 
     throw new IllegalStateException("No results found");

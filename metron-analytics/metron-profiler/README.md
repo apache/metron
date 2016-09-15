@@ -21,6 +21,7 @@ The Profiler configuration requires a JSON-formatted set of elements, many of wh
 | [init](#init)  	    | Optional  	| One or more expressions executed at the start of a window period.
 | [update](#update)  	| Required  	| One or more expressions executed when a message is applied to the profile.
 | [result](#result)   	| Required  	| A Stellar expression that is executed when the window period expires.
+| [expires](#expires)   | Optional      | The data produced by the profile is purged after this period of time, specified in milliseconds.
 
 #### `profile` 
 
@@ -86,6 +87,12 @@ One or more expressions executed when a message is applied to the profile.  A ma
 
 A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	   
 
+#### `expires`
+
+*Optional*
+
+A numeric value that specifies how many days the data from the Profile will be maintained.  After this time, the data will expire and will no longer be accessible.
+
 ### Examples
 
 Examples of the types of profiles that can be built include the following.  Each shows the configuration that would be required to produce the profile.  These examples assume a fictitious input messages that looks something like the following.
@@ -130,7 +137,8 @@ The total number of bytes of HTTP data for each host. The following configuratio
       "update": {
         "total_bytes": "total_bytes + bytes_in"
       },
-      "result": "total_bytes"
+      "result": "total_bytes",
+      "expires": 30
     }
   ]
 }
@@ -143,6 +151,7 @@ This creates a profile...
  * Initializes a counter ‘total_bytes’ to zero
  * Adds to ‘total_bytes’ the value of the message's ‘bytes_in’ field
  * Returns ‘total_bytes’ as the result
+ * The profile data will expire in 30 days
 
 #### Example 2
 

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The user defined configuration values required to generate a Profile.
@@ -80,6 +81,12 @@ public class ProfileConfig implements Serializable {
    */
   private String result;
 
+  /**
+   * How long the data created by this Profile will be retained.  After this period of time the
+   * profile data will be purged and no longer accessible.
+   */
+  private Long expires;
+
   public String getProfile() {
     return profile;
   }
@@ -104,14 +111,6 @@ public class ProfileConfig implements Serializable {
     this.onlyif = onlyif;
   }
 
-  public String getResult() {
-    return result;
-  }
-
-  public void setResult(String result) {
-    this.result = result;
-  }
-
   public Map<String, String> getInit() {
     return init;
   }
@@ -128,18 +127,46 @@ public class ProfileConfig implements Serializable {
     this.update = update;
   }
 
+  public List<String> getGroupBy() {
+    return groupBy;
+  }
+
+  public void setGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
+  }
+
+  public String getResult() {
+    return result;
+  }
+
+  public void setResult(String result) {
+    this.result = result;
+  }
+
+  public Long getExpires() {
+    return expires;
+  }
+
+  public void setExpires(Long expiresDays) {
+    this.expires = TimeUnit.DAYS.toMillis(expiresDays);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileConfig that = (ProfileConfig) o;
+
     if (profile != null ? !profile.equals(that.profile) : that.profile != null) return false;
     if (foreach != null ? !foreach.equals(that.foreach) : that.foreach != null) return false;
     if (onlyif != null ? !onlyif.equals(that.onlyif) : that.onlyif != null) return false;
-    if (result != null ? !result.equals(that.result) : that.result != null) return false;
     if (init != null ? !init.equals(that.init) : that.init != null) return false;
-    return update != null ? update.equals(that.update) : that.update == null;
+    if (update != null ? !update.equals(that.update) : that.update != null) return false;
+    if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
+    if (result != null ? !result.equals(that.result) : that.result != null) return false;
+    return expires != null ? expires.equals(that.expires) : that.expires == null;
+
   }
 
   @Override
@@ -147,9 +174,11 @@ public class ProfileConfig implements Serializable {
     int result1 = profile != null ? profile.hashCode() : 0;
     result1 = 31 * result1 + (foreach != null ? foreach.hashCode() : 0);
     result1 = 31 * result1 + (onlyif != null ? onlyif.hashCode() : 0);
-    result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
     result1 = 31 * result1 + (init != null ? init.hashCode() : 0);
     result1 = 31 * result1 + (update != null ? update.hashCode() : 0);
+    result1 = 31 * result1 + (groupBy != null ? groupBy.hashCode() : 0);
+    result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
+    result1 = 31 * result1 + (expires != null ? expires.hashCode() : 0);
     return result1;
   }
 
@@ -159,9 +188,11 @@ public class ProfileConfig implements Serializable {
             "profile='" + profile + '\'' +
             ", foreach='" + foreach + '\'' +
             ", onlyif='" + onlyif + '\'' +
-            ", result='" + result + '\'' +
             ", init=" + init +
             ", update=" + update +
+            ", groupBy=" + groupBy +
+            ", result='" + result + '\'' +
+            ", expires=" + expires +
             '}';
   }
 }
