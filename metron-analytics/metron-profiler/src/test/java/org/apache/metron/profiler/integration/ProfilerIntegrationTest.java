@@ -136,7 +136,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' each with 390 bytes
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(390.0 * 5, actual, 0.01);
   }
 
@@ -157,7 +157,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' and 5 'DNS' messages thus 5/5 = 1
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(5.0 / 5.0, actual, 0.01);
   }
 
@@ -178,7 +178,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
@@ -195,9 +195,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
-    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readInteger(columnBuilder.getColumnQualifier("value"));
-    Assert.assertEquals(10.0, actual, 0.01);
+    // verify - the profile literally writes 10 as an integer
+    int actual = read(columnBuilder.getColumnQualifier("value"), Integer.class);
+    Assert.assertEquals(10, actual);
   }
 
   @Test
@@ -214,40 +214,26 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - the 70th percentile of 5 x 20s = 20.0
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
   /**
-   * Reads a Double value written by the Profiler.
+   * Reads a value written by the Profiler.
+   *
    * @param column The column qualifier.
+   * @param clazz The expected type of the result.
+   * @param <T> The expected type of the result.
+   * @return The value contained within the column.
    */
-  private Double readDouble(byte[] column) throws IOException {
+  private <T> T read(byte[] column, Class<T> clazz) throws IOException {
     final byte[] cf = Bytes.toBytes(columnFamily);
     ResultScanner scanner = profilerTable.getScanner(cf, column);
 
     for (Result result : scanner) {
       if(result.containsColumn(cf, column)) {
         byte[] raw = result.getValue(cf, column);
-        return SerDeUtils.fromBytes(raw, Double.class);
-      }
-    }
-
-    throw new IllegalStateException("No results found");
-  }
-
-  /**
-   * Reads an Integer value written by the Profiler.
-   * @param column The column qualifier.
-   */
-  private Integer readInteger(byte[] column) throws IOException {
-    final byte[] cf = Bytes.toBytes(columnFamily);
-    ResultScanner scanner = profilerTable.getScanner(cf, column);
-
-    for (Result result : scanner) {
-      if(result.containsColumn(cf, column)) {
-        byte[] raw = result.getValue(cf, column);
-        return SerDeUtils.fromBytes(raw, Integer.class);
+        return SerDeUtils.fromBytes(raw, clazz);
       }
     }
 
