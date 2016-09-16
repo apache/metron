@@ -219,7 +219,8 @@ public class SaltyRowKeyBuilderTest {
     rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
 
     // a dummy profile measurement
-    long oldest = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hoursAgo);
+    long now = System.currentTimeMillis();
+    long oldest = now - TimeUnit.HOURS.toMillis(hoursAgo);
     ProfileMeasurement m = new ProfileMeasurement("profile", "entity", oldest, periodDuration, periodUnits);
     m.setValue(22);
 
@@ -237,7 +238,7 @@ public class SaltyRowKeyBuilderTest {
     }
 
     // execute
-    List<byte[]> actualKeys = rowKeyBuilder.rowKeys(measurement.getProfileName(), measurement.getEntity(), groups, hoursAgo, TimeUnit.HOURS);
+    List<byte[]> actualKeys = rowKeyBuilder.rowKeys(measurement.getProfileName(), measurement.getEntity(), groups, oldest, now);
 
     // validate - expectedKeys == actualKeys
     for(int i=0; i<actualKeys.size(); i++) {

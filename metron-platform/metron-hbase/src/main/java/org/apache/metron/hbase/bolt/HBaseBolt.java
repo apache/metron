@@ -179,9 +179,8 @@ public class HBaseBolt extends BaseRichBolt {
   }
 
   /**
-   *
-   * @param connectorImpl
-   * @return
+   * Creates a TableProvider based on a class name.
+   * @param connectorImpl The class name of a TableProvider
    */
   private static TableProvider getTableProvider(String connectorImpl) {
 
