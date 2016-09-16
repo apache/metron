@@ -130,7 +130,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     // once the time window expires, a complete ProfileMeasurement is emitted
-    declarer.declare(new Fields("measurement"));
+    declarer.declare(new Fields("measurement", "profile"));
   }
 
   @Override
@@ -234,7 +234,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     try {
       String resultExpr = profileConfig.getResult();
       result = executor.execute(resultExpr, new JSONObject(), Object.class);
-    
+
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);
     }
@@ -255,7 +255,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * @param measurement The completed ProfileMeasurement.
    */
   private void emit(ProfileMeasurement measurement, Tuple anchor) {
-    collector.emit(anchor, new Values(measurement));
+    collector.emit(anchor, new Values(measurement, profileConfig));
     collector.ack(anchor);
   }
 
@@ -281,7 +281,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   protected static boolean isTickTuple(Tuple tuple) {
     return Constants.SYSTEM_COMPONENT_ID.equals(tuple.getSourceComponent()) &&
-      Constants.SYSTEM_TICK_STREAM_ID.equals(tuple.getSourceStreamId());
+            Constants.SYSTEM_TICK_STREAM_ID.equals(tuple.getSourceStreamId());
   }
 
   public StellarExecutor getExecutor() {

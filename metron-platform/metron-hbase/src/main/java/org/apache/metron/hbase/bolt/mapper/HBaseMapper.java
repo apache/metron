@@ -34,23 +34,29 @@ import java.util.Optional;
 public interface HBaseMapper extends Serializable {
 
   /**
-   * Given a tuple, return the HBase rowkey.
+   * Defines the HBase row key that will be used when writing the data from a
+   * tuple to HBase.
    *
-   * @param tuple The tuple to map to Hbase
+   * @param tuple The tuple to map to HBase.
    */
   byte[] rowKey(Tuple tuple);
 
   /**
-   * Given a tuple, return a list of HBase columns to insert.
+   * Defines the columnar structure that will be used when writing the data
+   * from a tuple to HBase.
    *
-   * @param tuple The tuple to map to Hbase
+   * @param tuple The tuple to map to HBase.
    */
   ColumnList columns(Tuple tuple);
 
   /**
-   * Given a tuple, return the time to live.
    *
-   * @param tuple The tuple to map to Hbase
+   * Defines the TTL (time-to-live) that will be used when writing the data
+   * from a tuple to HBase.  After the TTL, the data will expire and will be
+   * purged.
+   *
+   * @param tuple The tuple to map to HBase.
+   * @return The TTL in milliseconds.
    */
   Optional<Long> getTTL(Tuple tuple);
 }
