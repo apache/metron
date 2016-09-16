@@ -21,7 +21,7 @@ The Profiler configuration requires a JSON-formatted set of elements, many of wh
 | [init](#init)  	    | Optional  	| One or more expressions executed at the start of a window period.
 | [update](#update)  	| Required  	| One or more expressions executed when a message is applied to the profile.
 | [result](#result)   	| Required  	| A Stellar expression that is executed when the window period expires.
-| [expires](#expires)   | Optional      | The data produced by the profile is purged after this period of time, specified in milliseconds.
+| [expires](#expires)   | Optional      | Profile data is purged after this period of time, specified in milliseconds.
 
 #### `profile` 
 
@@ -91,7 +91,7 @@ A Stellar expression that is executed when the window period expires.  The expre
 
 *Optional*
 
-A numeric value that specifies how many days the data from the Profile will be maintained.  After this time, the data will expire and will no longer be accessible.
+A numeric value that defines how many days the profile data is retained.  After this time, the data expires and is no longer accessible.  If no value is defined, the data does not expire.
 
 ### Examples
 
