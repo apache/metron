@@ -43,7 +43,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
    * 100 is a sensible default and the number of centroids retained (to construct the sketch)
    * is usually a smallish (usually < 10) multiple of the compression.
    */
-  public static final int COMPRESSION = 100;
+  public static final int COMPRESSION = 150;
 
 
   /**
