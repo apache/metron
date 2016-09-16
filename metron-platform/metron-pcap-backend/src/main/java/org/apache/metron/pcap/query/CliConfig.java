@@ -29,6 +29,7 @@ public class CliConfig {
   private long startTime;
   private long endTime;
   private int numReducers;
+  private int numRecordsPerFile;
   private DateFormat dateFormat;
 
   public CliConfig() {
@@ -98,5 +99,13 @@ public class CliConfig {
 
   public void setNumReducers(int numReducers) {
     this.numReducers = numReducers;
+  }
+
+  public int getNumRecordsPerFile() {
+    return numRecordsPerFile;
+  }
+
+  public void setNumRecordsPerFile(int numRecordsPerFile) {
+    this.numRecordsPerFile = numRecordsPerFile;
   }
 }

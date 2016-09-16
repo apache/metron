@@ -271,7 +271,7 @@ public class PcapTopologyIntegrationTest {
       PcapJob job = new PcapJob();
       {
         //Ensure that only two pcaps are returned when we look at 4 and 5
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(4, pcapEntries)
@@ -283,12 +283,12 @@ public class PcapTopologyIntegrationTest {
                         , new FixedPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), 2);
+        Assert.assertEquals(Iterables.size(results), 2);
       }
       {
         // Ensure that only two pcaps are returned when we look at 4 and 5
         // test with empty query filter
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(4, pcapEntries)
@@ -300,11 +300,11 @@ public class PcapTopologyIntegrationTest {
                         , new QueryPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), 2);
+        Assert.assertEquals(Iterables.size(results), 2);
       }
       {
         //ensure that none get returned since that destination IP address isn't in the dataset
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -318,12 +318,12 @@ public class PcapTopologyIntegrationTest {
                         , new FixedPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), 0);
+        Assert.assertEquals(Iterables.size(results), 0);
       }
       {
         // ensure that none get returned since that destination IP address isn't in the dataset
         // test with query filter
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -335,11 +335,11 @@ public class PcapTopologyIntegrationTest {
                         , new QueryPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), 0);
+        Assert.assertEquals(Iterables.size(results), 0);
       }
       {
         //same with protocol as before with the destination addr
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -353,12 +353,12 @@ public class PcapTopologyIntegrationTest {
                         , new FixedPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), 0);
+        Assert.assertEquals(Iterables.size(results), 0);
       }
       {
         //same with protocol as before with the destination addr
         //test with query filter
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -370,11 +370,11 @@ public class PcapTopologyIntegrationTest {
                         , new QueryPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), 0);
+        Assert.assertEquals(Iterables.size(results), 0);
       }
       {
         //make sure I get them all.
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -386,12 +386,12 @@ public class PcapTopologyIntegrationTest {
                         , new FixedPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), pcapEntries.size());
+        Assert.assertEquals(Iterables.size(results), pcapEntries.size());
       }
       {
         //make sure I get them all.
         //with query filter
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -403,10 +403,10 @@ public class PcapTopologyIntegrationTest {
                         , new QueryPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertEquals(results.size(), pcapEntries.size());
+        Assert.assertEquals(Iterables.size(results), pcapEntries.size());
       }
       {
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -420,8 +420,8 @@ public class PcapTopologyIntegrationTest {
                         , new FixedPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertTrue(results.size() > 0);
-        Assert.assertEquals(results.size()
+        Assert.assertTrue(Iterables.size(results) > 0);
+        Assert.assertEquals(Iterables.size(results)
                 , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
                           @Override
                           public boolean apply(@Nullable JSONObject input) {
@@ -432,12 +432,12 @@ public class PcapTopologyIntegrationTest {
                 )
         );
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, results);
+        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
         Assert.assertTrue(baos.toByteArray().length > 0);
       }
       {
         //test with query filter
-        List<byte[]> results =
+        Iterable<byte[]> results =
                 job.query(new Path(outDir.getAbsolutePath())
                         , new Path(queryDir.getAbsolutePath())
                         , getTimestamp(0, pcapEntries)
@@ -449,8 +449,8 @@ public class PcapTopologyIntegrationTest {
                         , new QueryPcapFilter.Configurator()
                 );
         assertInOrder(results);
-        Assert.assertTrue(results.size() > 0);
-        Assert.assertEquals(results.size()
+        Assert.assertTrue(Iterables.size(results) > 0);
+        Assert.assertEquals(Iterables.size(results)
                 , Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
                   @Override
                   public boolean apply(@Nullable JSONObject input) {
@@ -462,7 +462,7 @@ public class PcapTopologyIntegrationTest {
         );
         assertInOrder(results);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PcapMerger.merge(baos, results);
+        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
         Assert.assertTrue(baos.toByteArray().length > 0);
       }
       System.out.println("Ended");

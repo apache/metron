@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
@@ -38,14 +39,12 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PcapCliTest {
@@ -74,6 +73,9 @@ public class PcapCliTest {
             "-protocol", "6"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
+    Iterator iterator = pcaps.iterator();
+    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
+    when(iterable.iterator()).thenReturn(iterator);
 
     Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
     Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
@@ -86,7 +88,7 @@ public class PcapCliTest {
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
     }};
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -108,9 +110,13 @@ public class PcapCliTest {
             "-ip_dst_port", "8082",
             "-protocol", "6",
             "-include_reverse",
-            "-num_reducers", "10"
+            "-num_reducers", "10",
+            "-records_per_file", "1000"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
+    Iterator iterator = pcaps.iterator();
+    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
+    when(iterable.iterator()).thenReturn(iterator);
 
     Path base_path = new Path("/base/path");
     Path base_output_path = new Path("/base/output/path");
@@ -123,7 +129,7 @@ public class PcapCliTest {
       put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "true");
     }};
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -146,9 +152,13 @@ public class PcapCliTest {
             "-ip_dst_port", "8082",
             "-protocol", "6",
             "-include_reverse",
-            "-num_reducers", "10"
+            "-num_reducers", "10",
+            "-records_per_file", "1000"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
+    Iterator iterator = pcaps.iterator();
+    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
+    when(iterable.iterator()).thenReturn(iterator);
 
     Path base_path = new Path("/base/path");
     Path base_output_path = new Path("/base/output/path");
@@ -163,7 +173,7 @@ public class PcapCliTest {
 
     long startAsNanos = asNanos("2016-06-13-18:35.00", "yyyy-MM-dd-HH:mm.ss");
     long endAsNanos = asNanos("2016-06-15-18:35.00", "yyyy-MM-dd-HH:mm.ss");
-    when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -189,12 +199,15 @@ public class PcapCliTest {
             "-query", "some query string"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
+    Iterator iterator = pcaps.iterator();
+    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
+    when(iterable.iterator()).thenReturn(iterator);
 
     Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
     Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
     String query = "some query string";
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
@@ -211,15 +224,19 @@ public class PcapCliTest {
             "-num_reducers", "10",
             "-base_path", "/base/path",
             "-base_output_path", "/base/output/path",
-            "-query", "some query string"
+            "-query", "some query string",
+            "-records_per_file", "1000"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
+    Iterator iterator = pcaps.iterator();
+    SequenceFileIterable iterable = mock(SequenceFileIterable.class);
+    when(iterable.iterator()).thenReturn(iterator);
 
     Path base_path = new Path("/base/path");
     Path base_output_path = new Path("/base/output/path");
     String query = "some query string";
 
-    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(pcaps);
+    when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
     when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
     PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);

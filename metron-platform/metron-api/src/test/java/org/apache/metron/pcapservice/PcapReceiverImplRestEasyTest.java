@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.mr.PcapJob;
@@ -31,7 +32,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.EnumMap;
-import java.util.List;
 
 public class PcapReceiverImplRestEasyTest {
 
@@ -44,7 +44,7 @@ public class PcapReceiverImplRestEasyTest {
     PcapFilterConfigurator<R> filterImpl;
 
     @Override
-    public <T> List<byte[]> query( Path basePath
+    public <T> SequenceFileIterable query(Path basePath
             , Path baseOutputPath
             , long beginNS
             , long endNS
