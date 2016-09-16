@@ -22,13 +22,12 @@ package org.apache.metron.profiler.client;
 
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.storm.hbase.common.ColumnList;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

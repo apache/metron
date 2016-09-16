@@ -22,15 +22,26 @@ package org.apache.metron.hbase;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
-import org.apache.storm.hbase.common.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 
-import java.util.Calendar;
+import java.util.Optional;
+
 
 /**
  * Maps a Widget to HBase.  Used only for testing.
  */
 public class WidgetMapper implements HBaseMapper {
+
+  private Optional<Long> ttl;
+
+  public WidgetMapper() {
+    this.ttl = Optional.empty();
+  }
+
+  public WidgetMapper(Long ttl) {
+    this.ttl = Optional.of(ttl);
+  }
 
   @Override
   public byte[] rowKey(Tuple tuple) {
@@ -46,6 +57,11 @@ public class WidgetMapper implements HBaseMapper {
     cols.addColumn(CF, QNAME, Bytes.toBytes(w.getName()));
     cols.addColumn(CF, QCOST, Bytes.toBytes(w.getCost()));
     return cols;
+  }
+
+  @Override
+  public Optional<Long> getTTL(Tuple tuple) {
+    return ttl;
   }
 
   public static final String CF_STRING = "cfWidget";

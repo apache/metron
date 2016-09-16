@@ -26,13 +26,13 @@ import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.test.bolt.BaseBoltTest;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -52,7 +52,6 @@ public class HBaseBoltTest extends BaseBoltTest {
   private Tuple tuple2;
   private Widget widget1;
   private Widget widget2;
-  private HBaseMapper mapper;
 
   @Before
   public void setupTuples() throws Exception {
@@ -68,7 +67,6 @@ public class HBaseBoltTest extends BaseBoltTest {
 
   @Before
   public void setup() throws Exception {
-    mapper = new WidgetMapper();
     tuple1 = mock(Tuple.class);
     tuple2 = mock(Tuple.class);
     client = mock(HBaseClient.class);
@@ -77,7 +75,7 @@ public class HBaseBoltTest extends BaseBoltTest {
   /**
    * Create a ProfileBuilderBolt to test
    */
-  private HBaseBolt createBolt(int batchSize) throws IOException {
+  private HBaseBolt createBolt(int batchSize, WidgetMapper mapper) throws IOException {
     HBaseBolt bolt = new HBaseBolt(tableName, mapper)
             .withBatchSize(batchSize);
     bolt.prepare(Collections.emptyMap(), topologyContext, outputCollector);
@@ -86,17 +84,18 @@ public class HBaseBoltTest extends BaseBoltTest {
   }
 
   /**
-   * What happens if the batch is full?
+   * What happens if the batch is ready to flush?
    *
    * If the batch size is 2 and we have received 2 tuples the batch should be flushed.
    */
   @Test
   public void testBatchReady() throws Exception {
-    HBaseBolt bolt = createBolt(2);
+    HBaseBolt bolt = createBolt(2, new WidgetMapper());
     bolt.execute(tuple1);
     bolt.execute(tuple2);
 
     // batch size is 2, received 2 tuples - flush the batch
+    verify(client, times(2)).addMutation(any(), any(), any());
     verify(client, times(1)).mutate();
   }
 
@@ -105,10 +104,11 @@ public class HBaseBoltTest extends BaseBoltTest {
    */
   @Test
   public void testBatchNotReady() throws Exception {
-    HBaseBolt bolt = createBolt(2);
+    HBaseBolt bolt = createBolt(2, new WidgetMapper());
     bolt.execute(tuple1);
 
-    // batch size is 2, but only 1 tuple received - do not flush batch
+    // 1 put was added to the batch, but nothing was flushed
+    verify(client, times(1)).addMutation(any(), any(), any());
     verify(client, times(0)).mutate();
   }
 
@@ -117,15 +117,40 @@ public class HBaseBoltTest extends BaseBoltTest {
    */
   @Test
   public void testTimeFlush() throws Exception {
-    HBaseBolt bolt = createBolt(2);
+    HBaseBolt bolt = createBolt(2, new WidgetMapper());
 
     // the batch is not ready to write
     bolt.execute(tuple1);
+    verify(client, times(1)).addMutation(any(), any(), any());
     verify(client, times(0)).mutate();
 
     // the batch should be flushed after the tick tuple
     bolt.execute(mockTickTuple());
     verify(client, times(1)).mutate();
+  }
+
+  /**
+   * The mapper can define a TTL that the HBaseBolt uses to determine
+   * if the Put to Hbase needs the TTL set.
+   */
+  @Test
+  public void testWriteWithTTL() throws Exception {
+
+    // setup - create a mapper with a TTL set
+    final Long expectedTTL = 2000L;
+    WidgetMapper mapperWithTTL = new WidgetMapper(expectedTTL);
+
+    // execute
+    HBaseBolt bolt = createBolt(2, mapperWithTTL);
+    bolt.execute(tuple1);
+    bolt.execute(tuple2);
+
+    // used to grab the actual TTL
+    ArgumentCaptor<Long> ttlCaptor = ArgumentCaptor.forClass(Long.class);
+
+    // validate - ensure the Puts written with the TTL
+    verify(client, times(2)).addMutation(any(), any(), any(), ttlCaptor.capture());
+    Assert.assertEquals(expectedTTL, ttlCaptor.getValue());
   }
 
   private static Tuple mockTuple(String componentId, String streamId) {
