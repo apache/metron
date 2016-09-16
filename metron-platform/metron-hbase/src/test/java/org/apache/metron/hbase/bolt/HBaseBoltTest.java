@@ -24,7 +24,6 @@ import backtype.storm.Constants;
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
-import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.junit.Assert;
