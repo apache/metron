@@ -1,5 +1,0 @@
-{
-"parserClassName":"org.apache.metron.parsers.bluecoat.BasicBluecoatParser",
-"sensorTopic":"bluecoat",
-"parserConfig": {}
-}
