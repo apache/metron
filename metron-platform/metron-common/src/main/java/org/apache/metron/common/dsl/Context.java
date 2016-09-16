@@ -27,12 +27,13 @@ public class Context implements Serializable {
   public interface Capability {
     Object get();
   }
-
+  
   public enum Capabilities {
-    HBASE_PROVIDER,
-    ZOOKEEPER_CLIENT,
-    SERVICE_DISCOVERER,
-    GLOBAL_CONFIG
+    SENSOR_CONFIG
+    , HBASE_PROVIDER
+    , GLOBAL_CONFIG
+    , ZOOKEEPER_CLIENT
+    , SERVICE_DISCOVERER;
   }
 
   public static class Builder {
@@ -46,6 +47,14 @@ public class Context implements Serializable {
 
     public Builder with(Enum<?> s, Capability capability) {
       capabilityMap.put(s.toString(), capability);
+      return this;
+    }
+    
+    public Builder withAll(Map<String, Object> externalConfig) {
+      for(Map.Entry<String, Object> entry : externalConfig.entrySet()) {
+
+        capabilityMap.put(entry.getKey(), () -> entry.getValue());
+      }
       return this;
     }
 

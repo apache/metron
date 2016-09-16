@@ -26,6 +26,8 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
+import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -58,7 +60,6 @@ import java.util.Properties;
 import java.util.Set;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
-
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
@@ -79,11 +80,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       return provider.getTable(config, tableName);
     }
   }
-
-
-
-
-
 
   @Test
   public void test() throws Exception {
@@ -112,11 +108,22 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1));
     }});
-
+    String globalConfigStr = null;
+    {
+      File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
+      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
+      });
+      config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, Provider.class.getName());
+      config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
+      config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
+      config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
+      globalConfigStr = JSONUtils.INSTANCE.toJSON(config, true);
+    }
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
-            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
+            .withGlobalConfig(globalConfigStr)
+            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            ;
 
     //create MockHBaseTables
     final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
@@ -131,6 +138,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                         )
          );
     }});
+
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
@@ -277,14 +285,28 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation")
                 , PLAYFUL_ENRICHMENT.get("orientation")
         );
+        Assert.assertEquals(indexedDoc.get("src_classification.orientation")
+                , PLAYFUL_ENRICHMENT.get("orientation"));
+        Assert.assertEquals(indexedDoc.get("is_src_malicious")
+                , true);
       }
       else if(indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")) {
         Assert.assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation")
                 , PLAYFUL_ENRICHMENT.get("orientation")
         );
+        Assert.assertEquals(indexedDoc.get("dst_classification.orientation")
+                , PLAYFUL_ENRICHMENT.get("orientation"));
+
+      }
+      if(!indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")) {
+        Assert.assertEquals(indexedDoc.get("is_src_malicious")
+                , false);
       }
     }
-
+    else {
+      Assert.assertEquals(indexedDoc.get("is_src_malicious")
+              , false);
+    }
   }
   private static void threatIntelValidation(Map<String, Object> indexedDoc) {
     if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")
