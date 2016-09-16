@@ -120,6 +120,7 @@ public class SequenceFileIterable implements Iterable<byte[]> {
         }
       } catch (IOException e) {
         // ah well, we tried...
+        LOGGER.warn("Error closing file", e);
       }
     }
 
