@@ -1,4 +1,4 @@
-package org.apache.metron.common.stellar;
+package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.Lists;
 import org.apache.metron.common.dsl.FunctionResolverSingleton;

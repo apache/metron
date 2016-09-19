@@ -77,6 +77,22 @@ The following functions are supported:
     * string - The string to test
     * suffix - The proposed suffix
   * Returns: True if the string ends with the specified suffix and false otherwise.
+* `ENRICHMENT_EXISTS`
+  * Description: Interrogates the HBase table holding the simple hbase enrichment data and returns whether the enrichment type and indicator are in the table.
+  * Input:
+    * enrichment_type - The enrichment type
+    * indicator - The string indicator to look up
+    * nosql_table - The NoSQL Table to use
+    * column_family - The Column Family to use
+  * Returns: True if the enrichment indicator exists and false otherwise
+* `ENRICHMENT_GET`
+  * Description: Interrogates the HBase table holding the simple hbase enrichment data and retrieves the tabular value associated with the enrichment type and indicator.
+  * Input:
+    * enrichment_type - The enrichment type
+    * indicator - The string indicator to look up
+    * nosql_table - The NoSQL Table to use
+    * column_family - The Column Family to use
+  * Returns: A Map associated with the indicator and enrichment type.  Empty otherwise.
 * `GET`
   * Description: Returns the i'th element of the list 
   * Input:
