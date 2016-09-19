@@ -4,10 +4,21 @@ Parsers are pluggable components which are used to transform raw data
 (textual or raw bytes) into JSON messages suitable for downstream
 enrichment and indexing.  
 
-There are two types of parsers:
-*  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and
-is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
-* A Grok parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.
+There are two general types types of parsers:
+*  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
+* A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
+  * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of 
+    * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
+    * `patternLabel` : The pattern label to use from the grok statement
+    * `timestampField` : The field to use for timestamp
+    * `timeFields` : A list of fields to be treated as time
+    * `dateFormat` : The date format to use to parse the time fields
+    * `timezone` : The timezone to use. `UTC` is default.
+  * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
+    * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
+    * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
+    * `separator` : The column separator, `,` by default.
+just
 
 ##Message Format
 
@@ -46,6 +57,10 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 
 }
 ```
+
+##Global Configuration 
+
+See the "[Global Configuration](../metron-common)" section.
 
 ##Parser Configuration
 
@@ -126,7 +141,8 @@ to a textual representation of the protocol:
 This transformation would transform `{ "protocol" : 6, "source.type" : "bro", ... }` 
 into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
 
-* `MTL` : This transformation executes a set of transformations expressed as [Metron Transformation Language](../metron-common) statements.
+* `STELLAR` : This transformation executes a set of transformations
+  expressed as [Stellar Language](../metron-common) statements.
 
 Consider the following sensor parser config to add three new fields to a
 message:
@@ -139,7 +155,7 @@ message:
 ...
     "fieldTransformations" : [
           {
-           "transformation" : "MTL"
+           "transformation" : "STELLAR"
           ,"output" : [ "utc_timestamp", "url_host", "url_protocol" ]
           ,"config" : {
             "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd
