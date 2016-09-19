@@ -1,6 +1,7 @@
 package org.apache.metron.parsers.json;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
@@ -10,12 +11,48 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class JSONMapParser extends BasicParser {
+  private static interface Handler {
+    JSONObject handle(String key, Map value, JSONObject obj);
+  }
+  public static enum MapStrategy implements Handler {
+     DROP((key, value, obj) -> obj)
+    ,UNFOLD( (key, value, obj) -> {
+      Set<Map.Entry<Object, Object>> entrySet = value.entrySet();
+      for(Map.Entry<Object, Object> kv : entrySet) {
+        String newKey = Joiner.on(".").join(key, kv.getKey().toString());
+        obj.put(newKey, kv.getValue());
+      }
+      return obj;
+    })
+    ,ALLOW((key, value, obj) -> {
+      obj.put(key, value);
+      return obj;
+    })
+    ,ERROR((key, value, obj) -> {
+      throw new IllegalStateException("Unable to process " + key + " => " + value + " because value is a map.");
+    })
+    ;
+    Handler handler;
+    MapStrategy(Handler handler) {
+      this.handler = handler;
+    }
+
+    @Override
+    public JSONObject handle(String key, Map value, JSONObject obj) {
+      return handler.handle(key, value, obj);
+    }
+
+  }
+  public static final String MAP_STRATEGY_CONFIG = "mapStrategy";
+  private MapStrategy mapStrategy = MapStrategy.DROP;
 
   @Override
   public void configure(Map<String, Object> config) {
-
+    String strategyStr = (String) config.getOrDefault(MAP_STRATEGY_CONFIG, MapStrategy.DROP.name());
+    mapStrategy = MapStrategy.valueOf(strategyStr);
   }
 
   /**
@@ -54,7 +91,7 @@ public class JSONMapParser extends BasicParser {
   }
 
   /**
-   * Remove all collections as values.  We have standardized on one-dimensional maps as our data model..
+   * Process all sub-maps via the MapHandler.  We have standardized on one-dimensional maps as our data model..
    *
    * @param map
    * @return
@@ -62,10 +99,12 @@ public class JSONMapParser extends BasicParser {
   private JSONObject normalizeJSON(Map<String, Object> map) {
     JSONObject ret = new JSONObject();
     for(Map.Entry<String, Object> kv : map.entrySet()) {
-      if(kv.getValue() instanceof Collection) {
-        continue;
+      if(kv.getValue() instanceof Map) {
+        mapStrategy.handle(kv.getKey(), (Map) kv.getValue(), ret);
       }
-      ret.put(kv.getKey(), kv.getValue());
+      else {
+        ret.put(kv.getKey(), kv.getValue());
+      }
     }
     return ret;
   }
