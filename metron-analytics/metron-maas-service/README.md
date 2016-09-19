@@ -125,16 +125,16 @@ This service will treat `yahoo.com` and `amazon.com` as legit and everything els
 ## Deploy Mock DGA Service via MaaS
 
 Now let's start MaaS and deploy the Mock DGA Service:
-* Start MaaS via `/usr/metron/0.2.0BETA/bin/maas_service.sh -zq node1:2181`
-* Start one instance of the mock DGA model with 512M of memory via `/usr/metron/0.2.0BETA/bin/maas_deploy.sh -zq node1:2181 -lmp /root/mock_dga -hmp /user/root/models -mo ADD -m 512 -n dga -v 1.0 -ni 1`
+* Start MaaS via `$METRON_HOME/bin/maas_service.sh -zq node1:2181`
+* Start one instance of the mock DGA model with 512M of memory via `$METRON_HOME/bin/maas_deploy.sh -zq node1:2181 -lmp /root/mock_dga -hmp /user/root/models -mo ADD -m 512 -n dga -v 1.0 -ni 1`
 * As a sanity check:
-  * Ensure that the model is running via `/usr/metron/0.2.0BETA/bin/maas_deploy.sh -zq node1:2181 -mo LIST`.  You should see `Model dga @ 1.0` be displayed and under that a url such as (but not exactly) `http://node1:36161`
+  * Ensure that the model is running via `$METRON_HOME/bin/maas_deploy.sh -zq node1:2181 -mo LIST`.  You should see `Model dga @ 1.0` be displayed and under that a url such as (but not exactly) `http://node1:36161`
   * Try to hit the model via curl: `curl 'http://localhost:36161/apply?host=caseystella.com'` and ensure that it returns a JSON map indicating the domain is malicious.
 
 ## Adjust Configurations for Squid to Call Model
 Now that we have a deployed model, let's adjust the configurations for the Squid topology to annotate the messages with the output of the model.
 
-* Edit the squid parser configuration at `/usr/metron/0.2.0BETA/config/zookeeper/parsers/squid.json` in your favorite text editor and add a new FieldTransformation to indicate a threat alert based on the model (note the addition of `is_malicious` and `is_alert`):
+* Edit the squid parser configuration at `$METRON_HOME/config/zookeeper/parsers/squid.json` in your favorite text editor and add a new FieldTransformation to indicate a threat alert based on the model (note the addition of `is_malicious` and `is_alert`):
 ```
 {
   "parserClassName": "org.apache.metron.parsers.GrokParser",
@@ -158,7 +158,7 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
                            ]
 }
 ```
-* Edit the squid enrichment configuration at `/usr/metron/0.2.0BETA/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to make the threat triage adjust the level of risk based on the model output:
+* Edit the squid enrichment configuration at `$METRON_HOME/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to make the threat triage adjust the level of risk based on the model output:
 ```
 {
   "index": "squid",
@@ -177,12 +177,12 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
   }
 }
 ```
-* Upload new configs via `/usr/metron/0.2.0BETA/bin/zk_load_configs.sh --mode PUSH -i /usr/metron/0.2.0BETA/config/zookeeper -z node1:2181`
+* Upload new configs via `$METRON_HOME/bin/zk_load_configs.sh --mode PUSH -i $METRON_HOME/config/zookeeper -z node1:2181`
 * Make the Squid topic in kafka via `/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper node1:2181 --create --topic squid --partitions 1 --replication-factor 1`
 
 ## Start Topologies and Send Data
 Now we need to start the topologies and send some data:
-* Start the squid topology via `/usr/metron/0.2.0BETA/bin/start_parser_topology.sh -k node1:6667 -z node1:2181 -s squid`
+* Start the squid topology via `$METRON_HOME/bin/start_parser_topology.sh -k node1:6667 -z node1:2181 -s squid`
 * Generate some data via the squid client:
   * Generate a legit example: `squidclient http://yahoo.com`
   * Generate a malicious example: `squidclient http://cnn.com`
