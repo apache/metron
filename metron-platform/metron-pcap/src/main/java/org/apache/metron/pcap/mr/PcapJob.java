@@ -27,7 +27,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
@@ -35,6 +34,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.log4j.Logger;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
@@ -64,6 +64,11 @@ public class PcapJob {
       }
       long x = longWritable.get();
       int ret = (int)Long.divideUnsigned(x - start, width);
+      if(ret > numPartitions) {
+        throw new IllegalArgumentException(String.format("Bad partition: key=%s, width=%d, partition=%d, numPartitions=%d"
+                , Long.toUnsignedString(x), width, ret, numPartitions)
+            );
+      }
       return ret;
     }
 
@@ -176,32 +181,26 @@ public class PcapJob {
     return ret;
   }
 
-  private List<byte[]> readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
-    List<byte[]> ret = new ArrayList<>();
-    for(RemoteIterator<LocatedFileStatus> it= fs.listFiles(outputPath, false);it.hasNext();) {
+  /**
+   * Returns a lazily-read Iterable over a set of sequence files
+   */
+  private SequenceFileIterable readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
+    List<Path> files = new ArrayList<>();
+    for (RemoteIterator<LocatedFileStatus> it = fs.listFiles(outputPath, false); it.hasNext(); ) {
       Path p = it.next().getPath();
-      if(p.getName().equals("_SUCCESS")) {
+      if (p.getName().equals("_SUCCESS")) {
         fs.delete(p, false);
         continue;
       }
-      SequenceFile.Reader reader = new SequenceFile.Reader(config,
-            SequenceFile.Reader.file(p));
-      LongWritable key = new LongWritable();
-      BytesWritable value = new BytesWritable();
-      while(reader.next(key, value)) {
-        ret.add(value.copyBytes());
-      }
-      reader.close();
-      fs.delete(p, false);
+      files.add(p);
     }
-    fs.delete(outputPath, false);
-    if(LOG.isDebugEnabled()) {
-      LOG.debug(outputPath + ": Returning " + ret.size());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(outputPath);
     }
-    return ret;
+    return new SequenceFileIterable(files, config);
   }
 
-  public <T> List<byte[]> query(Path basePath
+  public <T> SequenceFileIterable query(Path basePath
                             , Path baseOutputPath
                             , long beginNS
                             , long endNS
@@ -240,11 +239,9 @@ public class PcapJob {
     }
   }
 
-
-  public static int findWidth(long start, long end, int numReducers) {
-    return (int)Long.divideUnsigned(end - start, numReducers) + 1;
+  public static long findWidth(long start, long end, int numReducers) {
+    return Long.divideUnsigned(end - start, numReducers) + 1;
   }
-
 
   public <T> Job createJob( Path basePath
                       , Path outputPath
