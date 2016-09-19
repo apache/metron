@@ -34,6 +34,7 @@ metron_elasticsearch_bundle_name: metron-elasticsearch-{{ metron_version }}-arch
 metron_parsers_bundle_name: metron-parsers-{{ metron_version }}-archive.tar.gz
 metron_maas_bundle_name: metron-maas-service-{{ metron_version }}-archive.tar.gz
 metron_profiler_bundle_name: metron-profiler-{{ metron_version }}-archive.tar.gz
+metron_profiler_client_bundle_name: metron-profiler-client-{{ metron_version }}-archive.tar.gz
 
 # bundle paths
 metron_pcap_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-pcap-backend/target/{{ metron_pcap_bundle_name }}"
@@ -46,6 +47,8 @@ metron_elasticsearch_bundle_path: "{{ playbook_dir }}/../../metron-platform/metr
 metron_parsers_bundle_path: "{{ playbook_dir }}/../../metron-platform/metron-parsers/target/{{ metron_parsers_bundle_name }}"
 metron_maas_bundle_path: "{{ playbook_dir }}/../../metron-analytics/metron-maas-service/target/{{ metron_maas_bundle_name }}"
 metron_profiler_bundle_path: "{{ playbook_dir }}/../../metron-analytics/metron-profiler/target/{{ metron_profiler_bundle_name }}"
+metron_profiler_client_bundle_path: "{{ playbook_dir }}/../../metron-analytics/metron-profiler-client/target/{{ metron_profiler_client_bundle_name }}"
+
 
 # configuration paths
 config_path: "{{ metron_directory }}/config"
