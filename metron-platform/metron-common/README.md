@@ -15,6 +15,9 @@ The query language supports the following:
 * Determining whether a field exists (via `exists`)
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions
+
+The following functions are supported:
+
 <table>
 <tr>
 <th>Stellar Function</th><th>Description</th><th>Input</th><th>Returns</th>
