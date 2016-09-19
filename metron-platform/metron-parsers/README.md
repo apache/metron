@@ -26,6 +26,12 @@ just
 
 ![Architecture](parser_arch.png)
 
+Data flows through the parser bolt via kafka and into the `enrichments`
+topology in kafka.  Errors are collected with the context of the error
+(e.g. stacktrace) and original message causing the error and sent to an
+`error` queue.  Invalid messages as determined by global validation
+functions are sent to an `invalid` queue. 
+ 
 ##Message Format
 
 All Metron messages follow a specific format in order to ingest a message.  If a message does not conform to this format it will be dropped and put onto an error queue for further examination.  The message must be of a JSON format and must have a JSON tag message like so:
