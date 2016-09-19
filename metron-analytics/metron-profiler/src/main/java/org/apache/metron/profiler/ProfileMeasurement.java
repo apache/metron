@@ -20,6 +20,9 @@
 
 package org.apache.metron.profiler;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Represents a single data point within a Profile.
  *
@@ -39,58 +42,59 @@ public class ProfileMeasurement {
   private String entity;
 
   /**
-   * When the measurement window was started in milliseconds since the epoch.
-   */
-  private long start;
-
-  /**
-   * When the measurement window closed in milliseconds since the epoch.
-   */
-  private long end;
-
-  /**
    * The actual measurement itself.
    */
   private Object value;
 
-  public String getProfileName() {
-    return profileName;
+  /**
+   * A set of expressions used to group the profile measurements when persisted.
+   */
+  private List<String> groupBy;
+
+  /**
+   * The period in which the ProfileMeasurement was taken.
+   */
+  private ProfilePeriod period;
+
+  /**
+   * @param profileName The name of the profile.
+   * @param entity The name of the entity being profiled.
+   * @param whenMillis When the measurement was taken in epoch milliseconds.
+   * @param periodDuration The duration of each profile period.
+   * @param periodUnits The units of the duration of each profile period.
+   */
+  public ProfileMeasurement(String profileName, String entity, long whenMillis, long periodDuration, TimeUnit periodUnits) {
+    this.profileName = profileName;
+    this.entity = entity;
+    this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
   }
 
-  public void setProfileName(String profileName) {
-    this.profileName = profileName;
+  public String getProfileName() {
+    return profileName;
   }
 
   public String getEntity() {
     return entity;
   }
 
-  public void setEntity(String entity) {
-    this.entity = entity;
-  }
-
-  public long getStart() {
-    return start;
-  }
-
-  public void setStart(long start) {
-    this.start = start;
-  }
-
-  public long getEnd() {
-    return end;
-  }
-
-  public void setEnd(long end) {
-    this.end = end;
-  }
-
   public Object getValue() {
     return value;
   }
 
+  public ProfilePeriod getPeriod() {
+    return period;
+  }
+
+  public List<String> getGroupBy() {
+    return groupBy;
+  }
+
   public void setValue(Object value) {
     this.value = value;
+  }
+
+  public void setGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
   }
 
   @Override
@@ -99,12 +103,11 @@ public class ProfileMeasurement {
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileMeasurement that = (ProfileMeasurement) o;
-
-    if (start != that.start) return false;
-    if (end != that.end) return false;
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
-    return value != null ? value.equals(that.value) : that.value == null;
+    if (value != null ? !value.equals(that.value) : that.value != null) return false;
+    if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
+    return period != null ? period.equals(that.period) : that.period == null;
 
   }
 
@@ -112,9 +115,9 @@ public class ProfileMeasurement {
   public int hashCode() {
     int result = profileName != null ? profileName.hashCode() : 0;
     result = 31 * result + (entity != null ? entity.hashCode() : 0);
-    result = 31 * result + (int) (start ^ (start >>> 32));
-    result = 31 * result + (int) (end ^ (end >>> 32));
     result = 31 * result + (value != null ? value.hashCode() : 0);
+    result = 31 * result + (groupBy != null ? groupBy.hashCode() : 0);
+    result = 31 * result + (period != null ? period.hashCode() : 0);
     return result;
   }
 
@@ -123,9 +126,9 @@ public class ProfileMeasurement {
     return "ProfileMeasurement{" +
             "profileName='" + profileName + '\'' +
             ", entity='" + entity + '\'' +
-            ", start=" + start +
-            ", end=" + end +
             ", value=" + value +
+            ", groupBy=" + groupBy +
+            ", period=" + period +
             '}';
   }
 }

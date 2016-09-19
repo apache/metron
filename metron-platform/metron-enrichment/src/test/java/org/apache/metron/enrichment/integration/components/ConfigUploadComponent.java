@@ -78,7 +78,11 @@ public class ConfigUploadComponent implements InMemoryComponent {
     try {
       final String zookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
 
-      if(globalConfigPath != null) {
+      if(globalConfigPath != null
+      || parserConfigsPath != null
+      || enrichmentConfigsPath != null
+      || profilerConfigPath != null
+        ) {
         uploadConfigsToZookeeper(globalConfigPath, parserConfigsPath, enrichmentConfigsPath, profilerConfigPath, zookeeperUrl);
       }
 

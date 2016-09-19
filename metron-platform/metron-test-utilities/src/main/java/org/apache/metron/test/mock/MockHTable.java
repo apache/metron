@@ -23,6 +23,7 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Service;
 import com.google.protobuf.ServiceException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
@@ -44,6 +45,7 @@ import java.util.*;
  * This implementation is a selected excerpt from https://gist.github.com/agaoglu/613217
  */
 public class MockHTable implements HTableInterface {
+
 
   public static class Provider implements Serializable {
     private static Map<String, HTableInterface> _cache = new HashMap<>();
@@ -130,7 +132,7 @@ public class MockHTable implements HTableInterface {
 
   @Override
   public Configuration getConfiguration() {
-    throw new UnsupportedOperationException();
+    return HBaseConfiguration.create();
   }
 
   @Override

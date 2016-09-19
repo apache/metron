@@ -1,0 +1,98 @@
+/*
+ *
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package org.apache.metron.profiler.client;
+
+import org.apache.hadoop.hbase.client.Durability;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.ProfilePeriod;
+import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
+/**
+ * Writes ProfileMeasurement values that can be read during automated testing.
+ */
+public class ProfileWriter {
+
+  private RowKeyBuilder rowKeyBuilder;
+  private ColumnBuilder columnBuilder;
+  private HBaseClient hbaseClient;
+  private HBaseProfilerClient client;
+
+  public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table) {
+    this.rowKeyBuilder = rowKeyBuilder;
+    this.columnBuilder = columnBuilder;
+    this.hbaseClient = new HBaseClient((c, t) -> table, table.getConfiguration(), table.getName().getNameAsString());
+    this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+  }
+
+  /**
+   * Writes profile measurements that can be used for testing.
+   *
+   * @param prototype      A prototype for the types of ProfileMeasurements that should be written.
+   * @param count          The number of profile measurements to write.
+   * @param group          The name of the group.
+   * @param valueGenerator A function that consumes the previous ProfileMeasurement value and produces the next.
+   */
+  public void write(ProfileMeasurement prototype, int count, List<Object> group, Function<Object, Object> valueGenerator) {
+
+    ProfileMeasurement m = prototype;
+    for(int i=0; i<count; i++) {
+
+      // create a measurement for the next profile period to be written
+      ProfilePeriod next = m.getPeriod().next();
+      m = new ProfileMeasurement(
+              prototype.getProfileName(),
+              prototype.getEntity(),
+              next.getStartTimeMillis(),
+              prototype.getPeriod().getDurationMillis(),
+              TimeUnit.MILLISECONDS);
+
+      // generate the next value that should be written
+      Object nextValue = valueGenerator.apply(m.getValue());
+      m.setValue(nextValue);
+
+      // write the measurement
+      write(m, group);
+    }
+  }
+
+  /**
+   * Write a ProfileMeasurement.
+   * @param m The ProfileMeasurement to write.
+   * @param groups The groups to use when writing the ProfileMeasurement.
+   */
+  private void write(ProfileMeasurement m, List<Object> groups) {
+
+    byte[] rowKey = rowKeyBuilder.rowKey(m, groups);
+    ColumnList cols = columnBuilder.columns(m);
+
+    hbaseClient.addMutation(rowKey, cols, Durability.SKIP_WAL);
+    hbaseClient.mutate();
+  }
+
+}

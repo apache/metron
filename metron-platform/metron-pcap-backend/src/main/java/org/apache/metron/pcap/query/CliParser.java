@@ -24,6 +24,10 @@ import org.apache.commons.cli.*;
  * Provides commmon required fields for the PCAP filter jobs
  */
 public class CliParser {
+  public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap";
+  public static final String BASE_OUTPUT_PATH_DEFAULT = "/tmp";
+  public static final int NUM_REDUCERS_DEFAULT = 10;
+  public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
   private CommandLineParser parser;
 
   public CliParser() {
@@ -33,9 +37,11 @@ public class CliParser {
   public Options buildOptions() {
     Options options = new Options();
     options.addOption(newOption("h", "help", false, "Display help"));
-    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", CliConfig.BASE_PATH_DEFAULT)));
-    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'", CliConfig.BASE_OUTPUT_PATH_DEFAULT)));
+    options.addOption(newOption("bp", "base_path", true, String.format("Base PCAP data path. Default is '%s'", BASE_PATH_DEFAULT)));
+    options.addOption(newOption("bop", "base_output_path", true, String.format("Query result output path. Default is '%s'", BASE_OUTPUT_PATH_DEFAULT)));
     options.addOption(newOption("st", "start_time", true, "(required) Packet start time range.", true));
+    options.addOption(newOption("nr", "num_reducers", true, String.format("Number of reducers to use (defaults to %s)", NUM_REDUCERS_DEFAULT)));
+    options.addOption(newOption("rpf", "records_per_file", true, String.format("Number of records to include in each output pcap file (defaults to %s)", NUM_RECORDS_PER_FILE_DEFAULT)));
     options.addOption(newOption("et", "end_time", true, "Packet end time range. Default is current system time."));
     options.addOption(newOption("df", "date_format", true, "Date format to use for parsing start_time and end_time. Default is to use time in millis since the epoch."));
     return options;
@@ -60,9 +66,13 @@ public class CliParser {
     }
     if (commandLine.hasOption("base_path")) {
       config.setBasePath(commandLine.getOptionValue("base_path"));
+    } else {
+      config.setBasePath(BASE_PATH_DEFAULT);
     }
     if (commandLine.hasOption("base_output_path")) {
       config.setBaseOutputPath(commandLine.getOptionValue("base_output_path"));
+    } else {
+      config.setBaseOutputPath(BASE_OUTPUT_PATH_DEFAULT);
     }
     if (commandLine.hasOption("start_time")) {
       try {
@@ -76,6 +86,20 @@ public class CliParser {
       } catch (NumberFormatException nfe) {
         //no-op
       }
+    }
+    if (commandLine.hasOption("num_reducers")) {
+      int numReducers = Integer.parseInt(commandLine.getOptionValue("num_reducers"));
+      config.setNumReducers(numReducers);
+    }
+    else {
+      config.setNumReducers(NUM_REDUCERS_DEFAULT);
+    }
+    if (commandLine.hasOption("records_per_file")) {
+      int numRecordsPerFile = Integer.parseInt(commandLine.getOptionValue("records_per_file"));
+      config.setNumRecordsPerFile(numRecordsPerFile);
+    }
+    else {
+      config.setNumRecordsPerFile(NUM_RECORDS_PER_FILE_DEFAULT);
     }
     if (commandLine.hasOption("end_time")) {
       try {

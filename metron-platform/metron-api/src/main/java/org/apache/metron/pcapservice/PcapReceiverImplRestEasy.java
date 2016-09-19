@@ -19,11 +19,13 @@ package org.apache.metron.pcapservice;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
@@ -104,6 +106,7 @@ public class PcapReceiverImplRestEasy {
    * @param query Filter results based on this query
    * @param startTime Only return packets originating after this start time
    * @param endTime Only return packets originating before this end time
+ * @param numReducers Number of reducers to use
    * @param servlet_response
    * @return REST response
    * @throws IOException
@@ -114,10 +117,12 @@ public class PcapReceiverImplRestEasy {
           @QueryParam ("query") String query,
           @DefaultValue("-1") @QueryParam ("startTime")long startTime,
           @DefaultValue("-1") @QueryParam ("endTime")long endTime,
+          @DefaultValue("10") @QueryParam ("numReducers")int numReducers,
           @Context HttpServletResponse servlet_response)
 
           throws IOException {
     PcapsResponse response = new PcapsResponse();
+    SequenceFileIterable results = null;
     try {
       if (startTime < 0) {
         startTime = 0L;
@@ -135,21 +140,26 @@ public class PcapReceiverImplRestEasy {
       if(LOGGER.isDebugEnabled()) {
         LOGGER.debug("Query received: " + query);
       }
-      response.setPcaps(getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
+      results = getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
               , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
               , startTime
               , endTime
+              , numReducers
               , query
               , CONFIGURATION.get()
               , FileSystem.get(CONFIGURATION.get())
               , new QueryPcapFilter.Configurator()
-              )
       );
 
+      response.setPcaps(results != null ? Lists.newArrayList(results) : null);
     } catch (Exception e) {
       LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
               e);
       throw new WebApplicationException("Unable to fetch Pcaps via MR job", e);
+    } finally {
+      if (null != results) {
+        results.cleanup();
+      }
     }
 
     // return http status '200 OK' along with the complete pcaps response file,
@@ -184,6 +194,7 @@ public class PcapReceiverImplRestEasy {
           @QueryParam ("dstPort") String dstPort,
           @DefaultValue("-1") @QueryParam ("startTime")long startTime,
           @DefaultValue("-1") @QueryParam ("endTime")long endTime,
+          @DefaultValue("10") @QueryParam ("numReducers")int numReducers,
           @DefaultValue("false") @QueryParam ("includeReverseTraffic") boolean includeReverseTraffic,
           @Context HttpServletResponse servlet_response)
 
@@ -201,6 +212,7 @@ public class PcapReceiverImplRestEasy {
 
     final boolean includeReverseTrafficF = includeReverseTraffic;
     PcapsResponse response = new PcapsResponse();
+    SequenceFileIterable results = null;
     try {
       if(startTime < 0) {
         startTime = 0L;
@@ -233,21 +245,26 @@ public class PcapReceiverImplRestEasy {
       if(LOGGER.isDebugEnabled()) {
         LOGGER.debug("Query received: " + Joiner.on(",").join(query.entrySet()));
       }
-      response.setPcaps(getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
-                                    , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
-                                    , startTime
-                                    , endTime
-                                    , query
-                                    , CONFIGURATION.get()
-                                    , FileSystem.get(CONFIGURATION.get())
-                                    , new FixedPcapFilter.Configurator()
-                                    )
-                     );
+      results = getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
+              , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
+              , startTime
+              , endTime
+              , numReducers
+              , query
+              , CONFIGURATION.get()
+              , FileSystem.get(CONFIGURATION.get())
+              , new FixedPcapFilter.Configurator()
+      );
+      response.setPcaps(results != null ? Lists.newArrayList(results) : null);
 
     } catch (Exception e) {
       LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
               e);
       throw new WebApplicationException("Unable to fetch Pcaps via MR job", e);
+    } finally {
+      if (null != results) {
+        results.cleanup();
+      }
     }
 
     // return http status '200 OK' along with the complete pcaps response file,

@@ -94,6 +94,8 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
     joinStreamIds.add("geo:");
     joinStreamIds.add("stellar:");
     joinStreamIds.add("stellar:numeric");
+    joinStreamIds.add("stellar:dst_enrichment");
+    joinStreamIds.add("stellar:src_enrichment");
     joinStreamIds.add("host:");
     joinStreamIds.add("hbaseEnrichment:");
     joinStreamIds.add("message:");

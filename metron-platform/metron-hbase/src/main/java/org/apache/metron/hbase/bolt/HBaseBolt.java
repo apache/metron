@@ -29,19 +29,17 @@ import backtype.storm.tuple.Tuple;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.hbase.client.HBaseClient;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
-import org.apache.storm.hbase.common.ColumnList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A bolt that writes to HBase.
@@ -82,7 +80,6 @@ public class HBaseBolt extends BaseRichBolt {
    */
   protected String tableProvider = "org.apache.metron.hbase.HTableProvider";
 
-  private List<Mutation> batchMutations;
   private BatchHelper batchHelper;
   protected OutputCollector collector;
   protected transient HBaseClient hbaseClient;
@@ -90,7 +87,6 @@ public class HBaseBolt extends BaseRichBolt {
   public HBaseBolt(String tableName, HBaseMapper mapper) {
     this.tableName = tableName;
     this.mapper = mapper;
-    this.batchMutations = new LinkedList<>();
   }
 
   public HBaseBolt writeToWAL(boolean writeToWAL) {
@@ -151,7 +147,7 @@ public class HBaseBolt extends BaseRichBolt {
 
     } catch (Exception e) {
       batchHelper.fail(e);
-      batchMutations.clear();
+      hbaseClient.clearMutations();
     }
   }
 
@@ -160,11 +156,17 @@ public class HBaseBolt extends BaseRichBolt {
    * @param tuple Contains the data elements that need written to HBase.
    */
   private void save(Tuple tuple) {
-    byte[] rowKey = this.mapper.rowKey(tuple);
-    ColumnList cols = this.mapper.columns(tuple);
+    byte[] rowKey = mapper.rowKey(tuple);
+    ColumnList cols = mapper.columns(tuple);
     Durability durability = writeToWAL ? Durability.SYNC_WAL : Durability.SKIP_WAL;
-    List<Mutation> mutations = hbaseClient.constructMutationReq(rowKey, cols, durability);
-    batchMutations.addAll(mutations);
+
+    Optional<Long> ttl = mapper.getTTL(tuple);
+    if(ttl.isPresent()) {
+      hbaseClient.addMutation(rowKey, cols, durability, ttl.get());
+    } else {
+      hbaseClient.addMutation(rowKey, cols, durability);
+    }
+
     batchHelper.addBatch(tuple);
   }
 
@@ -172,15 +174,13 @@ public class HBaseBolt extends BaseRichBolt {
    * Flush all saved operations.
    */
   private void flush() {
-    this.hbaseClient.batchMutate(batchMutations);
+    this.hbaseClient.mutate();
     batchHelper.ack();
-    batchMutations.clear();
   }
 
   /**
-   *
-   * @param connectorImpl
-   * @return
+   * Creates a TableProvider based on a class name.
+   * @param connectorImpl The class name of a TableProvider
    */
   private static TableProvider getTableProvider(String connectorImpl) {
 
