@@ -130,7 +130,7 @@ The supported aggregation functions are:
 * `MEAN` : The mean of all of the associated values for matching queries
 * `POSITIVE_MEAN` : The mean of the positive associated values for the matching queries.
 
-###Example
+###Example Configuration
 
 An example configuration for the YAF sensor is as follows:
 ```json
@@ -186,3 +186,71 @@ An example configuration for the YAF sensor is as follows:
 }
 ```
 
+# Example Enrichment via Stellar
+
+Let's walk through doing a simple enrichment using Stellar on your cluster using the Squid topology.
+
+## Install Prerequisites
+Now let's install some prerequisites:
+* Squid client via `yum install squid`
+* ES Head plugin via `/usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head`
+
+Start Squid via `service squid start`
+
+## Adjust Enrichment Configurations for Squid to Call Stellar
+Let's adjust the configurations for the Squid topology to annotate the messages using some Stellar functions.
+
+* Edit the squid enrichment configuration at `$METRON_HOME/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to add some new fields based on stellar queries: 
+
+ ```
+{
+  "index": "squid",
+  "batchSize": 1,
+  "enrichment" : {
+    "fieldMap": {
+      "stellar" : {
+        "config" : {
+          "numeric" : {
+                      "foo": "1 + 1"
+                      }
+          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+        }
+      }
+     }
+  },
+  "threatIntel" : {
+    "fieldMap":{
+     "stellar" : {
+        "config" : {
+          "bar" : "TO_UPPER(source.type)"
+        }
+      } 
+    },
+    "triageConfig" : {
+    }
+  }
+}
+```
+We have added the following fields as part of the enrichment phase of the enrichment topology:
+* `foo` ==  2
+* `ALL_CAPS` == SQUID 
+
+We have added the following as part of the threat intel:
+* ` bar` == SQUID
+
+Please note that foo and ALL_CAPS will be applied in separate workers due to them being in separate groups.
+
+* Upload new configs via `$METRON_HOME/bin/zk_load_configs.sh --mode PUSH -i $METRON_HOME/config/zookeeper -z node1:2181`
+* Make the Squid topic in kafka via `/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper node1:2181 --create --topic squid --partitions 1 --replication-factor 1`
+
+## Start Topologies and Send Data
+Now we need to start the topologies and send some data:
+* Start the squid topology via `$METRON_HOME/bin/start_parser_topology.sh -k node1:6667 -z node1:2181 -s squid`
+* Generate some data via the squid client:
+  * `squidclient http://yahoo.com`
+  * `squidclient http://cnn.com`
+* Send the data to kafka via `cat /var/log/squid/access.log | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic squid`
+* Browse the data in elasticsearch via the ES Head plugin @ [http://node1:9200/_plugin/head/](http://node1:9200/_plugin/head/) and verify that in the squid index you have two documents
+* Ensure that the documents have new fields `foo`, `bar` and `ALL_CAPS` with values as described above.
+
+Note that we could have used any Stellar statements here, including calling out to HBase via `ENRICHMENT_GET` and `ENRICHMENT_EXISTS` or even calling a machine learning model via [Model as a Service](../../metron-analytics/metron-maas-service).
