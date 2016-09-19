@@ -1,5 +1,7 @@
 #Parsers
 
+## Introduction
+
 Parsers are pluggable components which are used to transform raw data
 (textual or raw bytes) into JSON messages suitable for downstream
 enrichment and indexing.  
@@ -19,6 +21,10 @@ There are two general types types of parsers:
     * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
     * `separator` : The column separator, `,` by default.
 just
+
+## Parser Architecture
+
+![Architecture](parser_arch.png)
 
 ##Message Format
 
