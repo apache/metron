@@ -12,6 +12,10 @@ data format (e.g. a JSON Map structure with `original_message` and
 * Marking threat alerts with a numeric triage level based on a set of
   Stellar rules.
 
+## Enrichment Architecture
+
+![Architecture](enrichment_arch.png)
+
 ## Enrichment Configuration
 
 The configuration for the `enrichment` topology, the topology primarily
