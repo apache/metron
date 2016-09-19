@@ -92,6 +92,11 @@
         <value>metron</value>
         <description>Name of Elasticsearch Cluster</description>
     </property>
+    <property>
+        <name>geoip_url</name>
+        <value>http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz</value>
+        <description>Location of the GeoIP data to load.</description>
+    </property>
     <property require-input="true">
         <name>es_url</name>
         <value></value>

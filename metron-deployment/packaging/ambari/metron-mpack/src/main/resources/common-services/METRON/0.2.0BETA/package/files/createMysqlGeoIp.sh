@@ -22,18 +22,20 @@
 
 mysqldservice=$1
 geoipscript=$2
+geoipurl=$3
 
 # Download and extract the actual GeoIP files
 mkdir -p /tmp/geoip
 mkdir -p /var/lib/mysql-files/
 
+# Stage the GeoIP data
 pushd /tmp/geoip
-curl -O http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
+curl -O ${geoipurl}
 tar xf GeoLiteCity-latest.tar.xz
 cp /tmp/geoip/*/*.csv /var/lib/mysql-files/
 popd
 
-# Load MySQL with the GeoIP data
+# Load MySQL with the GeoIP data and start service
 service ${mysqldservice} start
 mysql -u root < ${geoipscript}
 mysql -u root -e "show databases;"

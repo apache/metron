@@ -42,7 +42,7 @@ def mysql_configure():
          content=StaticFile('createMysqlGeoIp.sh')
          )
 
-    geoip_setup_cmd = format("bash -x {mysql_create_geoip_path} {daemon_name} {geo_ip_ddl}")
+    geoip_setup_cmd = format("bash -x {mysql_create_geoip_path} {daemon_name} {geoip_ddl} {geoip_url}")
     Execute(geoip_setup_cmd,
             tries=3,
             try_sleep=5,
