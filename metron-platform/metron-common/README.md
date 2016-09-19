@@ -18,75 +18,348 @@ The query language supports the following:
 
 The following functions are supported:
 
-<table>
-<tr>
-<th>Stellar Function</th><th>Description</th><th>Input</th><th>Returns</th>
-</tr>
-<tr><td>IS_DATE</td><td>Determines if a string passed is a date of a given format.</td><td><ul><li>date - The date in string form.</li><li>format - The format of the date.</li></ul></td><td>True if the date is of the specified format and false otherwise.</td></tr>
-<tr><td>MONTH</td><td>The number representing the month.  The first month, January, has a value of 0.</td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The current month (0-based).</td></tr>
-<tr><td>IS_DOMAIN</td><td>Tests if a string is a valid domain.  Domain names are evaluated according to the standards RFC1034 section 3, and RFC1123 section 2.1.</td><td><ul><li>address - The String to test</li></ul></td><td>True if the string is a valid domain and false otherwise.</td></tr>
-<tr><td>TRIM</td><td>Trims whitespace from both sides of a string.</td><td><ul><li>input - String</li></ul></td><td>String</td></tr>
-<tr><td>WEEK_OF_MONTH</td><td>The numbered week within the month.  The first week within the month has a value of 1.</td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The numbered week within the month.</td></tr>
-<tr><td>JOIN</td><td>Joins the components of the list with the specified delimiter.</td><td><ul><li>list - List of Strings</li><li>delim - String delimiter</li></ul></td><td>String</td></tr>
-<tr><td>MAP_GET</td><td>Gets the value associated with a key from a map</td><td><ul><li>key - The key</li><li>map - The map</li><li>default - Optionally the default value to return if the key is not in the map.</li></ul></td><td>The object associated with key in the map.  If there is no value associated, then default if specified and null if a default is not specified.</td></tr>
-<tr><td>TO_INTEGER</td><td>Transforms the first argument to an integer</td><td><ul><li>input - Object of string or numeric type</li></ul></td><td>Integer</td></tr>
-<tr><td>YEAR</td><td>The number representing the year. </td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The current year</td></tr>
-<tr><td>WEEK_OF_YEAR</td><td>The numbered week within the year.  The first week in the year has a value of 1.</td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The numbered week within the year.</td></tr>
-<tr><td>PROTOCOL_TO_NAME</td><td>Convert the IANA protocol number to the protocol name</td><td><ul><li>IANA Number</li></ul></td><td>The protocol name associated with the IANA number.</td></tr>
-<tr><td>ENDS_WITH</td><td>Determines whether a string ends with a prefix</td><td><ul><li>string - The string to test</li><li>suffix - The proposed suffix</li></ul></td><td>True if the string ends with the specified suffix and false otherwise.</td></tr>
-<tr><td>GET_FIRST</td><td>Returns the first element of the list</td><td><ul><li>input - List</li></ul></td><td>First element of the list</td></tr>
-<tr><td>STATS_MAX</td><td>Calculates the max of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The max of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>DOMAIN_TO_TLD</td><td>Extract the top level domain from a domain</td><td><ul><li>domain - fully qualified domain name</li></ul></td><td>The TLD of the domain.  e.g. DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk'</td></tr>
-<tr><td>TO_STRING</td><td>Transforms the first argument to a string</td><td><ul><li>input - Object</li></ul></td><td>String</td></tr>
-<tr><td>DOMAIN_REMOVE_SUBDOMAINS</td><td>Remove subdomains from a domain.</td><td><ul><li>domain - fully qualified domain name</li></ul></td><td>The domain without the subdomains.  e.g. DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com'</td></tr>
-<tr><td>STARTS_WITH</td><td>Determines whether a string starts with a prefix</td><td><ul><li>string - The string to test</li><li>prefix - The proposed prefix</li></ul></td><td>True if the string starts with the specified prefix and false otherwise.</td></tr>
-<tr><td>BLOOM_MERGE</td><td>Returns a merged bloom filter</td><td><ul><li>bloomfilters - A list of bloom filters to merge</li></ul></td><td>Bloom Filter or null if the list is empty</td></tr>
-<tr><td>STATS_KURTOSIS</td><td>Calculates the kurtosis of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The kurtosis of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>DOMAIN_REMOVE_TLD</td><td>Remove top level domain suffix from a domain.</td><td><ul><li>domain - fully qualified domain name</li></ul></td><td>The domain without the TLD.  e.g. DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo'</td></tr>
-<tr><td>STATS_SUM_SQUARES</td><td>Calculates the sum of the squares of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The sum of the squares of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>STATS_INIT</td><td>Initialize a Statistics object</td><td><ul><li>window_size - The number of input data values to maintain in a rolling window in memory.  If equal to 0, then no rolling window is maintained. Using no rolling window is less memory intensive, but cannot calculate certain statistics like percentiles and kurtosis.</li></ul></td><td>A StatisticsProvider object</td></tr>
-<tr><td>STATS_SD</td><td>Calculates the standard deviation of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The standard deviation of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>GET</td><td>Returns the i'th element of the list </td><td><ul><li>input - List</li><li>i - the index (0-based)</li></ul></td><td>First element of the list</td></tr>
-<tr><td>STATS_COUNT</td><td>Calculates the count of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The count of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>IS_INTEGER</td><td>Determine if an object is an integer or not.</td><td><ul><li>x - An object which we wish to test is an integer</li></ul></td><td>True if the object can be converted to an integer and false otherwise.</td></tr>
-<tr><td>DAY_OF_WEEK</td><td>The numbered day within the week.  The first day of the week, Sunday, has a value of 1.</td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The numbered day within the week.</td></tr>
-<tr><td>IS_EMPTY</td><td>Returns true if string or collection is empty and false otherwise</td><td><ul><li>input - Object of string or collection type (e.g. list)</li></ul></td><td>Boolean</td></tr>
-<tr><td>IS_EMAIL</td><td>Tests if a string is a valid email address</td><td><ul><li>address - The String to test</li></ul></td><td>True if the string is a valid email address and false otherwise.</td></tr>
-<tr><td>MAP_EXISTS</td><td>Checks for existence of a key in a map.</td><td><ul><li>key - The key to check for existence</li><li>map - The map to check for existence of the key</li></ul></td><td>True if the key is found in the map and false otherwise.</td></tr>
-<tr><td>DAY_OF_YEAR</td><td>The day number within the year.  The first day of the year has value of 1.</td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The day number within the year.</td></tr>
-<tr><td>REGEXP_MATCH</td><td>Determines whether a regex matches a string</td><td><ul><li>string - The string to test</li><li>pattern - The proposed regex pattern</li></ul></td><td>True if the regex pattern matches the string and false otherwise.</td></tr>
-<tr><td>TO_LOWER</td><td>Transforms the first argument to a lowercase string</td><td><ul><li>input - String</li></ul></td><td>String</td></tr>
-<tr><td>STATS_SKEWNESS</td><td>Calculates the skewness of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The skewness of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>URL_TO_PORT</td><td>Extract the port from a URL.  If the port is not explicitly stated in the URL, then an implicit port is inferred based on the protocol.</td><td><ul><li>url - URL in String form</li></ul></td><td>The port used in the URL as an Integer.  e.g. URL_TO_PORT('http://www.yahoo.com/foo') would yield 80</td></tr>
-<tr><td>DAY_OF_MONTH</td><td>The numbered day within the month.  The first day within the month has a value of 1.</td><td><ul><li>dateTime - The datetime as a long representing the milliseconds since unix epoch</li></ul></td><td>The numbered day within the month.</td></tr>
-<tr><td>GET_LAST</td><td>Returns the last element of the list</td><td><ul><li>input - List</li></ul></td><td>Last element of the list</td></tr>
-<tr><td>IN_SUBNET</td><td>Returns if an IP is within a subnet range.</td><td><ul><li>ip - the IP address in String form</li><li>cidr+ - one or more IP ranges specified in CIDR notation (e.g. 192.168.0.0/24)</li></ul></td><td>True if the IP address is within at least one of the network ranges and false otherwise</td></tr>
-<tr><td>SPLIT</td><td>Splits the string by the delimiter.</td><td><ul><li>input - String to split</li><li>delim - String delimiter</li></ul></td><td>List of Strings</td></tr>
-<tr><td>MAAS_MODEL_APPLY</td><td>Returns the output of a model deployed via model which is deployed at endpoint. NOTE: Results are cached at the client for 10 minutes.</td><td><ul><li>endpoint - a map containing name, version, url for the REST endpoint</li><li>function - the optional endpoint path, default is 'apply'</li><li>model_args - dictionary of arguments for the model (these become request params).</li></ul></td><td>The output of the model deployed as a REST endpoint in Map form.  Assumes REST endpoint returns a JSON Map.</td></tr>
-<tr><td>STATS_POPULATION_VARIANCE</td><td>Calculates the population variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The population variance of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>STATS_VARIANCE</td><td>Calculates the variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The variance of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>STATS_ADD</td><td>Add one or more input values to those that are used to calculate the summary statistics.</td><td><ul><li>stats - The Stellar statistics object.  If null, then a new one is initialized.</li><li>value+ - one or more numbers to add </li></ul></td><td>A StatisticsProvider object</td></tr>
-<tr><td>TO_UPPER</td><td>Transforms the first argument to an uppercase string</td><td><ul><li>input - String</li></ul></td><td>String</td></tr>
-<tr><td>TO_EPOCH_TIMESTAMP</td><td>Returns the epoch timestamp of the dateTime given the format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.</td><td><ul><li>dateTime - DateTime in String format</li><li>format - DateTime format as a String</li><li>timezone - Optional timezone in String format</li></ul></td><td>Boolean</td></tr>
-<tr><td>MAAS_GET_ENDPOINT</td><td>Inspects zookeeper and returns a map containing the name, version and url for the model referred to by the input params</td><td><ul><li>model_name - the name of the model</li><li>model_version - the optional version of the model.  If it is not specified, the most current version is used.</li></ul></td><td>A map containing the name, version, url for the REST endpoint (fields named name, version and url).  Note that the output of this function is suitable for input into the first argument of MAAS_MODEL_APPLY.</td></tr>
-<tr><td>BLOOM_EXISTS</td><td>If the bloom filter contains the value</td><td><ul><li>bloom - The bloom filter</li><li>value - The value to check</li></ul></td><td>True if the filter might contain the value and false otherwise</td></tr>
-<tr><td>BLOOM_INIT</td><td>Returns an empty bloom filter</td><td><ul><li>expectedInsertions - The expected insertions</li><li>falsePositiveRate - The false positive rate you are willing to tolerate</li></ul></td><td>Bloom Filter</td></tr>
-<tr><td>STATS_QUADRATIC_MEAN</td><td>Calculates the quadratic mean of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The quadratic mean of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>BLOOM_ADD</td><td>Adds an element to the bloom filter passed in</td><td><ul><li>bloom - The bloom filter</li><li>value* - The values to add</li></ul></td><td>Bloom Filter</td></tr>
-<tr><td>URL_TO_PATH</td><td>Extract the path from a URL.</td><td><ul><li>url - URL in String form</li></ul></td><td>The path from the URL as a String.  e.g. URL_TO_PATH('http://www.yahoo.com/foo') would yield 'foo'</td></tr>
-<tr><td>STATS_GEOMETRIC_MEAN</td><td>Calculates the geometric mean of the values accumulated (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The geometric mean of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>URL_TO_PROTOCOL</td><td>Extract the protocol from a URL.</td><td><ul><li>url - URL in String form</li></ul></td><td>The protocol from the URL as a String. e.g. URL_TO_PROTOCOL('http://www.yahoo.com/foo') would yield 'http'</td></tr>
-<tr><td>STATS_MIN</td><td>Calculates the min of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The min of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>URL_TO_HOST</td><td>Extract the hostname from a URL.</td><td><ul><li>url - URL in String form</li></ul></td><td>The hostname from the URL as a String.  e.g. URL_TO_HOST('http://www.yahoo.com/foo') would yield 'www.yahoo.com'</td></tr>
-<tr><td>STATS_SUM_LOGS</td><td>Calculates the sum of the (natural) log of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics </td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The sum of the (natural) log of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>IS_URL</td><td>Tests if a string is a valid URL</td><td><ul><li>url - The String to test</li></ul></td><td>True if the string is a valid URL and false otherwise.</td></tr>
-<tr><td>STATS_SUM</td><td>Calculates the sum of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The sum of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>IS_IP</td><td>Determine if an string is an IP or not.</td><td><ul><li>ip - An object which we wish to test is an ip</li><li>type (optional) - one of IPV4 or IPV6.  The default is IPV4.</li></ul></td><td>True if the string is an IP and false otherwise.</td></tr>
-<tr><td>STATS_MEAN</td><td>Calculates the mean of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li></ul></td><td>The mean of the values in the window or NaN if the statistics object is null.</td></tr>
-<tr><td>STATS_MERGE</td><td>Merge statistic providers</td><td><ul><li>statisticsProviders - A list of statistics providers</li></ul></td><td>A StatisticsProvider object</td></tr>
-<tr><td>STATS_PERCENTILE</td><td>Computes the p'th percentile of the values accumulated (or in the window if a window is used).</td><td><ul><li>stats - The Stellar statistics object.</li><li>p - a double where 0 <= p < 1 representing the percentile</li></ul></td><td>The p'th percentile of the data or NaN if the statistics object is null</td></tr>
-<tr><td>TO_DOUBLE</td><td>Transforms the first argument to a double precision number</td><td><ul><li>input - Object of string or numeric type</li></ul></td><td>Double</td></tr>
-</table>
+* `BLOOM_ADD`
+  * Description: Adds an element to the bloom filter passed in
+  * Input:
+    * bloom - The bloom filter
+    * value* - The values to add
+  * Returns: Bloom Filter
+* `BLOOM_EXISTS`
+  * Description: If the bloom filter contains the value
+  * Input:
+    * bloom - The bloom filter
+    * value - The value to check
+  * Returns: True if the filter might contain the value and false otherwise
+* `BLOOM_INIT`
+  * Description: Returns an empty bloom filter
+  * Input:
+    * expectedInsertions - The expected insertions
+    * falsePositiveRate - The false positive rate you are willing to tolerate
+  * Returns: Bloom Filter
+* `BLOOM_MERGE`
+  * Description: Returns a merged bloom filter
+  * Input:
+    * bloomfilters - A list of bloom filters to merge
+  * Returns: Bloom Filter or null if the list is empty
+* `DAY_OF_MONTH`
+  * Description: The numbered day within the month.  The first day within the month has a value of 1.
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The numbered day within the month.
+* `DAY_OF_WEEK`
+  * Description: The numbered day within the week.  The first day of the week, Sunday, has a value of 1.
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The numbered day within the week.
+* `DAY_OF_YEAR`
+  * Description: The day number within the year.  The first day of the year has value of 1.
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The day number within the year.
+* `DOMAIN_REMOVE_SUBDOMAINS`
+  * Description: Remove subdomains from a domain.
+  * Input:
+    * domain - fully qualified domain name
+  * Returns: The domain without the subdomains.  e.g. DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com'
+* `DOMAIN_REMOVE_TLD`
+  * Description: Remove top level domain suffix from a domain.
+  * Input:
+    * domain - fully qualified domain name
+  * Returns: The domain without the TLD.  e.g. DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo'
+* `DOMAIN_TO_TLD`
+  * Description: Extract the top level domain from a domain
+  * Input:
+    * domain - fully qualified domain name
+  * Returns: The TLD of the domain.  e.g. DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk'
+* `ENDS_WITH`
+  * Description: Determines whether a string ends with a prefix
+  * Input:
+    * string - The string to test
+    * suffix - The proposed suffix
+  * Returns: True if the string ends with the specified suffix and false otherwise.
+* `GET`
+  * Description: Returns the i'th element of the list 
+  * Input:
+    * input - List
+    * i - the index (0-based)
+  * Returns: First element of the list
+* `GET_FIRST`
+  * Description: Returns the first element of the list
+  * Input:
+    * input - List
+  * Returns: First element of the list
+* `GET_LAST`
+  * Description: Returns the last element of the list
+  * Input:
+    * input - List
+  * Returns: Last element of the list
+* `IN_SUBNET`
+  * Description: Returns if an IP is within a subnet range.
+  * Input:
+    * ip - the IP address in String form
+    * cidr+ - one or more IP ranges specified in CIDR notation (e.g. 192.168.0.0/24)
+  * Returns: True if the IP address is within at least one of the network ranges and false otherwise
+* `IS_DATE`
+  * Description: Determines if a string passed is a date of a given format.
+  * Input:
+    * date - The date in string form.
+    * format - The format of the date.
+  * Returns: True if the date is of the specified format and false otherwise.
+* `IS_DOMAIN`
+  * Description: Tests if a string is a valid domain.  Domain names are evaluated according to the standards RFC1034 section 3, and RFC1123 section 2.1.
+  * Input:
+    * address - The String to test
+  * Returns: True if the string is a valid domain and false otherwise.
+* `IS_EMAIL`
+  * Description: Tests if a string is a valid email address
+  * Input:
+    * address - The String to test
+  * Returns: True if the string is a valid email address and false otherwise.
+* `IS_EMPTY`
+  * Description: Returns true if string or collection is empty and false otherwise
+  * Input:
+    * input - Object of string or collection type (e.g. list)
+  * Returns: Boolean
+* `IS_INTEGER`
+  * Description: Determine if an object is an integer or not.
+  * Input:
+    * x - An object which we wish to test is an integer
+  * Returns: True if the object can be converted to an integer and false otherwise.
+* `IS_IP`
+  * Description: Determine if an string is an IP or not.
+  * Input:
+    * ip - An object which we wish to test is an ip
+    * type (optional) - one of IPV4 or IPV6.  The default is IPV4.
+  * Returns: True if the string is an IP and false otherwise.
+* `IS_URL`
+  * Description: Tests if a string is a valid URL
+  * Input:
+    * url - The String to test
+  * Returns: True if the string is a valid URL and false otherwise.
+* `JOIN`
+  * Description: Joins the components of the list with the specified delimiter.
+  * Input:
+    * list - List of Strings
+    * delim - String delimiter
+  * Returns: String
+* `MAAS_GET_ENDPOINT`
+  * Description: Inspects zookeeper and returns a map containing the name, version and url for the model referred to by the input params
+  * Input:
+    * model_name - the name of the model
+    * model_version - the optional version of the model.  If it is not specified, the most current version is used.
+  * Returns: A map containing the name, version, url for the REST endpoint (fields named name, version and url).  Note that the output of this function is suitable for input into the first argument of MAAS_MODEL_APPLY.
+* `MAAS_MODEL_APPLY`
+  * Description: Returns the output of a model deployed via model which is deployed at endpoint. NOTE: Results are cached at the client for 10 minutes.
+  * Input:
+    * endpoint - a map containing name, version, url for the REST endpoint
+    * function - the optional endpoint path, default is 'apply'
+    * model_args - dictionary of arguments for the model (these become request params).
+  * Returns: The output of the model deployed as a REST endpoint in Map form.  Assumes REST endpoint returns a JSON Map.
+* `MAP_EXISTS`
+  * Description: Checks for existence of a key in a map.
+  * Input:
+    * key - The key to check for existence
+    * map - The map to check for existence of the key
+  * Returns: True if the key is found in the map and false otherwise.
+* `MAP_GET`
+  * Description: Gets the value associated with a key from a map
+  * Input:
+    * key - The key
+    * map - The map
+    * default - Optionally the default value to return if the key is not in the map.
+  * Returns: The object associated with key in the map.  If there is no value associated, then default if specified and null if a default is not specified.
+* `MONTH`
+  * Description: The number representing the month.  The first month, January, has a value of 0.
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The current month (0-based).
+* `PROTOCOL_TO_NAME`
+  * Description: Convert the IANA protocol number to the protocol name
+  * Input:
+    * IANA Number
+  * Returns: The protocol name associated with the IANA number.
+* `REGEXP_MATCH`
+  * Description: Determines whether a regex matches a string
+  * Input:
+    * string - The string to test
+    * pattern - The proposed regex pattern
+  * Returns: True if the regex pattern matches the string and false otherwise.
+* `SPLIT`
+  * Description: Splits the string by the delimiter.
+  * Input:
+    * input - String to split
+    * delim - String delimiter
+  * Returns: List of Strings
+* `STARTS_WITH`
+  * Description: Determines whether a string starts with a prefix
+  * Input:
+    * string - The string to test
+    * prefix - The proposed prefix
+  * Returns: True if the string starts with the specified prefix and false otherwise.
+* `STATS_ADD`
+  * Description: Add one or more input values to those that are used to calculate the summary statistics.
+  * Input:
+    * stats - The Stellar statistics object.  If null, then a new one is initialized.
+    * value+ - one or more numbers to add 
+  * Returns: A StatisticsProvider object
+* `STATS_COUNT`
+  * Description: Calculates the count of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The count of the values in the window or NaN if the statistics object is null.
+* `STATS_GEOMETRIC_MEAN`
+  * Description: Calculates the geometric mean of the values accumulated (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The geometric mean of the values in the window or NaN if the statistics object is null.
+* `STATS_INIT`
+  * Description: Initialize a Statistics object
+  * Input:
+    * window_size - The number of input data values to maintain in a rolling window in memory.  If equal to 0, then no rolling window is maintained. Using no rolling window is less memory intensive, but cannot calculate certain statistics like percentiles and kurtosis.
+  * Returns: A StatisticsProvider object
+* `STATS_KURTOSIS`
+  * Description: Calculates the kurtosis of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The kurtosis of the values in the window or NaN if the statistics object is null.
+* `STATS_MAX`
+  * Description: Calculates the max of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The max of the values in the window or NaN if the statistics object is null.
+* `STATS_MEAN`
+  * Description: Calculates the mean of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The mean of the values in the window or NaN if the statistics object is null.
+* `STATS_MERGE`
+  * Description: Merge statistic providers
+  * Input:
+    * statisticsProviders - A list of statistics providers
+  * Returns: A StatisticsProvider object
+* `STATS_MIN`
+  * Description: Calculates the min of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The min of the values in the window or NaN if the statistics object is null.
+* `STATS_PERCENTILE`
+  * Description: Computes the p'th percentile of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+    * p - a double where 0 <= p < 1 representing the percentile
+  * Returns: The p'th percentile of the data or NaN if the statistics object is null
+* `STATS_POPULATION_VARIANCE`
+  * Description: Calculates the population variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The population variance of the values in the window or NaN if the statistics object is null.
+* `STATS_QUADRATIC_MEAN`
+  * Description: Calculates the quadratic mean of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The quadratic mean of the values in the window or NaN if the statistics object is null.
+* `STATS_SD`
+  * Description: Calculates the standard deviation of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The standard deviation of the values in the window or NaN if the statistics object is null.
+* `STATS_SKEWNESS`
+  * Description: Calculates the skewness of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The skewness of the values in the window or NaN if the statistics object is null.
+* `STATS_SUM`
+  * Description: Calculates the sum of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The sum of the values in the window or NaN if the statistics object is null.
+* `STATS_SUM_LOGS`
+  * Description: Calculates the sum of the (natural) log of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The sum of the (natural) log of the values in the window or NaN if the statistics object is null.
+* `STATS_SUM_SQUARES`
+  * Description: Calculates the sum of the squares of the values accumulated (or in the window if a window is used).
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The sum of the squares of the values in the window or NaN if the statistics object is null.
+* `STATS_VARIANCE`
+  * Description: Calculates the variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Input:
+    * stats - The Stellar statistics object.
+  * Returns: The variance of the values in the window or NaN if the statistics object is null.
+* `TO_DOUBLE`
+  * Description: Transforms the first argument to a double precision number
+  * Input:
+    * input - Object of string or numeric type
+  * Returns: Double
+* `TO_EPOCH_TIMESTAMP`
+  * Description: Returns the epoch timestamp of the dateTime given the format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
+  * Input:
+    * dateTime - DateTime in String format
+    * format - DateTime format as a String
+    * timezone - Optional timezone in String format
+  * Returns: Boolean
+* `TO_INTEGER`
+  * Description: Transforms the first argument to an integer
+  * Input:
+    * input - Object of string or numeric type
+  * Returns: Integer
+* `TO_LOWER`
+  * Description: Transforms the first argument to a lowercase string
+  * Input:
+    * input - String
+  * Returns: String
+* `TO_STRING`
+  * Description: Transforms the first argument to a string
+  * Input:
+    * input - Object
+  * Returns: String
+* `TO_UPPER`
+  * Description: Transforms the first argument to an uppercase string
+  * Input:
+    * input - String
+  * Returns: String
+* `TRIM`
+  * Description: Trims whitespace from both sides of a string.
+  * Input:
+    * input - String
+  * Returns: String
+* `URL_TO_HOST`
+  * Description: Extract the hostname from a URL.
+  * Input:
+    * url - URL in String form
+  * Returns: The hostname from the URL as a String.  e.g. URL_TO_HOST('http://www.yahoo.com/foo') would yield 'www.yahoo.com'
+* `URL_TO_PATH`
+  * Description: Extract the path from a URL.
+  * Input:
+    * url - URL in String form
+  * Returns: The path from the URL as a String.  e.g. URL_TO_PATH('http://www.yahoo.com/foo') would yield 'foo'
+* `URL_TO_PORT`
+  * Description: Extract the port from a URL.  If the port is not explicitly stated in the URL, then an implicit port is inferred based on the protocol.
+  * Input:
+    * url - URL in String form
+  * Returns: The port used in the URL as an Integer.  e.g. URL_TO_PORT('http://www.yahoo.com/foo') would yield 80
+* `URL_TO_PROTOCOL`
+  * Description: Extract the protocol from a URL.
+  * Input:
+    * url - URL in String form
+  * Returns: The protocol from the URL as a String. e.g. URL_TO_PROTOCOL('http://www.yahoo.com/foo') would yield 'http'
+* `WEEK_OF_MONTH`
+  * Description: The numbered week within the month.  The first week within the month has a value of 1.
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The numbered week within the month.
+* `WEEK_OF_YEAR`
+  * Description: The numbered week within the year.  The first week in the year has a value of 1.
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The numbered week within the year.
+* `YEAR`
+  * Description: The number representing the year. 
+  * Input:
+    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+  * Returns: The current year
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:
