@@ -1,6 +1,6 @@
 # Model Management Infrastructure
 
-#Introduction
+##Introduction
 
 One of the main features envisioned and requested is the ability to augment the threat intelligence and enrichment processes with insights derived from machine learning or statistical models.  The challenges with this sort of infrastructure are
 * Applying the model may be sufficiently computationally/resource intensive that we need to support scaling via load balancing, which will require service discovery and management.
