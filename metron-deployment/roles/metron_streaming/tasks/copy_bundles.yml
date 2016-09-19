@@ -15,69 +15,38 @@
 #  limitations under the License.
 #
 ---
-- name: Copy Metron Solr bundle
+- name: Copy Metron bundles
   copy:
-    src: "{{ metron_solr_bundle_path }}"
+    src: "{{ item }}"
     dest: "{{ metron_directory }}"
-
-- name: Copy Metron Elasticsearch bundle
-  copy:
-    src: "{{ metron_elasticsearch_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Enrichment bundle
-  copy:
-    src: "{{ metron_enrichment_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Indexing bundle
-  copy:
-    src: "{{ metron_indexing_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Parsers bundle
-  copy:
-    src: "{{ metron_parsers_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron DataLoads bundle
-  copy:
-    src: "{{ metron_data_management_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Common bundle
-  copy:
-    src: "{{ metron_common_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Pcap bundle
-  copy:
-    src: "{{ metron_pcap_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron MaaS bundle
-  copy:
-    src: "{{ metron_maas_bundle_path }}"
-    dest: "{{ metron_directory }}"
-
-- name: Copy Metron Profiler bundle
-  copy:
-    src: "{{ metron_profiler_bundle_path }}"
-    dest: "{{ metron_directory }}"
+  with_items:
+    - "{{ metron_solr_bundle_path }}"
+    - "{{ metron_elasticsearch_bundle_path }}"
+    - "{{ metron_enrichment_bundle_path }}"
+    - "{{ metron_indexing_bundle_path }}"
+    - "{{ metron_parsers_bundle_path }}"
+    - "{{ metron_data_management_bundle_path }}"
+    - "{{ metron_common_bundle_path }}"
+    - "{{ metron_pcap_bundle_path }}"
+    - "{{ metron_maas_bundle_path }}"
+    - "{{ metron_profiler_bundle_path }}"
+    - "{{ metron_profiler_client_bundle_path }}"
 
 - name: Unbundle Metron bundles
   shell: "{{ item }}"
   args:
     chdir: "{{ metron_directory }}"
   with_items:
-    - tar xzvf metron-solr*.tar.gz
-    - tar xzvf metron-elasticsearch*.tar.gz
-    - tar xzvf metron-enrichment*.tar.gz
-    - tar xzvf metron-indexing*.tar.gz
-    - tar xzvf metron-parsers*.tar.gz
-    - tar xzvf metron-data-management*.tar.gz
-    - tar xzvf metron-common*.tar.gz
-    - tar xzvf metron-pcap-backend*.tar.gz
-    - tar xzvf metron-maas-service*.tar.gz
-    - tar xzvf metron-profiler*.tar.gz
+    - "tar xzvf {{ metron_solr_bundle_name }}"
+    - "tar xzvf {{ metron_elasticsearch_bundle_name }}"
+    - "tar xzvf {{ metron_enrichment_bundle_name }}"
+    - "tar xzvf {{ metron_indexing_bundle_name }}"
+    - "tar xzvf {{ metron_parsers_bundle_name }}"
+    - "tar xzvf {{ metron_data_management_bundle_name }}"
+    - "tar xzvf {{ metron_common_bundle_name }}"
+    - "tar xzvf {{ metron_pcap_bundle_name }}"
+    - "tar xzvf {{ metron_maas_bundle_name }}"
+    - "tar xzvf {{ metron_profiler_bundle_name }}"
+    - "tar xvzf {{ metron_profiler_bundle_name }} "
+    - "tar xvzf {{ metron_profiler_client_bundle_name }} "
     - rm *.tar.gz

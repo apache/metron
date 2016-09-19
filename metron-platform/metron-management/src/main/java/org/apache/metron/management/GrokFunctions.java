@@ -27,6 +27,7 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.*;
@@ -36,11 +37,17 @@ public class GrokFunctions {
   private static final Logger LOG = Logger.getLogger(GrokFunctions.class);
   private static Grok getGrok(String grokExpr) throws GrokException {
     Grok grok = new Grok();
-    grok.addPatternFromReader(new InputStreamReader(GrokFunctions.class.getResourceAsStream("/patterns/common")));
+
+    InputStream input = GrokFunctions.class.getResourceAsStream("/patterns/common");
+    if(input != null) {
+      grok.addPatternFromReader(new InputStreamReader(input));
+    }
+
     if(grokExpr != null) {
       grok.addPatternFromReader(new StringReader("pattern " + grokExpr));
       grok.compile("%{pattern}");
     }
+
     return grok;
   }
 
