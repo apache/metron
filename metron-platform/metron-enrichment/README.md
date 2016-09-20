@@ -258,3 +258,29 @@ Now we need to start the topologies and send some data:
 * Ensure that the documents have new fields `foo`, `bar` and `ALL_CAPS` with values as described above.
 
 Note that we could have used any Stellar statements here, including calling out to HBase via `ENRICHMENT_GET` and `ENRICHMENT_EXISTS` or even calling a machine learning model via [Model as a Service](../../metron-analytics/metron-maas-service).
+
+# Notes on Performance Tuning
+
+Default installed Metron is untuned for production deployment.  There
+are a few knobs to tune to get the most out of your system.
+
+## Kafka Queue
+The `enrichments` kafka queue is a collection point from all of the
+parser topologies.  As such, make sure that the number of partitions in
+the kafka topic is sufficient to handle the throughput that you expect
+from your parser topologies.
+
+## Enrichment Topology
+The enrichment topology as started by the `$METRON_HOME/bin/start_enrichment_topology.sh` 
+script uses a default of one executor per bolt.  In a real production system, this should 
+be customized by modifying the flux file in
+`$METRON_HOME/flux/enrichment/remote.yaml`. 
+* Add a `parallelism` field to the bolts to give Storm a parallelism hint for the various components.  Give bolts which appear to be bottlenecks (e.g. stellar enrichment bolt, hbase enrichment and threat intel bolts) a larger hint.
+* Add a `parallelism` field to the kafka spout which matches the number of partitions for the enrichment kafka queue.
+* Adjust the number of workers for the topology by adjusting the 
+  `topology.workers` field for the topology. 
+
+Finally, if workers and executors are new to you or you don't know where
+to modify the flux file, the following might be of use to you:
+* [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
+* [Flux Docs](http://storm.apache.org/releases/current/flux.html)

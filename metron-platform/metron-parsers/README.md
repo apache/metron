@@ -341,3 +341,39 @@ you could create a file called `custom_config.json` containing
 }
 ```
 and pass `--extra_topology_options custom_config.json` to `start_parser_topology.sh`.
+
+# Notes on Performance Tuning
+
+Default installed Metron is untuned for production deployment.  There
+are a few knobs to tune to get the most out of your system.
+
+## Kafka Queue
+The kafka queue associated with your parser is a collection point for
+all of the data sent to your parser.  As such, make sure that the number of partitions in
+the kafka topic is sufficient to handle the throughput that you expect
+from your parser topology.
+
+## Parser Topology
+The enrichment topology as started by the `$METRON_HOME/bin/start_parser_topology.sh` 
+script uses a default of one executor per bolt.  In a real production system, this should 
+be customized by modifying the arguments sent to this utility.
+* Topology Wide
+  * `--num_workers` : The number of workers for the topology
+  * `--num_ackers` : The number of ackers for the topology
+* The Kafka Spout
+  * `--spout_num_tasks` : The number of tasks for the spout
+  * `--spout_p` : The parallelism hint for the spout
+  * Ensure that the spout has enough parallelism so that it can dedicate a worker per partition in your kafka topic.
+* The Parser Bolt
+  * `--parser_num_tasks` : The number of tasks for the parser bolt
+  * `--parser_p` : The parallelism hint for the spout
+  * This is bolt that gets the most processing, so ensure that it is configured with sufficient parallelism to match your throughput expectations.
+* The Error Message Writer Bolt
+  * `--error_writer_num_tasks` : The number of tasks for the error writer bolt
+  * `--error_writer_p` : The parallelism hint for the error writer bolt
+* The Invalid Message Writer Bolt
+  * `--invalid_writer_num_tasks` : The number of tasks for the error writer bolt
+  * `--invalid_writer_p` : The parallelism hint for the error writer bolt
+ 
+Finally, if workers and executors are new to you, the following might be of use to you:
+* [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
