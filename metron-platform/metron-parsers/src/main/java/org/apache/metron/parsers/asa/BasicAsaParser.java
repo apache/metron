@@ -1,18 +1,19 @@
 package org.apache.metron.parsers.asa;
 
+import com.google.common.collect.ImmutableMap;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.utils.FieldValidators;
+import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,51 @@ public class BasicAsaParser implements MessageParser<JSONObject>, Serializable {
     protected static final Logger LOG = LoggerFactory.getLogger(BasicAsaParser.class);
 
     private Grok asaGrok;
+
+    private static final InetAddressValidator ipValidator = InetAddressValidator.getInstance();
+
+    private static final Map<String, String> patternMap = ImmutableMap.<String, String>builder()
+            .put("ASA-2-106001", "CISCOFW106001")
+		    .put("ASA-2-106006", "CISCOFW106006_106007_106010")
+		    .put("ASA-2-106007", "CISCOFW106006_106007_106010")
+		    .put("ASA-2-106010", "CISCOFW106006_106007_106010")
+		    .put("ASA-3-106014", "CISCOFW106014")
+		    .put("ASA-6-106015", "CISCOFW106015")
+		    .put("ASA-1-106021", "CISCOFW106021")
+		    .put("ASA-4-106023", "CISCOFW106023")
+		    .put("ASA-5-106100", "CISCOFW106100")
+		    .put("ASA-6-110002", "CISCOFW110002")
+		    .put("ASA-6-302010", "CISCOFW302010")
+		    .put("ASA-6-302013", "CISCOFW302013_302014_302015_302016")
+		    .put("ASA-6-302014", "CISCOFW302013_302014_302015_302016")
+		    .put("ASA-6-302015", "CISCOFW302013_302014_302015_302016")
+		    .put("ASA-6-302016", "CISCOFW302013_302014_302015_302016")
+		    .put("ASA-6-302020", "CISCOFW302020_302021")
+		    .put("ASA-6-302021", "CISCOFW302020_302021")
+		    .put("ASA-6-305011", "CISCOFW305011")
+		    .put("ASA-3-313001", "CISCOFW313001_313004_313008")
+		    .put("ASA-3-313004", "CISCOFW313001_313004_313008")
+		    .put("ASA-3-313008", "CISCOFW313001_313004_313008")
+		    .put("ASA-4-313005", "CISCOFW313005")
+		    .put("ASA-4-402117", "CISCOFW402117")
+		    .put("ASA-4-402119", "CISCOFW402119")
+		    .put("ASA-4-419001", "CISCOFW419001")
+		    .put("ASA-4-419002", "CISCOFW419002")
+		    .put("ASA-4-500004", "CISCOFW500004")
+		    .put("ASA-6-602303", "CISCOFW602303_602304")
+		    .put("ASA-6-602304", "CISCOFW602303_602304")
+		    .put("ASA-7-710001", "CISCOFW710001_710002_710003_710005_710006")
+		    .put("ASA-7-710002", "CISCOFW710001_710002_710003_710005_710006")
+		    .put("ASA-7-710003", "CISCOFW710001_710002_710003_710005_710006")
+		    .put("ASA-7-710005", "CISCOFW710001_710002_710003_710005_710006")
+		    .put("ASA-7-710006", "CISCOFW710001_710002_710003_710005_710006")
+		    .put("ASA-6-713172", "CISCOFW713172")
+		    .put("ASA-4-733100", "CISCOFW733100")
+		    .put("ASA-6-305012", "CISCOFW305012")
+		    .put("ASA-7-609001", "CISCOFW609001")
+		    .put("ASA-7-609002", "CISCOFW609002")
+            .put("ASA-5-713041", "CISCOFW713041")
+            .build();
 
     @Override
     public void configure(Map<String, Object> config) {
@@ -37,41 +83,66 @@ public class BasicAsaParser implements MessageParser<JSONObject>, Serializable {
         } catch (GrokException e) {
             e.printStackTrace();
         }
-        LOG.info("[Metron] Cisco ASA Parser Initialized");
+        LOG.info("[Metron] CISCO ASA Parser Initialized");
     }
 
     @Override
     public List<JSONObject> parse(byte[] rawMessage) {
-        String pattern = "";
+        String syslogPattern = "%{CISCO_TAGGED_SYSLOG}";
         JSONObject metronJson = new JSONObject();
         List<JSONObject> messages = new ArrayList<>();
         try {
             String logLine = new String(rawMessage, "UTF-8");
-            LOG.debug("[Metron] Started parsing message: " + logLine);
+            LOG.debug("[Metron] Started parsing raw message: " + logLine);
 
-            pattern = asaGrok.discover(logLine);
-            //System.out.println("Discovered Pattern: " + pattern);
-            LOG.debug("[Metron] Grok discovered message pattern: " + pattern);
+            //pattern = asaGrok.discover(logLine);
+            //LOG.debug("[Metron] Grok discovered message pattern: " + pattern);
 
-            asaGrok.compile(pattern);
-            Match gm = asaGrok.match(logLine);
-            gm.captures();
-            Map<String, Object> grokJson = gm.toMap();
-            //System.out.println(gm.toJson(true));
-            LOG.debug("[Metron] Grok returned matches: " + gm.toJson());
+            asaGrok.compile(syslogPattern);
+            Match syslogMatch = asaGrok.match(logLine);
+            syslogMatch.captures();
+            Map<String, Object> syslogJson = syslogMatch.toMap();
+            LOG.debug("[Metron] Grok CISCO syslog matches: " + syslogMatch.toJson());
 
             metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
-            metronJson.put(Constants.Fields.TIMESTAMP.getName(), convertToEpoch((String) grokJson.get("CISCOTIMESTAMP")));
-            metronJson.put(Constants.Fields.SRC_ADDR.getName(), grokJson.get("src_ip"));
-            metronJson.put(Constants.Fields.SRC_PORT.getName(), grokJson.get("src_port"));
-            metronJson.put(Constants.Fields.DST_ADDR.getName(), grokJson.get("dst_ip"));
-            metronJson.put(Constants.Fields.DST_PORT.getName(), grokJson.get("dst_port"));
-            metronJson.put(Constants.Fields.PROTOCOL.getName(), normalizeString((String) grokJson.get("protocol"))); //TODO: Handle null values
-            metronJson.put("action", normalizeString((String) grokJson.get("action")));
-            metronJson.put("ciscotag", grokJson.get("CISCOTAG"));
-            metronJson.put("syslog_severity", getSeverityFromPriority((int) grokJson.get("syslog_pri")));
-            metronJson.put("syslog_facility", getFacilityFromPriority((int) grokJson.get("syslog_pri")));
-            LOG.debug("[Metron] Final parsed message: " + metronJson.toString());
+            metronJson.put(Constants.Fields.TIMESTAMP.getName(),
+                    SyslogUtils.convertToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP"), "MMM dd yyyy HH:mm:ss"));
+            metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
+            metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
+            metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
+
+            String messagePattern = patternMap.get(syslogJson.get("CISCOTAG"));
+            asaGrok.compile("%{"+ messagePattern +"}");
+            Match messageMatch = asaGrok.match((String) syslogJson.get("message"));
+            messageMatch.captures();
+            Map<String, Object> messageJson = messageMatch.toMap();
+            LOG.debug("[Metron] Grok CISCO message matches: " + messageMatch.toJson());
+
+            String src_ip = (String) messageJson.get("src_ip");
+            if (src_ip != null && ipValidator.isValid(src_ip))
+                metronJson.put(Constants.Fields.SRC_ADDR.getName(), src_ip);
+
+            Integer src_port = (Integer) messageJson.get("src_port");
+            if (src_port != null && FieldValidators.isValidPort(src_port))
+                metronJson.put(Constants.Fields.SRC_PORT.getName(), src_port);
+
+            String dst_ip = (String) messageJson.get("dst_ip");
+            if (dst_ip != null && ipValidator.isValid(dst_ip))
+                metronJson.put(Constants.Fields.DST_ADDR.getName(), dst_ip);
+
+            Integer dst_port = (Integer) messageJson.get("dst_port");
+            if (dst_port != null && FieldValidators.isValidPort(dst_port))
+                metronJson.put(Constants.Fields.DST_PORT.getName(), dst_port);
+
+            String protocol = (String) messageJson.get("protocol");
+            if (protocol != null)
+                metronJson.put(Constants.Fields.PROTOCOL.getName(), protocol.toLowerCase());
+
+            String action = (String) messageJson.get("action");
+            if (action != null)
+                metronJson.put("action", action.toLowerCase());
+
+            LOG.debug("[Metron] Final normalized message: " + metronJson.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,22 +154,5 @@ public class BasicAsaParser implements MessageParser<JSONObject>, Serializable {
     @Override
     public boolean validate(JSONObject message) {
         return false;
-    }
-
-    private long convertToEpoch(String logTimestamp) {
-        ZonedDateTime timestamp = ZonedDateTime.parse(logTimestamp, DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss").withZone(ZoneOffset.UTC));
-        return timestamp.toEpochSecond();
-    }
-
-    private String normalizeString(String str) {
-        return str.toLowerCase();
-    }
-
-    private int getSeverityFromPriority(int priority) {
-        return priority & 0x07; //TODO: Add map to string representation
-    }
-
-    private int getFacilityFromPriority(int priority) {
-        return priority >> 3; //TODO: Add map to string representation
     }
 }
