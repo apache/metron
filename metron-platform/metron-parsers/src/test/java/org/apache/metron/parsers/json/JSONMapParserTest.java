@@ -77,15 +77,15 @@ public class JSONMapParserTest {
   @Test(expected=IllegalStateException.class)
   public void testCollectionHandlingError() {
     JSONMapParser parser = new JSONMapParser();
-    parser.configure(ImmutableMap.of("mapStrategy", "ERROR"));
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
+    parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name()));
+    parser.parse(collectionHandlingJSON.getBytes());
   }
 
 
   @Test
   public void testCollectionHandlingAllow() {
     JSONMapParser parser = new JSONMapParser();
-    parser.configure(ImmutableMap.of("mapStrategy", "ALLOW"));
+    parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ALLOW.name()));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
@@ -98,7 +98,7 @@ public class JSONMapParserTest {
   @Test
   public void testCollectionHandlingUnfold() {
     JSONMapParser parser = new JSONMapParser();
-    parser.configure(ImmutableMap.of("mapStrategy", "UNFOLD"));
+    parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.UNFOLD.name()));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
