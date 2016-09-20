@@ -96,7 +96,7 @@ public class StellarShell {
    */
   public void execute() {
 
-    // welcome message
+    // welcome message and print globals
     writeLine(WELCOME);
     executor.getContext()
             .getCapability(Context.Capabilities.GLOBAL_CONFIG)
@@ -117,12 +117,6 @@ public class StellarShell {
         } else {
           handleStellar(scanner, expression);
         }
-
-      } else {
-        // if no expression, show all variables
-        writeLine(format("%d variable(s) defined", executor.getVariables().size()));
-        executor.getVariables()
-                .forEach((k,v) -> writeLine(format("%s = %s", k, v)));
       }
     }
   }
@@ -160,11 +154,11 @@ public class StellarShell {
     if(MAGIC_FUNCTIONS.equals(expression)) {
 
       // list all functions
-      String functions = StreamSupport
-              .stream(executor.getFunctionResolver().getFunctions().spliterator(), false)
+      StreamSupport
+              .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
+              .map(info -> String.format("%s", info.getName()))
               .sorted()
-              .collect(Collectors.joining(", "));
-      writeLine(functions);
+              .forEach(line -> writeLine(line));
 
     } else if(MAGIC_VARS.equals(expression)) {
 

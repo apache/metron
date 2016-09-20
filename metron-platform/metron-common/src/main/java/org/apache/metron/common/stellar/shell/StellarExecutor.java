@@ -36,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
 
@@ -55,7 +56,12 @@ public class StellarExecutor {
   private FunctionResolver functionResolver ;
 
   /**
-   * The context
+   * A Zookeeper client. Only defined if given a valid Zookeeper URL.
+   */
+  private Optional<CuratorFramework> client;
+
+  /**
+   * The Stellar execution context.
    */
   private Context context;
 
@@ -66,30 +72,46 @@ public class StellarExecutor {
   public StellarExecutor(String zookeeperUrl) throws Exception {
     this.variables = new HashMap<>();
     this.functionResolver = new StellarFunctions().FUNCTION_RESOLVER();
-    this.context = getContext(zookeeperUrl);
+    this.client = createClient(zookeeperUrl);
+    this.context = createContext();
+  }
+
+  /**
+   * Creates a Zookeeper client.
+   * @param zookeeperUrl The Zookeeper URL.
+   */
+  private Optional<CuratorFramework> createClient(String zookeeperUrl) {
+
+    // can only create client, if have valid zookeeper URL
+    if(StringUtils.isNotBlank(zookeeperUrl)) {
+      CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
+      client.start();
+      return Optional.of(client);
+
+    } else {
+      return Optional.empty();
+    }
   }
 
   /**
    * Creates a Context initialized with configuration stored in Zookeeper.
-   * @param zookeeperUrl The Zookeeper URL.
    */
-  private Context getContext(String zookeeperUrl) throws Exception {
+  private Context createContext() throws Exception {
     Context context = Context.EMPTY_CONTEXT();
 
     // load global configuration from zookeeper
-    if(StringUtils.isNotBlank(zookeeperUrl)) {
-      try (CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl)) {
-        client.start();
+    if (client.isPresent()) {
 
-        Map<String, Object> global = JSONUtils.INSTANCE.load(
-                new ByteArrayInputStream(readGlobalConfigBytesFromZookeeper(client)),
-                new TypeReference<Map<String, Object>>() {
-                });
+      // fetch the global configuration
+      Map<String, Object> global = JSONUtils.INSTANCE.load(
+              new ByteArrayInputStream(readGlobalConfigBytesFromZookeeper(client.get())),
+              new TypeReference<Map<String, Object>>() {
+              });
 
-        context = new Context.Builder()
-                .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
-                .build();
-      }
+      context = new Context.Builder()
+              .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+              .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client.get())
+              .build();
     }
 
     return context;
