@@ -3,7 +3,7 @@ This set of playbooks can be used to deploy an Ambari-managed Hadoop cluster, Me
 playbooks. These playbooks currently only target RHEL/CentOS 6.x operating
 systems.
 
-In addition, an Ambari Management Pack can be built which can be deployed in conjuction with RPMs detailed later.
+In addition, an Ambari Management Pack can be built which can be deployed in conjuction with RPMs detailed in this README.
 
 ## Prerequisites
 The following tools are required to run these scripts:
@@ -29,7 +29,7 @@ structure can be found at http://docs.ansible.com/ansible/playbooks_best_practic
 
 ## Ambari
 The Ambari playbook will install a Hadoop cluster with all the services and configuration required by Metron.  This
-section can be skipped if installing Metron on a pre-existing cluster.  
+section can be skipped if installing Metron on a pre-existing cluster.
 
 Currently, this playbook supports building a local development cluster running on one node but options for other types
  of clusters will be added in the future.
@@ -105,7 +105,7 @@ This will set up
 - Optional Kibana
 
 ### Prerequisites
-- A cluster managed by Ambari
+- A cluster managed by Ambari 2.4
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#RPM) for further information.
 
 ### Building Management Pack
@@ -117,13 +117,32 @@ mvn clean package
 A tar.gz that can be used with Ambari can be found at `metron-deployment/packaging/ambari/metron-mpack/target/`
 
 ### Installing Management Pack
+Before installing the mpack, update Storm's topology.classpath in Ambari to include '/etc/hbase/conf:/etc/hadoop/conf'. Restart Storm service.
+
 Place the mpack's tar.gz onto the node running Ambari Server. From the command line on this node, run
 ```
 ambari-server install-mpack --mpack=<mpack_location> --verbose
 ```
 
 This will make the services available in Ambari in the same manner as any services in a stack, e.g. through Add Services or during cluster install.
+The Indexing / Parsers/ Enrichment masters should be colocated with a Kafka Broker (to create topics) and HBase client (to create the enrichment and theatintel tables).
+This colocation is currently not enforced by Ambari, and should be managed by either a Service or Stack advisor as an enhancement.
 
+Several configuration parameters will need to be filled in, and should be pretty self explanatory (primarily a couple of Elasticsearch configs, and the Storm REST URL).  Examples are provided in the descriptions on Ambari.
+Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file://` location
+
+#### Offline installation
+Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information that is preloaded into MySQL.
+
+The RPMs DO NOT reach out to the internet (because there is currently no hosting for them).  They look on the local filesystem in `/localrepo`.
+
+### Current Limitations
+- There is currently no hosting for RPMs remotely.  They will have to be built locally.
+- Colocation of appropriate services should be enforced by Ambari.  See [#Installing Management Pack] for more details.
+- Storm's topology.classpath is not updated with the Metron service install and needs to be updated separately.
+- Several configuration parameters used when installing the Metron service could (and should) be grabbed from Ambari.  Install will require them to be manually entered.
+- MySQL install should be optional (and allow for using an existing instance).
+- Need to handle upgrading Metron
 
 ## RPM
 RPMs can be built to install the components in metron-platform. These RPMs are built in a Docker container and placed into `target`.
@@ -156,3 +175,4 @@ rpm -i <package>
 ## TODO
 - migrate existing MySQL/GeoLite playbook
 - Support Ubuntu deployments
+
