@@ -17,6 +17,8 @@ This config is variable by sensor type.
 
 ## Indexing Architecture
 
+![Architecture](indexing_arch.png)
+
 The indexing topology is extremely simple.  Data is ingested into kafka
 and sent to 
 * An indexing bolt configured to write to either elasticsearch or Solr
