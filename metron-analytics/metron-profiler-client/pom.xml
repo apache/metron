@@ -44,6 +44,12 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>metron-integration-test</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>metron-test-utilities</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
@@ -107,22 +113,6 @@
                 <exclusion>
                     <artifactId>disruptor</artifactId>
                     <groupId>com.googlecode.disruptor</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-hbase</artifactId>
-            <version>${global_storm_version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                    <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

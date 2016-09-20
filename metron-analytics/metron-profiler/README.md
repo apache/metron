@@ -253,8 +253,9 @@ This section will describe the steps required to get your first profile running.
 
 4. Shorten the flush intervals to more immediately see results.  Edit the Profiler topology properties located at `/usr/metron/0.2.0BETA/config/profiler.properties`.  Alter the following two properties.
     ```
-    profiler.flush.interval.seconds=30
-    profiler.hbase.flush.interval.seconds=30
+    profiler.period.duration=30
+    profiler.period.duration.units=SECONDS
+    profiler.hbase.flush.interval.seconds=5
     ```
 
 5. Create the Profiler definition in a file located at `/usr/metron/0.2.0BETA/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
