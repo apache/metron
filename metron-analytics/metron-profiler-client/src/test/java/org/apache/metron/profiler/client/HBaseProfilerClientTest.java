@@ -57,6 +57,9 @@ public class HBaseProfilerClientTest {
 
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
+  private static final long periodDuration = 15;
+  private static final TimeUnit periodUnits = TimeUnit.MINUTES;
+  private static final int periodsPerHour = 4;
 
   private HBaseProfilerClient client;
   private HTableInterface table;
@@ -103,20 +106,19 @@ public class HBaseProfilerClientTest {
    * The client should be able to distinguish between groups and only fetch those in the correct group.
    */
   @Test
-  public void testFetchOneGroup() throws Exception {
-    final int periodsPerHour = 4;
+  public void testFetchWithDurationAgoAndOneGroup() throws Exception {
     final int expectedValue = 2302;
     final int hours = 2;
     final int count = hours * periodsPerHour;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
     // execute
-    List<Integer> results = client.fetch("profile1", "entity1", hours, TimeUnit.HOURS, Integer.class, Arrays.asList("weekdays"));
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), hours, TimeUnit.HOURS);
 
     // validate
     assertEquals(count, results.size());
@@ -127,23 +129,21 @@ public class HBaseProfilerClientTest {
    * Attempt to fetch a group that does not exist.
    */
   @Test
-  public void testFetchNoGroup() {
+  public void testFetchWithDurationAgoAndNoGroup() {
 
     // setup
-    final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
-    final int count = hours * periodsPerHour;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // create two groups of measurements - one on weekdays and one on weekends
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
-    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
-    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    profileWriter.write(m, hours * periodsPerHour, Arrays.asList("weekdays"), val -> expectedValue);
+    profileWriter.write(m, hours * periodsPerHour, Arrays.asList("weekends"), val -> 0);
 
     // execute
     List<Object> doesNotExist = Arrays.asList("does-not-exist");
-    List<Integer> results = client.fetch("profile1", "entity1", hours, TimeUnit.HOURS, Integer.class, doesNotExist);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS);
 
     // validate
     assertEquals(0, results.size());
@@ -154,19 +154,94 @@ public class HBaseProfilerClientTest {
    * not be fetched.
    */
   @Test
-  public void testFetchOutsideTimeWindow() throws Exception {
-    final int periodsPerHour = 4;
+  public void testFetchWithDurationAgoAndOutsideTimeWindow() throws Exception {
     final int hours = 2;
-    int numberToWrite = hours * periodsPerHour;
     final List<Object> group = Arrays.asList("weekends");
     final long startTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
 
     // setup - write some values to read later
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodsPerHour);
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    profileWriter.write(m, hours * periodsPerHour, group, val -> 1000);
+
+    // execute
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, 2, TimeUnit.MILLISECONDS);
+
+    // validate - there should NOT be any results from just 2 milliseconds ago
+    assertEquals(0, results.size());
+  }
+
+  /**
+   * The client should be able to distinguish between groups and only fetch those in the correct group.
+   */
+  @Test
+  public void testFetchWithStartEndAndOneGroup() throws Exception {
+    final int periodsPerHour = 4;
+    final int expectedValue = 2302;
+    final int hours = 2;
+    final int count = hours * periodsPerHour;
+    final long endTime = System.currentTimeMillis();
+    final long startTime = endTime - TimeUnit.HOURS.toMillis(hours);
+
+    // setup - write two groups of measurements - 'weekends' and 'weekdays'
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
+    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
+
+    // execute
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), startTime, endTime);
+
+    // validate
+    assertEquals(count, results.size());
+    results.forEach(actual -> assertEquals(expectedValue, (int) actual));
+  }
+
+  /**
+   * Attempt to fetch a group that does not exist.
+   */
+  @Test
+  public void testFetchWithStartEndAndNoGroup() {
+
+    // setup
+    final int periodsPerHour = 4;
+    final int expectedValue = 2302;
+    final int hours = 2;
+    final int count = hours * periodsPerHour;
+    final long endTime = System.currentTimeMillis();
+    final long startTime = endTime - TimeUnit.HOURS.toMillis(hours);
+
+    // create two groups of measurements - one on weekdays and one on weekends
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
+    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
+
+    // execute
+    List<Object> doesNotExist = Arrays.asList("does-not-exist");
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, startTime, endTime);
+
+    // validate
+    assertEquals(0, results.size());
+  }
+
+  /**
+   * Profile data only within 'milliseconds ago' should be fetched.  Data outside of that time horizon should
+   * not be fetched.
+   */
+  @Test
+  public void testFetchWithStartEndAndOutsideTimeWindow() throws Exception {
+
+    final int hours = 2;
+    int numberToWrite = hours * periodsPerHour;
+    final List<Object> group = Arrays.asList("weekends");
+    final long measurementTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
+
+    // setup - write some values to read later
+    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", measurementTime, periodDuration, periodUnits);
     profileWriter.write(m, numberToWrite, group, val -> 1000);
 
     // execute
-    List<Integer> results = client.fetch("profile1", "entity1", 2, TimeUnit.MILLISECONDS, Integer.class, group);
+    final long endFetchAt = System.currentTimeMillis();
+    final long startFetchAt = endFetchAt - TimeUnit.MILLISECONDS.toMillis(30);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, startFetchAt, endFetchAt);
 
     // validate - there should NOT be any results from just 2 milliseconds ago
     assertEquals(0, results.size());

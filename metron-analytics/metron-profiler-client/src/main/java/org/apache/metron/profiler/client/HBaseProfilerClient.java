@@ -26,7 +26,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.Serializer;
+import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,21 +64,40 @@ public class HBaseProfilerClient implements ProfilerClient {
   /**
    * Fetches all of the data values associated with a Profile.
    *
+   * @param clazz       The type of values stored by the profile.
    * @param profile     The name of the profile.
    * @param entity      The name of the entity.
+   * @param groups      The groups used to sort the profile data.
    * @param durationAgo How far in the past to fetch values from.
    * @param unit        The time unit of 'durationAgo'.
-   * @param groups      The groups
    * @param <T>         The type of values stored by the Profile.
-   * @return A list of profile values.
+   * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(String profile, String entity, long durationAgo, TimeUnit unit, Class<T> clazz, List<Object> groups) {
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit) {
+    long end = System.currentTimeMillis();
+    long start = end - unit.toMillis(durationAgo);
+    return fetch(clazz, profile, entity, groups, start, end);
+  }
+
+  /**
+   * Fetch the values stored in a profile based on a start and end timestamp.
+   *
+   * @param clazz   The type of values stored by the profile.
+   * @param profile The name of the profile.
+   * @param entity  The name of the entity.
+   * @param groups  The groups used to sort the profile data.
+   * @param start   The start time in epoch milliseconds.
+   * @param end     The end time in epoch milliseconds.
+   * @param <T>     The type of values stored by the profile.
+   * @return A list of values.
+   */
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, durationAgo, unit);
+    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, start, end);
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch
@@ -108,7 +127,7 @@ public class HBaseProfilerClient implements ProfilerClient {
       Arrays.stream(results)
               .filter(r -> r.containsColumn(columnFamily, columnQualifier))
               .map(r -> r.getValue(columnFamily, columnQualifier))
-              .forEach(val -> values.add(Serializer.fromBytes(val, clazz)));
+              .forEach(val -> values.add(SerDeUtils.fromBytes(val, clazz)));
 
     } catch(IOException e) {
       throw new RuntimeException(e);

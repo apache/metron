@@ -142,7 +142,7 @@ public class GetProfile implements StellarFunction {
     TimeUnit units = TimeUnit.valueOf(unitsName);
     List<Object> groups = getGroupsArg(4, args);
 
-    return client.fetch(profile, entity, durationAgo, units, Integer.class, groups);
+    return client.fetch(Object.class, profile, entity, groups, durationAgo, units);
   }
 
   /**

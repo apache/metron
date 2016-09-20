@@ -21,6 +21,7 @@
 package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
@@ -31,6 +32,8 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -43,11 +46,12 @@ import static org.mockito.Mockito.when;
  */
 public class ProfileHBaseMapperTest {
 
-  Tuple tuple;
-  ProfileHBaseMapper mapper;
-  ProfileMeasurement measurement;
-  DefaultStellarExecutor executor;
-  RowKeyBuilder rowKeyBuilder;
+  private Tuple tuple;
+  private ProfileHBaseMapper mapper;
+  private ProfileMeasurement measurement;
+  private DefaultStellarExecutor executor;
+  private RowKeyBuilder rowKeyBuilder;
+  private ProfileConfig profile;
 
   @Before
   public void setup() {
@@ -59,12 +63,16 @@ public class ProfileHBaseMapperTest {
     mapper.setExecutor(executor);
     mapper.setRowKeyBuilder(rowKeyBuilder);
 
-    measurement = new ProfileMeasurement("profile", "entity", 20000, 4);
+    measurement = new ProfileMeasurement("profile", "entity", 20000, 15, TimeUnit.MINUTES);
     measurement.setValue(22);
+
+    profile = new ProfileConfig();
+
 
     // the tuple will contain the original message
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
+    when(tuple.getValueByField(eq("profile"))).thenReturn(profile);
   }
 
   /**
@@ -91,7 +99,7 @@ public class ProfileHBaseMapperTest {
 
   /**
    * The mapper should execute each 'groupBy' Stellar expression and use that to generate
-   * a row key.  There can be multiple.
+   * a row key.  There can be multiple groups.
    */
   @Test
   public void testExecuteMultipleGroupBys() throws Exception {
@@ -110,5 +118,36 @@ public class ProfileHBaseMapperTest {
     List<Object> actual = arg.getValue();
     Assert.assertEquals(4.0, actual.get(0));
     Assert.assertEquals(8.0, actual.get(1));
+  }
+
+  /**
+   * The mapper should return the expiration for a tuple based on the Profile definition.
+   */
+  @Test
+  public void testExpires() throws Exception {
+    final Long expiresDays = 30L;
+    profile.setExpires(expiresDays);
+
+    Optional<Long> actual = mapper.getTTL(tuple);
+    Assert.assertTrue(actual.isPresent());
+    Assert.assertEquals(expiresDays, (Long) TimeUnit.MILLISECONDS.toDays(actual.get()));
+  }
+
+  /**
+   * The expiration field is optional within a Profile definition.
+   */
+  @Test
+  public void testExpiresUndefined() throws Exception {
+
+    // do not set the TTL on the profile
+    ProfileConfig profileNoTTL = new ProfileConfig();
+
+    // the tuple references the profile with the missing TTL
+    Tuple tupleNoTTL = mock(Tuple.class);
+    when(tupleNoTTL.getValueByField(eq("profile"))).thenReturn(profileNoTTL);
+
+    // the TTL should not be defined
+    Optional<Long> actual = mapper.getTTL(tupleNoTTL);
+    Assert.assertFalse(actual.isPresent());
   }
 }

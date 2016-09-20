@@ -48,6 +48,7 @@ public class StellarCompiler extends StellarBaseListener {
   private Stack<Token> tokenStack = new Stack<>();
   private FunctionResolver functionResolver;
   private VariableResolver variableResolver;
+  private Throwable actualException = null;
 
   public StellarCompiler(VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
     this.variableResolver = variableResolver;
@@ -241,8 +242,13 @@ public class StellarCompiler extends StellarBaseListener {
 
     // fetch the args, execute, and push result onto the stack
     List<Object> args = getFunctionArguments(popStack());
-    Object result = function.apply(args, context);
-    tokenStack.push(new Token<>(result, Object.class));
+    try {
+      Object result = function.apply(args, context);
+      tokenStack.push(new Token<>(result, Object.class));
+    }
+    catch(Throwable t) {
+      actualException = t;
+    }
   }
 
   /**
@@ -418,6 +424,9 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   public Object getResult() throws ParseException {
+    if(actualException != null) {
+      throw new ParseException("Unable to execute: " +actualException.getMessage(), actualException);
+    }
     if (tokenStack.empty()) {
       throw new ParseException("Invalid predicate: Empty stack.");
     }

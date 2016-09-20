@@ -28,6 +28,7 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
@@ -135,7 +136,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' each with 390 bytes
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(390.0 * 5, actual, 0.01);
   }
 
@@ -156,7 +157,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' and 5 'DNS' messages thus 5/5 = 1
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(5.0 / 5.0, actual, 0.01);
   }
 
@@ -177,7 +178,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
@@ -194,9 +195,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
-    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = readInteger(columnBuilder.getColumnQualifier("value"));
-    Assert.assertEquals(10.0, actual, 0.01);
+    // verify - the profile literally writes 10 as an integer
+    int actual = read(columnBuilder.getColumnQualifier("value"), Integer.class);
+    Assert.assertEquals(10, actual);
   }
 
   @Test
@@ -213,37 +214,27 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - the 70th percentile of 5 x 20s = 20.0
-    double actual = readDouble(columnBuilder.getColumnQualifier("value"));
+    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
   /**
-   * Reads a Double value written by the Profiler.
-   * @param columnQual The column qualifier.
+   * Reads a value written by the Profiler.
+   *
+   * @param column The column qualifier.
+   * @param clazz The expected type of the result.
+   * @param <T> The expected type of the result.
+   * @return The value contained within the column.
    */
-  private Double readDouble(byte[] columnQual) throws IOException {
+  private <T> T read(byte[] column, Class<T> clazz) throws IOException {
     final byte[] cf = Bytes.toBytes(columnFamily);
-    ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
+    ResultScanner scanner = profilerTable.getScanner(cf, column);
 
     for (Result result : scanner) {
-      byte[] raw = result.getValue(cf, columnQual);
-      return Bytes.toDouble(raw);
-    }
-
-    throw new IllegalStateException("No results found");
-  }
-
-  /**
-   * Reads an Integer value written by the Profiler.
-   * @param columnQual The column qualifier.
-   */
-  private Integer readInteger(byte[] columnQual) throws IOException {
-    final byte[] cf = Bytes.toBytes(columnFamily);
-    ResultScanner scanner = profilerTable.getScanner(cf, columnQual);
-
-    for (Result result : scanner) {
-      byte[] raw = result.getValue(cf, columnQual);
-      return Bytes.toInt(raw);
+      if(result.containsColumn(cf, column)) {
+        byte[] raw = result.getValue(cf, column);
+        return SerDeUtils.fromBytes(raw, clazz);
+      }
     }
 
     throw new IllegalStateException("No results found");
@@ -265,7 +256,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
       setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("profiler.periods.per.hour", "240");
+      setProperty("profiler.period.duration", "5");
+      setProperty("profiler.period.duration.units", "SECONDS");
       setProperty("profiler.hbase.salt.divisor", "10");
       setProperty("profiler.hbase.table", tableName);
       setProperty("profiler.hbase.column.family", columnFamily);

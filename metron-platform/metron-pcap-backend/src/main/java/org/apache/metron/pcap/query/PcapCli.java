@@ -17,12 +17,14 @@
  */
 package org.apache.metron.pcap.query;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
@@ -32,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class PcapCli {
       return -1;
     }
     String jobType = args[0];
-    List<byte[]> results = new ArrayList<>();
+    SequenceFileIterable results = null;
     String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
     Configuration hadoopConf = new Configuration();
     String[] otherArgs = null;
@@ -69,13 +70,16 @@ public class PcapCli {
       LOGGER.error("Failed to configure hadoop with provided options: " + e.getMessage(), e);
       return -1;
     }
+    CliConfig commonConfig = null;
     if ("fixed".equals(jobType)) {
       FixedCliParser fixedParser = new FixedCliParser();
       FixedCliConfig config = null;
       try {
         config = fixedParser.parse(otherArgs);
+        commonConfig = config;
       } catch (ParseException | java.text.ParseException e) {
         System.err.println(e.getMessage());
+        System.err.flush();
         fixedParser.printHelp();
         return -1;
       }
@@ -110,6 +114,7 @@ public class PcapCli {
       QueryCliConfig config = null;
       try {
         config = queryParser.parse(otherArgs);
+        commonConfig = config;
       } catch (ParseException | java.text.ParseException e) {
         System.err.println(e.getMessage());
         queryParser.printHelp();
@@ -145,18 +150,28 @@ public class PcapCli {
       printBasicHelp();
       return -1;
     }
-    String timestamp = clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ");
-    String outFileName = String.format("pcap-data-%s.pcap", timestamp);
     try {
-      if(results.size() > 0) {
-        resultsWriter.write(results, outFileName);
-      }
-      else {
+      Iterable<List<byte[]>> partitions = Iterables.partition(results, commonConfig.getNumRecordsPerFile());
+      if (partitions.iterator().hasNext()) {
+        for (List<byte[]> data : partitions) {
+          String timestamp = clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ");
+          String outFileName = String.format("pcap-data-%s.pcap", timestamp);
+          if(data.size() > 0) {
+            resultsWriter.write(data, outFileName);
+          }
+        }
+      } else {
         System.out.println("No results returned.");
       }
     } catch (IOException e) {
       LOGGER.error("Unable to write file", e);
       return -1;
+    } finally {
+      try {
+        results.cleanup();
+      } catch(IOException e) {
+        LOGGER.warn("Unable to cleanup files in HDFS", e);
+      }
     }
     return 0;
   }

@@ -22,15 +22,15 @@ package org.apache.metron.profiler.client;
 
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.storm.hbase.common.ColumnList;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -68,8 +68,9 @@ public class ProfileWriter {
       m = new ProfileMeasurement(
               prototype.getProfileName(),
               prototype.getEntity(),
-              next.getTimeInMillis(),
-              prototype.getPeriodsPerHour());
+              next.getStartTimeMillis(),
+              prototype.getPeriod().getDurationMillis(),
+              TimeUnit.MILLISECONDS);
 
       // generate the next value that should be written
       Object nextValue = valueGenerator.apply(m.getValue());
@@ -90,8 +91,8 @@ public class ProfileWriter {
     byte[] rowKey = rowKeyBuilder.rowKey(m, groups);
     ColumnList cols = columnBuilder.columns(m);
 
-    List<Mutation> mutations = hbaseClient.constructMutationReq(rowKey, cols, Durability.SKIP_WAL);
-    hbaseClient.batchMutate(mutations);
+    hbaseClient.addMutation(rowKey, cols, Durability.SKIP_WAL);
+    hbaseClient.mutate();
   }
 
 }

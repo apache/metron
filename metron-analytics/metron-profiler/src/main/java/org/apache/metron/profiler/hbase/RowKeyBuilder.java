@@ -34,11 +34,11 @@ public interface RowKeyBuilder extends Serializable {
 
   /**
    * Build a row key for a given ProfileMeasurement.
-   *
+   * 
    * This method is useful when writing ProfileMeasurements to HBase.
    *
    * @param measurement The profile measurement.
-   * @param groups The groups used to sort the profile data.
+   * @param groups      The groups used to sort the profile data.
    * @return The HBase row key.
    */
   byte[] rowKey(ProfileMeasurement measurement, List<Object> groups);
@@ -52,9 +52,9 @@ public interface RowKeyBuilder extends Serializable {
    * @param profile The name of the profile.
    * @param entity The name of the entity.
    * @param groups The group(s) used to sort the profile data.
-   * @param durationAgo How long ago?
-   * @param unit The time units of how long ago.
+   * @param start When the time horizon starts in epoch milliseconds.
+   * @param end When the time horizon ends in epoch milliseconds.
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
-  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit);
+  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end);
 }

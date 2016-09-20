@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
@@ -64,10 +65,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private StellarExecutor executor;
 
   /**
-   * The number of times per hour that a profile is flushed and a measurement
-   * is written.  This should be a divisor or multiple of 60; 1, 2, 3, 4, 6, 240, etc.
+   * The duration of each profile period in milliseconds.
    */
-  private int periodsPerHour;
+  private long periodDurationMillis;
 
   /**
    * A ProfileMeasurement is created and emitted each window period.  A Profile
@@ -100,12 +100,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   @Override
   public Map<String, Object> getComponentConfiguration() {
-    Config conf = new Config();
-
     // how frequently should the bolt receive tick tuples?
-    long freqInSeconds = ((60 * 60) / periodsPerHour);
-    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, freqInSeconds);
-
+    Config conf = new Config();
+    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, TimeUnit.MILLISECONDS.toSeconds(periodDurationMillis));
     return conf;
   }
 
@@ -133,7 +130,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     // once the time window expires, a complete ProfileMeasurement is emitted
-    declarer.declare(new Fields("measurement"));
+    declarer.declare(new Fields("measurement", "profile"));
   }
 
   @Override
@@ -186,7 +183,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             profileConfig.getProfile(),
             input.getStringByField("entity"),
             getTimestamp(),
-            periodsPerHour);
+            periodDurationMillis,
+            TimeUnit.MILLISECONDS);
 
     // execute the 'init' expression
     try {
@@ -236,7 +234,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     try {
       String resultExpr = profileConfig.getResult();
       result = executor.execute(resultExpr, new JSONObject(), Object.class);
-    
+
     } catch(ParseException e) {
       throw new ParseException("Bad 'result' expression", e);
     }
@@ -257,7 +255,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * @param measurement The completed ProfileMeasurement.
    */
   private void emit(ProfileMeasurement measurement, Tuple anchor) {
-    collector.emit(anchor, new Values(measurement));
+    collector.emit(anchor, new Values(measurement, profileConfig));
     collector.ack(anchor);
   }
 
@@ -283,7 +281,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   protected static boolean isTickTuple(Tuple tuple) {
     return Constants.SYSTEM_COMPONENT_ID.equals(tuple.getSourceComponent()) &&
-      Constants.SYSTEM_TICK_STREAM_ID.equals(tuple.getSourceStreamId());
+            Constants.SYSTEM_TICK_STREAM_ID.equals(tuple.getSourceStreamId());
   }
 
   public StellarExecutor getExecutor() {
@@ -294,9 +292,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     this.executor = executor;
   }
 
-  public void setPeriodsPerHour(int periodsPerHour) {
-    this.periodsPerHour = periodsPerHour;
+  public void setPeriodDurationMillis(long periodDurationMillis) {
+    this.periodDurationMillis = periodDurationMillis;
   }
 
-
+  public void withPeriodDuration(int duration, TimeUnit units) {
+    setPeriodDurationMillis(units.toMillis(duration));
+  }
 }

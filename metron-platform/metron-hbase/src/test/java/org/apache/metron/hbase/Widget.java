@@ -62,7 +62,6 @@ public class Widget {
     if (o == null || getClass() != o.getClass()) return false;
 
     Widget widget = (Widget) o;
-
     if (cost != widget.cost) return false;
     return name != null ? name.equals(widget.name) : widget.name == null;
 
@@ -73,5 +72,13 @@ public class Widget {
     int result = name != null ? name.hashCode() : 0;
     result = 31 * result + cost;
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Widget{" +
+            "name='" + name + '\'' +
+            ", cost=" + cost +
+            '}';
   }
 }

@@ -23,22 +23,22 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 public class CliConfig {
-  public static final String BASE_PATH_DEFAULT = "/apps/metron/pcap";
-  public static final String BASE_OUTPUT_PATH_DEFAULT = "/tmp";
   private boolean showHelp;
   private String basePath;
   private String baseOutputPath;
   private long startTime;
   private long endTime;
-  private int numReducers = 0;
+  private int numReducers;
+  private int numRecordsPerFile;
   private DateFormat dateFormat;
 
   public CliConfig() {
     showHelp = false;
-    basePath = BASE_PATH_DEFAULT;
-    baseOutputPath = BASE_OUTPUT_PATH_DEFAULT;
+    basePath = "";
+    baseOutputPath = "";
     startTime = -1L;
     endTime = -1L;
+    numReducers = 0;
   }
 
   public int getNumReducers() {
@@ -99,5 +99,13 @@ public class CliConfig {
 
   public void setNumReducers(int numReducers) {
     this.numReducers = numReducers;
+  }
+
+  public int getNumRecordsPerFile() {
+    return numRecordsPerFile;
+  }
+
+  public void setNumRecordsPerFile(int numRecordsPerFile) {
+    this.numRecordsPerFile = numRecordsPerFile;
   }
 }

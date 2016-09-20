@@ -22,18 +22,20 @@ package org.apache.metron.profiler.bolt;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.commons.beanutils.BeanMap;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.stellar.StellarExecutor;
-import org.apache.storm.hbase.bolt.mapper.HBaseMapper;
-import org.apache.storm.hbase.common.ColumnList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -69,9 +71,10 @@ public class ProfileHBaseMapper implements HBaseMapper {
   }
 
   /**
-   * Define the row key for a ProfileMeasurement.
-   * @param tuple The tuple containing a ProfileMeasurement.
-   * @return The Hbase row key.
+   * Defines the HBase row key that will be used when writing the data from a
+   * tuple to HBase.
+   *
+   * @param tuple The tuple to map to HBase.
    */
   @Override
   public byte[] rowKey(Tuple tuple) {
@@ -81,13 +84,35 @@ public class ProfileHBaseMapper implements HBaseMapper {
   }
 
   /**
-   * Defines how the fields within a ProfileMeasurement are mapped to HBase.
-   * @param tuple The tuple containing the ProfileMeasurement.
+   * Defines the columnar structure that will be used when writing the data
+   * from a tuple to HBase.
+   *
+   * @param tuple The tuple to map to HBase.
    */
   @Override
   public ColumnList columns(Tuple tuple) {
     ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
     return columnBuilder.columns(measurement);
+  }
+
+  /**
+   * Defines the TTL (time-to-live) that will be used when writing the data
+   * from a tuple to HBase.  After the TTL, the data will expire and will be
+   * purged.
+   *
+   * @param tuple The tuple to map to HBase.
+   * @return The TTL in milliseconds.
+   */
+  @Override
+  public Optional<Long> getTTL(Tuple tuple) {
+    Optional result = Optional.empty();
+
+    ProfileConfig profileConfig = (ProfileConfig) tuple.getValueByField("profile");
+    if(profileConfig.getExpires() != null) {
+      result = result.of(profileConfig.getExpires());
+    }
+
+    return result;
   }
 
   /**
