@@ -125,7 +125,6 @@ The total number of bytes of HTTP data for each host. The following configuratio
 
 ```
 {
-  "inputTopic": "indexing",
   "profiles": [
     {
       "profile": "example1",
@@ -159,7 +158,6 @@ The ratio of DNS traffic to HTTP traffic for each host. The following configurat
 
 ```
 {
-  "inputTopic": "indexing",
   "profiles": [
     {
       "profile": "example2",
@@ -193,7 +191,6 @@ The average of the `length` field of HTTP traffic. The following configuration w
 
 ```
 {
-  "inputTopic": "indexing",
   "profiles": [
     {
       "profile": "example3",
@@ -261,7 +258,6 @@ This section will describe the steps required to get your first profile running.
 5. Create the Profiler definition in a file located at `/usr/metron/0.2.0BETA/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
     ```
     {
-      "inputTopic": "indexing",
       "profiles": [
         {
           "profile": "test",
