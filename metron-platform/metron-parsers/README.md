@@ -1,14 +1,37 @@
 #Parsers
 
+## Introduction
+
 Parsers are pluggable components which are used to transform raw data
 (textual or raw bytes) into JSON messages suitable for downstream
 enrichment and indexing.  
 
-There are two types of parsers:
-*  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and
-is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
-* A Grok parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.
+There are two general types types of parsers:
+*  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
+* A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
+  * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of 
+    * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
+    * `patternLabel` : The pattern label to use from the grok statement
+    * `timestampField` : The field to use for timestamp
+    * `timeFields` : A list of fields to be treated as time
+    * `dateFormat` : The date format to use to parse the time fields
+    * `timezone` : The timezone to use. `UTC` is default.
+  * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
+    * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
+    * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
+    * `separator` : The column separator, `,` by default.
+just
 
+## Parser Architecture
+
+![Architecture](parser_arch.png)
+
+Data flows through the parser bolt via kafka and into the `enrichments`
+topology in kafka.  Errors are collected with the context of the error
+(e.g. stacktrace) and original message causing the error and sent to an
+`error` queue.  Invalid messages as determined by global validation
+functions are sent to an `invalid` queue. 
+ 
 ##Message Format
 
 All Metron messages follow a specific format in order to ingest a message.  If a message does not conform to this format it will be dropped and put onto an error queue for further examination.  The message must be of a JSON format and must have a JSON tag message like so:
@@ -46,6 +69,10 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 
 }
 ```
+
+##Global Configuration 
+
+See the "[Global Configuration](../metron-common)" section.
 
 ##Parser Configuration
 
@@ -126,7 +153,8 @@ to a textual representation of the protocol:
 This transformation would transform `{ "protocol" : 6, "source.type" : "bro", ... }` 
 into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
 
-* `MTL` : This transformation executes a set of transformations expressed as [Metron Transformation Language](../metron-common) statements.
+* `STELLAR` : This transformation executes a set of transformations
+  expressed as [Stellar Language](../metron-common) statements.
 
 Consider the following sensor parser config to add three new fields to a
 message:
@@ -139,7 +167,7 @@ message:
 ...
     "fieldTransformations" : [
           {
-           "transformation" : "MTL"
+           "transformation" : "STELLAR"
           ,"output" : [ "utc_timestamp", "url_host", "url_protocol" ]
           ,"config" : {
             "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd
@@ -313,3 +341,39 @@ you could create a file called `custom_config.json` containing
 }
 ```
 and pass `--extra_topology_options custom_config.json` to `start_parser_topology.sh`.
+
+# Notes on Performance Tuning
+
+Default installed Metron is untuned for production deployment.  There
+are a few knobs to tune to get the most out of your system.
+
+## Kafka Queue
+The kafka queue associated with your parser is a collection point for
+all of the data sent to your parser.  As such, make sure that the number of partitions in
+the kafka topic is sufficient to handle the throughput that you expect
+from your parser topology.
+
+## Parser Topology
+The enrichment topology as started by the `$METRON_HOME/bin/start_parser_topology.sh` 
+script uses a default of one executor per bolt.  In a real production system, this should 
+be customized by modifying the arguments sent to this utility.
+* Topology Wide
+  * `--num_workers` : The number of workers for the topology
+  * `--num_ackers` : The number of ackers for the topology
+* The Kafka Spout
+  * `--spout_num_tasks` : The number of tasks for the spout
+  * `--spout_p` : The parallelism hint for the spout
+  * Ensure that the spout has enough parallelism so that it can dedicate a worker per partition in your kafka topic.
+* The Parser Bolt
+  * `--parser_num_tasks` : The number of tasks for the parser bolt
+  * `--parser_p` : The parallelism hint for the spout
+  * This is bolt that gets the most processing, so ensure that it is configured with sufficient parallelism to match your throughput expectations.
+* The Error Message Writer Bolt
+  * `--error_writer_num_tasks` : The number of tasks for the error writer bolt
+  * `--error_writer_p` : The parallelism hint for the error writer bolt
+* The Invalid Message Writer Bolt
+  * `--invalid_writer_num_tasks` : The number of tasks for the error writer bolt
+  * `--invalid_writer_p` : The parallelism hint for the error writer bolt
+ 
+Finally, if workers and executors are new to you, the following might be of use to you:
+* [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)

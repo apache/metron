@@ -61,4 +61,18 @@ Metron's code:
 
 Option 3 is more likely to have the latest code.
 
+# Navigating the Architecture
 
+Metron is at its core a Kappa architecture with Apache Storm as the processing
+component and Apache Kafka as the unified data bus.
+
+Some high level links to the relevant subparts of the architecture, for
+more information:
+* [Parsers](metron-platform/metron-parsers) : Parsing data from kafka into the Metron data model and passing it downstream to Enrichment.  
+* [Enrichment](metron-platform/metron-enrichment) : Enriching data post-parsing and providing the ability to tag a message as an alert and assign a risk triage level via a custom rule language.
+* [Indexing](metron-platform/metron-indexing) : Indexing the data post-enrichment into HDFS, Elasticsearch or Solr.
+
+Some useful utilities that cross all of these parts of the architecture:
+* [Stellar](metron-platform/metron-common) : A custom data transformation language that is used throughout metron from simple field transformation to expressing triage rules.
+* [Model as a Service](metron-analytics/metron-maas-service) : A Yarn application which can deploy machine learning and statistical models onto the cluster along with the associated Stellar functions to be able to call out to them in a scalable manner.
+* [Data management](metron-platform/metron-data-management) : A set of data management utilities aimed at getting data into HBase in a format which will allow data flowing through metron to be enriched with the results.  Contains integrations with threat intelligence feeds exposed via TAXII as well as simple flat file structures.
