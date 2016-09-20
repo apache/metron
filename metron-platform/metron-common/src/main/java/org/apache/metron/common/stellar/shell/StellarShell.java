@@ -27,12 +27,11 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctionInfo;
 
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static java.lang.String.format;
 
 /**
  * A REPL environment for Stellar.
@@ -49,6 +48,7 @@ public class StellarShell {
   private static final String MAGIC_PREFIX = "%";
   private static final String MAGIC_FUNCTIONS = "%functions";
   private static final String MAGIC_VARS = "%vars";
+  private static final String DOC_PREFIX = "?";
 
   private StellarExecutor executor;
 
@@ -114,6 +114,9 @@ public class StellarShell {
         if(isMagic(expression)) {
           handleMagic(scanner, expression);
 
+        } else if(isDoc(expression)) {
+          handleDoc(scanner, expression);
+
         } else {
           handleStellar(scanner, expression);
         }
@@ -154,17 +157,18 @@ public class StellarShell {
     if(MAGIC_FUNCTIONS.equals(expression)) {
 
       // list all functions
-      StreamSupport
+      String functions = StreamSupport
               .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
               .map(info -> String.format("%s", info.getName()))
               .sorted()
-              .forEach(line -> writeLine(line));
+              .collect(Collectors.joining(", "));
+      writeLine(functions);
 
     } else if(MAGIC_VARS.equals(expression)) {
 
       // list all variables
       executor.getVariables()
-              .forEach((k,v) -> writeLine(format("%s = %s", k, v)));
+              .forEach((k,v) -> writeLine(String.format("%s = %s", k, v)));
 
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + expression);
@@ -172,12 +176,48 @@ public class StellarShell {
   }
 
   /**
+   * Handles user interaction when executing a doc command.
+   * @param scanner The scanner used to read user input.
+   * @param expression The expression to execute.
+   */
+  private void handleDoc(Scanner scanner, String expression) {
+
+    String functionName = StringUtils.substring(expression, 1);
+    StreamSupport
+            .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
+            .filter(info -> StringUtils.equals(functionName, info.getName()))
+            .map(info -> format(info))
+            .forEach(doc -> write(doc));
+  }
+
+  /**
+   * Formats the Stellar function info object into a readable string.
+   * @param info The stellar function info object.
+   * @return A readable string.
+   */
+  private String format(StellarFunctionInfo info) {
+    return String.format(
+            "%s\n desc: %-60s\n args: %-60s\n  ret: %-60s\n",
+            info.getName(),
+            info.getDescription(),
+            StringUtils.join(info.getParams(), ", "),
+            info.getReturns());
+  }
+
+  /**
    * Is a given expression a built-in magic?
    * @param expression The expression.
-   * @return
    */
   private boolean isMagic(String expression) {
     return StringUtils.startsWith(expression, MAGIC_PREFIX);
+  }
+
+  /**
+   * Is a given expression asking for function documentation?
+   * @param expression The expression.
+   */
+  private boolean isDoc(String expression) {
+    return StringUtils.startsWith(expression, DOC_PREFIX);
   }
 
   /**

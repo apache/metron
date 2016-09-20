@@ -10,19 +10,24 @@ $ /usr/metron/<version>/bin/stellar
 Stellar, Go!
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
 
->>> URL_TO_PORT('http://foo.com:2181')
-[=] 2181
-[?] save as: 
+>>> %functions
+BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, ...
 
->>> IS_EMAIL('user@metron.incubator.apache.org')
-[=] true
-[?] save as:
+>>> ?PROTOCOL_TO_NAME
+PROTOCOL_TO_NAME
+ desc: Convert the IANA protocol number to the protocol name       
+ args: IANA Number                                                 
+  ret: The protocol name associated with the IANA number.          
 
->>> 2 + 2 + 4
-[=] 8.0
-[?] save as: foo
+>>> 6
+[=] 6
+[?] save as: ip.protocol
+
 >>> %vars
-foo = 8.0
+ip.protocol = 6
+
+>>> PROTOCOL_TO_NAME(ip.protocol)
+[=] TCP
 ```
 
 ### Command Line Options
@@ -65,7 +70,7 @@ foo = 4.0
 
 ### Magic Commands
 
-The REPL has a set of magic commands that provide the REPL user with information about the Stellar execution environment.  A magic command begins with the '%' character.  The following magic commands are supported.
+The REPL has a set of magic commands that provide the REPL user with information about the Stellar execution environment.  The following magic commands are supported.
 
 #### `%functions`
 
@@ -102,3 +107,20 @@ foo = 4.0
 >>> 
 ```
 
+#### `?<function>`
+
+Returns formatted documentation of the Stellar function.  Provides the description of the function along with the expected arguments.
+
+```
+>>> ?BLOOM_ADD
+BLOOM_ADD
+ desc: Adds an element to the bloom filter passed in               
+ args: bloom - The bloom filter, value* - The values to add        
+  ret: Bloom Filter                                                
+>>> ?IS_EMAIL
+IS_EMAIL
+ desc: Tests if a string is a valid email address                  
+ args: address - The String to test                                
+  ret: True if the string is a valid email address and false otherwise.
+>>> 
+```
