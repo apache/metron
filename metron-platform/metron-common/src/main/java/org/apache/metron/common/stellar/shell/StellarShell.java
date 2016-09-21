@@ -42,9 +42,15 @@ import org.jboss.aesh.console.ConsoleOperation;
 import org.jboss.aesh.console.Prompt;
 import org.jboss.aesh.console.settings.Settings;
 import org.jboss.aesh.console.settings.SettingsBuilder;
+import org.jboss.aesh.terminal.CharacterType;
+import org.jboss.aesh.terminal.Color;
+import org.jboss.aesh.terminal.TerminalCharacter;
+import org.jboss.aesh.terminal.TerminalColor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -58,7 +64,21 @@ import java.util.stream.StreamSupport;
 public class StellarShell extends AeshConsoleCallback implements Completion {
 
   private static final String WELCOME = "Stellar, Go!";
-  private static final String EXPRESSION_PROMPT = ">>> ";
+  private List<TerminalCharacter> EXPRESSION_PROMPT = new ArrayList<TerminalCharacter>()
+  {{
+    add(new TerminalCharacter('[', new TerminalColor(Color.RED, Color.DEFAULT)));
+    add(new TerminalCharacter('S', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter('t', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter('e', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter('l', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter('l', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter('a', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter('r', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
+    add(new TerminalCharacter(']', new TerminalColor(Color.RED, Color.DEFAULT)));
+    add(new TerminalCharacter('$', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.UNDERLINE));
+    add(new TerminalCharacter(' ', new TerminalColor(Color.DEFAULT, Color.DEFAULT)));
+  }};
+
   private static final String ERROR_PROMPT = "[!] ";
   private static final String MAGIC_PREFIX = "%";
   public static final String MAGIC_FUNCTIONS = MAGIC_PREFIX + "functions";
@@ -88,6 +108,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     options.addOption("z", "zookeeper", true, "Zookeeper URL");
     options.addOption("v", "variables", true, "File containing a JSON Map of variables");
     options.addOption("irc", "inputrc", true, "File containing the inputrc if not the default ~/.inputrc");
+    options.addOption("na", "no_ansi", false, "Make the input prompt not use ANSI colors.");
     options.addOption("h", "help", false, "Print help");
 
     CommandLineParser parser = new PosixParser();
@@ -125,7 +146,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     }
 
     console = new Console(settings.create());
-    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
+    if(commandLine.hasOption("a")) {
+      console.setPrompt(new Prompt(EXPRESSION_PROMPT));
+    }
+    else {
+      console.setPrompt(new Prompt("[Stellar]$"));
+    }
     console.addCompletion(this);
     console.setConsoleCallback(this);
   }
