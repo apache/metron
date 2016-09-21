@@ -131,6 +131,8 @@ This colocation is currently not enforced by Ambari, and should be managed by ei
 Several configuration parameters will need to be filled in, and should be pretty self explanatory (primarily a couple of Elasticsearch configs, and the Storm REST URL).  Examples are provided in the descriptions on Ambari.
 Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file://` location
 
+After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.
+
 #### Offline installation
 Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information that is preloaded into MySQL.
 
