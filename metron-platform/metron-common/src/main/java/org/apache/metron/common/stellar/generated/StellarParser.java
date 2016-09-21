@@ -40,8 +40,9 @@ public class StellarParser extends Parser {
 		COMMA=1, AND=2, OR=3, NOT=4, TRUE=5, FALSE=6, EQ=7, NEQ=8, LT=9, LTE=10, 
 		GT=11, GTE=12, QUESTION=13, COLON=14, IF=15, THEN=16, ELSE=17, NULL=18, 
 		MINUS=19, PLUS=20, DIV=21, MUL=22, LBRACE=23, RBRACE=24, LBRACKET=25, 
-		RBRACKET=26, LPAREN=27, RPAREN=28, IN=29, NIN=30, EXISTS=31, INT_LITERAL=32, 
-		DOUBLE_LITERAL=33, IDENTIFIER=34, STRING_LITERAL=35, COMMENT=36, WS=37;
+		RBRACKET=26, LPAREN=27, RPAREN=28, IN=29, NIN=30, EXISTS=31, EXPONENT=32, 
+		INT_LITERAL=33, DOUBLE_LITERAL=34, IDENTIFIER=35, STRING_LITERAL=36, COMMENT=37, 
+		WS=38;
 	public static final int
 		RULE_transformation = 0, RULE_transformation_expr = 1, RULE_conditional_expr = 2, 
 		RULE_comparison_expr = 3, RULE_transformation_entity = 4, RULE_comp_operator = 5, 
@@ -65,8 +66,8 @@ public class StellarParser extends Parser {
 		null, "COMMA", "AND", "OR", "NOT", "TRUE", "FALSE", "EQ", "NEQ", "LT", 
 		"LTE", "GT", "GTE", "QUESTION", "COLON", "IF", "THEN", "ELSE", "NULL", 
 		"MINUS", "PLUS", "DIV", "MUL", "LBRACE", "RBRACE", "LBRACKET", "RBRACKET", 
-		"LPAREN", "RPAREN", "IN", "NIN", "EXISTS", "INT_LITERAL", "DOUBLE_LITERAL", 
-		"IDENTIFIER", "STRING_LITERAL", "COMMENT", "WS"
+		"LPAREN", "RPAREN", "IN", "NIN", "EXISTS", "EXPONENT", "INT_LITERAL", 
+		"DOUBLE_LITERAL", "IDENTIFIER", "STRING_LITERAL", "COMMENT", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -2091,7 +2092,7 @@ public class StellarParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\'\u00e4\4\2\t\2\4"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3(\u00e4\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3\62\n\3\3\4"+
@@ -2150,16 +2151,16 @@ public class StellarParser extends Parser {
 		"\u00b9\7\30\2\2\u00b9\u00be\5\36\20\5\u00ba\u00bb\f\3\2\2\u00bb\u00bc"+
 		"\7\27\2\2\u00bc\u00be\5\36\20\4\u00bd\u00b7\3\2\2\2\u00bd\u00ba\3\2\2"+
 		"\2\u00be\u00c1\3\2\2\2\u00bf\u00bd\3\2\2\2\u00bf\u00c0\3\2\2\2\u00c0\37"+
-		"\3\2\2\2\u00c1\u00bf\3\2\2\2\u00c2\u00c3\7$\2\2\u00c3\u00c4\5\22\n\2\u00c4"+
-		"!\3\2\2\2\u00c5\u00d2\5 \21\2\u00c6\u00d2\7#\2\2\u00c7\u00d2\7\"\2\2\u00c8"+
-		"\u00d2\7$\2\2\u00c9\u00ca\7\35\2\2\u00ca\u00cb\5\34\17\2\u00cb\u00cc\7"+
+		"\3\2\2\2\u00c1\u00bf\3\2\2\2\u00c2\u00c3\7%\2\2\u00c3\u00c4\5\22\n\2\u00c4"+
+		"!\3\2\2\2\u00c5\u00d2\5 \21\2\u00c6\u00d2\7$\2\2\u00c7\u00d2\7#\2\2\u00c8"+
+		"\u00d2\7%\2\2\u00c9\u00ca\7\35\2\2\u00ca\u00cb\5\34\17\2\u00cb\u00cc\7"+
 		"\36\2\2\u00cc\u00d2\3\2\2\2\u00cd\u00ce\7\35\2\2\u00ce\u00cf\5\6\4\2\u00cf"+
 		"\u00d0\7\36\2\2\u00d0\u00d2\3\2\2\2\u00d1\u00c5\3\2\2\2\u00d1\u00c6\3"+
 		"\2\2\2\u00d1\u00c7\3\2\2\2\u00d1\u00c8\3\2\2\2\u00d1\u00c9\3\2\2\2\u00d1"+
 		"\u00cd\3\2\2\2\u00d2#\3\2\2\2\u00d3\u00e2\t\5\2\2\u00d4\u00e2\5\34\17"+
-		"\2\u00d5\u00e2\7%\2\2\u00d6\u00e2\5\26\f\2\u00d7\u00e2\5\32\16\2\u00d8"+
+		"\2\u00d5\u00e2\7&\2\2\u00d6\u00e2\5\26\f\2\u00d7\u00e2\5\32\16\2\u00d8"+
 		"\u00e2\7\24\2\2\u00d9\u00da\7!\2\2\u00da\u00db\7\35\2\2\u00db\u00dc\7"+
-		"$\2\2\u00dc\u00e2\7\36\2\2\u00dd\u00de\7\35\2\2\u00de\u00df\5\6\4\2\u00df"+
+		"%\2\2\u00dc\u00e2\7\36\2\2\u00dd\u00de\7\35\2\2\u00de\u00df\5\6\4\2\u00df"+
 		"\u00e0\7\36\2\2\u00e0\u00e2\3\2\2\2\u00e1\u00d3\3\2\2\2\u00e1\u00d4\3"+
 		"\2\2\2\u00e1\u00d5\3\2\2\2\u00e1\u00d6\3\2\2\2\u00e1\u00d7\3\2\2\2\u00e1"+
 		"\u00d8\3\2\2\2\u00e1\u00d9\3\2\2\2\u00e1\u00dd\3\2\2\2\u00e2%\3\2\2\2"+
