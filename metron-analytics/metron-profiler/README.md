@@ -247,22 +247,14 @@ This section will describe the steps required to get your first profile running.
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> create 'profiler', 'P'
     ```
-
-4. Shorten the flush intervals to more immediately see results.  Edit the Profiler topology properties located at `/usr/metron/0.2.0BETA/config/profiler.properties`.  Alter the following two properties.
-    ```
-    profiler.period.duration=30
-    profiler.period.duration.units=SECONDS
-    profiler.hbase.flush.interval.seconds=5
-    ```
-
-5. Create the Profiler definition in a file located at `/usr/metron/0.2.0BETA/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
+    
+4. Create the Profiler definition in a file located at `/usr/metron/*/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
     ```
     {
       "profiles": [
         {
           "profile": "test",
           "foreach": "ip_src_addr",
-          "onlyif":  "true",
           "init":    { "sum": 0 },
           "update":  { "sum": "sum + 1" },
           "result":  "sum"
@@ -271,19 +263,19 @@ This section will describe the steps required to get your first profile running.
     }
     ```
 
-6. Upload the Profiler definition to Zookeeper.
+5. Upload the Profiler definition to Zookeeper.
     ```
     $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
     ```
 
-7. Start the Profiler topology.
+6. Start the Profiler topology.
     ```
     bin/start_profiler_topology.sh
     ```
 
-8. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` in the Profiler definition.
+7. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` in the Profiler definition.
 
-9. Check the HBase table to validate that the Profiler is working. 
+8. Check the HBase table to validate that the Profiler is working.  Remember that the Profiler is flushing the profile every 15 minutes.  You will need to wait at least this long to start seeing profile data in HBase.
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> count 'profiler'
