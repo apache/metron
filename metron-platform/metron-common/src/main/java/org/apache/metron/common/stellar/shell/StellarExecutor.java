@@ -21,22 +21,18 @@
 package org.apache.metron.common.stellar.shell;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolver;
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
 
@@ -45,6 +41,12 @@ import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlo
  */
 public class StellarExecutor {
 
+  private ReadWriteLock indexLock = new ReentrantReadWriteLock();
+
+  /**
+   * prefix tree index of autocompletes
+   */
+  private PatriciaTrie<String> autocompleteIndex;
   /**
    * The variables known by Stellar.
    */
@@ -74,6 +76,47 @@ public class StellarExecutor {
     this.functionResolver = new StellarFunctions().FUNCTION_RESOLVER();
     this.client = createClient(zookeeperUrl);
     this.context = createContext();
+    this.autocompleteIndex = initializeIndex();
+    //Asynchronously update the index with function names found from a classpath scan.
+    new Thread( () -> {
+        Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
+        indexLock.writeLock().lock();
+        try {
+          for(StellarFunctionInfo info: functions) {
+            String functionName = info.getName();
+            autocompleteIndex.put(functionName, functionName);
+          }
+        }
+          finally {
+            indexLock.writeLock().unlock();
+          }
+    }).start();
+  }
+
+  private PatriciaTrie<String> initializeIndex() {
+    Map<String, String> index = new HashMap<>();
+
+    index.put("==", "==");
+    index.put(">=", ">=");
+    index.put("<=", "<=");
+    index.put(":=", ":=");
+    index.put(StellarShell.MAGIC_FUNCTIONS, StellarShell.MAGIC_FUNCTIONS);
+    index.put(StellarShell.MAGIC_VARS, StellarShell.MAGIC_VARS);
+    return new PatriciaTrie<>(index);
+  }
+
+  public Iterable<String> autoComplete(String buffer) {
+    indexLock.readLock().lock();
+    try {
+      SortedMap<String, String> ret = autocompleteIndex.prefixMap(buffer);
+      if (ret.isEmpty()) {
+        return new ArrayList<>();
+      }
+      return ret.keySet();
+    }
+    finally {
+      indexLock.readLock().unlock();
+    }
   }
 
   /**
@@ -135,6 +178,17 @@ public class StellarExecutor {
    */
   public void assign(String variable, Object value) {
     this.variables.put(variable, value);
+    indexLock.writeLock().lock();
+    try {
+      if (value != null) {
+        this.autocompleteIndex.put(variable, variable);
+      } else {
+        this.autocompleteIndex.remove(variable);
+      }
+    }
+    finally {
+      indexLock.writeLock().unlock();
+    }
   }
 
   public Map<String, Object> getVariables() {

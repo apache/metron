@@ -20,15 +20,32 @@
 
 package org.apache.metron.common.stellar.shell;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.common.utils.JSONUtils;
+import org.jboss.aesh.complete.CompleteOperation;
+import org.jboss.aesh.complete.Completion;
+import org.jboss.aesh.console.AeshConsoleCallback;
+import org.jboss.aesh.console.Console;
+import org.jboss.aesh.console.ConsoleOperation;
+import org.jboss.aesh.console.Prompt;
+import org.jboss.aesh.console.settings.Settings;
+import org.jboss.aesh.console.settings.SettingsBuilder;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -38,19 +55,19 @@ import java.util.stream.StreamSupport;
  *
  * Useful for debugging Stellar expressions.
  */
-public class StellarShell {
+public class StellarShell extends AeshConsoleCallback implements Completion {
 
   private static final String WELCOME = "Stellar, Go!";
   private static final String EXPRESSION_PROMPT = ">>> ";
-  private static final String RESULT_PROMPT = "[=] ";
   private static final String ERROR_PROMPT = "[!] ";
-  private static final String ASSIGN_PROMPT = "[?] save as: ";
   private static final String MAGIC_PREFIX = "%";
-  private static final String MAGIC_FUNCTIONS = "%functions";
-  private static final String MAGIC_VARS = "%vars";
+  public static final String MAGIC_FUNCTIONS = MAGIC_PREFIX + "functions";
+  public static final String MAGIC_VARS = MAGIC_PREFIX + "vars";
   private static final String DOC_PREFIX = "?";
 
   private StellarExecutor executor;
+
+  private Console console;
 
   /**
    * Execute the Stellar REPL.
@@ -69,6 +86,8 @@ public class StellarShell {
     // define valid command-line options
     Options options = new Options();
     options.addOption("z", "zookeeper", true, "Zookeeper URL");
+    options.addOption("v", "variables", true, "File containing a JSON Map of variables");
+    options.addOption("irc", "inputrc", true, "File containing the inputrc if not the default ~/.inputrc");
     options.addOption("h", "help", false, "Print help");
 
     CommandLineParser parser = new PosixParser();
@@ -89,6 +108,23 @@ public class StellarShell {
     } else {
       executor = new StellarExecutor();
     }
+
+    if(commandLine.hasOption("v")) {
+      Map<String, Object> variables = JSONUtils.INSTANCE.load(new File(commandLine.getOptionValue("v")), new TypeReference<Map<String, Object>>() {
+      });
+      for(Map.Entry<String, Object> kv : variables.entrySet()) {
+        executor.assign(kv.getKey(), kv.getValue());
+      }
+    }
+    Settings settings = new SettingsBuilder().enableAlias(true).enableMan(true).create();
+    if(commandLine.hasOption("irc")) {
+      settings = new SettingsBuilder().enableAlias(true).enableMan(true).inputrc(new File(commandLine.getOptionValue("irc"))).create();
+    }
+
+    console = new Console(settings);
+    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
+    console.addCompletion(this);
+    console.setConsoleCallback(this);
   }
 
   /**
@@ -102,58 +138,44 @@ public class StellarShell {
             .getCapability(Context.Capabilities.GLOBAL_CONFIG)
             .ifPresent(conf -> writeLine(conf.toString()));
 
-    Scanner scanner = new Scanner(System.in);
-    boolean done = false;
-    while(!done) {
-
-      // prompt the user for an expression
-      write(EXPRESSION_PROMPT);
-      String expression = scanner.nextLine();
-      if(StringUtils.isNotBlank(expression)) {
-
-        if(isMagic(expression)) {
-          handleMagic(scanner, expression);
-
-        } else if(isDoc(expression)) {
-          handleDoc(scanner, expression);
-
-        } else {
-          handleStellar(scanner, expression);
-        }
-      }
-    }
+    console.start();
   }
 
   /**
    * Handles user interaction when executing a Stellar expression.
-   * @param scanner The scanner used to read user input.
    * @param expression The expression to execute.
    */
-  private void handleStellar(Scanner scanner, String expression) {
+  private void handleStellar(String expression) {
 
-    Object result = executeStellar(expression);
-    if(result != null) {
-
-      // echo the result
-      write(RESULT_PROMPT);
-      writeLine(result.toString());
-
-      // assign the result to a variable?
-      write(ASSIGN_PROMPT);
-      String variable = scanner.nextLine();
-      if(StringUtils.isNotBlank(variable)) {
-        executor.assign(variable, result);
+    Iterable<String> assignmentSplit = Splitter.on(":=").split(expression);
+    String stellarExpression = expression;
+    String variable = null;
+    if(Iterables.size(assignmentSplit) == 2) {
+      //assignment
+      variable = Iterables.getFirst(assignmentSplit, null);
+      if(variable != null) {
+        variable = variable.trim();
       }
+      stellarExpression = Iterables.getLast(assignmentSplit, null);
+    }
+    if(!stellarExpression.isEmpty()) {
+      stellarExpression = stellarExpression.trim();
+    }
+    Object result = executeStellar(stellarExpression);
+    if(result != null) {
+      writeLine(result.toString());
+    }
+    if(variable != null) {
+      executor.assign(variable, result);
     }
   }
 
   /**
    * Handles user interaction when executing a Magic command.
-   * @param scanner The scanner used to read user input.
-   * @param expression The expression to execute.
+   * @param rawExpression The expression to execute.
    */
-  private void handleMagic(Scanner scanner, String expression) {
-
+  private void handleMagic( String rawExpression) {
+    String expression = rawExpression.trim();
     if(MAGIC_FUNCTIONS.equals(expression)) {
 
       // list all functions
@@ -177,10 +199,9 @@ public class StellarShell {
 
   /**
    * Handles user interaction when executing a doc command.
-   * @param scanner The scanner used to read user input.
    * @param expression The expression to execute.
    */
-  private void handleDoc(Scanner scanner, String expression) {
+  private void handleDoc(String expression) {
 
     String functionName = StringUtils.substring(expression, 1);
     StreamSupport
@@ -244,6 +265,45 @@ public class StellarShell {
   }
 
   private void writeLine(String out) {
-    System.out.println(out);
+    console.getShell().out().println(out);
+  }
+
+  @Override
+  public int execute(ConsoleOperation output) throws InterruptedException {
+    String expression = output.getBuffer();
+      if(StringUtils.isNotBlank(expression)) {
+        if(isMagic(expression)) {
+          handleMagic( expression);
+
+        } else if(isDoc(expression)) {
+          handleDoc(expression);
+
+        } else if (expression.equals("quit")) {
+          try {
+            console.stop();
+          } catch (Throwable e) {
+            e.printStackTrace();
+          }
+        }
+        else {
+          handleStellar(expression);
+        }
+      }
+
+    return 0;
+  }
+
+  @Override
+  public void complete(CompleteOperation completeOperation) {
+    if(!completeOperation.getBuffer().isEmpty()) {
+      String lastToken = Iterables.getLast(Splitter.on(" ").split(completeOperation.getBuffer()), null);
+      if(lastToken != null && !lastToken.isEmpty()) {
+        Iterable<String> candidates = executor.autoComplete(lastToken.trim());
+        if(candidates != null && !Iterables.isEmpty(candidates)) {
+          completeOperation.setCompletionCandidates(Lists.newArrayList(candidates));
+        }
+      }
+    }
+
   }
 }
