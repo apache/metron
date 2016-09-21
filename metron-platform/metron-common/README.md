@@ -423,18 +423,18 @@ $ $METRON_HOME/bin/stellar
 Stellar, Go!
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
 
-[Stellar]$ %functions
+[Stellar]>>> %functions
 BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, ...
 
-[Stellar]$ ?PROTOCOL_TO_NAME
+[Stellar]>>> ?PROTOCOL_TO_NAME
 PROTOCOL_TO_NAME
  desc: Convert the IANA protocol number to the protocol name       
  args: IANA Number                                                 
   ret: The protocol name associated with the IANA number.          
 
-[Stellar]$ ip.protocol := 6
+[Stellar]>>> ip.protocol := 6
 6
-[Stellar]$ PROTOCOL_TO_NAME(ip.protocol)
+[Stellar]>>> PROTOCOL_TO_NAME(ip.protocol)
 TCP
 ```
 
@@ -468,7 +468,7 @@ Attempts to connect to Zookeeper and read the Metron global configuration.  Stel
 $ $METRON_HOME/bin/stellar -z node1:2181
 Stellar, Go!
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
-[Stellar]$ 
+[Stellar]>>> 
 ```
 
 ### Variable Assignment
@@ -482,9 +482,9 @@ Stellar language.  This is done via the `:=` operator, such as
 variable `foo`.
 
 ```
-[Stellar]$ foo := 2 + 2
+[Stellar]>>> foo := 2 + 2
 4.0
-[Stellar]$ 2 + 2
+[Stellar]>>> 2 + 2
 4.0
 ```
 
@@ -497,7 +497,7 @@ The REPL has a set of magic commands that provide the REPL user with information
 This command lists all functions resolvable in the Stellar environment.  Stellar searches the classpath for Stellar functions.  This can make it difficult in some cases to understand which functions are resolvable.  
 
 ```
-[Stellar]$ %functions
+[Stellar]>>> %functions
 BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, 
 DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
 GET_LAST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, 
@@ -508,7 +508,7 @@ STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS
 STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, 
 TO_INTEGER, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, 
 URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
-[Stellar]$ 
+[Stellar]>>> 
 ```
 
 #### `%vars` 
@@ -518,10 +518,10 @@ Lists all variables in the Stellar environment.
 ```
 Stellar, Go!
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
-[Stellar]$ %vars
-[Stellar]$ foo := 2 + 2
+[Stellar]>>> %vars
+[Stellar]>>> foo := 2 + 2
 4.0
-[Stellar]$ %vars
+[Stellar]>>> %vars
 foo = 4.0
 ```
 
@@ -530,17 +530,17 @@ foo = 4.0
 Returns formatted documentation of the Stellar function.  Provides the description of the function along with the expected arguments.
 
 ```
-[Stellar]$ ?BLOOM_ADD
+[Stellar]>>> ?BLOOM_ADD
 BLOOM_ADD
  desc: Adds an element to the bloom filter passed in               
  args: bloom - The bloom filter, value* - The values to add        
   ret: Bloom Filter                                                
-[Stellar]$ ?IS_EMAIL
+[Stellar]>>> ?IS_EMAIL
 IS_EMAIL
  desc: Tests if a string is a valid email address                  
  args: address - The String to test                                
   ret: True if the string is a valid email address and false otherwise.
-[Stellar]$ 
+[Stellar]>>> 
 ```
 
 ##Global Configuration

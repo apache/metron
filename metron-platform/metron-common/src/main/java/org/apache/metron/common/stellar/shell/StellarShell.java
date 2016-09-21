@@ -75,7 +75,9 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     add(new TerminalCharacter('a', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
     add(new TerminalCharacter('r', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.BOLD));
     add(new TerminalCharacter(']', new TerminalColor(Color.RED, Color.DEFAULT)));
-    add(new TerminalCharacter('$', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.UNDERLINE));
+    add(new TerminalCharacter('>', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.UNDERLINE));
+    add(new TerminalCharacter('>', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.UNDERLINE));
+    add(new TerminalCharacter('>', new TerminalColor(Color.GREEN, Color.DEFAULT), CharacterType.UNDERLINE));
     add(new TerminalCharacter(' ', new TerminalColor(Color.DEFAULT, Color.DEFAULT)));
   }};
 
@@ -246,12 +248,19 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * @return A readable string.
    */
   private String format(StellarFunctionInfo info) {
-    return String.format(
-            "%s\n desc: %-60s\n args: %-60s\n  ret: %-60s\n",
-            info.getName(),
-            info.getDescription(),
-            StringUtils.join(info.getParams(), ", "),
-            info.getReturns());
+    StringBuffer ret = new StringBuffer();
+    ret.append(info.getName() + "\n");
+    ret.append(String.format("Description: %-60s\n\n", info.getDescription()));
+    if(info.getParams().length > 0) {
+      ret.append("Arguments:\n");
+      for(String param : info.getParams()) {
+        ret.append(String.format("\t%-60s\n", param));
+      }
+      ret.append("\n");
+    }
+    ret.append(String.format("Returns: %-60s\n", info.getReturns()));
+
+    return ret.toString();
   }
 
   /**
@@ -327,9 +336,19 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     if(!completeOperation.getBuffer().isEmpty()) {
       String lastToken = Iterables.getLast(Splitter.on(" ").split(completeOperation.getBuffer()), null);
       if(lastToken != null && !lastToken.isEmpty()) {
-        Iterable<String> candidates = executor.autoComplete(lastToken.trim());
+        lastToken = lastToken.trim();
+        final boolean isDocRequest = lastToken.startsWith(DOC_PREFIX);
+        if(isDocRequest) {
+          lastToken = lastToken.substring(1);
+        }
+        Iterable<String> candidates = executor.autoComplete(lastToken);
         if(candidates != null && !Iterables.isEmpty(candidates)) {
-          completeOperation.setCompletionCandidates(Lists.newArrayList(candidates));
+          completeOperation.setCompletionCandidates(
+                  Lists.newArrayList(Iterables.transform(candidates
+                                                        , s -> isDocRequest?(DOC_PREFIX + s):s
+                                                        )
+                                    )
+          );
         }
       }
     }
