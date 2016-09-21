@@ -116,12 +116,15 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         executor.assign(kv.getKey(), kv.getValue());
       }
     }
-    Settings settings = new SettingsBuilder().enableAlias(true).enableMan(true).create();
+    SettingsBuilder settings = new SettingsBuilder().enableAlias(true)
+                                                    .enableMan(true)
+                                                    .parseOperators(false)
+                                                    ;
     if(commandLine.hasOption("irc")) {
-      settings = new SettingsBuilder().enableAlias(true).enableMan(true).inputrc(new File(commandLine.getOptionValue("irc"))).create();
+      settings = settings.inputrc(new File(commandLine.getOptionValue("irc")));
     }
 
-    console = new Console(settings);
+    console = new Console(settings.create());
     console.setPrompt(new Prompt(EXPRESSION_PROMPT));
     console.addCompletion(this);
     console.setConsoleCallback(this);
