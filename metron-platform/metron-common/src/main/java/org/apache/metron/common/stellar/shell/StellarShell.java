@@ -83,10 +83,10 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }};
 
   private static final String ERROR_PROMPT = "[!] ";
-  private static final String MAGIC_PREFIX = "%";
+  public static final String MAGIC_PREFIX = "%";
   public static final String MAGIC_FUNCTIONS = MAGIC_PREFIX + "functions";
   public static final String MAGIC_VARS = MAGIC_PREFIX + "vars";
-  private static final String DOC_PREFIX = "?";
+  public static final String DOC_PREFIX = "?";
 
   private StellarExecutor executor;
 
@@ -338,18 +338,20 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       String lastToken = Iterables.getLast(Splitter.on(" ").split(completeOperation.getBuffer()), null);
       if(lastToken != null && !lastToken.isEmpty()) {
         lastToken = lastToken.trim();
-        final boolean isDocRequest = lastToken.startsWith(DOC_PREFIX);
+        final boolean isDocRequest = isDoc(lastToken);
         if(isDocRequest) {
           lastToken = lastToken.substring(1);
         }
-        Iterable<String> candidates = executor.autoComplete(lastToken);
+        StellarExecutor.OperationType opType = StellarExecutor.OperationType.NORMAL;
+        if(isDocRequest) {
+          opType = StellarExecutor.OperationType.DOC;
+        }
+        else if(isMagic(lastToken)) {
+          opType = StellarExecutor.OperationType.MAGIC;
+        }
+        Iterable<String> candidates = executor.autoComplete(lastToken, opType);
         if(candidates != null && !Iterables.isEmpty(candidates)) {
-          completeOperation.setCompletionCandidates(
-                  Lists.newArrayList(Iterables.transform(candidates
-                                                        , s -> isDocRequest?(DOC_PREFIX + s):s
-                                                        )
-                                    )
-          );
+          completeOperation.setCompletionCandidates( Lists.newArrayList(candidates) );
         }
       }
     }
