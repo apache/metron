@@ -353,12 +353,20 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         Iterable<String> candidates = executor.autoComplete(lastToken, opType);
         if(candidates != null && !Iterables.isEmpty(candidates)) {
           completeOperation.setCompletionCandidates( Lists.newArrayList(
-                  Iterables.transform(candidates, s -> completeOperation.getBuffer().replace(lastBit, "") + s )
+                  Iterables.transform(candidates, s -> stripOff(completeOperation.getBuffer(), lastBit) + s )
                   )
           );
         }
       }
     }
 
+  }
+
+  private static String stripOff(String baseString, String lastBit) {
+    int index = baseString.lastIndexOf(lastBit);
+    if(index < 0) {
+      return baseString;
+    }
+    return baseString.substring(0, index);
   }
 }
