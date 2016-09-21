@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 ---
-- name: Get Default mysql passowrd
+- name: Get Default mysql password
   include_vars: "../roles/mysql_server/defaults/main.yml"
   when: mysql_root_password is undefined
   
