@@ -63,7 +63,8 @@ import java.util.stream.StreamSupport;
  */
 public class StellarShell extends AeshConsoleCallback implements Completion {
 
-  private static final String WELCOME = "Stellar, Go!";
+  private static final String WELCOME = "Stellar, Go!\n" +
+          "Please note that functions are loading lazily in the background and will be unavailable until loaded fully.";
   private List<TerminalCharacter> EXPRESSION_PROMPT = new ArrayList<TerminalCharacter>()
   {{
     add(new TerminalCharacter('[', new TerminalColor(Color.RED, Color.DEFAULT)));
@@ -308,25 +309,25 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
   @Override
   public int execute(ConsoleOperation output) throws InterruptedException {
-    String expression = output.getBuffer();
-      if(StringUtils.isNotBlank(expression)) {
-        if(isMagic(expression)) {
-          handleMagic( expression);
+    String expression = output.getBuffer().trim();
+    if(StringUtils.isNotBlank(expression)) {
+      if(isMagic(expression)) {
+        handleMagic( expression);
 
-        } else if(isDoc(expression)) {
-          handleDoc(expression);
+      } else if(isDoc(expression)) {
+        handleDoc(expression);
 
-        } else if (expression.equals("quit")) {
-          try {
-            console.stop();
-          } catch (Throwable e) {
-            e.printStackTrace();
-          }
-        }
-        else {
-          handleStellar(expression);
+      } else if (expression.equals("quit")) {
+        try {
+          console.stop();
+        } catch (Throwable e) {
+          e.printStackTrace();
         }
       }
+      else {
+        handleStellar(expression);
+      }
+    }
 
     return 0;
   }

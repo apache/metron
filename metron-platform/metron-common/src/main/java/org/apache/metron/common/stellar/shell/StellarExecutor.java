@@ -88,6 +88,7 @@ public class StellarExecutor {
           }
         }
           finally {
+            System.out.println("Functions loaded, you may refer to functions now...");
             indexLock.writeLock().unlock();
           }
     }).start();
@@ -100,6 +101,7 @@ public class StellarExecutor {
     index.put(">=", ">=");
     index.put("<=", "<=");
     index.put(":=", ":=");
+    index.put("quit", "quit");
     index.put(StellarShell.MAGIC_FUNCTIONS, StellarShell.MAGIC_FUNCTIONS);
     index.put(StellarShell.MAGIC_VARS, StellarShell.MAGIC_VARS);
     return new PatriciaTrie<>(index);
