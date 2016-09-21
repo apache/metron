@@ -338,6 +338,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       String lastToken = Iterables.getLast(Splitter.on(" ").split(completeOperation.getBuffer()), null);
       if(lastToken != null && !lastToken.isEmpty()) {
         lastToken = lastToken.trim();
+        final String lastBit = lastToken;
         final boolean isDocRequest = isDoc(lastToken);
         if(isDocRequest) {
           lastToken = lastToken.substring(1);
@@ -351,7 +352,10 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         }
         Iterable<String> candidates = executor.autoComplete(lastToken, opType);
         if(candidates != null && !Iterables.isEmpty(candidates)) {
-          completeOperation.setCompletionCandidates( Lists.newArrayList(candidates) );
+          completeOperation.setCompletionCandidates( Lists.newArrayList(
+                  Iterables.transform(candidates, s -> completeOperation.getBuffer().replace(lastBit, "") + s )
+                  )
+          );
         }
       }
     }
