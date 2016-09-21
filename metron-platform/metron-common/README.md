@@ -448,6 +448,7 @@ usage: stellar
                         ~/.inputrc
  -v,--variables <arg>   File containing a JSON Map of variables
  -z,--zookeeper <arg>   Zookeeper URL
+ -na,--no_ansi          Make the input prompt not use ANSI colors.
 ```
 
 #### `-v, --variables`

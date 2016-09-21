@@ -146,7 +146,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     }
 
     console = new Console(settings.create());
-    if(commandLine.hasOption("a")) {
+    if(!commandLine.hasOption("na")) {
       console.setPrompt(new Prompt(EXPRESSION_PROMPT));
     }
     else {
