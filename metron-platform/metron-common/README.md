@@ -401,6 +401,147 @@ This will convert the timestamp field to an epoch timestamp based on the
 * The value in `dc2tz` associated with the value associated with field
   `dc`, defaulting to `UTC`
 
+## Stellar Shell
+
+A REPL (Read Eval Print Loop) for the Stellar language that helps in debugging, troubleshooting and learning Stellar.  The Stellar DSL (domain specific language) is used to act upon streaming data within Apache Storm.  It is difficult to troubleshoot Stellar when it can only be executed within a Storm topology.  This REPL is intended to help mitigate that problem by allowing a user to replicate data encountered in production, isolate initialization errors, or understand function resolution problems.
+
+The shell supports customization via `~/.inputrc` as it is
+backed by a proper readline implementation.  
+
+Shell-like operations are supported such as 
+* reverse search via ctrl-r
+* autocomplete of Stellar functions and variables via tab
+  * NOTE: Stellar functions are read via a classpath search which
+    happens in the background.  Until that happens, autocomplete will not include function names. 
+* emacs or vi keybindings for edit mode
+
+### Getting Started
+
+```
+$ $METRON_HOME/bin/stellar
+
+Stellar, Go!
+{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
+
+[Stellar]>>> %functions
+BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, ...
+
+[Stellar]>>> ?PROTOCOL_TO_NAME
+PROTOCOL_TO_NAME
+ desc: Convert the IANA protocol number to the protocol name       
+ args: IANA Number                                                 
+  ret: The protocol name associated with the IANA number.          
+
+[Stellar]>>> ip.protocol := 6
+6
+[Stellar]>>> PROTOCOL_TO_NAME(ip.protocol)
+TCP
+```
+
+### Command Line Options
+
+```
+$ $METRON_HOME/bin/stellar -h
+usage: stellar
+ -h,--help              Print help
+ -irc,--inputrc <arg>   File containing the inputrc if not the default
+                        ~/.inputrc
+ -v,--variables <arg>   File containing a JSON Map of variables
+ -z,--zookeeper <arg>   Zookeeper URL
+ -na,--no_ansi          Make the input prompt not use ANSI colors.
+```
+
+#### `-v, --variables`
+*Optional*
+
+Optionally load a JSON map which contains variable assignments.  This is
+intended to give you the ability to save off a message from Metron and
+work on it via the REPL.
+
+#### `-z, --zookeeper`
+
+*Optional*
+
+Attempts to connect to Zookeeper and read the Metron global configuration.  Stellar functions may require the global configuration to work properly.  If found, the global configuration values are printed to the console.
+
+```
+$ $METRON_HOME/bin/stellar -z node1:2181
+Stellar, Go!
+{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
+[Stellar]>>> 
+```
+
+### Variable Assignment
+
+Stellar has no concept of variable assignment.  For testing and
+debugging purposes, it is important to be able to create variables that
+simulate data contained within incoming messages.  The REPL has created
+a means for a user to perform variable assignment outside of the core
+Stellar language.  This is done via the `:=` operator, such as 
+`foo := 1 + 1` would assign the result of the stellar expression `1 + 1` to the
+variable `foo`.
+
+```
+[Stellar]>>> foo := 2 + 2
+4.0
+[Stellar]>>> 2 + 2
+4.0
+```
+
+### Magic Commands
+
+The REPL has a set of magic commands that provide the REPL user with information about the Stellar execution environment.  The following magic commands are supported.
+
+#### `%functions`
+
+This command lists all functions resolvable in the Stellar environment.  Stellar searches the classpath for Stellar functions.  This can make it difficult in some cases to understand which functions are resolvable.  
+
+```
+[Stellar]>>> %functions
+BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, 
+DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
+GET_LAST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, 
+JOIN, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP_EXISTS, MAP_GET, MONTH, PROTOCOL_TO_NAME, 
+REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, 
+STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, 
+STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, 
+STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, 
+TO_INTEGER, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, 
+URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
+[Stellar]>>> 
+```
+
+#### `%vars` 
+
+Lists all variables in the Stellar environment.
+
+```
+Stellar, Go!
+{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
+[Stellar]>>> %vars
+[Stellar]>>> foo := 2 + 2
+4.0
+[Stellar]>>> %vars
+foo = 4.0
+```
+
+#### `?<function>`
+
+Returns formatted documentation of the Stellar function.  Provides the description of the function along with the expected arguments.
+
+```
+[Stellar]>>> ?BLOOM_ADD
+BLOOM_ADD
+ desc: Adds an element to the bloom filter passed in               
+ args: bloom - The bloom filter, value* - The values to add        
+  ret: Bloom Filter                                                
+[Stellar]>>> ?IS_EMAIL
+IS_EMAIL
+ desc: Tests if a string is a valid email address                  
+ args: address - The String to test                                
+  ret: True if the string is a valid email address and false otherwise.
+[Stellar]>>> 
+```
 
 ##Global Configuration
 The format of the global enrichment is a JSON String to Object map.  This is intended for

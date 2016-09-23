@@ -21,6 +21,7 @@
 package org.apache.metron.common.stellar;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -178,13 +179,20 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
+  public void ensureDeterminism() throws Exception {
+    for(int i = 0;i < 20;++i) {
+      testMergeProviders();
+    }
+  }
+
+  @Test
   public void testMergeProviders() throws Exception {
     List<StatisticsProvider> providers = new ArrayList<>();
     /*
     Create 10 providers, each with a sample drawn from a gaussian distribution.
     Update the reference stats from commons math to ensure we are
      */
-    GaussianRandomGenerator gaussian = new GaussianRandomGenerator(new MersenneTwister(0L));
+    GaussianRandomGenerator gaussian = new GaussianRandomGenerator(new MersenneTwister(1L));
     SummaryStatistics sStatistics= new SummaryStatistics();
     DescriptiveStatistics dStatistics = new DescriptiveStatistics();
     for(int i = 0;i < 10;++i) {

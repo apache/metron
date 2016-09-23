@@ -173,6 +173,22 @@ public class StellarTest {
   }
 
   @Test
+  public void testArithmetic() {
+    {
+      String query = "1 + 2";
+      Assert.assertEquals(3, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
+    }
+    {
+      String query = "1.2 + 2";
+      Assert.assertEquals(3.2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
+    }
+    {
+      String query = "1.2e-3 + 2";
+      Assert.assertEquals(1.2e-3 + 2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
+    }
+  }
+
+  @Test
   public void testIfThenElse() {
     {
       String query = "if STARTS_WITH(casey, 'case') then 'one' else 'two'";

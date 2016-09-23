@@ -1,5 +1,4 @@
 {
-  "inputTopic": "indexing",
   "profiles": [
     {
       "profile": "percentiles",

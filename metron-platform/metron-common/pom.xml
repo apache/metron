@@ -240,6 +240,17 @@
             <artifactId>t-digest</artifactId>
             <version>3.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.aesh</groupId>
+            <artifactId>aesh</artifactId>
+            <version>0.66.8</version>
+        </dependency>
+
     </dependencies>
 
     <reporting>
