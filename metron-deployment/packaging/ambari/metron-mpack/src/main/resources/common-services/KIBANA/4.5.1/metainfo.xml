@@ -36,7 +36,7 @@
                     </commandScript>
                     <customCommands>
                         <customCommand>
-                            <name>LOADTEMPLATE</name>
+                            <name>LOAD_TEMPLATE</name>
                             <background>false</background>
                             <commandScript>
                                 <script>scripts/kibana_master.py</script>

@@ -106,7 +106,7 @@ class Kibana(Script):
         Execute("service kibana status")
 
     @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-    def loadtemplate(self, env):
+    def load_template(self, env):
         from dashboard.dashboardindex import DashboardIndex
 
         import params

@@ -95,13 +95,13 @@ class Indexing(Script):
              )
 
         bro_cmd = ambari_format(
-            'curl -s -XPOST http://{es_url}/_template/bro_index -d @roles/metron_elasticsearch_templates/files/es_templates/bro_index.template')
+            'curl -s -XPOST http://{es_url}/_template/bro_index -d @{bro_index_path}')
         Execute(bro_cmd, logoutput=True)
         snort_cmd = ambari_format(
-            'curl -s -XPOST http://{es_url}/_template/snort_index -d @roles/metron_elasticsearch_templates/files/es_templates/snort_index.template')
+            'curl -s -XPOST http://{es_url}/_template/snort_index -d @{snort_index_path}')
         Execute(snort_cmd, logoutput=True)
         yaf_cmd = ambari_format(
-            'curl -s -XPOST http://{es_url}/_template/yaf_index -d @roles/metron_elasticsearch_templates/files/es_templates/yaf_index.template')
+            'curl -s -XPOST http://{es_url}/_template/yaf_index -d @{yaf_index_path}')
         Execute(yaf_cmd, logoutput=True)
 
     def elasticsearch_template_delete(self, env):
