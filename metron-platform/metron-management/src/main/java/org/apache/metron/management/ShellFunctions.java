@@ -199,10 +199,12 @@ public class ShellFunctions {
   @Stellar(
            namespace = "SHELL"
           ,name = "EDIT"
-          ,description = "Open an editor and return the output"
-          ,params = {"string - Optional string to use to initialize the editor contents."
+          ,description = "Open an editor (optionally initialized with text) and return " +
+                         "whatever is saved from the editor.  The editor to use is pulled " +
+                         "from `EDITOR` or `VISUAL` environment variable."
+          ,params = {   "string - (Optional) A string whose content is used to initialize the editor."
                     }
-          ,returns = "The output of the editor."
+          ,returns = "The content that the editor saved after editor exit."
           )
   public static class Edit implements StellarFunction {
 
