@@ -18,17 +18,24 @@
 package org.apache.metron.management;
 
 import com.jakewharton.fliptables.FlipTable;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.log4j.Logger;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.jboss.aesh.console.Console;
 
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ShellFunctions {
+  private static final Logger LOG = Logger.getLogger(ParserConfigFunctions.class);
 
   @Stellar(
            namespace = "SHELL"
@@ -173,6 +180,86 @@ public class ShellFunctions {
         return result.getExpression();
       }
       return null;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
+  @Stellar(
+           namespace = "SHELL"
+          ,name = "EDIT"
+          ,description = "Open an editor and return the output"
+          ,params = {"string - Optional string to edit"
+                    }
+          ,returns = "The output of the editor."
+          )
+  public static class Edit implements StellarFunction {
+
+    private String getEditor() {
+      String editor = System.getenv().get("EDITOR");
+      if(editor == null) {
+        editor = System.getenv("VISUAL");
+      }
+      if(editor == null) {
+        editor = "/bin/vi";
+      }
+      return editor;
+    }
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      File outFile = null;
+      String editor = getEditor();
+      try {
+        outFile = File.createTempFile("stellar_shell", "out");
+        if(args.size() > 0) {
+          String arg = (String)args.get(0);
+          try(PrintWriter pw = new PrintWriter(outFile)) {
+            IOUtils.write(arg, pw);
+          }
+        }
+      } catch (IOException e) {
+        String message = "Unable to create temp file: " + e.getMessage();
+        LOG.error(message, e);
+        throw new IllegalStateException(message, e);
+      }
+      Console console = (Console) context.getCapability("console").get();
+      BufferedInputStream originalIn = console.getShell().in().getStdIn();
+      console.getShell().in().setStdIn(new BufferedInputStream(new NullInputStream(10000)));
+      try {
+        //shut down the IO for the console
+        ProcessBuilder processBuilder = new ProcessBuilder(editor, outFile.getAbsolutePath()).inheritIO();
+        //processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        //processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+        //processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        try {
+          Process p = processBuilder.start();
+          // wait for termination.
+          p.waitFor();
+          try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
+            String ret = IOUtils.toString(br);
+            return ret;
+          }
+        } catch (Exception e) {
+          String message = "Unable to read output: " + e.getMessage();
+          LOG.error(message, e);
+          return null;
+        }
+      }
+      finally {
+        console.getShell().in().setStdIn(originalIn);
+        if(outFile.exists()) {
+          outFile.delete();
+        }
+      }
     }
 
     @Override

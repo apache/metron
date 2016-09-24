@@ -37,7 +37,7 @@ import java.util.*;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 
 public class ParserConfigFunctions {
-  private static final Logger LOG = Logger.getLogger(ConfigurationFunctions.class);
+  private static final Logger LOG = Logger.getLogger(ParserConfigFunctions.class);
 
   private static void pruneEmptyStellarTransformers(SensorParserConfig config) {
     List<FieldTransformer> toRemove = new ArrayList<>();
