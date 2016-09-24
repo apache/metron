@@ -47,6 +47,7 @@ public class PausableInput extends InputStream {
    * @throws IOException
    */
   public void pause() {
+    paused = true;
   }
 
   /**
