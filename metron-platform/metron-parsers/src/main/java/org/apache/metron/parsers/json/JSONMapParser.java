@@ -24,8 +24,6 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,12 +35,7 @@ public class JSONMapParser extends BasicParser {
   public static enum MapStrategy implements Handler {
      DROP((key, value, obj) -> obj)
     ,UNFOLD( (key, value, obj) -> {
-      Set<Map.Entry<Object, Object>> entrySet = value.entrySet();
-      for(Map.Entry<Object, Object> kv : entrySet) {
-        String newKey = Joiner.on(".").join(key, kv.getKey().toString());
-        obj.put(newKey, kv.getValue());
-      }
-      return obj;
+      return recursiveUnfold(key,value,obj);
     })
     ,ALLOW((key, value, obj) -> {
       obj.put(key, value);
@@ -57,6 +50,18 @@ public class JSONMapParser extends BasicParser {
       this.handler = handler;
     }
 
+    private static JSONObject recursiveUnfold(String key, Map value, JSONObject obj){
+      Set<Map.Entry<Object, Object>> entrySet = value.entrySet();
+      for(Map.Entry<Object, Object> kv : entrySet) {
+        String newKey = Joiner.on(".").join(key, kv.getKey().toString());
+        if(kv.getValue() instanceof Map){
+          recursiveUnfold(newKey,(Map)kv.getValue(),obj);
+        }else {
+          obj.put(newKey, kv.getValue());
+        }
+      }
+      return obj;
+    }
     @Override
     public JSONObject handle(String key, Map value, JSONObject obj) {
       return handler.handle(key, value, obj);
