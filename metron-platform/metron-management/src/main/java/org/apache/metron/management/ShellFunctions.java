@@ -23,16 +23,19 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.stellar.shell.PausableInput;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.jboss.aesh.console.AeshProcess;
 import org.jboss.aesh.console.Console;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
 
 public class ShellFunctions {
   private static final Logger LOG = Logger.getLogger(ParserConfigFunctions.class);
@@ -197,7 +200,7 @@ public class ShellFunctions {
            namespace = "SHELL"
           ,name = "EDIT"
           ,description = "Open an editor and return the output"
-          ,params = {"string - Optional string to edit"
+          ,params = {"string - Optional string to use to initialize the editor contents."
                     }
           ,returns = "The output of the editor."
           )
@@ -207,6 +210,9 @@ public class ShellFunctions {
       String editor = System.getenv().get("EDITOR");
       if(editor == null) {
         editor = System.getenv("VISUAL");
+      }
+      if(editor == null) {
+        editor = System.getProperty("EDITOR");
       }
       if(editor == null) {
         editor = "/bin/vi";
@@ -231,21 +237,20 @@ public class ShellFunctions {
         LOG.error(message, e);
         throw new IllegalStateException(message, e);
       }
-      Console console = (Console) context.getCapability("console").get();
-      BufferedInputStream originalIn = console.getShell().in().getStdIn();
-      console.getShell().in().setStdIn(new BufferedInputStream(new NullInputStream(10000)));
+      Optional<Object> console =  context.getCapability(CONSOLE, false);
       try {
+        PausableInput.INSTANCE.pause();
         //shut down the IO for the console
-        ProcessBuilder processBuilder = new ProcessBuilder(editor, outFile.getAbsolutePath()).inheritIO();
-        //processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        //processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
-        //processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        ProcessBuilder processBuilder = new ProcessBuilder(editor, outFile.getAbsolutePath());
+        processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         try {
           Process p = processBuilder.start();
           // wait for termination.
           p.waitFor();
           try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
-            String ret = IOUtils.toString(br);
+            String ret = IOUtils.toString(br).trim();
             return ret;
           }
         } catch (Exception e) {
@@ -253,9 +258,15 @@ public class ShellFunctions {
           LOG.error(message, e);
           return null;
         }
-      }
-      finally {
-        console.getShell().in().setStdIn(originalIn);
+      } finally {
+        try {
+          PausableInput.INSTANCE.unpause();
+          if(console.isPresent()) {
+            ((Console)console.get()).pushToInputStream("\b\n");
+          }
+        } catch (IOException e) {
+          LOG.error("Unable to unpause: " + e.getMessage(), e);
+        }
         if(outFile.exists()) {
           outFile.delete();
         }

@@ -47,6 +47,7 @@ import static org.apache.metron.common.stellar.shell.StellarExecutor.OperationTy
 public class StellarExecutor {
 
   public static String SHELL_VARIABLES = "shellVariables";
+  public static String CONSOLE = "console";
 
   private ReadWriteLock indexLock = new ReentrantReadWriteLock();
 
@@ -227,12 +228,13 @@ public class StellarExecutor {
               .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
               .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client.get())
               .with(SHELL_VARIABLES, () -> variables)
-              .with("console", () -> console)
+              .with(CONSOLE, () -> console)
               .build();
     }
     else {
       context = new Context.Builder()
               .with(SHELL_VARIABLES, () -> variables)
+              .with("console", () -> console)
               .build();
     }
 

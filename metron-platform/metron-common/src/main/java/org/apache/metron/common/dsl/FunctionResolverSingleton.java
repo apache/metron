@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -142,7 +143,7 @@ public class FunctionResolverSingleton implements FunctionResolver {
   private void loadFunctions(final Map<String, StellarFunctionInfo> ret) {
     try {
       ClassLoader classLoader = getClass().getClassLoader();
-      Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
+      Reflections reflections = new Reflections(new ConfigurationBuilder() .setUrls(effectiveClassPathUrls(classLoader)) );
       for (Class<?> clazz : reflections.getSubTypesOf(StellarFunction.class)) {
         if (clazz.isAnnotationPresent(Stellar.class)) {
           Map.Entry<String, StellarFunctionInfo> instance = create((Class<? extends StellarFunction>) clazz);
