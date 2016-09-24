@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
