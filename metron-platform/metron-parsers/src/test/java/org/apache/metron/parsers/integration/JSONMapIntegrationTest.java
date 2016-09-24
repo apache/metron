@@ -15,41 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.configuration.profiler;
+package org.apache.metron.parsers.integration;
 
-import java.io.Serializable;
+import org.apache.metron.parsers.integration.validation.SampleDataValidation;
+
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The user defined configuration values required for the Profiler.
- */
-public class ProfilerConfig implements Serializable {
-
-  /**
-   * One or more profile definitions.
-   */
-  private List<ProfileConfig> profiles = new ArrayList<>();
-
-  public List<ProfileConfig> getProfiles() {
-    return profiles;
-  }
-
-  public void setProfiles(List<ProfileConfig> profiles) {
-    this.profiles = profiles;
+public class JSONMapIntegrationTest extends ParserIntegrationTest {
+  @Override
+  String getSensorType() {
+    return "jsonMap";
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ProfilerConfig that = (ProfilerConfig) o;
-    return profiles != null ? profiles.equals(that.profiles) : that.profiles == null;
-  }
-
-  @Override
-  public int hashCode() {
-    return profiles != null ? profiles.hashCode() : 0;
+  List<ParserValidation> getValidations() {
+    return new ArrayList<ParserValidation>() {{
+      add(new SampleDataValidation());
+    }};
   }
 }
