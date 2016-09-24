@@ -211,8 +211,13 @@ public class ConfigurationFunctionsTest {
   public void testParserPut() throws InterruptedException {
     String brop= (String) StellarTest.run("CONFIG_GET('PARSER', 'testParserPut')", new HashMap<>(), context);
     StellarTest.run("CONFIG_PUT('PARSER', config, 'testEnrichmentPut')", ImmutableMap.of("config", brop), context);
-    String bropNew= (String) StellarTest.run("CONFIG_GET('PARSER', 'testEnrichmentPut', false)", new HashMap<>(), context);
-    Assert.assertEquals(brop, bropNew);
+    boolean foundMatch = false;
+    for(int i = 0;i < 10 && !foundMatch;++i) {
+      String bropNew = (String) StellarTest.run("CONFIG_GET('PARSER', 'testEnrichmentPut', false)", new HashMap<>(), context);
+      foundMatch =  brop.equals(bropNew);
+      Thread.sleep(2000);
+    }
+    Assert.assertTrue(foundMatch);
   }
 
   @Test(expected= ParseException.class)
