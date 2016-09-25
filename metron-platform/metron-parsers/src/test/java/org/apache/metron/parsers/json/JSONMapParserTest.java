@@ -62,6 +62,17 @@ public class JSONMapParserTest {
    @Multiline
    static String collectionHandlingJSON;
 
+  /**
+    {
+     "collection" : {
+        "key" : "value"
+      },
+     "key" : "value"
+    }
+   */
+  @Multiline
+  static String mixCollectionHandlingJSON;
+
   @Test
   public void testCollectionHandlingDrop() {
     JSONMapParser parser = new JSONMapParser();
@@ -110,5 +121,18 @@ public class JSONMapParserTest {
     Assert.assertEquals(message.get("collection.bigblah.reallyInnerBlah.color"),"grey");
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
+  }
+
+  @Test
+  public void testMixedCollectionHandlingUnfold() {
+    JSONMapParser parser = new JSONMapParser();
+    parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG,JSONMapParser.MapStrategy.UNFOLD.name()));
+    List<JSONObject> output = parser.parse(mixCollectionHandlingJSON.getBytes());
+    Assert.assertEquals(output.get(0).size(), 4);
+    JSONObject message = output.get(0);
+    Assert.assertEquals(message.get("collection.key"), "value");
+    Assert.assertEquals(message.get("key"),"value");
+    Assert.assertNotNull(message.get("timestamp"));
+    Assert.assertTrue(message.get("timestamp") instanceof Number );
   }
 }
