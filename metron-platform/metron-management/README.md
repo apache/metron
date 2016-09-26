@@ -26,6 +26,11 @@ The functions are split roughly into a few sections:
 
 ### Shell Functions 
 
+* `SHELL_EDIT`
+  * Description: Open an editor (optionally initialized with text) and return whatever is saved from the editor.  The editor to use is pulled from `EDITOR` or `VISUAL` environment variable.
+  * Input:
+    * string - (Optional) A string whose content is used to initialize the editor.
+  * Returns: The content that the editor saved after editor exit.
 * `SHELL_GET_EXPRESSION`
   * Description: Get a stellar expression from a variable
   * Input:

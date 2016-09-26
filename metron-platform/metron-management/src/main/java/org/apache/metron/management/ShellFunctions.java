@@ -18,17 +18,27 @@
 package org.apache.metron.management;
 
 import com.jakewharton.fliptables.FlipTable;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.log4j.Logger;
 import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.stellar.shell.PausableInput;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.jboss.aesh.console.AeshProcess;
+import org.jboss.aesh.console.Console;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.util.*;
+
+import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
 
 public class ShellFunctions {
+  private static final Logger LOG = Logger.getLogger(ShellFunctions.class);
 
   @Stellar(
            namespace = "SHELL"
@@ -173,6 +183,96 @@ public class ShellFunctions {
         return result.getExpression();
       }
       return null;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
+  @Stellar(
+           namespace = "SHELL"
+          ,name = "EDIT"
+          ,description = "Open an editor (optionally initialized with text) and return " +
+                         "whatever is saved from the editor.  The editor to use is pulled " +
+                         "from `EDITOR` or `VISUAL` environment variable."
+          ,params = {   "string - (Optional) A string whose content is used to initialize the editor."
+                    }
+          ,returns = "The content that the editor saved after editor exit."
+          )
+  public static class Edit implements StellarFunction {
+
+    private String getEditor() {
+      String editor = System.getenv().get("EDITOR");
+      if(editor == null) {
+        editor = System.getenv("VISUAL");
+      }
+      if(editor == null) {
+        editor = System.getProperty("EDITOR");
+      }
+      if(editor == null) {
+        editor = "/bin/vi";
+      }
+      return editor;
+    }
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      File outFile = null;
+      String editor = getEditor();
+      try {
+        outFile = File.createTempFile("stellar_shell", "out");
+        if(args.size() > 0) {
+          String arg = (String)args.get(0);
+          try(PrintWriter pw = new PrintWriter(outFile)) {
+            IOUtils.write(arg, pw);
+          }
+        }
+      } catch (IOException e) {
+        String message = "Unable to create temp file: " + e.getMessage();
+        LOG.error(message, e);
+        throw new IllegalStateException(message, e);
+      }
+      Optional<Object> console =  context.getCapability(CONSOLE, false);
+      try {
+        PausableInput.INSTANCE.pause();
+        //shut down the IO for the console
+        ProcessBuilder processBuilder = new ProcessBuilder(editor, outFile.getAbsolutePath());
+        processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+        try {
+          Process p = processBuilder.start();
+          // wait for termination.
+          p.waitFor();
+          try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
+            String ret = IOUtils.toString(br).trim();
+            return ret;
+          }
+        } catch (Exception e) {
+          String message = "Unable to read output: " + e.getMessage();
+          LOG.error(message, e);
+          return null;
+        }
+      } finally {
+        try {
+          PausableInput.INSTANCE.unpause();
+          if(console.isPresent()) {
+            ((Console)console.get()).pushToInputStream("\b\n");
+          }
+        } catch (IOException e) {
+          LOG.error("Unable to unpause: " + e.getMessage(), e);
+        }
+        if(outFile.exists()) {
+          outFile.delete();
+        }
+      }
     }
 
     @Override
