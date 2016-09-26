@@ -95,6 +95,8 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    SensorParserConfig c = (SensorParserConfig) PARSER.deserialize(new String(configData));
+    c.init();
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
@@ -114,6 +116,10 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    SensorEnrichmentConfig c = (SensorEnrichmentConfig) ENRICHMENT.deserialize(new String(configData));
+    if(c.getIndex() == null ) {
+      throw new IllegalStateException("Attempting to write a malformed sensor config: missing index.\n" + new String(configData));
+    }
     writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 

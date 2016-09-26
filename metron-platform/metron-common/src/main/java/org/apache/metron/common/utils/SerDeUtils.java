@@ -32,11 +32,9 @@ import de.javakaffee.kryoserializers.guava.ImmutableListSerializer;
 import de.javakaffee.kryoserializers.guava.ImmutableMapSerializer;
 import de.javakaffee.kryoserializers.guava.ImmutableMultimapSerializer;
 import de.javakaffee.kryoserializers.guava.ImmutableSetSerializer;
-import de.javakaffee.kryoserializers.jodatime.JodaDateTimeSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateTimeSerializer;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.storm.shade.org.joda.time.DateTime;
 import org.objenesis.instantiator.ObjectInstantiator;
 import org.objenesis.strategy.InstantiatorStrategy;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -84,7 +82,6 @@ public class SerDeUtils {
 // register CGLibProxySerializer, works in combination with the appropriate action in handleUnregisteredClass (see below)
       ret.register(CGLibProxySerializer.CGLibProxyMarker.class, new CGLibProxySerializer());
 // joda DateTime, LocalDate and LocalDateTime
-      ret.register(DateTime.class, new JodaDateTimeSerializer());
       ret.register(LocalDate.class, new JodaLocalDateSerializer());
       ret.register(LocalDateTime.class, new JodaLocalDateTimeSerializer());
 // guava ImmutableList, ImmutableSet, ImmutableMap, ImmutableMultimap, UnmodifiableNavigableSet
