@@ -27,22 +27,9 @@ import java.util.List;
 public class ProfilerConfig implements Serializable {
 
   /**
-   * The input topic from which messages will be read.
-   */
-  private String inputTopic;
-
-  /**
    * One or more profile definitions.
    */
   private List<ProfileConfig> profiles = new ArrayList<>();
-
-  public String getInputTopic() {
-    return inputTopic;
-  }
-
-  public void setInputTopic(String inputTopic) {
-    this.inputTopic = inputTopic;
-  }
 
   public List<ProfileConfig> getProfiles() {
     return profiles;
@@ -58,16 +45,11 @@ public class ProfilerConfig implements Serializable {
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfilerConfig that = (ProfilerConfig) o;
-
-    if (inputTopic != null ? !inputTopic.equals(that.inputTopic) : that.inputTopic != null) return false;
     return profiles != null ? profiles.equals(that.profiles) : that.profiles == null;
-
   }
 
   @Override
   public int hashCode() {
-    int result = inputTopic != null ? inputTopic.hashCode() : 0;
-    result = 31 * result + (profiles != null ? profiles.hashCode() : 0);
-    return result;
+    return profiles != null ? profiles.hashCode() : 0;
   }
 }

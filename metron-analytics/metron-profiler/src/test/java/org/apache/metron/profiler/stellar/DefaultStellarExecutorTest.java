@@ -18,16 +18,20 @@
  *
  */
 
-package org.apache.metron.profiler.util;
+package org.apache.metron.profiler.stellar;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -60,6 +64,7 @@ public class DefaultStellarExecutorTest {
 
     // create the executor to test
     executor = new DefaultStellarExecutor();
+    executor.setContext(Context.EMPTY_CONTEXT());
   }
 
   /**
@@ -67,7 +72,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testAssign() {
-    executor.assign("foo", "2", message, Context.EMPTY_CONTEXT());
+    executor.assign("foo", "2", message);
 
     // verify
     Object var = executor.getState().get("foo");
@@ -80,7 +85,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testAssignWithVariableResolution() {
-    executor.assign("foo", "ip_src_addr", message, Context.EMPTY_CONTEXT());
+    executor.assign("foo", "ip_src_addr", message);
 
     // verify
     Object var = executor.getState().get("foo");
@@ -93,9 +98,9 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testState() {
-    executor.assign("two", "2", message, Context.EMPTY_CONTEXT());
-    executor.assign("four", "4", message, Context.EMPTY_CONTEXT());
-    executor.assign("sum", "two + four", message, Context.EMPTY_CONTEXT());
+    executor.assign("two", "2", message);
+    executor.assign("four", "4", message);
+    executor.assign("sum", "two + four", message);
 
     // verify
     Object var = executor.getState().get("sum");
@@ -107,7 +112,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testClearState() {
-    executor.assign("two", "2", message, Context.EMPTY_CONTEXT());
+    executor.assign("two", "2", message);
     executor.clearState();
 
     // verify
@@ -123,7 +128,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testExecuteTransformation() {
-    String actual = executor.execute("TO_UPPER('lowercase')", message, String.class, Context.EMPTY_CONTEXT());
+    String actual = executor.execute("TO_UPPER('lowercase')", message, String.class);
     assertThat(actual, equalTo("LOWERCASE"));
   }
 
@@ -136,7 +141,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testExecutePredicate() {
-    boolean actual = executor.execute("IS_INTEGER(2)", message, Boolean.class, Context.EMPTY_CONTEXT());
+    boolean actual = executor.execute("IS_INTEGER(2)", message, Boolean.class);
     assertThat(actual, equalTo(true));
   }
 
@@ -145,7 +150,7 @@ public class DefaultStellarExecutorTest {
    */
   @Test(expected = RuntimeException.class)
   public void testExecuteWithWrongType() {
-    executor.execute("2 + 2", message, Boolean.class, Context.EMPTY_CONTEXT());
+    executor.execute("2 + 2", message, Boolean.class);
   }
 
   /**
@@ -153,9 +158,23 @@ public class DefaultStellarExecutorTest {
    */
   @Test
   public void testExecuteWithTypeConversion() {
-    executor.execute("2", message, Double.class, Context.EMPTY_CONTEXT());
-    executor.execute("2", message, Float.class, Context.EMPTY_CONTEXT());
-    executor.execute("2", message, Short.class, Context.EMPTY_CONTEXT());
-    executor.execute("2", message, Long.class, Context.EMPTY_CONTEXT());
+    executor.execute("2", message, Double.class);
+    executor.execute("2", message, Float.class);
+    executor.execute("2", message, Short.class);
+    executor.execute("2", message, Long.class);
+  }
+
+  /**
+   * The executor must be serializable.
+   */
+  @Test
+  public void testSerializable() throws Exception {
+
+    // serialize
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    new ObjectOutputStream(bytes).writeObject(executor);
+
+    // deserialize - success when no exceptions
+    new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray())).readObject();
   }
 }

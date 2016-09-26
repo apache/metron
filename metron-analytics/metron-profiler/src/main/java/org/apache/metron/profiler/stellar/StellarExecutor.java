@@ -21,39 +21,38 @@
 package org.apache.metron.profiler.stellar;
 
 import org.apache.metron.common.dsl.Context;
-import org.json.simple.JSONObject;
 
 import java.util.Map;
 
 /**
  * Executes Stellar expressions and maintains state across multiple invocations.
- *
- * There are two sets of functions in Stellar currently.  One can be executed with
- * a PredicateProcessor and the other a TransformationProcessor.  This interface
- * abstracts away that complication.
  */
 public interface StellarExecutor {
 
   /**
-   * Execute an expression and assign the result to a variable.
+   * Execute an expression and assign the result to a variable.  The variable is maintained
+   * in the context of this executor and is available to all subsequent expressions.
    *
-   * @param variable The name of the variable to assign to.
+   * @param variable   The name of the variable to assign to.
    * @param expression The expression to execute.
-   * @param message The message that provides additional context for the expression.
-   * @param stellarContext The context which holds global state for Stellar functions
+   * @param state      Additional state available to the expression.  This most often represents
+   *                   the values available to the expression from an individual message. The state
+   *                   maps a variable name to a variable's value.
    */
-  void assign(String variable, String expression, JSONObject message, Context stellarContext);
+  void assign(String variable, String expression, Map<String, Object> state);
 
   /**
-   * Execute a Stellar expression and return the result.
+   * Execute a Stellar expression and return the result.  The internal state of the executor
+   * is not modified.
    *
    * @param expression The expression to execute.
-   * @param message The message that is accessible when Stellar is executed.
-   * @param clazz The expected class of the expression's result.
-   * @param <T> The expected class of the expression's result.
-   * @param stellarContext The context which holds global state for Stellar functions
+   * @param state      Additional state available to the expression.  This most often represents
+   *                   the values available to the expression from an individual message. The state
+   *                   maps a variable name to a variable's value.
+   * @param clazz      The expected type of the expression's result.
+   * @param <T>        The expected type of the expression's result.
    */
-  <T> T execute(String expression, JSONObject message, Class<T> clazz, Context stellarContext);
+  <T> T execute(String expression, Map<String, Object> state, Class<T> clazz);
 
   /**
    * The current state of the Stellar execution environment.
@@ -64,4 +63,12 @@ public interface StellarExecutor {
    * Removes all state from the execution environment.
    */
   void clearState();
+
+  /**
+   * Sets the Context for the Stellar execution environment.  This provides global data used
+   * to initialize Stellar functions.
+   *
+   * @param context The Stellar context.
+   */
+  void setContext(Context context);
 }

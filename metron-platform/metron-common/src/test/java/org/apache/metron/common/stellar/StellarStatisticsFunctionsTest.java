@@ -20,21 +20,26 @@
 
 package org.apache.metron.common.stellar;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import org.apache.commons.math3.random.GaussianRandomGenerator;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.math.stats.OnlineStatisticsProviderTest;
+import org.apache.metron.common.math.stats.StatisticsProvider;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -63,6 +68,37 @@ public class StellarStatisticsFunctionsTest {
     return Arrays.asList(new Object[][] {{ 0 }, { 100 }});
   }
 
+  private static void tolerantAssertEquals( Function<StatisticsProvider, Number> func
+                                          , StatisticsProvider left
+                                          , StatisticsProvider right
+                                          )
+
+  {
+    tolerantAssertEquals(func, left, right, null);
+  }
+
+  private static void tolerantAssertEquals( Function<StatisticsProvider, Number> func
+                                          , StatisticsProvider left
+                                          , StatisticsProvider right
+                                          , Double epsilon
+                                          )
+  {
+    try {
+      Number leftVal = func.apply(left);
+      Number rightVal = func.apply(left);
+      if(epsilon != null) {
+        Assert.assertEquals((double)leftVal, (double)rightVal, epsilon);
+      }
+      else {
+        Assert.assertEquals(leftVal, rightVal);
+      }
+    }
+    catch(UnsupportedOperationException uoe) {
+      //ignore
+    }
+
+  }
+
   /**
    * Runs a Stellar expression.
    * @param expr The expression to run.
@@ -70,7 +106,44 @@ public class StellarStatisticsFunctionsTest {
    */
   private static Object run(String expr, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(expr, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    Object ret = processor.parse(expr, x-> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    byte[] raw = SerDeUtils.toBytes(ret);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    if(ret instanceof StatisticsProvider) {
+      StatisticsProvider left = (StatisticsProvider)ret;
+      StatisticsProvider right = (StatisticsProvider)actual;
+      //N
+      tolerantAssertEquals(prov -> prov.getCount(), left, right);
+      //sum
+      tolerantAssertEquals(prov -> prov.getSum(), left, right, 1e-3);
+      //sum of squares
+      tolerantAssertEquals(prov -> prov.getSumSquares(), left, right, 1e-3);
+      //sum of squares
+      tolerantAssertEquals(prov -> prov.getSumLogs(), left, right, 1e-3);
+      //Mean
+      tolerantAssertEquals(prov -> prov.getMean(), left, right, 1e-3);
+      //Quadratic Mean
+      tolerantAssertEquals(prov -> prov.getQuadraticMean(), left, right, 1e-3);
+      //SD
+      tolerantAssertEquals(prov -> prov.getStandardDeviation(), left, right, 1e-3);
+      //Variance
+      tolerantAssertEquals(prov -> prov.getVariance(), left, right, 1e-3);
+      //Min
+      tolerantAssertEquals(prov -> prov.getMin(), left, right, 1e-3);
+      //Max
+      tolerantAssertEquals(prov -> prov.getMax(), left, right, 1e-3);
+      //Kurtosis
+      tolerantAssertEquals(prov -> prov.getKurtosis(), left, right, 1e-3);
+      //Skewness
+      tolerantAssertEquals(prov -> prov.getSkewness(), left, right, 1e-3);
+      for (double d = 10.0; d < 100.0; d += 10) {
+        final double pctile = d;
+        //This is a sketch, so we're a bit more forgiving here in our choice of \epsilon.
+        tolerantAssertEquals(prov -> prov.getPercentile(pctile), left, right, 1e-2);
+
+      }
+    }
+    return ret;
   }
 
   @Before
@@ -97,8 +170,58 @@ public class StellarStatisticsFunctionsTest {
     variables.put("stats", result);
 
     // add some values
-    values = Arrays.asList(10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0);
     values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testOverflow() throws Exception {
+   run(format("STATS_ADD(STATS_INIT(), %f)", (Double.MAX_VALUE + 1)), new HashMap<>());
+  }
+
+  @Test
+  public void ensureDeterminism() throws Exception {
+    for(int i = 0;i < 20;++i) {
+      testMergeProviders();
+    }
+  }
+
+  @Test
+  public void testMergeProviders() throws Exception {
+    List<StatisticsProvider> providers = new ArrayList<>();
+    /*
+    Create 10 providers, each with a sample drawn from a gaussian distribution.
+    Update the reference stats from commons math to ensure we are
+     */
+    GaussianRandomGenerator gaussian = new GaussianRandomGenerator(new MersenneTwister(1L));
+    SummaryStatistics sStatistics= new SummaryStatistics();
+    DescriptiveStatistics dStatistics = new DescriptiveStatistics();
+    for(int i = 0;i < 10;++i) {
+      List<Double> sample = new ArrayList<>();
+      for(int j = 0;j < 100;++j) {
+        double s = gaussian.nextNormalizedDouble();
+        sample.add(s);
+        sStatistics.addValue(s);
+        dStatistics.addValue(s);
+      }
+      StatisticsProvider provider = (StatisticsProvider)run("STATS_ADD(STATS_INIT(), " + Joiner.on(",").join(sample) + ")"
+                                                           , new HashMap<>()
+                                                           );
+      providers.add(provider);
+    }
+
+    /*
+    Merge the providers and validate
+     */
+    Map<String, Object> providerVariables = new HashMap<>();
+    for(int i = 0;i < providers.size();++i) {
+      providerVariables.put("provider_" + i, providers.get(i));
+    }
+    StatisticsProvider mergedProvider =
+            (StatisticsProvider)run("STATS_MERGE([" + Joiner.on(",").join(providerVariables.keySet()) + "])"
+                                   , providerVariables
+                                   );
+    OnlineStatisticsProviderTest.validateStatisticsProvider(mergedProvider, sStatistics , dStatistics);
+
   }
 
   @Test
@@ -141,9 +264,11 @@ public class StellarStatisticsFunctionsTest {
 
   @Test
   public void testGeometricMean() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
-    assertEquals(stats.getGeometricMean(), (Double) actual, 0.1);
+    if(windowSize > 0) {
+      statsInit(windowSize);
+      Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
+      assertEquals(stats.getGeometricMean(), (Double) actual, 0.1);
+    }
   }
 
   @Test
@@ -183,16 +308,20 @@ public class StellarStatisticsFunctionsTest {
 
   @Test
   public void testPopulationVariance() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_POPULATION_VARIANCE(stats)", variables);
-    assertEquals(stats.getPopulationVariance(), (Double) actual, 0.1);
+    if(windowSize > 0) {
+      statsInit(windowSize);
+      Object actual = run("STATS_POPULATION_VARIANCE(stats)", variables);
+      assertEquals(stats.getPopulationVariance(), (Double) actual, 0.1);
+    }
   }
 
   @Test
   public void testQuadraticMean() throws Exception {
-    statsInit(windowSize);
-    Object actual = run("STATS_QUADRATIC_MEAN(stats)", variables);
-    assertEquals(stats.getQuadraticMean(), (Double) actual, 0.1);
+    if(windowSize > 0) {
+      statsInit(windowSize);
+      Object actual = run("STATS_QUADRATIC_MEAN(stats)", variables);
+      assertEquals(stats.getQuadraticMean(), (Double) actual, 0.1);
+    }
   }
 
   @Test
@@ -215,37 +344,27 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getSumsq(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
-  public void testKurtosisNoWindow() throws Exception {
-    statsInit(0);
-    run("STATS_KURTOSIS(stats)", variables);
-  }
-
   @Test
-  public void testKurtosisWithWindow() throws Exception {
-    statsInit(100);
+  public void testKurtosis() throws Exception {
+    statsInit(windowSize);
     Object actual = run("STATS_KURTOSIS(stats)", variables);
     assertEquals(stats.getKurtosis(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
-  public void testSkewnessNoWindow() throws Exception {
-    statsInit(0);
-    run("STATS_SKEWNESS(stats)", variables);
-  }
-
   @Test
-  public void testSkewnessWithWindow() throws Exception {
-    statsInit(100);
+  public void testSkewness() throws Exception {
+    statsInit(windowSize);
     Object actual = run("STATS_SKEWNESS(stats)", variables);
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
+
+  @Test
   public void testPercentileNoWindow() throws Exception {
     statsInit(0);
     final double percentile = 0.9;
     Object actual = run(format("STATS_PERCENTILE(stats, %f)", percentile), variables);
+    assertEquals(stats.getPercentile(percentile), (Double) actual, 1);
   }
 
   @Test

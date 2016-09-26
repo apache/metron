@@ -96,6 +96,8 @@ usage: Fixed filter options
  -dp,--ip_dst_port <arg>         Destination port
  -et,--end_time <arg>            Packet end time range. Default is current
                                  system time.
+ -nr,--num_reducers <arg>        The number of reducers to use.  Default
+                                 is 10.
  -h,--help                       Display help
  -ir,--include_reverse           Indicates if filter should check swapped
                                  src/dest addresses and IPs
@@ -116,6 +118,8 @@ usage: Query filter options
                                  millis since the epoch.
  -et,--end_time <arg>            Packet end time range. Default is current
                                  system time.
+ -nr,--num_reducers <arg>        The number of reducers to use.  Default
+                                 is 10.
  -h,--help                       Display help
  -q,--query <arg>                Query string to use as a filter
  -st,--start_time <arg>          (required) Packet start time range.

@@ -56,7 +56,6 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
 
   /**
    * {
-   *   "inputTopic": "enrichment",
    *   "profiles": [
    *      {
    *        "profile": "test",
@@ -74,7 +73,6 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
 
   /**
    * {
-   *   "inputTopic": "enrichment",
    *   "profiles": [
    *      {
    *        "profile": "test",
@@ -92,7 +90,6 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
 
   /**
    * {
-   *   "inputTopic": "enrichment",
    *   "profiles": [
    *      {
    *        "profile": "test",
@@ -109,7 +106,6 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
 
   /**
    * {
-   *   "inputTopic": "enrichment",
    *   "profiles": [
    *      {
    *        "profile": "test",

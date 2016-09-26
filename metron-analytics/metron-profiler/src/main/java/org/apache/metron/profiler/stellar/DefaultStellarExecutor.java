@@ -21,13 +21,13 @@
 package org.apache.metron.profiler.stellar;
 
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -43,54 +43,69 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   private Map<String, Object> state;
 
+  /**
+   * Provides additional context for initializing certain Stellar functions.  For
+   * example, references to Zookeeper or HBase.
+   */
+  private Context context;
+
   public DefaultStellarExecutor() {
     clearState();
+    context = Context.EMPTY_CONTEXT();
   }
 
   /**
    * @param initialState Initial state loaded into the execution environment.
    */
   public DefaultStellarExecutor(Map<String, Object> initialState) {
+    this();
     this.state = new HashMap<>(initialState);
   }
 
+  /**
+   * The current state of the Stellar execution environment.
+   */
   @Override
   public Map<String, Object> getState() {
     return new HashMap<>(state);
   }
 
   /**
-   * Execute an expression and assign the result to a variable.
+   * Execute an expression and assign the result to a variable.  The variable is maintained
+   * in the context of this executor and is available to all subsequent expressions.
    *
-   * @param variable The variable name to assign to.
-   * @param expression The expression to execute.
-   * @param message The message that provides additional context for the expression.
-   * @param stellarContext The context which holds global state for Stellar functions
+   * @param variable       The name of the variable to assign to.
+   * @param expression     The expression to execute.
+   * @param transientState Additional state available to the expression.  This most often represents
+   *                       the values available to the expression from an individual message. The state
+   *                       maps a variable name to a variable's value.
    */
   @Override
-  public void assign(String variable, String expression, JSONObject message, Context stellarContext) {
-    Object result = execute(expression, message, stellarContext);
+  public void assign(String variable, String expression, Map<String, Object> transientState) {
+    Object result = execute(expression, transientState);
     state.put(variable, result);
   }
 
   /**
-   * Execute a Stellar expression and returns the result.
+   * Execute a Stellar expression and return the result.  The internal state of the executor
+   * is not modified.
    *
-   * @param expr The expression to execute.
-   * @param message The message that is accessible when Stellar is executed.
-   * @param clazz The expected class of the expression's result.
-   * @param <T> The expected class of the expression's result.
-   * @param stellarContext The context which holds global state for Stellar functions
+   * @param expression The expression to execute.
+   * @param state      Additional state available to the expression.  This most often represents
+   *                   the values available to the expression from an individual message. The state
+   *                   maps a variable name to a variable's value.
+   * @param clazz      The expected type of the expression's result.
+   * @param <T>        The expected type of the expression's result.
    */
   @Override
-  public <T> T execute(String expr, JSONObject message, Class<T> clazz, Context stellarContext) {
-    Object resultObject = execute(expr, message, stellarContext);
+  public <T> T execute(String expression, Map<String, Object> state, Class<T> clazz) {
+    Object resultObject = execute(expression, state);
 
     // perform type conversion, if necessary
     T result = ConversionUtils.convert(resultObject, clazz);
-    if(result == null) {
+    if (result == null) {
       throw new IllegalArgumentException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
-              clazz.getSimpleName(), resultObject.getClass().getSimpleName(), expr));
+              clazz.getSimpleName(), resultObject.getClass().getSimpleName(), expression));
     }
 
     return result;
@@ -102,20 +117,28 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
   }
 
   /**
+   * Sets the Context for the Stellar execution environment.  This provides global data used
+   * to initialize Stellar functions.
+   *
+   * @param context The Stellar context.
+   */
+  @Override
+  public void setContext(Context context) {
+    this.context = context;
+  }
+
+  /**
    * Execute a Stellar expression.
    *
-   * @param expr The expression to execute.
-   * @param msg The message that is accessible when Stellar is executed.
-   * @param stellarContext The context which holds global state for Stellar functions
+   * @param expression     The expression to execute.
+   * @param transientState Additional state available to the expression.  This most often represents
+   *                       the values available to the expression from an individual message. The state
+   *                       maps a variable name to a variable's value.
    */
-  private Object execute(String expr, JSONObject msg, Context stellarContext) {
-    try {
-      VariableResolver resolver = new MapVariableResolver(state, msg);
-      StellarProcessor processor = new StellarProcessor();
-      return processor.parse(expr, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-
-    } catch (ParseException e) {
-      throw new ParseException(String.format("Bad expression: expr=%s, msg=%s, state=%s", expr, msg, state));
-    }
+  private Object execute(String expression, Map<String, Object> transientState) {
+    FunctionResolver functionResolver = StellarFunctions.FUNCTION_RESOLVER();
+    VariableResolver variableResolver = new MapVariableResolver(state, transientState);
+    StellarProcessor processor = new StellarProcessor();
+    return processor.parse(expression, variableResolver, functionResolver, context);
   }
 }

@@ -97,6 +97,7 @@ This package installs the Metron common files %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/zk_load_configs.sh
+%{metron_home}/bin/stellar
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,7 +121,6 @@ This package installs the Metron Parser files
 %dir %{metron_home}/patterns
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_parser_topology.sh
-%{metron_home}/config/zookeeper/parsers/bluecoat.json
 %{metron_home}/config/zookeeper/parsers/bro.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json

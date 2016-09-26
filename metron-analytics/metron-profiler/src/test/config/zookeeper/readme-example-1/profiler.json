@@ -1,5 +1,4 @@
 {
-  "inputTopic": "indexing",
   "profiles": [
     {
       "profile": "example1",
@@ -11,7 +10,8 @@
       "update": {
         "total_bytes": "total_bytes + bytes_in"
       },
-      "result": "total_bytes"
+      "result": "total_bytes",
+      "expires": 30
     }
   ]
 }

@@ -21,15 +21,53 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
+
 public class StellarTest {
+
+  @Test
+  public void ensureDocumentation() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
+    for (Class<?> clazz : reflections.getSubTypesOf(StellarFunction.class)) {
+      if (clazz.isAnnotationPresent(Stellar.class)) {
+        Stellar annotation = clazz.getAnnotation(Stellar.class);
+        Assert.assertFalse("Must specify a name for " + clazz.getName(),StringUtils.isEmpty(annotation.name()));
+        Assert.assertFalse("Must specify a description annotation for " + clazz.getName(),StringUtils.isEmpty(annotation.description()));
+        Assert.assertTrue("Must specify a non-empty params for " + clazz.getName(), annotation.params().length > 0);
+        Assert.assertTrue("Must specify a non-empty params for " + clazz.getName(), StringUtils.isNoneEmpty(annotation.params()));
+        Assert.assertFalse("Must specify a returns annotation for " + clazz.getName(), StringUtils.isEmpty(annotation.returns()));
+      }
+    }
+  }
+
+  @Test
+  public void testVariableResolution() {
+    {
+      String query = "bar:variable";
+      Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
+    }
+    {
+      String query = "JOIN(['foo', bar:variable], '')";
+      Assert.assertEquals("foobar", run(query, ImmutableMap.of("bar:variable", "bar")));
+    }
+    {
+      String query = "MAP_GET('bar', { 'foo' : 1, 'bar' : bar:variable})";
+      Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
+    }
+  }
 
   @Test
   public void testIfThenElseBug1() {
@@ -131,6 +169,22 @@ public class StellarTest {
     {
       String query = "MAP_GET('BLAH', {  TO_UPPER('blah') : 1 < 2 })";
       Assert.assertEquals(true, run(query, new HashMap<>()));
+    }
+  }
+
+  @Test
+  public void testArithmetic() {
+    {
+      String query = "1 + 2";
+      Assert.assertEquals(3, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
+    }
+    {
+      String query = "1.2 + 2";
+      Assert.assertEquals(3.2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
+    }
+    {
+      String query = "1.2e-3 + 2";
+      Assert.assertEquals(1.2e-3 + 2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
     }
   }
 
@@ -357,10 +411,25 @@ public class StellarTest {
   public static Object run(String rule, Map<String, Object> variables) {
     return run(rule, variables, Context.EMPTY_CONTEXT());
   }
+
+  /**
+   * This ensures the basic contract of a stellar expression is adhered to:
+   * 1. Validate works on the expression
+   * 2. The output can be serialized and deserialized properly
+   *
+   * @param rule
+   * @param variables
+   * @param context
+   * @return
+   */
   public static Object run(String rule, Map<String, Object> variables, Context context) {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    byte[] raw = SerDeUtils.toBytes(ret);
+    Object actual = SerDeUtils.fromBytes(raw, Object.class);
+    Assert.assertEquals(ret, actual);
+    return ret;
   }
   
   @Test

@@ -25,6 +25,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +34,13 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class BasicBroParser extends BasicParser {
 
-  protected static final Logger _LOG = LoggerFactory
-          .getLogger(BasicBroParser.class);
+  protected static final Logger _LOG = LoggerFactory.getLogger(BasicBroParser.class);
+  public static final ThreadLocal<NumberFormat> DECIMAL_FORMAT = new ThreadLocal<NumberFormat>() {
+    @Override
+    protected NumberFormat initialValue() {
+      return new DecimalFormat("0.0#####");
+    }
+  };
   private JSONCleaner cleaner = new JSONCleaner();
 
   @Override
@@ -87,7 +94,11 @@ public class BasicBroParser extends BasicParser {
 
       String originalString = key.toUpperCase() + " |";
       for (Object k : payload.keySet()) {
-        String value = payload.get(k).toString();
+        Object raw = payload.get(k);
+        String value = raw.toString();
+        if (raw instanceof Double) {
+          value = DECIMAL_FORMAT.get().format(raw);
+        }
         originalString += " " + k.toString() + ":" + value;
       }
       payload.put("original_string", originalString);
@@ -97,12 +108,11 @@ public class BasicBroParser extends BasicParser {
       long timestamp = 0L;
       if (payload.containsKey(Constants.Fields.TIMESTAMP.getName())) {
         try {
-          String broTimestamp = payload.get(Constants.Fields.TIMESTAMP.getName()).toString();
-          String convertedTimestamp = broTimestamp.replace(".","");
-          convertedTimestamp = convertedTimestamp.substring(0,13);
-          timestamp = Long.parseLong(convertedTimestamp);
+          Double broTimestamp = ((Number) payload.get(Constants.Fields.TIMESTAMP.getName())).doubleValue();
+          String broTimestampFormatted = DECIMAL_FORMAT.get().format(broTimestamp);
+          timestamp = convertToMillis(broTimestamp);
           payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
-          payload.put("bro_timestamp",broTimestamp);
+          payload.put("bro_timestamp", broTimestampFormatted);
           _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get(Constants.Fields.TIMESTAMP.getName())));
         } catch (NumberFormatException nfe) {
           _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
@@ -134,6 +144,10 @@ public class BasicBroParser extends BasicParser {
       throw new IllegalStateException(message, e);
     }
 
+  }
+
+  private Long convertToMillis(Double timestampSeconds) {
+    return ((Double) (timestampSeconds * 1000)).longValue();
   }
 
   private boolean replaceKey(JSONObject payload, String toKey, String[] fromKeys) {

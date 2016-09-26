@@ -19,7 +19,6 @@
 # configure yaf to generate a flow record for every packet
 #
 - name: Stop running instances of yaf
-  become: True
   service: name=yaf state=stopped
 
 - name: Configure yaf to generate a flow record for every network packet

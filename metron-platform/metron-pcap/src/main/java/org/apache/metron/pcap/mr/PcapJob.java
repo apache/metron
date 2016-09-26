@@ -19,6 +19,7 @@
 package org.apache.metron.pcap.mr;
 
 import com.google.common.base.Joiner;
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -26,13 +27,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.log4j.Logger;
+import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
@@ -47,9 +49,47 @@ import java.util.stream.Stream;
 
 public class PcapJob {
   private static final Logger LOG = Logger.getLogger(PcapJob.class);
+  public static final String START_TS_CONF = "start_ts";
+  public static final String END_TS_CONF = "end_ts";
+  public static final String WIDTH_CONF = "width";
+  public static class PcapPartitioner extends Partitioner<LongWritable, BytesWritable> implements Configurable {
+    private Configuration configuration;
+    Long start = null;
+    Long end = null;
+    Long width = null;
+    @Override
+    public int getPartition(LongWritable longWritable, BytesWritable bytesWritable, int numPartitions) {
+      if(start == null) {
+        initialize();
+      }
+      long x = longWritable.get();
+      int ret = (int)Long.divideUnsigned(x - start, width);
+      if(ret > numPartitions) {
+        throw new IllegalArgumentException(String.format("Bad partition: key=%s, width=%d, partition=%d, numPartitions=%d"
+                , Long.toUnsignedString(x), width, ret, numPartitions)
+            );
+      }
+      return ret;
+    }
+
+    private void initialize() {
+      start = Long.parseUnsignedLong(configuration.get(START_TS_CONF));
+      end = Long.parseUnsignedLong(configuration.get(END_TS_CONF));
+      width = Long.parseLong(configuration.get(WIDTH_CONF));
+    }
+
+    @Override
+    public void setConf(Configuration conf) {
+      this.configuration = conf;
+    }
+
+    @Override
+    public Configuration getConf() {
+      return configuration;
+    }
+  }
   public static class PcapMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
-    public static final String START_TS_CONF = "start_ts";
-    public static final String END_TS_CONF = "end_ts";
+
     PcapFilter filter;
     long start;
     long end;
@@ -141,35 +181,30 @@ public class PcapJob {
     return ret;
   }
 
-  private List<byte[]> readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
-    List<byte[]> ret = new ArrayList<>();
-    for(RemoteIterator<LocatedFileStatus> it= fs.listFiles(outputPath, false);it.hasNext();) {
+  /**
+   * Returns a lazily-read Iterable over a set of sequence files
+   */
+  private SequenceFileIterable readResults(Path outputPath, Configuration config, FileSystem fs) throws IOException {
+    List<Path> files = new ArrayList<>();
+    for (RemoteIterator<LocatedFileStatus> it = fs.listFiles(outputPath, false); it.hasNext(); ) {
       Path p = it.next().getPath();
-      if(p.getName().equals("_SUCCESS")) {
+      if (p.getName().equals("_SUCCESS")) {
         fs.delete(p, false);
         continue;
       }
-      SequenceFile.Reader reader = new SequenceFile.Reader(config,
-            SequenceFile.Reader.file(p));
-      LongWritable key = new LongWritable();
-      BytesWritable value = new BytesWritable();
-      while(reader.next(key, value)) {
-        ret.add(value.copyBytes());
-      }
-      reader.close();
-      fs.delete(p, false);
+      files.add(p);
     }
-    fs.delete(outputPath, false);
-    if(LOG.isDebugEnabled()) {
-      LOG.debug(outputPath + ": Returning " + ret.size());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(outputPath);
     }
-    return ret;
+    return new SequenceFileIterable(files, config);
   }
 
-  public <T> List<byte[]> query(Path basePath
+  public <T> SequenceFileIterable query(Path basePath
                             , Path baseOutputPath
                             , long beginNS
                             , long endNS
+                            , int numReducers
                             , T fields
                             , Configuration conf
                             , FileSystem fs
@@ -189,6 +224,7 @@ public class PcapJob {
                        , outputPath
                        , beginNS
                        , endNS
+                       , numReducers
                        , fields
                        , conf
                        , fs
@@ -203,29 +239,33 @@ public class PcapJob {
     }
   }
 
-
-
+  public static long findWidth(long start, long end, int numReducers) {
+    return Long.divideUnsigned(end - start, numReducers) + 1;
+  }
 
   public <T> Job createJob( Path basePath
                       , Path outputPath
                       , long beginNS
                       , long endNS
+                      , int numReducers
                       , T fields
                       , Configuration conf
                       , FileSystem fs
                       , PcapFilterConfigurator<T> filterImpl
                       ) throws IOException
   {
-    conf.set(PcapMapper.START_TS_CONF, Long.toUnsignedString(beginNS));
-    conf.set(PcapMapper.END_TS_CONF, Long.toUnsignedString(endNS));
+    conf.set(START_TS_CONF, Long.toUnsignedString(beginNS));
+    conf.set(END_TS_CONF, Long.toUnsignedString(endNS));
+    conf.set(WIDTH_CONF, "" + findWidth(beginNS, endNS, numReducers));
     filterImpl.addToConfig(fields, conf);
     Job job = new Job(conf);
     job.setJarByClass(PcapJob.class);
     job.setMapperClass(PcapJob.PcapMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);
     job.setMapOutputValueClass(BytesWritable.class);
-    job.setNumReduceTasks(1);
+    job.setNumReduceTasks(numReducers);
     job.setReducerClass(PcapReducer.class);
+    job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
     SequenceFileInputFormat.addInputPaths(job, Joiner.on(',').join(getPaths(fs, basePath, beginNS, endNS )));

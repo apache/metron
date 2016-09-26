@@ -37,6 +37,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -164,6 +165,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
     bolt.setExecutor(new DefaultStellarExecutor());
+    bolt.setPeriodDurationMillis(TimeUnit.MINUTES.toMillis(15));
 
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     return bolt;

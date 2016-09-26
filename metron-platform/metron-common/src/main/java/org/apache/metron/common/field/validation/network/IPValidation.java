@@ -20,6 +20,8 @@ package org.apache.metron.common.field.validation.network;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.Predicate2StellarFunction;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.field.validation.FieldValidation;
 
 import java.util.List;
@@ -28,6 +30,19 @@ import java.util.function.Predicate;
 
 public class IPValidation implements FieldValidation, Predicate<List<Object>> {
 
+  @Stellar(name="IS_IP"
+          , description = "Determine if an string is an IP or not."
+          , params = {
+              "ip - An object which we wish to test is an ip"
+             ,"type (optional) - one of IPV4 or IPV6.  The default is IPV4."
+                     }
+          , returns = "True if the string is an IP and false otherwise.")
+  public static class IS_IP extends Predicate2StellarFunction {
+
+    public IS_IP() {
+      super(new IPValidation());
+    }
+  }
 
   private enum IPType {
      IPV4(ip -> InetAddressValidator.getInstance().isValidInet4Address(ip))

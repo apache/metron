@@ -35,4 +35,7 @@ if __name__ == '__main__':
         if len(component) == 0 or component == 'none' or component in components:
             continue
         else:
-            raise ValueError("Unable to find " + component + " in acceptable list of components: " + sys.argv[1])
+            if len(sys.argv) > 2:
+                print component
+            else:
+                raise ValueError("Unable to find " + component + " in acceptable list of components: " + sys.argv[1])
