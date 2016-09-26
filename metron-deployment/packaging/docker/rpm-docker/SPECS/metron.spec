@@ -220,6 +220,7 @@ This package installs the Metron Enrichment files
 %dir %{metron_home}/config
 %dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/config/zookeeper/enrichments
+%dir %{metron_home}/ddl
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/latency_summarizer.sh
@@ -229,6 +230,7 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/snort.json
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
+%{metron_home}/ddl/geoip_ddl.sql
 %{metron_home}/flux/enrichment/remote.yaml
 %exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar

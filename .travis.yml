@@ -3,7 +3,7 @@ jdk:
   - oraclejdk8
 script:
   - |
-    mvn -q integration-test install
+    mvn -q integration-test install && build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2

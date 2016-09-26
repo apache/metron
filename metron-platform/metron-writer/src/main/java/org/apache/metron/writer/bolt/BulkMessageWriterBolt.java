@@ -101,6 +101,7 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
                            , bulkMessageWriter
                            , configurationTransformation.apply(new EnrichmentWriterConfiguration(getConfigurations()))
                            );
+      LOG.trace("Writing enrichment message: {}", message);
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
