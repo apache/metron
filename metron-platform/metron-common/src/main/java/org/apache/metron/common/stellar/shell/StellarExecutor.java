@@ -70,7 +70,7 @@ public class StellarExecutor {
 
     @Override
     public String toString() {
-      String ret = result.toString();
+      String ret = "" + result;
       if(expression != null) {
         ret += " via " + expression;
       }
