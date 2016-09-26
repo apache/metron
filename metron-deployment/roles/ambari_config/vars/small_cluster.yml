@@ -42,7 +42,7 @@ configurations:
   - zoo.cfg:
       dataDir: '{{ zookeeper_data_dir | default("/hadoop/zookeeper") }}'
   - hadoop-env:
-      namenode_heapsize: 1024
+      namenode_heapsize: 2048
       dtnode_heapsize: 1024
   - hbase-env:
       hbase_regionserver_heapsize: 1024
