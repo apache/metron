@@ -1,3 +1,4 @@
+com.jakewharton.fliptables:fliptables:jar:1.0.2:compile,Apache v2,https://github.com/JakeWharton/flip-tables
 org.jboss.aesh:aesh:jar:0.66.8:compile,Apache v2,https://github.com/aeshell/aesh
 org.objenesis:objenesis:jar:1.2:compile,Apache v2,http://objenesis.org/
 org.objenesis:objenesis:jar:2.1:compile,Apache v2,http://objenesis.org/
