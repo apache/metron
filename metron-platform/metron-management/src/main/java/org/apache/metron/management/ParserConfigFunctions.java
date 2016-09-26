@@ -187,13 +187,8 @@ public class ParserConfigFunctions {
 
       }
       List<String> output = new ArrayList<>();
-<<<<<<< HEAD
-      for(String key : stellarTransformer.getConfig().keySet()) {
-        output.add(key);
-      }
-=======
+
       output.addAll(stellarTransformer.getConfig().keySet());
->>>>>>> master
       stellarTransformer.setOutput(output);
 
       try {
