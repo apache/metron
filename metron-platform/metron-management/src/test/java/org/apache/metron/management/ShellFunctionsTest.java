@@ -162,4 +162,11 @@ public class ShellFunctionsTest {
     Assert.assertNull(out );
   }
 
+  @Test
+  public void testEdit() throws Exception {
+    System.getProperties().put("EDITOR", "/bin/cat");
+    Object out = StellarTest.run("TO_UPPER(SHELL_EDIT(foo))", ImmutableMap.of("foo", "foo"), context);
+    Assert.assertEquals("FOO", out);
+  }
+
 }
