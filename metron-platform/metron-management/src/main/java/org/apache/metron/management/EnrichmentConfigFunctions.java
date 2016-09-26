@@ -42,15 +42,9 @@ public class EnrichmentConfigFunctions {
   }
   public static Map<String, Object> getStellarHandler(EnrichmentConfig enrichmentConfig) {
     Map<String, Object> fieldMap = enrichmentConfig.getFieldMap();
-    Map<String, Object> stellarHandler = (Map<String, Object>) fieldMap.get("stellar");
-    if(stellarHandler == null ) {
-      stellarHandler = new HashMap<String, Object>();
-      fieldMap.put("stellar", stellarHandler);
-    }
-
-    if(stellarHandler.get("config") == null){
-      stellarHandler.put("config", new LinkedHashMap<String, Object>());
-    }
+    Map<String, Object> stellarHandler = (Map<String, Object>) fieldMap.getOrDefault("stellar", new HashMap<>());
+    fieldMap.put("stellar", stellarHandler);
+    stellarHandler.putIfAbsent("config", new LinkedHashMap<String, Object>());
     return stellarHandler;
   }
 
