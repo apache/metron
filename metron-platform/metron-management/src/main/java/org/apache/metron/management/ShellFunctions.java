@@ -38,7 +38,7 @@ import java.util.*;
 import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
 
 public class ShellFunctions {
-  private static final Logger LOG = Logger.getLogger(ParserConfigFunctions.class);
+  private static final Logger LOG = Logger.getLogger(ShellFunctions.class);
 
   @Stellar(
            namespace = "SHELL"

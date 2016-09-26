@@ -133,6 +133,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     if(commandLine.hasOption("irc")) {
       settings = settings.inputrc(new File(commandLine.getOptionValue("irc")));
     }
+
     console = new Console(settings.create());
     // create the executor
     if(commandLine.hasOption("z")) {

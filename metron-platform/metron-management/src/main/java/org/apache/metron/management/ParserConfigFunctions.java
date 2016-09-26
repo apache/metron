@@ -44,10 +44,10 @@ public class ParserConfigFunctions {
     List<FieldTransformer> fieldTransformations = config.getFieldTransformations();
     for(FieldTransformer transformer : fieldTransformations) {
       if(transformer.getFieldTransformation().getClass().getName()
-              .equals(FieldTransformations.STELLAR.getMappingClass().getName())) {
-        if(transformer == null || transformer.getConfig().isEmpty()) {
+              .equals(FieldTransformations.STELLAR.getMappingClass().getName())
+        && transformer.getConfig().isEmpty()
+        ) {
           toRemove.add(transformer);
-        }
       }
     }
     for(FieldTransformer t : toRemove) {
@@ -137,9 +137,7 @@ public class ParserConfigFunctions {
         stellarTransformer.getConfig().remove(removal);
       }
       List<String> output = new ArrayList<>();
-      for(String key : stellarTransformer.getConfig().keySet()) {
-        output.add(key);
-      }
+      output.addAll(stellarTransformer.getConfig().keySet());
       stellarTransformer.setOutput(output);
       pruneEmptyStellarTransformers(configObj);
       try {
@@ -189,9 +187,13 @@ public class ParserConfigFunctions {
 
       }
       List<String> output = new ArrayList<>();
+<<<<<<< HEAD
       for(String key : stellarTransformer.getConfig().keySet()) {
         output.add(key);
       }
+=======
+      output.addAll(stellarTransformer.getConfig().keySet());
+>>>>>>> master
       stellarTransformer.setOutput(output);
 
       try {

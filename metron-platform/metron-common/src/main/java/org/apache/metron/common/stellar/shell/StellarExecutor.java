@@ -234,7 +234,7 @@ public class StellarExecutor {
     else {
       context = new Context.Builder()
               .with(SHELL_VARIABLES, () -> variables)
-              .with("console", () -> console)
+              .with(CONSOLE, () -> console)
               .build();
     }
 

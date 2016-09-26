@@ -89,6 +89,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   @Override
   public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
     JSONObject ret = super.joinMessages(streamMessageMap);
+    LOG.trace("Received joined messages: {}", ret);
     boolean isAlert = ret.containsKey("is_alert");
     if(!isAlert) {
       for (Object key : ret.keySet()) {

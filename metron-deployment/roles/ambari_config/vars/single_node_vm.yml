@@ -39,7 +39,7 @@ configurations:
       dataDir: '{{ zookeeper_data_dir }}'
   - hadoop-env:
       hadoop_heapsize: 1024
-      namenode_heapsize: 512
+      namenode_heapsize: 2048
       dtnode_heapsize: 512
       namenode_opt_permsize: 128m
   - hbase-env:
