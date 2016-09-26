@@ -89,16 +89,17 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
           String enrichmentType = enrichmentTypes.get(i++);
           if (isThreat) {
             enriched.put(enrichmentType, "alert");
-            _LOG.trace("Enriched value => " + enriched);
+            _LOG.trace("Theat Intel Enriched value => ", enriched);
           }
         }
       }
       catch(IOException e) {
         _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
         initializeAdapter();
-        throw new RuntimeException("Unable to retrieve value", e);
+        throw new RuntimeException("Theat Intel Unable to retrieve value", e);
       }
     }
+    _LOG.trace("Threat Intel Enrichment Success:", enriched);
     return enriched;
   }
 
