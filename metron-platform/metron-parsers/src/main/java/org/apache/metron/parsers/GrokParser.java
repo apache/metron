@@ -139,7 +139,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     try {
       originalMessage = new String(rawMessage, "UTF-8");
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok perser parsing message: " + originalMessage);
+        LOG.debug("Grok parser parsing message: " + originalMessage);
       }
       Match gm = grok.match(originalMessage);
       gm.captures();
@@ -202,12 +202,12 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected long toEpoch(String datetime) throws ParseException {
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok perser converting timestamp to epoch: " + datetime);
+      LOG.debug("Grok parser converting timestamp to epoch: " + datetime);
     }
 
     Date date = dateFormat.parse(datetime);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok perser converted timestamp to epoch: " + date);
+      LOG.debug("Grok parser converted timestamp to epoch: " + date);
     }
 
     return date.getTime();
