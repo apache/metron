@@ -52,6 +52,7 @@
 		<module>metron-test-utilities</module>
 		<module>metron-api</module>
 		<module>metron-indexing</module>
+		<module>metron-management</module>
 		<module>metron-writer</module>
 		<module>metron-hbase</module>
 		<module>elasticsearch-shaded</module>

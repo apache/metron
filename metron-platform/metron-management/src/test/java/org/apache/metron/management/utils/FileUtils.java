@@ -15,30 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.management.utils;
 
-package org.apache.metron.common.field.transformation;
+import com.google.common.base.Joiner;
+import com.google.common.io.Files;
 
-import org.apache.metron.common.utils.ReflectionUtils;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
-public enum FieldTransformations {
-  IP_PROTOCOL(new IPProtocolTransformation())
-  ,REMOVE(new RemoveTransformation())
-  ,STELLAR(new StellarTransformation())
-  ;
-  FieldTransformation mapping;
-  FieldTransformations(FieldTransformation mapping) {
-    this.mapping = mapping;
-  }
-  public static FieldTransformation get(String mapping) {
+public class FileUtils {
+  public static String slurp(String loc) {
     try {
-      return FieldTransformations.valueOf(mapping).mapping;
+      return Joiner.on("\n").join(Files.readLines( new File(loc), Charset.defaultCharset())).trim();
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
     }
-    catch(Exception ex) {
-      return ReflectionUtils.createInstance(mapping);
-    }
-  }
-
-  public Class<? extends FieldTransformation> getMappingClass() {
-    return mapping.getClass();
   }
 }
