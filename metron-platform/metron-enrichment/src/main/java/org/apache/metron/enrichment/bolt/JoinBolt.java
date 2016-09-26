@@ -115,6 +115,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
                       );
         cache.invalidate(key);
         collector.ack(tuple);
+        LOG.trace("Emitted message for key: {}", key);
       } else {
         cache.put(key, streamMessageMap);
         if(LOG.isDebugEnabled()) {

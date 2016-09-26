@@ -27,6 +27,7 @@
     <modules>
             <module>metron-analytics</module>
             <module>metron-platform</module>
+            <module>metron-deployment</module>
     </modules>
     <properties>
         <twitter>@ApacheMetron</twitter>
@@ -201,8 +202,9 @@
                         <exclude>metron-ui/lib/public/css/font-awesome.min.css</exclude>
                         <exclude>metron-ui/lib/public/font/**</exclude>
                         <exclude>metron-ui/node_modules/**</exclude>
-			<!-- pickle file - binary format -->
+                        <!-- pickle file - binary format -->
                         <exclude>**/packaging/ambari/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/*.p</exclude>
+                        <exclude>**/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p</exclude>
                     </excludes>
                 </configuration>
             </plugin>

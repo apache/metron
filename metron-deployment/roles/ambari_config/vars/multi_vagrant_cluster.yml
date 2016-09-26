@@ -48,7 +48,7 @@ configurations:
       dfs.datanode.data.dir: '{{ datanode_data_dir | default("/hadoop/hdfs/data" ) }}'
       dfs.journalnode.edits.dir: '{{ journalnode_edits_dir | default("/hadoop/hdfs/journalnode") }}'
   - hadoop-env:
-      namenode_heapsize: 1024
+      namenode_heapsize: 2048
       dtnode_heapsize: 1024
   - hbase-env:
       hbase_regionserver_heapsize: 1024
