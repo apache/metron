@@ -24,6 +24,7 @@ import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFac
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.interfaces.MessageWriter;
+import org.apache.metron.common.interfaces.BulkWriterResponse;
 
 import java.io.Serializable;
 import java.util.List;
@@ -44,11 +45,15 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
   }
 
   @Override
-  public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<MESSAGE_T> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<MESSAGE_T> messages) throws Exception {
     if(messages.size() > 1) {
       throw new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1");
     }
+    //TODO figure out if we want to remove the exception here or not.
     messageWriter.write(sensorType, configurations, Iterables.getFirst(tuples, null), Iterables.getFirst(messages, null));
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tuples);
+    return response;
   }
 
   @Override

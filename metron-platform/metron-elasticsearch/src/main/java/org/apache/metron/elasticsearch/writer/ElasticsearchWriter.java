@@ -21,12 +21,11 @@ import backtype.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.interfaces.BulkWriterResponse;
 import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -99,6 +98,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       this.port = port;
     }
   }
+
   List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
     Object ipObj = globalConfiguration.get("es.ip");
     Object portObj = globalConfiguration.get("es.port");
@@ -133,7 +133,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   }
 
   @Override
-  public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
     String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -166,14 +166,37 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     }
 
-    BulkResponse resp = bulkRequest.execute().actionGet();
+    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
 
-    if (resp.hasFailures()) {
+    return buildWriteReponse(tuples, bulkResponse);
+  }
 
-      throw new Exception(resp.buildFailureMessage());
+  protected BulkWriterResponse buildWriteReponse(Iterable<Tuple> tuples, BulkResponse bulkResponse) throws Exception {
+    // Elasticsearch responses are in the same order as the request, giving us an implicit mapping with Tuples
+    BulkWriterResponse writerResponse = new BulkWriterResponse();
+    if (bulkResponse.hasFailures()) {
+      Iterator<BulkItemResponse> respIter = bulkResponse.iterator();
+      Iterator<Tuple> tupleIter = tuples.iterator();
+      while (respIter.hasNext() && tupleIter.hasNext()) {
+        BulkItemResponse item = respIter.next();
+        Tuple tuple = tupleIter.next();
 
+        if (item.isFailed()) {
+          writerResponse.addError(item.getFailure().getCause(), tuple);
+        } else {
+          writerResponse.addSuccess(tuple);
+        }
+
+        // Should never happen, so fail the entire batch if it does.
+        if (respIter.hasNext() != tupleIter.hasNext()) {
+          throw new Exception(bulkResponse.buildFailureMessage());
+        }
+      }
+    } else {
+      writerResponse.addAllSuccesses(tuples);
     }
 
+    return writerResponse;
   }
 
   @Override

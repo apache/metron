@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.interfaces.BulkWriterResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -128,10 +129,14 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<Obje
   }
 
   @Override
-  public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<Object> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<Object> messages) throws Exception {
     if(sleepFunction != null) {
       sleepFunction.apply(null);
     }
+
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tuples);
+    return response;
   }
 
   @Override

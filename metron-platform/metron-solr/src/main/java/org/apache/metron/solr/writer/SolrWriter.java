@@ -18,10 +18,9 @@
 package org.apache.metron.solr.writer;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.interfaces.BulkWriterResponse;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -64,7 +63,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void write(String sourceType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+  public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
     for(JSONObject message: messages) {
       SolrInputDocument document = new SolrInputDocument();
       document.addField("id", getIdValue(message));
@@ -78,6 +77,11 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     if (shouldCommit) {
       solr.commit(getCollection(configurations));
     }
+
+    // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tuples);
+    return response;
   }
 
   protected String getCollection(WriterConfiguration configurations) {

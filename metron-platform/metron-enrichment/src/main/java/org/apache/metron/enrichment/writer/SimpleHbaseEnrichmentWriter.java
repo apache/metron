@@ -35,6 +35,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.writer.AbstractWriter;
+import org.apache.metron.common.interfaces.BulkWriterResponse;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -237,7 +238,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   }
 
   @Override
-  public void write( String sensorType
+  public BulkWriterResponse write(String sensorType
                     , WriterConfiguration configurations
                     , Iterable<Tuple> tuples
                     , List<JSONObject> messages
@@ -262,6 +263,11 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       }
     }
     table.put(puts);
+
+    // Can return no errors, because put will throw Exception on error.
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tuples);
+    return response;
   }
 
   @Override
