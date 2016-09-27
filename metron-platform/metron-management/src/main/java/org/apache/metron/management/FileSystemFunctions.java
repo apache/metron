@@ -237,7 +237,7 @@ public class FileSystemFunctions {
   @Stellar(namespace="FILE"
           ,name="RM"
           ,description="Removes the path"
-          ,params = { "path - The path of the file."
+          ,params = { "path - The path of the file or directory."
                     , "recursive - Recursively remove or not (optional and defaulted to false)"
                     }
           ,returns = "boolean - true if successful, false otherwise."

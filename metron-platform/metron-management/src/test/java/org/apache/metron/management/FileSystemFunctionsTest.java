@@ -114,9 +114,11 @@ public class FileSystemFunctionsTest {
     Assert.assertTrue((Boolean) putOut);
     String getOut = (String)get.apply(Arrays.asList(prefix + "testPut.dat"), null);
     Assert.assertEquals("foo", getOut);
+    String lsOut = (String) ls.apply(Arrays.asList(prefix), null);
+    Assert.assertFalse(lsOut.contains("(empty)"));
     Boolean rmRet = (Boolean)rm.apply(Arrays.asList(prefix + "testPut.dat"), null);
     Assert.assertTrue(rmRet);
-    String lsOut = (String) ls.apply(Arrays.asList(prefix), null);
+    lsOut = (String) ls.apply(Arrays.asList(prefix), null);
     Assert.assertTrue(lsOut.contains("(empty)"));
   }
 
