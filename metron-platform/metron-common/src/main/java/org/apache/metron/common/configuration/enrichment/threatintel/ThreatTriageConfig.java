@@ -22,13 +22,14 @@ import com.google.common.base.Joiner;
 import org.apache.metron.common.aggregator.Aggregator;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ThreatTriageConfig {
   private Map<String, Number> riskLevelRules = new HashMap<>();
-  private Aggregator aggregator = Aggregators.MAX;
+  private Aggregators aggregator = Aggregators.MAX;
   private Map<String, Object> aggregationConfig = new HashMap<>();
 
   public Map<String, Number> getRiskLevelRules() {
@@ -43,9 +44,11 @@ public class ThreatTriageConfig {
     }
   }
 
-  public Aggregator getAggregator() {
+  public Aggregators getAggregator() {
     return aggregator;
   }
+
+
 
   public void setAggregator(String aggregator) {
     try {
@@ -82,20 +85,18 @@ public class ThreatTriageConfig {
 
     ThreatTriageConfig that = (ThreatTriageConfig) o;
 
-    if (getRiskLevelRules() != null ? !getRiskLevelRules().equals(that.getRiskLevelRules()) : that.getRiskLevelRules() != null)
+    if (riskLevelRules != null ? !riskLevelRules.equals(that.riskLevelRules) : that.riskLevelRules != null)
       return false;
-    if (getAggregator() != null ? !getAggregator().equals(that.getAggregator()) : that.getAggregator() != null)
-      return false;
-    return getAggregationConfig() != null ? getAggregationConfig().equals(that.getAggregationConfig()) : that.getAggregationConfig() == null;
+    if (aggregator != that.aggregator) return false;
+    return aggregationConfig != null ? aggregationConfig.equals(that.aggregationConfig) : that.aggregationConfig == null;
 
   }
 
   @Override
   public int hashCode() {
-    int result = getRiskLevelRules() != null ? getRiskLevelRules().hashCode() : 0;
-    result = 31 * result + (getAggregator() != null ? getAggregator().hashCode() : 0);
-    result = 31 * result + (getAggregationConfig() != null ? getAggregationConfig().hashCode() : 0);
+    int result = riskLevelRules != null ? riskLevelRules.hashCode() : 0;
+    result = 31 * result + (aggregator != null ? aggregator.hashCode() : 0);
+    result = 31 * result + (aggregationConfig != null ? aggregationConfig.hashCode() : 0);
     return result;
   }
-
 }

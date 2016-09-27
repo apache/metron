@@ -123,38 +123,35 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       formatter.printHelp("stellar", options);
       System.exit(0);
     }
-
-    // create the executor
-    if(commandLine.hasOption("z")) {
-      String zookeeperUrl = commandLine.getOptionValue("z");
-      executor = new StellarExecutor(zookeeperUrl);
-
-    } else {
-      executor = new StellarExecutor();
-    }
-
-    if(commandLine.hasOption("v")) {
-      Map<String, Object> variables = JSONUtils.INSTANCE.load(new File(commandLine.getOptionValue("v")), new TypeReference<Map<String, Object>>() {
-      });
-      for(Map.Entry<String, Object> kv : variables.entrySet()) {
-        executor.assign(kv.getKey(), kv.getValue());
-      }
-    }
+    boolean useAnsi = !commandLine.hasOption("na");
     SettingsBuilder settings = new SettingsBuilder().enableAlias(true)
                                                     .enableMan(true)
+                                                    .ansi(useAnsi)
                                                     .parseOperators(false)
+                                                    .inputStream(PausableInput.INSTANCE)
                                                     ;
     if(commandLine.hasOption("irc")) {
       settings = settings.inputrc(new File(commandLine.getOptionValue("irc")));
     }
 
     console = new Console(settings.create());
-    if(!commandLine.hasOption("na")) {
-      console.setPrompt(new Prompt(EXPRESSION_PROMPT));
+    // create the executor
+    if(commandLine.hasOption("z")) {
+      String zookeeperUrl = commandLine.getOptionValue("z");
+      executor = new StellarExecutor(zookeeperUrl, console);
+
+    } else {
+      executor = new StellarExecutor(console);
     }
-    else {
-      console.setPrompt(new Prompt("[Stellar]$"));
+
+    if(commandLine.hasOption("v")) {
+      Map<String, Object> variables = JSONUtils.INSTANCE.load(new File(commandLine.getOptionValue("v")), new TypeReference<Map<String, Object>>() {
+      });
+      for(Map.Entry<String, Object> kv : variables.entrySet()) {
+        executor.assign(kv.getKey(), null, kv.getValue());
+      }
     }
+    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
     console.addCompletion(this);
     console.setConsoleCallback(this);
   }
@@ -167,7 +164,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     // welcome message and print globals
     writeLine(WELCOME);
     executor.getContext()
-            .getCapability(Context.Capabilities.GLOBAL_CONFIG)
+            .getCapability(Context.Capabilities.GLOBAL_CONFIG, false)
             .ifPresent(conf -> writeLine(conf.toString()));
 
     console.start();
@@ -194,11 +191,11 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       stellarExpression = stellarExpression.trim();
     }
     Object result = executeStellar(stellarExpression);
-    if(result != null) {
+    if(result != null && variable == null) {
       writeLine(result.toString());
     }
     if(variable != null) {
-      executor.assign(variable, result);
+      executor.assign(variable, stellarExpression, result);
     }
   }
 
@@ -221,6 +218,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     } else if(MAGIC_VARS.equals(expression)) {
 
       // list all variables
+
       executor.getVariables()
               .forEach((k,v) -> writeLine(String.format("%s = %s", k, v)));
 
@@ -310,7 +308,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   @Override
   public int execute(ConsoleOperation output) throws InterruptedException {
     String expression = output.getBuffer().trim();
-    if(StringUtils.isNotBlank(expression)) {
+    if(StringUtils.isNotBlank(expression) ) {
       if(isMagic(expression)) {
         handleMagic( expression);
 
@@ -323,6 +321,9 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         } catch (Throwable e) {
           e.printStackTrace();
         }
+      }
+      else if(expression.charAt(0) == '#') {
+        return 0;
       }
       else {
         handleStellar(expression);

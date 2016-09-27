@@ -80,13 +80,25 @@ public class Context implements Serializable {
   }
 
   public Optional<Object> getCapability(Enum<?> capability) {
-    return getCapability(capability.toString());
+    return getCapability(capability, true);
+  }
+
+  public Optional<Object> getCapability(Enum<?> capability, boolean errorIfNotThere) {
+
+    return getCapability(capability.toString(), errorIfNotThere);
   }
 
   public Optional<Object> getCapability(String capability) {
+    return getCapability(capability, true);
+  }
+
+  public Optional<Object> getCapability(String capability, boolean errorIfNotThere) {
     Capability c = capabilities.get(capability);
-    if(c == null) {
+    if(c == null && errorIfNotThere) {
       throw new IllegalStateException("Unable to find capability " + capability + "; it may not be available in your context.");
+    }
+    else if(c == null && !errorIfNotThere) {
+      return Optional.ofNullable(null);
     }
     return Optional.ofNullable(c.get());
   }

@@ -45,7 +45,7 @@ public class GeoAdapter extends JdbcAdapter {
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
     if(!resetConnectionIfNecessary()) {
-      _LOG.error("Enrichment failure, cannot maintain a connection to JDBC.  Please check connection.  In the meantime, I'm not enriching.");
+      _LOG.error("GEO Enrichment failure, cannot maintain a connection to JDBC.  Please check connection.  In the meantime, I'm not enriching.");
       return enriched;
     }
     try {
@@ -78,9 +78,10 @@ public class GeoAdapter extends JdbcAdapter {
       }
       resultSet.close();
     } catch (Exception e) {
-      _LOG.error("Enrichment failure: " + e.getMessage(), e);
+      _LOG.error("GEO Enrichment failure: " + e.getMessage(), e);
       return new JSONObject();
     }
+    _LOG.trace("GEO Enrichment success: ", enriched);
     return enriched;
   }
 }

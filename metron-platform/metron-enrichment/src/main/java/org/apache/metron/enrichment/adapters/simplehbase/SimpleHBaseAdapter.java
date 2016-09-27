@@ -99,6 +99,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
         throw new RuntimeException("Unable to retrieve value: " + e.getMessage(), e);
       }
     }
+    _LOG.trace("SimpleHBaseAdapter succeeded:", enriched);
     return enriched;
   }
 

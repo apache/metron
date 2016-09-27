@@ -37,4 +37,8 @@ public enum FieldTransformations {
       return ReflectionUtils.createInstance(mapping);
     }
   }
+
+  public Class<? extends FieldTransformation> getMappingClass() {
+    return mapping.getClass();
+  }
 }

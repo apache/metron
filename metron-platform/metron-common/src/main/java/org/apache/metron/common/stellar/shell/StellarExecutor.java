@@ -22,6 +22,7 @@ package org.apache.metron.common.stellar.shell;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -29,6 +30,7 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.JSONUtils;
+import org.jboss.aesh.console.Console;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
@@ -44,7 +46,37 @@ import static org.apache.metron.common.stellar.shell.StellarExecutor.OperationTy
  */
 public class StellarExecutor {
 
+  public static String SHELL_VARIABLES = "shellVariables";
+  public static String CONSOLE = "console";
+
   private ReadWriteLock indexLock = new ReentrantReadWriteLock();
+
+  public static class VariableResult {
+    private String expression;
+    private Object result;
+
+    public VariableResult(String expression, Object result) {
+      this.expression = expression;
+      this.result = result;
+    }
+
+    public String getExpression() {
+      return expression;
+    }
+
+    public Object getResult() {
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      String ret = "" + result;
+      if(expression != null) {
+        ret += " via " + expression;
+      }
+      return ret;
+    }
+  }
 
   /**
    * prefix tree index of autocompletes
@@ -53,7 +85,7 @@ public class StellarExecutor {
   /**
    * The variables known by Stellar.
    */
-  private Map<String, Object> variables;
+  private Map<String, VariableResult> variables;
 
   /**
    * The function resolver.
@@ -69,6 +101,8 @@ public class StellarExecutor {
    * The Stellar execution context.
    */
   private Context context;
+
+  private Console console;
 
   public enum OperationType {
     DOC,MAGIC,NORMAL;
@@ -103,16 +137,17 @@ public class StellarExecutor {
 
   }
 
-  public StellarExecutor() throws Exception {
-    this(null);
+  public StellarExecutor(Console console) throws Exception {
+    this(null, console);
   }
 
-  public StellarExecutor(String zookeeperUrl) throws Exception {
+  public StellarExecutor(String zookeeperUrl, Console console) throws Exception {
     this.variables = new HashMap<>();
     this.functionResolver = new StellarFunctions().FUNCTION_RESOLVER();
     this.client = createClient(zookeeperUrl);
     this.context = createContext();
     this.autocompleteIndex = initializeIndex();
+    this.console = console;
     //Asynchronously update the index with function names found from a classpath scan.
     new Thread( () -> {
         Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
@@ -192,6 +227,14 @@ public class StellarExecutor {
       context = new Context.Builder()
               .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
               .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client.get())
+              .with(SHELL_VARIABLES, () -> variables)
+              .with(CONSOLE, () -> console)
+              .build();
+    }
+    else {
+      context = new Context.Builder()
+              .with(SHELL_VARIABLES, () -> variables)
+              .with(CONSOLE, () -> console)
               .build();
     }
 
@@ -204,7 +247,8 @@ public class StellarExecutor {
    * @return The result of the expression.
    */
   public Object execute(String expression) {
-    VariableResolver variableResolver = new MapVariableResolver(variables, Collections.emptyMap());
+    VariableResolver variableResolver = new MapVariableResolver(Maps.transformValues(variables, result -> result.getResult())
+                                                               , Collections.emptyMap());
     StellarProcessor processor = new StellarProcessor();
     return processor.parse(expression, variableResolver, functionResolver, context);
   }
@@ -214,8 +258,8 @@ public class StellarExecutor {
    * @param variable The name of the variable.
    * @param value The value of the variable
    */
-  public void assign(String variable, Object value) {
-    this.variables.put(variable, value);
+  public void assign(String variable, String expression, Object value) {
+    this.variables.put(variable, new VariableResult(expression, value));
     indexLock.writeLock().lock();
     try {
       if (value != null) {
@@ -229,7 +273,7 @@ public class StellarExecutor {
     }
   }
 
-  public Map<String, Object> getVariables() {
+  public Map<String, VariableResult> getVariables() {
     return this.variables;
   }
 
