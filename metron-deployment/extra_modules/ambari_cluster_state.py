@@ -181,7 +181,10 @@ def main():
 
             request = set_cluster_state(ambari_url, username, password, cluster_name, state)
             if wait_for_complete:
-                request_id = json.loads(request.content)['Requests']['id']
+                try:
+                    request_id = json.loads(request.content)['Requests']['id']
+                except ValueError:
+                    module.exit_json(changed=True, results=request.content)
                 status = wait_for_request_complete(ambari_url, username, password, cluster_name, request_id, 2)
                 if status != 'COMPLETED':
                     module.fail_json(msg="Request failed with status {0}".format(status))

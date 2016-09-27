@@ -19,5 +19,5 @@
 
 vagrant \
   --ansible-tags="hdp-deploy,metron" \
-  --ansible-skip-tags="solr" \
+  --ansible-skip-tags="solr,yaf" \
   up
