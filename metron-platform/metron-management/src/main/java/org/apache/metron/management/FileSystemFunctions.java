@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.metron.management;
 
 import com.jakewharton.fliptables.FlipTable;
@@ -12,19 +29,48 @@ import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.text.DateFormat;
 import java.util.*;
+import java.util.function.Function;
 
 public class FileSystemFunctions {
   private static final Logger LOG = Logger.getLogger(FileSystemFunctions.class);
 
-  private static abstract class AbstractFileSystemFunction implements StellarFunction {
-    protected FileSystem fs;
+  public interface FileSystemGetter {
+    FileSystem getSystem() throws IOException ;
+  }
 
+  public static enum FS_TYPE implements FileSystemGetter {
+    LOCAL(() -> {
+      FileSystem fs = new LocalFileSystem();
+      fs.initialize(URI.create("file:///"), new Configuration());
+      return fs;
+    })
+    ,HDFS(() -> FileSystem.get(new Configuration()))
+    ;
+    FileSystemGetter _func;
+    FS_TYPE(FileSystemGetter func) {
+      _func = func;
+    }
+
+
+    @Override
+    public FileSystem getSystem() throws IOException {
+      return _func.getSystem();
+    }
+  }
+
+  private abstract static class FileSystemFunction implements StellarFunction {
+    protected FileSystem fs;
+    private FileSystemGetter getter;
+    FileSystemFunction(FileSystemGetter getter) {
+      this.getter = getter;
+    }
     @Override
     public void initialize(Context context) {
       try {
-        fs = getFs();
+        fs = getter.getSystem();
       } catch (IOException e) {
         String message = "Unable to get FileSystem: " + e.getMessage();
         LOG.error(message, e);
@@ -37,10 +83,13 @@ public class FileSystemFunctions {
       return fs != null;
     }
 
-    public abstract FileSystem getFs() throws IOException;
   }
 
-  private static abstract class FileSystemGet extends AbstractFileSystemFunction {
+  static class FileSystemGet extends FileSystemFunction {
+
+    FileSystemGet(FileSystemGetter getter) {
+      super(getter);
+    }
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
@@ -58,7 +107,11 @@ public class FileSystemFunctions {
     }
   }
 
-  public static abstract class FileSystemRm extends AbstractFileSystemFunction {
+  static class FileSystemRm extends FileSystemFunction {
+
+    FileSystemRm(FileSystemGetter getter) {
+      super(getter);
+    }
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
@@ -84,7 +137,11 @@ public class FileSystemFunctions {
     }
   }
 
-  public static abstract class FileSystemPut extends AbstractFileSystemFunction {
+  static class FileSystemPut extends FileSystemFunction {
+
+    FileSystemPut(FileSystemGetter getter) {
+      super(getter);
+    }
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
@@ -98,7 +155,7 @@ public class FileSystemFunctions {
       }
 
       try(FSDataOutputStream os = fs.create(new Path(path))) {
-        os.writeChars(content);
+        os.writeBytes(content);
         os.flush();
         return true;
       } catch (IOException e) {
@@ -109,7 +166,7 @@ public class FileSystemFunctions {
     }
   }
 
-  public static abstract class FileSystemLs extends AbstractFileSystemFunction {
+  static class FileSystemLs extends FileSystemFunction {
     private static ThreadLocal<DateFormat> dateFormat = new ThreadLocal<DateFormat>() {
 
       @Override
@@ -122,18 +179,21 @@ public class FileSystemFunctions {
       }
     };
 
+    FileSystemLs(FileSystemGetter getter) {
+      super(getter);
+    }
+
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
 
-      String path = (String) args.get(1);
+      String path = (String) args.get(0);
       if(path == null) {
         return false;
       }
       try {
         String[] headers = new String[] {"PERMISSION", "OWNER", "GROUP", "SIZE", "LAST MOD TIME", "NAME"};
         List<String[]> dataList = new ArrayList<>();
-        for(RemoteIterator<LocatedFileStatus> it = fs.listFiles(new Path(path), false);it.hasNext();) {
-          final FileStatus status = it.next();
+        for(FileStatus status : fs.listStatus(new Path(path))) {
           dataList.add(new String[] {
             status.getPermission().toString()
            ,status.getOwner()
@@ -184,10 +244,8 @@ public class FileSystemFunctions {
 
   )
   public static class FileRm extends FileSystemRm {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return new LocalFileSystem();
+    public FileRm() {
+      super(FS_TYPE.LOCAL);
     }
   }
 
@@ -201,10 +259,8 @@ public class FileSystemFunctions {
 
   )
   public static class HDFSRm extends FileSystemRm {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return FileSystem.get(new Configuration());
+    public HDFSRm() {
+      super(FS_TYPE.HDFS);
     }
   }
 
@@ -217,10 +273,8 @@ public class FileSystemFunctions {
 
   )
   public static class FileLs extends FileSystemLs {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return new LocalFileSystem();
+    public FileLs() {
+      super(FS_TYPE.LOCAL);
     }
   }
 
@@ -233,10 +287,8 @@ public class FileSystemFunctions {
 
   )
   public static class HDFSLs extends FileSystemLs {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return FileSystem.get(new Configuration());
+    public HDFSLs() {
+      super(FS_TYPE.HDFS);
     }
   }
 
@@ -251,9 +303,9 @@ public class FileSystemFunctions {
   )
   public static class HDFSPut extends FileSystemPut {
 
-    @Override
-    public FileSystem getFs() throws IOException {
-      return FileSystem.get(new Configuration());
+
+    public HDFSPut() {
+      super(FS_TYPE.HDFS);
     }
   }
 
@@ -267,10 +319,8 @@ public class FileSystemFunctions {
 
   )
   public static class FilePut extends FileSystemPut {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return new LocalFileSystem();
+    public FilePut() {
+      super(FS_TYPE.LOCAL);
     }
   }
 
@@ -282,10 +332,8 @@ public class FileSystemFunctions {
 
   )
   public static class HDFSGet extends FileSystemGet {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return FileSystem.get(new Configuration());
+    public HDFSGet() {
+      super(FS_TYPE.HDFS);
     }
   }
 
@@ -297,10 +345,8 @@ public class FileSystemFunctions {
 
   )
   public static class FileGet extends FileSystemGet {
-
-    @Override
-    public FileSystem getFs() throws IOException {
-      return new LocalFileSystem();
+    public FileGet() {
+      super(FS_TYPE.LOCAL);
     }
   }
 
