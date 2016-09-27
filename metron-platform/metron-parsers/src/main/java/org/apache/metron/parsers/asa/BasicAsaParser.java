@@ -6,7 +6,7 @@ import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.metron.common.Constants;
-import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.utils.FieldValidators;
 import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
@@ -14,11 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class BasicAsaParser implements MessageParser<JSONObject>, Serializable {
+public class BasicAsaParser extends BasicParser {
 
     protected static final Logger LOG = LoggerFactory.getLogger(BasicAsaParser.class);
 
@@ -106,7 +104,7 @@ public class BasicAsaParser implements MessageParser<JSONObject>, Serializable {
 
             metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
             metronJson.put(Constants.Fields.TIMESTAMP.getName(),
-                    SyslogUtils.convertToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP"), "MMM dd yyyy HH:mm:ss"));
+                    SyslogUtils.parseTimestampToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP")));
             metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
             metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
             metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
@@ -149,10 +147,5 @@ public class BasicAsaParser implements MessageParser<JSONObject>, Serializable {
         }
         messages.add(metronJson);
         return messages;
-    }
-
-    @Override
-    public boolean validate(JSONObject message) {
-        return false;
     }
 }

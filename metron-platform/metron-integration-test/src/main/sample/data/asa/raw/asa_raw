@@ -1,0 +1,128 @@
+<167>Jan  5 08:52:35 10.22.8.216 %ASA-7-609001: Built local-host inside:10.22.8.205
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302021: Teardown ICMP connection for faddr 10.22.8.74/0(LOCAL\user.name) gaddr 10.22.8.205/0 laddr 10.22.8.205/0
+<167>Jan  5 08:52:35 10.22.8.216 %ASA-7-609002: Teardown local-host inside:10.22.8.205 duration 0:00:00
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488167725 for Outside_VPN:147.111.72.16/26436 to DMZ-Inside:10.22.8.53/443 duration 0:00:00 bytes 9687 TCP FINs
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302014: Teardown TCP connection 212805593 for outside:10.22.8.223/59614(LOCAL\user.name) to inside:10.22.8.78/8102 duration 0:00:07 bytes 3433 TCP FINs (user.name)
+<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302013: Built inbound TCP connection 76245503 for outside:10.22.8.233/54209 (10.22.8.233/54209) to inside:198.111.72.238/443 (198.111.72.238/443) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302013: Built inbound TCP connection 212806031 for outside:10.22.8.17/58633 (10.22.8.17/58633)(LOCAL\user.name) to inside:10.22.8.12/389 (10.22.8.12/389) (user.name)
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168292 for DMZ-Inside:10.22.8.51/51231 to Inside-Trunk:10.22.8.174/40004 duration 0:00:00 bytes 2103 TCP FINs
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-106015: Deny TCP (no connection) from 186.111.72.11/80 to 204.111.72.226/45019 flags SYN ACK  on interface Outside_VPN
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-302014: Teardown TCP connection 17604987 for outside:209.111.72.151/443 to inside:10.22.8.188/64306 duration 0:00:31 bytes 10128 TCP FINs
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-302014: Teardown TCP connection 17604999 for outside:209.111.72.151/443 to inside:10.22.8.188/64307 duration 0:00:30 bytes 6370 TCP FINs
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488167347 for Outside_VPN:198.111.72.24/2134 to DMZ-Inside:10.22.8.53/443 duration 0:00:01 bytes 9785 TCP FINs
+<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302014: Teardown TCP connection 212805993 for outside:10.22.8.89/56917(LOCAL\user.name) to inside:216.111.72.126/443 duration 0:00:00 bytes 0 TCP FINs (user.name)
+<167>Jan  5 08:52:35 10.22.8.216 %ASA-7-710005: UDP request discarded from 10.22.8.223/49192 to outside:224.111.72.252/5355
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488166143 for Outside_VPN:198.111.72.64/80 to Inside-Trunk:10.22.8.39/54883 duration 0:00:04 bytes 1148 TCP FINs
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-106015: Deny TCP (no connection) from 10.22.8.84/445 to 10.22.8.219/60726 flags ACK  on interface inside
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168344 for DMZ-Inside:10.22.8.53/61682 to Inside-Trunk:10.22.8.174/40004 duration 0:00:00 bytes 5648 TCP FINs
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168345 for DMZ-Inside:10.22.8.16/31454 to Inside-Trunk:10.22.8.21/443 duration 0:00:00 bytes 756 TCP FINs
+<182>Jan  5 20:22:35 10.22.8.4 %ASA-6-302020: Built inbound ICMP connection for faddr 10.22.8.12/0 gaddr 10.22.8.45/1 laddr 10.22.8.45/1
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-106015: Deny TCP (no connection) from 50.111.72.230/80 to 204.111.72.254/53077 flags RST  on interface Outside_VPN
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-302016: Teardown UDP connection 17603649 for outside:206.111.72.2/161 to inside:10.22.8.48/63297 duration 0:02:01 bytes 209
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-302016: Teardown UDP connection 17603650 for outside:207.111.72.122/161 to inside:10.22.8.48/63298 duration 0:02:01 bytes 209
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-302016: Teardown UDP connection 17603652 for outside:206.111.72.2/161 to inside:10.22.8.48/63300 duration 0:02:01 bytes 115
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-302016: Teardown UDP connection 17603657 for outside:206.111.72.2/161 to inside:10.22.8.48/63306 duration 0:02:01 bytes 115
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168436 for DMZ-Inside:10.22.8.51/51235 to Inside-Trunk:10.22.8.174/40004 duration 0:00:00 bytes 2497 TCP FINs
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488167656 for Outside_VPN:69.111.72.70/21560 to DMZ-Inside:10.22.8.53/443 duration 0:00:01 bytes 11410 TCP FINs
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302015: Built inbound UDP connection 212806050 for outside:10.22.8.62/53965 (10.22.8.62/53965)(LOCAL\user.name) to inside:10.22.8.85/53 (10.22.8.85/53) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302013: Built inbound TCP connection 212806052 for outside:10.22.8.62/56500 (10.22.8.62/56500)(LOCAL\user.name) to inside:198.111.72.83/443 (198.111.72.83/443) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302013: Built inbound TCP connection 212806054 for outside:10.22.8.62/56502 (10.22.8.62/56502)(LOCAL\user.name) to inside:50.111.72.252/443 (50.111.72.252/443) (user.name)
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-305011: Built dynamic TCP translation from inside:10.22.8.188/64340 to outside:206.111.72.41/2013
+<166>Jan  5 15:52:35 10.22.8.33 %ASA-6-305012: Teardown dynamic UDP translation from inside:192.111.72.2/62251 to outside:79.111.72.174/21311 duration 0:02:30
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302015: Built inbound UDP connection 212806058 for outside:10.22.8.221/56631 (10.22.8.221/56631)(LOCAL\user.name) to inside:10.22.8.26/389 (10.22.8.26/389) (user.name)
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168189 for Outside_VPN:209.111.72.10/56619 to DMZ-Inside:10.22.8.53/443 duration 0:00:00 bytes 2477 TCP FINs
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-106015: Deny TCP (no connection) from 10.22.8.112/52235 to 198.111.72.227/80 flags ACK  on interface Inside-Trunk
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488167192 for Outside_VPN:115.111.72.7/49196 to DMZ-Inside:10.22.8.57/443 duration 0:00:02 bytes 20588 TCP Reset-O
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302016: Teardown UDP connection 212806055 for outside:10.22.8.62/55383(LOCAL\user.name) to inside:10.22.8.85/53 duration 0:00:00 bytes 349 (user.name)
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168380 for Outside_VPN:74.111.72.12/443 to Inside-Trunk:10.22.8.39/54894 duration 0:00:00 bytes 5701 TCP FINs
+<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302013: Built inbound TCP connection 76245522 for outside:10.22.8.147/56343 (10.22.8.147/56343) to inside:209.111.72.151/443 (209.111.72.151/443) (user.name)
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168443 for Outside_VPN:23.111.72.27/80 to Inside-Trunk:10.22.8.81/64713 duration 0:00:00 bytes 2426 TCP FINs
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488111566 for Outside_VPN:131.111.72.49/443 to Inside-Trunk:10.22.8.127/56558 duration 0:01:57 bytes 3614 TCP Reset-O
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302013: Built inbound TCP connection 212806061 for outside:10.22.8.17/58635 (10.22.8.17/58635)(LOCAL\user.name) to inside:10.22.8.12/389 (10.22.8.12/389) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302014: Teardown TCP connection 212806010 for outside:10.22.8.33/60223(LOCAL\user.name) to inside:10.22.8.86/389 duration 0:00:00 bytes 416 TCP Reset-I (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302015: Built inbound UDP connection 212806062 for outside:10.22.8.221/56632 (10.22.8.221/56632)(LOCAL\user.name) to inside:10.22.8.73/389 (10.22.8.73/389) (user.name)
+<167>Jan  5 08:52:35 10.22.8.216 %ASA-7-609002: Teardown local-host inside:10.22.8.205 duration 0:00:00
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168231 for Outside_VPN:204.111.72.243/3011 to Inside-Trunk:10.22.8.208/60037 duration 0:00:00 bytes 19415 TCP FINs
+<166>Jan  5 16:52:35 10.22.8.41 %ASA-6-302013: Built inbound TCP connection 45476108 for Outside:10.22.8.97/53484 (10.22.8.97/53484)(LOCAL\user.name) to Inside:141.111.72.70/7576 (141.111.72.70/7576) (user.name)
+<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302013: Built inbound TCP connection 76245527 for outside:10.22.8.97/65195 (10.22.8.97/65195) to inside:17.111.72.212/5223 (17.111.72.212/5223) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302014: Teardown TCP connection 212806018 for outside:10.22.8.17/58632(LOCAL\user.name) to inside:10.22.8.12/389 duration 0:00:00 bytes 0 TCP FINs (user.name)
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168562 for DMZ-Inside:10.22.8.51/51236 to Inside-Trunk:10.22.8.174/40004 duration 0:00:00 bytes 2273 TCP FINs
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302015: Built inbound UDP connection 212806065 for outside:10.22.8.62/59829 (10.22.8.62/59829)(LOCAL\user.name) to inside:10.22.8.85/53 (10.22.8.85/53) (user.name)
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302013: Built inbound TCP connection 212806067 for outside:10.22.8.143/62675 (10.22.8.143/62675)(LOCAL\user.name) to inside:141.111.72.12/389 (141.111.72.12/389) (user.name)
+<167>Jan  5 08:52:35 10.22.8.216 %ASA-7-710005: UDP request discarded from 10.22.8.223/61122 to outside:224.111.72.252/5355
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302020: Built inbound ICMP connection for faddr 10.22.8.143/0(LOCAL\user.name) gaddr 141.111.72.12/0 laddr 141.111.72.12/0 (user.name)
+<142>Jan  5 08:52:35 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168547 for Outside_VPN:107.111.72.102/80 to Inside-Trunk:10.22.8.54/61676 duration 0:00:00 bytes 1030 TCP FINs
+<166>Jan  5 08:52:35 10.22.8.216 %ASA-6-302015: Built inbound UDP connection 212806078 for outside:10.22.8.221/56633 (10.22.8.221/56633)(LOCAL\user.name) to inside:10.22.8.20/389 (10.22.8.20/389) (user.name)
+<166>Jan  5 09:52:35 10.22.8.12 %ASA-6-305011: Built dynamic TCP translation from inside:10.22.8.83/59915 to outside:206.111.72.41/22776
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168044 for Outside_VPN:50.111.72.39/80 to Inside-Trunk:10.22.8.75/60877 duration 0:00:01 bytes 13304 TCP FINs
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488118326 for Outside_VPN:23.111.72.27/80 to Inside-Trunk:10.22.8.229/57901 duration 0:01:45 bytes 1942 TCP FINs
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488160565 for Outside_VPN:72.111.72.29/80 to Inside-Trunk:10.22.8.42/57520 duration 0:00:15 bytes 1025 TCP FINs
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488096423 for Outside_VPN:72.111.72.43/80 to Inside-Trunk:10.22.8.127/59096 duration 0:02:27 bytes 99347 TCP Reset-O
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488095522 for Outside_VPN:72.111.72.43/80 to Inside-Trunk:10.22.8.127/59087 duration 0:02:29 bytes 154785 TCP Reset-O
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488106557 for Outside_VPN:72.111.72.43/80 to Inside-Trunk:10.22.8.127/59134 duration 0:02:09 bytes 25319 TCP Reset-O
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488096426 for Outside_VPN:72.111.72.43/80 to Inside-Trunk:10.22.8.127/59099 duration 0:02:27 bytes 26171 TCP Reset-O
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302014: Teardown TCP connection 212806005 for outside:10.22.8.17/58630(LOCAL\user.name) to inside:10.22.8.12/389 duration 0:00:00 bytes 3942 TCP FINs (user.name)
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302015: Built inbound UDP connection 212806085 for outside:10.22.8.143/54018 (10.22.8.143/54018)(LOCAL\user.name) to inside:10.22.8.85/53 (10.22.8.85/53) (user.name)
+<174>Jan  5 14:52:36 10.22.8.212 %ASA-6-302020: Built inbound ICMP connection for faddr 10.22.8.96/2708 gaddr 10.22.8.30/0 laddr 10.22.8.30/0 (user.name)
+<174>Jan  5 14:52:36 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245537 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.11/8612 (192.111.72.11/8612) (user.name)
+<166>Jan  5 16:52:36 10.22.8.41 %ASA-6-106015: Deny TCP (no connection) from 10.22.8.85/58359 to 10.22.8.11/88 flags RST ACK  on interface Outside
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302021: Teardown ICMP connection for faddr 10.22.8.82/0(LOCAL\user.name) gaddr 10.22.8.205/0 laddr 10.22.8.205/0
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302016: Teardown UDP connection 212799832 for outside:10.22.8.230/55549(LOCAL\user.name) to inside:10.22.8.11/389 duration 0:02:01 bytes 354 (user.name)
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302016: Teardown UDP connection 212799867 for outside:10.22.8.240/138(LOCAL\user.name) to inside:10.22.8.255/138 duration 0:02:01 bytes 214 (user.name)
+<167>Jan  5 08:52:36 10.22.8.216 %ASA-7-609001: Built local-host inside:67.111.72.204
+<174>Jan  5 14:52:36 10.22.8.212 %ASA-6-302013: Built inbound TCP connection 76245544 for outside:10.22.8.227/54540 (10.22.8.227/54540) to inside:63.111.72.124/80 (63.111.72.124/80) (user.name)
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168135 for Outside_VPN:198.111.72.66/36797 to DMZ-Inside:10.22.8.53/80 duration 0:00:01 bytes 89039 TCP FINs
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302014: Teardown TCP connection 212805836 for outside:10.22.8.62/56471(LOCAL\user.name) to inside:208.111.72.1/443 duration 0:00:04 bytes 1700 TCP FINs (user.name)
+<174>Jan  5 14:52:36 10.22.8.212 %ASA-6-302013: Built inbound TCP connection 76245546 for outside:10.22.8.227/54542 (10.22.8.227/54542) to inside:63.111.72.124/80 (63.111.72.124/80) (user.name)
+<166>Jan  5 08:52:36 10.22.8.216 %ASA-6-302021: Teardown ICMP connection for faddr 10.22.8.74/0(LOCAL\user.name) gaddr 10.22.8.205/0 laddr 10.22.8.205/0
+<174>Jan  5 14:52:36 10.22.8.212 %ASA-6-302020: Built outbound ICMP connection for faddr 10.22.8.96/2708 gaddr 10.22.8.30/0 laddr 10.22.8.30/0
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168388 for DMZ-Inside:10.22.8.10/49771 to Inside-Trunk:10.22.8.128/443 duration 0:00:00 bytes 19132 TCP Reset-O
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488168692 for DMZ-Inside:10.22.8.53/61694 to Inside-Trunk:10.22.8.174/40004 duration 0:00:00 bytes 5660 TCP FINs
+<174>Jan  5 14:52:36 10.22.8.212 %ASA-6-302013: Built inbound TCP connection 76245552 for outside:10.22.8.92/51042 (10.22.8.92/51042) to inside:10.22.8.193/9100 (10.22.8.193/9100) (user.name)
+<166>Jan  5 16:52:36 10.22.8.41 %ASA-6-302016: Teardown UDP connection 45474680 for Outside:10.22.8.49/137(LOCAL\user.name) to Inside:10.22.8.12/137 duration 0:02:03 bytes 486 (user.name)
+<166>Jan  5 16:52:36 10.22.8.41 %ASA-6-302016: Teardown UDP connection 45474694 for Outside:10.22.8.49/138(LOCAL\user.name) to Inside:10.22.8.12/138 duration 0:02:01 bytes 184 (user.name)
+<142>Jan  5 08:52:36 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488167720 for Outside_VPN:198.111.72.75/1033 to DMZ-Inside:10.22.8.53/443 duration 0:00:01 bytes 9634 TCP FINs
+<142>Jan  5 08:52:32 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488165627 for Outside_VPN:170.111.72.22/27463 to DMZ-Inside:10.22.8.53/443 duration 0:00:01 bytes 9756 TCP FINs
+<166>Jan  5 08:52:32 10.22.8.216 %ASA-6-302016: Teardown UDP connection 212805854 for outside:10.22.8.62/54704(LOCAL\user.name) to inside:10.22.8.85/53 duration 0:00:00 bytes 114 (user.name)
+<166>Jan  5 09:52:32 10.22.8.12 %ASA-6-302020: Built inbound ICMP connection for faddr 207.111.72.122/0 gaddr 206.111.72.24/512 laddr 10.22.8.57/512
+<166>Jan  5 09:52:32 10.22.8.12 %ASA-6-302013: Built outbound TCP connection 17605397 for outside:69.111.72.0/80 (69.111.72.0/80) to inside:10.22.8.102/55659 (206.111.72.41/40627)
+<174>Jan  5 14:52:32 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245230 for outside:10.22.8.96/123 (10.22.8.96/123) to inside:10.22.8.12/123 (10.22.8.12/123) (user.name)
+<142>Jan  5 08:52:32 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488031413 for Outside_VPN:184.111.72.216/50341 to DMZ-Inside:10.22.8.57/443 duration 0:05:01 bytes 13543 TCP Reset-O
+<166>Jan  5 16:52:32 10.22.8.41 %ASA-6-302020: Built inbound ICMP connection for faddr 10.22.8.95/1(LOCAL\user.name) gaddr 10.22.8.12/0 laddr 10.22.8.12/0 (user.name)
+<142>Jan  5 08:52:32 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488030393 for DMZ-Inside:[10.22.8.10/57109 to Inside-Trunk:10.22.8.128/443 duration 0:05:04 bytes 13541 TCP Reset-O
+<166>Jan  5 09:52:32 10.22.8.12 %ASA-6-305012: Teardown dynamic TCP translation from inside:10.22.8.149/62156 to outside:206.111.72.41/19576 duration 0:00:44
+<166>Jan  5 09:52:32 10.22.8.12 %ASA-6-305012: Teardown dynamic TCP translation from inside:10.22.8.149/62159 to outside:206.111.72.41/39634 duration 0:00:44
+<142>Jan  5 08:52:32 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488031793 for Outside_VPN:198.111.72.146/28026 to DMZ-Inside:10.22.8.53/443 duration 0:05:00 bytes 119 TCP FINs
+<142>Jan  5 08:52:32 10.22.8.201 %ASA-6-302014: Teardown TCP connection 488030810 for DMZ-Inside:10.22.8.10/56930 to Inside-Trunk:10.22.8.128/443 duration 0:05:03 bytes 13543 TCP Reset-O
+<142>Jan  5 08:52:32 10.22.8.201 %ASA-6-106015: Deny TCP (no connection) from 186.111.72.11/80 to 204.111.72.199/61438 flags SYN ACK  on interface Outside_VPN
+<166>Jan  5 08:52:32 10.22.8.216 %ASA-6-302013: Built inbound TCP connection 212805863 for outside:10.22.8.144/61999 (10.22.8.144/61999)(LOCAL\user.name) to inside:10.22.8.163/80 (10.22.8.163/80) (user.name)
+<167>Jan  5 08:52:32 10.22.8.216 %ASA-7-609002: Teardown local-host inside:10.22.8.205 duration 0:00:00
+<166>Aug 06 2016 20:39:42: %ASA-6-110002: Failed to locate egress interface for UDP from Inside:10.25.14.52/56544 to 172.18.106.2/161
+<165>Aug 11 2016 15:42:07: %ASA-5-111010: User 'admin', running 'N/A' from IP 10.25.112.191, executed 'service-object object TCP44720-44722'
+<165>Aug 06 2016 18:05:27: %ASA-5-713202: IP = 192.168.140.20, Duplicate first packet detected.  Ignoring packet.
+<165>Aug 07 2016 22:38:41: %ASA-5-713904: IP = 206.16.173.28, Received encrypted packet with no matching SA, dropping
+<165>Aug 16 2016 08:20:21: %ASA-5-713050: Group = 192.168.136.20, IP = 192.168.136.20, Connection terminated for peer 192.168.136.20.  Reason: IPSec SA Idle Timeout  Remote Proxy 192.168.136.22, Local Proxy 172.18.106.36
+<164>Aug 16 2016 13:01:43: %ASA-4-313004: Denied ICMP type=0, from laddr 172.20.30.1 on interface Outside to 10.25.24.122: no matching session
+<166>Aug 16 2016 08:54:22: %ASA-6-113009: AAA retrieved default group policy (DefaultPolicyCA) for user = 192.168.136.20
+<163>Aug 05 2016 20:21:04: %ASA-3-106010: Deny inbound protocol 47 src Outside:14.169.120.66 dst Outside:172.18.105.105
+<164>Aug 06 2016 17:43:49: %ASA-4-113019: Group = 192.168.140.20, Username = 192.168.140.20, IP = 192.168.140.20, Session disconnected. Session Type: LAN-to-LAN, Duration: 12d 9h:11m:22s, Bytes xmt: 523781833, Bytes rcv: 16336203, Reason: Lost Service
+<165>Aug 05 2016 22:13:07: %ASA-5-500003: Bad TCP hdr length (hdrlen=4, pktlen=74) from 159.203.208.134/0 to 172.18.105.12/0, flags: INVALID, on interface Outside
+<165>Aug 06 2016 17:43:49: %ASA-5-713259: Group = 192.168.140.20, IP = 192.168.140.20, Session is being torn down. Reason: Lost Service
+<163>Aug 05 2016 19:13:26: %ASA-3-313001: Denied ICMP type=3, code=3 from 198.27.69.147 on interface Outside
+<164>Aug 05 2016 19:13:26: %ASA-4-313005: No matching connection for ICMP error message: icmp src Outside:198.27.69.147 dst identity:172.18.106.2 (type 3, code 3) on Outside interface.  Original IP payload: udp src 172.18.106.2/9993 dst 198.27.69.147/26410.
+<163>Aug 11 2016 11:43:25: %ASA-3-713902: Group = 10.12.208.226, IP = 10.12.208.226, Removing peer from correlator table failed, no match!
+<164>Aug 11 2016 11:43:02: %ASA-4-752010: IKEv2 Doesn't have a proposal specified
+<165>Aug 11 2016 11:43:02: %ASA-5-752004: Tunnel Manager dispatching a KEY_ACQUIRE message to IKEv1.  Map Tag = demap.  Map Sequence Number = 1.
+<163>Aug 11 2016 12:15:25: %ASA-3-752015: Tunnel Manager has failed to establish an L2L SA.  All configured IKE versions failed to establish the tunnel. Map Tag= demap.  Map Sequence Number = 1.
+<164>Aug 11 2016 12:11:16: %ASA-4-752012: IKEv1 was unsuccessful at setting up a tunnel.  Map Tag = demap.  Map Sequence Number = 1.
+<164>Aug 06 2016 00:02:25: %ASA-4-713903: IKE Receiver: Runt ISAKMP packet discarded on Port 500 from 172.30.106.180:57380
+<163>Aug 11 2016 11:43:25: %ASA-3-713227: IP = 10.12.208.226, Rejecting new IPSec SA negotiation for peer 10.12.208.226. A negotiation was already in progress for local Proxy 10.25.0.0/255.255.0.0, remote Proxy 172.20.30.0/255.255.255.0
+<166>Aug 20 2016 23:06:27: %ASA-6-713905: INFO: IKE Transform #8 next payload is 3 (should be 0).
+<166>Aug 11 2016 11:43:02: %ASA-6-713219: IP = 10.12.208.226, Queuing KEY-ACQUIRE messages to be processed when P1 SA is complete.
+<166>Aug 11 2016 11:43:19: %ASA-6-713220: Group = 10.12.208.226, IP = 10.12.208.226, De-queuing KEY-ACQUIRE messages that were left pending.
+<162>Aug 05 2016 01:02:25: %ASA-2-106001: Inbound TCP connection denied from 10.47.32.45/60641 to 10.254.8.193/5060 flags SYN  on interface Inside
+<163>Aug 05 2016 01:02:25: %ASA-3-106014: Deny inbound icmp src Inside:10.230.4.87 dst Inside:10.22.75.251 (type 8, code 0)
+<164>Aug 05 2016 01:02:25: %ASA-4-106023: Deny udp src Inside:10.230.4.88/42350 dst Outside:192.168.2.53/53 by access-group "Inside_access_in" [0x962df600, 0x0]
+<164>Aug 05 2016 01:02:25: %ASA-4-106023: Deny tcp src Inside:10.30.6.47/4562 dst Outside:192.168.133.204/443 by access-group "Inside_access_in" [0x962df600, 0x0]
+<164>Aug 05 2016 01:02:25: %ASA-4-106023: Deny tcp src Inside:10.30.6.47/4563 dst Outside:192.168.133.204/443 by access-group "Inside_access_in" [0x962df600, 0x0]

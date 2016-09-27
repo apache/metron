@@ -45,6 +45,18 @@ public class BasicAsaParserTest {
     }
 
     @Test
+    public void testShortTimestamp() {
+        String rawMessage = "<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
+        JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
+        assertEquals(asaJson.get("original_string"), rawMessage);
+        assertTrue(asaJson.get("ip_src_addr").equals("10.22.8.110"));
+        assertTrue(asaJson.get("ip_dst_addr").equals("192.111.72.8"));
+        assertTrue(asaJson.get("ip_src_port").equals(new Integer(49886)));
+        assertTrue(asaJson.get("ip_dst_port").equals(new Integer(8612)));
+        assertTrue((long) asaJson.get("timestamp") == 1452005555000L);
+    }
+
+    @Test
     public void testBulkInputFromFile() {
         InputStream logFile = this.getClass().getClassLoader().getResourceAsStream("sample_asa_events.txt");
         try {

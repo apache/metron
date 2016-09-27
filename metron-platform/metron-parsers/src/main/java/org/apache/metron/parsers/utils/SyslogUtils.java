@@ -11,6 +11,19 @@ public class SyslogUtils {
         return timestamp.toEpochSecond() * 1000;
     }
 
+    public static long parseTimestampToEpochMillis(String logTimestamp) {
+        if (logTimestamp.length() < 20) {
+            ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+            int year = now.getYear();
+            if (now.getDayOfYear() == 1 && !now.getMonth().toString().substring(0,3).equals(logTimestamp.substring(0,3).toUpperCase()))
+                year--;
+            logTimestamp = logTimestamp + " " + year;
+            return convertToEpochMillis(logTimestamp, "MMM ppd HH:mm:ss yyyy");
+        }
+        else
+            return convertToEpochMillis(logTimestamp, "MMM dd yyyy HH:mm:ss");
+    }
+
     public static String getSeverityFromPriority(int priority) {
         int severity = priority & 0x07;
         switch (severity) {
