@@ -56,11 +56,22 @@ public class JSONMapParserTest {
 
   /**
    {
-    "collection" : { "blah" : 7, "blah2" : "foo" }
+    "collection" : { "blah" : 7, "blah2" : "foo", "bigblah" : { "innerBlah" : "baz", "reallyInnerBlah" : { "color" : "grey" }}}
    }
    */
    @Multiline
    static String collectionHandlingJSON;
+
+  /**
+    {
+     "collection" : {
+        "key" : "value"
+      },
+     "key" : "value"
+    }
+   */
+  @Multiline
+  static String mixCollectionHandlingJSON;
 
   @Test
   public void testCollectionHandlingDrop() {
@@ -102,11 +113,26 @@ public class JSONMapParserTest {
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 4);
+    Assert.assertEquals(output.get(0).size(), 6);
     JSONObject message = output.get(0);
     Assert.assertEquals(message.get("collection.blah"), 7);
     Assert.assertEquals(message.get("collection.blah2"), "foo");
+    Assert.assertEquals(message.get("collection.bigblah.innerBlah"),"baz");
+    Assert.assertEquals(message.get("collection.bigblah.reallyInnerBlah.color"),"grey");
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
+  }
+
+  @Test
+  public void testMixedCollectionHandlingUnfold() {
+    JSONMapParser parser = new JSONMapParser();
+    parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG,JSONMapParser.MapStrategy.UNFOLD.name()));
+    List<JSONObject> output = parser.parse(mixCollectionHandlingJSON.getBytes());
+    Assert.assertEquals(output.get(0).size(), 4);
+    JSONObject message = output.get(0);
+    Assert.assertEquals(message.get("collection.key"), "value");
+    Assert.assertEquals(message.get("key"),"value");
+    Assert.assertNotNull(message.get("timestamp"));
+    Assert.assertTrue(message.get("timestamp") instanceof Number );
   }
 }
