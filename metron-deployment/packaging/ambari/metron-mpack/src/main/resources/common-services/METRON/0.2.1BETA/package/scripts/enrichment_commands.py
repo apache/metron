@@ -54,8 +54,8 @@ class EnrichmentCommands:
             Execute("yum -y install createrepo")
             Execute("createrepo /localrepo")
             Execute("chmod -R o-w+r /localrepo")
-            Execute("echo \"[METRON-0.2.0BETA]\n"
-                    "name=Metron 0.2.0BETA packages\n"
+            Execute("echo \"[METRON-0.2.1BETA]\n"
+                    "name=Metron 0.2.1BETA packages\n"
                     "baseurl=file:///localrepo\n"
                     "gpgcheck=0\n"
                     "enabled=1\" > /etc/yum.repos.d/local.repo")
