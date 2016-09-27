@@ -47,6 +47,7 @@ import static org.apache.metron.common.stellar.shell.StellarExecutor.OperationTy
 public class StellarExecutor {
 
   public static String SHELL_VARIABLES = "shellVariables";
+  public static String CONSOLE = "console";
 
   private ReadWriteLock indexLock = new ReentrantReadWriteLock();
 
@@ -69,7 +70,7 @@ public class StellarExecutor {
 
     @Override
     public String toString() {
-      String ret = result.toString();
+      String ret = "" + result;
       if(expression != null) {
         ret += " via " + expression;
       }
@@ -101,6 +102,7 @@ public class StellarExecutor {
    */
   private Context context;
 
+  private Console console;
 
   public enum OperationType {
     DOC,MAGIC,NORMAL;
@@ -135,16 +137,17 @@ public class StellarExecutor {
 
   }
 
-  public StellarExecutor() throws Exception {
-    this(null);
+  public StellarExecutor(Console console) throws Exception {
+    this(null, console);
   }
 
-  public StellarExecutor(String zookeeperUrl) throws Exception {
+  public StellarExecutor(String zookeeperUrl, Console console) throws Exception {
     this.variables = new HashMap<>();
     this.functionResolver = new StellarFunctions().FUNCTION_RESOLVER();
     this.client = createClient(zookeeperUrl);
     this.context = createContext();
     this.autocompleteIndex = initializeIndex();
+    this.console = console;
     //Asynchronously update the index with function names found from a classpath scan.
     new Thread( () -> {
         Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
@@ -225,11 +228,13 @@ public class StellarExecutor {
               .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
               .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client.get())
               .with(SHELL_VARIABLES, () -> variables)
+              .with(CONSOLE, () -> console)
               .build();
     }
     else {
       context = new Context.Builder()
               .with(SHELL_VARIABLES, () -> variables)
+              .with(CONSOLE, () -> console)
               .build();
     }
 
