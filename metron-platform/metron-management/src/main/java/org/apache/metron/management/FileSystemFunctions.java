@@ -258,7 +258,7 @@ public class FileSystemFunctions {
     }
   }
 
-  @Stellar(namespace="FILE"
+  @Stellar(namespace="LOCAL"
           ,name="RM"
           ,description="Removes the path"
           ,params = { "path - The path of the file or directory."
@@ -288,7 +288,7 @@ public class FileSystemFunctions {
     }
   }
 
-  @Stellar(namespace="FILE"
+  @Stellar(namespace="LOCAL"
           ,name="LS"
           ,description="Lists the contents of a directory"
           ,params = { "path - The path of the file."
@@ -317,7 +317,7 @@ public class FileSystemFunctions {
   }
 
   @Stellar(namespace="HDFS"
-          ,name="PUT"
+          ,name="WRITE"
           ,description="Writes the contents a string to a file in HDFS."
           ,params = { "content - The content to write out"
                     , "path - The path in HDFS of the file."
@@ -333,8 +333,8 @@ public class FileSystemFunctions {
     }
   }
 
-  @Stellar(namespace="FILE"
-          ,name="PUT"
+  @Stellar(namespace="LOCAL"
+          ,name="WRITE"
           ,description="Writes the contents a string to a local file."
           ,params = { "content - The content to write out"
                     , "path - The path of the file."
@@ -349,7 +349,7 @@ public class FileSystemFunctions {
   }
 
   @Stellar(namespace="HDFS"
-          ,name="GET"
+          ,name="READ"
           ,description="Retrieves the contents as a string of a file in HDFS."
           ,params = { "path - The path in HDFS of the file."}
           ,returns = "The contents of the file in the path from HDFS and null otherwise."
@@ -361,8 +361,8 @@ public class FileSystemFunctions {
     }
   }
 
-  @Stellar(namespace="FILE"
-          ,name="GET"
+  @Stellar(namespace="LOCAL"
+          ,name="READ"
           ,description="Retrieves the contents as a string of a file on the local filesystem."
           ,params = { "path - The path of the file."}
           ,returns = "The contents of the file or null otherwise."
@@ -375,7 +375,7 @@ public class FileSystemFunctions {
   }
 
   @Stellar(namespace="HDFS"
-          ,name="GET_LIST"
+          ,name="READ_LIST"
           ,description="Retrieves the contents of a HDFS file as a list of strings."
           ,params = { "path - The path in HDFS of the file."}
           ,returns = "A list of lines"
@@ -387,8 +387,8 @@ public class FileSystemFunctions {
     }
   }
 
-  @Stellar(namespace="FILE"
-          ,name="GET_LIST"
+  @Stellar(namespace="LOCAL"
+          ,name="READ_LIST"
           ,description="Retrieves the contents of a file as a list of strings."
           ,params = { "path - The path of the file."}
           ,returns = "A list of lines"

@@ -28,28 +28,28 @@ The functions are split roughly into a few sections:
 ### File Functions
 
 * Local Files
-  * `FILE_LS`
+  * `LOCAL_LS`
     * Description: Lists the contents of a directory.
     * Input:
       * path - The path of the file
     * Returns: The contents of the directory in tabular form sorted by last modification date.
-  * `FILE_RM`
+  * `LOCAL_RM`
     * Description: Removes the path
     * Input:
       * path - The path of the file or directory.
       * recursive - Recursively remove or not (optional and defaulted to false)
     * Returns: boolean - true if successful, false otherwise
-  * `FILE_GET`
+  * `LOCAL_READ`
     * Description: Retrieves the contents as a string of a file.
     * Input:
       * path - The path of the file
     * Returns: The contents of the file and null otherwise.
-  * `FILE_GET_LIST`
+  * `LOCAL_READ_LIST`
     * Description: Retrieves the contents of a file as a list of strings.
     * Input:
       * path - The path of the file
     * Returns: A list of lines
-  * `FILE_PUT`
+  * `LOCAL_WRITE`
     * Description: Writes the contents of a string to a local file
     * Input:
       * content - The content to write out
@@ -67,17 +67,17 @@ The functions are split roughly into a few sections:
       * path - The path of the file or directory.
       * recursive - Recursively remove or not (optional and defaulted to false)
     * Returns: boolean - true if successful, false otherwise
-  * `HDFS_GET`
+  * `HDFS_READ`
     * Description: Retrieves the contents as a string of a file in HDFS.
     * Input:
       * path - The path of the file
     * Returns: The contents of the file and null otherwise.
-  * `HDFS_GET_LIST`
+  * `HDFS_READ_LIST`
     * Description: Retrieves the contents of a HDFS file as a list of strings.
     * Input:
       * path - The path of the file
     * Returns: A list of lines
-  * `HDFS_PUT`
+  * `HDFS_WRITE`
     * Description: Writes the contents of a string to a HDFS file
     * Input:
       * content - The content to write out
