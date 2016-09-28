@@ -49,9 +49,9 @@ public class GrokFunctions {
           , description = "Evaluate a grok expression for a statement"
           , params = {
                 "grokExpression - The grok expression to evaluate"
-               ,"data - The data to evaluate using the grokExpression"
+               ,"data - Either a data message or a list of data messages to evaluate using the grokExpression"
                      }
-          ,returns="The Map associated with the grok expression being evaluated or null if no match."
+          ,returns="The Map associated with the grok expression being evaluated on the list of messages."
   )
   public static class Evaluate implements StellarFunction {
 
