@@ -254,7 +254,7 @@ public class FileSystemFunctions {
                 return ret;
               }
             } catch (java.text.ParseException e) {
-              String message = "Unable to parse " + o1 + " or " + o2 + ": " + e.getMessage();
+              String message = "Unable to parse " + o1 + " or " + o2 + " : " + e.getMessage();
               LOG.error(message, e);
               throw new IllegalStateException(message, e);
             }
@@ -265,7 +265,7 @@ public class FileSystemFunctions {
         }
         return FlipTable.of(headers, data);
       } catch (IOException e) {
-        String message = "Unable to list" + path + ": " + e.getMessage();
+        String message = "Unable to list" + path + " : " + e.getMessage();
         LOG.error(message, e);
         return FlipTable.of(headers, new String[][]{});
       }
