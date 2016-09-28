@@ -100,10 +100,7 @@ public class FileSystemFunctions {
         return null;
       }
       try(FSDataInputStream is = fs.open(new Path(path))) {
-        List<String> out = new ArrayList<>();
-        Iterable<String> lines = Splitter.on("\n").split(IOUtils.toString(is));
-        Iterables.addAll(out, lines);
-        return out;
+        return IOUtils.readLines(is);
       } catch (IOException e) {
         String message = "Unable to read " + path + ": " + e.getMessage();
         LOG.error(message, e);
