@@ -210,13 +210,14 @@ public class FileSystemFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
       Path path = null;
+      String[] headers = new String[] {"PERMISSION", "OWNER", "GROUP", "SIZE", "LAST MOD TIME", "NAME"};
       if(args.size() == 0) {
         path = fs.getHomeDirectory();
       }
       else {
         String pathStr = (String) args.get(0);
-        if (path == null) {
-          return false;
+        if (pathStr == null) {
+          return FlipTable.of(headers, new String[][]{});
         }
         else {
           try {
@@ -224,12 +225,11 @@ public class FileSystemFunctions {
           }
           catch(IllegalArgumentException iae) {
             LOG.error("Unable to convert " + pathStr + " to a path: " + iae.getMessage(), iae);
-            return false;
+            return FlipTable.of(headers, new String[][]{});
           }
         }
       }
       try {
-        String[] headers = new String[] {"PERMISSION", "OWNER", "GROUP", "SIZE", "LAST MOD TIME", "NAME"};
         List<String[]> dataList = new ArrayList<>();
         for(FileStatus status : fs.listStatus(path)) {
           dataList.add(new String[] {
@@ -267,7 +267,7 @@ public class FileSystemFunctions {
       } catch (IOException e) {
         String message = "Unable to list" + path + ": " + e.getMessage();
         LOG.error(message, e);
-        return null;
+        return FlipTable.of(headers, new String[][]{});
       }
     }
   }
