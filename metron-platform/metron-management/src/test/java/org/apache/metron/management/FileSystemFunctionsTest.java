@@ -36,10 +36,7 @@ import org.junit.runners.Parameterized;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RunWith(Parameterized.class)
 public class FileSystemFunctionsTest {
@@ -50,6 +47,7 @@ public class FileSystemFunctionsTest {
   private String prefix;
   private Context context = null;
   private FileSystemFunctions.FileSystemGet get;
+  private FileSystemFunctions.FileSystemGetList getList;
   private FileSystemFunctions.FileSystemLs ls;
   private FileSystemFunctions.FileSystemPut put;
   private FileSystemFunctions.FileSystemRm rm;
@@ -89,6 +87,8 @@ public class FileSystemFunctionsTest {
 
     get = new FileSystemFunctions.FileSystemGet(fsGetter);
     get.initialize(null);
+    getList = new FileSystemFunctions.FileSystemGetList(fsGetter);
+    getList.initialize(null);
     ls = new FileSystemFunctions.FileSystemLs(fsGetter);
     ls.initialize(null);
     put = new FileSystemFunctions.FileSystemPut(fsGetter);
@@ -120,6 +120,18 @@ public class FileSystemFunctionsTest {
     Assert.assertTrue(rmRet);
     lsOut = (String) ls.apply(Arrays.asList(prefix), null);
     Assert.assertTrue(lsOut.contains("(empty)"));
+  }
+
+  @Test
+  public void testGetList() {
+    Object putOut = put.apply(Arrays.asList("foo\nbar", prefix + "testPut.dat"), null);
+    Assert.assertTrue((Boolean) putOut);
+    String getOut = (String)get.apply(Arrays.asList(prefix + "testPut.dat"), null);
+    Assert.assertEquals("foo\nbar", getOut);
+    List<String> list = (List<String>) getList.apply(Arrays.asList(prefix + "testPut.dat"), null);
+    Assert.assertEquals(2,list.size());
+    Assert.assertEquals("foo",list.get(0));
+    Assert.assertEquals("bar",list.get(1));
   }
 
   @Test

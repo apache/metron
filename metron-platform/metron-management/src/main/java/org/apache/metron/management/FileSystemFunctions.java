@@ -17,6 +17,8 @@
  */
 package org.apache.metron.management;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.jakewharton.fliptables.FlipTable;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -83,6 +85,31 @@ public class FileSystemFunctions {
       return fs != null;
     }
 
+  }
+
+  static class FileSystemGetList extends FileSystemFunction {
+
+    FileSystemGetList(FileSystemGetter getter) {
+      super(getter);
+    }
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      String path = (String) args.get(0);
+      if(path == null) {
+        return null;
+      }
+      try(FSDataInputStream is = fs.open(new Path(path))) {
+        List<String> out = new ArrayList<>();
+        Iterable<String> lines = Splitter.on("\n").split(IOUtils.toString(is));
+        Iterables.addAll(out, lines);
+        return out;
+      } catch (IOException e) {
+        String message = "Unable to read " + path + ": " + e.getMessage();
+        LOG.error(message, e);
+        return null;
+      }
+    }
   }
 
   static class FileSystemGet extends FileSystemFunction {
@@ -350,4 +377,29 @@ public class FileSystemFunctions {
     }
   }
 
+  @Stellar(namespace="HDFS"
+          ,name="GET_LIST"
+          ,description="Retrieves the contents of a HDFS file as a list of strings."
+          ,params = { "path - The path in HDFS of the file."}
+          ,returns = "A list of lines"
+
+  )
+  public static class HDFSGetList extends FileSystemGetList {
+    public HDFSGetList() {
+      super(FS_TYPE.HDFS);
+    }
+  }
+
+  @Stellar(namespace="FILE"
+          ,name="GET_LIST"
+          ,description="Retrieves the contents of a file as a list of strings."
+          ,params = { "path - The path of the file."}
+          ,returns = "A list of lines"
+
+  )
+  public static class FileGetList extends FileSystemGetList {
+    public FileGetList() {
+      super(FS_TYPE.LOCAL);
+    }
+  }
 }

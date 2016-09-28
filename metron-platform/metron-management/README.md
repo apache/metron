@@ -44,6 +44,11 @@ The functions are split roughly into a few sections:
     * Input:
       * path - The path of the file
     * Returns: The contents of the file and null otherwise.
+  * `FILE_GET_LIST`
+    * Description: Retrieves the contents of a file as a list of strings.
+    * Input:
+      * path - The path of the file
+    * Returns: A list of lines
   * `FILE_PUT`
     * Description: Writes the contents of a string to a local file
     * Input:
@@ -67,6 +72,11 @@ The functions are split roughly into a few sections:
     * Input:
       * path - The path of the file
     * Returns: The contents of the file and null otherwise.
+  * `HDFS_GET_LIST`
+    * Description: Retrieves the contents of a HDFS file as a list of strings.
+    * Input:
+      * path - The path of the file
+    * Returns: A list of lines
   * `HDFS_PUT`
     * Description: Writes the contents of a string to a HDFS file
     * Input:
