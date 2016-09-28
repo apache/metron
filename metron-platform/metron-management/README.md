@@ -44,7 +44,7 @@ The functions are split roughly into a few sections:
     * Input:
       * path - The path of the file
     * Returns: The contents of the file and null otherwise.
-  * `LOCAL_READ_LIST`
+  * `LOCAL_READ_LINES`
     * Description: Retrieves the contents of a file as a list of strings.
     * Input:
       * path - The path of the file
@@ -72,7 +72,7 @@ The functions are split roughly into a few sections:
     * Input:
       * path - The path of the file
     * Returns: The contents of the file and null otherwise.
-  * `HDFS_READ_LIST`
+  * `HDFS_READ_LINES`
     * Description: Retrieves the contents of a HDFS file as a list of strings.
     * Input:
       * path - The path of the file
