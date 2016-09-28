@@ -192,9 +192,9 @@ Please note that functions are loading lazily in the background and will be unav
 [Stellar]>>> #   1475022938.661      0 127.0.0.1 NONE/400 3500 GET www.google.com - NONE/- text/html
 [Stellar]>>> # Note that flimflammadeupdomain.com and www.google.com did not resolve to IPs
 [Stellar]>>> # We can load up these messages from disk into a list of messages
-[Stellar]>>> messages := FILE_GET_LIST( '/var/log/squid/access.log')
-30943 [Thread-1] INFO  o.r.Reflections - Reflections took 29317 ms to scan 22 urls, producing 17906 keys and 121560 values 
-31169 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 97 Stellar Functions...
+[Stellar]>>> messages := LOCAL_READ_LINES( '/var/log/squid/access.log')
+27687 [Thread-1] INFO  o.r.Reflections - Reflections took 26542 ms to scan 22 urls, producing 17906 keys and 121560 values 
+27837 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 97 Stellar Functions...
 Functions loaded, you may refer to functions now...
 [Stellar]>>> # and evaluate the messages against our grok statement
 [Stellar]>>> GROK_EVAL(squid_grok_orig, messages)
@@ -254,7 +254,6 @@ WORD:UNWANTED}/(%{IP:ip_dst_addr})?'
 [Stellar]>>> # Ahh, that is much better.
 [Stellar]>>> 
 [Stellar]>>> 
-
 ```
 
 ### Manage Stellar Field Transformations
