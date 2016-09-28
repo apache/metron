@@ -389,7 +389,7 @@ public class FileSystemFunctions {
   }
 
   @Stellar(namespace="HDFS"
-          ,name="READ_LIST"
+          ,name="READ_LINES"
           ,description="Retrieves the contents of a HDFS file as a list of strings."
           ,params = { "path - The path in HDFS of the file."}
           ,returns = "A list of lines"
@@ -402,7 +402,7 @@ public class FileSystemFunctions {
   }
 
   @Stellar(namespace="LOCAL"
-          ,name="READ_LIST"
+          ,name="READ_LINES"
           ,description="Retrieves the contents of a file as a list of strings."
           ,params = { "path - The path of the file."}
           ,returns = "A list of lines"
