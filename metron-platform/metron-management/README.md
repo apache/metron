@@ -19,6 +19,8 @@ project.
 
 The functions are split roughly into a few sections:
 * Shell functions - Functions surrounding interacting with the shell in either a nicer way or a more functional way.
+* Grok Functions - Functions that allow you to evaluate grok expressions.
+* File functions - Functions around interacting with local or HDFS files
 * Configuration functions - Functions surrounding pulling and pushing configs from zookeeper
 * Parser functions - Functions surrounding adding, viewing, and removing Parser functions.
 * Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size and index names for the enrichment topology configuration
@@ -37,6 +39,65 @@ The functions are split roughly into a few sections:
   * Input:
     * data - The data to discover a grok expression from
   * Returns: A grok expression that should match the data.
+
+### File Functions
+
+* Local Files
+  * `LOCAL_LS`
+    * Description: Lists the contents of a directory.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the directory in tabular form sorted by last modification date.
+  * `LOCAL_RM`
+    * Description: Removes the path
+    * Input:
+      * path - The path of the file or directory.
+      * recursive - Recursively remove or not (optional and defaulted to false)
+    * Returns: boolean - true if successful, false otherwise
+  * `LOCAL_READ`
+    * Description: Retrieves the contents as a string of a file.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the file and null otherwise.
+  * `LOCAL_READ_LINES`
+    * Description: Retrieves the contents of a file as a list of strings.
+    * Input:
+      * path - The path of the file
+    * Returns: A list of lines
+  * `LOCAL_WRITE`
+    * Description: Writes the contents of a string to a local file
+    * Input:
+      * content - The content to write out
+      * path - The path of the file
+    * Returns: true if the file was written and false otherwise.
+* HDFS Files
+  * `HDFS_LS`
+    * Description: Lists the contents of a directory in HDFS.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the directory in tabular form sorted by last modification date.
+  * `HDFS_RM`
+    * Description: Removes the path in HDFS.
+    * Input:
+      * path - The path of the file or directory.
+      * recursive - Recursively remove or not (optional and defaulted to false)
+    * Returns: boolean - true if successful, false otherwise
+  * `HDFS_READ`
+    * Description: Retrieves the contents as a string of a file in HDFS.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the file and null otherwise.
+  * `HDFS_READ_LINES`
+    * Description: Retrieves the contents of a HDFS file as a list of strings.
+    * Input:
+      * path - The path of the file
+    * Returns: A list of lines
+  * `HDFS_WRITE`
+    * Description: Writes the contents of a string to a HDFS file
+    * Input:
+      * content - The content to write out
+      * path - The path of the file
+    * Returns: true if the file was written and false otherwise.
 
 ### Shell Functions 
 
