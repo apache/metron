@@ -209,15 +209,29 @@ public class FileSystemFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-
-      String path = (String) args.get(0);
-      if(path == null) {
-        return false;
+      Path path = null;
+      if(args.size() == 0) {
+        path = fs.getHomeDirectory();
+      }
+      else {
+        String pathStr = (String) args.get(0);
+        if (path == null) {
+          return false;
+        }
+        else {
+          try {
+            path = new Path(pathStr);
+          }
+          catch(IllegalArgumentException iae) {
+            LOG.error("Unable to convert " + pathStr + " to a path: " + iae.getMessage(), iae);
+            return false;
+          }
+        }
       }
       try {
         String[] headers = new String[] {"PERMISSION", "OWNER", "GROUP", "SIZE", "LAST MOD TIME", "NAME"};
         List<String[]> dataList = new ArrayList<>();
-        for(FileStatus status : fs.listStatus(new Path(path))) {
+        for(FileStatus status : fs.listStatus(path)) {
           dataList.add(new String[] {
             status.getPermission().toString()
            ,status.getOwner()
