@@ -38,7 +38,6 @@ ambari_user: admin
 ambari_password: admin
 cluster_type: single_node_vm
 ambari_server_mem: 512
-java_home: /usr/jdk64/jdk1.8.0_77
 
 # hbase
 pcap_hbase_table: pcap
