@@ -17,4 +17,4 @@
 # limitations under the License.
 #
 
-vagrant --ansible-skip-tags="solr" up
+vagrant --ansible-skip-tags="solr,yaf" up
