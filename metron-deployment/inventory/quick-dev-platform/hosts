@@ -14,16 +14,43 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-metron_version: 0.2.1BETA
-metron_directory: /usr/metron/{{ metron_version }}
-pcapservice_jar_name: metron-api-{{ metron_version }}.jar
-pcapservice_jar_src: "{{ playbook_dir }}/../../metron-platform/metron-api/target/{{ pcapservice_jar_name }}"
-pcapservice_jar_dst: "{{ metron_directory }}/lib/{{ pcapservice_jar_name }}"
-pcapservice_port: 8081
-hbase_config_path: "/etc/hbase/conf"
-query_hdfs_path: "/tmp"
-pcap_hdfs_path: "/apps/metron/pcap"
-metron_pcapservice_logrotate_frequency: daily
-metron_pcapservice_logrotate_retention: 30
 
+[ambari_master]
+node1
+
+[ambari_slave]
+node1
+
+[metron_hbase_tables]
+node1
+
+[metron_kafka_topics]
+node1
+
+[enrichment]
+node1
+
+[search]
+node1
+
+[web]
+node1
+
+[sensors]
+node1
+
+[pcap_server]
+node1
+
+[mysql]
+node1
+
+[metron:children]
+enrichment
+search
+web
+sensors
+mysql
+metron_kafka_topics
+metron_hbase_tables
+pcap_server

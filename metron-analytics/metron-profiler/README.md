@@ -239,16 +239,16 @@ This section will describe the steps required to get your first profile running.
     ```
     $ vagrant ssh
     $ sudo su -
-    $ cd /usr/metron/0.2.0BETA/
+    $ cd /usr/metron/0.2.1BETA/
     ```
 
-3. Create a table within HBase that will store the profile data. The table name and column family must match the Profiler topology configuration stored at `/usr/metron/0.2.0BETA/config/profiler.properties`.
+3. Create a table within HBase that will store the profile data. The table name and column family must match the Profiler topology configuration stored at `/usr/metron/0.2.1BETA/config/profiler.properties`.
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> create 'profiler', 'P'
     ```
     
-4. Create the Profiler definition in a file located at `/usr/metron/*/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
+4. Create the Profiler definition in a file located at `/usr/metron/0.2.1BETA/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
     ```
     {
       "profiles": [

@@ -62,7 +62,7 @@
         },
         {
           "service_name" : "METRON",
-          "service_version" : "0.2.0BETA",
+          "service_version" : "0.2.1BETA",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",

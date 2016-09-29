@@ -38,6 +38,7 @@ ambari_user: admin
 ambari_password: admin
 cluster_type: single_node_vm
 ambari_server_mem: 512
+java_home: /usr/jdk64/jdk1.8.0_77
 
 # hbase
 pcap_hbase_table: pcap
@@ -46,7 +47,7 @@ threatintel_hbase_table: threatintel
 enrichment_hbase_table: enrichment
 
 # metron
-metron_version: 0.2.0BETA
+metron_version: 0.2.1BETA
 metron_directory: /usr/metron/{{ metron_version }}
 bro_version: "2.4.1"
 fixbuf_version: "1.7.1"
@@ -78,7 +79,7 @@ sensor_test_mode: True
 install_pycapa: False
 install_bro: True
 install_snort: True
-install_yaf: True
+install_yaf: False
 install_pcap_replay: True
 sniff_interface: eth1
 pcap_replay_interface: "{{ sniff_interface }}"
