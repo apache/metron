@@ -21,15 +21,6 @@
     dest: /tmp/geoip
     copy: no
     creates: /tmp/geoip/*/GeoLiteCity-Blocks.csv
-  when: '"{{ geodata_file }}".find("http://") != -1'
-
-- name: Copy GeoIP database file from files directory
-  unarchive:
-    src: "{{ geodata_file }}"
-    dest: /tmp/geoip
-    copy: yes
-    creates: /tmp/geoip/*/GeoLiteCity-Blocks.csv
-  when: '"{{ geodata_file }}".find("http://") == -1'
 
 - name: Copy to MySQL import directory
   shell: "cp /tmp/geoip/*/*.csv /var/lib/mysql-files/"
