@@ -59,12 +59,6 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-test-utilities</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-auth</artifactId>
             <version>${global_hadoop_version}</version>
@@ -107,9 +101,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-            <version>${global_hbase_version}</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${global_mockito_version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -117,12 +111,48 @@
             <artifactId>hbase-testing-util</artifactId>
             <version>${global_hbase_version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${global_mockito_version}</version>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-integration-test</artifactId>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce-client-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>flux-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>storm-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>storm-kafka</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>storm-hdfs</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <reporting>
@@ -210,10 +240,6 @@
                         </goals>
                         <configuration>
                             <relocations>
-                                <relocation>
-                                    <pattern>com.lmax</pattern>
-                                    <shadedPattern>org.apache.metron.lmax.metron-profiler</shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.apache.metron.guava.metron-profiler</shadedPattern>
