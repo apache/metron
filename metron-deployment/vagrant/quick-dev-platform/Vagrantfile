@@ -16,8 +16,8 @@
 #
 require 'getoptlong'
 
-ansibleTags=''
-ansibleSkipTags=''
+ansibleTags='hdp-deploy,metron'
+ansibleSkipTags='solr,yaf'
 
 begin
    opts = GetoptLong.new(

@@ -17,7 +17,7 @@
 require 'getoptlong'
 
 ansibleTags=''
-ansibleSkipTags=''
+ansibleSkipTags='solr,yaf'
 
 begin
    opts = GetoptLong.new(

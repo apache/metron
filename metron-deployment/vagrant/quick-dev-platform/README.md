@@ -5,7 +5,7 @@ This project fully automates the provisioning and deployment of Apache Metron an
 
 This image is designed for quick deployment of a single node Metron cluster running on Virtualbox.  This platform is ideal for use by Metron developers.  It uses a base image that has been pre-loaded with Ambari and HDP.
 
-Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host. The host will require at least 8 GB of RAM and a fair amount of patience. It is highly recommended that you shut down all unnecessary services.
+Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host. The host will require at least 8 GB of RAM and a fair amount of patience. It is highly recommended that you shut down all unnecessary services.  To that end the vagrant file configuration defaults to disabling solr and yaf.
 
 Getting Started
 ---------------
