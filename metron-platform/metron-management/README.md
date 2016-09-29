@@ -19,10 +19,85 @@ project.
 
 The functions are split roughly into a few sections:
 * Shell functions - Functions surrounding interacting with the shell in either a nicer way or a more functional way.
+* Grok Functions - Functions that allow you to evaluate grok expressions.
+* File functions - Functions around interacting with local or HDFS files
 * Configuration functions - Functions surrounding pulling and pushing configs from zookeeper
 * Parser functions - Functions surrounding adding, viewing, and removing Parser functions.
 * Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size and index names for the enrichment topology configuration
 * Threat Triage functions - Functions surrounding adding, viewing and removing threat triage functions.
+
+### Grok Functions
+
+* `GROK_EVAL`
+  * Description: Evaluate a grok expression for a statement.
+  * Input:
+    * grokExpression - The grok expression to evaluate
+    * data - Either a data message or a list of data messages to evaluate using the grokExpression
+  * Returns: The Map associated with the grok expression being evaluated on the list of messages.
+* `GROK_PREDICT`
+  * Description: Discover a grok statement for an input doc
+  * Input:
+    * data - The data to discover a grok expression from
+  * Returns: A grok expression that should match the data.
+
+### File Functions
+
+* Local Files
+  * `LOCAL_LS`
+    * Description: Lists the contents of a directory.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the directory in tabular form sorted by last modification date.
+  * `LOCAL_RM`
+    * Description: Removes the path
+    * Input:
+      * path - The path of the file or directory.
+      * recursive - Recursively remove or not (optional and defaulted to false)
+    * Returns: boolean - true if successful, false otherwise
+  * `LOCAL_READ`
+    * Description: Retrieves the contents as a string of a file.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the file and null otherwise.
+  * `LOCAL_READ_LINES`
+    * Description: Retrieves the contents of a file as a list of strings.
+    * Input:
+      * path - The path of the file
+    * Returns: A list of lines
+  * `LOCAL_WRITE`
+    * Description: Writes the contents of a string to a local file
+    * Input:
+      * content - The content to write out
+      * path - The path of the file
+    * Returns: true if the file was written and false otherwise.
+* HDFS Files
+  * `HDFS_LS`
+    * Description: Lists the contents of a directory in HDFS.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the directory in tabular form sorted by last modification date.
+  * `HDFS_RM`
+    * Description: Removes the path in HDFS.
+    * Input:
+      * path - The path of the file or directory.
+      * recursive - Recursively remove or not (optional and defaulted to false)
+    * Returns: boolean - true if successful, false otherwise
+  * `HDFS_READ`
+    * Description: Retrieves the contents as a string of a file in HDFS.
+    * Input:
+      * path - The path of the file
+    * Returns: The contents of the file and null otherwise.
+  * `HDFS_READ_LINES`
+    * Description: Retrieves the contents of a HDFS file as a list of strings.
+    * Input:
+      * path - The path of the file
+    * Returns: A list of lines
+  * `HDFS_WRITE`
+    * Description: Writes the contents of a string to a HDFS file
+    * Input:
+      * content - The content to write out
+      * path - The path of the file
+    * Returns: true if the file was written and false otherwise.
 
 ### Shell Functions 
 
@@ -164,6 +239,83 @@ Deployment is as simple as dropping the jar created by this project into
 ## Examples
 Included for description and education purposes are a couple example Stellar REPL transcripts
 with helpful comments to illustrate some common operations.
+
+### Iterate in finding a valid Grok pattern
+```
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> # We are going to debug a squid grok statement with a bug in it
+[Stellar]>>> squid_grok_orig := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} 
+ - %{WORD:UNWANTED}/%{IP:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}'
+[Stellar]>>> # We have gone ot a couple of domains in squid:
+[Stellar]>>> #   1475022887.362    256 127.0.0.1 TCP_MISS/301 803 GET http://www.youtube.com/ - DIRECT/216.58.216.238 text/html
+[Stellar]>>> #   1475022915.731      1 127.0.0.1 NONE/400 3520 GET flimflammadeupdomain.com - NONE/- text/html
+[Stellar]>>> #   1475022938.661      0 127.0.0.1 NONE/400 3500 GET www.google.com - NONE/- text/html
+[Stellar]>>> # Note that flimflammadeupdomain.com and www.google.com did not resolve to IPs
+[Stellar]>>> # We can load up these messages from disk into a list of messages
+[Stellar]>>> messages := LOCAL_READ_LINES( '/var/log/squid/access.log')
+27687 [Thread-1] INFO  o.r.Reflections - Reflections took 26542 ms to scan 22 urls, producing 17906 keys and 121560 values 
+27837 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 97 Stellar Functions...
+Functions loaded, you may refer to functions now...
+[Stellar]>>> # and evaluate the messages against our grok statement
+[Stellar]>>> GROK_EVAL(squid_grok_orig, messages)
+╔══════════╤═════════╤═════════╤═════════╤════════════════╤═════════════╤═════════╤════════════════╤═════════════════════════╗
+║ action   │ bytes   │ code    │ elapsed │ ip_dst_addr    │ ip_src_addr │ method  │ timestamp      │ url                     ║
+╠══════════╪═════════╪═════════╪═════════╪════════════════╪═════════════╪═════════╪════════════════╪═════════════════════════╣
+║ TCP_MISS │ 803     │ 301     │ 256     │ 216.58.216.238 │ 127.0.0.1   │ GET     │ 1475022887.362 │ http://www.youtube.com/ ║
+╟──────────┼─────────┼─────────┼─────────┼────────────────┼─────────────┼─────────┼────────────────┼─────────────────────────╢
+║ MISSING  │ MISSING │ MISSING │ MISSING │ MISSING        │ MISSING     │ MISSING │ MISSING        │ MISSING                 ║
+╟──────────┼─────────┼─────────┼─────────┼────────────────┼─────────────┼─────────┼────────────────┼─────────────────────────╢
+║ MISSING  │ MISSING │ MISSING │ MISSING │ MISSING        │ MISSING     │ MISSING │ MISSING        │ MISSING                 ║
+╚══════════╧═════════╧═════════╧═════════╧════════════════╧═════════════╧═════════╧════════════════╧═════════════════════════╝
+
+[Stellar]>>> # Uh oh, looks like the messages without destination IPs do not parse
+[Stellar]>>> # We can start peeling off groups from the end of the message until things parse
+[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{ 
+WORD:UNWANTED}/%{IP:ip_dst_addr}'
+[Stellar]>>> GROK_EVAL(squid_grok, messages)
+╔══════════╤═════════╤═════════╤═════════╤════════════════╤═════════════╤═════════╤════════════════╤═════════════════════════╗
+║ action   │ bytes   │ code    │ elapsed │ ip_dst_addr    │ ip_src_addr │ method  │ timestamp      │ url                     ║
+╠══════════╪═════════╪═════════╪═════════╪════════════════╪═════════════╪═════════╪════════════════╪═════════════════════════╣
+║ TCP_MISS │ 803     │ 301     │ 256     │ 216.58.216.238 │ 127.0.0.1   │ GET     │ 1475022887.362 │ http://www.youtube.com/ ║
+╟──────────┼─────────┼─────────┼─────────┼────────────────┼─────────────┼─────────┼────────────────┼─────────────────────────╢
+║ MISSING  │ MISSING │ MISSING │ MISSING │ MISSING        │ MISSING     │ MISSING │ MISSING        │ MISSING                 ║
+╟──────────┼─────────┼─────────┼─────────┼────────────────┼─────────────┼─────────┼────────────────┼─────────────────────────╢
+║ MISSING  │ MISSING │ MISSING │ MISSING │ MISSING        │ MISSING     │ MISSING │ MISSING        │ MISSING                 ║
+╚══════════╧═════════╧═════════╧═════════╧════════════════╧═════════════╧═════════╧════════════════╧═════════════════════════╝
+
+[Stellar]>>> # Still looks like it is having issues...
+[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{ 
+WORD:UNWANTED}/%{IP:ip_dst_addr}'
+[Stellar]>>> GROK_EVAL(squid_grok, messages)
+╔══════════╤═════════╤═════════╤═════════╤════════════════╤═════════════╤═════════╤════════════════╤═════════════════════════╗
+║ action   │ bytes   │ code    │ elapsed │ ip_dst_addr    │ ip_src_addr │ method  │ timestamp      │ url                     ║
+╠══════════╪═════════╪═════════╪═════════╪════════════════╪═════════════╪═════════╪════════════════╪═════════════════════════╣
+║ TCP_MISS │ 803     │ 301     │ 256     │ 216.58.216.238 │ 127.0.0.1   │ GET     │ 1475022887.362 │ http://www.youtube.com/ ║
+╟──────────┼─────────┼─────────┼─────────┼────────────────┼─────────────┼─────────┼────────────────┼─────────────────────────╢
+║ MISSING  │ MISSING │ MISSING │ MISSING │ MISSING        │ MISSING     │ MISSING │ MISSING        │ MISSING                 ║
+╟──────────┼─────────┼─────────┼─────────┼────────────────┼─────────────┼─────────┼────────────────┼─────────────────────────╢
+║ MISSING  │ MISSING │ MISSING │ MISSING │ MISSING        │ MISSING     │ MISSING │ MISSING        │ MISSING                 ║
+╚══════════╧═════════╧═════════╧═════════╧════════════════╧═════════════╧═════════╧════════════════╧═════════════════════════╝
+
+[Stellar]>>> # Still looks wrong.  Hmm, I bet it is due to that dst_addr not being there; we can make it optional
+[Stellar]>>> squid_grok := '%{NUMBER:timestamp} %{SPACE:UNWANTED}  %{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{ 
+WORD:UNWANTED}/(%{IP:ip_dst_addr})?'
+[Stellar]>>> GROK_EVAL(squid_grok, messages)
+╔══════════╤═══════╤══════╤═════════╤════════════════╤═════════════╤════════╤════════════════╤══════════════════════════╗
+║ action   │ bytes │ code │ elapsed │ ip_dst_addr    │ ip_src_addr │ method │ timestamp      │ url                      ║
+╠══════════╪═══════╪══════╪═════════╪════════════════╪═════════════╪════════╪════════════════╪══════════════════════════╣
+║ TCP_MISS │ 803   │ 301  │ 256     │ 216.58.216.238 │ 127.0.0.1   │ GET    │ 1475022887.362 │ http://www.youtube.com/  ║
+╟──────────┼───────┼──────┼─────────┼────────────────┼─────────────┼────────┼────────────────┼──────────────────────────╢
+║ NONE     │ 3520  │ 400  │ 1       │ null           │ 127.0.0.1   │ GET    │ 1475022915.731 │ flimflammadeupdomain.com ║
+╟──────────┼───────┼──────┼─────────┼────────────────┼─────────────┼────────┼────────────────┼──────────────────────────╢
+║ NONE     │ 3500  │ 400  │ 0       │ null           │ 127.0.0.1   │ GET    │ 1475022938.661 │ www.google.com           ║
+╚══════════╧═══════╧══════╧═════════╧════════════════╧═════════════╧════════╧════════════════╧══════════════════════════╝
+
+[Stellar]>>> # Ahh, that is much better.
+[Stellar]>>> 
+[Stellar]>>> 
+```
 
 ### Manage Stellar Field Transformations
 
