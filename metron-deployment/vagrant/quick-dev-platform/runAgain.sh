@@ -17,9 +17,7 @@
 # limitations under the License.
 #
 
-echo "If run.sh fails, instead of just running vagrant provision, you should run ./runAgan.sh"
-
 vagrant \
   --ansible-tags="hdp-deploy,metron" \
-  --ansible-skip-tags="solr,yaf" \
-  up
+  --ansible-skip-tags="solr" \
+  provision
