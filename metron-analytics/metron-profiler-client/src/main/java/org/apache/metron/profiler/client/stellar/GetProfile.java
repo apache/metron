@@ -226,7 +226,13 @@ public class GetProfile implements StellarFunction {
    * @param global The global configuration.
    */
   private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
-    // the builder is not currently configurable - but should be made so
+    /*
+     * WARNING: the row key builder is not currently configurable.  by invoking
+     * the default constructor below, this defaults to generating keys using a
+     * period duration of 15 minutes. this function will NOT be able to read
+     * profiles created by a profiler running with any other period duration, but
+     * 15 minutes.
+     */
     return new SaltyRowKeyBuilder();
   }
 
