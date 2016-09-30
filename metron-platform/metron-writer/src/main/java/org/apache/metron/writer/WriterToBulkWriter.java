@@ -49,8 +49,8 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
     if(messages.size() > 1) {
       throw new IllegalStateException("WriterToBulkWriter expects a batch of exactly 1");
     }
-    //TODO figure out if we want to remove the exception here or not.
     messageWriter.write(sensorType, configurations, Iterables.getFirst(tuples, null), Iterables.getFirst(messages, null));
+
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllSuccesses(tuples);
     return response;

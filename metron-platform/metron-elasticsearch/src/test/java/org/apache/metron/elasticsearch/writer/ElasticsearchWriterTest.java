@@ -145,7 +145,7 @@ public class ElasticsearchWriterTest {
 
         assertEquals("Response should have two errors and no successes", expected, actual);
 
-        // Ensure the errors did get collapsed together
+        // Ensure the errors did not get collapsed together
         Map<Throwable, Collection<Tuple>> actualErrors = actual.getErrors();
         HashMap<Throwable, Collection<Tuple>> expectedErrors = new HashMap<>();
         expectedErrors.put(e, ImmutableList.of(tuple1));
