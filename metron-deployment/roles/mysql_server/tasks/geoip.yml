@@ -15,9 +15,9 @@
 #  limitations under the License.
 #
 ---
-- name: Download GeoIP databases
+- name: Download GeoIP databases from specified URL
   unarchive:
-    src:  http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
+    src: "{{ geodata_file }}"
     dest: /tmp/geoip
     copy: no
     creates: /tmp/geoip/*/GeoLiteCity-Blocks.csv
