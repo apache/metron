@@ -200,14 +200,7 @@
             <version>${project.parent.version}</version>
             <scope>test</scope>
             <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-mapreduce-client-common</artifactId>
-                </exclusion>
+
             </exclusions>
         </dependency>
         <dependency>
