@@ -23,8 +23,8 @@ import backtype.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
-import org.apache.metron.common.interfaces.BulkWriterResponse;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,6 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void commit(BulkWriterResponse response) {
       commit(response.getSuccesses());
   }
-
 
   public void error(Throwable e, Iterable<Tuple> tuples) {
     tuples.forEach(t -> collector.ack(t));
@@ -128,6 +127,8 @@ public class BulkWriterComponent<MESSAGE_T> {
 
         if(handleError) {
           error(response);
+        } else if (response.hasErrors()) {
+          throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
         }
       } catch (Throwable e) {
         if(handleError) {

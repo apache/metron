@@ -20,7 +20,7 @@ package org.apache.metron.elasticsearch.writer;
 
 import backtype.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.interfaces.BulkWriterResponse;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class ElasticsearchWriterTest {
         ElasticsearchWriter esWriter = new ElasticsearchWriter();
         BulkWriterResponse actual = esWriter.buildWriteReponse(ImmutableList.of(tuple1), response);
 
-        assertEquals("Response should have no errors and two successes", expected, actual);
+        assertEquals("Response should have one error and zero successes", expected, actual);
     }
 
     @Test

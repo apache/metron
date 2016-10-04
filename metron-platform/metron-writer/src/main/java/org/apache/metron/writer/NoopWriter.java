@@ -21,9 +21,9 @@ import backtype.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.apache.metron.common.interfaces.BulkWriterResponse;
+import org.apache.metron.common.writer.BulkWriterResponse;
 
 import java.util.List;
 import java.util.Map;

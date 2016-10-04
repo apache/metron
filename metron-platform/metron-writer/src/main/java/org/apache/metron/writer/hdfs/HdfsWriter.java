@@ -19,8 +19,8 @@ package org.apache.metron.writer.hdfs;
 
 import backtype.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
-import org.apache.metron.common.interfaces.BulkWriterResponse;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.NoRotationPolicy;
@@ -72,11 +72,14 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
                    , List<JSONObject> messages
                    ) throws Exception
   {
-    SourceHandler handler = getSourceHandler(sourceType);
-    handler.handle(messages);
-
-    // HDFS SourceHanlder manages writing and rotating files.  Will throw its own Exceptions.
     BulkWriterResponse response = new BulkWriterResponse();
+    SourceHandler handler = getSourceHandler(sourceType);
+    try {
+      handler.handle(messages);
+    } catch(Exception e) {
+      response.addAllErrors(e, tuples);
+    }
+
     response.addAllSuccesses(tuples);
     return response;
   }

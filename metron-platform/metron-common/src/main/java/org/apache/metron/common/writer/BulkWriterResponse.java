@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.interfaces;
+package org.apache.metron.common.writer;
 
 import backtype.storm.tuple.Tuple;
 import com.google.common.collect.ArrayListMultimap;
@@ -34,6 +34,16 @@ public class BulkWriterResponse {
 
     public void addError(Throwable error, Tuple tuple) {
         errors.put(error, tuple);
+    }
+
+    public void addAllErrors(Throwable error, Iterable<Tuple> tuples) {
+        if(tuples != null) {
+            errors.putAll(error, tuples);
+        }
+    }
+
+    public boolean hasErrors() {
+        return !errors.isEmpty();
     }
 
     public void addSuccess(Tuple success) {
