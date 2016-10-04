@@ -39,13 +39,13 @@ As with the Full Development Platform (`metron-deployment/vagrant/full-dev-platf
 
   ```
   cd metron-deployment/vagrant/quick-dev-platform
-  ./run.sh
+  vagrant up
   ```
 
   Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
 
   ```
-  vagrant --ansible-tags="hdp-deploy,metron" provision
+  vagrant provision
   ```
 
 ### Explore Metron
