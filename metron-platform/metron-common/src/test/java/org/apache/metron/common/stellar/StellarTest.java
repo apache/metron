@@ -285,6 +285,18 @@ public class StellarTest {
   }
 
   @Test
+  public void testLength(){
+    String query = "LENGTH(foo)";
+    Assert.assertEquals(5, run(query,ImmutableMap.of("foo","abcde")));
+  }
+
+  @Test
+  public void testEmptyLength(){
+    String query = "LENGTH(foo)";
+    Assert.assertEquals(0,run(query,ImmutableMap.of("foo","")));
+  }
+
+  @Test
   public void testJoin() {
     String query = "JOIN( [ TO_UPPER(TRIM(foo)), 'bar' ], ',')";
     Assert.assertEquals("CASEY,bar", run(query, ImmutableMap.of("foo", "casey ")));
