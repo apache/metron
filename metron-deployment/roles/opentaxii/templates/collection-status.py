@@ -17,10 +17,10 @@
 #
 from cabby import create_client
 
-base_uri = 'http://localhost:9000'
+base_uri = 'http://{{ opentaxii_domain }}'
 try:
     # create a connection
-    client = create_client(host='localhost',port=9000,discovery_path='/services/discovery')
+    client = create_client(host='{{ opentaxii_host }}', port='{{ opentaxii_port }}', discovery_path='/services/discovery')
 
     # iterate through each defined collection
     collections = client.get_collections(uri='%s/services/collection'%base_uri)

@@ -15,7 +15,9 @@
 #  limitations under the License.
 #
 ---
-opentaxii_domain: localhost:9000
+opentaxii_host: localhost
+opentaxii_port: 9000
+opentaxii_domain: "{{ opentaxii_host }}:{{ opentaxii_port }}"
 opentaxii_home: /usr/local/opentaxii
 opentaxii_venv: opentaxii-venv
 opentaxii_bin: "{{ opentaxii_home }}/{{ opentaxii_venv }}/bin"
