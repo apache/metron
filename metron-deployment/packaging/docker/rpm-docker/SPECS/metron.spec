@@ -122,6 +122,7 @@ This package installs the Metron Parser files
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_parser_topology.sh
 %{metron_home}/config/zookeeper/parsers/bro.json
+%{metron_home}/config/zookeeper/parsers/jsonMap.json
 %{metron_home}/config/zookeeper/parsers/snort.json
 %{metron_home}/config/zookeeper/parsers/squid.json
 %{metron_home}/config/zookeeper/parsers/websphere.json

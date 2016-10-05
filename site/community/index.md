@@ -66,6 +66,14 @@ title: Apache Metron Community
       <td style="text-align: left">Larry McCay</td> <td style="text-align: left">lmccay</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
       <td style="text-align: left">Charles Porter</td> <td style="text-align: left">cporter</td> <td style="text-align: left">PMC</td> </tr>
+    <tr>
+      <td style="text-align: left">David Lyle</td> <td style="text-align: left">lyle</td> <td style="text-align: left">PMC</td> </tr>
+    <tr>
+      <td style="text-align: left">Nick Allen</td> <td style="text-align: left">nickallen</td> <td style="text-align: left">PMC</td> </tr>
+    <tr>
+      <td style="text-align: left">Michael Miklavcic</td> <td style="text-align: left">mmiklavcic</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Justin Leet</td> <td style="text-align: left">leet</td> <td style="text-align: left">Committer</td> </tr>
     </tbody>
 </table>
 </section>
