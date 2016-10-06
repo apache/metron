@@ -146,8 +146,8 @@ public class DataStructureFunctions {
 
     @Override
     public Object apply(List<Object> list) {
-      if(list.size() == 0) {
-        throw new IllegalStateException("IS_EMPTY expects one string arg");
+      if(null == list || list.size() == 0) {
+        return true;
       }
       Object o = list.get(0);
       if(o instanceof Collection) {
@@ -158,7 +158,7 @@ public class DataStructureFunctions {
         return val == null || val.isEmpty() ? true : false;
       }
       else {
-        throw new IllegalStateException("IS_EMPTY expects a collection or string");
+        return true;
       }
     }
   }
