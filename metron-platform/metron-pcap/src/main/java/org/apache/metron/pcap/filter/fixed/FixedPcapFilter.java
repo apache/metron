@@ -89,7 +89,7 @@ public class FixedPcapFilter implements PcapFilter {
     Integer srcPortIn = (Integer) resolver.resolve(Constants.Fields.SRC_PORT.getName());
     String dstAddrIn = (String) resolver.resolve(Constants.Fields.DST_ADDR.getName());
     Integer dstPortIn = (Integer) resolver.resolve(Constants.Fields.DST_PORT.getName());
-    String protocolIn = (String) resolver.resolve(Constants.Fields.PROTOCOL.getName());
+    String protocolIn = "" + resolver.resolve(Constants.Fields.PROTOCOL.getName());
 
     if (areMatch(protocol, protocolIn)) {
       if (matchesSourceAndDestination(srcAddrIn, srcPortIn, dstAddrIn, dstPortIn)) {

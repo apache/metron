@@ -54,7 +54,7 @@ public class QueryPcapFilterTest {
   @Test
   public void testTrivialEquality() throws Exception {
     Configuration config = new Configuration();
-    String query = "ip_src_addr == 'src_ip' and ip_src_port == '0' and ip_dst_addr == 'dst_ip' and ip_dst_port == '1'";
+    String query = "ip_src_addr == 'src_ip' and ip_src_port == 0 and ip_dst_addr == 'dst_ip' and ip_dst_port == 1";
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       PcapFilter filter = new QueryPcapFilter() {
@@ -76,7 +76,7 @@ public class QueryPcapFilterTest {
   @Test
   public void testMissingDstAddr() throws Exception {
     Configuration config = new Configuration();
-    String query = "ip_src_addr == 'src_ip' and ip_src_port == '0' and ip_dst_port == '1'";
+    String query = "ip_src_addr == 'src_ip' and ip_src_port == 0 and ip_dst_port == 1";
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
@@ -99,7 +99,7 @@ public class QueryPcapFilterTest {
         @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip1");
+            put(Constants.Fields.SRC_ADDR, "src_ip_no_match");
             put(Constants.Fields.SRC_PORT, 0);
             put(Constants.Fields.DST_ADDR, "dst_ip");
             put(Constants.Fields.DST_PORT, 1);
@@ -114,7 +114,7 @@ public class QueryPcapFilterTest {
   @Test
   public void testMissingDstPort() throws Exception {
     Configuration config = new Configuration();
-    String query = "ip_src_addr == 'src_ip' and ip_src_port == '0' and ip_dst_addr == 'dst_ip'";
+    String query = "ip_src_addr == 'src_ip' and ip_src_port == 0 and ip_dst_addr == 'dst_ip'";
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
@@ -168,7 +168,7 @@ public class QueryPcapFilterTest {
   @Test
   public void testMissingSrcAddr() throws Exception {
     Configuration config = new Configuration();
-    String query = "ip_src_port == '0' and ip_dst_addr == 'dst_ip' and ip_dst_port == '1'";
+    String query = "ip_src_port == 0 and ip_dst_addr == 'dst_ip' and ip_dst_port == 1";
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
@@ -190,7 +190,7 @@ public class QueryPcapFilterTest {
   @Test
   public void testMissingSrcPort() throws Exception {
     Configuration config = new Configuration();
-    String query = "ip_src_addr == 'src_ip' and ip_dst_addr == 'dst_ip' and ip_dst_port == '1'";
+    String query = "ip_src_addr == 'src_ip' and ip_dst_addr == 'dst_ip' and ip_dst_port == 1";
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
