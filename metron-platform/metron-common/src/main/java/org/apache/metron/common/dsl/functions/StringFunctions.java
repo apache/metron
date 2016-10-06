@@ -226,11 +226,14 @@ public class StringFunctions {
   @Stellar( name="LENGTH"
           , description = "Returns the length of a string"
           , params = { "input - String" }
-          , returns = "String"
+          , returns = "Integer"
   )
   public static class Length extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> strings) {
+      if(strings == null || strings.isEmpty()){
+        return null;
+      }
       return strings.get(0)==null?null:strings.get(0).toString().length();
     }
   }

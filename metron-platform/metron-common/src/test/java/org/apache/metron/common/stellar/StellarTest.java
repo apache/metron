@@ -21,6 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -294,6 +295,12 @@ public class StellarTest {
   public void testEmptyLength(){
     String query = "LENGTH(foo)";
     Assert.assertEquals(0,run(query,ImmutableMap.of("foo","")));
+  }
+
+  @Test
+  public void testNoVarLength(){
+    String query = "LENGTH(foo)";
+    Assert.assertEquals(null,run(query,ImmutableMap.of()));
   }
 
   @Test
