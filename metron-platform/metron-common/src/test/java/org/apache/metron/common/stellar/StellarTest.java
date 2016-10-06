@@ -30,7 +30,12 @@ import org.junit.Test;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
 
