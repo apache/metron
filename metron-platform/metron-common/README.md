@@ -342,10 +342,10 @@ The following functions are supported:
     * input - String
   * Returns: String
 * `LENGTH`
-  * Description: Returns the length of a string.
+  * Description: Returns the length of a string or the size of a collection.
   * Input:
-    * input - String
-  * Returns: String
+    * input - Object of string or collection type (e.g. list)"
+  * Returns: Integer
 * `URL_TO_HOST`
   * Description: Extract the hostname from a URL.
   * Input:

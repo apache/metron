@@ -162,4 +162,29 @@ public class DataStructureFunctions {
       }
     }
   }
+
+  @Stellar(name="LENGTH"
+          , description="Returns the length of a string or size of a collection. Returns 0 for empty or null Strings"
+          , params = { "input - Object of string or collection type (e.g. list)"}
+          , returns = "Integer"
+  )
+  public static class Length extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> list) {
+      if(list.size() == 0) {
+        return 0;
+      }
+      Object o = list.get(0);
+      if(o instanceof Collection) {
+        return ((Collection)o).size();
+      }
+      else if(o instanceof String) {
+        String val = (String) list.get(0);
+        return val == null || val.isEmpty() ? 0 : val.length();
+      }
+      else {
+        return 0;
+      }
+    }
+  }
 }
