@@ -16,6 +16,8 @@ The query language supports the following:
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions
 
+####Note: string values containing arithmetic operations and comparison operators used as literals such as: "foo : <ok>" require escaping such as "foo: \"<ok>\""
+
 The following functions are supported:
 
 * `BLOOM_ADD`
