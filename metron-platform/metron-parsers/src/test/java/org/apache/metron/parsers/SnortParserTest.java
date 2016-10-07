@@ -36,6 +36,7 @@ public class SnortParserTest {
   @Test
   public void testGoodMessage() {
     BasicSnortParser parser = new BasicSnortParser();
+    parser.init();
     Map out = parser.parse(goodMessage.getBytes()).get(0);
     Assert.assertEquals(out.get("msg"),"Consecutive TCP small segments, exceeding threshold");
     Assert.assertEquals(out.get("sig_rev"), "1");
@@ -69,6 +70,7 @@ public class SnortParserTest {
   @Test(expected=IllegalStateException.class)
   public void testBadMessage() {
     BasicSnortParser parser = new BasicSnortParser();
+    parser.init();
     parser.parse("foo bar".getBytes());
   }
 }
