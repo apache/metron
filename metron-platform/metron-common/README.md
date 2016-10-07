@@ -16,7 +16,18 @@ The query language supports the following:
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions
 
-####Note: string values containing arithmetic operations and comparison operators used as literals such as: "foo : <ok>" require escaping such as "foo: \"<ok>\""
+##Stellar Language Keywords
+The following keywords need to be single quote escaped in order to be used in Stellar expressions:
+|               |               |             |
+|   :---:       |     :---:     |   :---:     | 
+| not| else | exists | 
+| if | then | and |
+| or | == | != | < |
+| <= | \> | \>= |
+| ? | \+ | \- |
+| , | \* | / |
+
+such as: "foo" : "\<ok\>" requires escaping such as "foo": "\'\<ok\>\'"
 
 The following functions are supported:
 

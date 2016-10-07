@@ -54,7 +54,7 @@ public class StellarTransformationTest {
    "transformation" : "STELLAR"
    ,"output" : ["newStellarField","utc_timestamp"]
    ,"config" : {
-   "newStellarField" : "\"<<??>>\"",
+   "newStellarField" : "'<<??>>'",
    "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', 'UTC')"
    }
    }
