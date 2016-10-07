@@ -17,16 +17,60 @@
  */
 package org.apache.metron.common.dsl;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
+/**
+ * An annotation used to define a Stellar function.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Stellar {
+
+  /**
+   * The namespace of the function.
+   *
+   * A namespace is optional.  If a namespace is defined, then function resolution requires
+   * the namespace to be prepended to the function name as in 'NAMESPACE_FUNCTION'.
+   */
   String namespace() default "";
+
+  /**
+   * The name of the function.
+   *
+   * A function name is required.
+   */
   String name();
+
+  /**
+   * A description of the function.
+   *
+   * A description is optional.
+   */
   String description() default "";
+
+  /**
+   * A description of what the function returns.
+   *
+   * A description is optional.
+   */
   String returns() default "";
+
+  /**
+   * A description of the parameters required by the function.
+   *
+   * A description of the parameters is optional.
+   */
   String[] params() default {};
+
+  /**
+   * The type of each required parameter.
+   *
+   * Allows functions to easily enforce required parameters.  If no required parameters are defined, then no
+   * enforcement can occur.  The number of required parameters can be less than the total number of parameters,
+   * which would indicate the remainder are optional parameters.
+   *
+   * The required parameters must precede the optional parameters.  The order of required parameters must match
+   * the order as defined in the parameter description field; `params`.
+   */
+  Class[] requiredParams() default {};
 }

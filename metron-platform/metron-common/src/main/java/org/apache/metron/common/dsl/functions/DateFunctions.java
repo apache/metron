@@ -24,6 +24,7 @@ import com.google.common.cache.LoadingCache;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.storm.shade.org.joda.time.DateTime;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -119,8 +120,7 @@ public class DateFunctions {
                         "given timestamp, you may specify the timezone optionally."
           , params = { "dateTime - DateTime in String format"
                      , "format - DateTime format as a String"
-                     , "timezone - Optional timezone in String format"
-                     }
+                     , "timezone - Optional timezone in String format" }
           , returns = "Boolean")
   public static class ToTimestamp extends BaseStellarFunction {
     @Override
