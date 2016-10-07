@@ -198,6 +198,9 @@
               <name>metron-common</name>
             </package>
             <package>
+              <name>metron-data-management</name>
+            </package>
+            <package>
               <name>metron-parsers</name>
             </package>
             <package>
@@ -239,7 +242,6 @@
           </packages>
         </osSpecific>
       </osSpecifics>
-
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
