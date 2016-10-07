@@ -61,7 +61,10 @@ public class BaseStellarFunctionTest {
    */
   @Stellar(
           name = "NeedsIntegersFunction",
-          requiredParams = { Integer.class, Integer.class })
+          description = "A function used only for testing BaseStellarFunction",
+          params = { "First is Integer", "Second is Integer" },
+          requiredParams = { Integer.class, Integer.class },
+          returns = "No one cares" )
   public static class NeedsIntegersFunction extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
