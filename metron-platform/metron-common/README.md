@@ -18,7 +18,8 @@ The query language supports the following:
 
 ##Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
-|               |               |             |
+
+|              |              |           |
 |   :---:       |     :---:     |   :---:     | 
 | not| else | exists | 
 | if | then | and |
