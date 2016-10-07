@@ -14,8 +14,43 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-mysql_rpm_version: mysql57-community-release-el6-7.noarch
-mysql_yum_repo_url: https://dev.mysql.com/get/{{ mysql_rpm_version }}.rpm
-mysql_root_password: P@ssw0rd
-geodata_file: http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
+
+[ambari_master]
+node1
+
+[ambari_slave]
+node1
+
+[metron_hbase_tables]
+node1
+
+[metron_kafka_topics]
+node1
+
+[enrichment]
+node1
+
+[search]
+node1
+
+[web]
+node1
+
+[sensors]
+node1
+
+[pcap_server]
+node1
+
+[mysql]
+node1
+
+[metron:children]
+enrichment
+search
+web
+sensors
+mysql
+metron_kafka_topics
+metron_hbase_tables
+pcap_server

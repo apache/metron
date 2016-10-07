@@ -21,11 +21,11 @@
     <artifactId>metron-rpm</artifactId>
     <packaging>pom</packaging>
     <name>metron-rpm</name>
-    <version>0.2.0BETA</version>
+    <version>0.2.1BETA</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.2.0BETA</version>
+        <version>0.2.1BETA</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>RPM Builder for Apache Metron</description>
@@ -33,7 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <rpm.docker.tag>rpm-docker</rpm.docker.tag>
-        <metron_dir>${parent.relativePath}/..</metron_dir>
+        <metron_dir>${project.parent.relativePath}/..</metron_dir>
     </properties>
     <build>
         <plugins>
