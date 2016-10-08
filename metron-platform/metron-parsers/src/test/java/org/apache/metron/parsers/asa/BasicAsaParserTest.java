@@ -27,7 +27,7 @@ import java.io.InputStream;
 
 import static org.junit.Assert.*;
 
-public class BasicAsaParserTest {
+public class BasicAsaParserTest {   //TODO: add additional unit tests for, malformed IPs, IPv6, garbage data
 
     private static BasicAsaParser asaParser;
 

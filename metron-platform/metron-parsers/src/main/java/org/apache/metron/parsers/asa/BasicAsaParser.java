@@ -106,15 +106,15 @@ public class BasicAsaParser extends BasicParser {
         String syslogPattern = "%{CISCO_TAGGED_SYSLOG}";
         JSONObject metronJson = new JSONObject();
         List<JSONObject> messages = new ArrayList<>();
-        try {
+        try {   //TODO: split parsing into two try/catch blocks, 1 for syslog wrapper, 1 for cisco message
             String logLine = new String(rawMessage, "UTF-8");
-            LOG.trace("[Metron] Started parsing raw message: " + logLine);
+            LOG.trace("[Metron] Started parsing raw message: {}", logLine);
 
             asaGrok.compile(syslogPattern);
             Match syslogMatch = asaGrok.match(logLine);
             syslogMatch.captures();
             Map<String, Object> syslogJson = syslogMatch.toMap();
-            LOG.trace("[Metron] Grok CISCO syslog matches: " + syslogMatch.toJson());
+            LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch.toJson());
 
             metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
             metronJson.put(Constants.Fields.TIMESTAMP.getName(),
@@ -128,7 +128,7 @@ public class BasicAsaParser extends BasicParser {
             Match messageMatch = asaGrok.match((String) syslogJson.get("message"));
             messageMatch.captures();
             Map<String, Object> messageJson = messageMatch.toMap();
-            LOG.trace("[Metron] Grok CISCO message matches: " + messageMatch.toJson());
+            LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch.toJson());
 
             String src_ip = (String) messageJson.get("src_ip");
             if (src_ip != null && ipValidator.isValid(src_ip))
@@ -154,10 +154,10 @@ public class BasicAsaParser extends BasicParser {
             if (action != null)
                 metronJson.put("action", action.toLowerCase());
 
-            LOG.trace("[Metron] Final normalized message: " + metronJson.toString());
+            LOG.trace("[Metron] Final normalized message: {}", metronJson.toString());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);   //TODO: add additional context for troubleshooting
         }
         messages.add(metronJson);
         return messages;

@@ -21,9 +21,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class SyslogUtils {
+public class SyslogUtils {  //TODO: add unit tests for these methods
 
-    public static long convertToEpochMillis(String logTimestamp, String logTimeFormat) {
+    public static long convertToEpochMillis(String logTimestamp, String logTimeFormat) {    //TODO: hanlde non-UTC timestamps
         ZonedDateTime timestamp = ZonedDateTime.parse(logTimestamp, DateTimeFormatter.ofPattern(logTimeFormat).withZone(ZoneOffset.UTC));
         return timestamp.toEpochSecond() * 1000;
     }
@@ -33,7 +33,7 @@ public class SyslogUtils {
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
             int year = now.getYear();
             if (now.getDayOfYear() == 1 && !now.getMonth().toString().substring(0,3).equals(logTimestamp.substring(0,3).toUpperCase()))
-                year--;
+                year--; //TODO: add comments to explain logic
             logTimestamp = logTimestamp + " " + year;
             return convertToEpochMillis(logTimestamp, "MMM ppd HH:mm:ss yyyy");
         }
