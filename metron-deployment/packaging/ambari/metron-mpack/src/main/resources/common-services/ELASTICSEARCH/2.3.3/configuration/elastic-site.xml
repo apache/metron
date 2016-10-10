@@ -47,7 +47,15 @@
         <name>path_data</name>
         <value>"/opt/lmm/es_data"</value>
         <description>Path to directory where to store index data allocated for this node. e.g. "/mnt/first", "/mnt/second"</description>
-    </property>    
+    </property>
+    <property>
+        <name>http_cors_enabled</name>
+        <value>"false"</value>
+        <description>Enable or disable cross-origin resource sharing, i.e. whether a browser on another origin can do requests to Elasticsearch. Defaults to false.</description>
+        <value-attributes>
+            <type>string</type>
+        </value-attributes>
+    </property>
     <!--  Discovery -->
     <property>
         <name>transport_tcp_port</name>
