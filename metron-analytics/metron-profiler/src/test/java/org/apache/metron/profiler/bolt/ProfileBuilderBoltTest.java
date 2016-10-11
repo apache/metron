@@ -31,7 +31,6 @@ import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
