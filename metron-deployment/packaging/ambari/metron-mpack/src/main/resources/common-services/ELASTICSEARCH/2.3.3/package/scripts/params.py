@@ -45,6 +45,7 @@ cluster_name = config['configurations']['elastic-site']['cluster_name']
 zen_discovery_ping_unicast_hosts = config['configurations']['elastic-site']['zen_discovery_ping_unicast_hosts']
 
 path_data = config['configurations']['elastic-site']['path_data']
+http_cors_enabled = config['configurations']['elastic-site']['http_cors_enabled']
 http_port = config['configurations']['elastic-site']['http_port']
 transport_tcp_port = config['configurations']['elastic-site']['transport_tcp_port']
 

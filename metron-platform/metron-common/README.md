@@ -16,6 +16,20 @@ The query language supports the following:
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions
 
+##Stellar Language Keywords
+The following keywords need to be single quote escaped in order to be used in Stellar expressions:
+
+|              |              |           |
+|   :---:       |     :---:     |   :---:     | 
+| not| else | exists | 
+| if | then | and |
+| or | == | != | < |
+| <= | \> | \>= |
+| ? | \+ | \- |
+| , | \* | / |
+
+such as: "foo" : "\<ok\>" requires escaping such as "foo": "\'\<ok\>\'"
+
 The following functions are supported:
 
 * `BLOOM_ADD`
