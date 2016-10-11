@@ -70,8 +70,10 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     String timeZoneParam = (String) parserConfig.get("timeZone");
     if (timeZoneParam != null) {
       dateFormat.setTimeZone(TimeZone.getTimeZone(timeZoneParam));
+      LOG.debug("Grok Parser using provided TimeZone: {}", timeZoneParam);
     } else {
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      LOG.debug("Grok Parser using default TimeZone (UTC)");
     }
   }
 
@@ -201,9 +203,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected long toEpoch(String datetime) throws ParseException {
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser converting timestamp to epoch: " + datetime);
-    }
+    LOG.debug("Grok parser converting timestamp to epoch: {}", datetime);
+    LOG.debug("Grok parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
 
     Date date = dateFormat.parse(datetime);
     if (LOG.isDebugEnabled()) {
