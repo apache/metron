@@ -20,12 +20,12 @@
   when: (ansible_distribution != "CentOS" or ansible_distribution_major_version != "6")
 
 - name: Check for Metron jar path
-  stat: path={{ metron_jar_path }}
+  local_action: stat path={{ metron_jar_path }}
   register: metron_jars
 
 - name: Verify Metron jars exist
   fail: msg="Unable to locate staged Metron jars at {{ metron_jar_path }}.  Did you run 'mvn package'?"
-  when: metron_jars.stat.exists == True
+  when: not metron_jars.stat.exists
 
 - name: Ensure iptables is stopped and is not running at boot time.
   ignore_errors: yes
