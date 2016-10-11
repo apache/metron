@@ -17,28 +17,64 @@
  */
 package org.apache.metron.parsers.utils;
 
-import java.time.ZoneOffset;
+import org.apache.metron.parsers.ParseException;
+
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.regex.Pattern;
 
-public class SyslogUtils {  //TODO: add unit tests for these methods
+import static java.time.temporal.ChronoField.*;
 
-    public static long convertToEpochMillis(String logTimestamp, String logTimeFormat) {    //TODO: hanlde non-UTC timestamps
-        ZonedDateTime timestamp = ZonedDateTime.parse(logTimestamp, DateTimeFormatter.ofPattern(logTimeFormat).withZone(ZoneOffset.UTC));
-        return timestamp.toEpochSecond() * 1000;
+public class SyslogUtils {
+
+    public static long parseTimestampToEpochMillis(String logTimestamp, ZoneId timeZone) throws ParseException {
+        // RFC3164 (standard syslog timestamp; no year)
+        // MMM ppd HH:mm:ss
+        // Oct  9 2015 13:42:11
+        if (Pattern.matches("[A-Z][a-z]{2}(?:(?:\\s{2}\\d)|(?:\\s\\d{2}))\\s\\d{2}:\\d{2}:\\d{2}", logTimestamp)) {
+            DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("MMM ppd HH:mm:ss").withZone(timeZone);
+
+            TemporalAccessor inputDate = inputFormat.parse(logTimestamp);
+            int inputMonth = inputDate.get(MONTH_OF_YEAR);
+            int inputDay = inputDate.get(DAY_OF_MONTH);
+            int inputHour = inputDate.get(HOUR_OF_DAY);
+            int inputMinute = inputDate.get(MINUTE_OF_HOUR);
+            int inputSecond = inputDate.get(SECOND_OF_MINUTE);
+
+            ZonedDateTime currentDate = ZonedDateTime.now(timeZone);
+            int normalizedYear = currentDate.getYear();
+
+            /**
+             * Since no year is provided, one must be derived.
+             *   During the month of January (first 31 days of the year), assume logs coming in from
+             *   November (11) and December (12) are from the previous year.
+             */
+            if (currentDate.getDayOfYear() <= 31 && inputMonth >= 11)
+                normalizedYear--;
+            ZonedDateTime normalizedTimestamp = ZonedDateTime.of(normalizedYear, inputMonth, inputDay, inputHour, inputMinute, inputSecond, 0, timeZone);
+            return normalizedTimestamp.toInstant().toEpochMilli();
+        }
+
+        // CISCO timestamp (standard syslog + year)
+        // MMM dd yyyy HH:mm:ss
+        // Oct 09 2015 13:42:11
+        else if (Pattern.matches("[A-Z][a-z]{2}\\s\\d{2}\\s\\d{4}\\s\\d{2}:\\d{2}:\\d{2}", logTimestamp))
+            return convertToEpochMillis(logTimestamp, DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss").withZone(timeZone));
+
+        // RFC5424 (ISO timestamp)
+        // 2015-10-09T13:42:11.52Z or 2015-10-09T13:42:11.52-04:00
+        else if (Pattern.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})", logTimestamp))
+            return convertToEpochMillis(logTimestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+        else
+            throw new ParseException(String.format("Unsupported date format: '%s'", logTimestamp));
     }
 
-    public static long parseTimestampToEpochMillis(String logTimestamp) {
-        if (logTimestamp.length() < 20) {
-            ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-            int year = now.getYear();
-            if (now.getDayOfYear() == 1 && !now.getMonth().toString().substring(0,3).equals(logTimestamp.substring(0,3).toUpperCase()))
-                year--; //TODO: add comments to explain logic
-            logTimestamp = logTimestamp + " " + year;
-            return convertToEpochMillis(logTimestamp, "MMM ppd HH:mm:ss yyyy");
-        }
-        else
-            return convertToEpochMillis(logTimestamp, "MMM dd yyyy HH:mm:ss");
+    private static long convertToEpochMillis(String logTimestamp, DateTimeFormatter logTimeFormat) {
+        ZonedDateTime timestamp = ZonedDateTime.parse(logTimestamp, logTimeFormat);
+        return timestamp.toInstant().toEpochMilli();
     }
 
     public static String getSeverityFromPriority(int priority) {

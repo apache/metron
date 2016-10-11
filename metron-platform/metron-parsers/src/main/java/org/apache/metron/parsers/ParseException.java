@@ -15,14 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.utils;
+package org.apache.metron.parsers;
 
-public class FieldValidators {
+public class ParseException extends Exception {
 
-    public static boolean isValidPort(int portNumber) {
-        if (portNumber > 1 && portNumber < 65536)
-            return true;
-        else
-            return false;
+    public ParseException(String message) {
+        super(message);
+    }
+
+    public ParseException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

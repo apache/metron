@@ -21,16 +21,17 @@ import com.google.common.collect.ImmutableMap;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
-import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.utils.FieldValidators;
+import org.apache.metron.parsers.ParseException;
 import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 
 public class BasicAsaParser extends BasicParser {
@@ -38,8 +39,7 @@ public class BasicAsaParser extends BasicParser {
     protected static final Logger LOG = LoggerFactory.getLogger(BasicAsaParser.class);
 
     private Grok asaGrok;
-
-    private static final InetAddressValidator ipValidator = InetAddressValidator.getInstance();
+    protected ZoneId deviceTimeZone;
 
     private static final Map<String, String> patternMap = ImmutableMap.<String, String>builder()
             .put("ASA-2-106001", "CISCOFW106001")
@@ -85,8 +85,14 @@ public class BasicAsaParser extends BasicParser {
             .build();
 
     @Override
-    public void configure(Map<String, Object> config) {
-
+    public void configure(Map<String, Object> parserConfig) {
+        String timeZone = (String) parserConfig.get("deviceTimeZone");
+        if (timeZone != null)
+            deviceTimeZone = ZoneId.of(timeZone);
+        else {
+            deviceTimeZone = ZoneOffset.UTC;
+            LOG.warn("[Metron] No device time zone provided; defaulting to UTC");
+        }
     }
 
     @Override
@@ -96,69 +102,107 @@ public class BasicAsaParser extends BasicParser {
         try {
             asaGrok.addPatternFromReader(new InputStreamReader(patternStream));
         } catch (GrokException e) {
-            e.printStackTrace();
+            LOG.error("[Metron] Failed to load grok patterns from jar", e);
         }
         LOG.info("[Metron] CISCO ASA Parser Initialized");
     }
 
     @Override
     public List<JSONObject> parse(byte[] rawMessage) {
+        String logLine = "";
         String syslogPattern = "%{CISCO_TAGGED_SYSLOG}";
+        String messagePattern = "";
         JSONObject metronJson = new JSONObject();
         List<JSONObject> messages = new ArrayList<>();
-        try {   //TODO: split parsing into two try/catch blocks, 1 for syslog wrapper, 1 for cisco message
-            String logLine = new String(rawMessage, "UTF-8");
-            LOG.trace("[Metron] Started parsing raw message: {}", logLine);
+        Map<String, Object> syslogJson = new HashMap<String, Object>();
+
+        try {
+            logLine = new String(rawMessage, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            LOG.error("[Metron] Could not read raw message", e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        try {
+            LOG.debug("[Metron] Started parsing raw message: {}", logLine);
 
             asaGrok.compile(syslogPattern);
             Match syslogMatch = asaGrok.match(logLine);
             syslogMatch.captures();
-            Map<String, Object> syslogJson = syslogMatch.toMap();
-            LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch.toJson());
+            if(!syslogMatch.isNull()) {
+                syslogJson = syslogMatch.toMap();
+                LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch.toJson());
 
-            metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
-            metronJson.put(Constants.Fields.TIMESTAMP.getName(),
-                    SyslogUtils.parseTimestampToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP")));
-            metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
-            metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
-            metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
-
-            String messagePattern = patternMap.get(syslogJson.get("CISCOTAG"));
-            asaGrok.compile("%{"+ messagePattern +"}");
-            Match messageMatch = asaGrok.match((String) syslogJson.get("message"));
-            messageMatch.captures();
-            Map<String, Object> messageJson = messageMatch.toMap();
-            LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch.toJson());
-
-            String src_ip = (String) messageJson.get("src_ip");
-            if (src_ip != null && ipValidator.isValid(src_ip))
-                metronJson.put(Constants.Fields.SRC_ADDR.getName(), src_ip);
-
-            Integer src_port = (Integer) messageJson.get("src_port");
-            if (src_port != null && FieldValidators.isValidPort(src_port))
-                metronJson.put(Constants.Fields.SRC_PORT.getName(), src_port);
-
-            String dst_ip = (String) messageJson.get("dst_ip");
-            if (dst_ip != null && ipValidator.isValid(dst_ip))
-                metronJson.put(Constants.Fields.DST_ADDR.getName(), dst_ip);
-
-            Integer dst_port = (Integer) messageJson.get("dst_port");
-            if (dst_port != null && FieldValidators.isValidPort(dst_port))
-                metronJson.put(Constants.Fields.DST_PORT.getName(), dst_port);
-
-            String protocol = (String) messageJson.get("protocol");
-            if (protocol != null)
-                metronJson.put(Constants.Fields.PROTOCOL.getName(), protocol.toLowerCase());
-
-            String action = (String) messageJson.get("action");
-            if (action != null)
-                metronJson.put("action", action.toLowerCase());
-
-            LOG.trace("[Metron] Final normalized message: {}", metronJson.toString());
-
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);   //TODO: add additional context for troubleshooting
+                metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
+                metronJson.put(Constants.Fields.TIMESTAMP.getName(),
+                        SyslogUtils.parseTimestampToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP"), deviceTimeZone));
+                metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
+                metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
+                metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
+            }
+            else
+                throw new RuntimeException(String.format("[Metron] Message '%s' does not match pattern '%s'", logLine, syslogPattern));
+        } catch (GrokException e) {
+            LOG.error(String.format("[Metron] Could not compile grok pattern '%s'", syslogPattern), e);
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (ParseException e) {
+            LOG.error("[Metron] Could not parse message timestamp", e);
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (RuntimeException e) {
+            LOG.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
+
+        try {
+            messagePattern = patternMap.get(syslogJson.get("CISCOTAG"));
+            if (messagePattern == null)
+                LOG.info("[Metron] No pattern for ciscotag '{}'", syslogJson.get("CISCOTAG"));
+            else {
+                asaGrok.compile("%{" + messagePattern + "}");
+                Match messageMatch = asaGrok.match((String) syslogJson.get("message"));
+                messageMatch.captures();
+                if (!messageMatch.isNull()) {
+                    Map<String, Object> messageJson = messageMatch.toMap();
+                    LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch.toJson());
+
+                    String src_ip = (String) messageJson.get("src_ip");
+                    if (src_ip != null)
+                        metronJson.put(Constants.Fields.SRC_ADDR.getName(), src_ip);
+
+                    Integer src_port = (Integer) messageJson.get("src_port");
+                    if (src_port != null)
+                        metronJson.put(Constants.Fields.SRC_PORT.getName(), src_port);
+
+                    String dst_ip = (String) messageJson.get("dst_ip");
+                    if (dst_ip != null)
+                        metronJson.put(Constants.Fields.DST_ADDR.getName(), dst_ip);
+
+                    Integer dst_port = (Integer) messageJson.get("dst_port");
+                    if (dst_port != null)
+                        metronJson.put(Constants.Fields.DST_PORT.getName(), dst_port);
+
+                    String protocol = (String) messageJson.get("protocol");
+                    if (protocol != null)
+                        metronJson.put(Constants.Fields.PROTOCOL.getName(), protocol.toLowerCase());
+
+                    String action = (String) messageJson.get("action");
+                    if (action != null)
+                        metronJson.put("action", action.toLowerCase());
+                }
+                else
+                    LOG.warn("[Metron] Message '{}' did not match pattern for ciscotag '{}'", logLine, syslogJson.get("CISCOTAG"));
+            }
+
+            LOG.debug("[Metron] Final normalized message: {}", metronJson.toString());
+
+        } catch (GrokException e) {
+            LOG.error(String.format("[Metron] Could not compile grok pattern '%s'", messagePattern), e);
+            throw new RuntimeException(e.getMessage(), e);
+        } catch (RuntimeException e) {
+            LOG.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
         messages.add(metronJson);
         return messages;
     }
