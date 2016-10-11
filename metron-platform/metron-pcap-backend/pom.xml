@@ -21,8 +21,6 @@
         <version>0.2.1BETA</version>
     </parent>
     <artifactId>metron-pcap-backend</artifactId>
-    <name>Metron PCAP Backend</name>
-    <description>The Metron PCAP Backend Topology</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

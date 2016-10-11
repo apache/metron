@@ -26,7 +26,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -35,6 +35,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.writer.AbstractWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -237,7 +238,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   }
 
   @Override
-  public void write( String sensorType
+  public BulkWriterResponse write(String sensorType
                     , WriterConfiguration configurations
                     , Iterable<Tuple> tuples
                     , List<JSONObject> messages
@@ -261,7 +262,18 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         puts.add(put);
       }
     }
-    table.put(puts);
+
+    BulkWriterResponse response = new BulkWriterResponse();
+    try {
+      table.put(puts);
+    } catch (Exception e) {
+      response.addAllErrors(e, tuples);
+      return response;
+    }
+
+    // Can return no errors, because put will throw Exception on error.
+    response.addAllSuccesses(tuples);
+    return response;
   }
 
   @Override

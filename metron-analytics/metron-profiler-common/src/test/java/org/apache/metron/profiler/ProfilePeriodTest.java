@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler;
 
+import org.apache.metron.profiler.ProfilePeriod;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;

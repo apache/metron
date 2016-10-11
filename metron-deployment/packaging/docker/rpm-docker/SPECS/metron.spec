@@ -134,7 +134,7 @@ This package installs the Metron Parser files
 %{metron_home}/patterns/squid
 %{metron_home}/patterns/websphere
 %{metron_home}/patterns/yaf
-%attr(0644,root,root) %{metron_home}/lib/metron-parsers-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-parsers-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -155,7 +155,7 @@ This package installs the Metron Elasticsearch files
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_elasticsearch_topology.sh
 %{metron_home}/config/elasticsearch.properties
-%attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -201,7 +201,7 @@ This package installs the Metron Solr files
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_solr_topology.sh
 %{metron_home}/config/solr.properties
-%attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
 

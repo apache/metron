@@ -23,12 +23,11 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.common.utils.ReflectionUtils;
-import org.apache.metron.common.interfaces.MessageWriter;
+import org.apache.metron.common.writer.MessageWriter;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;

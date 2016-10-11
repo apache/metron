@@ -154,10 +154,12 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param entity The name of the entity.
    */
   private static byte[] prefixKey(String profile, String entity) {
+    byte[] profileBytes = Bytes.toBytes(profile);
+    byte[] entityBytes = Bytes.toBytes(entity);
     return ByteBuffer
-            .allocate(profile.length() + entity.length())
-            .put(profile.getBytes())
-            .put(entity.getBytes())
+            .allocate(profileBytes.length + entityBytes.length)
+            .put(profileBytes)
+            .put(entityBytes)
             .array();
   }
 
@@ -166,15 +168,9 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param groups The groups to include in the row key.
    */
   private static byte[] groupKey(List<Object> groups) {
-
     StringBuilder builder = new StringBuilder();
     groups.forEach(g -> builder.append(g));
-    String groupStr = builder.toString();
-
-    return ByteBuffer
-            .allocate(groupStr.length())
-            .put(groupStr.getBytes())
-            .array();
+    return Bytes.toBytes(builder.toString());
   }
 
   /**
@@ -182,10 +178,7 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param period The ProfilePeriod in which the ProfileMeasurement was taken.
    */
   private static byte[] timeKey(ProfilePeriod period) {
-    return ByteBuffer
-            .allocate(Long.BYTES)
-            .putLong(period.getPeriod())
-            .array();
+    return Bytes.toBytes(period.getPeriod());
   }
 
   /**
@@ -198,17 +191,14 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   public static byte[] getSalt(ProfilePeriod period, int saltDivisor) {
     try {
+      // an MD5 is 16 bytes aka 128 bits
       MessageDigest digest = MessageDigest.getInstance("MD5");
       byte[] hash = digest.digest(timeKey(period));
-      int salt = Bytes.toInt(hash) % saltDivisor;
-      return ByteBuffer
-              .allocate(Integer.BYTES)
-              .putInt(salt)
-              .array();
+      int salt = Bytes.toShort(hash) % saltDivisor;
+      return Bytes.toBytes(salt);
 
     } catch(NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
   }
-
 }

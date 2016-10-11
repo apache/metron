@@ -86,10 +86,10 @@ public class FixedPcapFilter implements PcapFilter {
   public boolean test(PacketInfo pi) {
     VariableResolver resolver = new PcapFieldResolver(packetToFields(pi));
     String srcAddrIn = (String) resolver.resolve(Constants.Fields.SRC_ADDR.getName());
-    String srcPortIn = (String) resolver.resolve(Constants.Fields.SRC_PORT.getName());
+    Integer srcPortIn = (Integer) resolver.resolve(Constants.Fields.SRC_PORT.getName());
     String dstAddrIn = (String) resolver.resolve(Constants.Fields.DST_ADDR.getName());
-    String dstPortIn = (String) resolver.resolve(Constants.Fields.DST_PORT.getName());
-    String protocolIn = (String) resolver.resolve(Constants.Fields.PROTOCOL.getName());
+    Integer dstPortIn = (Integer) resolver.resolve(Constants.Fields.DST_PORT.getName());
+    String protocolIn = "" + resolver.resolve(Constants.Fields.PROTOCOL.getName());
 
     if (areMatch(protocol, protocolIn)) {
       if (matchesSourceAndDestination(srcAddrIn, srcPortIn, dstAddrIn, dstPortIn)) {
@@ -101,8 +101,8 @@ public class FixedPcapFilter implements PcapFilter {
     return false;
   }
 
-  private boolean areMatch(Integer filter, String input) {
-    return filter == null || areMatch(filter.toString(), input);
+  private boolean areMatch(Integer filter, Integer input) {
+    return filter == null || areMatch(Integer.toUnsignedString(filter), Integer.toUnsignedString(input));
   }
 
   private boolean areMatch(String filter, String input) {
@@ -118,9 +118,9 @@ public class FixedPcapFilter implements PcapFilter {
   }
 
   private boolean matchesSourceAndDestination(String srcAddrComp,
-                                              String srcPortComp,
+                                              Integer srcPortComp,
                                               String dstAddrComp,
-                                              String dstPortComp) {
+                                              Integer dstPortComp) {
     boolean isMatch = true;
     isMatch &= areMatch(this.srcAddr, srcAddrComp);
     isMatch &= areMatch(this.srcPort, srcPortComp);
@@ -130,9 +130,9 @@ public class FixedPcapFilter implements PcapFilter {
   }
 
   private boolean matchesReverseSourceAndDestination(String srcAddr,
-                                                     String srcPort,
+                                                     Integer srcPort,
                                                      String dstAddr,
-                                                     String dstPort) {
+                                                     Integer dstPort) {
     return matchesSourceAndDestination(dstAddr, dstPort, srcAddr, srcPort);
   }
 

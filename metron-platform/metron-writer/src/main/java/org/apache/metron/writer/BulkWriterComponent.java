@@ -23,7 +23,8 @@ import backtype.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,11 +56,22 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
   }
 
+  public void commit(BulkWriterResponse response) {
+      commit(response.getSuccesses());
+  }
+
   public void error(Throwable e, Iterable<Tuple> tuples) {
     tuples.forEach(t -> collector.ack(t));
     if(!Iterables.isEmpty(tuples)) {
       LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
       ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
+    }
+  }
+
+  public void error(BulkWriterResponse errors) {
+    Map<Throwable, Collection<Tuple>> errorMap = errors.getErrors();
+    for(Map.Entry<Throwable, Collection<Tuple>> entry : errorMap.entrySet()) {
+      error(entry.getKey(), entry.getValue());
     }
   }
 
@@ -104,12 +116,20 @@ public class BulkWriterComponent<MESSAGE_T> {
       sensorTupleMap.put(sensorType, tupleList);
       sensorMessageMap.put(sensorType, messageList);
     } else {
+      long startTime = System.nanoTime();
       try {
-        bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
+        BulkWriterResponse response = bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
+
+        // Commit or error piecemeal.
         if(handleCommit) {
-          commit(tupleList);
+          commit(response);
         }
 
+        if(handleError) {
+          error(response);
+        } else if (response.hasErrors()) {
+          throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
+        }
       } catch (Throwable e) {
         if(handleError) {
           error(e, tupleList);
@@ -122,6 +142,9 @@ public class BulkWriterComponent<MESSAGE_T> {
         sensorTupleMap.remove(sensorType);
         sensorMessageMap.remove(sensorType);
       }
+      long endTime = System.nanoTime();
+      long elapsed = endTime - startTime;
+      LOG.debug("Bulk batch completed in ~" + elapsed + " ns");
     }
   }
 }

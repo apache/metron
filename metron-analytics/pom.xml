@@ -44,7 +44,8 @@
 		<module>metron-maas-common</module>
 		<module>metron-profiler</module>
 		<module>metron-profiler-client</module>
-	</modules>
+		<module>metron-profiler-common</module>
+    </modules>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
