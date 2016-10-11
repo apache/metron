@@ -31,12 +31,8 @@ public class PcapFieldResolver implements VariableResolver {
   }
 
   @Override
-  public String resolve(String variable) {
-    Object obj = fieldsMap.get(Constants.Fields.fromString(variable));
-    if (obj != null) {
-      return obj.toString();
-    } else {
-      return null;
-    }
+  public Object resolve(String variable) {
+    return fieldsMap.get(Constants.Fields.fromString(variable));
   }
+
 }
