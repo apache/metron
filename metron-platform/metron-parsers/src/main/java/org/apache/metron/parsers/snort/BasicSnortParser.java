@@ -17,7 +17,10 @@
  */
 package org.apache.metron.parsers.snort;
 
+import com.google.common.collect.Lists;
+import jdk.nashorn.internal.runtime.arrays.ArrayIndex;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -72,14 +75,26 @@ public class BasicSnortParser extends BasicParser {
    */
   private String recordDelimiter = ",";
 
-  @Override
-  public void configure(Map<String, Object> parserConfig) {
+  private transient CSVConverter converter;
+
+  public BasicSnortParser() {
 
   }
 
   @Override
-  public void init() {
+  public void configure(Map<String, Object> parserConfig) {
+    init();
+  }
 
+  @Override
+  public void init() {
+    if(converter == null) {
+      converter = new CSVConverter();
+      Map<String, Object> config = new HashMap<>();
+      config.put(CSVConverter.SEPARATOR_KEY, recordDelimiter);
+      config.put(CSVConverter.COLUMNS_KEY, Lists.newArrayList(fieldNames));
+      converter.initialize(config);
+    }
   }
 
   @Override
@@ -90,18 +105,24 @@ public class BasicSnortParser extends BasicParser {
     try {
       // snort alerts expected as csv records
       String csvMessage = new String(rawMessage, "UTF-8");
-      String[] records = csvMessage.split(recordDelimiter, -1);
+      Map<String, String> records = null;
+      try {
+         records = converter.toMap(csvMessage);
+      }
+      catch(ArrayIndexOutOfBoundsException aioob) {
+        throw new IllegalArgumentException("Unexpected number of fields, expected: " + fieldNames.length + " in " + csvMessage);
+      }
 
       // validate the number of fields
-      if (records.length != fieldNames.length) {
-        throw new IllegalArgumentException("Unexpected number of fields, expected: " + fieldNames.length + " got: " + records.length);
+      if (records.size() != fieldNames.length) {
+        throw new IllegalArgumentException("Unexpected number of fields, expected: " + fieldNames.length + " got: " + records.size());
       }
       long timestamp = 0L;
       // build the json record from each field
-      for (int i=0; i<records.length; i++) {
+      for (Map.Entry<String, String> kv : records.entrySet()) {
 
-        String field = fieldNames[i];
-        String record = records[i];
+        String field = kv.getKey();
+        String record = kv.getValue();
 
         if("timestamp".equals(field)) {
 
@@ -119,7 +140,7 @@ public class BasicSnortParser extends BasicParser {
       jsonMessage.put("is_alert", "true");
       messages.add(jsonMessage);
     } catch (Exception e) {
-      String message = "Unable to parse message: " + rawMessage;
+      String message = "Unable to parse message: " + (rawMessage == null?"null" : new String(rawMessage));
       _LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }
