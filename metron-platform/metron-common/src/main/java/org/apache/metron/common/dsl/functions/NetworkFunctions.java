@@ -87,18 +87,13 @@ public class NetworkFunctions {
         String dn = dnObj.toString();
         String tld = idn.publicSuffix().toString();
         String suffix = dn.substring(0, dn.length() - tld.length());
-        if(suffix != null )
-        {
-          String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
-          String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
-          if(hostnameWithoutSubsAndTLD == null) {
-            return null;
-          }
-          return hostnameWithoutSubsAndTLD + "." + tld;
-        }
-        else {
+        String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
+        String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
+        if(hostnameWithoutSubsAndTLD == null) {
           return null;
         }
+        return hostnameWithoutSubsAndTLD + "." + tld;
+
       }
       return null;
     }
