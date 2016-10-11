@@ -20,7 +20,7 @@ package org.apache.metron.common.spout.kafka;
 
 import com.google.common.base.Joiner;
 import org.apache.metron.common.utils.ConversionUtils;
-import storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.SpoutConfig;
 
 import java.util.EnumMap;
 import java.util.Map;

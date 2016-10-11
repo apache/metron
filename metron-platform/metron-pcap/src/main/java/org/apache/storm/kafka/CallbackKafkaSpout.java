@@ -15,13 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package storm.kafka;
+package org.apache.storm.kafka;
 
-import backtype.storm.Config;
-import backtype.storm.metric.api.IMetric;
-import backtype.storm.spout.SpoutOutputCollector;
-import backtype.storm.task.TopologyContext;
-import storm.kafka.*;
+import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.task.TopologyContext;
 
 import java.util.*;
 
@@ -39,11 +36,13 @@ public class CallbackKafkaSpout extends KafkaSpout {
         callbackClazz = callback;
     }
 
-    public void initialize() {
+    public void initialize(TopologyContext context) {
         _callback = createCallback(callbackClazz);
-        _context = new EmitContext().with(EmitContext.Type.SPOUT_CONFIG, _spoutConfig)
-                                    .with(EmitContext.Type.UUID, _uuid)
-                                    .with(EmitContext.Type.TOPIC, _spoutConfig.topic);
+        //TODO figure out if there's a better way to handle this now
+//        _context = new EmitContext().with(EmitContext.Type.SPOUT_CONFIG, _spoutConfig)
+//                                    .with(EmitContext.Type.UUID, context.getStormId())
+//                                    .with(EmitContext.Type.TOPIC, _spoutConfig.topic);
+        _context = new EmitContext().with(EmitContext.Type.TOPOLOGY_CONTEXT, context);
         _callback.initialize(_context);
     }
 
@@ -70,7 +69,7 @@ public class CallbackKafkaSpout extends KafkaSpout {
     @Override
     public void open(Map conf, final TopologyContext context, final SpoutOutputCollector collector) {
         if(_callback == null) {
-            initialize();
+            initialize(context);
         }
         super.open( conf, context
                   , new CallbackCollector(_callback, collector

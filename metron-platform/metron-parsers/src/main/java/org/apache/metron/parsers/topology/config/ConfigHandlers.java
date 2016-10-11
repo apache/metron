@@ -18,7 +18,7 @@
 
 package org.apache.metron.parsers.topology.config;
 
-import backtype.storm.Config;
+import org.apache.storm.Config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.utils.JSONUtils;

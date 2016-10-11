@@ -20,7 +20,7 @@ package org.apache.metron.spout.pcap;
 
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.spout.pcap.scheme.TimestampScheme;
-import storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.BrokerHosts;
 
 public class SpoutConfig extends org.apache.metron.common.spout.kafka.SpoutConfig{
 

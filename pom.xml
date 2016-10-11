@@ -32,8 +32,8 @@
     <properties>
         <twitter>@ApacheMetron</twitter>
         <global_opencsv_version>3.7</global_opencsv_version>
-        <global_storm_version>0.10.0</global_storm_version>
-        <global_flux_version>0.10.0</global_flux_version>
+        <global_storm_version>1.0.1</global_storm_version>
+        <global_flux_version>1.0.1</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_kafka_version>0.8.2.2</global_kafka_version>
         <global_hadoop_version>2.7.1</global_hadoop_version>

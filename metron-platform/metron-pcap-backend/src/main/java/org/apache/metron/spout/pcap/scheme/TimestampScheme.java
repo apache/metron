@@ -18,9 +18,9 @@
 
 package org.apache.metron.spout.pcap.scheme;
 
-import backtype.storm.spout.MultiScheme;
+import org.apache.storm.spout.MultiScheme;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
-import storm.kafka.KeyValueSchemeAsMultiScheme;
+import org.apache.storm.kafka.KeyValueSchemeAsMultiScheme;
 
 public enum TimestampScheme {
    FROM_KEY( converter -> new KeyValueSchemeAsMultiScheme(new FromKeyScheme().withTimestampConverter(converter)))

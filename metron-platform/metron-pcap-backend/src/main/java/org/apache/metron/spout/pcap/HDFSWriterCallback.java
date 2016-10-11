@@ -30,9 +30,9 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
-import storm.kafka.Callback;
-import storm.kafka.EmitContext;
-import storm.kafka.PartitionManager;
+import org.apache.storm.kafka.Callback;
+import org.apache.storm.kafka.EmitContext;
+import org.apache.storm.kafka.PartitionManager;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
