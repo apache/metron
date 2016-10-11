@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.interfaces.BulkMessageWriter;
 import org.adrianwalker.multilinestring.Multiline;
@@ -33,6 +34,8 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.parsers.interfaces.MessageFilter;
@@ -83,6 +86,29 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Mock
   private Tuple t5;
+
+  private static class RecordingWriter implements BulkMessageWriter<JSONObject> {
+    List<JSONObject> records = new ArrayList<>();
+
+    @Override
+    public void init(Map stormConf, WriterConfiguration config) throws Exception {
+
+    }
+
+    @Override
+    public void write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+      records.addAll(messages);
+    }
+
+    @Override
+    public void close() throws Exception {
+
+    }
+
+    public List<JSONObject> getRecords() {
+      return records;
+    }
+  }
 
 
   @Test
@@ -247,6 +273,74 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
   }
+
+  /**
+  {
+     "sensorTopic":"dummy"
+     ,"parserConfig": {
+      "batchSize" : 1
+     }
+      ,"fieldTransformations" : [
+          {
+           "transformation" : "STELLAR"
+          ,"output" : "timestamp"
+          ,"config" : {
+            "timestamp" : "TO_EPOCH_TIMESTAMP(timestampstr, 'yyyy-MM-dd HH:mm:ss', 'UTC')"
+                      }
+          }
+                               ]
+   }
+   */
+  @Multiline
+  public static String csvWithFieldTransformations;
+
+  @Test
+  public void testFieldTransformationPriorToValidation() {
+    String sensorType = "dummy";
+    RecordingWriter recordingWriter = new RecordingWriter();
+    //create a parser which acts like a basic parser but returns no timestamp field.
+    BasicParser dummyParser = new BasicParser() {
+      @Override
+      public void init() {
+
+      }
+
+      @Override
+      public List<JSONObject> parse(byte[] rawMessage) {
+        return ImmutableList.of(new JSONObject() {{
+                put("data", "foo");
+                put("timestampstr", "2016-01-05 17:02:30");
+                put("original_string", "blah");
+              }});
+      }
+
+      @Override
+      public void configure(Map<String, Object> config) {
+
+      }
+    };
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, dummyParser, new WriterHandler(recordingWriter)) {
+      @Override
+      protected SensorParserConfig getSensorParserConfig() {
+        try {
+          return SensorParserConfig.fromBytes(Bytes.toBytes(csvWithFieldTransformations));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    when(t1.getBinary(0)).thenReturn(new byte[] {});
+    parserBolt.execute(t1);
+    Assert.assertEquals(1, recordingWriter.getRecords().size());
+    long expected = 1452013350000L;
+    Assert.assertEquals(expected, recordingWriter.getRecords().get(0).get("timestamp"));
+  }
+
+
+
   @Test
   public void testBatchOfOne() throws Exception {
 
