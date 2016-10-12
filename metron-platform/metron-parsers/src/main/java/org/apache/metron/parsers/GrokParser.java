@@ -87,7 +87,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
       if (commonInputStream == null) {
         throw new RuntimeException(
-                "Unable to initialize grok parser: Unable to load " + patternsCommonPath + " from either classpath or HDFS");
+                "Unable to initialize grok parser: Unable to load " + patternsCommonPath + " from classpath");
       }
 
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
