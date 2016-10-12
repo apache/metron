@@ -22,6 +22,7 @@ package org.apache.metron.profiler.stellar;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

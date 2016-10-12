@@ -202,4 +202,4 @@ Apache License
 
 ------------------------------------------------------------------------------------
 
-
+This product bundles some test examples from the Stix project (metron-platform/metron-data-management/src/test/resources/stix_example.xml and metron-platform/metron-data-management/src/test/resources/stix_example_wo_conditions.xml), which is available under a BSD license.  For details, see http://stix.mitre.org/about/termsofuse.html

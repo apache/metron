@@ -46,6 +46,39 @@ public class StellarTransformationTest {
    */
   @Multiline
   public static String stellarConfig;
+
+  /**
+   {
+   "fieldTransformations" : [
+   {
+   "transformation" : "STELLAR"
+   ,"output" : ["newStellarField","utc_timestamp"]
+   ,"config" : {
+   "newStellarField" : "'<<??>>'",
+   "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', 'UTC')"
+   }
+   }
+   ]
+   }
+   */
+  @Multiline
+  public static String stellarConfigEspecial;
+
+  @Test
+  public void testStellarSpecialCharacters() throws Exception {
+
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(stellarConfigEspecial));
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
+    JSONObject input = new JSONObject(new HashMap<String, Object>() {{
+      put("timestamp", "2016-01-05 17:02:30");
+    }});
+    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    long expected = 1452013350000L;
+    Assert.assertEquals(expected, input.get("utc_timestamp"));
+    Assert.assertTrue(input.containsKey("timestamp"));
+    Assert.assertTrue(input.containsKey("newStellarField"));
+  }
+
   /**
    * Test the happy path.  This ensures that a simple transformation, converting a timestamp in a yyyy-MM-dd HH:mm:ss
    * format can be converted to the expected UTC MS since Epoch.

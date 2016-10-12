@@ -18,5 +18,5 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-TOPOLOGY_JAR=metron-parsers-$METRON_VERSION.jar
+TOPOLOGY_JAR=metron-parsers-$METRON_VERSION-uber.jar
 storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.metron.parsers.topology.ParserTopologyCLI "$@"
