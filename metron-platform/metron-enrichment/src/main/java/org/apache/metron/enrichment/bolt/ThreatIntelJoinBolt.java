@@ -52,7 +52,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
       if (config != null) {
         return config.getThreatIntel().getEnrichmentConfigs();
       } else {
-        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+        LOG.info("Unable to retrieve a sensor enrichment config of " + sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");
@@ -81,7 +81,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
       return config.getThreatIntel().getFieldMap();
     }
     else {
-      LOG.error("Unable to retrieve sensor config: " + sourceType);
+      LOG.info("Unable to retrieve sensor config: " + sourceType);
       return null;
     }
   }

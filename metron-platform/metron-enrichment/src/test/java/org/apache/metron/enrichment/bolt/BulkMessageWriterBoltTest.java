@@ -23,7 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.writer.bolt.BulkMessageWriterBolt;
 import org.hamcrest.Description;
 import org.json.simple.JSONObject;

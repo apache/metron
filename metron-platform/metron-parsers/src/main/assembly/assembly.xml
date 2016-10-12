@@ -56,7 +56,7 @@
     <fileSet>
       <directory>${project.basedir}/target</directory>
       <includes>
-        <include>${project.artifactId}-${project.version}.jar</include>
+        <include>${project.artifactId}-${project.version}-uber.jar</include>
       </includes>
       <outputDirectory>/lib</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>

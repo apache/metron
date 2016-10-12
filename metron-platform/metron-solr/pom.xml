@@ -40,6 +40,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-enrichment</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.metron</groupId>
+                    <artifactId>metron-profiler-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
@@ -236,7 +242,8 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>uber</shadedClassifierName>
                             <artifactSet>
                                 <excludes>
                                     <exclude>storm:storm-core:*</exclude>

@@ -21,6 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -29,6 +30,9 @@ import org.junit.Test;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -276,12 +280,39 @@ public class StellarTest {
       Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
   }
-
-
   @Test
   public void testHappyPath() {
     String query = "TO_UPPER(TRIM(foo))";
     Assert.assertEquals("CASEY", run(query, ImmutableMap.of("foo", "casey ")));
+  }
+
+  @Test
+  public void testLengthString(){
+    String query = "LENGTH(foo)";
+    Assert.assertEquals(5, run(query,ImmutableMap.of("foo","abcde")));
+  }
+  @Test
+  public void testLengthCollection(){
+    String query = "LENGTH(foo)";
+    Collection c = Arrays.asList(1,2,3,4,5);
+    Assert.assertEquals(5, run(query,ImmutableMap.of("foo",c)));
+  }
+
+  @Test
+  public void testEmptyLengthString(){
+    String query = "LENGTH(foo)";
+    Assert.assertEquals(0,run(query,ImmutableMap.of("foo","")));
+  }
+  @Test
+  public void testEmptyLengthCollection(){
+    String query = "LENGTH(foo)";
+    Collection c = new ArrayList();
+    Assert.assertEquals(0,run(query,ImmutableMap.of("foo",c)));
+  }
+  @Test
+  public void testNoVarLength(){
+    String query = "LENGTH(foo)";
+    Assert.assertEquals(0,run(query,ImmutableMap.of()));
   }
 
   @Test

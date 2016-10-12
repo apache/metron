@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class SnortParserTest {
   /**
-  01/27-16:01:04.877970 ,129,12,1,"Consecutive TCP small segments exceeding threshold",TCP,10.0.2.2,56642,10.0.2.15,22,52:54:00:12:35:02,08:00:27:7F:93:2D,0x4E,***AP***,0x9AFF3D7,0xC8761D52,,0xFFFF,64,0,59677,64,65536,,,,
+  01/27-16:01:04.877970 ,129,12,1,"Consecutive TCP small segments, exceeding threshold",TCP,10.0.2.2,56642,10.0.2.15,22,52:54:00:12:35:02,08:00:27:7F:93:2D,0x4E,***AP***,0x9AFF3D7,0xC8761D52,,0xFFFF,64,0,59677,64,65536,,,,
    **/
   @Multiline
   public static String goodMessage;
@@ -36,8 +36,9 @@ public class SnortParserTest {
   @Test
   public void testGoodMessage() {
     BasicSnortParser parser = new BasicSnortParser();
+    parser.init();
     Map out = parser.parse(goodMessage.getBytes()).get(0);
-    Assert.assertEquals(out.get("msg"),"\"Consecutive TCP small segments exceeding threshold\"");
+    Assert.assertEquals(out.get("msg"),"Consecutive TCP small segments, exceeding threshold");
     Assert.assertEquals(out.get("sig_rev"), "1");
     Assert.assertEquals(out.get("ip_dst_addr"), "10.0.2.15");
     Assert.assertEquals(out.get("ip_dst_port"), "22");
@@ -69,6 +70,7 @@ public class SnortParserTest {
   @Test(expected=IllegalStateException.class)
   public void testBadMessage() {
     BasicSnortParser parser = new BasicSnortParser();
+    parser.init();
     parser.parse("foo bar".getBytes());
   }
 }

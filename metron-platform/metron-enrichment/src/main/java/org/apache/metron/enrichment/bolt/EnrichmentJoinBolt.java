@@ -92,7 +92,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
       if (config != null) {
         return config.getEnrichment().getEnrichmentConfigs();
       } else {
-        LOG.error("Unable to retrieve a sensor enrichment config of " + sensorType);
+        LOG.info("Unable to retrieve a sensor enrichment config of " + sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");
@@ -107,7 +107,7 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
         return config.getEnrichment().getFieldMap();
       }
       else {
-        LOG.error("Unable to retrieve a sensor enrichment config of " + sourceType);
+        LOG.info("Unable to retrieve a sensor enrichment config of " + sourceType);
       }
     }
     else {

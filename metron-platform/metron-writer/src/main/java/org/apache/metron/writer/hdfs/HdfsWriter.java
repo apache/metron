@@ -18,9 +18,9 @@
 package org.apache.metron.writer.hdfs;
 
 import backtype.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.interfaces.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.NoRotationPolicy;
@@ -31,10 +31,7 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   List<RotationAction> rotationActions = new ArrayList<>();
@@ -69,14 +66,22 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
 
   @Override
-  public void write(String sourceType
+  public BulkWriterResponse write(String sourceType
                    , WriterConfiguration configurations
                    , Iterable<Tuple> tuples
                    , List<JSONObject> messages
                    ) throws Exception
   {
+    BulkWriterResponse response = new BulkWriterResponse();
     SourceHandler handler = getSourceHandler(sourceType);
-    handler.handle(messages);
+    try {
+      handler.handle(messages);
+    } catch(Exception e) {
+      response.addAllErrors(e, tuples);
+    }
+
+    response.addAllSuccesses(tuples);
+    return response;
   }
 
   @Override
