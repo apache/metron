@@ -17,17 +17,16 @@
 #
 from cabby import create_client
 
-base_uri = 'http://{{ opentaxii_domain }}'
 try:
     # create a connection
     client = create_client(host='{{ opentaxii_host }}', port='{{ opentaxii_port }}', discovery_path='/services/discovery')
 
     # iterate through each defined collection
-    collections = client.get_collections(uri='%s/services/collection'%base_uri)
+    collections = client.get_collections(uri='{{ opentaxii_domain }}/services/collection')
 
     for collection in collections:
         # how many records in each collection?
-        count = client.get_content_count(collection_name=collection.name, uri='%s/services/poll'%base_uri)
+        count = client.get_content_count(collection_name=collection.name, uri='{{ opentaxii_domain }}/services/poll')
         print "%-50s %-10d" % (collection.name, count.count)
 except:
     print "Services not defined"
