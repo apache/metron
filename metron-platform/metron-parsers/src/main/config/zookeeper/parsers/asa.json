@@ -2,6 +2,6 @@
   "parserClassName": "org.apache.metron.parsers.asa.BasicAsaParser",
   "sensorTopic": "asa",
   "parserConfig": {
-    "deviceTimeZone": "UTC-05:00"
+    "deviceTimeZone": "UTC"
   }
 }
