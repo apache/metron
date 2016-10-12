@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -37,17 +38,17 @@ import org.junit.Assert;
  * @version $Revision: 1.1 $
  */
 public class BasicLancopeParserTest extends AbstractSchemaTest {
-    
+
     /**
      * The inputStrings.
      */
-     private static String[] inputStrings;    
+     private static String[] inputStrings;
 
 
     /**
      * The parser.
      */
-    private static BasicLancopeParser parser=null;   
+    private static BasicLancopeParser parser=null;
 
     /**
      * Constructs a new <code>BasicLancopeParserTest</code> instance.
@@ -59,20 +60,20 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
     }
 
     /**
-     
+
      * @throws java.lang.Exception
      */
-    protected static void setUpBeforeClass() throws Exception {        
+    protected static void setUpBeforeClass() throws Exception {
     }
 
     /**
-     
+
      * @throws java.lang.Exception
      */
     protected static void tearDownAfterClass() throws Exception {
     }
 
-    /* 
+    /*
      * (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
@@ -80,14 +81,14 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
     protected void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.lancope.BasicLancopeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        BasicLancopeParserTest.setParser(new BasicLancopeParser());   
-        
+        BasicLancopeParserTest.setParser(new BasicLancopeParser());
+
         URL schema_url = getClass().getClassLoader().getResource(
             "TestSchemas/LancopeSchema.json");
-        super.setSchemaJsonString(super.readSchemaFromFile(schema_url));      
+        super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
     }
 
-    /* 
+    /*
      * (non-Javadoc)
      * @see junit.framework.TestCase#tearDown()
      */
@@ -97,14 +98,14 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
     }
 
     /**
-     * Test method for {@link BasicLancopeParser#parse(byte[])}.
-     * @throws Exception 
-     * @throws IOException 
+     * Test method for {@link BasicLancopeParser#parse(byte[], SensorParserConfig)}.
+     * @throws Exception
+     * @throws IOException
      */
     public void testParse() throws IOException, Exception {
-        
+
         for (String inputString : getInputStrings()) {
-            JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+            JSONObject parsed = parser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
             assertNotNull(parsed);
         
             System.out.println(parsed);

@@ -20,6 +20,7 @@ package org.apache.metron.parsers;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import junit.framework.Assert;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -37,11 +38,13 @@ public abstract class GrokParserTest {
   public void test() throws IOException, ParseException {
 
     Map<String, Object> parserConfig = new HashMap<>();
-    parserConfig.put("grokPath", getGrokPath());
+    parserConfig.put("grokPattern", getGrokPattern());
     parserConfig.put("patternLabel", getGrokPatternLabel());
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
     parserConfig.put("timeFields", getTimeFields());
+    SensorParserConfig sensorParserConfig = new SensorParserConfig();
+    sensorParserConfig.setParserConfig(parserConfig);
 
     GrokParser grokParser = new GrokParser();
     grokParser.configure(parserConfig);
@@ -54,7 +57,7 @@ public abstract class GrokParserTest {
       JSONObject expected = (JSONObject) jsonParser.parse(e.getValue());
       byte[] rawMessage = e.getKey().getBytes();
 
-      List<JSONObject> parsedList = grokParser.parse(rawMessage);
+      List<JSONObject> parsedList = grokParser.parse(rawMessage, sensorParserConfig);
       Assert.assertEquals(1, parsedList.size());
       compare(expected, parsedList.get(0));
     }
@@ -87,7 +90,7 @@ public abstract class GrokParserTest {
   }
 
   public abstract Map getTestData();
-  public abstract String getGrokPath();
+  public abstract String getGrokPattern();
   public abstract String getGrokPatternLabel();
   public abstract List<String> getTimeFields();
   public abstract String getDateFormat();

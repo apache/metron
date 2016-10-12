@@ -56,15 +56,15 @@ public class CSVParserTest {
     parser.configure(config.getParserConfig());
     {
       String line = "#foo,bar,grok";
-      Assert.assertEquals(0, parser.parse(Bytes.toBytes(line)).size());
+      Assert.assertEquals(0, parser.parse(Bytes.toBytes(line), config).size());
     }
     {
       String line = "";
-      Assert.assertEquals(0, parser.parse(Bytes.toBytes(line)).size());
+      Assert.assertEquals(0, parser.parse(Bytes.toBytes(line), config).size());
     }
     {
       String line = "foo,bar,grok";
-      List<JSONObject> results = parser.parse(Bytes.toBytes(line));
+      List<JSONObject> results = parser.parse(Bytes.toBytes(line), config);
       Assert.assertEquals(1, results.size());
       JSONObject o = results.get(0);
       Assert.assertTrue(parser.validate(o));
@@ -75,7 +75,7 @@ public class CSVParserTest {
     }
     {
       String line = "\"foo\", \"bar\",\"grok\"";
-      List<JSONObject> results = parser.parse(Bytes.toBytes(line));
+      List<JSONObject> results = parser.parse(Bytes.toBytes(line), config);
       Assert.assertEquals(1, results.size());
       JSONObject o = results.get(0);
       Assert.assertTrue(parser.validate(o));
@@ -86,7 +86,7 @@ public class CSVParserTest {
     }
     {
       String line = "foo, bar, grok";
-      List<JSONObject> results = parser.parse(Bytes.toBytes(line));
+      List<JSONObject> results = parser.parse(Bytes.toBytes(line), config);
       Assert.assertEquals(1, results.size());
       JSONObject o = results.get(0);
       Assert.assertTrue(parser.validate(o));
@@ -98,7 +98,7 @@ public class CSVParserTest {
     {
       String line = "foo";
       try {
-        List<JSONObject> results = parser.parse(Bytes.toBytes(line));
+        List<JSONObject> results = parser.parse(Bytes.toBytes(line), config);
         Assert.fail("Expected exception");
       }
       catch(IllegalStateException iae) {}

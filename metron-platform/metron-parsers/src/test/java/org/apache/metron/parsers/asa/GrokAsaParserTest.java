@@ -20,6 +20,7 @@ package org.apache.metron.parsers.asa;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.sourcefire.BasicSourcefireParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -92,13 +93,13 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		}
 
 		/**
-		 * Test method for {@link BasicSourcefireParser#parse(byte[])}.
+		 * Test method for {@link BasicSourcefireParser#parse(byte[], SensorParserConfig)}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {
 		    
 			for (String grokAsaString : getGrokAsaStrings()) {
-				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes()).get(0);
+				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes(), new SensorParserConfig()).get(0);
 				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);

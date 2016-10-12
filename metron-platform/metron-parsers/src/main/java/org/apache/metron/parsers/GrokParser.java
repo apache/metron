@@ -21,16 +21,14 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
@@ -40,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
@@ -47,16 +46,16 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(GrokParser.class);
 
   protected transient Grok grok;
-  protected String grokPath;
+  protected String grokPattern;
   protected String patternLabel;
   protected List<String> timeFields = new ArrayList<>();
   protected String timestampField;
   protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
-  protected String patternsCommonDir = "/patterns/common";
+  protected String patternsCommonPath = "/patterns/common";
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
-    this.grokPath = (String) parserConfig.get("grokPath");
+    this.grokPattern = (String) parserConfig.get("grokPattern");
     this.patternLabel = (String) parserConfig.get("patternLabel");
     this.timestampField = (String) parserConfig.get("timestampField");
     List<String> timeFieldsParam = (List<String>) parserConfig.get("timeFields");
@@ -77,41 +76,30 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     }
   }
 
-  public InputStream openInputStream(String streamName) throws IOException {
-    FileSystem fs = FileSystem.get(new Configuration());
-    Path path = new Path(streamName);
-    if(fs.exists(path)) {
-      return fs.open(path);
-    } else {
-      return getClass().getResourceAsStream(streamName);
-    }
-  }
-
   @Override
   public void init() {
     grok = new Grok();
     try {
-      InputStream commonInputStream = openInputStream(patternsCommonDir);
+      InputStream commonInputStream = getClass().getResourceAsStream(patternsCommonPath);
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok parser loading common patterns from: " + patternsCommonDir);
+        LOG.debug("Grok parser loading common patterns from: " + patternsCommonPath);
       }
 
       if (commonInputStream == null) {
         throw new RuntimeException(
-                "Unable to initialize grok parser: Unable to load " + patternsCommonDir + " from either classpath or HDFS");
+                "Unable to initialize grok parser: Unable to load " + patternsCommonPath + " from either classpath or HDFS");
       }
 
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
+
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Loading parser-specific patterns from: " + grokPath);
+        LOG.debug("Loading parser-specific patterns: " + grokPattern);
       }
 
-      InputStream patterInputStream = openInputStream(grokPath);
-      if (patterInputStream == null) {
-        throw new RuntimeException("Grok parser unable to initialize grok parser: Unable to load " + grokPath
-                + " from either classpath or HDFS");
+      if (grokPattern == null) {
+        throw new RuntimeException("Unable to initialize grok parser: grokPattern config property is empty");
       }
-      grok.addPatternFromReader(new InputStreamReader(patterInputStream));
+      grok.addPatternFromReader(new InputStreamReader(new ByteArrayInputStream(grokPattern.getBytes())));
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Grok parser set the following grok expression: " + grok.getNamedRegexCollectionById(patternLabel));
@@ -132,8 +120,9 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
-    if (grok == null) {
+  public List<JSONObject> parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
+    if (grok == null || isGrokPatternUpdated(sensorParserConfig) || isPatternLabelUpdated(sensorParserConfig)) {
+      configure(sensorParserConfig.getParserConfig());
       init();
     }
     List<JSONObject> messages = new ArrayList<>();
@@ -150,8 +139,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
       if (message.size() == 0)
         throw new RuntimeException("Grok statement produced a null message. Original message was: "
-                + originalMessage + " and the parsed message was: " + message + " . Check the pattern at: "
-                + grokPath);
+                + originalMessage + " , parsed message was: " + message + " , pattern was: "
+                + grokPattern);
 
       message.put("original_string", originalMessage);
       for (String timeField : timeFields) {
@@ -197,6 +186,16 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       LOG.debug("Grok parser did not validate message: " + message);
     }
     return false;
+  }
+
+  protected boolean isGrokPatternUpdated(SensorParserConfig sensorParserConfig) {
+    Map<String, Object> parserConfig = sensorParserConfig.getParserConfig();
+    return parserConfig != null && !Objects.equals(grokPattern, parserConfig.get("grokPattern"));
+  }
+
+  protected boolean isPatternLabelUpdated(SensorParserConfig sensorParserConfig) {
+    Map<String, Object> parserConfig = sensorParserConfig.getParserConfig();
+    return parserConfig != null && !Objects.equals(patternLabel, parserConfig.get("patternLabel"));
   }
 
   protected void postParse(JSONObject message) {}

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -61,14 +62,14 @@ public class BroParserTest extends AbstractConfigTest {
      * The parser.
      */
     private BasicBroParser parser=null;
-	
+
     /**
      * Constructs a new <code>BroParserTest</code> instance.
-     * @throws Exception 
+     * @throws Exception
      */
     public BroParserTest() throws Exception {
         super();
-    }	
+    }
 
 
 	/**
@@ -101,7 +102,7 @@ public class BroParserTest extends AbstractConfigTest {
 	public void testParse() throws ParseException {
 
 		for (String inputString : getInputStrings()) {
-			JSONObject cleanJson = parser.parse(inputString.getBytes()).get(0);
+			JSONObject cleanJson = parser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
 			Assert.assertNotNull(cleanJson);
 			System.out.println(cleanJson);
 

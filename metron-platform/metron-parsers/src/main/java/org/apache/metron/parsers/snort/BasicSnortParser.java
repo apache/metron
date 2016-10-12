@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import jdk.nashorn.internal.runtime.arrays.ArrayIndex;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.csv.CSVConverter;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -98,7 +99,7 @@ public class BasicSnortParser extends BasicParser {
   }
 
   @Override
-  public List<JSONObject> parse(byte[] rawMessage) {
+  public List<JSONObject> parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
 
     JSONObject jsonMessage = new JSONObject();
     List<JSONObject> messages = new ArrayList<>();

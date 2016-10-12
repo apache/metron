@@ -20,6 +20,7 @@ package org.apache.metron.parsers.paloalto;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.sourcefire.BasicSourcefireParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -90,12 +91,12 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 
 		/**
 		 * Test method for
-		 * {@link BasicSourcefireParser#parse(byte[])}.
+		 * {@link BasicSourcefireParser#parse(byte[], SensorParserConfig)}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {
 			for (String inputString : getInputStrings()) {
-				JSONObject parsed = paParser.parse(inputString.getBytes()).get(0);
+				JSONObject parsed = paParser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
 				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);

@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.utils.ParserUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
@@ -70,7 +71,7 @@ public class BasicFireEyeParser extends BasicParser {
 	}
 
 	@Override
-	public List<JSONObject> parse(byte[] raw_message) {
+	public List<JSONObject> parse(byte[] raw_message, SensorParserConfig sensorParserConfig) {
 		String toParse = "";
 		List<JSONObject> messages = new ArrayList<>();
 		try {

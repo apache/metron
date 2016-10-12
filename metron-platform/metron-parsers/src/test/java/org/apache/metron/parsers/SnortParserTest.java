@@ -19,6 +19,7 @@
 package org.apache.metron.parsers;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.snort.BasicSnortParser;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,12 +33,14 @@ public class SnortParserTest {
   @Multiline
   public static String goodMessage;
 
+  private SensorParserConfig sensorParserConfig = new SensorParserConfig();
+
 
   @Test
   public void testGoodMessage() {
     BasicSnortParser parser = new BasicSnortParser();
     parser.init();
-    Map out = parser.parse(goodMessage.getBytes()).get(0);
+    Map out = parser.parse(goodMessage.getBytes(), sensorParserConfig).get(0);
     Assert.assertEquals(out.get("msg"),"Consecutive TCP small segments, exceeding threshold");
     Assert.assertEquals(out.get("sig_rev"), "1");
     Assert.assertEquals(out.get("ip_dst_addr"), "10.0.2.15");
@@ -71,6 +74,6 @@ public class SnortParserTest {
   public void testBadMessage() {
     BasicSnortParser parser = new BasicSnortParser();
     parser.init();
-    parser.parse("foo bar".getBytes());
+    parser.parse("foo bar".getBytes(), sensorParserConfig);
   }
 }

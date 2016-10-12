@@ -19,6 +19,7 @@ package org.apache.metron.parsers.bro;
 
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,6 +35,7 @@ public class BasicBroParserTest extends TestCase {
 	 */
 	private BasicBroParser broParser = null;
 	private JSONParser jsonParser = null;
+  private SensorParserConfig sensorParserConfig = null;
 
 	/**
 	 * Constructs a new <code>BasicBroParserTest</code> instance.
@@ -43,6 +45,7 @@ public class BasicBroParserTest extends TestCase {
 	public BasicBroParserTest() throws Exception {
 		broParser = new BasicBroParser();
 		jsonParser = new JSONParser();
+    sensorParserConfig = new SensorParserConfig();
 	}
 
 	/**
@@ -70,7 +73,7 @@ public class BasicBroParserTest extends TestCase {
 
         JSONObject rawJson = (JSONObject)jsonParser.parse(rawMessage);
 
-        JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+        JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 
 				String expectedBroTimestamp = "1449511228.474";
       	Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
@@ -96,7 +99,7 @@ public class BasicBroParserTest extends TestCase {
 		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 		String expectedBroTimestamp = "1402307733.473";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
     String expectedTimestamp = "1402307733473";
@@ -127,7 +130,7 @@ public class BasicBroParserTest extends TestCase {
 			Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 			JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-			JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+			JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 			String expectedTimestamp = "1467657279000";
 			Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
 			String expectedBroTimestamp = "1467657279.0";
@@ -140,7 +143,7 @@ public class BasicBroParserTest extends TestCase {
 			Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 			JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-			JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+			JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 			String expectedTimestamp = "1467657279000";
 			Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
 			String expectedBroTimestamp = "1467657279.0";
@@ -153,7 +156,7 @@ public class BasicBroParserTest extends TestCase {
 			Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 			JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-			JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+			JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 			String expectedTimestamp = "1467657279100";
 			Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
 			String expectedBroTimestamp = "1467657279.1";
@@ -166,7 +169,7 @@ public class BasicBroParserTest extends TestCase {
 			Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 			JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-			JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+			JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 			String expectedTimestamp = "1467657279110";
 			Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
 			String expectedBroTimestamp = "1467657279.11";
@@ -180,7 +183,7 @@ public class BasicBroParserTest extends TestCase {
 		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 		String expectedBroTimestamp = "1457149494.166991";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1457149494166";
@@ -205,7 +208,7 @@ public class BasicBroParserTest extends TestCase {
 		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 		String expectedBroTimestamp = "1402308259.609";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1402308259609";
@@ -227,7 +230,7 @@ public class BasicBroParserTest extends TestCase {
 		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 		String expectedBroTimestamp = "1425845251.334";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1425845251334";
@@ -248,7 +251,7 @@ public class BasicBroParserTest extends TestCase {
 		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(rawMessage.getBytes(), sensorParserConfig).get(0);
 		String expectedBroTimestamp = "1402307733.473";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1402307733473";
@@ -259,7 +262,7 @@ public class BasicBroParserTest extends TestCase {
 
 	public void testBadMessage()  throws ParseException{
 		try {
-			broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
+			broParser.parse("{ \"foo\" : \"bar\"}".getBytes(), sensorParserConfig);
 			Assert.fail("Should have marked this as a bad message.");
 		}
 		catch(IllegalStateException ise) {
@@ -267,7 +270,7 @@ public class BasicBroParserTest extends TestCase {
 		}
 		//non json
 		try {
-			broParser.parse("foo bar".getBytes());
+			broParser.parse("foo bar".getBytes(), sensorParserConfig);
 			Assert.fail("Should have marked this as a bad message.");
 		}
 		catch(IllegalStateException ise) {

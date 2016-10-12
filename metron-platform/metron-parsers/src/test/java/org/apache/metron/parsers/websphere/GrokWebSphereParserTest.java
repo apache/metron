@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,14 +32,53 @@ import org.junit.Test;
 public class GrokWebSphereParserTest {
 
 	private Map<String, Object> parserConfig;
+  private SensorParserConfig sensorParserConfig;
 
 	@Before
 	public void setup() {
 		parserConfig = new HashMap<>();
-		parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/websphere");
+		parserConfig.put("grokPattern", "# Months - only three-letter code is used\n" +
+            "MONTH \\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\\b\n" +
+            "\n" +
+            "# Days - two digit number is used\n" +
+            "DAY \\d{1,2}\n" +
+            "\n" +
+            "# Time - two digit hour, minute, and second\n" +
+            "TIME \\d{2}:\\d{2}:\\d{2}\n" +
+            "\n" +
+            "# Timestamp - month, day, and time\n" +
+            "TIMESTAMP %{MONTH:UNWANTED}\\s+%{DAY:UNWANTED} %{TIME:UNWANTED}\n" +
+            "\n" +
+            "# Generic word field\n" +
+            "WORD \\w+\n" +
+            "\n" +
+            "# Priority\n" +
+            "PRIORITY \\d+\n" +
+            "\n" +
+            "# Log start - the first part of the log line\n" +
+            "LOGSTART <%{PRIORITY:priority}>?%{TIMESTAMP:timestamp_string} %{WORD:hostname}\n" +
+            "\n" +
+            "# Security domain\n" +
+            "SECURITY_DOMAIN [%{WORD:security_domain}]\n" +
+            "\n" +
+            "# Log middle - the middle part of the log line\n" +
+            "LOGMIDDLE (\\[%{WORD:security_domain}\\])?\\[%{WORD:event_code}\\]\\[%{WORD:event_type}\\]\\[%{WORD:severity}\\]\n" +
+            "\n" +
+            "# Define IP address formats\n" +
+            "IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?\n" +
+            "IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])\n" +
+            "IP (?:%{IPV6:UNWANTED}|%{IPV4:UNWANTED})\n" +
+            "\n" +
+            "# Message - the message body of the log\n" +
+            "MESSAGE .*\n" +
+            "\n" +
+            "# WebSphere - the entire log message\n" +
+            "WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}");
 		parserConfig.put("patternLabel", "WEBSPHERE");
 		parserConfig.put("timestampField", "timestamp_string");
 		parserConfig.put("dateFormat", "yyyy MMM dd HH:mm:ss");
+    sensorParserConfig = new SensorParserConfig();
+    sensorParserConfig.setParserConfig(parserConfig);
 	}
 	
 	@Test
@@ -49,7 +89,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] user(rick007): "
 				+ "[120.43.200.6]: User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -73,7 +113,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201]: "
 				+ "User 'hjpotter' logged out from 'default'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -96,7 +136,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbm(RBM-Settings): "
 				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -118,7 +158,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans(191): (admin:default:system:*): "
 				+ "ntp-service 'NTP Service' - Operational state down";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -140,7 +180,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
 				+ "[120.43.200. User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 
 		//Compare fields
@@ -164,7 +204,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201: "
 				+ "User 'hjpotter' logged out from 'default.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -187,7 +227,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbmRBM-Settings): "
 				+ "trans3502888135)[request] gtid3502888135) RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -209,7 +249,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans 191)  admindefaultsystem*): "
 				+ "ntp-service 'NTP Service' - Operational state down:";
-		List<JSONObject> result = parser.parse(testString.getBytes());
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -232,7 +272,7 @@ public class GrokWebSphereParserTest {
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
 	}
 		
 }

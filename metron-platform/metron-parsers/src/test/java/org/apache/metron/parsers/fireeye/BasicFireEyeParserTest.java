@@ -22,6 +22,7 @@ package org.apache.metron.parsers.fireeye;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -97,12 +98,12 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	 *
 	 *
 	 *
-	 * {@link BasicFireEyeParser#parse(byte[])}.
+	 * {@link BasicFireEyeParser#parse(byte[], SensorParserConfig)}.
 	 */
 	@SuppressWarnings({ "rawtypes"})
 	public void testParse() {
 		for (String inputString : getInputStrings()) {
-			JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+			JSONObject parsed = parser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
 			Assert.assertNotNull(parsed);
 		
 			JSONParser parser = new JSONParser();
