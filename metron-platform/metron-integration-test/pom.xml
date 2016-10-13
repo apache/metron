@@ -76,20 +76,9 @@
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.9.2</artifactId>
+      <artifactId>kafka_2.10</artifactId>
       <version>${global_kafka_version}</version>
       <classifier>test</classifier>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.9.2</artifactId>
-      <version>${global_kafka_version}</version>
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
@@ -145,6 +134,13 @@
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-test-utilities</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>info.batey.kafka</groupId>
+      <artifactId>kafka-unit</artifactId>
+      <!--<classifier>tests</classifier>-->
+      <version>0.6</version>
     </dependency>
   </dependencies>
   <build>
