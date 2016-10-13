@@ -98,7 +98,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   private ColumnBuilder columnBuilder;
   private FluxTopologyComponent fluxComponent;
-  private KafkaWithZKComponent kafkaComponent;
+//  private KafkaWithZKComponent kafkaComponent;
   private List<byte[]> input;
   private ComponentRunner runner;
   private MockHTable profilerTable;
