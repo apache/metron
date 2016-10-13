@@ -90,7 +90,7 @@ public abstract class GrokParserTest {
   }
 
   public abstract Map getTestData();
-  public abstract String getGrokPattern();
+  public abstract Object getGrokPattern();
   public abstract String getGrokPatternLabel();
   public abstract List<String> getTimeFields();
   public abstract String getDateFormat();

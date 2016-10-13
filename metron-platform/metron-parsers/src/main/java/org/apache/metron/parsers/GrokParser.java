@@ -53,9 +53,19 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
   protected String patternsCommonPath = "/patterns/common";
 
+  @SuppressWarnings("unchecked")
   @Override
   public void configure(Map<String, Object> parserConfig) {
-    this.grokPattern = (String) parserConfig.get("grokPattern");
+    Object grokPattern = parserConfig.get("grokPattern");
+    if (grokPattern instanceof String) {
+      this.grokPattern = (String) grokPattern;
+    } else if (grokPattern instanceof String[]){
+      String[] patterns = (String[]) grokPattern;
+      this.grokPattern = Joiner.on('\n').join(patterns);
+    } else if (grokPattern instanceof Iterable) {
+      Iterable<String> patterns = (Iterable<String>) grokPattern;
+      this.grokPattern = Joiner.on('\n').join(patterns);
+    }
     this.patternLabel = (String) parserConfig.get("patternLabel");
     this.timestampField = (String) parserConfig.get("timestampField");
     List<String> timeFieldsParam = (List<String>) parserConfig.get("timeFields");
