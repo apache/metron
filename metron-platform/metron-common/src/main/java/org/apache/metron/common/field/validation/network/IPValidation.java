@@ -117,6 +117,7 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
     }
     return type.isValid(ip.toString());
   }
+
   @Override
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
@@ -128,7 +129,7 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
     for(Object typeObject : types) {
       IPType type = IPType.get(typeObject.toString());
       for (Object o : input.values()) {
-        if(o != null && type.isValid(o.toString())) {
+        if(o == null || type.isValid(o.toString())) {
           return true;
         }
       }
