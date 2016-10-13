@@ -11,7 +11,7 @@
 
   "fieldValidations" : [
     {
-      "input" : [ "src_ip_addr", "dst_ip_addr"],
+      "input" : [ "ip_src_addr", "ip_dst_addr"],
       "validation" : "IP"
     }
   ],
