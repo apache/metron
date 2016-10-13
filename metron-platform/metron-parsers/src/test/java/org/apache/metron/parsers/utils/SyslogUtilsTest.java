@@ -27,35 +27,30 @@ import static org.junit.Assert.*;
 public class SyslogUtilsTest {
 
     @Test
-    public void testRfc3164Timestamp() {
+    public void testRfc3164Timestamp() throws ParseException {
         String originalTimestamp = "Oct  9 13:42:11";
         assertEquals(getParsedEpochMillis(originalTimestamp), 1476020531000L);
     }
 
     @Test
-    public void testCiscoTimestamp() {
+    public void testCiscoTimestamp() throws ParseException {
         String originalTimestamp = "Oct 09 2015 13:42:11";
         assertEquals(getParsedEpochMillis(originalTimestamp), 1444398131000L);
     }
 
     @Test
-    public void testRfc5424TimestampUTC() {
+    public void testRfc5424TimestampUTC() throws ParseException {
         String originalTimestamp = "2015-10-09T13:42:11.52Z";
         assertEquals(getParsedEpochMillis(originalTimestamp), 1444398131520L);
     }
 
     @Test
-    public void testRfc5424TimestampWithOffset() {
+    public void testRfc5424TimestampWithOffset() throws ParseException {
         String originalTimestamp = "2015-10-09T08:42:11.52-05:00";
         assertEquals(getParsedEpochMillis(originalTimestamp), 1444398131520L);
     }
 
-    private long getParsedEpochMillis(String originalTimestamp) {
-        try {
-            return SyslogUtils.parseTimestampToEpochMillis(originalTimestamp, ZoneOffset.UTC);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            throw new AssertionError();
-        }
+    private long getParsedEpochMillis(String originalTimestamp) throws ParseException {
+        return SyslogUtils.parseTimestampToEpochMillis(originalTimestamp, ZoneOffset.UTC);
     }
 }

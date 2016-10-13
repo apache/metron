@@ -19,12 +19,15 @@ package org.apache.metron.parsers.asa;
 
 import org.json.simple.JSONObject;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.time.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.*;
 
 public class BasicAsaParserTest {
@@ -137,13 +140,15 @@ public class BasicAsaParserTest {
         assertTrue((long) asaJson.get("timestamp") == 1452005555000L);
     }
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Test
     public void testUnexpectedMessage() {
         String rawMessage = "-- MARK --";
-        try {
-            JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
-        } catch (RuntimeException e) {
-            assertTrue(true);
-        }
+
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage(startsWith("[Metron] Message '-- MARK --'"));
+        JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
     }
 }

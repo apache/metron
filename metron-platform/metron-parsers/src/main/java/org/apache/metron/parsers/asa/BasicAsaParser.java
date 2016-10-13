@@ -103,6 +103,7 @@ public class BasicAsaParser extends BasicParser {
             asaGrok.addPatternFromReader(new InputStreamReader(patternStream));
         } catch (GrokException e) {
             LOG.error("[Metron] Failed to load grok patterns from jar", e);
+            throw new RuntimeException(e.getMessage(), e);
         }
         LOG.info("[Metron] CISCO ASA Parser Initialized");
     }
