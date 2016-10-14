@@ -240,7 +240,7 @@ public class PcapTopologyIntegrationTest {
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("mr", mr)
             .withComponent("kafka", kafkaComponent)
-            .withComponent("org/apache/storm", fluxComponent)
+            .withComponent("storm", fluxComponent)
             .withMaxTimeMS(-1)
             .withMillisecondsBetweenAttempts(2000)
             .withNumRetries(10)

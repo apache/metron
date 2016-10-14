@@ -49,16 +49,12 @@
             <version>${global_storm_version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>org.apache.curator</groupId>
-                    <artifactId>curator-client</artifactId>
+                    <!--<groupId>org.apache.curator</groupId>-->
+                    <!--<artifactId>curator-client</artifactId>-->
+                    <groupId>curator-client</groupId>
+                    <artifactId>org.apache.curator</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>2.10.0</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
