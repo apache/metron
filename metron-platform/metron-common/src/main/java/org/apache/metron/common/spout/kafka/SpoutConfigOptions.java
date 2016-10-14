@@ -20,6 +20,7 @@ package org.apache.metron.common.spout.kafka;
 
 import com.google.common.base.Joiner;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.storm.kafka.SpoutConfig;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -43,11 +44,11 @@ public enum SpoutConfigOptions implements SpoutConfigFunction {
   }
 
   @Override
-  public void configure(KafkaSpoutConfig config, Object val) {
+  public void configure(SpoutConfig config, Object val) {
     spoutConfigFunc.configure(config, val);
   }
 
-  public static KafkaSpoutConfig configure(KafkaSpoutConfig config, EnumMap<SpoutConfigOptions, Object> configs) {
+  public static SpoutConfig configure(SpoutConfig config, EnumMap<SpoutConfigOptions, Object> configs) {
     if(configs != null) {
       for(Map.Entry<SpoutConfigOptions, Object> kv : configs.entrySet()) {
         kv.getKey().configure(config, kv.getValue());

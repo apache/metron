@@ -105,7 +105,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
-            <artifactId>storm-kafka-client</artifactId>
+            <artifactId>storm-kafka</artifactId>
             <version>${global_storm_version}</version>
             <exclusions>
                 <exclusion>
