@@ -167,39 +167,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     postStartCallback.apply(this);
   }
 
-//  private int port;
-
-//  private ServerCnxnFactory factory;
-
-//  public String startupZookeeper(String ) {
-//
-//    File snapshotDir;
-//    File logDir;
-//    try {
-//      snapshotDir = java.nio.file.Files.createTempDirectory("zookeeper-snapshot").toFile();
-//      logDir = java.nio.file.Files.createTempDirectory("zookeeper-logs").toFile();
-//    } catch (IOException e) {
-//      throw new RuntimeException("Unable to start Kafka", e);
-//    }
-//
-//    snapshotDir.deleteOnExit();
-//    logDir.deleteOnExit();
-//
-//    try {
-//      int tickTime = 500;
-//      ZooKeeperServer zkServer = new ZooKeeperServer(snapshotDir, logDir, tickTime);
-//      this.factory = NIOServerCnxnFactory.createFactory();
-//      this.factory.configure(new InetSocketAddress("localhost", port), 16);
-//      factory.startup(zkServer);
-//    } catch (InterruptedException e) {
-//      Thread.currentThread().interrupt();
-//    } catch (IOException e) {
-//      throw new RuntimeException("Unable to start ZooKeeper", e);
-//    }
-//
-//    return
-//  }
-
   public String getZookeeperConnect() {
     return zookeeperConnectString;
   }
@@ -215,9 +182,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     if(zkServer != null) {
       zkServer.shutdown();
     }
-//    if(factory != null) {
-//      factory.shutdown();
-//    }
   }
 
   public List<byte[]> readMessages(String topic) {

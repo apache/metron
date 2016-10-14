@@ -38,11 +38,9 @@ public class CallbackKafkaSpout extends KafkaSpout {
 
     public void initialize(TopologyContext context) {
         _callback = createCallback(callbackClazz);
-        //TODO figure out if there's a better way to handle this now
-//        _context = new EmitContext().with(EmitContext.Type.SPOUT_CONFIG, _spoutConfig)
-//                                    .with(EmitContext.Type.UUID, context.getStormId())
-//                                    .with(EmitContext.Type.TOPIC, _spoutConfig.topic);
-        _context = new EmitContext().with(EmitContext.Type.TOPOLOGY_CONTEXT, context);
+        _context = new EmitContext().with(EmitContext.Type.SPOUT_CONFIG, _spoutConfig)
+                                    .with(EmitContext.Type.UUID, context.getStormId())
+                                    .with(EmitContext.Type.TOPIC, _spoutConfig.topic);
         _callback.initialize(_context);
     }
 

@@ -132,6 +132,9 @@ public class HDFSWriterCallback implements Callback {
 
     @Override
     public void initialize(EmitContext context) {
+        System.out.println("***** EMITCONTEXT - TOPIC " + context.get(EmitContext.Type.TOPIC));
+        System.out.println("***** EMITCONTEXT - UUID " + context.get(EmitContext.Type.UUID));
+        System.out.println("***** EMITCONTEXT - SPOUTCONFIG " + context.get(EmitContext.Type.SPOUT_CONFIG));
         this.context = context;
         this.topic = context.get(EmitContext.Type.TOPIC);
     }
