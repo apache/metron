@@ -95,7 +95,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
-      setProperty("hbase.provider.impl","" + Provider.class.getName());
+      setProperty("hbase.provider.impl", "" + Provider.class.getName());
       setProperty("threat.intel.tracker.table", trackerHBaseTableName);
       setProperty("threat.intel.tracker.cf", cf);
       setProperty("threat.intel.simple.hbase.table", threatIntelTableName);
@@ -122,21 +122,20 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfig(globalConfigStr)
-            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            ;
+            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
 
     //create MockHBaseTables
-    final MockHTable trackerTable = (MockHTable)MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
-    final MockHTable threatIntelTable = (MockHTable)MockHTable.Provider.addToCache(threatIntelTableName, cf);
-    EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
+    final MockHTable trackerTable = (MockHTable) MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
+    final MockHTable threatIntelTable = (MockHTable) MockHTable.Provider.addToCache(threatIntelTableName, cf);
+    EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
     }});
-    final MockHTable enrichmentTable = (MockHTable)MockHTable.Provider.addToCache(enrichmentsTableName, cf);
-    EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>(){{
+    final MockHTable enrichmentTable = (MockHTable) MockHTable.Provider.addToCache(enrichmentsTableName, cf);
+    EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
-                        , new EnrichmentValue(PLAYFUL_ENRICHMENT )
-                        )
-         );
+                      , new EnrichmentValue(PLAYFUL_ENRICHMENT)
+              )
+      );
     }});
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
@@ -160,15 +159,35 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-      List<Map<String, Object>> docs = runner.process(getProcessor(inputMessages));
-      Assert.assertEquals(inputMessages.size(), docs.size());
-      List<Map<String, Object>> cleanedDocs = docs;
-      validateAll(cleanedDocs);
-    }
-    finally {
+      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor(inputMessages));
+      List<Map<String, Object>> docs = result.getResult();
+      if (result.failed()){
+        result.printBadResults();
+        System.out.println(String.format("%d Valid Messages Processed", docs.size()));
+        System.out.println();
+        dumpParsedMessages(docs);
+        System.out.println();
+        Assert.fail();
+      } else {
+        Assert.assertEquals(inputMessages.size(), docs.size());
+        List<Map<String, Object>> cleanedDocs = docs;
+        validateAll(cleanedDocs);
+      }
+    } finally {
       runner.stop();
     }
   }
+
+  public void dumpParsedMessages(List<Map<String,Object>> outputMessages) {
+    for (Map<String,Object> map  : outputMessages) {
+      for( String json : map.keySet()) {
+        System.out.println(json);
+      }
+    }
+  }
+
+
+
 
 
   public static void validateAll(List<Map<String, Object>> docs) {
@@ -425,6 +444,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages) {
     return new Processor<List<Map<String, Object>>>() {
       List<Map<String, Object>> docs = null;
+      List<byte[]> errors = null;
+      List<byte[]> invalids = null;
 
       public ReadinessState process(ComponentRunner runner) {
         KafkaWithZKComponent kafkaComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
@@ -440,12 +461,20 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
           }
           return ReadinessState.READY;
         } else {
+          errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
+          invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
+          if(errors.size() > 0 || invalids.size() > 0) {
+            messages = messages;
+            return ReadinessState.READY;
+          }
           return ReadinessState.NOT_READY;
         }
       }
 
-      public List<Map<String, Object>> getResult() {
-        return docs;
+      public ProcessorResult<List<Map<String, Object>>> getResult()
+      {
+        ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
+        return builder.withResult(docs).withProcessErrors(errors).withProcessInvalids(invalids).build();
       }
     };
   }

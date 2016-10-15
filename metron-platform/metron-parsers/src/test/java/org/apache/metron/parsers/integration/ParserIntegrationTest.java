@@ -21,10 +21,7 @@ import junit.framework.Assert;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
@@ -67,40 +64,62 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
             .withNumRetries(10)
             .build();
     runner.start();
-    kafkaComponent.writeMessages(sensorType, inputMessages);
-    List<byte[]> outputMessages =
-            runner.process(new Processor<List<byte[]>>() {
-              List<byte[]> messages = null;
+    try {
+      kafkaComponent.writeMessages(sensorType, inputMessages);
+      ProcessorResult<List<byte[]>> result =
+              runner.process(new Processor<List<byte[]>>() {
+                List<byte[]> messages = null;
+                List<byte[]> errors = null;
+                List<byte[]> invalids = null;
 
-              public ReadinessState process(ComponentRunner runner) {
-                KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
-                List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                if (outputMessages.size() == inputMessages.size()) {
-                  messages = outputMessages;
-                  return ReadinessState.READY;
-                } else {
-                  return ReadinessState.NOT_READY;
+                public ReadinessState process(ComponentRunner runner) {
+                  KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
+                  List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                  if (outputMessages.size() == inputMessages.size()) {
+                    messages = outputMessages;
+                    return ReadinessState.READY;
+                  } else {
+                    errors = kafkaWithZKComponent.readMessages(Constants.ERROR_STREAM);
+                    invalids = kafkaWithZKComponent.readMessages(Constants.INVALID_STREAM);
+                    if(errors.size() > 0 || invalids.size() > 0) {
+                      messages = outputMessages;
+                      return ReadinessState.READY;
+                    }
+                    return ReadinessState.NOT_READY;
+                  }
                 }
-              }
 
-              public List<byte[]> getResult() {
-                return messages;
-              }
-            });
-    List<ParserValidation> validations = getValidations();
-    if (validations == null || validations.isEmpty()) {
-      System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
-      System.out.println();
-      dumpParsedMessages(outputMessages);
-      System.out.println();
-      Assert.fail();
-    } else {
-      for (ParserValidation validation : validations) {
-        System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
-        validation.validate(sensorType, outputMessages);
+                public ProcessorResult<List<byte[]>> getResult() {
+                  ProcessorResult.Builder<List<byte[]>> builder = new ProcessorResult.Builder();
+                  return builder.withResult(messages).withProcessErrors(errors).withProcessInvalids(invalids).build();
+                }
+              });
+      List<byte[]> outputMessages = result.getResult();
+      if (result.failed()){
+        result.printBadResults();
+        System.out.println(String.format("%d Valid Messages Processed", outputMessages.size()));
+        System.out.println();
+        dumpParsedMessages(outputMessages);
+        System.out.println();
+        Assert.fail();
+      } else {
+        List<ParserValidation> validations = getValidations();
+        if (validations == null || validations.isEmpty()) {
+          System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
+          System.out.println();
+          dumpParsedMessages(outputMessages);
+          System.out.println();
+          Assert.fail();
+        } else {
+          for (ParserValidation validation : validations) {
+            System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
+            validation.validate(sensorType, outputMessages);
+          }
+        }
       }
+    } finally {
+      runner.stop();
     }
-    runner.stop();
   }
 
   public void dumpParsedMessages(List<byte[]> outputMessages) {
