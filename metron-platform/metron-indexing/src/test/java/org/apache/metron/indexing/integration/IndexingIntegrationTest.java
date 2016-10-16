@@ -27,10 +27,7 @@ import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.utils.TestUtils;
@@ -175,7 +172,11 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  public List<Map<String, Object>> cleanDocs(List<Map<String, Object>> docs) {
+  public List<Map<String, Object>> cleanDocs(ProcessorResult<List<Map<String, Object>>> result) {
+    List<Map<String,Object>> docs = result.getResult();
+    if(result.failed()){
+      result.printBadResults();
+    }
     List<Map<String, Object>> ret = new ArrayList<>();
     for (Map<String, Object> doc : docs) {
       Map<String, Object> msg = new HashMap<>();
