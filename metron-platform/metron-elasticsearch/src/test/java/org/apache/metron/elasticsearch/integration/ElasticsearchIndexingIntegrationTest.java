@@ -21,9 +21,13 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.elasticsearch.writer.ElasticsearchFieldNameConverter;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
-import org.apache.metron.integration.*;
-import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 
 import java.io.File;
 import java.io.IOException;
