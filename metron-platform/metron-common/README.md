@@ -318,6 +318,16 @@ The following functions are supported:
   * Input:
     * stats - The Stellar statistics object.
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
+  `SYSTEM_ENV_GET`
+  * Description: Returns the value associated with an environment variable
+  * Input:
+    * env_var - Environment variable name to get the value for
+  * Returns: String
+  `SYSTEM_PROPERTY_GET`
+  * Description: Returns the value associated with a Java system property
+  * Input:
+    * key - Property to get the value for
+  * Returns: String
 * `TO_DOUBLE`
   * Description: Transforms the first argument to a double precision number
   * Input:

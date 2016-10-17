@@ -15,28 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.dsl;
-
-import java.util.List;
+package org.apache.metron.common.system;
 
 /**
- * Functions that do not require initialization can extend this class rather than directly implement StellarFunction
+ * Useful so we can test mock dependency injection with environment variables
  */
-public abstract class BaseStellarFunction implements StellarFunction {
-  public abstract Object apply(List<Object> args);
-
-  @Override
-  public Object apply(List<Object> args, Context context) throws ParseException {
-    return apply(args);
-  }
-
-  @Override
-  public void initialize(Context context) {
-
-  }
-
-  @Override
-  public boolean isInitialized() {
-    return true;
+public class Environment {
+  public String get(String variable) {
+    return System.getenv().get(variable);
   }
 }
