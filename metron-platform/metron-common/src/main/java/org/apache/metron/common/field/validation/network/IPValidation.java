@@ -24,8 +24,7 @@ import org.apache.metron.common.dsl.Predicate2StellarFunction;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.field.validation.FieldValidation;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class IPValidation implements FieldValidation, Predicate<List<Object>> {
@@ -34,7 +33,7 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
           , description = "Determine if an string is an IP or not."
           , params = {
               "ip - An object which we wish to test is an ip"
-             ,"type (optional) - one of IPV4 or IPV6.  The default is IPV4."
+             ,"type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is IPV4."
                      }
           , returns = "True if the string is an IP and false otherwise.")
   public static class IS_IP extends Predicate2StellarFunction {
@@ -76,12 +75,15 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
     Config(String key) {
       this.key = key;
     }
-    public <T> T get(Map<String, Object> config, Class<T> clazz) {
+    public List get(Map<String, Object> config ) {
       Object o = config.get(key);
       if(o == null) {
-        return null;
+        return Collections.singletonList("DEFAULT");
       }
-      return clazz.cast(o);
+      if( o instanceof ArrayList){
+        return (ArrayList)o;
+      }
+      return Collections.singletonList(o);
     }
   }
 
@@ -115,19 +117,24 @@ public class IPValidation implements FieldValidation, Predicate<List<Object>> {
     }
     return type.isValid(ip.toString());
   }
+
   @Override
   public boolean isValid( Map<String, Object> input
                         , Map<String, Object> validationConfig
                         , Map<String, Object> globalConfig
                         , Context context
                         ) {
-    IPType type = IPType.get(Config.TYPE.get(validationConfig, String.class));
-    for(Object o : input.values()) {
-      if(o != null && !type.isValid(o.toString())) {
-        return false;
+    List types = Config.TYPE.get(validationConfig);
+
+    for(Object typeObject : types) {
+      IPType type = IPType.get(typeObject.toString());
+      for (Object o : input.values()) {
+        if(o == null || type.isValid(o.toString())) {
+          return true;
+        }
       }
     }
-    return true;
+    return false;
   }
 
   @Override
