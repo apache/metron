@@ -18,7 +18,6 @@
 package org.apache.metron.parsers.paloalto;
 
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -103,7 +102,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   }
 
   @SuppressWarnings({"unchecked", "unused"})
-  public List<JSONObject> parse(byte[] msg, SensorParserConfig sensorParserConfig) {
+  public List<JSONObject> parse(byte[] msg) {
 
     JSONObject outputMessage = new JSONObject();
     String toParse = "";

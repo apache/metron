@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +31,6 @@ import org.junit.Test;
 public class GrokWebSphereParserTest {
 
 	private Map<String, Object> parserConfig;
-  private SensorParserConfig sensorParserConfig;
 
 	@Before
 	public void setup() {
@@ -67,8 +65,6 @@ public class GrokWebSphereParserTest {
 		parserConfig.put("patternLabel", "WEBSPHERE");
 		parserConfig.put("timestampField", "timestamp_string");
 		parserConfig.put("dateFormat", "yyyy MMM dd HH:mm:ss");
-    sensorParserConfig = new SensorParserConfig();
-    sensorParserConfig.setParserConfig(parserConfig);
 	}
 	
 	@Test
@@ -79,7 +75,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] user(rick007): "
 				+ "[120.43.200.6]: User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -103,7 +99,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201]: "
 				+ "User 'hjpotter' logged out from 'default'.";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -126,7 +122,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbm(RBM-Settings): "
 				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -148,7 +144,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans(191): (admin:default:system:*): "
 				+ "ntp-service 'NTP Service' - Operational state down";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -170,7 +166,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
 				+ "[120.43.200. User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 
 		//Compare fields
@@ -194,7 +190,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201: "
 				+ "User 'hjpotter' logged out from 'default.";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -217,7 +213,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbmRBM-Settings): "
 				+ "trans3502888135)[request] gtid3502888135) RBM: Resource access denied.";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -239,7 +235,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans 191)  admindefaultsystem*): "
 				+ "ntp-service 'NTP Service' - Operational state down:";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 		
 		//Compare fields
@@ -262,7 +258,7 @@ public class GrokWebSphereParserTest {
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes(), sensorParserConfig);
+		List<JSONObject> result = parser.parse(testString.getBytes());
 	}
 		
 }

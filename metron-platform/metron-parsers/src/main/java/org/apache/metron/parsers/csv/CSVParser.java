@@ -19,7 +19,6 @@
 package org.apache.metron.parsers.csv;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.parsers.BasicParser;
@@ -54,7 +53,7 @@ public class CSVParser extends BasicParser {
 
 
   @Override
-  public List<JSONObject> parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
+  public List<JSONObject> parse(byte[] rawMessage) {
     try {
       String msg = new String(rawMessage, "UTF-8");
       Map<String, String> value = converter.toMap(msg);

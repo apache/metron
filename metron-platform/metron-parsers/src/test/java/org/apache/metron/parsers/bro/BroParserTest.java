@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -51,8 +50,8 @@ import org.junit.Assert;
  * @version $Revision: 1.1 $
  */
 public class BroParserTest extends AbstractConfigTest {
-	
-	
+
+
 	/**
 	 * The inputStrings.
 	 */
@@ -90,9 +89,9 @@ public class BroParserTest extends AbstractConfigTest {
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.bro.BroParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        parser = new BasicBroParser();  
+        parser = new BasicBroParser();
 	}
-	
+
 	/**
 	 * @throws ParseException
 	 * Tests for Parse Method
@@ -102,7 +101,7 @@ public class BroParserTest extends AbstractConfigTest {
 	public void testParse() throws ParseException {
 
 		for (String inputString : getInputStrings()) {
-			JSONObject cleanJson = parser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
+			JSONObject cleanJson = parser.parse(inputString.getBytes()).get(0);
 			Assert.assertNotNull(cleanJson);
 			System.out.println(cleanJson);
 

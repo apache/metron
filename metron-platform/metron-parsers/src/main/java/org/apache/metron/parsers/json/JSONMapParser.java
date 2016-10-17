@@ -20,7 +20,6 @@ package org.apache.metron.parsers.json;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
@@ -93,7 +92,7 @@ public class JSONMapParser extends BasicParser {
    * @return If null is returned, this is treated as an empty list.
    */
   @Override
-  public List<JSONObject> parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
+  public List<JSONObject> parse(byte[] rawMessage) {
     try {
       String originalString = new String(rawMessage);
       //convert the JSON blob into a String -> Object map

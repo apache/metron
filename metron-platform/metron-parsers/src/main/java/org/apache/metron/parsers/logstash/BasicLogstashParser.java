@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.logstash;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -40,7 +39,7 @@ public class BasicLogstashParser extends BasicParser {
 	}
 
 	@Override
-	public List<JSONObject> parse(byte[] raw_message, SensorParserConfig sensorParserConfig) {
+	public List<JSONObject> parse(byte[] raw_message) {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 			

@@ -22,7 +22,6 @@ package org.apache.metron.parsers.sourcefire;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -42,9 +41,9 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 {
      /**
      * The sourceFireStrings.
-     */    
+     */
     private static String[] sourceFireStrings;
-    
+
      /**
      * The sourceFireParser.
      */
@@ -55,11 +54,11 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
      * Constructs a new <code>BasicSourcefireParserTest</code> instance.
      * @throws Exception
      */
-     
+
     public BasicSourcefireParserTest() throws Exception {
-        super();  
+        super();
     }
-    
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -83,8 +82,8 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 * 	
-	 * 	
+	 *
+	 *
 	 * @throws java.lang.Exception
 	 */
 	public void tearDown() throws Exception {
@@ -92,13 +91,13 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 * Test method for {@link BasicSourcefireParser#parse(byte[], SensorParserConfig)}.
+	 * Test method for {@link BasicSourcefireParser#parse(byte[])}.
 	 */
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
 		for (String sourceFireString : getSourceFireStrings()) {
 		    byte[] srcBytes = sourceFireString.getBytes();
-			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes(), new SensorParserConfig()).get(0);
+			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes()).get(0);
 			Assert.assertNotNull(parsed);
 		
 			System.out.println(parsed);

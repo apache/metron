@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -104,14 +103,14 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 
 	/**
 	 * Test method for
-	 * {@link BasicIseParser#parse(byte[], SensorParserConfig)}.
+	 * {@link BasicIseParser#parse(byte[])}.
 	 *
 	 * @throws IOException
 	 * @throws Exception
 	 */
 	public void testParse() throws ParseException, IOException, Exception {
         for (String inputString : getInputStrings()) {
-            JSONObject parsed = parser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
+            JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
             assertNotNull(parsed);
         
             System.out.println(parsed);

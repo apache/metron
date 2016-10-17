@@ -18,7 +18,6 @@
 
 package org.apache.metron.parsers.lancope;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -51,7 +50,7 @@ public class BasicLancopeParser extends BasicParser {
 
 	//@SuppressWarnings("unchecked")
 	@Override
-	public List<JSONObject> parse(byte[] msg, SensorParserConfig sensorParserConfig) {
+	public List<JSONObject> parse(byte[] msg) {
 
 		JSONObject payload = null;
 		List<JSONObject> messages = new ArrayList<>();

@@ -22,7 +22,6 @@ package org.apache.metron.parsers.fireeye;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -44,17 +43,17 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
     * The inputStrings.
     */
     private static String[] inputStrings;
- 
+
    /**
     * The parser.
     */
     private BasicFireEyeParser parser=null;
 
-	
+
    /**
     * Constructs a new <code>BasicFireEyeParserTest</code> instance.
     * @throws Exception
-    */ 
+    */
     public BasicFireEyeParserTest() throws Exception {
         super();
     }
@@ -78,17 +77,17 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.fireeye.BasicFireEyeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        parser = new BasicFireEyeParser();  
+        parser = new BasicFireEyeParser();
 	}
 
 	/**
-	 * 	
-	 * 	
+	 *
+	 *
 	 * @throws java.lang.Exception
 	 */
 	public void tearDown() throws Exception {
 		parser = null;
-        setInputStrings(null);		
+        setInputStrings(null);
 	}
 
 	/**
@@ -98,12 +97,12 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	 *
 	 *
 	 *
-	 * {@link BasicFireEyeParser#parse(byte[], SensorParserConfig)}.
+	 * {@link BasicFireEyeParser#parse(byte[])}.
 	 */
 	@SuppressWarnings({ "rawtypes"})
 	public void testParse() {
 		for (String inputString : getInputStrings()) {
-			JSONObject parsed = parser.parse(inputString.getBytes(), new SensorParserConfig()).get(0);
+			JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
 			Assert.assertNotNull(parsed);
 		
 			JSONParser parser = new JSONParser();

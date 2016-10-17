@@ -19,7 +19,6 @@
 package org.apache.metron.parsers.bro;
 
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -55,7 +54,7 @@ public class BasicBroParser extends BasicParser {
   }
 
   @SuppressWarnings("unchecked")
-  public List<JSONObject> parse(byte[] msg, SensorParserConfig sensorParserConfig) {
+  public List<JSONObject> parse(byte[] msg) {
 
     _LOG.trace("[Metron] Starting to parse incoming message");
 

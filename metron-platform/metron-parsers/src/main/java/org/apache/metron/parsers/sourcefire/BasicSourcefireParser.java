@@ -18,7 +18,6 @@
 
 package org.apache.metron.parsers.sourcefire;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -40,7 +39,7 @@ public class BasicSourcefireParser extends BasicParser {
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
 	String sidRegex = "(.*)(\\[[0-9]+:[0-9]+:[0-9]\\])(.*)$";
 	//String sidRegex = "(\\[[0-9]+:[0-9]+:[0-9]\\])(.*)$";
-	Pattern sidPattern = Pattern.compile(sidRegex);	
+	Pattern sidPattern = Pattern.compile(sidRegex);
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
 	@Override
@@ -54,7 +53,7 @@ public class BasicSourcefireParser extends BasicParser {
 	}
 
 	@SuppressWarnings({ "unchecked", "unused" })
-	public List<JSONObject> parse(byte[] msg, SensorParserConfig sensorParserConfig) {
+	public List<JSONObject> parse(byte[] msg) {
 
 		JSONObject payload = new JSONObject();
 		String toParse = "";

@@ -20,7 +20,6 @@ package org.apache.metron.parsers.asa;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.sourcefire.BasicSourcefireParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,21 +43,21 @@ public class GrokAsaParserTest extends AbstractConfigTest{
      * The grokAsaStrings.
      */
     private static String[] grokAsaStrings=null;
- 
+
      /**
      * The grokAsaParser.
      */
-     
+
     private GrokAsaParser grokAsaParser=null;
-    
+
      /**
      * Constructs a new <code>GrokAsaParserTest</code> instance.
      * @throws Exception
      */
-     
+
     public GrokAsaParserTest() throws Exception {
-          super();  
-        
+          super();
+
     }
 	/**
 	 * @throws java.lang.Exception
@@ -73,19 +72,19 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		setGrokAsaStrings(null);
 	}
 
-    /* 
+    /*
      * (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
 	public void setUp() throws Exception {
           super.setUp("org.apache.metron.parsers.asa.GrokAsaParserTest");
           setGrokAsaStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-          grokAsaParser = new GrokAsaParser();		
+          grokAsaParser = new GrokAsaParser();
 	}
 
 		/**
-		 * 	
-		 * 	
+		 *
+		 *
 		 * @throws java.lang.Exception
 		 */
 		public void tearDown() throws Exception {
@@ -93,13 +92,13 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		}
 
 		/**
-		 * Test method for {@link BasicSourcefireParser#parse(byte[], SensorParserConfig)}.
+		 * Test method for {@link BasicSourcefireParser#parse(byte[])}.
 		 */
 		@SuppressWarnings({ "rawtypes" })
 		public void testParse() {
-		    
+
 			for (String grokAsaString : getGrokAsaStrings()) {
-				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes(), new SensorParserConfig()).get(0);
+				JSONObject parsed = grokAsaParser.parse(grokAsaString.getBytes()).get(0);
 				Assert.assertNotNull(parsed);
 			
 				System.out.println(parsed);

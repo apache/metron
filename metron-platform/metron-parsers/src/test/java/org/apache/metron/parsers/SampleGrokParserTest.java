@@ -118,12 +118,13 @@ public class SampleGrokParserTest extends GrokParserTest {
     grokParser.configure(parserConfig);
     grokParser.init();
 
-    List<JSONObject> results = grokParser.parse(raw.getBytes(), sensorParserConfig);
+    List<JSONObject> results = grokParser.parse(raw.getBytes());
     Assert.assertEquals(1, results.size());
     compare(expected1, results.get(0));
 
     parserConfig.put("grokPattern", pattern2);
-    results = grokParser.parse(raw.getBytes(), sensorParserConfig);
+    grokParser.configurationUpdated(sensorParserConfig.getParserConfig());
+    results = grokParser.parse(raw.getBytes());
     Assert.assertEquals(1, results.size());
     compare(expected2, results.get(0));
   }

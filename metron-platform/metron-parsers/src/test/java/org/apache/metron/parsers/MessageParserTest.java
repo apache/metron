@@ -19,7 +19,6 @@
 package org.apache.metron.parsers;
 
 import junit.framework.Assert;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.junit.Test;
 
@@ -38,7 +37,7 @@ public class MessageParserTest {
       }
 
       @Override
-      public List parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
+      public List parse(byte[] rawMessage) {
         return null;
       }
 
@@ -52,8 +51,8 @@ public class MessageParserTest {
 
       }
     };
-    Assert.assertNotNull(parser.parseOptional(null, null));
-    Assert.assertFalse(parser.parseOptional(null, null).isPresent());
+    Assert.assertNotNull(parser.parseOptional(null));
+    Assert.assertFalse(parser.parseOptional(null).isPresent());
   }
 
   @Test
@@ -65,7 +64,7 @@ public class MessageParserTest {
       }
 
       @Override
-      public List parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
+      public List parse(byte[] rawMessage) {
         return new ArrayList<>();
       }
 
@@ -79,8 +78,8 @@ public class MessageParserTest {
 
       }
     };
-    Assert.assertNotNull(parser.parseOptional(null, null));
-    Optional<List> ret = parser.parseOptional(null, null);
+    Assert.assertNotNull(parser.parseOptional(null));
+    Optional<List> ret = parser.parseOptional(null);
     Assert.assertTrue(ret.isPresent());
     Assert.assertEquals(0, ret.get().size());
   }

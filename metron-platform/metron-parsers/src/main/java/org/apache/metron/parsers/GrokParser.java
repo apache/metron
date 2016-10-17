@@ -22,7 +22,6 @@ import com.google.common.base.Splitter;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TimeZone;
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
@@ -130,9 +128,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public List<JSONObject> parse(byte[] rawMessage, SensorParserConfig sensorParserConfig) {
-    if (grok == null || isGrokPatternUpdated(sensorParserConfig) || isPatternLabelUpdated(sensorParserConfig)) {
-      configure(sensorParserConfig.getParserConfig());
+  public List<JSONObject> parse(byte[] rawMessage) {
+    if (grok == null) {
       init();
     }
     List<JSONObject> messages = new ArrayList<>();
@@ -150,7 +147,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       if (message.size() == 0)
         throw new RuntimeException("Grok statement produced a null message. Original message was: "
                 + originalMessage + " , parsed message was: " + message + " , pattern was: "
-                + grokPattern);
+                + (LOG.isDebugEnabled() ? grokPattern : (patternLabel + " (Turn on DEBUG logging to see pattern text.)")));
 
       message.put("original_string", originalMessage);
       for (String timeField : timeFields) {
@@ -198,14 +195,10 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     return false;
   }
 
-  protected boolean isGrokPatternUpdated(SensorParserConfig sensorParserConfig) {
-    Map<String, Object> parserConfig = sensorParserConfig.getParserConfig();
-    return parserConfig != null && !Objects.equals(grokPattern, parserConfig.get("grokPattern"));
-  }
-
-  protected boolean isPatternLabelUpdated(SensorParserConfig sensorParserConfig) {
-    Map<String, Object> parserConfig = sensorParserConfig.getParserConfig();
-    return parserConfig != null && !Objects.equals(patternLabel, parserConfig.get("patternLabel"));
+  @Override
+  public void configurationUpdated(Map<String, Object> parserConfig) {
+    configure(parserConfig);
+    init();
   }
 
   protected void postParse(JSONObject message) {}

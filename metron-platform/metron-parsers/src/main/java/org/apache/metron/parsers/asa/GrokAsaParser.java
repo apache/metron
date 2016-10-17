@@ -21,7 +21,6 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.commons.io.IOUtils;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 
@@ -231,7 +230,7 @@ public class GrokAsaParser extends BasicParser {
 	}
 
 	@Override
-	public List<JSONObject> parse(byte[] raw_message, SensorParserConfig sensorParserConfig) {
+	public List<JSONObject> parse(byte[] raw_message) {
 
 		String toParse = "";
 		JSONObject toReturn;

@@ -19,7 +19,6 @@ package org.apache.metron.parsers.json;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,7 +41,7 @@ public class JSONMapParserTest {
   @Test
   public void testHappyPath() {
     JSONMapParser parser = new JSONMapParser();
-    List<JSONObject> output = parser.parse(happyPathJSON.getBytes(), sensorParserConfig);
+    List<JSONObject> output = parser.parse(happyPathJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
     Assert.assertEquals(output.get(0).size(), 5);
@@ -74,12 +73,10 @@ public class JSONMapParserTest {
   @Multiline
   static String mixCollectionHandlingJSON;
 
-  private SensorParserConfig sensorParserConfig = new SensorParserConfig();
-
   @Test
   public void testCollectionHandlingDrop() {
     JSONMapParser parser = new JSONMapParser();
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(), sensorParserConfig);
+    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
     Assert.assertEquals(output.get(0).size(), 2);
@@ -92,7 +89,7 @@ public class JSONMapParserTest {
   public void testCollectionHandlingError() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name()));
-    parser.parse(collectionHandlingJSON.getBytes(), sensorParserConfig);
+    parser.parse(collectionHandlingJSON.getBytes());
   }
 
 
@@ -100,7 +97,7 @@ public class JSONMapParserTest {
   public void testCollectionHandlingAllow() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ALLOW.name()));
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(), sensorParserConfig);
+    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
     Assert.assertEquals(output.get(0).size(), 3);
@@ -113,7 +110,7 @@ public class JSONMapParserTest {
   public void testCollectionHandlingUnfold() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.UNFOLD.name()));
-    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(), sensorParserConfig);
+    List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
     Assert.assertEquals(output.get(0).size(), 6);
@@ -130,7 +127,7 @@ public class JSONMapParserTest {
   public void testMixedCollectionHandlingUnfold() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG,JSONMapParser.MapStrategy.UNFOLD.name()));
-    List<JSONObject> output = parser.parse(mixCollectionHandlingJSON.getBytes(), sensorParserConfig);
+    List<JSONObject> output = parser.parse(mixCollectionHandlingJSON.getBytes());
     Assert.assertEquals(output.get(0).size(), 4);
     JSONObject message = output.get(0);
     Assert.assertEquals(message.get("collection.key"), "value");

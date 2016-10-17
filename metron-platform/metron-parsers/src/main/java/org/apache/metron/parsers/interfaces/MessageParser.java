@@ -17,9 +17,8 @@
  */
 package org.apache.metron.parsers.interfaces;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
-
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface MessageParser<T> extends Configurable {
@@ -34,15 +33,15 @@ public interface MessageParser<T> extends Configurable {
    * @param rawMessage
    * @return If null is returned, this is treated as an empty list.
    */
-  List<T> parse(byte[] rawMessage, SensorParserConfig sensorParserConfig);
+  List<T> parse(byte[] rawMessage);
 
   /**
    * Take raw data and convert it to an optional list of messages.
    * @param parseMessage
    * @return If null is returned, this is treated as an empty list.
    */
-  default Optional<List<T>> parseOptional(byte[] parseMessage, SensorParserConfig sensorParserConfig) {
-    return Optional.ofNullable(parse(parseMessage, sensorParserConfig));
+  default Optional<List<T>> parseOptional(byte[] parseMessage) {
+    return Optional.ofNullable(parse(parseMessage));
   }
 
   /**
@@ -51,5 +50,8 @@ public interface MessageParser<T> extends Configurable {
    * @return true if the message is valid, false if not
    */
   boolean validate(T message);
+
+  default void configurationUpdated(Map<String, Object> config) {
+  }
 
 }
