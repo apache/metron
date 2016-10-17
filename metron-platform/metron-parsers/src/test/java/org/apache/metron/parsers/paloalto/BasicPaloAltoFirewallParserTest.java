@@ -37,18 +37,18 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
     /**
      * Constructs a new <code>BasicPaloAltoFirewallParserTest</code> instance.
      * @throws Exception
-     */
+     */ 
     public BasicPaloAltoFirewallParserTest() throws Exception {
-        super();
+        super();        
     }
 
      /**
      * Sets the inputStrings.
      * @param inputStrings the inputStrings.
      */
-
+        
     public static void setInputStrings(String[] inputStrings) {
-
+    
         BasicPaloAltoFirewallParserTest.inputStrings = inputStrings;
     }
 
@@ -76,12 +76,12 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		public void setUp() throws Exception {
 	          super.setUp("org.apache.metron.parsers.paloalto.BasicPaloAltoFirewallParserTest");
 	          setPAStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-	          paParser = new BasicPaloAltoFirewallParser();
+	          paParser = new BasicPaloAltoFirewallParser();           
 		}
 
 		/**
-		 *
-		 *
+		 * 	
+		 * 	
 		 * @throws java.lang.Exception
 		 */
 		public void tearDown() throws Exception {

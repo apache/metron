@@ -43,17 +43,17 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
     * The inputStrings.
     */
     private static String[] inputStrings;
-
+ 
    /**
     * The parser.
     */
     private BasicFireEyeParser parser=null;
 
-
+	
    /**
     * Constructs a new <code>BasicFireEyeParserTest</code> instance.
     * @throws Exception
-    */
+    */ 
     public BasicFireEyeParserTest() throws Exception {
         super();
     }
@@ -77,17 +77,17 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.fireeye.BasicFireEyeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        parser = new BasicFireEyeParser();
+        parser = new BasicFireEyeParser();  
 	}
 
 	/**
-	 *
-	 *
+	 * 	
+	 * 	
 	 * @throws java.lang.Exception
 	 */
 	public void tearDown() throws Exception {
 		parser = null;
-        setInputStrings(null);
+        setInputStrings(null);		
 	}
 
 	/**

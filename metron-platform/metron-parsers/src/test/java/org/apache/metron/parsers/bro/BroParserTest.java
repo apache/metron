@@ -50,8 +50,8 @@ import org.junit.Assert;
  * @version $Revision: 1.1 $
  */
 public class BroParserTest extends AbstractConfigTest {
-
-
+	
+	
 	/**
 	 * The inputStrings.
 	 */
@@ -61,14 +61,14 @@ public class BroParserTest extends AbstractConfigTest {
      * The parser.
      */
     private BasicBroParser parser=null;
-
+	
     /**
      * Constructs a new <code>BroParserTest</code> instance.
-     * @throws Exception
+     * @throws Exception 
      */
     public BroParserTest() throws Exception {
         super();
-    }
+    }	
 
 
 	/**
@@ -89,9 +89,9 @@ public class BroParserTest extends AbstractConfigTest {
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.bro.BroParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        parser = new BasicBroParser();
+        parser = new BasicBroParser();  
 	}
-
+	
 	/**
 	 * @throws ParseException
 	 * Tests for Parse Method

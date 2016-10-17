@@ -39,7 +39,7 @@ public class BasicSourcefireParser extends BasicParser {
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
 	String sidRegex = "(.*)(\\[[0-9]+:[0-9]+:[0-9]\\])(.*)$";
 	//String sidRegex = "(\\[[0-9]+:[0-9]+:[0-9]\\])(.*)$";
-	Pattern sidPattern = Pattern.compile(sidRegex);
+	Pattern sidPattern = Pattern.compile(sidRegex);	
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
 	@Override

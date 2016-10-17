@@ -41,9 +41,9 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 {
      /**
      * The sourceFireStrings.
-     */
+     */    
     private static String[] sourceFireStrings;
-
+    
      /**
      * The sourceFireParser.
      */
@@ -54,11 +54,11 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
      * Constructs a new <code>BasicSourcefireParserTest</code> instance.
      * @throws Exception
      */
-
+     
     public BasicSourcefireParserTest() throws Exception {
-        super();
+        super();  
     }
-
+    
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -82,8 +82,8 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	}
 
 	/**
-	 *
-	 *
+	 * 	
+	 * 	
 	 * @throws java.lang.Exception
 	 */
 	public void tearDown() throws Exception {

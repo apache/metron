@@ -35,7 +35,7 @@ import org.junit.Assert;
  * <li>Description: Junit Test Case for BasicISE Parser</li>
  * <li>Created: AUG 25, 2014</li>
  * </ul>
- *
+ * 
  * @version $Revision: 1.1 $
  */
 
@@ -43,7 +43,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
     /**
      * The inputStrings.
      */
-     private static String[] inputStrings;
+     private static String[] inputStrings;   
 
 	 /**
 	 * The parser.
@@ -53,7 +53,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 
 	/**
 	 * Constructs a new <code>BasicIseParserTest</code> instance.
-	 *
+	 * 
 	 * @param name
 	 */
 
@@ -62,14 +62,14 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws java.lang.Exception
 	 */
 	protected static void setUpBeforeClass() throws Exception {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws java.lang.Exception
 	 */
 	protected static void tearDownAfterClass() throws Exception {
@@ -77,7 +77,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see junit.framework.TestCase#setUp()
 	 */
 
@@ -85,7 +85,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
         super.setUp("org.apache.metron.parsers.lancope.BasicLancopeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
         BasicIseParserTest.setIseParser(new BasicIseParser());
-
+		
 		URL schema_url = getClass().getClassLoader().getResource(
 				"TestSchemas/IseSchema.json");
 		 super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
@@ -93,7 +93,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see junit.framework.TestCase#tearDown()
 	 */
 
@@ -104,7 +104,7 @@ public class BasicIseParserTest extends AbstractSchemaTest {
 	/**
 	 * Test method for
 	 * {@link BasicIseParser#parse(byte[])}.
-	 *
+	 * 
 	 * @throws IOException
 	 * @throws Exception
 	 */
