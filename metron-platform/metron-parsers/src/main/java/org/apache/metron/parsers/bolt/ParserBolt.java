@@ -119,13 +119,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage, sensorParserConfig);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
-          if (parser.validate(message) && filter != null && filter.emitTuple(message, stellarContext)) {
-            message.put(Constants.SENSOR_TYPE, getSensorType());
-            for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
-              if (handler != null) {
-                handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
-              }
+          message.put(Constants.SENSOR_TYPE, getSensorType());
+          for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
+            if (handler != null) {
+              handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
             }
+          }
+          if (parser.validate(message) && filter != null && filter.emitTuple(message, stellarContext)) {
             numWritten++;
             if(!isGloballyValid(message, fieldValidations)) {
               message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");

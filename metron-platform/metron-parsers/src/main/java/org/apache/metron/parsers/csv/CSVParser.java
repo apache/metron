@@ -79,7 +79,9 @@ public class CSVParser extends BasicParser {
           }
         }
         JSONObject jsonVal = new JSONObject(value);
-        jsonVal.put("timestamp", timestamp);
+        if(timestamp != null) {
+          jsonVal.put("timestamp", timestamp);
+        }
         return ImmutableList.of(jsonVal);
       }
       else {
