@@ -75,16 +75,19 @@ public class ProcessorResult<T> {
         return processErrors.size() > 0 || processInvalids.size() > 0;
     }
 
-    public void printBadResults(){
-        System.out.println(String.format("%d Errors", processErrors.size()));
+    public void getBadResults(StringBuffer buffer){
+        if(buffer == null){
+            return;
+        }
+        buffer.append(String.format("%d Errors", processErrors.size()));
         for (byte[] outputMessage : processErrors) {
-            System.out.println(new String(outputMessage));
+            buffer.append(new String(outputMessage));
         }
-        System.out.println();
-        System.out.println(String.format("%d Invalid Messages", processInvalids.size()));
+        buffer.append("\n");
+        buffer.append(String.format("%d Invalid Messages", processInvalids.size()));
         for (byte[] outputMessage : processInvalids) {
-            System.out.println(new String(outputMessage));
+            buffer.append(new String(outputMessage));
         }
-        System.out.println();
+        buffer.append("\n");
     }
 }

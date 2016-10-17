@@ -162,12 +162,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor(inputMessages));
       List<Map<String, Object>> docs = result.getResult();
       if (result.failed()){
-        result.printBadResults();
-        System.out.println(String.format("%d Valid Messages Processed", docs.size()));
-        System.out.println();
-        dumpParsedMessages(docs);
-        System.out.println();
-        Assert.fail();
+        StringBuffer buffer = new StringBuffer();
+        result.getBadResults(buffer);
+        buffer.append(String.format("%d Valid Messages Processed", docs.size())).append("\n");
+        dumpParsedMessages(docs,buffer);
+        Assert.fail(buffer.toString());
       } else {
         Assert.assertEquals(inputMessages.size(), docs.size());
         List<Map<String, Object>> cleanedDocs = docs;
@@ -178,17 +177,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  public void dumpParsedMessages(List<Map<String,Object>> outputMessages) {
+  public void dumpParsedMessages(List<Map<String,Object>> outputMessages, StringBuffer buffer) {
     for (Map<String,Object> map  : outputMessages) {
       for( String json : map.keySet()) {
-        System.out.println(json);
+        buffer.append(json).append("\n");
       }
     }
   }
-
-
-
-
 
   public static void validateAll(List<Map<String, Object>> docs) {
 

@@ -95,21 +95,18 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 }
               });
       List<byte[]> outputMessages = result.getResult();
+      StringBuffer buffer = new StringBuffer();
       if (result.failed()){
-        result.printBadResults();
-        System.out.println(String.format("%d Valid Messages Processed", outputMessages.size()));
-        System.out.println();
-        dumpParsedMessages(outputMessages);
-        System.out.println();
-        Assert.fail();
+        result.getBadResults(buffer);
+        buffer.append(String.format("%d Valid Messages Processed", outputMessages.size())).append("\n");
+        dumpParsedMessages(outputMessages,buffer);
+        Assert.fail(buffer.toString());
       } else {
         List<ParserValidation> validations = getValidations();
         if (validations == null || validations.isEmpty()) {
-          System.out.println("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages");
-          System.out.println();
-          dumpParsedMessages(outputMessages);
-          System.out.println();
-          Assert.fail();
+          buffer.append("No validations configured for sensorType " + sensorType + ".  Dumping parsed messages").append("\n");
+          dumpParsedMessages(outputMessages,buffer);
+          Assert.fail(buffer.toString());
         } else {
           for (ParserValidation validation : validations) {
             System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);
@@ -122,9 +119,9 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  public void dumpParsedMessages(List<byte[]> outputMessages) {
+  public void dumpParsedMessages(List<byte[]> outputMessages, StringBuffer buffer) {
     for (byte[] outputMessage : outputMessages) {
-      System.out.println(new String(outputMessage));
+      buffer.append(new String(outputMessage)).append("\n");
     }
   }
 
