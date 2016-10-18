@@ -102,7 +102,7 @@
                     <artifactId>servlet-api</artifactId>
                     <groupId>javax.servlet</groupId>
                 </exclusion>
-            </exclusions>
+             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>

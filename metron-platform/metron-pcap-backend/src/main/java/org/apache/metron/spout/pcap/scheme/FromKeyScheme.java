@@ -18,6 +18,7 @@
 
 package org.apache.metron.spout.pcap.scheme;
 
+import org.apache.kafka.common.utils.Utils;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +42,7 @@ public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
   @Override
   public List<Object> deserializeKeyAndValue(ByteBuffer key, ByteBuffer value) {
     Long ts = converter.toNanoseconds(key.asLongBuffer().get());
-    byte[] packetHeaderized = PcapHelper.addPacketHeader(ts, value.array(), endianness);
+    byte[] packetHeaderized = PcapHelper.addPacketHeader(ts, Utils.toArray(value), endianness);
     byte[] globalHeaderized= PcapHelper.addGlobalHeader(packetHeaderized, endianness);
     return new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(globalHeaderized)));
   }

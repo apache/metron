@@ -27,6 +27,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
 import org.apache.metron.pcap.PcapHelper;
+import org.apache.storm.utils.Utils;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -36,7 +37,7 @@ public class FromPacketScheme implements MultiScheme,KeyConvertible {
   private static final Logger LOG = Logger.getLogger(FromPacketScheme.class);
   @Override
   public Iterable<List<Object>> deserialize(ByteBuffer rawValue) {
-    byte[] value = rawValue.array();
+    byte[] value = Utils.toByteArray(rawValue);
     Long ts = PcapHelper.getTimestamp(value);
     if(ts != null) {
       return ImmutableList.of(new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(value))));
