@@ -56,7 +56,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private MessageFilter<JSONObject> filter = new GenericMessageFilter();
   private WriterHandler writer;
   private org.apache.metron.common.dsl.Context stellarContext;
-  private AtomicBoolean configUpdatedFlag = new AtomicBoolean(false);
+  protected AtomicBoolean configUpdatedFlag = new AtomicBoolean(false);
   public ParserBolt( String zookeeperUrl
                    , String sensorType
                    , MessageParser<JSONObject> parser
@@ -115,15 +115,19 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
+
+    //Config update check and config read must be done together
+    boolean updateConfig = configUpdatedFlag.getAndSet(false);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
+
     try {
       //we want to ack the tuple in the situation where we have are not doing a bulk write
       //otherwise we want to defer to the writerComponent who will ack on bulk commit.
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
-        if (configUpdatedFlag.getAndSet(false)) {
-          parser.configurationUpdated(getSensorParserConfig().getParserConfig());
+        if (updateConfig) {
+          parser.configurationUpdated(sensorParserConfig.getParserConfig());
         }
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
@@ -181,7 +185,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void updateConfig(String path, byte[] data) throws IOException {
     super.updateConfig(path, data);
-    if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot() + "/" + getSensorType())) {
+    String pathWithoutTrailingSlash = path.replaceAll("/+$", "");
+    if (pathWithoutTrailingSlash.equals(ConfigurationType.PARSER.getZookeeperRoot() + "/" + getSensorType())) {
       configUpdatedFlag.set(true);
     }
   }

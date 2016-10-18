@@ -51,6 +51,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -262,6 +264,10 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(0)).configurationUpdated(any());
     verify(outputCollector, times(1)).emit(eq(Constants.INVALID_STREAM), eq(new Values(finalMessage2)));
 
+    parserBolt.updateConfig(ConfigurationType.PARSER.getZookeeperRoot() + "/" + sensorType + "test", Bytes.toBytes(updatedParserConfig));
+    assertFalse("Update flag should not be set when sensor name is a substring of another sensor", parserBolt.configUpdatedFlag.get());
+    parserBolt.updateConfig(ConfigurationType.PARSER.getZookeeperRoot() + "/" + sensorType + "/", Bytes.toBytes(updatedParserConfig));
+    assertTrue("Update flag should be set even if path has a trailing slash", parserBolt.configUpdatedFlag.get());
     parserBolt.updateConfig(ConfigurationType.PARSER.getZookeeperRoot() + "/" + sensorType, Bytes.toBytes(updatedParserConfig));
     parserBolt.execute(tuple);
     verify(writer, times(2)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), eq(finalMessage1));
