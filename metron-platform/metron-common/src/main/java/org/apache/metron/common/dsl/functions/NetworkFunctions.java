@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.dsl.functions;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
@@ -78,24 +79,22 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
+      if(objects.isEmpty()) {
+        return null;
+      }
       Object dnObj = objects.get(0);
       InternetDomainName idn = toDomainName(dnObj);
       if(idn != null) {
         String dn = dnObj.toString();
-        String tld = idn.publicSuffix().toString();
-        String suffix = Iterables.getFirst(Splitter.on(tld).split(dn), null);
-        if(suffix != null)
-        {
-          String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
-          String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
-          if(hostnameWithoutSubsAndTLD == null) {
-            return null;
-          }
-          return hostnameWithoutSubsAndTLD + "." + tld;
-        }
-        else {
+        String tld = Joiner.on(".").join(idn.publicSuffix().parts());
+        String suffix = dn.substring(0, dn.length() - tld.length());
+        String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
+        String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
+        if(hostnameWithoutSubsAndTLD == null) {
           return null;
         }
+        return hostnameWithoutSubsAndTLD + "." + tld;
+
       }
       return null;
     }
