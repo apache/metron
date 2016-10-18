@@ -20,7 +20,7 @@ package org.apache.metron.parsers.utils;
 import org.apache.metron.parsers.ParseException;
 import org.junit.Test;
 
-import java.time.ZoneOffset;
+import java.time.Clock;
 
 import static org.junit.Assert.*;
 
@@ -51,6 +51,6 @@ public class SyslogUtilsTest {
     }
 
     private long getParsedEpochMillis(String originalTimestamp) throws ParseException {
-        return SyslogUtils.parseTimestampToEpochMillis(originalTimestamp, ZoneOffset.UTC);
+        return SyslogUtils.parseTimestampToEpochMillis(originalTimestamp, Clock.systemUTC());
     }
 }

@@ -19,6 +19,7 @@ package org.apache.metron.parsers.utils;
 
 import org.apache.metron.parsers.ParseException;
 
+import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,12 +30,14 @@ import static java.time.temporal.ChronoField.*;
 
 public class SyslogUtils {
 
-    public static long parseTimestampToEpochMillis(String logTimestamp, ZoneId timeZone) throws ParseException {
+    public static long parseTimestampToEpochMillis(String logTimestamp, Clock deviceClock) throws ParseException {
+        ZoneId deviceTimeZone = deviceClock.getZone();
+
         // RFC3164 (standard syslog timestamp; no year)
         // MMM ppd HH:mm:ss
         // Oct  9 2015 13:42:11
         if (Pattern.matches("[A-Z][a-z]{2}(?:(?:\\s{2}\\d)|(?:\\s\\d{2}))\\s\\d{2}:\\d{2}:\\d{2}", logTimestamp)) {
-            DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("MMM ppd HH:mm:ss").withZone(timeZone);
+            DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("MMM ppd HH:mm:ss").withZone(deviceTimeZone);
 
             TemporalAccessor inputDate = inputFormat.parse(logTimestamp);
             int inputMonth = inputDate.get(MONTH_OF_YEAR);
@@ -43,7 +46,7 @@ public class SyslogUtils {
             int inputMinute = inputDate.get(MINUTE_OF_HOUR);
             int inputSecond = inputDate.get(SECOND_OF_MINUTE);
 
-            ZonedDateTime currentDate = ZonedDateTime.now(timeZone);
+            ZonedDateTime currentDate = ZonedDateTime.now(deviceClock);
             int normalizedYear = currentDate.getYear();
 
             /**
@@ -53,7 +56,7 @@ public class SyslogUtils {
              */
             if (currentDate.getDayOfYear() <= 31 && inputMonth >= 11)
                 normalizedYear--;
-            ZonedDateTime normalizedTimestamp = ZonedDateTime.of(normalizedYear, inputMonth, inputDay, inputHour, inputMinute, inputSecond, 0, timeZone);
+            ZonedDateTime normalizedTimestamp = ZonedDateTime.of(normalizedYear, inputMonth, inputDay, inputHour, inputMinute, inputSecond, 0, deviceTimeZone);
             return normalizedTimestamp.toInstant().toEpochMilli();
         }
 
@@ -61,7 +64,7 @@ public class SyslogUtils {
         // MMM dd yyyy HH:mm:ss
         // Oct 09 2015 13:42:11
         else if (Pattern.matches("[A-Z][a-z]{2}\\s\\d{2}\\s\\d{4}\\s\\d{2}:\\d{2}:\\d{2}", logTimestamp))
-            return convertToEpochMillis(logTimestamp, DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss").withZone(timeZone));
+            return convertToEpochMillis(logTimestamp, DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss").withZone(deviceTimeZone));
 
         // RFC5424 (ISO timestamp)
         // 2015-10-09T13:42:11.52Z or 2015-10-09T13:42:11.52-04:00

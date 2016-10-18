@@ -48,7 +48,7 @@ public class BasicAsaParserTest {
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
         testParser.init();
-        assertTrue(testParser.deviceTimeZone.equals(ZoneOffset.UTC));
+        assertTrue(testParser.deviceClock.getZone().equals(ZoneOffset.UTC));
     }
 
     @Test
@@ -58,7 +58,7 @@ public class BasicAsaParserTest {
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
         testParser.init();
-        ZonedDateTime deviceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), testParser.deviceTimeZone);
+        ZonedDateTime deviceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), testParser.deviceClock.getZone());
         ZonedDateTime referenceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), ZoneOffset.ofHours(-5));
         assertTrue(deviceTime.isEqual(referenceTime));
     }
@@ -70,7 +70,7 @@ public class BasicAsaParserTest {
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
         testParser.init();
-        ZonedDateTime deviceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), testParser.deviceTimeZone);
+        ZonedDateTime deviceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), testParser.deviceClock.getZone());
         ZonedDateTime referenceTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(1475323200), ZoneOffset.ofHours(-5));
         assertTrue(deviceTime.isEqual(referenceTime));
     }

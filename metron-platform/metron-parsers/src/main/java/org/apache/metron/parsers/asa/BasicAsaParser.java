@@ -30,8 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.time.Clock;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 
 public class BasicAsaParser extends BasicParser {
@@ -39,7 +39,7 @@ public class BasicAsaParser extends BasicParser {
     protected static final Logger LOG = LoggerFactory.getLogger(BasicAsaParser.class);
 
     private Grok asaGrok;
-    protected ZoneId deviceTimeZone;
+    protected Clock deviceClock;
 
     private static final Map<String, String> patternMap = ImmutableMap.<String, String>builder()
             .put("ASA-2-106001", "CISCOFW106001")
@@ -88,9 +88,9 @@ public class BasicAsaParser extends BasicParser {
     public void configure(Map<String, Object> parserConfig) {
         String timeZone = (String) parserConfig.get("deviceTimeZone");
         if (timeZone != null)
-            deviceTimeZone = ZoneId.of(timeZone);
+            deviceClock = Clock.system(ZoneId.of(timeZone));
         else {
-            deviceTimeZone = ZoneOffset.UTC;
+            deviceClock = Clock.systemUTC();
             LOG.warn("[Metron] No device time zone provided; defaulting to UTC");
         }
     }
@@ -136,7 +136,7 @@ public class BasicAsaParser extends BasicParser {
 
                 metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
                 metronJson.put(Constants.Fields.TIMESTAMP.getName(),
-                        SyslogUtils.parseTimestampToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP"), deviceTimeZone));
+                        SyslogUtils.parseTimestampToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP"), deviceClock));
                 metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
                 metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
                 metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
