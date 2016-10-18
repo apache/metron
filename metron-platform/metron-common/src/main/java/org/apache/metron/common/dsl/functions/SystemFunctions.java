@@ -22,6 +22,7 @@ import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.system.Environment;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class SystemFunctions {
 
@@ -46,11 +47,26 @@ public class SystemFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      if (args.size() == 0) {
-        return null;
-      } else {
-        return env.get((String) args.get(0));
-      }
+      return extractTypeChecked(args, 0, String.class, x -> env.get((String) x.get(0)));
+    }
+  }
+
+  /**
+   * Extract type-checked value from an argument list using the specified type check and extraction function
+   *
+   * @param args Arguments to check
+   * @param i Index of argument to extract
+   * @param clazz Object type to verify
+   * @param extractFunc Function applied to extract the value from args
+   * @return value from args if passes type checks, null otherwise
+   */
+  public static Object extractTypeChecked(List<Object> args, int i, Class clazz, Function<List<Object>, Object> extractFunc) {
+    if (args.size() < i + 1) {
+      return null;
+    } else if (clazz.isInstance(args.get(i))) {
+      return extractFunc.apply(args);
+    } else {
+      return null;
     }
   }
 
@@ -65,11 +81,7 @@ public class SystemFunctions {
   public static class PropertyGet extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
-      if (args.size() == 0) {
-        return null;
-      } else {
-        return System.getProperty((String) args.get(0));
-      }
+      return extractTypeChecked(args, 0, String.class, x -> System.getProperty((String) args.get(0)));
     }
   }
 }
