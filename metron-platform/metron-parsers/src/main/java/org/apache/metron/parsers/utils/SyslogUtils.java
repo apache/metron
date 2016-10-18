@@ -47,17 +47,19 @@ public class SyslogUtils {
             int inputSecond = inputDate.get(SECOND_OF_MINUTE);
 
             ZonedDateTime currentDate = ZonedDateTime.now(deviceClock);
-            int normalizedYear = currentDate.getYear();
+            int currentYear = currentDate.getYear();
 
-            /**
-             * Since no year is provided, one must be derived.
-             *   During the month of January (first 31 days of the year), assume logs coming in from
-             *   November (11) and December (12) are from the previous year.
-             */
-            if (currentDate.getDayOfYear() <= 31 && inputMonth >= 11)
-                normalizedYear--;
-            ZonedDateTime normalizedTimestamp = ZonedDateTime.of(normalizedYear, inputMonth, inputDay, inputHour, inputMinute, inputSecond, 0, deviceTimeZone);
-            return normalizedTimestamp.toInstant().toEpochMilli();
+            ZonedDateTime inputDateWithCurrentYear =
+                    ZonedDateTime.of(currentYear, inputMonth, inputDay, inputHour, inputMinute, inputSecond, 0, deviceTimeZone);
+
+            // Since no year is provided, one must be derived. Assume that any date more than 4 days in the future is in the past.
+            if(inputDateWithCurrentYear.isAfter(currentDate.plusDays(4L))) {
+                ZonedDateTime inputDateWithPreviousYear =
+                        ZonedDateTime.of(currentYear-1, inputMonth, inputDay, inputHour, inputMinute, inputSecond, 0, deviceTimeZone);
+                return inputDateWithPreviousYear.toInstant().toEpochMilli();
+            }
+            else
+                return inputDateWithCurrentYear.toInstant().toEpochMilli();
         }
 
         // CISCO timestamp (standard syslog + year)

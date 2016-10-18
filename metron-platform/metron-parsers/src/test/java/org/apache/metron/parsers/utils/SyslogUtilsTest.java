@@ -21,6 +21,8 @@ import org.apache.metron.parsers.ParseException;
 import org.junit.Test;
 
 import java.time.Clock;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 import static org.junit.Assert.*;
 
@@ -29,7 +31,25 @@ public class SyslogUtilsTest {
     @Test
     public void testRfc3164Timestamp() throws ParseException {
         String originalTimestamp = "Oct  9 13:42:11";
-        assertEquals(getParsedEpochMillis(originalTimestamp), 1476020531000L);
+
+        // Fixed clock is behind parsed timestamp, but by less than 4 days. Expect year of clock.
+        ZonedDateTime fixedInstant =
+                ZonedDateTime.of(2016, 10, 8, 18, 30, 30, 0, ZoneOffset.UTC);
+        Clock fixedClock = Clock.fixed(fixedInstant.toInstant(), fixedInstant.getZone());
+
+        assertEquals(SyslogUtils.parseTimestampToEpochMillis(originalTimestamp, fixedClock), 1476020531000L);
+    }
+
+    @Test
+    public void testRfc3164TimestampBackDate() throws ParseException {
+        String originalTimestamp = "Oct  9 13:42:11";
+
+        // Fixed clock is behind parsed timestamp by more than 4 days. Expect year of clock - 1.
+        ZonedDateTime fixedInstant =
+                ZonedDateTime.of(2016, 10, 1, 18, 30, 30, 0, ZoneOffset.UTC);
+        Clock fixedClock = Clock.fixed(fixedInstant.toInstant(), fixedInstant.getZone());
+
+        assertEquals(SyslogUtils.parseTimestampToEpochMillis(originalTimestamp, fixedClock), 1444398131000L);
     }
 
     @Test
