@@ -29,7 +29,7 @@
     <guava.version>${global_guava_version}</guava.version>
     <hadoop.version>2.7.1</hadoop.version>
     <jackson.version>1.9.13</jackson.version>
-    <curator.version>2.7.1</curator.version>
+    <curator.version>${global_curator_version}</curator.version>
   </properties>
   <dependencies>
     <dependency>
@@ -39,8 +39,13 @@
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
+      <artifactId>curator-recipes</artifactId>
+      <version>${global_curator_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
       <artifactId>curator-x-discovery</artifactId>
-      <version>${curator.version}</version>
+      <version>${global_curator_version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

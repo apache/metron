@@ -126,7 +126,16 @@ public class FluxTopologyComponent implements InMemoryComponent {
     StormTopology topology = FluxBuilder.buildTopology(context);
     Assert.assertNotNull(topology);
     topology.validate();
-    stormCluster.submitTopology(topologyName, conf, topology);
+    try {
+      stormCluster.submitTopology(topologyName, conf, topology);
+    }
+    catch(Exception nne) {
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+      }
+      stormCluster.submitTopology(topologyName, conf, topology);
+    }
   }
 
   private static TopologyDef loadYaml(String topologyName, File yamlFile, Properties properties) throws IOException {

@@ -17,9 +17,11 @@
  */
 package org.apache.metron.maas.discovery;
 
+import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.collect.Iterables;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
@@ -55,7 +57,6 @@ public class ServiceDiscoverer implements Closeable{
   private Map<String, ServiceInstance<ModelEndpoint>> containerToEndpoint = new HashMap<>();
   private Map<String, String> modelToCurrentVersion = new HashMap<>();
   private Cache<URL, Boolean> blacklist;
-
   public ServiceDiscoverer(CuratorFramework client, String root) {
     this(client, root, BLACKLIST_EXPIRATION_DEFAULT);
   }
@@ -159,6 +160,7 @@ public class ServiceDiscoverer implements Closeable{
         this.modelToCurrentVersion = modelToVersion;
         this.state = state;
         this.containerToEndpoint = containerToEndpoint;
+        LOG.info("Containers found: " + containerToEndpoint);
       }
       finally {
         rwLock.writeLock().unlock();
@@ -187,21 +189,37 @@ public class ServiceDiscoverer implements Closeable{
 
   /**
    * Unregister a service based on its container ID.
-   * @param containerId
+   * @param containerIdRaw
    */
-  public void unregisterByContainer(String containerId) {
+  public void unregisterByContainer(String containerIdRaw) {
     rwLock.readLock().lock();
     try {
+      String containerId = containerIdRaw;
+      //if(containerIdRaw.contains("_")) {
+      //  containerId = "" + Long.parseLong(Iterables.getLast(Splitter.on("_").split(containerIdRaw), null));
+      //}
       ServiceInstance<ModelEndpoint> ep = containerToEndpoint.get(containerId);
       if(ep != null) {
+        LOG.info("BEFORE [" + containerId + "]");
+        for(ServiceInstance<ModelEndpoint> o : serviceDiscovery.queryForInstances("dummy")) {
+          boolean isEqual = o.equals(ep);
+          LOG.info("   HAVE[" + isEqual + "]: " + o);
+        }
         serviceDiscovery.unregisterService(ep);
-        LOG.info("Unregistered endpoint " + ep.getPayload());
+        Thread.sleep(2000);
+        LOG.info("Unregistered endpoint " + ep + " at container " + containerId);
+        LOG.info("AFTER [" + containerId + "]");
+        for(ServiceInstance<ModelEndpoint> o : serviceDiscovery.queryForInstances("dummy")) {
+          boolean isEqual = o.equals(ep);
+          LOG.info("   HAVE[" + isEqual + "]: " + o);
+        }
       }
       else {
         LOG.warn("Unable to find registered model associated with container " + containerId);
+        throw new IllegalStateException("Unable.");
       }
     } catch (Exception e) {
-      LOG.error("Unable to unregister container " + containerId + " due to: " + e.getMessage(), e);
+      LOG.error("Unable to unregister container " + containerIdRaw + " due to: " + e.getMessage(), e);
     } finally {
       rwLock.readLock().unlock();
     }
