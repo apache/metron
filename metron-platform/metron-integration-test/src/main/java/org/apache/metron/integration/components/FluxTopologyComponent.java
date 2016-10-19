@@ -17,6 +17,11 @@
  */
 package org.apache.metron.integration.components;
 
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.imps.CuratorFrameworkImpl;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;
@@ -28,6 +33,7 @@ import org.apache.storm.flux.model.ExecutionContext;
 import org.apache.storm.flux.model.TopologyDef;
 import org.apache.storm.flux.parser.FluxParser;
 import org.apache.storm.thrift.TException;
+import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +109,21 @@ public class FluxTopologyComponent implements InMemoryComponent {
   public void start() throws UnableToStartException {
     try {
       stormCluster = new LocalCluster();
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+      try(CuratorFramework client = CuratorFrameworkFactory.newClient(getZookeeperConnectString(), retryPolicy)){
+        client.start();
+        String root = "/storm/leader-lock";
+        Stat exists = client.checkExists().forPath(root);
+        if(exists == null) {
+          client.create().creatingParentsIfNeeded().forPath(root);
+        }
+      }
+      catch(Exception e) {
+        LOG.error("Unable to create leaderlock", e);
+      }
+      finally {
 
+      }
     } catch (Exception e) {
       throw new UnableToStartException("Unable to start flux topology: " + getTopologyLocation(), e);
     }
