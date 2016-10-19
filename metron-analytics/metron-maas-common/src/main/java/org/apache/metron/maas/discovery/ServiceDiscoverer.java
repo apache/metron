@@ -200,19 +200,7 @@ public class ServiceDiscoverer implements Closeable{
       //}
       ServiceInstance<ModelEndpoint> ep = containerToEndpoint.get(containerId);
       if(ep != null) {
-        LOG.info("BEFORE [" + containerId + "]");
-        for(ServiceInstance<ModelEndpoint> o : serviceDiscovery.queryForInstances("dummy")) {
-          boolean isEqual = o.equals(ep);
-          LOG.info("   HAVE[" + isEqual + "]: " + o);
-        }
         serviceDiscovery.unregisterService(ep);
-        Thread.sleep(2000);
-        LOG.info("Unregistered endpoint " + ep + " at container " + containerId);
-        LOG.info("AFTER [" + containerId + "]");
-        for(ServiceInstance<ModelEndpoint> o : serviceDiscovery.queryForInstances("dummy")) {
-          boolean isEqual = o.equals(ep);
-          LOG.info("   HAVE[" + isEqual + "]: " + o);
-        }
       }
       else {
         LOG.warn("Unable to find registered model associated with container " + containerId);
