@@ -126,10 +126,32 @@
         <name>storm_rest_addr</name>
         <display-name>Storm Rest Server Address</display-name>
         <description>URL of Storm UI (storm.ui.hostname:8744)</description>
-        <!--<value-attributes>-->
-            <!--<editable-only-at-install>true</editable-only-at-install>-->
-            <!--<overridable>false</overridable>-->
-        <!--</value-attributes>-->
+        <value></value>
+    </property>
+    <property>
+        <name>repo_type</name>
+        <display-name>Repository Type</display-name>
+        <description>Type of Repository: Local or Remote</description>
+        <value>local</value>
+        <value-attributes>
+            <overridable>false</overridable>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>local</value>
+                    <label>Local</label>
+                </entry>
+                <entry>
+                    <value>remote</value>
+                    <label>Remote</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>repo_url</name>
+        <display-name>Repository URL</display-name>
         <value></value>
     </property>
     <property>

@@ -57,7 +57,13 @@ global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_url = config['configurations']['metron-env']['es_url']
-yum_repo_type = 'local'
+
+#install repo
+yum_repo_type = config['configurations']['metron-env']['repo_type']
+if yum_repo_type == 'local':
+    repo_url = 'file:///localrepo'
+else:
+    repo_url = config['configurations']['metron-env']['repo_url']
 
 # hadoop params
 stack_root = Script.get_stack_root()
