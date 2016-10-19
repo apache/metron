@@ -30,7 +30,6 @@ class Enrichment(Script):
         env.set_params(params)
         commands = EnrichmentCommands(params)
         commands.setup_repo()
-        Logger.info('Install RPM packages')
         self.install_packages(env)
         self.configure(env)
 

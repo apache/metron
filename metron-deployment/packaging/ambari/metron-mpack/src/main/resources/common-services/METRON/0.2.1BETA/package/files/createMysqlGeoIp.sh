@@ -19,10 +19,12 @@
 # under the License.
 #
 #
+from ../scripts/params import params
 
 mysqldservice=$1
 geoipscript=$2
 geoipurl=$3
+mysqlqdminpassword=$4
 
 # Download and extract the actual GeoIP files
 mkdir -p /tmp/geoip
@@ -35,8 +37,7 @@ tar xf GeoLiteCity-latest.tar.xz
 cp /tmp/geoip/*/*.csv /var/lib/mysql-files/
 popd
 
-# Load MySQL with the GeoIP data and start service
-service ${mysqldservice} start
-mysql -u root < ${geoipscript}
-mysql -u root -e "show databases;"
-service ${mysqldservice} stop
+# Load MySQL with the GeoIP data
+mysql -u root --password=${mysqlqdminpassword} < ${geoipscript}
+mysql -u root --password=${mysqlqdminpassword} -e "show databases;"
+

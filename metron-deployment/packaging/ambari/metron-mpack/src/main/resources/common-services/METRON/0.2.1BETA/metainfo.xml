@@ -67,9 +67,6 @@
             <script>scripts/parser_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <configuration-dependencies>
-            <config-type>metron-parsers</config-type>
-          </configuration-dependencies>
         </component>
 
         <component>
@@ -95,7 +92,7 @@
             </dependency>
             <dependency>
               <name>KAFKA/KAFKA_BROKER</name>
-              <scope>cluster</scope>
+              <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
               </auto-deploy>
@@ -184,11 +181,15 @@
                 </commandScript>
               </customCommand>
           </customCommands>
-          <configuration-dependencies>
-            <config-type>metron-indexing</config-type>
-          </configuration-dependencies>
         </component>
       </components>
+
+      <themes>
+        <theme>
+          <fileName>metron_theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
 
       <osSpecifics>
         <osSpecific>

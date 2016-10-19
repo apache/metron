@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
+from mysql_service import mysql_service
 
 import mysql_users
 
@@ -28,13 +29,14 @@ import mysql_users
 def mysql_configure():
     from params import params
 
-    # required for running hive
+    if params.install_mysql == 'Yes':
+        mysql_service(daemon_name=params.daemon_name, action='start')
+
     replace_bind_address = ('sed', '-i', 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|', params.mysql_configname)
     Execute(replace_bind_address,
             sudo=True,
             )
 
-    # this also will start mysql-server
     mysql_users.mysql_adduser()
 
     File(params.mysql_create_geoip_path,
@@ -42,9 +44,13 @@ def mysql_configure():
          content=StaticFile('createMysqlGeoIp.sh')
          )
 
-    geoip_setup_cmd = format("bash -x {mysql_create_geoip_path} {daemon_name} {geoip_ddl} {geoip_url}")
+    geoip_setup_cmd = format("bash -x {mysql_create_geoip_path} {daemon_name} {geoip_ddl} {geoip_url} {mysql_admin_password}")
+
     Execute(geoip_setup_cmd,
             tries=3,
             try_sleep=5,
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
             )
+
+    if params.install_mysql == 'Yes':
+        mysql_service(daemon_name=params.daemon_name, action='stop')
