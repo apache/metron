@@ -160,7 +160,9 @@ public class ServiceDiscoverer implements Closeable{
         this.modelToCurrentVersion = modelToVersion;
         this.state = state;
         this.containerToEndpoint = containerToEndpoint;
-        LOG.info("Containers found: " + containerToEndpoint);
+        if(LOG.isDebugEnabled()) {
+          LOG.debug("Containers found: " + containerToEndpoint);
+        }
       }
       finally {
         rwLock.writeLock().unlock();
