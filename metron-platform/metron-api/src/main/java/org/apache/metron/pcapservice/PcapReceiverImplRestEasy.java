@@ -179,6 +179,7 @@ public class PcapReceiverImplRestEasy {
    * @param dstPort filter value
    * @param startTime filter value
    * @param endTime filter value
+   * @param numReducers Specify the number of reducers to use when executing the mapreduce job
    * @param includeReverseTraffic Indicates if filter should check swapped src/dest addresses and IPs
    * @param servlet_response
    * @return REST response
