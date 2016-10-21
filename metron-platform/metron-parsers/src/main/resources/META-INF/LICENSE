@@ -219,7 +219,7 @@ This product bundles jopt-simple 3.2, which is available under a "MIT Software L
 This product bundles leveldbjni-all 1.8, which is available under a "BSD Software License" license.  For details, see https://github.com/fusesource/leveldbjni
 This product bundles jcodings 1.0.8, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/jcodings
 This product bundles joni 2.1.2, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/joni
-This product bundles scala-library 2.9.2, which is available under a "BSD Software License" license.  For details, see http://www.scala-lang.org/
+This product bundles scala-library 2.10.6, which is available under a "BSD Software License" license.  For details, see http://www.scala-lang.org/
 This product bundles slf4j-api 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
 This product bundles slf4j-log4j12 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
 This product bundles xmlenc 0.52, which is available under a "BSD Software License" license.  For details, see http://xmlenc.sourceforge.net

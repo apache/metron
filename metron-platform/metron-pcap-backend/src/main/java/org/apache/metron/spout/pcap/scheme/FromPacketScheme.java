@@ -18,9 +18,9 @@
 
 package org.apache.metron.spout.pcap.scheme;
 
-import backtype.storm.spout.MultiScheme;
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
+import org.apache.storm.spout.MultiScheme;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -28,17 +28,18 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
 import org.apache.metron.pcap.PcapHelper;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
 public class FromPacketScheme implements MultiScheme,KeyConvertible {
   private static final Logger LOG = Logger.getLogger(FromPacketScheme.class);
   @Override
-  public Iterable<List<Object>> deserialize(byte[] rawValue) {
-    byte[] value = rawValue;
+  public Iterable<List<Object>> deserialize(ByteBuffer rawValue) {
+    byte[] value = rawValue.array();
     Long ts = PcapHelper.getTimestamp(value);
     if(ts != null) {
-      return ImmutableList.of(new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(rawValue))));
+      return ImmutableList.of(new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(value))));
     }
     else {
       return ImmutableList.of(new Values(Collections.EMPTY_LIST));

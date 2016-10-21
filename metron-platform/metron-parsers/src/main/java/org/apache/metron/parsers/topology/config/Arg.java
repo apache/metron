@@ -18,7 +18,7 @@
 
 package org.apache.metron.parsers.topology.config;
 
-import backtype.storm.Config;
+import org.apache.storm.Config;
 
 public class Arg {
   private Config config;

@@ -17,8 +17,8 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;

@@ -20,9 +20,9 @@
 
 package org.apache.metron.profiler.bolt;
 
-import backtype.storm.Constants;
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
+import org.apache.storm.Constants;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;

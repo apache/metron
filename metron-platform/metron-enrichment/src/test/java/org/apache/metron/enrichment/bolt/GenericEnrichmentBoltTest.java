@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import backtype.storm.tuple.Values;
+import org.apache.storm.tuple.Values;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.TestConstants;

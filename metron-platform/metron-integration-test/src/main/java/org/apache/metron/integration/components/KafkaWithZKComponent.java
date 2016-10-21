@@ -20,6 +20,7 @@ package org.apache.metron.integration.components;
 
 import com.google.common.base.Function;
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -38,7 +39,15 @@ import kafka.utils.*;
 import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.wrapper.AdminUtilsWrapper;
+import org.apache.metron.integration.wrapper.TestUtilsWrapper;
+import org.apache.zookeeper.server.NIOServerCnxnFactory;
+import org.apache.zookeeper.server.ServerCnxnFactory;
+import org.apache.zookeeper.server.ZooKeeperServer;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -61,6 +70,9 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   private transient ZkClient zkClient;
   private transient ConsumerConnector consumer;
   private String zookeeperConnectString;
+//  def zkPort: Int = zookeeper.port
+//  def zkConnect: String = s
+
   private int brokerPort = 6667;
   private List<Topic> topics = Collections.emptyList();
   private Function<KafkaWithZKComponent, Void> postStartCallback;
@@ -78,8 +90,9 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   public KafkaWithZKComponent withBrokerPort(int brokerPort) {
     if(brokerPort <= 0)
     {
-      brokerPort = TestUtils.choosePort();
+      brokerPort = TestUtils.RandomPort();
     }
+
     this.brokerPort = brokerPort;
     return this;
   }
@@ -129,14 +142,17 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   public void start() {
     // setup Zookeeper
     if(zookeeperConnectString == null) {
-      String zkConnect = TestZKUtils.zookeeperConnect();
-      zkServer = new EmbeddedZookeeper(zkConnect);
-      zookeeperConnectString = zkServer.connectString();
+//    String zkConnect = TestZKUtils.zookeeperConnect();
+//    zkServer = new EmbeddedZookeeper(zkConnect);
+//    zookeeperConnectString = zkServer.connectString();
+      EmbeddedZookeeper ezk = new EmbeddedZookeeper();
+      zookeeperConnectString = "127.0.0.1:" + ezk.port();
     }
     zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 
     // setup Broker
-    Properties props = TestUtils.createBrokerConfig(0, brokerPort, true);
+//    Properties props = TestUtilsWrapper.createBrokerConfig(0, brokerPort, true);
+    Properties props = TestUtilsWrapper.createBrokerConfig(0, zookeeperConnectString, brokerPort);
     props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
     Time mock = new MockTime();
@@ -192,7 +208,8 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
   public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic, String group, String consumerName) {
     // setup simple consumer
-    Properties consumerProperties = TestUtils.createConsumerProperties(zkServer.connectString(), group, consumerName, -1);
+//    Properties consumerProperties = TestUtils.createConsumerProperties(zkServer.connectString(), group, consumerName, -1);
+    Properties consumerProperties = TestUtils.createConsumerProperties(zookeeperConnectString, group, consumerName, -1);
     consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
     topicCountMap.put(topic, 1);
@@ -220,7 +237,9 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
   public void createTopic(String name, int numPartitions, boolean waitUntilMetadataIsPropagated) throws InterruptedException {
     try {
-      AdminUtils.createTopic(zkClient, name, numPartitions, 1, new Properties());
+      ZkUtils zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
+      AdminUtilsWrapper.createTopic(zkUtils, name, numPartitions, 1, new Properties());
+//      AdminUtils.createTopic(zkClient, name, numPartitions, 1, new Properties());
       if (waitUntilMetadataIsPropagated) {
         waitUntilMetadataIsPropagated(name, numPartitions);
       }

@@ -20,7 +20,7 @@ config:
 
 components:
   - id: "zkHosts"
-    className: "storm.kafka.ZkHosts"
+    className: "org.apache.storm.kafka.ZkHosts"
     constructorArgs:
       - "${kafka.zk}"
   - id: "kafkaConfig"
