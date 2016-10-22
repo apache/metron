@@ -35,6 +35,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.metron.common.Constants;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
@@ -264,7 +265,7 @@ public class PcapTopologyIntegrationTest {
         }
 
         @Override
-        public Void getResult() {
+        public ProcessorResult<Void> getResult() {
           return null;
         }
       });

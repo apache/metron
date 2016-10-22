@@ -19,5 +19,5 @@ package org.apache.metron.integration;
 
 public interface Processor<T> {
     ReadinessState process(ComponentRunner runner);
-    T getResult();
+    ProcessorResult<T> getResult();
 }

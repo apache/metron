@@ -42,6 +42,11 @@ public class AggregatorsTest {
   }
 
   @Test
+  public void testMinAllPositive() {
+    Assert.assertEquals(1, Aggregators.MIN.aggregate(ImmutableList.of(1, 5, 7), ImmutableMap.of(Aggregators.NEGATIVE_VALUES_TRUMP_CONF, "false")), 1e-7);
+  }
+
+  @Test
   public void testMean() {
     Assert.assertEquals(Double.NEGATIVE_INFINITY, Aggregators.MEAN.aggregate(ImmutableList.of(1, 5, -1, 7, 0), new HashMap<>()), 1e-7);
     Assert.assertEquals(12.0/5.0, Aggregators.MEAN.aggregate(ImmutableList.of(1, 5, -1, 7, 0), ImmutableMap.of(Aggregators.NEGATIVE_VALUES_TRUMP_CONF, "false")), 1e-7);

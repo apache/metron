@@ -103,7 +103,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
-      List<LookupKV<EnrichmentKey, EnrichmentValue>> outputMessages =
+      ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> result =
               runner.process(new Processor<List<LookupKV<EnrichmentKey, EnrichmentValue>>>() {
                 List<LookupKV<EnrichmentKey, EnrichmentValue>> messages = null;
 
@@ -123,8 +123,9 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
                   return ReadinessState.NOT_READY;
                 }
 
-                public List<LookupKV<EnrichmentKey, EnrichmentValue>> getResult() {
-                  return messages;
+                public ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> getResult() {
+                  ProcessorResult.Builder<List<LookupKV<EnrichmentKey,EnrichmentValue>>> builder = new ProcessorResult.Builder();
+                  return builder.withResult(messages).build();
                 }
               });
       Set<String> validIndicators = new HashSet<>(ImmutableList.of("col12", "col22", "col32"));
@@ -142,7 +143,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
           put("col3", "col33");
         }});
       }};
-      for (LookupKV<EnrichmentKey, EnrichmentValue> kv : outputMessages) {
+      for (LookupKV<EnrichmentKey, EnrichmentValue> kv : result.getResult()) {
         Assert.assertTrue(validIndicators.contains(kv.getKey().indicator));
         Assert.assertEquals(kv.getValue().getMetadata().get("source.type"), "dummy");
         Assert.assertNotNull(kv.getValue().getMetadata().get("timestamp"));

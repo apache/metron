@@ -31,8 +31,9 @@ import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.components.FluxTopologyComponent;
+import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.junit.Assert;
@@ -161,6 +162,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, inputMessages);
+      StringBuffer buffer = new StringBuffer();
       List<Map<String, Object>> docs = cleanDocs(runner.process(getProcessor(inputMessages)));
       Assert.assertEquals(docs.size(), inputMessages.size());
       //assert that our input docs are equivalent to the output docs, converting the input docs keys based
@@ -175,15 +177,32 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  public List<Map<String, Object>> cleanDocs(List<Map<String, Object>> docs) {
+  public List<Map<String, Object>> cleanDocs(ProcessorResult<List<Map<String, Object>>> result) {
+    List<Map<String,Object>> docs = result.getResult();
+    StringBuffer buffer = new StringBuffer();
+    boolean failed = false;
     List<Map<String, Object>> ret = new ArrayList<>();
-    for (Map<String, Object> doc : docs) {
-      Map<String, Object> msg = new HashMap<>();
-      for (Map.Entry<String, Object> kv : doc.entrySet()) {
-        //for writers like solr who modify the keys, we want to undo that if we can
-        msg.put(cleanField(kv.getKey()), kv.getValue());
+    if(result.failed()) {
+      failed = true;
+      result.getBadResults(buffer);
+      buffer.append(String.format("%d Valid messages processed", docs.size())).append("\n");
+      for (Map<String, Object> doc : docs) {
+        Map<String, Object> msg = new HashMap<>();
+        for (Map.Entry<String, Object> kv : doc.entrySet()) {
+          //for writers like solr who modify the keys, we want to undo that if we can
+            buffer.append(cleanField(kv.getKey())).append(kv.getValue().toString()).append("\n");
+          }
+        }
+      Assert.fail(buffer.toString());
+    }else {
+      for (Map<String, Object> doc : docs) {
+        Map<String, Object> msg = new HashMap<>();
+        for (Map.Entry<String, Object> kv : doc.entrySet()) {
+          //for writers like solr who modify the keys, we want to undo that if we can
+          msg.put(cleanField(kv.getKey()), kv.getValue());
+        }
+        ret.add(msg);
       }
-      ret.add(msg);
     }
     return ret;
   }
