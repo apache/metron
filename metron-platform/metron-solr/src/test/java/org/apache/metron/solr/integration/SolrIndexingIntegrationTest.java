@@ -18,6 +18,7 @@
 package org.apache.metron.solr.integration;
 
 import com.google.common.base.Function;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
@@ -25,6 +26,7 @@ import org.apache.metron.indexing.integration.IndexingIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
@@ -75,8 +77,10 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
   public Processor<List<Map<String, Object>>> getProcessor(final List<byte[]> inputMessages) {
     return new Processor<List<Map<String, Object>>>() {
       List<Map<String, Object>> docs = null;
+      List<byte[]> errors = null;
       public ReadinessState process(ComponentRunner runner) {
         SolrComponent solrComponent = runner.getComponent("search", SolrComponent.class);
+        KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
         if (solrComponent.hasCollection(collection)) {
           List<Map<String, Object>> docsFromDisk;
           try {
@@ -87,6 +91,10 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
           if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
+            errors = kafkaWithZKComponent.readMessages(Constants.INDEXING_ERROR_TOPIC);
+            if(errors.size() > 0){
+              return ReadinessState.READY;
+            }
             return ReadinessState.NOT_READY;
           } else {
             return ReadinessState.READY;
@@ -96,8 +104,9 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
         }
       }
 
-      public List<Map<String, Object>> getResult() {
-        return docs;
+      public ProcessorResult<List<Map<String, Object>>> getResult() {
+        ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
+        return builder.withResult(docs).withProcessErrors(errors).build();
       }
     };
   }
