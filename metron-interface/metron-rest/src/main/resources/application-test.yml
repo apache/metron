@@ -21,4 +21,4 @@ server:
   contextPath: /api/v1
 
 zookeeper:
-  url:  node1:2181
+  url:  localhost:2181
