@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.parsers.BasicParser;
-import org.apache.storm.shade.org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,8 +83,7 @@ public class BasicSnortParser extends BasicParser {
   private transient CSVConverter converter;
 
   private static String defaultDateFormat = "MM/dd/yy-HH:mm:ss.SSSSSS";
-  private DateTimeFormatter dateTimeFormatter;
-  private String timezone;
+  private transient DateTimeFormatter dateTimeFormatter;
 
   public BasicSnortParser() {
 
@@ -93,19 +91,31 @@ public class BasicSnortParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    dateTimeFormatter = getDateFormatter(parserConfig);
+    dateTimeFormatter = getDateFormatterWithZone(dateTimeFormatter, parserConfig);
+    init();
+  }
+
+  private DateTimeFormatter getDateFormatter(Map<String, Object> parserConfig) {
     String format = (String) parserConfig.get("dateFormat");
     if (StringUtils.isNotEmpty(format)) {
-      dateTimeFormatter = DateTimeFormatter.ofPattern(format);
+      return DateTimeFormatter.ofPattern(format);
     } else {
-      dateTimeFormatter = DateTimeFormatter.ofPattern(defaultDateFormat);
+      return DateTimeFormatter.ofPattern(defaultDateFormat);
     }
+  }
+
+  private DateTimeFormatter getDateFormatterWithZone(DateTimeFormatter formatter, Map<String, Object> parserConfig) {
     String timezone = (String) parserConfig.get("timezone");
     if (StringUtils.isNotEmpty(timezone)) {
-      this.timezone = timezone;
+      if(ZoneId.getAvailableZoneIds().contains(timezone)) {
+        return formatter.withZone(ZoneId.of(timezone));
+      } else {
+        throw new IllegalArgumentException("Unable to find ZoneId '" + timezone + "'");
+      }
     } else {
-      this.timezone = "UTC";
+      return formatter.withZone(ZoneId.systemDefault());
     }
-    init();
   }
 
   @Override
@@ -178,7 +188,7 @@ public class BasicSnortParser extends BasicParser {
    * @throws java.text.ParseException
    */
   private long toEpoch(String snortDatetime) throws ParseException {
-    ZonedDateTime zonedDateTime = ZonedDateTime.parse(snortDatetime.trim(), dateTimeFormatter).atZone(ZoneId.of(timezone));
+    ZonedDateTime zonedDateTime = ZonedDateTime.parse(snortDatetime.trim(), dateTimeFormatter);
     return zonedDateTime.toInstant().toEpochMilli();
   }
 

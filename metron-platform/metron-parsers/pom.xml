@@ -114,7 +114,8 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${global_junit_version}</version>
+            <!-- should standardize this - https://issues.apache.org/jira/browse/METRON-512 -->
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
