@@ -18,17 +18,23 @@
 package org.apache.metron.parsers.snort;
 
 import com.google.common.collect.Lists;
-import jdk.nashorn.internal.runtime.arrays.ArrayIndex;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.parsers.BasicParser;
+import org.apache.storm.shade.org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BasicSnortParser extends BasicParser {
@@ -77,12 +83,28 @@ public class BasicSnortParser extends BasicParser {
 
   private transient CSVConverter converter;
 
+  private static String defaultDateFormat = "MM/dd/yy-HH:mm:ss.SSSSSS";
+  private DateTimeFormatter dateTimeFormatter;
+  private String timezone;
+
   public BasicSnortParser() {
 
   }
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    String format = (String) parserConfig.get("dateFormat");
+    if (StringUtils.isNotEmpty(format)) {
+      dateTimeFormatter = DateTimeFormatter.ofPattern(format);
+    } else {
+      dateTimeFormatter = DateTimeFormatter.ofPattern(defaultDateFormat);
+    }
+    String timezone = (String) parserConfig.get("timezone");
+    if (StringUtils.isNotEmpty(timezone)) {
+      this.timezone = timezone;
+    } else {
+      this.timezone = "UTC";
+    }
     init();
   }
 
@@ -156,18 +178,8 @@ public class BasicSnortParser extends BasicParser {
    * @throws java.text.ParseException
    */
   private long toEpoch(String snortDatetime) throws ParseException {
-		
-		/*
-		 * TODO how does Snort not embed the year in their default timestamp?! need to change this in 
-		 * Snort configuration.  for now, just assume current year.
-		 */
-    int year = Calendar.getInstance().get(Calendar.YEAR);
-    String withYear = Integer.toString(year) + " " + snortDatetime;
-
-    // convert to epoch time
-    SimpleDateFormat df = new SimpleDateFormat("yyyy MM/dd-HH:mm:ss.S");
-    Date date = df.parse(withYear);
-    return date.getTime();
+    ZonedDateTime zonedDateTime = ZonedDateTime.parse(snortDatetime.trim(), dateTimeFormatter).atZone(ZoneId.of(timezone));
+    return zonedDateTime.toInstant().toEpochMilli();
   }
 
   public String getRecordDelimiter() {
