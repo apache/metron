@@ -106,7 +106,7 @@ public class BasicSnortParser extends BasicParser {
   }
 
   private DateTimeFormatter getDateFormatterWithZone(DateTimeFormatter formatter, Map<String, Object> parserConfig) {
-    String timezone = (String) parserConfig.get("timezone");
+    String timezone = (String) parserConfig.get("timeZone");
     if (StringUtils.isNotEmpty(timezone)) {
       if(ZoneId.getAvailableZoneIds().contains(timezone)) {
         return formatter.withZone(ZoneId.of(timezone));

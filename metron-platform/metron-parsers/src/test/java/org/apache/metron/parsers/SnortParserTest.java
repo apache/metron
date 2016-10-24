@@ -115,7 +115,7 @@ public class SnortParserTest {
   public void uses_configuration_to_parse() {
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("dateFormat", "MM/dd/yyyy-HH:mm:ss.SSSSSS");
-    parserConfig.put("timezone", "America/New_York");
+    parserConfig.put("timeZone", "America/New_York");
     BasicSnortParser parser = new BasicSnortParser();
     parser.configure(parserConfig);
     Map result = parser.parse(dateFormattedMessage.getBytes()).get(0);
@@ -128,7 +128,7 @@ public class SnortParserTest {
     thrown.expectMessage(startsWith("Unable to find ZoneId"));
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("dateFormat", "MM/dd/yyyy-HH:mm:ss.SSSSSS");
-    parserConfig.put("timezone", "blahblahBADZONE");
+    parserConfig.put("timeZone", "blahblahBADZONE");
     BasicSnortParser parser = new BasicSnortParser();
     parser.configure(parserConfig);
   }
