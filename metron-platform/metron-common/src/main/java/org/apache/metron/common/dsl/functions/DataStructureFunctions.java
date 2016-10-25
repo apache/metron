@@ -158,7 +158,7 @@ public class DataStructureFunctions {
         return val == null || val.isEmpty() ? true : false;
       }
       else {
-        return true;
+        return o == null;
       }
     }
   }
