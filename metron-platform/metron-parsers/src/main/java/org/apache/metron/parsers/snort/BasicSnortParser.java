@@ -38,8 +38,7 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class BasicSnortParser extends BasicParser {
 
-  private static final Logger _LOG = LoggerFactory
-          .getLogger(BasicSnortParser.class);
+  private static final Logger _LOG = LoggerFactory.getLogger(BasicSnortParser.class);
 
   /**
    * The default field names for Snort Alerts.
@@ -99,8 +98,10 @@ public class BasicSnortParser extends BasicParser {
   private DateTimeFormatter getDateFormatter(Map<String, Object> parserConfig) {
     String format = (String) parserConfig.get("dateFormat");
     if (StringUtils.isNotEmpty(format)) {
+      _LOG.info("Using date format '{}'", format);
       return DateTimeFormatter.ofPattern(format);
     } else {
+      _LOG.info("Using default date format '{}'", defaultDateFormat);
       return DateTimeFormatter.ofPattern(defaultDateFormat);
     }
   }
@@ -109,11 +110,13 @@ public class BasicSnortParser extends BasicParser {
     String timezone = (String) parserConfig.get("timeZone");
     if (StringUtils.isNotEmpty(timezone)) {
       if(ZoneId.getAvailableZoneIds().contains(timezone)) {
+        _LOG.info("Using timezone '{}'", timezone);
         return formatter.withZone(ZoneId.of(timezone));
       } else {
         throw new IllegalArgumentException("Unable to find ZoneId '" + timezone + "'");
       }
     } else {
+      _LOG.info("Using default timezone '{}'", ZoneId.systemDefault());
       return formatter.withZone(ZoneId.systemDefault());
     }
   }
