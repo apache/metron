@@ -17,5 +17,5 @@
 ---
 - include: daq.yml
 - include: snort.yml
-- include: flume.yml
+- include: producer.yml
 - include: nic.yml
