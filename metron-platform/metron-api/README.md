@@ -17,7 +17,7 @@ where
 * `QUERY_PATH` is the temporary location to store query results.  They are deleted after the service reads them.
 * `PCAP_PATH` is the path to the packet data on HDFS
 
-## The `/pcapGetter/getPcapsByIdentifiers` Endpoint
+## The `/pcapGetter/getPcapsByIdentifiers` endpoint
 
 This endpoint takes the following query parameters and returns the subset of
 packets matching this query:
@@ -27,6 +27,22 @@ packets matching this query:
 * `dstPort` : The destination port to match on
 * `startTime` : The start time in milliseconds
 * `endTime` : The end time in milliseconds
+* `numReducers` : Specify the number of reducers to use when executing the mapreduce job
+* `includeReverseTraffic` : Indicates if filter should check swapped src/dest addresses and IPs
+
+## The `/pcapGetter/getPcapsByQuery` endpoint
+
+This endpoint takes the following query parameters and returns the subset of
+packets matching this query. This endpoint exposes Stellar querying capabilities:
+* `query` : The Stellar query to execute
+* `startTime` : The start time in milliseconds
+* `endTime` : The end time in milliseconds
+* `numReducers` : Specify the number of reducers to use when executing the mapreduce job
+
+Example:
+`curl -XGET "http://node1:8081/pcapGetter/getPcapsByQuery?query=ip_src_addr+==+'192.168.66.121'+and+ip_src_port+==+'60500'&startTime=1476936000000"`
 
 All of these parameters are optional.  In the case of a missing
 parameter, it is treated as a wildcard.
+
+Unlike the CLI tool, there is no paging mechanism. The REST API will stream back data as a single file.
