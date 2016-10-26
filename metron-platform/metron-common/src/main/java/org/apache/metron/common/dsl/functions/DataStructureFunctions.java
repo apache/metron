@@ -138,8 +138,8 @@ public class DataStructureFunctions {
   }
 
   @Stellar(name="IS_EMPTY"
-          , description="Returns true if string or collection is empty and false otherwise"
-          , params = { "input - Object of string or collection type (e.g. list)"}
+          , description="Returns true if value is null or if string or collection is empty"
+          , params = { "input - Object"}
           , returns = "Boolean"
           )
   public static class IsEmpty extends BaseStellarFunction {
