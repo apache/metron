@@ -28,11 +28,11 @@ import java.util.function.Predicate;
 
 public class IntegerValidation extends SimpleValidation{
   @Stellar(name="IS_INTEGER"
-          , description = "Determine if an object is an integer or not."
+          , description = "Determines whether or not an object is an integer."
           , params = {
-              "x - An object which we wish to test is an integer"
+              "x - The object to test"
                      }
-          , returns = "True if the object can be converted to an integer and false otherwise."
+          , returns = "True if the object can be converted to an integer and false if otherwise."
           )
   public static class IS_INTEGER extends Predicate2StellarFunction {
 
