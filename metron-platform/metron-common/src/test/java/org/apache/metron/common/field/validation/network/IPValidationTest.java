@@ -59,6 +59,25 @@ public class IPValidationTest extends BaseValidationTest {
   public static String validWithMultipleFields;
   public static String validWithMultipleFields_MQL = "IS_IP(field1, 'IPV4') && IS_IP(field2, 'IPV4')";
 
+  /**
+   {
+   "fieldValidations" : [
+   {
+   "input" : [ "field1", "field2" ]
+   ,"validation" : "IP"
+   ,"config" : {
+   "type" : ["IPV4","IPV6"]
+   }
+   }
+   ]
+   }
+   */
+  @Multiline
+  public static String validWithMultipleFieldsMultipleTypes;
+  public static String validWithMultipleFieldsMultipleTypes_MQL = "IS_IP(field1, '[IPV4,IPV6]') && IS_IP(field2, '[IPV4,IPV6]')";
+
+
+
   @Test
   public void positiveTest_single() throws IOException {
     Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "127.0.0.1")));
@@ -81,5 +100,17 @@ public class IPValidationTest extends BaseValidationTest {
   public void negativeTest_multiple() throws IOException {
     Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
     Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
+  }
+
+  @Test
+  public void positiveTest_multiplex2() throws IOException {
+    Assert.assertTrue(execute(validWithMultipleFieldsMultipleTypes, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
+    Assert.assertTrue(runPredicate(validWithMultipleFieldsMultipleTypes_MQL, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
+  }
+
+  @Test
+  public void negativeTest_multiplex2() throws IOException {
+    Assert.assertFalse(execute(validWithMultipleFieldsMultipleTypes, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
+    Assert.assertFalse(runPredicate(validWithMultipleFieldsMultipleTypes_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
   }
 }

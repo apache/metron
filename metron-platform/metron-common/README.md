@@ -318,6 +318,16 @@ The following functions are supported:
   * Input:
     * stats - The Stellar statistics object.
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
+  `SYSTEM_ENV_GET`
+  * Description: Returns the value associated with an environment variable
+  * Input:
+    * env_var - Environment variable name to get the value for
+  * Returns: String
+  `SYSTEM_PROPERTY_GET`
+  * Description: Returns the value associated with a Java system property
+  * Input:
+    * key - Property to get the value for
+  * Returns: String
 * `TO_DOUBLE`
   * Description: Transforms the first argument to a double precision number
   * Input:
@@ -600,7 +610,7 @@ structured like so:
 * `config` : A String to Object map for validation configuration.  This is optional if the validation function requires no configuration.
 * `validation` : The validation function to be used.  This is one of
    * `STELLAR` : Execute a Stellar Language statement.  Expects the query string in the `condition` field of the config.
-   * `IP` : Validates that the input fields are an IP address.  By default, if no configuration is set, it assumes `IPV4`, but you can specify the type by passing in the config by passing in `type` with either `IPV6` or `IPV4`.
+   * `IP` : Validates that the input fields are an IP address.  By default, if no configuration is set, it assumes `IPV4`, but you can specify the type by passing in the config by passing in `type` with either `IPV6` or `IPV4` or by passing in a list [`IPV4`,`IPV6`] in which case the input(s) will be validated against both.
    * `DOMAIN` : Validates that the fields are all domains.
    * `EMAIL` : Validates that the fields are all email addresses
    * `URL` : Validates that the fields are all URLs

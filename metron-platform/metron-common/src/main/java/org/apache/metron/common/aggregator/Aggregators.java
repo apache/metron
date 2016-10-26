@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 
 public enum Aggregators implements Aggregator {
    MAX( (numbers, config) -> accumulate(0d, (x,y) -> Math.max(x.doubleValue(),y.doubleValue()), numbers, config))
-  ,MIN( (numbers, config) -> accumulate(0d, (x,y) -> Math.min(x.doubleValue(),y.doubleValue()), numbers, config))
+  ,MIN( (numbers, config) -> accumulate(Double.MAX_VALUE, (x,y) -> Math.min(x.doubleValue(),y.doubleValue()), numbers, config))
   ,SUM( (numbers, config) -> accumulate(0d, (x,y) -> x.doubleValue() + y.doubleValue(), numbers, config))
   ,MEAN( (numbers, config) -> scale(SUM.aggregate(numbers, config), numbers, n -> true))
   ,POSITIVE_MEAN( (numbers, config) -> positiveMean(numbers, config))

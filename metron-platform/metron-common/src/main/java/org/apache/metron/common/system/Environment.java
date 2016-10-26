@@ -15,9 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.integration;
+package org.apache.metron.common.system;
 
-public interface Processor<T> {
-    ReadinessState process(ComponentRunner runner);
-    ProcessorResult<T> getResult();
+/**
+ * Useful so we can test mock dependency injection with environment variables
+ */
+public class Environment {
+  public String get(String variable) {
+    return System.getenv().get(variable);
+  }
 }

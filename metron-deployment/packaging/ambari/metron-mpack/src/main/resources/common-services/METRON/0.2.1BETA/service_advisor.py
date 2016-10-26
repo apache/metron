@@ -74,3 +74,58 @@ class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
 
         return items
 
+    def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+
+        # validate recommended properties in storm-site
+        siteName = "storm-site"
+        method = self.validateSTORMSiteConfigurations
+        items = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
+
+        return items
+
+    def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
+
+        if "storm-site" in services["configurations"]:
+
+            storm_site = services["configurations"]["storm-site"]["properties"]
+            putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+
+            for property, desired_value in self.getSTORMSiteDesiredValues().iteritems():
+                if property not in storm_site:
+                    putStormSiteProperty(property, desired_value)
+                elif  property == "topology.classpath" and storm_site[property] != desired_value:
+                    topololgyClasspath = storm_site[property]
+                    #check that desired values exist in topology.classpath. append them if they do not
+                    for path in desired_value.split(':'):
+                        if path not in topololgyClasspath:
+                            topololgyClasspath += ":" + path
+                    putStormSiteProperty(property,topololgyClasspath)
+
+    def validateSTORMSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+
+        storm_site = properties
+        validationItems = []
+
+        for property, desired_value in self.getSTORMSiteDesiredValues().iteritems():
+            if property not in storm_site :
+                message = "Metron requires this property to be set to the recommended value of " + desired_value
+                item = self.getErrorItem(message) if property == "topology.classpath" else self.getWarnItem(message)
+                validationItems.append({"config-name": property, "item": item})
+            elif  storm_site[property] != desired_value:
+                topologyClasspath = storm_site[property]
+                for path in desired_value.split(':'):
+                    if path not in topologyClasspath:
+                        message = "Metron requires this property to contain " + desired_value
+                        item = self.getErrorItem(message)
+                        validationItems.append({"config-name": property, "item": item})
+
+        return self.toConfigurationValidationProblems(validationItems, "storm-site")
+
+    def getSTORMSiteDesiredValues(self):
+
+        storm_site_desired_values = {
+            "topology.classpath" : "/etc/hbase/conf:/etc/hadoop/conf"
+        }
+
+        return storm_site_desired_values
+
