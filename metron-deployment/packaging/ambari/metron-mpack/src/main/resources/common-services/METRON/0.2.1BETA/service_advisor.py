@@ -54,7 +54,7 @@ class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
         #Metron Must Co-locate with KAFKA_BROKER and STORM_SUPERVISOR
         if metronParsersHost not in kafkaBrokers:
             message = "Metron must be colocated with an instance of KAFKA BROKER"
-            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
 
         if metronParsersHost not in stormSupervisors:
             message = "Metron must be colocated with an instance of STORM SUPERVISOR"
