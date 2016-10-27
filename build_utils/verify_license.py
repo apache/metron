@@ -30,6 +30,7 @@ def read_component(i):
 
 if __name__ == '__main__':
     components = read_component(sys.argv[1])
+    components_not_found = []
     for line in sys.stdin:
         component = line.strip() 
         if len(component) == 0 or component == 'none' or component in components:
@@ -38,4 +39,6 @@ if __name__ == '__main__':
             if len(sys.argv) > 2:
                 print component
             else:
-                raise ValueError("Unable to find " + component + " in acceptable list of components: " + sys.argv[1])
+                components_not_found.append(component)
+    if len(components_not_found) > 0:
+        raise ValueError("Unable to find these components: \n  " + "\n  ".join(components_not_found) + "\nin the acceptable list of components: " + sys.argv[1])
