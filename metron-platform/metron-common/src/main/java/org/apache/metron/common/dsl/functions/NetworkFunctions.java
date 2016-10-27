@@ -21,6 +21,7 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.StringUtils;
 import com.google.common.net.InternetDomainName;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
@@ -223,7 +224,9 @@ public class NetworkFunctions {
   private static InternetDomainName toDomainName(Object dnObj) {
     if(dnObj != null) {
       String dn = dnObj.toString();
-      return InternetDomainName.from(dn);
+      if(!StringUtils.isEmpty(dn)) {
+        return InternetDomainName.from(dn);
+      }
     }
     return null;
   }
