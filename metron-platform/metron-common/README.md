@@ -146,9 +146,9 @@ The following functions are supported:
     * address - The String to test
   * Returns: True if the string is a valid email address and false otherwise.
 * `IS_EMPTY`
-  * Description: Returns true if string or collection is empty and false otherwise
+  * Description: Returns true if value is null or if string or collection is empty
   * Input:
-    * input - Object of string or collection type (e.g. list)
+    * input - Object
   * Returns: Boolean
 * `IS_INTEGER`
   * Description: Determine if an object is an integer or not.
