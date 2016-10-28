@@ -75,8 +75,8 @@ public class SquidParserTest extends GrokParserTest {
 
 
   @Override
-  public String getGrokPath() {
-    return "../metron-parsers/src/main/resources/patterns/squid";
+  public String getGrokPattern() {
+    return "SQUID_DELIMITED %{NUMBER:timestamp}[^0-9]*%{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url}[^0-9]*(%{IP:ip_dst_addr})?";
   }
 
   @Override

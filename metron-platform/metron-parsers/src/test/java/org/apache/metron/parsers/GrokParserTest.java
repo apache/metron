@@ -37,7 +37,7 @@ public abstract class GrokParserTest {
   public void test() throws IOException, ParseException {
 
     Map<String, Object> parserConfig = new HashMap<>();
-    parserConfig.put("grokPath", getGrokPath());
+    parserConfig.put("grokPattern", getGrokPattern());
     parserConfig.put("patternLabel", getGrokPatternLabel());
     parserConfig.put("timestampField", getTimestampField());
     parserConfig.put("dateFormat", getDateFormat());
@@ -87,7 +87,7 @@ public abstract class GrokParserTest {
   }
 
   public abstract Map getTestData();
-  public abstract String getGrokPath();
+  public abstract Object getGrokPattern();
   public abstract String getGrokPatternLabel();
   public abstract List<String> getTimeFields();
   public abstract String getDateFormat();

@@ -34,8 +34,34 @@ public class GrokWebSphereParserTest {
 
 	@Before
 	public void setup() {
+    String[] grokPattern = {"# Months - only three-letter code is used",
+            "MONTH \\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec?)\\b",
+            "# Days - two digit number is used",
+            "DAY \\d{1,2}",
+            "# Time - two digit hour, minute, and second",
+            "TIME \\d{2}:\\d{2}:\\d{2}",
+            "# Timestamp - month, day, and time",
+            "TIMESTAMP %{MONTH:UNWANTED}\\s+%{DAY:UNWANTED} %{TIME:UNWANTED}",
+            "# Generic word field",
+            "WORD \\w+",
+            "# Priority",
+            "PRIORITY \\d+",
+            "# Log start - the first part of the log line",
+            "LOGSTART <%{PRIORITY:priority}>?%{TIMESTAMP:timestamp_string} %{WORD:hostname}",
+            "# Security domain",
+            "SECURITY_DOMAIN [%{WORD:security_domain}]",
+            "# Log middle - the middle part of the log line",
+            "LOGMIDDLE (\\[%{WORD:security_domain}\\])?\\[%{WORD:event_code}\\]\\[%{WORD:event_type}\\]\\[%{WORD:severity}\\]",
+            "# Define IP address formats",
+            "IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?",
+            "IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])",
+            "IP (?:%{IPV6:UNWANTED}|%{IPV4:UNWANTED})",
+            "# Message - the message body of the log",
+            "MESSAGE .*",
+            "# WebSphere - the entire log message",
+            "WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}"};
 		parserConfig = new HashMap<>();
-		parserConfig.put("grokPath", "../metron-parsers/src/main/resources/patterns/websphere");
+		parserConfig.put("grokPattern", grokPattern);
 		parserConfig.put("patternLabel", "WEBSPHERE");
 		parserConfig.put("timestampField", "timestamp_string");
 		parserConfig.put("dateFormat", "yyyy MMM dd HH:mm:ss");
@@ -140,7 +166,7 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
 				+ "[120.43.200. User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 
 		//Compare fields
@@ -232,7 +258,7 @@ public class GrokWebSphereParserTest {
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		List<JSONObject> result = parser.parse(testString.getBytes());
 	}
 		
 }

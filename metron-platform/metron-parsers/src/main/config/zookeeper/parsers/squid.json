@@ -2,7 +2,7 @@
   "parserClassName": "org.apache.metron.parsers.GrokParser",
   "sensorTopic": "squid",
   "parserConfig": {
-    "grokPath": "/patterns/squid",
+    "grokPattern": "SQUID_DELIMITED %{NUMBER:timestamp}[^0-9]*%{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url}[^0-9]*(%{IP:ip_dst_addr})?",
     "patternLabel": "SQUID_DELIMITED",
     "timestampField": "timestamp"
   },

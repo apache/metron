@@ -25,23 +25,28 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.parsers.filters.Filters;
-import org.apache.metron.common.configuration.FieldTransformer;
-import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.parsers.filters.Filters;
+import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
@@ -51,6 +56,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private MessageFilter<JSONObject> filter = new GenericMessageFilter();
   private WriterHandler writer;
   private org.apache.metron.common.dsl.Context stellarContext;
+  protected AtomicBoolean configUpdatedFlag = new AtomicBoolean(false);
   public ParserBolt( String zookeeperUrl
                    , String sensorType
                    , MessageParser<JSONObject> parser
@@ -109,13 +115,20 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = tuple.getBinary(0);
+
+    //Config update check and config read must be done together
+    boolean updateConfig = configUpdatedFlag.getAndSet(false);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
+
     try {
       //we want to ack the tuple in the situation where we have are not doing a bulk write
       //otherwise we want to defer to the writerComponent who will ack on bulk commit.
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
+        if (updateConfig) {
+          parser.configurationUpdated(sensorParserConfig.getParserConfig());
+        }
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
@@ -167,5 +180,14 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     declarer.declareStream(Constants.INVALID_STREAM, new Fields("message"));
     declarer.declareStream(Constants.ERROR_STREAM, new Fields("message"));
+  }
+
+  @Override
+  public void updateConfig(String path, byte[] data) throws IOException {
+    super.updateConfig(path, data);
+    String pathWithoutTrailingSlash = path.replaceAll("/+$", "");
+    if (pathWithoutTrailingSlash.equals(ConfigurationType.PARSER.getZookeeperRoot() + "/" + getSensorType())) {
+      configUpdatedFlag.set(true);
+    }
   }
 }

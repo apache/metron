@@ -17,7 +17,11 @@
  */
 package org.apache.metron.parsers;
 
+import junit.framework.Assert;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.json.simple.JSONObject;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,8 +72,10 @@ public class SampleGrokParserTest extends GrokParserTest {
 
   }
 
-  public String getGrokPath() {
-    return "../metron-integration-test/src/main/sample/patterns/test";
+  public String[] getGrokPattern() {
+    String[] grokPattern = {"YAF_TIME_FORMAT %{YEAR:UNWANTED}-%{MONTHNUM:UNWANTED}-%{MONTHDAY:UNWANTED}[T ]%{HOUR:UNWANTED}:%{MINUTE:UNWANTED}:%{SECOND:UNWANTED}",
+            "YAF_DELIMITED %{NUMBER:start_time}\\|%{YAF_TIME_FORMAT:end_time}\\|%{SPACE:UNWANTED}%{BASE10NUM:duration}\\|%{SPACE:UNWANTED}%{BASE10NUM:rtt}\\|%{SPACE:UNWANTED}%{INT:protocol}\\|%{SPACE:UNWANTED}%{IP:ip_src_addr}\\|%{SPACE:UNWANTED}%{INT:ip_src_port}\\|%{SPACE:UNWANTED}%{IP:ip_dst_addr}\\|%{SPACE:UNWANTED}%{INT:ip_dst_port}\\|%{SPACE:UNWANTED}%{DATA:iflags}\\|%{SPACE:UNWANTED}%{DATA:uflags}\\|%{SPACE:UNWANTED}%{DATA:riflags}\\|%{SPACE:UNWANTED}%{DATA:ruflags}\\|%{SPACE:UNWANTED}%{WORD:isn}\\|%{SPACE:UNWANTED}%{DATA:risn}\\|%{SPACE:UNWANTED}%{DATA:tag}\\|%{GREEDYDATA:rtag}\\|%{SPACE:UNWANTED}%{INT:pkt}\\|%{SPACE:UNWANTED}%{INT:oct}\\|%{SPACE:UNWANTED}%{INT:rpkt}\\|%{SPACE:UNWANTED}%{INT:roct}\\|%{SPACE:UNWANTED}%{INT:app}\\|%{GREEDYDATA:end_reason}"};
+    return grokPattern;
   }
 
   public String getGrokPatternLabel() {
@@ -88,5 +94,38 @@ public class SampleGrokParserTest extends GrokParserTest {
 
   public String getTimestampField() {
     return "start_time";
+  }
+
+  @Test
+  public void testConfigChange() {
+    String raw = "123 test";
+    String pattern1 = "LABEL %{NUMBER:field_1}";
+    String pattern2 = "LABEL %{NUMBER:field_1} %{WORD:field_2}";
+    JSONObject expected1 = new JSONObject();
+    expected1.put("field_1", 123);
+    expected1.put("original_string", raw);
+    JSONObject expected2 = new JSONObject();
+    expected2.put("field_1", 123);
+    expected2.put("field_2", "test");
+    expected2.put("original_string", raw);
+    Map<String, Object> parserConfig = new HashMap<>();
+    parserConfig.put("grokPattern", pattern1);
+    parserConfig.put("patternLabel", "LABEL");
+    SensorParserConfig sensorParserConfig = new SensorParserConfig();
+    sensorParserConfig.setParserConfig(parserConfig);
+
+    GrokParser grokParser = new GrokParser();
+    grokParser.configure(parserConfig);
+    grokParser.init();
+
+    List<JSONObject> results = grokParser.parse(raw.getBytes());
+    Assert.assertEquals(1, results.size());
+    compare(expected1, results.get(0));
+
+    parserConfig.put("grokPattern", pattern2);
+    grokParser.configurationUpdated(sensorParserConfig.getParserConfig());
+    results = grokParser.parse(raw.getBytes());
+    Assert.assertEquals(1, results.size());
+    compare(expected2, results.get(0));
   }
 }

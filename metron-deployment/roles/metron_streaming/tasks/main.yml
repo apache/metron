@@ -33,9 +33,6 @@
 - include: hdfs_filesystem.yml
   run_once: true
 
-- include: grok_upload.yml
-  run_once: true
-
 - include: topologies.yml
 
 - include: source_config.yml
