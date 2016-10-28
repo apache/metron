@@ -36,6 +36,43 @@ except Exception as e:
 
 class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
 
+    def getServiceComponentLayoutValidations(self, services, hosts):
+
+        componentsListList = [service["components"] for service in services["services"]]
+        componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+
+        metronParsersHost = self.getHosts(componentsList, "METRON_PARSERS")[0]
+        metronEnrichmentMaster = self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER")[0]
+        metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
+        metronEnrichmentMysqlServer = self.getHosts(componentsList, "METRON_ENRICHMENT_MYSQL_SERVER")[0]
+
+        kafkaBrokers = self.getHosts(componentsList, "KAFKA_BROKER")
+        stormSupervisors = self.getHosts(componentsList,"SUPERVISOR")
+
+        items = []
+
+        #Metron Must Co-locate with KAFKA_BROKER and STORM_SUPERVISOR
+        if metronParsersHost not in kafkaBrokers:
+            message = "Metron must be colocated with an instance of KAFKA BROKER"
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
+
+        if metronParsersHost not in stormSupervisors:
+            message = "Metron must be colocated with an instance of STORM SUPERVISOR"
+            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
+
+        if metronParsersHost != metronEnrichmentMaster:
+            message = "Metron Enrichment Master must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
+
+        if metronParsersHost != metronIndexingHost:
+            message = "Metron Indexing must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_INDEXING', "host": metronIndexingHost })
+
+        if metronParsersHost != metronEnrichmentMysqlServer:
+            message = "Metron MySQL Server must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MYSQL_SERVER', "host": metronEnrichmentMysqlServer })
+
+        return items
 
     def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
 
