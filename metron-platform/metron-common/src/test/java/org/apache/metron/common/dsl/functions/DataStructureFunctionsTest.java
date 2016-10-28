@@ -36,6 +36,10 @@ public class DataStructureFunctionsTest {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(ImmutableList.of("hello", "world")));
       Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
     }
+    {
+      boolean empty = (boolean) isEmpty.apply(ImmutableList.of(1));
+      Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
+    }
   }
 
   @Test
@@ -51,10 +55,6 @@ public class DataStructureFunctionsTest {
     }
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(""));
-      Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
-    }
-    {
-      boolean empty = (boolean) isEmpty.apply(ImmutableList.of(new Object()));
       Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
     }
   }
