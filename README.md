@@ -75,7 +75,7 @@ $ mvn clean install -DskipTests
 
 Build with the HDP profile:<br>
 ```
-$ mvn clean install -PHDP2.5.0.0
+$ mvn clean install -PHDP-2.5.0.0
 ```
 
 You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
