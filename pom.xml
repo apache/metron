@@ -29,16 +29,56 @@
             <module>metron-platform</module>
             <module>metron-deployment</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>HDPReleases</id>
+            <name>HDP Releases</name>
+            <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <id>multiline-release-repo</id>
+            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <properties>
         <twitter>@ApacheMetron</twitter>
+        <!-- base project versions -->
+        <base_storm_version>1.0.1</base_storm_version>
+        <base_flux_version>1.0.1</base_flux_version>
+        <base_kafka_version>0.10.0.1</base_kafka_version>
+        <base_hadoop_version>2.7.1</base_hadoop_version>
+        <base_hbase_version>1.1.1</base_hbase_version>
+        <base_flume_version>1.5.2</base_flume_version>
+        <!-- full dependency versions -->
         <global_opencsv_version>3.7</global_opencsv_version>
-        <global_storm_version>0.10.0</global_storm_version>
-        <global_flux_version>0.10.0</global_flux_version>
+        <global_curator_version>2.7.1</global_curator_version>
+        <global_storm_version>${base_storm_version}</global_storm_version>
+        <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
-        <global_kafka_version>0.8.2.2</global_kafka_version>
-        <global_hadoop_version>2.7.1</global_hadoop_version>
-        <global_hbase_version>1.1.1</global_hbase_version>
-        <global_flume_version>1.5.2</global_flume_version>
+        <global_kafka_version>${base_kafka_version}</global_kafka_version>
+        <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
+        <global_hbase_version>${base_hbase_version}</global_hbase_version>
+        <global_flume_version>${base_flume_version}</global_flume_version>
         <global_elasticsearch_version>2.3.3</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
@@ -54,12 +94,29 @@
         <global_shade_version>2.4.3</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>HDP-2.5.0.0</id>
+            <properties>
+                <hdp_version>2.5.0.0</hdp_version>
+                <build_number>1245</build_number>
+                <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${global_mockito_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.storm</groupId>
+                <artifactId>storm-kafka</artifactId>
+                <version>${global_storm_version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

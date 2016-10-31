@@ -20,9 +20,9 @@
 
 package org.apache.metron.hbase.bolt;
 
-import backtype.storm.Constants;
-import backtype.storm.task.OutputCollector;
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.Constants;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

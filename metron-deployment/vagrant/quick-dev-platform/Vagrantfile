@@ -16,7 +16,7 @@
 #
 require 'getoptlong'
 
-ansibleTags='hdp-deploy,metron'
+ansibleTags='ambari-agent,hdp-deploy,metron'
 ansibleSkipTags='solr,yaf'
 
 begin

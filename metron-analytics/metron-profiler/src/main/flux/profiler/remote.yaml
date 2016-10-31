@@ -50,7 +50,7 @@ components:
               ref: "defaultExecutor"
 
     -   id: "zkHosts"
-        className: "storm.kafka.ZkHosts"
+        className: "org.apache.storm.kafka.ZkHosts"
         constructorArgs:
             - "${kafka.zk}"
 
@@ -73,7 +73,7 @@ components:
 spouts:
 
     -   id: "kafkaSpout"
-        className: "storm.kafka.KafkaSpout"
+        className: "org.apache.storm.kafka.KafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
 

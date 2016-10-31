@@ -18,7 +18,7 @@
 
 package org.apache.metron.elasticsearch.writer;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;

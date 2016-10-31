@@ -270,6 +270,7 @@ public class MaasIntegrationTest {
           try {
             List<ModelEndpoint> endpoints = discoverer.getEndpoints(new Model("dummy", "1.0"));
             if (endpoints != null && endpoints.size() == 1) {
+              System.out.println("Found endpoints: " + endpoints.get(0));
               String output = makeRESTcall(new URL(endpoints.get(0).getEndpoint().getUrl() + "/echo/casey"));
               if (output.contains("casey")) {
                 passed = true;
