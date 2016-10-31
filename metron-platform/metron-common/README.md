@@ -348,7 +348,7 @@ The following functions are supported:
     * input - Object of string or numeric type
   * Returns: Double version of the first argument
 * `TO_EPOCH_TIMESTAMP`
-  * Description: Returns the epoch timestamp of the dateTime in the specified the format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
+  * Description: Returns the epoch timestamp of the dateTime in the specified format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
   * Input:
     * dateTime - DateTime in String format
     * format - DateTime format as a String

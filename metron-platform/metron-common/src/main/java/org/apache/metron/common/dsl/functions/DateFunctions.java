@@ -114,7 +114,7 @@ public class DateFunctions {
    * Stellar Function: TO_EPOCH_TIMESTAMP
    */
   @Stellar( name="TO_EPOCH_TIMESTAMP"
-          , description="Returns the epoch timestamp of the dateTime in the specified the format. " +
+          , description="Returns the epoch timestamp of the dateTime in the specified format. " +
                         "If the format does not have a timestamp and you wish to assume a " +
                         "given timestamp, you may specify the timezone optionally."
           , params = { "dateTime - DateTime in String format"
