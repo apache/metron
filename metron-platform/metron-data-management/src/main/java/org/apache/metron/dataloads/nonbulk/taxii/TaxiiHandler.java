@@ -66,7 +66,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -87,7 +86,9 @@ public class TaxiiHandler extends TimerTask {
     }
   };
 
-  private HttpClient taxiiClient;
+  private URL proxy;
+  private String username;
+  private String password;
   private URL endpoint;
   private Extractor extractor;
   private String hbaseTable;
@@ -101,6 +102,7 @@ public class TaxiiHandler extends TimerTask {
   private Configuration config;
   private boolean inProgress = false;
   private Set<String> allowedIndicatorTypes;
+
   public TaxiiHandler( TaxiiConnectionConfig connectionConfig
              , Extractor extractor
              , Configuration config
@@ -115,6 +117,9 @@ public class TaxiiHandler extends TimerTask {
     columnFamily = connectionConfig.getColumnFamily();
     this.beginTime = connectionConfig.getBeginTime();
     this.config = config;
+    this.proxy = connectionConfig.getProxy();
+    this.username = connectionConfig.getUsername();
+    this.password = connectionConfig.getPassword();
     initializeClient(connectionConfig);
     LOG.info("Configured, starting polling " + endpoint + " for " + collection);
   }
@@ -238,7 +243,8 @@ public class TaxiiHandler extends TimerTask {
       return null;
     }
   }
-  private <RESPONSE_T> RESPONSE_T call( Object request, Class<RESPONSE_T> responseClazz) throws URISyntaxException, JAXBException, IOException {
+  private <RESPONSE_T> RESPONSE_T call( Object request, Class<RESPONSE_T> responseClazz) throws Exception {
+    HttpClient taxiiClient = buildClient(proxy, username, password);
     return call(taxiiClient, endpoint.toURI(), request, context, responseClazz);
   }
 
@@ -254,7 +260,6 @@ public class TaxiiHandler extends TimerTask {
       this.endpoint = endpoint;
       LOG.info("Discovered endpoint as " + endpoint);
     }
-    taxiiClient = buildClient(config.getProxy(), config.getUsername(), config.getPassword());
   }
 
   private static class DiscoveryResults {
