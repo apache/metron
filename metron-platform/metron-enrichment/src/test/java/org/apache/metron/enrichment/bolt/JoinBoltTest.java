@@ -17,8 +17,8 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import backtype.storm.task.TopologyContext;
-import backtype.storm.tuple.Values;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Values;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.json.simple.JSONObject;

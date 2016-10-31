@@ -173,11 +173,11 @@ components:
 
 #kafka/zookeeper
     -   id: "zkHosts"
-        className: "storm.kafka.ZkHosts"
+        className: "org.apache.storm.kafka.ZkHosts"
         constructorArgs:
             - "${kafka.zk}"
     -   id: "kafkaConfig"
-        className: "storm.kafka.SpoutConfig"
+        className: "org.apache.storm.kafka.SpoutConfig"
         constructorArgs:
             # zookeeper hosts
             - ref: "zkHosts"
@@ -195,7 +195,7 @@ components:
 
 spouts:
     -   id: "kafkaSpout"
-        className: "storm.kafka.KafkaSpout"
+        className: "org.apache.storm.kafka.KafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
 bolts:

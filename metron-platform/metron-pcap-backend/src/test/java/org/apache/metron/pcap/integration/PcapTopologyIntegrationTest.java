@@ -110,7 +110,6 @@ public class PcapTopologyIntegrationTest {
       byte[] pcapWithHeader = value.copyBytes();
       long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
       {
-
         List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
         for(PacketInfo pi : info) {
           Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
@@ -248,7 +247,6 @@ public class PcapTopologyIntegrationTest {
             .build();
     try {
       runner.start();
-      System.out.println("Components started...");
 
       fluxComponent.submitTopology();
       sendPcapEntriesCallback.send(kafkaComponent, pcapEntries);

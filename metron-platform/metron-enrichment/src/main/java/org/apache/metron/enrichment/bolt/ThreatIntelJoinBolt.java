@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import backtype.storm.task.TopologyContext;
+import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;

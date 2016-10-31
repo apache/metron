@@ -18,8 +18,8 @@
 
 package org.apache.metron.spout.pcap;
 
-import storm.kafka.Callback;
-import storm.kafka.CallbackKafkaSpout;
+import org.apache.storm.kafka.Callback;
+import org.apache.storm.kafka.CallbackKafkaSpout;
 
 public class KafkaToHDFSSpout extends CallbackKafkaSpout {
   static final long serialVersionUID = 0xDEADBEEFL;

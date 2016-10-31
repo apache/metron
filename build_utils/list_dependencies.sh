@@ -16,4 +16,4 @@
 #  limitations under the License.
 #
 
-mvn dependency:list | grep "^\[INFO\]   " | awk '{print $2}' | grep -v "org.apache" | grep -v "test" | grep -v "provided" | grep -v "runtime" | grep -v ":system" |  sort | uniq 
+{ mvn dependency:list ; mvn dependency:list -PHDP-2.5.0.0 ; } | grep "^\[INFO\]   " | awk '{print $2}' | grep -v "org.apache" | grep -v "test" | grep -v "provided" | grep -v "runtime" | grep -v ":system" |  sort | uniq

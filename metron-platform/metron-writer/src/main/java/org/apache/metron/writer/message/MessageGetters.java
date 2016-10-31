@@ -19,7 +19,7 @@
 package org.apache.metron.writer.message;
 
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 
 public enum MessageGetters implements MessageGetter{

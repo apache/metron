@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 check program indexing with path "{{ monit_home }}/status_indexing_topology.sh"
-  start program "{{ metron_directory }}/bin/start_solr_topology.sh"
-  stop program "{{ monit_home }}/stop_indexing_topology.sh"
+  start program "{{ metron_directory }}/bin/start_solr_topology.sh" with timeout {{ topology_start_timeout }} seconds
+  stop program "{{ monit_home }}/stop_indexing_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
   group yaf
   group bro

@@ -112,7 +112,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
-            .withComponent("storm", parserTopologyComponent)
+            .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
             .withNumRetries(10)
             .build();

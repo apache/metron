@@ -221,6 +221,6 @@ This product bundles jcodings 1.0.8, which is available under a "MIT Software Li
 This product bundles joni 2.1.2, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/joni
 This product bundles taxii 1.1.0.1, which is available under a "BSD Software License" license.  For details, see https://github.com/TAXIIProject/java-taxii
 This product bundles stix 1.2.0.2, which is available under a "BSD Software License" license.  For details, see https://github.com/STIXProject/java-stix
-This product bundles scala-library 2.9.2, which is available under a "BSD Software License" license.  For details, see http://www.scala-lang.org/
+This product bundles scala-library 2.10.6, which is available under a "BSD Software License" license.  For details, see http://www.scala-lang.org/
 This product bundles slf4j-api 1.7.5, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
 This product bundles slf4j-log4j12 1.7.5, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
