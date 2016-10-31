@@ -34,6 +34,40 @@ public class StellarTransformationTest {
   /**
    {
     "fieldTransformations" : [
+     {
+       "transformation" : "STELLAR"
+      ,"output" : [ "full_hostname", "domain_without_subdomains" ]
+      ,"config" : {
+         "full_hostname" : "URL_TO_HOST(123)"
+        ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+                  }
+     }
+                      ]
+   }
+   */
+  @Multiline
+  public static String badConfig;
+
+  @Test(expected=IllegalStateException.class)
+  public void testStellarBadConfig() throws Exception {
+
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(badConfig));
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
+    JSONObject input = new JSONObject();
+    try {
+      handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    }
+    catch(IllegalStateException ex) {
+      Assert.assertTrue(ex.getMessage().contains("URL_TO_HOST"));
+      Assert.assertTrue(ex.getMessage().contains("123"));
+      throw ex;
+    }
+
+  }
+
+  /**
+   {
+    "fieldTransformations" : [
           {
            "transformation" : "STELLAR"
           ,"output" : "utc_timestamp"
@@ -63,6 +97,7 @@ public class StellarTransformationTest {
    */
   @Multiline
   public static String stellarConfigEspecial;
+
 
   @Test
   public void testStellarSpecialCharacters() throws Exception {
