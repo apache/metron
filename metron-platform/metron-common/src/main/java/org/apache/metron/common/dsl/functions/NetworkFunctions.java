@@ -224,7 +224,12 @@ public class NetworkFunctions {
     if(dnObj != null) {
       if(dnObj instanceof String) {
         String dn = dnObj.toString();
-        return InternetDomainName.from(dn);
+        try {
+          return InternetDomainName.from(dn);
+        }
+        catch(IllegalArgumentException iae) {
+          return null;
+        }
       }
       else {
         throw new IllegalArgumentException(dnObj + " is not a string and therefore also not a domain.");
