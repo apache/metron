@@ -146,10 +146,10 @@ The following functions are supported:
     * address - The string to test
   * Returns: True if the string is a valid email address and false if otherwise.
 * `IS_EMPTY`
-  * Description: Returns true if string or collection is empty and false if otherwise.
+  * Description: Returns true if string or collection is empty or null and false if otherwise.
   * Input:
     * input - Object of string or collection type (for example, list)
-  * Returns: True if the string or collection is empty and false otherwise.
+  * Returns: True if the string or collection is empty or null and false if otherwise.
 * `IS_INTEGER`
   * Description: Determines whether or not an object is an integer.
   * Input:
@@ -348,7 +348,7 @@ The following functions are supported:
     * input - Object of string or numeric type
   * Returns: Double version of the first argument
 * `TO_EPOCH_TIMESTAMP`
-  * Description: Returns the epoch timestamp of the dateTime in the specifiedthe format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
+  * Description: Returns the epoch timestamp of the dateTime in the specified the format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
   * Input:
     * dateTime - DateTime in String format
     * format - DateTime format as a String
