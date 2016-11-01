@@ -156,7 +156,7 @@ case "$1" in
     {{ opentaxii_bin }}/taxii-proxy \
       --poll-path $POLL_SOURCE \
       --poll-collection $COLL \
-      --inbox-path http://{{ opentaxii_domain }}/services/inbox \
+      --inbox-path {{ opentaxii_domain }}/services/inbox \
       --inbox-collection $COLL \
       --binding urn:stix.mitre.org:xml:1.1.1 \
       --begin $BEGIN \
@@ -165,7 +165,7 @@ case "$1" in
 
     # count the number of records in the local collection
     {{ opentaxii_bin }}/taxii-poll \
-      --discovery http://{{ opentaxii_domain }}/services/discovery \
+      --discovery {{ opentaxii_domain }}/services/discovery \
       --collection $COLL \
       --count-only
   ;;
