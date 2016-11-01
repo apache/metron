@@ -32,7 +32,7 @@ def mysql_adduser():
          content=StaticFile('addMysqlUser.sh')
          )
 
-    add_user_cmd = format("bash -x {mysql_adduser_path} {daemon_name} {metron_user} {enrichment_metron_user_passwd!p} {mysql_host} {mysql_admin_password}")
+    add_user_cmd = format("bash -x {mysql_adduser_path} {metron_user} {enrichment_metron_user_passwd!p} {mysql_host} {mysql_admin_password!p}")
     Execute(add_user_cmd,
             tries=3,
             try_sleep=5,
@@ -50,7 +50,7 @@ def mysql_deluser():
          content=StaticFile('removeMysqlUser.sh')
          )
 
-    del_user_cmd = format("bash -x {mysql_deluser_path} {daemon_name} {metron_user} {mysql_host} {mysql_admin_password!p}")
+    del_user_cmd = format("bash -x {mysql_deluser_path} {metron_user} {mysql_host} {mysql_admin_password!p}")
     Execute(del_user_cmd,
             tries=3,
             try_sleep=5,

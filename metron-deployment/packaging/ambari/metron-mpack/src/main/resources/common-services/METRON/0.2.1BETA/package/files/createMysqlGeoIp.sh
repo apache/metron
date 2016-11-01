@@ -21,10 +21,9 @@
 #
 from ../scripts/params import params
 
-mysqldservice=$1
-geoipscript=$2
-geoipurl=$3
-mysqlqdminpassword=$4
+geoipscript=$1
+geoipurl=$2
+mysqlqdminpassword=$3
 
 # Download and extract the actual GeoIP files
 mkdir -p /tmp/geoip
@@ -38,6 +37,17 @@ cp /tmp/geoip/*/*.csv /var/lib/mysql-files/
 popd
 
 # Load MySQL with the GeoIP data
-mysql -u root --password=${mysqlqdminpassword} < ${geoipscript}
-mysql -u root --password=${mysqlqdminpassword} -e "show databases;"
-
+expect <<EOF
+log_user 0
+# start mysql process using password prompt
+spawn mysql -u root -p
+expect "password:"
+send "${mysqlqdminpassword}\r"
+# echo all output until the end
+log_user 1
+expect "mysql>"
+send "source ${geoipscript}\r"
+expect "mysql>"
+send "show databases;\r"
+send "\q"
+EOF

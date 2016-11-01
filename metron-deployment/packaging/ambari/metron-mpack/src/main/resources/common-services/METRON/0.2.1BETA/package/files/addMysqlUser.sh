@@ -19,19 +19,33 @@
 # under the License.
 #
 #
-
-mysqldservice=$1
-mysqldbuser=$2
-mysqldbpasswd=$3
-mysqldbhost=$4
-mysqlqdminpassword=$5
+mysqldbuser=$1
+mysqldbpasswd=$2
+mysqldbhost=$3
+mysqlqdminpassword=$4
 myhostname=$(hostname -f)
 
-echo "Adding user ${mysqldbuser}@${mysqldbhost} and ${mysqldbuser}@localhost"
-mysql -u root --password=${mysqlqdminpassword} -e "CREATE USER '${mysqldbuser}'@'${mysqldbhost}' IDENTIFIED BY '${mysqldbpasswd}';"
-mysql -u root --password=${mysqlqdminpassword} -e "CREATE USER '${mysqldbuser}'@'localhost' IDENTIFIED BY '${mysqldbpasswd}';"
 
-mysql -u root --password=${mysqlqdminpassword} -e "GRANT ALL PRIVILEGES ON *.* TO '${mysqldbuser}'@'${mysqldbhost}';"
-mysql -u root --password=${mysqlqdminpassword} -e "GRANT ALL PRIVILEGES ON *.* TO '${mysqldbuser}'@'localhost';"
-mysql -u root --password=${mysqlqdminpassword} -e "GRANT ALL PRIVILEGES ON *.* TO '${mysqldbuser}'@'%' IDENTIFIED BY '${mysqldbpasswd}';"
-mysql -u root --password=${mysqlqdminpassword} -e "flush privileges;"
+echo "Adding user ${mysqldbuser}@${mysqldbhost} and ${mysqldbuser}@localhost"
+expect <<EOF
+log_user 0
+# start mysql process using password prompt
+spawn mysql -u root -p
+expect "password:"
+send "${mysqlqdminpassword}\r"
+# echo all output until the end
+expect "mysql>"
+send "CREATE USER '${mysqldbuser}'@'${mysqldbhost}' IDENTIFIED BY '${mysqldbpasswd}';\r"
+expect "mysql>"
+send "CREATE USER '${mysqldbuser}'@'localhost' IDENTIFIED BY '${mysqldbpasswd}';\r"
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON GEO.* TO '${mysqldbuser}'@'%' IDENTIFIED BY '${mysqldbpasswd}';\r"
+log_user 1
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON GEO.* TO '${mysqldbuser}'@'${mysqldbhost}';\r"
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON GEO.* TO '${mysqldbuser}'@'localhost';\r"
+expect "mysql>"
+send "flush privileges;\r"
+send "\q"
+EOF

@@ -20,13 +20,24 @@
 #
 #
 
-mysqldservice=$1
-mysqldbuser=$2
-userhost=$3
-mysqlqdminpassword=$4
+mysqldbuser=$1
+userhost=$2
+mysqlqdminpassword=$3
 myhostname=$(hostname -f)
 sudo_prefix="/var/lib/ambari-agent/ambari-sudo.sh -H -E"
 
 echo "Removing user $mysqldbuser@$userhost"
-/var/lib/ambari-agent/ambari-sudo.sh su mysql -s /bin/bash - -c "mysql -u root --password=${mysqlqdminpassword} -e \"DROP USER '${mysqldbuser}'@'${userhost}';\""
-/var/lib/ambari-agent/ambari-sudo.sh su mysql -s /bin/bash - -c "mysql -u root --oassword=${mysqlqdminpassword} -e \"flush privileges;\""
+expect <<EOF
+log_user 0
+# start mysql process using password prompt
+spawn mysql -u root -p
+expect "password:"
+send "${mysqlqdminpassword}\r"
+# echo all output until the end
+log_user 1
+expect "mysql>"
+send "DROP USER '${mysqldbuser}'@'${userhost}';\r"
+expect "mysql>"
+send "flush privileges;;\r"
+send "\q"
+EOF

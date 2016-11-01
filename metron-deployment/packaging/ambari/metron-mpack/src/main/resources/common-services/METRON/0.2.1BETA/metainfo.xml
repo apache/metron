@@ -216,6 +216,15 @@
           </packages>
         </osSpecific>
         <osSpecific>
+          <osFamily>redhat6,redhat7</osFamily>
+          <packages>
+            <package>
+              <name>expect</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
           <osFamily>redhat7</osFamily>
           <packages>
             <package>
