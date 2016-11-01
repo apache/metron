@@ -91,12 +91,12 @@ public class GetProfile implements StellarFunction {
   /**
    * A global property that defines the name of the column family used to store profile data.
    */
-  public static final String PROFILER_COLUMN_FAMILY = "profiler.client.column.family";
+  public static final String PROFILER_COLUMN_FAMILY = "profiler.client.hbase.column.family";
 
   /**
    * A global property that defines the name of the HBaseTableProvider implementation class.
    */
-  public static final String PROFILER_HBASE_TABLE_PROVIDER = "profiler.client.hbase.table.provider";
+  public static final String PROFILER_HBASE_TABLE_PROVIDER = "hbase.provider.impl";
 
   /**
    * A global property that defines the duration of each profile period.  This value
