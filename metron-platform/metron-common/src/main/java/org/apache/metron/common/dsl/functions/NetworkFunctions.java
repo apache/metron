@@ -222,8 +222,18 @@ public class NetworkFunctions {
 
   private static InternetDomainName toDomainName(Object dnObj) {
     if(dnObj != null) {
-      String dn = dnObj.toString();
-      return InternetDomainName.from(dn);
+      if(dnObj instanceof String) {
+        String dn = dnObj.toString();
+        try {
+          return InternetDomainName.from(dn);
+        }
+        catch(IllegalArgumentException iae) {
+          return null;
+        }
+      }
+      else {
+        throw new IllegalArgumentException(dnObj + " is not a string and therefore also not a domain.");
+      }
     }
     return null;
   }
@@ -232,10 +242,15 @@ public class NetworkFunctions {
     if(urlObj == null) {
       return null;
     }
-    try {
-      return new URL(urlObj.toString());
-    } catch (MalformedURLException e) {
-      return null;
+    if(urlObj instanceof String) {
+      try {
+        return new URL(urlObj.toString());
+      } catch (MalformedURLException e) {
+        return null;
+      }
+    }
+    else {
+      throw new IllegalArgumentException(urlObj + " is not a string and therefore also not a URL.");
     }
   }
 }
