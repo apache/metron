@@ -20,16 +20,23 @@
 
 package org.apache.metron.profiler.client;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -95,4 +102,22 @@ public class ProfileWriter {
     hbaseClient.mutate();
   }
 
+  public static void main(String[] args) throws Exception {
+    RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
+    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder();
+
+    Configuration config = HBaseConfiguration.create();
+    config.set("hbase.master.hostname", "node1");
+    config.set("hbase.regionserver.hostname", "node1");
+    config.set("hbase.zookeeper.quorum", "node1");
+
+    HTableProvider provider = new HTableProvider();
+    HTableInterface table = provider.getTable(config, "profiler");
+
+    long when = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2);
+    ProfileMeasurement measure = new ProfileMeasurement("profile1", "192.168.66.121", when, 15, TimeUnit.MINUTES);
+
+    ProfileWriter writer = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    writer.write(measure, 2 * 24 * 4, Collections.emptyList(), val -> new Random().nextInt(10));
+  }
 }
