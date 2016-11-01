@@ -40,7 +40,7 @@ public class ConversionFunctions {
   @Stellar(name="TO_INTEGER"
           , description="Transforms the first argument to an integer"
           , params = { "input - Object of string or numeric type"}
-          , returns = "Integer"
+          , returns = "Integer version of the first argument"
           )
   public static class TO_INTEGER extends Cast<Integer> {
 
@@ -52,7 +52,7 @@ public class ConversionFunctions {
   @Stellar(name="TO_DOUBLE"
           , description="Transforms the first argument to a double precision number"
           , params = { "input - Object of string or numeric type"}
-          , returns = "Double"
+          , returns = "Double version of the first argument"
           )
   public static class TO_DOUBLE extends Cast<Double> {
 

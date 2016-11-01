@@ -33,12 +33,12 @@ import java.util.function.Function;
 
 public class NetworkFunctions {
   @Stellar(name="IN_SUBNET"
-          ,description = "Returns if an IP is within a subnet range."
+          ,description = "Returns true if an IP is within a subnet range."
           ,params = {
-                     "ip - the IP address in String form"
-                    ,"cidr+ - one or more IP ranges specified in CIDR notation (e.g. 192.168.0.0/24)"
+                     "ip - The IP address in string form"
+                    ,"cidr+ - One or more IP ranges specified in CIDR notation (for example 192.168.0.0/24)"
                     }
-          ,returns = "True if the IP address is within at least one of the network ranges and false otherwise"
+          ,returns = "True if the IP address is within at least one of the network ranges and false if otherwise"
           )
   public static class InSubnet extends BaseStellarFunction {
 
@@ -68,12 +68,12 @@ public class NetworkFunctions {
 
   @Stellar(name="REMOVE_SUBDOMAINS"
           ,namespace = "DOMAIN"
-          ,description = "Remove subdomains from a domain."
+          ,description = "Removes the subdomains from a domain."
           , params = {
-                      "domain - fully qualified domain name"
+                      "domain - Fully qualified domain name"
                      }
           , returns = "The domain without the subdomains.  " +
-                      "e.g. DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com'"
+                      "(for example, DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com')"
           )
   public static class RemoveSubdomains extends BaseStellarFunction {
 
@@ -102,12 +102,12 @@ public class NetworkFunctions {
 
   @Stellar(name="REMOVE_TLD"
           ,namespace = "DOMAIN"
-          ,description = "Remove top level domain suffix from a domain."
+          ,description = "Removes the top level domain (TLD) suffix from a domain."
           , params = {
-                      "domain - fully qualified domain name"
+                      "domain - Fully qualified domain name"
                      }
           , returns = "The domain without the TLD.  " +
-                      "e.g. DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo'"
+                      "(for example, DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo')"
           )
   public static class RemoveTLD extends BaseStellarFunction {
     @Override
@@ -132,12 +132,12 @@ public class NetworkFunctions {
 
   @Stellar(name="TO_TLD"
           ,namespace = "DOMAIN"
-          ,description = "Extract the top level domain from a domain"
+          ,description = "Extracts the top level domain from a domain"
           , params = {
-                      "domain - fully qualified domain name"
+                      "domain - Fully qualified domain name"
                      }
           , returns = "The TLD of the domain.  " +
-                      "e.g. DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk'"
+                      "(for example, DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk')"
           )
   public static class ExtractTLD extends BaseStellarFunction {
     @Override
@@ -156,9 +156,9 @@ public class NetworkFunctions {
           ,description = "Extract the port from a URL.  " +
                           "If the port is not explicitly stated in the URL, then an implicit port is inferred based on the protocol."
           , params = {
-                      "url - URL in String form"
+                      "url - URL in string form"
                      }
-          , returns = "The port used in the URL as an Integer.  e.g. URL_TO_PORT('http://www.yahoo.com/foo') would yield 80"
+          , returns = "The port used in the URL as an integer (for example, URL_TO_PORT('http://www.yahoo.com/foo') would yield 80)"
           )
   public static class URLToPort extends BaseStellarFunction {
     @Override

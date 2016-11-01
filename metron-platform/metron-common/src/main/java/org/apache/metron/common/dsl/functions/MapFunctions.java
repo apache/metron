@@ -34,7 +34,7 @@ public class MapFunctions {
                       "key - The key to check for existence"
                      ,"map - The map to check for existence of the key"
                      }
-          , returns = "True if the key is found in the map and false otherwise."
+          , returns = "True if the key is found in the map and false if otherwise."
           )
   public static class MapExists extends BaseStellarFunction {
 
@@ -60,8 +60,7 @@ public class MapFunctions {
                      ,"map - The map"
                      ,"default - Optionally the default value to return if the key is not in the map."
                      }
-          , returns = "The object associated with key in the map.  " +
-                      "If there is no value associated, then default if specified and null if a default is not specified."
+          , returns = "The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned."
           )
   public static class MapGet extends BaseStellarFunction {
     @Override

@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Stellar(name="PROTOCOL_TO_NAME"
-        , description="Convert the IANA protocol number to the protocol name"
+        , description="Converts the IANA protocol number to the protocol name"
         , params = {
                     "IANA Number"
                    }
