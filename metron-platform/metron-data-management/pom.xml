@@ -337,14 +337,6 @@
         </dependency>
     </dependencies>
     <build>
-        <resources>
-            <resource>
-                <directory>src</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -392,7 +384,7 @@
                                         <resource>.yaml</resource>
                                         <resource>LICENSE.txt</resource>
                                         <resource>ASL2.0</resource>
-                                        <resource>NOTICE</resource>
+                                        <resource>NOTICE.txt</resource>
                                       </resources>
                                 </transformer>
                                 <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
@@ -433,8 +425,12 @@
                     </execution>
                 </executions>
             </plugin>
-
-        </plugins>
+          </plugins>
+          <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
     </build>
 
 </project>

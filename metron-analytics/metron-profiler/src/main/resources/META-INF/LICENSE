@@ -202,12 +202,9 @@ Apache License
 
 ------------------------------------------------------------------------------------
 
-
+This product bundles some test examples from the Stix project (metron-platform/metron-data-management/src/test/resources/stix_example.xml and metron-platform/metron-data-management/src/test/resources/stix_example_wo_conditions.xml), which is available under a BSD license.  For details, see http://stix.mitre.org/about/termsofuse.html
 
 This product bundles asm 3.1, which is available under a "BSD Software License" license.  For details, see http://asm.ow2.org/
-This product bundles kryo 2.21, which is available under a "BSD Software License" license.  For details, see http://code.google.com/p/kryo/
-This product bundles minlog 1.2, which is available under a "BSD Software License" license.  For details, see http://code.google.com/p/minlog/
-This product bundles reflectasm shaded, which is available under a "BSD Software License" license.  For details, see https://github.com/EsotericSoftware/reflectasm
 This product bundles protobuf-java 2.5.0, which is available under a "BSD Software License" license.  For details, see http://code.google.com/p/protobuf
 This product bundles jsch 0.1.42, which is available under a "BSD Software License" license.  For details, see http://www.jcraft.com/jsch/
 This product bundles jersey-guice 1.9, which is available under a "Common Development and Distribution License v1.1" license.  For details, see https://jersey.java.net/
@@ -218,16 +215,12 @@ This product bundles jersey-server 1.9, which is available under a "Common Devel
 This product bundles jaxb-impl 2.2.3-1, which is available under a "Common Development and Distribution License" license.  For details, see http://jaxb.java.net/
 This product bundles paranamer 2.3, which is available under a "BSD Software License" license.  For details, see https://github.com/paul-hammant/paranamer
 This product bundles activation 1.1, which is available under a "Common Development and Distribution License v1.0" license.  For details, see http://java.sun.com/products/javabeans/jaf/index.jsp
-This product bundles servlet-api 2.5, which is available under a "Common Development and Distribution License" license.  For details, see http://oracle.com
 This product bundles jaxb-api 2.2.2, which is available under a "Common Development and Distribution License" license.  For details, see https://jaxb.dev.java.net/
 This product bundles stax-api 1.0-2, which is available under a "Common Development and Distribution License v1.0" license.  For details, see https://docs.oracle.com/javase/7/docs/api/javax/xml/stream/package-summary.html
 This product bundles jline 0.9.94, which is available under a "BSD Software License" license.  For details, see http://jline.sourceforge.net
-This product bundles jopt-simple 3.2, which is available under a "MIT Software License" license.  For details, see http://jopt-simple.sourceforge.net
-This product bundles clojure 1.6.0, which is available under a "Eclipse Public License v1.0" license.  For details, see http://clojure.org/
-This product bundles leveldbjni-all 1.8, which is available under a "BSD Software License" license.  For details, see https://github.com/fusesource/leveldbjni
+This product bundles jopt-simple 4.9, which is available under a "MIT Software License" license.  For details, see http://jopt-simple.sourceforge.net
 This product bundles jcodings 1.0.8, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/jcodings
 This product bundles joni 2.1.2, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/joni
-This product bundles asm 4.0, which is available under a "BSD Software License" license.  For details, see http://asm.ow2.org/
 This product bundles scala-library 2.10.6, which is available under a "BSD Software License" license.  For details, see http://www.scala-lang.org/
 This product bundles slf4j-api 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
 This product bundles slf4j-log4j12 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org

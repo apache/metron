@@ -202,5 +202,7 @@ Apache License
 
 ------------------------------------------------------------------------------------
 
+This product bundles some test examples from the Stix project (metron-platform/metron-data-management/src/test/resources/stix_example.xml and metron-platform/metron-data-management/src/test/resources/stix_example_wo_conditions.xml), which is available under a BSD license.  For details, see http://stix.mitre.org/about/termsofuse.html
 
-
+This product bundles paranamer 2.3, which is available under a "BSD Software License" license.  For details, see https://github.com/paul-hammant/paranamer
+This product bundles slf4j-api 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
