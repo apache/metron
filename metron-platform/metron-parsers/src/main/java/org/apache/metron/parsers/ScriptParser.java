@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
 import org.apache.hadoop.conf.Configuration;
@@ -20,24 +21,26 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JSParser implements MessageParser<JSONObject>,Serializable{
+public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 	
-	protected static final Logger LOG = LoggerFactory.getLogger(JSParser.class);
-	protected String jsPath;
+	protected static final Logger LOG = LoggerFactory.getLogger(ScriptParser.class);
+	protected String scriptPath;
 	protected ScriptEngine engine;
 	protected String parseFunction;
-	//protected String language;
-	protected String commonJS="/scripts/js/common";
+	protected String language;
+	protected String commonScript="/scripts/";
 
 	@Override
 	public void configure(Map<String, Object> config) {
 		// TODO Auto-generated method stub
-		this.jsPath=(String) config.get("path");
+		this.scriptPath=(String) config.get("path");
 		this.parseFunction=(String)config.get("function");
+		this.language=(String)config.get("language");
+		this.commonScript=this.commonScript+language+"/common";
 		if(this.parseFunction==null)
 			this.parseFunction="parse";
 	}
-	
+	//Should this be sent to the interface as a default method?
 	public InputStream openInputStream(String streamName) throws IOException {
 	    FileSystem fs = FileSystem.get(new Configuration());
 	    Path path = new Path(streamName);
@@ -51,28 +54,28 @@ public class JSParser implements MessageParser<JSONObject>,Serializable{
 	@Override
 	public void init() {
 		// TODO Auto-generated method stub
-		engine = new ScriptEngineManager().getEngineByName("nashorn");
+		engine = new ScriptEngineManager().getEngineByName("js");
 		try{
-			InputStream commonStream = openInputStream(this.commonJS);
+			InputStream commonStream = openInputStream(this.commonScript);
 			if (commonStream == null) {
 		        throw new RuntimeException(
-		                "Unable to initialize JS Parser: Unable to load " + this.commonJS + " from either classpath or HDFS");
+		                "Unable to initialize "+this.language+" Parser: Unable to load " + this.commonScript + " from either classpath or HDFS");
 		      }
 
 		      engine.eval(new InputStreamReader(commonStream));
 		      if (LOG.isDebugEnabled()) {
-		        LOG.debug("Loading parser-specific patterns from: " + this.jsPath);
+		        LOG.debug("Loading parser-specific functions from: " + this.scriptPath);
 		      }
 
-		      InputStream patterInputStream = openInputStream(this.jsPath);
+		      InputStream patterInputStream = openInputStream(this.scriptPath);
 		      if (patterInputStream == null) {
-		        throw new RuntimeException("Grok parser unable to initialize grok parser: Unable to load " + this.jsPath
+		        throw new RuntimeException("Script parser unable to initialize "+this.language+" parser: Unable to load " + this.scriptPath
 		                + " from either classpath or HDFS");
 		      }
 		      engine.eval(new InputStreamReader(patterInputStream));
 		}catch(Throwable e){
 			LOG.error(e.getMessage(), e);
-		    throw new RuntimeException("JS parser Error: " + e.getMessage(), e);
+		    throw new RuntimeException(this.language+" Script parser Error: " + e.getMessage(), e);
 		}
 		
 		Invocable invocable = (Invocable) engine;
@@ -110,11 +113,17 @@ public class JSParser implements MessageParser<JSONObject>,Serializable{
 	}
 	
 	public static void main(String[] args){
-		ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-		String json ="var test = {'id': 10,'Hello': 'World','test':"
-				+ " {'Lorem' : 'Ipsum','java'  : true },}";
+		ScriptEngine engine = new ScriptEngineManager().getEngineByName("python");
+		/*for(ScriptEngineFactory sf: new ScriptEngineManager().getEngineFactories()){
+			if("jython".equals(sf.getEngineName())){
+				engine = sf.getScriptEngine();
+				break;
+			}
+		}*/
+		String json ="\ttest = '{\"id\": 10,\"Hello\": \"World\"}'";
+		System.out.println("import json\ndef fun1(name):\n"+json+"\n\tprint test\n\treturn json.loads(test)\n");;
 		try{
-			engine.eval("var fun1 = function() {\n"+json+";return test;\n};");
+			engine.eval("import json\ndef fun1(name):\n"+json+"\n\tprint test\n\treturn json.loads(test)\n");
 			Invocable invocable = (Invocable) engine;
 
 			Object result = invocable.invokeFunction("fun1", "Peter Parker");
