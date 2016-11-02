@@ -30,7 +30,7 @@
           <displayName>Metron Parsers</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>false</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
@@ -67,9 +67,6 @@
             <script>scripts/parser_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <configuration-dependencies>
-            <config-type>metron-parsers</config-type>
-          </configuration-dependencies>
         </component>
 
         <component>
@@ -77,7 +74,7 @@
           <displayName>Metron Enrichment</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -95,7 +92,7 @@
             </dependency>
             <dependency>
               <name>KAFKA/KAFKA_BROKER</name>
-              <scope>cluster</scope>
+              <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
               </auto-deploy>
@@ -136,7 +133,7 @@
           <displayName>Metron Indexing</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>false</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
@@ -184,11 +181,15 @@
                 </commandScript>
               </customCommand>
           </customCommands>
-          <configuration-dependencies>
-            <config-type>metron-indexing</config-type>
-          </configuration-dependencies>
         </component>
       </components>
+
+      <themes>
+        <theme>
+          <fileName>metron_theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
 
       <osSpecifics>
         <osSpecific>
@@ -211,6 +212,15 @@
             </package>
             <package>
               <name>metron-elasticsearch</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6,redhat7</osFamily>
+          <packages>
+            <package>
+              <name>expect</name>
+              <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>
         </osSpecific>

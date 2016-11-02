@@ -20,7 +20,7 @@
 
 package org.apache.metron.hbase.client;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;

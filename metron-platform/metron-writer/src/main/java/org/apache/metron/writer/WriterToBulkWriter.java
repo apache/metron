@@ -18,7 +18,7 @@
 
 package org.apache.metron.writer;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;

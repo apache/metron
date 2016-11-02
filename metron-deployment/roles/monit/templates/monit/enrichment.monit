@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 check program enrichment with path "{{ monit_home }}/status_enrichment_topology.sh"
-  start program "{{ metron_directory }}/bin/start_enrichment_topology.sh"
-  stop program "{{ monit_home }}/stop_enrichment_topology.sh"
+  start program "{{ metron_directory }}/bin/start_enrichment_topology.sh" with timeout {{ topology_start_timeout }} seconds
+  stop program "{{ monit_home }}/stop_enrichment_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
   group yaf
   group bro

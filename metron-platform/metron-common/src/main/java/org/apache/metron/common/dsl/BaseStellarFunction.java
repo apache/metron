@@ -18,8 +18,10 @@
 package org.apache.metron.common.dsl;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Functions that do not require initialization can extend this class rather than directly implement StellarFunction
+ */
 public abstract class BaseStellarFunction implements StellarFunction {
   public abstract Object apply(List<Object> args);
 

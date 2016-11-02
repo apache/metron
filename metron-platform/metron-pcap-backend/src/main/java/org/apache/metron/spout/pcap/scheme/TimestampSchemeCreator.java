@@ -18,7 +18,7 @@
 
 package org.apache.metron.spout.pcap.scheme;
 
-import backtype.storm.spout.MultiScheme;
+import org.apache.storm.spout.MultiScheme;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
 
 public interface TimestampSchemeCreator {

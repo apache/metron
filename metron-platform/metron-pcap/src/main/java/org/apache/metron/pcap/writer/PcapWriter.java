@@ -17,7 +17,7 @@
  */
 package org.apache.metron.pcap.writer;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import org.apache.metron.hbase.writer.HBaseWriter;
 import org.apache.metron.pcap.utils.PcapUtils;
 import org.json.simple.JSONObject;

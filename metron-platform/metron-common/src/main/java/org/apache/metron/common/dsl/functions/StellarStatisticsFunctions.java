@@ -55,11 +55,11 @@ public class StellarStatisticsFunctions {
 
   @Stellar( namespace="STATS"
           , name="MERGE"
-          , description = "Merge statistic providers"
+          , description = "Merges statistics objects."
           , params = {
-                      "statisticsProviders - A list of statistics providers"
+                      "statistics - A list of statistics objects"
                       }
-          , returns = "A StatisticsProvider object"
+          , returns = "A Stellar statistics object"
           )
   public static class Merge extends BaseStellarFunction {
     @Override
@@ -100,14 +100,14 @@ public class StellarStatisticsFunctions {
    */
   @Stellar( namespace="STATS"
           , name="INIT"
-          , description = "Initialize a Statistics object"
+          , description = "Initializes a statistics object"
           , params = {
                       "window_size - The number of input data values to maintain in a rolling window " +
-                      "in memory.  If equal to 0, then no rolling window is maintained. " +
+                      "in memory.  If window_size is equal to 0, then no rolling window is maintained. " +
                       "Using no rolling window is less memory intensive, but cannot " +
                       "calculate certain statistics like percentiles and kurtosis."
                       }
-          , returns = "A StatisticsProvider object"
+          , returns = "A Stellar statistics object"
           )
   public static class Init extends BaseStellarFunction {
     @Override
@@ -123,12 +123,12 @@ public class StellarStatisticsFunctions {
    */
   @Stellar(namespace="STATS"
           , name="ADD"
-          , description = "Add one or more input values to those that are used to calculate the summary statistics."
+          , description = "Adds one or more input values to those that are used to calculate the summary statistics."
           , params = {
                       "stats - The Stellar statistics object.  If null, then a new one is initialized."
-                     , "value+ - one or more numbers to add "
+                     , "value+ - One or more numbers to add"
                      }
-          , returns = "A StatisticsProvider object"
+          , returns = "A Stellar statistics object"
           )
   public static class Add extends BaseStellarFunction {
     @Override
@@ -157,9 +157,9 @@ public class StellarStatisticsFunctions {
    */
   @Stellar( namespace="STATS"
           , name="MEAN"
-          , description = "Calculates the mean of the values accumulated (or in the window if a window is used)."
+          , description = "Calculates the mean of the accumulated values (or in the window if a window is used)."
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The mean of the values in the window or NaN if the statistics object is null."
           )
@@ -176,9 +176,9 @@ public class StellarStatisticsFunctions {
    */
   @Stellar( namespace="STATS"
           , name="GEOMETRIC_MEAN"
-          , description = "Calculates the geometric mean of the values accumulated (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the geometric mean of the accumulated values (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The geometric mean of the values in the window or NaN if the statistics object is null."
           )
@@ -195,9 +195,9 @@ public class StellarStatisticsFunctions {
    */
   @Stellar(namespace="STATS"
           , name="SUM"
-          , description = "Calculates the sum of the values accumulated (or in the window if a window is used)."
+          , description = "Calculates the sum of the accumulated values (or in the window if a window is used)."
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The sum of the values in the window or NaN if the statistics object is null."
           )
@@ -213,11 +213,11 @@ public class StellarStatisticsFunctions {
    * Calculates the max.
    */
   @Stellar(namespace="STATS", name="MAX"
-          , description = "Calculates the max of the values accumulated (or in the window if a window is used)."
+          , description = "Calculates the maximum of the accumulated values (or in the window if a window is used)."
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
-          , returns = "The max of the values in the window or NaN if the statistics object is null."
+          , returns = "The maximum of the accumulated values in the window or NaN if the statistics object is null."
           )
   public static class Max extends BaseStellarFunction {
     @Override
@@ -231,11 +231,11 @@ public class StellarStatisticsFunctions {
    * Calculates the min.
    */
   @Stellar(namespace="STATS", name="MIN"
-          , description = "Calculates the min of the values accumulated (or in the window if a window is used)."
+          , description = "Calculates the minimum of the accumulated values (or in the window if a window is used)."
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
-          , returns = "The min of the values in the window or NaN if the statistics object is null."
+          , returns = "The minimum of the accumulated values in the window or NaN if the statistics object is null."
           )
   public static class Min extends BaseStellarFunction {
     @Override
@@ -251,7 +251,7 @@ public class StellarStatisticsFunctions {
   @Stellar(namespace="STATS", name="COUNT"
           , description = "Calculates the count of the values accumulated (or in the window if a window is used)."
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The count of the values in the window or NaN if the statistics object is null.")
   public static class Count extends BaseStellarFunction {
@@ -266,9 +266,9 @@ public class StellarStatisticsFunctions {
    * Calculates the population variance.
    */
   @Stellar(namespace="STATS", name="POPULATION_VARIANCE"
-          , description = "Calculates the population variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the population variance of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The population variance of the values in the window or NaN if the statistics object is null.")
   public static class PopulationVariance extends BaseStellarFunction {
@@ -283,9 +283,9 @@ public class StellarStatisticsFunctions {
    * Calculates the variance.
    */
   @Stellar(namespace="STATS", name="VARIANCE"
-          , description = "Calculates the variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the variance of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The variance of the values in the window or NaN if the statistics object is null.")
   public static class Variance extends BaseStellarFunction {
@@ -300,9 +300,9 @@ public class StellarStatisticsFunctions {
    * Calculates the quadratic mean.
    */
   @Stellar(namespace="STATS", name="QUADRATIC_MEAN"
-          , description = "Calculates the quadratic mean of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the quadratic mean of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The quadratic mean of the values in the window or NaN if the statistics object is null.")
   public static class QuadraticMean extends BaseStellarFunction {
@@ -317,9 +317,9 @@ public class StellarStatisticsFunctions {
    * Calculates the standard deviation.
    */
   @Stellar(namespace="STATS", name="SD"
-          , description = "Calculates the standard deviation of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the standard deviation of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The standard deviation of the values in the window or NaN if the statistics object is null.")
   public static class StandardDeviation extends BaseStellarFunction {
@@ -334,9 +334,9 @@ public class StellarStatisticsFunctions {
    * Calculates the sum of logs.
    */
   @Stellar(namespace="STATS", name="SUM_LOGS"
-          , description = "Calculates the sum of the (natural) log of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the sum of the (natural) log of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The sum of the (natural) log of the values in the window or NaN if the statistics object is null.")
   public static class SumLogs extends BaseStellarFunction {
@@ -351,9 +351,9 @@ public class StellarStatisticsFunctions {
    * Calculates the sum of squares.
    */
   @Stellar(namespace="STATS", name="SUM_SQUARES"
-          , description = "Calculates the sum of the squares of the values accumulated (or in the window if a window is used)."
+          , description = "Calculates the sum of the squares of the accumulated values (or in the window if a window is used)."
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The sum of the squares of the values in the window or NaN if the statistics object is null.")
   public static class SumSquares extends BaseStellarFunction {
@@ -368,9 +368,9 @@ public class StellarStatisticsFunctions {
    * Calculates the kurtosis.
    */
   @Stellar(namespace="STATS", name="KURTOSIS"
-          , description = "Calculates the kurtosis of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the kurtosis of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The kurtosis of the values in the window or NaN if the statistics object is null.")
   public static class Kurtosis extends BaseStellarFunction {
@@ -385,9 +385,9 @@ public class StellarStatisticsFunctions {
    * Calculates the skewness.
    */
   @Stellar(namespace="STATS", name="SKEWNESS"
-          , description = "Calculates the skewness of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
+          , description = "Calculates the skewness of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics "
           , params = {
-            "stats - The Stellar statistics object."
+            "stats - The Stellar statistics object"
                      }
           , returns = "The skewness of the values in the window or NaN if the statistics object is null.")
   public static class Skewness extends BaseStellarFunction {
@@ -404,9 +404,9 @@ public class StellarStatisticsFunctions {
    * STATS_PERCENTILE(stats, 0.90)
    */
   @Stellar(namespace="STATS", name="PERCENTILE"
-          , description = "Computes the p'th percentile of the values accumulated (or in the window if a window is used)."
+          , description = "Computes the p'th percentile of the accumulated values (or in the window if a window is used)."
           , params = {
-          "stats - The Stellar statistics object."
+          "stats - The Stellar statistics object"
           ,"p - a double where 0 <= p < 1 representing the percentile"
 
                      }

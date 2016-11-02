@@ -18,7 +18,7 @@
 
 package org.apache.metron.writer.hdfs;
 
-import backtype.storm.task.TopologyContext;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 
 import java.util.Map;

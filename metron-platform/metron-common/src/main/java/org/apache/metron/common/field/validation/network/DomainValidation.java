@@ -30,12 +30,12 @@ import java.util.function.Predicate;
 public class DomainValidation extends SimpleValidation {
 
   @Stellar(name="IS_DOMAIN"
-          ,description = "Tests if a string is a valid domain.  Domain names are evaluated according" +
+          ,description = "Tests if a string refers to a valid domain name.  Domain names are evaluated according" +
           " to the standards RFC1034 section 3, and RFC1123 section 2.1."
           ,params = {
-              "address - The String to test"
+              "address - The string to test"
                     }
-          , returns = "True if the string is a valid domain and false otherwise.")
+          , returns = "True if the string refers to a valid domain name and false if otherwise")
   public static class IS_DOMAIN extends Predicate2StellarFunction {
 
     public IS_DOMAIN() {

@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package storm.kafka;
+package org.apache.metron.common.system;
 
-import java.io.Serializable;
-import java.util.List;
-
-public interface Callback extends AutoCloseable, Serializable {
-    List<Object> apply(List<Object> tuple, EmitContext context);
-    void initialize(EmitContext context);
+/**
+ * Useful so we can test mock dependency injection with environment variables
+ */
+public class Environment {
+  public String get(String variable) {
+    return System.getenv().get(variable);
+  }
 }

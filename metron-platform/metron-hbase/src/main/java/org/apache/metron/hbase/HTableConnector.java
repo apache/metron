@@ -29,7 +29,7 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
-import backtype.storm.generated.Bolt;
+import org.apache.storm.generated.Bolt;
 
 /**
  * HTable connector for Storm {@link Bolt}

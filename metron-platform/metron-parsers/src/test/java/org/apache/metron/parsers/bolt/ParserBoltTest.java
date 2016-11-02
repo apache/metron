@@ -19,8 +19,8 @@ package org.apache.metron.parsers.bolt;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
 
-import backtype.storm.task.OutputCollector;
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;

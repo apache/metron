@@ -30,6 +30,7 @@
         <antlr.version>4.5</antlr.version>
     </properties>
     <dependencies>
+
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common</artifactId>
@@ -40,6 +41,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-parsers</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.metron</groupId>
+                    <artifactId>metron-writer</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -80,7 +87,7 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>
-            <version>2.7.1</version>
+            <version>${global_curator_version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -100,6 +107,19 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-minicluster</artifactId>
             <version>${global_hadoop_version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-hdfs</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${global_hadoop_version}</version>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -147,7 +167,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${global_shade_version}</version>
                 <configuration>
-                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <artifactSet>
                         <excludes>
                             <exclude>*slf4j*</exclude>

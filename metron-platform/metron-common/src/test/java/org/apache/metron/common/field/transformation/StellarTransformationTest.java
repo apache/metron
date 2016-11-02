@@ -34,6 +34,72 @@ public class StellarTransformationTest {
   /**
    {
     "fieldTransformations" : [
+     {
+       "transformation" : "STELLAR"
+      ,"output" : [ "full_hostname", "domain_without_subdomains" ]
+      ,"config" : {
+         "full_hostname" : "URL_TO_HOST(123)"
+        ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+                  }
+     }
+                      ]
+   }
+   */
+  @Multiline
+  public static String badConfig;
+
+
+  /** { "fieldTransformations" : [
+        { "transformation" : "STELLAR"
+        ,"output" : [ "full_hostname", "domain_without_subdomains" ]
+        ,"config" : {
+          "full_hostname" : "URL_TO_HOST('http://1234567890123456789012345678901234567890123456789012345678901234567890/index.html')"
+          ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+                    }
+        }
+                                ]
+      }
+   */
+  @Multiline
+  public static String configNumericDomain;
+
+  @Test
+  public void testStellarNumericDomain() throws Exception {
+    /*
+    Despite the domain being weird, URL_TO_HOST should allow it to pass through.
+    However, because it does NOT form a proper domain (no TLD), DOMAIN_REMOVE_SUBDOMAINS returns
+    null indicating that the input is semantically incorrect.
+     */
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(configNumericDomain));
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
+    JSONObject input = new JSONObject();
+    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    Assert.assertTrue(input.containsKey("full_hostname"));
+    Assert.assertEquals("1234567890123456789012345678901234567890123456789012345678901234567890", input.get("full_hostname"));
+    Assert.assertFalse(input.containsKey("domain_without_subdomains"));
+
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void testStellarBadConfig() throws Exception {
+
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(badConfig));
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
+    JSONObject input = new JSONObject();
+    try {
+      handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    }
+    catch(IllegalStateException ex) {
+      Assert.assertTrue(ex.getMessage().contains("URL_TO_HOST"));
+      Assert.assertTrue(ex.getMessage().contains("123"));
+      throw ex;
+    }
+
+  }
+
+  /**
+   {
+    "fieldTransformations" : [
           {
            "transformation" : "STELLAR"
           ,"output" : "utc_timestamp"
@@ -63,6 +129,7 @@ public class StellarTransformationTest {
    */
   @Multiline
   public static String stellarConfigEspecial;
+
 
   @Test
   public void testStellarSpecialCharacters() throws Exception {

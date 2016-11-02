@@ -18,10 +18,10 @@
 
 package org.apache.metron.spout.pcap.scheme;
 
-import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Values;
 import com.google.common.collect.ImmutableList;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
@@ -29,8 +29,9 @@ import org.apache.metron.common.utils.timestamp.TimestampConverter;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.spout.pcap.Endianness;
-import storm.kafka.KeyValueScheme;
+import org.apache.storm.kafka.KeyValueScheme;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
@@ -39,15 +40,15 @@ public class FromKeyScheme implements KeyValueScheme, KeyConvertible {
   private TimestampConverter converter = TimestampConverters.MICROSECONDS;
   private static Endianness endianness = Endianness.getNativeEndianness();
   @Override
-  public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
-    Long ts = converter.toNanoseconds(Bytes.toLong(key));
-    byte[] packetHeaderized = PcapHelper.addPacketHeader(ts, value, endianness);
+  public List<Object> deserializeKeyAndValue(ByteBuffer key, ByteBuffer value) {
+    Long ts = converter.toNanoseconds(key.asLongBuffer().get());
+    byte[] packetHeaderized = PcapHelper.addPacketHeader(ts, Utils.toArray(value), endianness);
     byte[] globalHeaderized= PcapHelper.addGlobalHeader(packetHeaderized, endianness);
     return new Values(ImmutableList.of(new LongWritable(ts), new BytesWritable(globalHeaderized)));
   }
 
   @Override
-  public List<Object> deserialize(byte[] ser) {
+  public List<Object> deserialize(ByteBuffer ser) {
     throw new UnsupportedOperationException("Really only interested in deserializing a key and a value");
   }
 

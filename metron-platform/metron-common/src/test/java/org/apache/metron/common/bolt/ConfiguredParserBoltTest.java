@@ -17,8 +17,8 @@
  */
 package org.apache.metron.common.bolt;
 
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Tuple;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;

@@ -18,7 +18,7 @@
 
 package org.apache.metron.parsers.topology;
 
-import backtype.storm.Config;
+import org.apache.storm.Config;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;

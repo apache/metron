@@ -19,7 +19,6 @@
 package org.apache.metron.common.spout.kafka;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.junit.Assert;
@@ -87,11 +86,6 @@ public class SpoutConfigTest {
     Assert.assertEquals(2000, spoutConfig.retryInitialDelayMs);
     Assert.assertEquals(3000, spoutConfig.stateUpdateIntervalMs);
     Assert.assertEquals(4000, spoutConfig.bufferSizeBytes);
-    Assert.assertEquals(10000, spoutConfig.fetchMaxWait); //default
-    Assert.assertEquals(1024*1024, spoutConfig.fetchSizeBytes); //default
-    Assert.assertEquals(Long.MAX_VALUE, spoutConfig.maxOffsetBehind);//default
-    Assert.assertEquals(60, spoutConfig.metricsTimeBucketSizeInSecs); //default
-    Assert.assertEquals(10000, spoutConfig.socketTimeoutMs); //default
   }
 
   @Test
@@ -104,10 +98,5 @@ public class SpoutConfigTest {
     Assert.assertEquals(0, spoutConfig.retryInitialDelayMs);
     Assert.assertEquals(2000, spoutConfig.stateUpdateIntervalMs);
     Assert.assertEquals(1024*1024, spoutConfig.bufferSizeBytes);
-    Assert.assertEquals(10000, spoutConfig.fetchMaxWait); //default
-    Assert.assertEquals(1024*1024, spoutConfig.fetchSizeBytes); //default
-    Assert.assertEquals(Long.MAX_VALUE, spoutConfig.maxOffsetBehind);//default
-    Assert.assertEquals(60, spoutConfig.metricsTimeBucketSizeInSecs); //default
-    Assert.assertEquals(10000, spoutConfig.socketTimeoutMs); //default
   }
 }

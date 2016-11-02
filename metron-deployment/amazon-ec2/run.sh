@@ -60,7 +60,7 @@ $DEPLOYDIR/../scripts/platform-info.sh >> $LOGFILE
 
 # build metron
 cd ../..
-mvn package -DskipTests
+mvn package -DskipTests -PHDP-2.5.0.0
 RC=$?; if [[ $RC != 0 ]]; then exit $RC; fi
 
 # deploy metron

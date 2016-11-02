@@ -20,7 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;

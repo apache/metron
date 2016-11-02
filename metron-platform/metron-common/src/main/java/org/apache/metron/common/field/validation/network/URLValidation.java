@@ -30,9 +30,9 @@ public class URLValidation extends SimpleValidation {
   @Stellar(name="IS_URL"
           ,description = "Tests if a string is a valid URL"
           ,params = {
-              "url - The String to test"
+              "url - The string to test"
                     }
-          , returns = "True if the string is a valid URL and false otherwise."
+          , returns = "True if the string is a valid URL and false if otherwise."
           )
   public static class IS_URL extends Predicate2StellarFunction {
 

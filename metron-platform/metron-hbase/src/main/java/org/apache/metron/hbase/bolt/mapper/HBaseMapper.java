@@ -20,7 +20,7 @@
 
 package org.apache.metron.hbase.bolt.mapper;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import java.io.Serializable;
 import java.util.Optional;
 
