@@ -105,8 +105,6 @@ public class PcapPackerComparatorTest {
     PcapPacket later = new PcapPacket(ph2, EMPTY_PAYLOAD);
 
     PcapPacketComparator comp = new PcapPacketComparator();
-    System.out.println(ph);
-    System.out.println(ph2);
     assertTrue("Earlier should be less than later", comp.compare(earlier, later) < 0);
     assertTrue("Later should be greater than earlier", comp.compare(later, earlier) > 0);
   }
