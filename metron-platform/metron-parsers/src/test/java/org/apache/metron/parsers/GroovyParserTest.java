@@ -7,21 +7,8 @@ import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 
 public class GroovyParserTest extends ScriptParserTest {
-
-	/**
-	    {
-	    "customerId":117,
-	   "first_name":"karthik",
-	   "last_name":"narayanan",
-	   "age":"38",
-	   "login-time":"2016-01-28 15:29:48",
-	   "ip-address":"216.21.170.221",
-	   "os":"windows 10",
-	   "device":"Dell Inspiron"
-	   }
-	   */
-	  @Multiline
-	  public String result=" {"+
+	  
+	public String result=" {"+
 	   "\"source\":\"userlog\","+
 	    "\"customerId\":117,"+
 	   "\"first_name\":\"karthik\","+
@@ -44,37 +31,31 @@ public class GroovyParserTest extends ScriptParserTest {
 
 	@Override
 	public String getScriptPath() {
-		// TODO Auto-generated method stub
 		return "../metron-integration-test/src/main/sample/scripts/test.groovy";
 	}
 
 	@Override
 	public String getParseFunction() {
-		// TODO Auto-generated method stub
 		return "parse";
 	}
 
 	@Override
 	public String getLanguage() {
-		// TODO Auto-generated method stub
 		return "groovy";
 	}
 
 	@Override
 	public List<String> getTimeFields() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getDateFormat() {
-		// TODO Auto-generated method stub
 		return "yyyy-MM-dd HH:mm:ss";
 	}
 
 	@Override
 	public String getTimestampField() {
-		// TODO Auto-generated method stub
 		return "login-time";
 	}
 

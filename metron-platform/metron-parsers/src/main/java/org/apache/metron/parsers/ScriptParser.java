@@ -42,7 +42,6 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 
 	@Override
 	public void configure(Map<String, Object> config) {
-		// TODO Auto-generated method stub
 		this.scriptPath=(String) config.get("path");
 		this.parseFunction=(String)config.get("function");
 		this.language=(String)config.get("language");
@@ -63,7 +62,6 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 
 	@Override
 	public void init() {
-		// TODO Auto-generated method stub
 		engine = new ScriptEngineManager().getEngineByName(this.language);
 		try{
 			InputStream commonStream = openInputStream(this.commonScript);
@@ -94,7 +92,6 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 
 	@Override
 	public List<JSONObject> parse(byte[] rawMessage) {
-		// TODO Auto-generated method stub
 		List<JSONObject> messages = new ArrayList<JSONObject>();
 		if(engine==null)
 			init();
@@ -102,7 +99,7 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 		try{
 			originalMessage = new String(rawMessage, "UTF-8");
 			if (LOG.isDebugEnabled()) {
-	          LOG.debug("JS parser parsing message: " + originalMessage);
+	          LOG.debug("Script parser parsing message: " + originalMessage);
 	        }
 			Invocable invocable = (Invocable) engine;
 	
@@ -126,29 +123,28 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 		      }
 		      messages.add(message);
 		      if (LOG.isDebugEnabled()) {
-		        LOG.debug("Grok parser parsed message: " + message);
+		        LOG.debug("Script parser parsed message: " + message);
 		      }
 		}catch (Exception e) {
 		    LOG.error(e.getMessage(), e);
-		    throw new IllegalStateException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
+		    throw new IllegalStateException("Script parser Error: " + e.getMessage() + " on " + originalMessage , e);
 		}
 		return messages;
 	}
 
 	@Override
 	public boolean validate(JSONObject message) {
-		// TODO Auto-generated method stub
 		return true;
 	}
 	
 	protected long toEpoch(String datetime) throws ParseException {
 
-	    LOG.debug("Grok parser converting timestamp to epoch: {}", datetime);
-	    LOG.debug("Grok parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
+	    LOG.debug("Script parser converting timestamp to epoch: {}", datetime);
+	    LOG.debug("Script parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
 
 	    Date date = dateFormat.parse(datetime);
 	    if (LOG.isDebugEnabled()) {
-	      LOG.debug("Grok parser converted timestamp to epoch: " + date);
+	      LOG.debug("Script parser converted timestamp to epoch: " + date);
 	    }
 
 	    return date.getTime();
@@ -157,7 +153,7 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 	  protected long formatTimestamp(Object value) {
 
 	    if (LOG.isDebugEnabled()) {
-	      LOG.debug("Grok parser formatting timestamp" + value);
+	      LOG.debug("Script parser formatting timestamp" + value);
 	    }
 
 
