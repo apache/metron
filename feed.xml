@@ -3,8 +3,8 @@
   <channel>
     <title></title>
     <description></description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+    <link></link>
+    <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
     <pubDate>Tue, 01 Nov 2016 22:37:58 -0400</pubDate>
     <lastBuildDate>Tue, 01 Nov 2016 22:37:58 -0400</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
@@ -22,8 +22,8 @@ the Metron website.&lt;/p&gt;
 &lt;p&gt;Please join me to welcome Debo.&lt;/p&gt;
 </description>
         <pubDate>Fri, 08 Jan 2016 11:23:00 -0500</pubDate>
-        <link>http://localhost:4000/news/2016/01/08/debo-committer/</link>
-        <guid isPermaLink="true">http://localhost:4000/news/2016/01/08/debo-committer/</guid>
+        <link>/news/2016/01/08/debo-committer/</link>
+        <guid isPermaLink="true">/news/2016/01/08/debo-committer/</guid>
         
         
         <category>team</category>
@@ -34,12 +34,12 @@ the Metron website.&lt;/p&gt;
         <title>Metron adopts new logo</title>
         <description>&lt;p&gt;The Metron project has adopted a new logo. We hope you like it.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/img/logo.png&quot; alt=&quot;metron logo&quot; title=&quot;metron logo&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/img/logo.png&quot; alt=&quot;metron logo&quot; title=&quot;metron logo&quot; /&gt;&lt;/p&gt;
 
 </description>
         <pubDate>Sat, 12 Dec 2015 07:00:00 -0500</pubDate>
-        <link>http://localhost:4000/news/2015/12/12/new-logo/</link>
-        <guid isPermaLink="true">http://localhost:4000/news/2015/12/12/new-logo/</guid>
+        <link>/news/2015/12/12/new-logo/</link>
+        <guid isPermaLink="true">/news/2015/12/12/new-logo/</guid>
         
         
         <category>project</category>
@@ -51,8 +51,8 @@ the Metron website.&lt;/p&gt;
         <description>&lt;p&gt;Congratulations! Metron accepted into the Apache Incubator.&lt;/p&gt;
 </description>
         <pubDate>Sun, 06 Dec 2015 15:48:00 -0500</pubDate>
-        <link>http://localhost:4000/news/2015/12/06/metron-incubator/</link>
-        <guid isPermaLink="true">http://localhost:4000/news/2015/12/06/metron-incubator/</guid>
+        <link>/news/2015/12/06/metron-incubator/</link>
+        <guid isPermaLink="true">/news/2015/12/06/metron-incubator/</guid>
         
         
         <category>project</category>
