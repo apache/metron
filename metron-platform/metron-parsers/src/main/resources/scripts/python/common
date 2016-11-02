@@ -1,0 +1,4 @@
+def MetronMessage(name):
+	message={}
+	message["source"]="userlog"
+	return message

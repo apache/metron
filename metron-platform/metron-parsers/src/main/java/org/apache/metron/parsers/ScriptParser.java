@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -16,10 +19,14 @@ import javax.script.ScriptEngineManager;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 
 public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 	
@@ -29,6 +36,9 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 	protected String parseFunction;
 	protected String language;
 	protected String commonScript="/scripts/";
+	protected List<String> timeFields = new ArrayList<>();
+	protected String timestampField;
+	protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
 
 	@Override
 	public void configure(Map<String, Object> config) {
@@ -54,7 +64,7 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 	@Override
 	public void init() {
 		// TODO Auto-generated method stub
-		engine = new ScriptEngineManager().getEngineByName("js");
+		engine = new ScriptEngineManager().getEngineByName(this.language);
 		try{
 			InputStream commonStream = openInputStream(this.commonScript);
 			if (commonStream == null) {
@@ -97,45 +107,69 @@ public class ScriptParser implements MessageParser<JSONObject>,Serializable{
 			Invocable invocable = (Invocable) engine;
 	
 			Object result = invocable.invokeFunction(this.parseFunction,originalMessage);
-			JSONObject jsonObject = new JSONObject((Map)result);
-			messages.add(jsonObject);
-			return messages;
+			JSONObject message = new JSONObject((Map)result);
+			
+			if (message.size() == 0)
+		        throw new RuntimeException("Script produced a null message. Original message was: "
+		                + originalMessage + " and the parsed message was: " + message + " . Check the function at: "
+		                + this.scriptPath);
+
+		      message.put("original_string", originalMessage);
+		      for (String timeField : timeFields) {
+		        String fieldValue = (String) message.get(timeField);
+		        if (fieldValue != null) {
+		          message.put(timeField, toEpoch(fieldValue));
+		        }
+		      }
+		      if (timestampField != null) {
+		        message.put(Constants.Fields.TIMESTAMP.getName(), formatTimestamp(message.get(timestampField)));
+		      }
+		      messages.add(message);
+		      if (LOG.isDebugEnabled()) {
+		        LOG.debug("Grok parser parsed message: " + message);
+		      }
 		}catch (Exception e) {
 		    LOG.error(e.getMessage(), e);
 		    throw new IllegalStateException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
 		}
+		return messages;
 	}
 
 	@Override
 	public boolean validate(JSONObject message) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 	
-	public static void main(String[] args){
-		ScriptEngine engine = new ScriptEngineManager().getEngineByName("python");
-		/*for(ScriptEngineFactory sf: new ScriptEngineManager().getEngineFactories()){
-			if("jython".equals(sf.getEngineName())){
-				engine = sf.getScriptEngine();
-				break;
-			}
-		}*/
-		String json ="\ttest = '{\"id\": 10,\"Hello\": \"World\"}'";
-		System.out.println("import json\ndef fun1(name):\n"+json+"\n\tprint test\n\treturn json.loads(test)\n");;
-		try{
-			engine.eval("import json\ndef fun1(name):\n"+json+"\n\tprint test\n\treturn json.loads(test)\n");
-			Invocable invocable = (Invocable) engine;
+	protected long toEpoch(String datetime) throws ParseException {
 
-			Object result = invocable.invokeFunction("fun1", "Peter Parker");
-			System.out.println(result);
-			Map obj = (Map)result;
-			System.out.println(obj);
-			JSONObject jsonObject = new JSONObject(obj);
-			System.out.println(jsonObject);
-		}catch(Exception ex){
-			ex.printStackTrace();
-		}
-		
-	}
+	    LOG.debug("Grok parser converting timestamp to epoch: {}", datetime);
+	    LOG.debug("Grok parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
 
+	    Date date = dateFormat.parse(datetime);
+	    if (LOG.isDebugEnabled()) {
+	      LOG.debug("Grok parser converted timestamp to epoch: " + date);
+	    }
+
+	    return date.getTime();
+	  }
+
+	  protected long formatTimestamp(Object value) {
+
+	    if (LOG.isDebugEnabled()) {
+	      LOG.debug("Grok parser formatting timestamp" + value);
+	    }
+
+
+	    if (value == null) {
+	      throw new RuntimeException(this.parseFunction + " parser does not include field " + timestampField);
+	    }
+	    if (value instanceof Number) {
+	      return ((Number) value).longValue();
+	    } else {
+	      return Long.parseLong(Joiner.on("").join(Splitter.on('.').split(value + "")));
+	    }
+	  }
+	
+	
 }
