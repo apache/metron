@@ -132,9 +132,6 @@ mysql_adduser_path = tmp_dir + "/addMysqlUser.sh"
 mysql_deluser_path = tmp_dir + "/removeMysqlUser.sh"
 mysql_create_geoip_path = tmp_dir + "/createMysqlGeoIp.sh"
 
-#enrichment_hosts = default("/clusterHostInfo/enrichment_host", [])
-#enrichment_host = enrichment_hosts[0] if len(enrichment_hosts) > 0 else None
-
 enrichment_metron_user = config['configurations']['metron-env']['metron_enrichment_db_user']
 enrichment_metron_user_passwd = config['configurations']['metron-env']['metron_enrichment_db_password']
 enrichment_metron_user_passwd = unicode(enrichment_metron_user_passwd) if not is_empty(
