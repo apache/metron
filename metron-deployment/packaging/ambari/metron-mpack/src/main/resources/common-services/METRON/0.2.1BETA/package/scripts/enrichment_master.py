@@ -52,6 +52,7 @@ class Enrichment(Script):
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.create_hbase_tables()
+            commands.init_hdfs_dir()
             commands.set_configured()
 
         commands.start_enrichment_topology()

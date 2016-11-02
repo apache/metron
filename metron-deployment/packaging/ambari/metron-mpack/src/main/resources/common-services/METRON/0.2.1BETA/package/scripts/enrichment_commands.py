@@ -20,6 +20,7 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 import metron_service
 
@@ -96,6 +97,15 @@ class EnrichmentCommands:
                                         replication_factor,
                                         retention_bytes))
         Logger.info("Done creating Kafka topics")
+
+    def init_hdfs_dir(self):
+        self.__params.HdfsResource(self.__params.metron_apps_enrichment_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.user_group,
+                                   mode=0775,
+                                   )
 
     def start_enrichment_topology(self):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
