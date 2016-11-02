@@ -236,8 +236,14 @@ public class Runner {
                                                                        .payload(endpoint)
                                                                        ;
         final ServiceInstance<ModelEndpoint> instance = builder.build();
-        serviceDiscovery.registerService(instance);
-        LOG.info("Installed instance " + name + ":" + version + "@" + endpointUrl);
+        try {
+          LOG.info("Installing service instance: " + instance + " at " + serviceDiscovery);
+          serviceDiscovery.registerService(instance);
+          LOG.info("Installed instance " + name + ":" + version + "@" + endpointUrl);
+        }
+        catch(Throwable t) {
+          LOG.error("Unable to install instance " + name + ":" + version + "@" + endpointUrl, t);
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread()
         {

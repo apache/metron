@@ -18,8 +18,8 @@
 
 package org.apache.metron.parsers.bolt;
 
-import backtype.storm.task.OutputCollector;
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;

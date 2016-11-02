@@ -20,8 +20,8 @@
 
 package org.apache.metron.hbase.bolt;
 
-import backtype.storm.Constants;
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.Constants;
+import org.apache.storm.tuple.Tuple;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
 import org.apache.metron.hbase.client.HBaseClient;

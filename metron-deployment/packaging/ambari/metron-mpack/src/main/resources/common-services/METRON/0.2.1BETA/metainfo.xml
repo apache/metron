@@ -30,7 +30,7 @@
           <displayName>Metron Parsers</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>false</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
@@ -77,7 +77,7 @@
           <displayName>Metron Enrichment</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -136,7 +136,7 @@
           <displayName>Metron Indexing</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>true</versionAdvertised>
+          <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>false</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>

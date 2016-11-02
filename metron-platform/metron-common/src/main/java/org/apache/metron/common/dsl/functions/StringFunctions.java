@@ -36,7 +36,7 @@ public class StringFunctions {
              "string - The string to test"
             ,"pattern - The proposed regex pattern"
             }
-          , returns = "True if the regex pattern matches the string and false otherwise.")
+          , returns = "True if the regex pattern matches the string and false if otherwise.")
   public static class RegexpMatch extends BaseStellarFunction {
 
     @Override
@@ -54,12 +54,12 @@ public class StringFunctions {
   }
 
   @Stellar(name="ENDS_WITH"
-          ,description = "Determines whether a string ends with a prefix"
+          ,description = "Determines whether a string ends with a specified suffix"
           , params = {
              "string - The string to test"
             ,"suffix - The proposed suffix"
             }
-          , returns = "True if the string ends with the specified suffix and false otherwise.")
+          , returns = "True if the string ends with the specified suffix and false if otherwise")
   public static class EndsWith extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> list) {
@@ -81,7 +81,7 @@ public class StringFunctions {
              "string - The string to test"
             ,"prefix - The proposed prefix"
             }
-          , returns = "True if the string starts with the specified prefix and false otherwise."
+          , returns = "True if the string starts with the specified prefix and false if otherwise"
           )
   public static class StartsWith extends BaseStellarFunction {
 
@@ -102,7 +102,7 @@ public class StringFunctions {
   @Stellar( name="TO_LOWER"
           , description = "Transforms the first argument to a lowercase string"
           , params = { "input - String" }
-          , returns = "String"
+          , returns = "Lowercase string"
           )
   public static class ToLower extends BaseStellarFunction {
     @Override
@@ -114,7 +114,7 @@ public class StringFunctions {
   @Stellar( name="TO_UPPER"
           , description = "Transforms the first argument to an uppercase string"
           , params = { "input - String" }
-          , returns = "String"
+          , returns = "Uppercase string"
           )
   public static class ToUpper extends BaseStellarFunction {
     @Override
@@ -148,8 +148,8 @@ public class StringFunctions {
   }
 
   @Stellar( name="JOIN"
-          , description="Joins the components of the list with the specified delimiter."
-          , params = { "list - List of Strings", "delim - String delimiter"}
+          , description="Joins the components in the list of strings with the specified delimiter."
+          , params = { "list - List of strings", "delim - String delimiter"}
           , returns = "String"
           )
   public static class JoinFunction extends BaseStellarFunction {
@@ -164,7 +164,7 @@ public class StringFunctions {
   @Stellar(name="SPLIT"
           , description="Splits the string by the delimiter."
           , params = { "input - String to split", "delim - String delimiter"}
-          , returns = "List of Strings"
+          , returns = "List of strings"
           )
   public static class SplitFunction extends BaseStellarFunction {
     @Override
@@ -208,7 +208,7 @@ public class StringFunctions {
 
   @Stellar(name="GET"
           , description="Returns the i'th element of the list "
-          , params = { "input - List", "i - the index (0-based)"}
+          , params = { "input - List", "i - The index (0-based)"}
           , returns = "First element of the list"
           )
   public static class Get extends BaseStellarFunction {

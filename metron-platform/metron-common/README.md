@@ -71,26 +71,26 @@ The following functions are supported:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The day number within the year.
 * `DOMAIN_REMOVE_SUBDOMAINS`
-  * Description: Remove subdomains from a domain.
+  * Description: Removes the subdomains from a domain.
   * Input:
-    * domain - fully qualified domain name
-  * Returns: The domain without the subdomains.  e.g. DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com'
+    * domain - Fully qualified domain name
+  * Returns: The domain without the subdomains.  (for example, DOMAIN_REMOVE_SUBDOMAINS('mail.yahoo.com') yields 'yahoo.com')
 * `DOMAIN_REMOVE_TLD`
-  * Description: Remove top level domain suffix from a domain.
+  * Description: Removes the top level domain (TLD) suffix from a domain.
   * Input:
-    * domain - fully qualified domain name
-  * Returns: The domain without the TLD.  e.g. DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo'
+    * domain - Fully qualified domain name
+  * Returns: The domain without the TLD.  (for example, DOMAIN_REMOVE_TLD('mail.yahoo.co.uk') yields 'mail.yahoo')
 * `DOMAIN_TO_TLD`
-  * Description: Extract the top level domain from a domain
+  * Description: Extracts the top level domain from a domain
   * Input:
-    * domain - fully qualified domain name
-  * Returns: The TLD of the domain.  e.g. DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk'
+    * domain - Fully qualified domain name
+  * Returns: The TLD of the domain.  (for example, DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk')
 * `ENDS_WITH`
-  * Description: Determines whether a string ends with a prefix
+  * Description: Determines whether a string ends with a specified suffix
   * Input:
     * string - The string to test
     * suffix - The proposed suffix
-  * Returns: True if the string ends with the specified suffix and false otherwise.
+  * Returns: True if the string ends with the specified suffix and false if otherwise
 * `ENRICHMENT_EXISTS`
   * Description: Interrogates the HBase table holding the simple hbase enrichment data and returns whether the enrichment type and indicator are in the table.
   * Input:
@@ -111,7 +111,7 @@ The following functions are supported:
   * Description: Returns the i'th element of the list 
   * Input:
     * input - List
-    * i - the index (0-based)
+    * i - The index (0-based)
   * Returns: First element of the list
 * `GET_FIRST`
   * Description: Returns the first element of the list
@@ -124,87 +124,101 @@ The following functions are supported:
     * input - List
   * Returns: Last element of the list
 * `IN_SUBNET`
-  * Description: Returns if an IP is within a subnet range.
+  * Description: Returns true if an IP is within a subnet range.
   * Input:
-    * ip - the IP address in String form
-    * cidr+ - one or more IP ranges specified in CIDR notation (e.g. 192.168.0.0/24)
-  * Returns: True if the IP address is within at least one of the network ranges and false otherwise
+    * ip - The IP address in string form
+    * cidr+ - One or more IP ranges specified in CIDR notation (for example 192.168.0.0/24)
+  * Returns: True if the IP address is within at least one of the network ranges and false if otherwise
 * `IS_DATE`
-  * Description: Determines if a string passed is a date of a given format.
+  * Description: Determines if the date contained in the string conforms to the specified format.
   * Input:
-    * date - The date in string form.
-    * format - The format of the date.
-  * Returns: True if the date is of the specified format and false otherwise.
+    * date - The date in string form
+    * format - The format of the date
+  * Returns: True if the date is in the specified format and false if otherwise.
 * `IS_DOMAIN`
-  * Description: Tests if a string is a valid domain.  Domain names are evaluated according to the standards RFC1034 section 3, and RFC1123 section 2.1.
+  * Description: Tests if a string refers to a valid domain name.  Domain names are evaluated according to the standards RFC1034 section 3, and RFC1123 section 2.1.
   * Input:
-    * address - The String to test
-  * Returns: True if the string is a valid domain and false otherwise.
+    * address - The string to test
+  * Returns: True if the string refers to a valid domain name and false if otherwise
 * `IS_EMAIL`
   * Description: Tests if a string is a valid email address
   * Input:
-    * address - The String to test
-  * Returns: True if the string is a valid email address and false otherwise.
+    * address - The string to test
+  * Returns: True if the string is a valid email address and false if otherwise.
 * `IS_EMPTY`
-  * Description: Returns true if string or collection is empty and false otherwise
+  * Description: Returns true if string or collection is empty or null and false if otherwise.
   * Input:
-    * input - Object of string or collection type (e.g. list)
-  * Returns: Boolean
+    * input - Object of string or collection type (for example, list)
+  * Returns: True if the string or collection is empty or null and false if otherwise.
 * `IS_INTEGER`
-  * Description: Determine if an object is an integer or not.
+  * Description: Determines whether or not an object is an integer.
   * Input:
-    * x - An object which we wish to test is an integer
-  * Returns: True if the object can be converted to an integer and false otherwise.
+    * x - The object to test
+  * Returns: True if the object can be converted to an integer and false if otherwise.
 * `IS_IP`
   * Description: Determine if an string is an IP or not.
   * Input:
     * ip - An object which we wish to test is an ip
-    * type (optional) - one of IPV4 or IPV6.  The default is IPV4.
+    * type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is IPV4.
   * Returns: True if the string is an IP and false otherwise.
 * `IS_URL`
   * Description: Tests if a string is a valid URL
   * Input:
-    * url - The String to test
-  * Returns: True if the string is a valid URL and false otherwise.
+    * url - The string to test
+  * Returns: True if the string is a valid URL and false if otherwise.
 * `JOIN`
-  * Description: Joins the components of the list with the specified delimiter.
+  * Description: Joins the components in the list of strings with the specified delimiter.
   * Input:
-    * list - List of Strings
+    * list - List of strings
     * delim - String delimiter
   * Returns: String
+* `LENGTH`
+  * Description: Returns the length of a string or size of a collection. Returns 0 for empty or null Strings
+  * Input:
+    * input - Object of string or collection type (e.g. list)
+  * Returns: Integer
 * `MAAS_GET_ENDPOINT`
-  * Description: Inspects zookeeper and returns a map containing the name, version and url for the model referred to by the input params
+  * Description: Inspects ZooKeeper and returns a map containing the name, version and url for the model referred to by the input parameters.
   * Input:
-    * model_name - the name of the model
-    * model_version - the optional version of the model.  If it is not specified, the most current version is used.
-  * Returns: A map containing the name, version, url for the REST endpoint (fields named name, version and url).  Note that the output of this function is suitable for input into the first argument of MAAS_MODEL_APPLY.
+    * model_name - The name of the model
+    * model_version - The optional version of the model.  If the model version is not specified, the most current version is used.
+  * Returns: A map containing the name, version, and url for the REST endpoint (fields named name, version and url).  Note that the output of this function is suitable for input into the first argument of MAAS_MODEL_APPLY.
 * `MAAS_MODEL_APPLY`
-  * Description: Returns the output of a model deployed via model which is deployed at endpoint. NOTE: Results are cached at the client for 10 minutes.
+  * Description: Returns the output of a model deployed via Model as a Service. NOTE: Results are cached locally for 10 minutes.
   * Input:
-    * endpoint - a map containing name, version, url for the REST endpoint
-    * function - the optional endpoint path, default is 'apply'
-    * model_args - dictionary of arguments for the model (these become request params).
+    * endpoint - A map containing the name, version, and url for the REST endpoint
+    * function - The optional endpoint path; default is 'apply'
+    * model_args - A Dictionary of arguments for the model (these become request params)
   * Returns: The output of the model deployed as a REST endpoint in Map form.  Assumes REST endpoint returns a JSON Map.
 * `MAP_EXISTS`
   * Description: Checks for existence of a key in a map.
   * Input:
     * key - The key to check for existence
     * map - The map to check for existence of the key
-  * Returns: True if the key is found in the map and false otherwise.
+  * Returns: True if the key is found in the map and false if otherwise.
 * `MAP_GET`
   * Description: Gets the value associated with a key from a map
   * Input:
     * key - The key
     * map - The map
     * default - Optionally the default value to return if the key is not in the map.
-  * Returns: The object associated with key in the map.  If there is no value associated, then default if specified and null if a default is not specified.
+  * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
 * `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
+* `PROFILE_GET`
+  * Description: Retrieves a series of values from a stored profile.
+  * Input:
+    * profile - The name of the profile.
+    * entity - The name of the entity.
+    * durationAgo - How long ago should values be retrieved from?
+    * units - The units of 'durationAgo'.
+    * groups - Optional - The groups used to sort the profile.
+  * Returns: The profile measurements.
 * `PROTOCOL_TO_NAME`
-  * Description: Convert the IANA protocol number to the protocol name
+  * Description: Converts the IANA protocol number to the protocol name
   * Input:
     * IANA Number
   * Returns: The protocol name associated with the IANA number.
@@ -213,117 +227,117 @@ The following functions are supported:
   * Input:
     * string - The string to test
     * pattern - The proposed regex pattern
-  * Returns: True if the regex pattern matches the string and false otherwise.
+  * Returns: True if the regex pattern matches the string and false if otherwise.
 * `SPLIT`
   * Description: Splits the string by the delimiter.
   * Input:
     * input - String to split
     * delim - String delimiter
-  * Returns: List of Strings
+  * Returns: List of strings
 * `STARTS_WITH`
   * Description: Determines whether a string starts with a prefix
   * Input:
     * string - The string to test
     * prefix - The proposed prefix
-  * Returns: True if the string starts with the specified prefix and false otherwise.
+  * Returns: True if the string starts with the specified prefix and false if otherwise
 * `STATS_ADD`
-  * Description: Add one or more input values to those that are used to calculate the summary statistics.
+  * Description: Adds one or more input values to those that are used to calculate the summary statistics.
   * Input:
     * stats - The Stellar statistics object.  If null, then a new one is initialized.
-    * value+ - one or more numbers to add 
-  * Returns: A StatisticsProvider object
+    * value+ - One or more numbers to add
+  * Returns: A Stellar statistics object
 * `STATS_COUNT`
   * Description: Calculates the count of the values accumulated (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The count of the values in the window or NaN if the statistics object is null.
 * `STATS_GEOMETRIC_MEAN`
-  * Description: Calculates the geometric mean of the values accumulated (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the geometric mean of the accumulated values (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The geometric mean of the values in the window or NaN if the statistics object is null.
 * `STATS_INIT`
-  * Description: Initialize a Statistics object
+  * Description: Initializes a statistics object
   * Input:
-    * window_size - The number of input data values to maintain in a rolling window in memory.  If equal to 0, then no rolling window is maintained. Using no rolling window is less memory intensive, but cannot calculate certain statistics like percentiles and kurtosis.
-  * Returns: A StatisticsProvider object
+    * window_size - The number of input data values to maintain in a rolling window in memory.  If window_size is equal to 0, then no rolling window is maintained. Using no rolling window is less memory intensive, but cannot calculate certain statistics like percentiles and kurtosis.
+  * Returns: A Stellar statistics object
 * `STATS_KURTOSIS`
-  * Description: Calculates the kurtosis of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the kurtosis of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The kurtosis of the values in the window or NaN if the statistics object is null.
 * `STATS_MAX`
-  * Description: Calculates the max of the values accumulated (or in the window if a window is used).
+  * Description: Calculates the maximum of the accumulated values (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
-  * Returns: The max of the values in the window or NaN if the statistics object is null.
+    * stats - The Stellar statistics object
+  * Returns: The maximum of the accumulated values in the window or NaN if the statistics object is null.
 * `STATS_MEAN`
-  * Description: Calculates the mean of the values accumulated (or in the window if a window is used).
+  * Description: Calculates the mean of the accumulated values (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The mean of the values in the window or NaN if the statistics object is null.
 * `STATS_MERGE`
-  * Description: Merge statistic providers
+  * Description: Merges statistics objects.
   * Input:
-    * statisticsProviders - A list of statistics providers
-  * Returns: A StatisticsProvider object
+    * statistics - A list of statistics objects
+  * Returns: A Stellar statistics object
 * `STATS_MIN`
-  * Description: Calculates the min of the values accumulated (or in the window if a window is used).
+  * Description: Calculates the minimum of the accumulated values (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
-  * Returns: The min of the values in the window or NaN if the statistics object is null.
+    * stats - The Stellar statistics object
+  * Returns: The minimum of the accumulated values in the window or NaN if the statistics object is null.
 * `STATS_PERCENTILE`
-  * Description: Computes the p'th percentile of the values accumulated (or in the window if a window is used).
+  * Description: Computes the p'th percentile of the accumulated values (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
     * p - a double where 0 <= p < 1 representing the percentile
   * Returns: The p'th percentile of the data or NaN if the statistics object is null
 * `STATS_POPULATION_VARIANCE`
-  * Description: Calculates the population variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the population variance of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The population variance of the values in the window or NaN if the statistics object is null.
 * `STATS_QUADRATIC_MEAN`
-  * Description: Calculates the quadratic mean of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the quadratic mean of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The quadratic mean of the values in the window or NaN if the statistics object is null.
 * `STATS_SD`
-  * Description: Calculates the standard deviation of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the standard deviation of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The standard deviation of the values in the window or NaN if the statistics object is null.
 * `STATS_SKEWNESS`
-  * Description: Calculates the skewness of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the skewness of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The skewness of the values in the window or NaN if the statistics object is null.
 * `STATS_SUM`
-  * Description: Calculates the sum of the values accumulated (or in the window if a window is used).
+  * Description: Calculates the sum of the accumulated values (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The sum of the values in the window or NaN if the statistics object is null.
 * `STATS_SUM_LOGS`
-  * Description: Calculates the sum of the (natural) log of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the sum of the (natural) log of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The sum of the (natural) log of the values in the window or NaN if the statistics object is null.
 * `STATS_SUM_SQUARES`
-  * Description: Calculates the sum of the squares of the values accumulated (or in the window if a window is used).
+  * Description: Calculates the sum of the squares of the accumulated values (or in the window if a window is used).
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The sum of the squares of the values in the window or NaN if the statistics object is null.
 * `STATS_VARIANCE`
-  * Description: Calculates the variance of the values accumulated (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
+  * Description: Calculates the variance of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
-    * stats - The Stellar statistics object.
+    * stats - The Stellar statistics object
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
-  `SYSTEM_ENV_GET`
+* `SYSTEM_ENV_GET`
   * Description: Returns the value associated with an environment variable
   * Input:
     * env_var - Environment variable name to get the value for
   * Returns: String
-  `SYSTEM_PROPERTY_GET`
+* `SYSTEM_PROPERTY_GET`
   * Description: Returns the value associated with a Java system property
   * Input:
     * key - Property to get the value for
@@ -332,24 +346,24 @@ The following functions are supported:
   * Description: Transforms the first argument to a double precision number
   * Input:
     * input - Object of string or numeric type
-  * Returns: Double
+  * Returns: Double version of the first argument
 * `TO_EPOCH_TIMESTAMP`
-  * Description: Returns the epoch timestamp of the dateTime given the format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
+  * Description: Returns the epoch timestamp of the dateTime in the specified format. If the format does not have a timestamp and you wish to assume a given timestamp, you may specify the timezone optionally.
   * Input:
     * dateTime - DateTime in String format
     * format - DateTime format as a String
     * timezone - Optional timezone in String format
-  * Returns: Boolean
+  * Returns: Epoch timestamp
 * `TO_INTEGER`
   * Description: Transforms the first argument to an integer
   * Input:
     * input - Object of string or numeric type
-  * Returns: Integer
+  * Returns: Integer version of the first argument
 * `TO_LOWER`
   * Description: Transforms the first argument to a lowercase string
   * Input:
     * input - String
-  * Returns: String
+  * Returns: Lowercase string
 * `TO_STRING`
   * Description: Transforms the first argument to a string
   * Input:
@@ -359,17 +373,12 @@ The following functions are supported:
   * Description: Transforms the first argument to an uppercase string
   * Input:
     * input - String
-  * Returns: String
+  * Returns: Uppercase string
 * `TRIM`
   * Description: Trims whitespace from both sides of a string.
   * Input:
     * input - String
   * Returns: String
-* `LENGTH`
-  * Description: Returns the length of a string or the size of a collection.
-  * Input:
-    * input - Object of string or collection type (e.g. list)"
-  * Returns: Integer
 * `URL_TO_HOST`
   * Description: Extract the hostname from a URL.
   * Input:
@@ -383,8 +392,8 @@ The following functions are supported:
 * `URL_TO_PORT`
   * Description: Extract the port from a URL.  If the port is not explicitly stated in the URL, then an implicit port is inferred based on the protocol.
   * Input:
-    * url - URL in String form
-  * Returns: The port used in the URL as an Integer.  e.g. URL_TO_PORT('http://www.yahoo.com/foo') would yield 80
+    * url - URL in string form
+  * Returns: The port used in the URL as an integer (for example, URL_TO_PORT('http://www.yahoo.com/foo') would yield 80)
 * `URL_TO_PROTOCOL`
   * Description: Extract the protocol from a URL.
   * Input:

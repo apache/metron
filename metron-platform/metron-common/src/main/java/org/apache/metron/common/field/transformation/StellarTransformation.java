@@ -38,14 +38,22 @@ public class StellarTransformation implements FieldTransformation {
                                 )
   {
     Map<String, Object> ret = new HashMap<>();
-    VariableResolver resolver = new MapVariableResolver(ret, input,fieldMappingConfig, sensorConfig);
+    VariableResolver resolver = new MapVariableResolver(ret, input, sensorConfig);
     StellarProcessor processor = new StellarProcessor();
     for(String oField : outputField) {
       Object transformObj = fieldMappingConfig.get(oField);
       if(transformObj != null) {
-        Object o = processor.parse(transformObj.toString(), resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
-        if (o != null) {
-          ret.put(oField, o);
+        try {
+          Object o = processor.parse(transformObj.toString(), resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
+          if (o != null) {
+            ret.put(oField, o);
+          }
+        }
+        catch(Exception ex) {
+          throw new IllegalStateException( "Unable to process transformation: " + transformObj.toString()
+                                         + " for " + oField + " because " + ex.getMessage()
+                                         , ex
+                                         );
         }
       }
     }

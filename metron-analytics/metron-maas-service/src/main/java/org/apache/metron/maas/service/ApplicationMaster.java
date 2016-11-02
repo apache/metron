@@ -503,7 +503,7 @@ public class ApplicationMaster {
         LOG.error("Received a null request...");
         continue;
       }
-      LOG.info("Received request for model " + request.getName() + ":" + request.getVersion() + "x" + request.getNumInstances()
+      LOG.info("[" + request.getAction() + "]: Received request for model " + request.getName() + ":" + request.getVersion() + "x" + request.getNumInstances()
               + " containers of size " + request.getMemory() + "M at path " + request.getPath()
               );
       EnumMap<Resources, Integer> resourceRequest = Resources.toResourceMap(Resources.MEMORY.of(request.getMemory())

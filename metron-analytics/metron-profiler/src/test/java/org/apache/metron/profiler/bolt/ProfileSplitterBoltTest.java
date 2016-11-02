@@ -20,8 +20,8 @@
 
 package org.apache.metron.profiler.bolt;
 
-import backtype.storm.tuple.Tuple;
-import backtype.storm.tuple.Values;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.test.bolt.BaseBoltTest;

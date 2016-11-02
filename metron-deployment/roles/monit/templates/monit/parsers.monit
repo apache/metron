@@ -17,32 +17,32 @@
 #
 
 check program pcap-parser with path "{{ monit_home }}/status_pcap_topology.sh"
-  start program "{{ metron_directory }}/bin/start_pcap_topology.sh"
-  stop program "{{ monit_home }}/stop_pcap_topology.sh"
+  start program "{{ metron_directory }}/bin/start_pcap_topology.sh" with timeout {{ topology_start_timeout }} seconds
+  stop program "{{ monit_home }}/stop_pcap_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
   group pcap
   group parsers
   group metron
 
 check program yaf-parser with path "{{ monit_home }}/status_yaf_topology.sh"
-  start program "{{ monit_home }}/start_yaf_topology.sh"
-  stop program "{{ monit_home }}/stop_yaf_topology.sh"
+  start program "{{ monit_home }}/start_yaf_topology.sh" with timeout {{ topology_start_timeout }} seconds
+  stop program "{{ monit_home }}/stop_yaf_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
   group yaf
   group parsers
   group metron
 
 check program bro-parser with path "{{ monit_home }}/status_bro_topology.sh"
-  start program "{{ monit_home }}/start_bro_topology.sh"
-  stop program "{{ monit_home }}/stop_bro_topology.sh"
+  start program "{{ monit_home }}/start_bro_topology.sh" with timeout {{ topology_start_timeout }} seconds
+  stop program "{{ monit_home }}/stop_bro_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
   group bro
   group parsers
   group metron
 
 check program snort-parser with path "{{ monit_home }}/status_snort_topology.sh"
-  start program "{{ monit_home }}/start_snort_topology.sh"
-  stop program "{{ monit_home }}/stop_snort_topology.sh"
+  start program "{{ monit_home }}/start_snort_topology.sh" with timeout {{ topology_start_timeout }} seconds
+  stop program "{{ monit_home }}/stop_snort_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
   group snort
   group parsers

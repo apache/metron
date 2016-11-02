@@ -15,7 +15,10 @@
 #  limitations under the License.
 #
 ---
-opentaxii_domain: localhost:9000
+opentaxii_host: localhost
+opentaxii_port: 9000
+opentaxii_domain: "http://{{ opentaxii_host }}:{{ opentaxii_port }}"
+opentaxii_bind: "{{ opentaxii_host }}:{{ opentaxii_port }}"
 opentaxii_home: /usr/local/opentaxii
 opentaxii_venv: opentaxii-venv
 opentaxii_bin: "{{ opentaxii_home }}/{{ opentaxii_venv }}/bin"
@@ -24,7 +27,6 @@ opentaxii_pass: guest
 opentaxii_workers: 2
 opentaxii_loglevel: info
 opentaxii_timeout: 300
-opentaxii_bind: localhost:9000
 opentaxii_auth_db: "{{ opentaxii_home }}/data/auth.db"
 opentaxii_data_db: "{{ opentaxii_home }}/data/data.db"
 opentaxii_salt: "@#L:KJDASLKJASD@"

@@ -61,6 +61,25 @@ Metron's code:
 
 Option 3 is more likely to have the latest code.
 
+# Building Metron
+
+Build the full project and run tests:
+```
+$ mvn clean install
+```
+
+Build without tests:<br>
+```
+$ mvn clean install -DskipTests
+```
+
+Build with the HDP profile:<br>
+```
+$ mvn clean install -PHDP-2.5.0.0
+```
+
+You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
+
 # Navigating the Architecture
 
 Metron is at its core a Kappa architecture with Apache Storm as the processing

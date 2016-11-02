@@ -17,7 +17,7 @@
  */
 package org.apache.metron.writer.kafka;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import com.google.common.base.Joiner;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
