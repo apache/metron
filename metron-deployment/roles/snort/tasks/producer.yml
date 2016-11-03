@@ -15,5 +15,14 @@
 #  limitations under the License.
 #
 ---
-hdp_repo_def: "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.5.0.0/hdp.repo"
-java_home: /usr/jdk64/jdk1.8.0_60
+- name: Create Snort producer home directory
+  file:
+    path: "{{ snort_producer_home }}"
+    state: directory
+    mode: 0755
+
+- name: Install Snort producer start script
+  template: src=start-snort-producer.sh dest={{ snort_producer_home }}/start-snort-producer.sh mode=0755
+
+- name: Install init.d service script
+  template: src=snort-producer dest=/etc/init.d/snort-producer mode=0755

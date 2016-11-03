@@ -54,7 +54,6 @@
   connection: docker
   roles:
     - { role: bro,                    tags: ['bro'] }
-    - { role: flume,                  tags: ['snort','flume'] }
     - { role: snort,                  tags: ['snort'] }
     - { role: yaf,                    tags: ['yaf'] }
     - { role: pcap_replay,            tags: ['pcap-replay'] }
