@@ -78,7 +78,13 @@ public class HBaseBolt extends BaseRichBolt {
   /**
    * The name of the class that should be used as a table provider.
    */
-  protected String tableProvider = "org.apache.metron.hbase.HTableProvider";
+  protected String tableProviderClazzName = "org.apache.metron.hbase.HTableProvider";
+
+  /**
+   * The TableProvider
+   * May be loaded from tableProviderClazzName or provided
+   */
+  protected TableProvider tableProvider;
 
   private BatchHelper batchHelper;
   protected OutputCollector collector;
@@ -95,6 +101,11 @@ public class HBaseBolt extends BaseRichBolt {
   }
 
   public HBaseBolt withTableProvider(String tableProvider) {
+    this.tableProviderClazzName = tableProvider;
+    return this;
+  }
+
+  public HBaseBolt withTableProviderInstance(TableProvider tableProvider){
     this.tableProvider = tableProvider;
     return this;
   }
@@ -125,7 +136,7 @@ public class HBaseBolt extends BaseRichBolt {
     this.collector = collector;
     this.batchHelper = new BatchHelper(batchSize, collector);
 
-    TableProvider provider = getTableProvider(tableProvider);
+    TableProvider provider = this.tableProvider == null ?getTableProvider(tableProviderClazzName):this.tableProvider;
     hbaseClient = new HBaseClient(provider, HBaseConfiguration.create(), tableName);
   }
 
