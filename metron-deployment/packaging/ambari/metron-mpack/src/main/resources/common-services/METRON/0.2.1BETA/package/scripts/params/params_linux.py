@@ -39,6 +39,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
+user_group = config['configurations']['cluster-env']['user_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
 metron_ddl_dir = metron_home + '/ddl'
@@ -96,6 +97,7 @@ if has_kafka_host:
     kafka_brokers += ':' + kafka_broker_port
 
 metron_apps_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+metron_apps_enrichment_dir = metron_apps_dir + '/enrichment'
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
