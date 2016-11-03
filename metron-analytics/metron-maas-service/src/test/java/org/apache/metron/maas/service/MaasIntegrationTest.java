@@ -135,15 +135,15 @@ public class MaasIntegrationTest {
 
   @After
   public void tearDown() throws IOException {
-    if(testZkServer != null) {
-      testZkServer.close();
-    }
     if (yarnCluster != null) {
       try {
         yarnCluster.stop();
       } finally {
         yarnCluster = null;
       }
+    }
+    if(testZkServer != null) {
+      testZkServer.close();
     }
     FileContext fsContext = FileContext.getLocalFSFileContext();
     fsContext
