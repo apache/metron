@@ -43,6 +43,7 @@ public class Constants {
     ,DST_PORT("ip_dst_port")
     ,PROTOCOL("protocol")
     ,TIMESTAMP("timestamp")
+    ,ORIGINAL("original_string")
     ,INCLUDES_REVERSE_TRAFFIC("includes_reverse_traffic")
     ;
     private static Map<String, Fields> nameToField;

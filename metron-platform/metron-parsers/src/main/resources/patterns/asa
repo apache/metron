@@ -90,6 +90,7 @@ PROG (?:[\w._/%-]+)
 SYSLOGPROG %{PROG:program}(?:\[%{POSINT:pid}\])?
 SYSLOGHOST %{IPORHOST}
 SYSLOGFACILITY <%{NONNEGINT:facility}.%{NONNEGINT:priority}>
+SYSLOGPRIORITY <%{POSINT:syslog_pri}>
 HTTPDATE %{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} %{INT}
 
 # Shortcuts
@@ -107,7 +108,7 @@ COMBINEDAPACHELOG %{COMMONAPACHELOG} %{QS:referrer} %{QS:agent}
 LOGLEVEL ([A|a]lert|ALERT|[T|t]race|TRACE|[D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?|CRIT?(?:ICAL)?|[F|f]atal|FATAL|[S|s]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?)
 
 #== Cisco ASA ==
-CISCO_TAGGED_SYSLOG ^<%{POSINT:syslog_pri}>%{CISCOTIMESTAMP:timestamp}( %{SYSLOGHOST:sysloghost})? ?:? %%{CISCOTAG:ciscotag}:
+CISCO_TAGGED_SYSLOG ^<%{POSINT:syslog_pri}>%{CISCOTIMESTAMP}( %{SYSLOGHOST:sysloghost})? ?:? %%{CISCOTAG}%{GREEDYDATA:message}
 CISCOTIMESTAMP %{MONTH} +%{MONTHDAY}(?: %{YEAR})? %{TIME}
 CISCOTAG [A-Z0-9]+-%{INT}-(?:[A-Z0-9_]+)
 
@@ -120,7 +121,7 @@ CISCO_XLATE_TYPE static|dynamic
 # ASA-2-106001
 CISCOFW106001 : %{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{IP:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}
 # ASA-2-106006, ASA-2-106007, ASA-2-106010
-CISCOFW106006_106007_106010 : %{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{IP:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})
+CISCOFW106006_106007_106010 : %{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{IP:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{GREEDYDATA:interface}|due to %{CISCO_REASON:reason})
 # ASA-3-106014
 CISCOFW106014 : %{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)
 # ASA-6-106015
@@ -172,5 +173,7 @@ CISCOFW609001 : %{CISCO_ACTION:action} %{WORD:protocol} %{DATA:src_interface}:%{
 # ASA-7-609002
 CISCOFW609002 : %{CISCO_ACTION:action} %{WORD:protocol} %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? duration %{TIME:duration}
 
+# ASA-5-713041
+CISCOFW713041 : (Group = %{GREEDYDATA:group}, )?IP = %{IP:src_ip}, IKE Initiator: Rekeying Phase %{INT}, Intf %{DATA:src_interface}, IKE Peer %{DATA}\s+local Proxy Address %{IP}, remote Proxy Address %{IP},\s+Crypto map \(%{DATA}\)
 
 #== End Cisco ASA ==
