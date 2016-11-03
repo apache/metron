@@ -29,7 +29,7 @@ import org.apache.metron.common.field.validation.primitive.RegexValidation;
 import org.apache.metron.common.utils.ReflectionUtils;
 
 public enum FieldValidations {
-  MQL(new QueryValidation())
+  STELLAR(new QueryValidation())
   ,IP(new IPValidation())
   ,DOMAIN(new DomainValidation())
   ,EMAIL(new EmailValidation())
