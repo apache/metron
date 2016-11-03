@@ -51,7 +51,7 @@ metron_indexing_topology = config['configurations']['metron-env']['metron_indexi
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 
 # Enrichment
-enrichment_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_is_configured'
+enrichment_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_configured'
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
