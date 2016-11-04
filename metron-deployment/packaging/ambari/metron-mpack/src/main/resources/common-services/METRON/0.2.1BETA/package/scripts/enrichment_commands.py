@@ -50,27 +50,33 @@ class EnrichmentCommands:
              mode=0775)
 
     def setup_repo(self):
+
         def local_repo():
             Logger.info("Setting up local repo")
             Execute("yum -y install createrepo")
             Execute("createrepo /localrepo")
             Execute("chmod -R o-w+r /localrepo")
-            Execute("echo \"[METRON-0.2.1BETA]\n"
-                    "name=Metron 0.2.1BETA packages\n"
-                    "baseurl=file:///localrepo\n"
-                    "gpgcheck=0\n"
-                    "enabled=1\" > /etc/yum.repos.d/local.repo")
 
         def remote_repo():
-            print('Using remote repo')
+            Logger.info('Using remote repo')
 
         yum_repo_types = {
             'local': local_repo,
             'remote': remote_repo
         }
+
         repo_type = self.__params.yum_repo_type
+
         if repo_type in yum_repo_types:
             yum_repo_types[repo_type]()
+            Logger.info("Writing out repo file")
+            repo_template = ("echo \"[METRON-0.2.1BETA]\n"
+                            "name=Metron 0.2.1BETA packages\n"
+                            "baseurl={0}\n"
+                            "gpgcheck=0\n"
+                            "enabled=1\n\""
+                         "   > /etc/yum.repos.d/metron.repo")
+            Execute(repo_template.format(self.__params.repo_url))
         else:
             raise ValueError("Unsupported repo type '{0}'".format(repo_type))
 
