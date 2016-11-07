@@ -119,6 +119,9 @@ public class TaxiiIntegrationTest {
         Assert.assertTrue(maliciousAddresses.contains("94.102.53.142"));
         Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
         MockHTable.Provider.clear();
+
+        // Ensure that the handler can be run multiple times without connection issues.
+        handler.run();
     }
 
     private static int numStringsMatch(String xmlBundle, String text) {
