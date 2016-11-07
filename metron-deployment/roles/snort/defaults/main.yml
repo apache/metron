@@ -24,3 +24,5 @@ snort_community_rules_url: "https://www.snort.org/downloads/community/community-
 dag_src_url: "https://snort.org/downloads/snort/daq-{{ daq_version }}.src.rpm"
 sniff_interface: eth0
 snort_home_net: any
+snort_producer_home: /opt/snort-producer
+snort_producer_start: /opt/snort-producer/start-snort-producer.sh

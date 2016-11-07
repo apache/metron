@@ -18,9 +18,9 @@
 
 package org.apache.metron.common.spout.kafka;
 
-import storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.BrokerHosts;
 
-public class SpoutConfig extends storm.kafka.SpoutConfig {
+public class SpoutConfig extends org.apache.storm.kafka.SpoutConfig {
   public static enum Offset {
     BEGINNING, END, WHERE_I_LEFT_OFF;
   }

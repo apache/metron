@@ -39,4 +39,10 @@ public class RemoveSubdomainsTest {
     Assert.assertEquals("example.com", removeSubdomains.apply(ImmutableList.of("my.example.com")));
     Assert.assertEquals("example.co.uk", removeSubdomains.apply(ImmutableList.of("my.example.co.uk")));
   }
+
+  @Test
+  public void testEmptyString() {
+    NetworkFunctions.RemoveSubdomains removeSubdomains = new NetworkFunctions.RemoveSubdomains();
+    Assert.assertEquals(null, removeSubdomains.apply(ImmutableList.of("")));
+  }
 }

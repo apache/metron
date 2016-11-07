@@ -23,7 +23,8 @@ from resource_management.libraries.script.script import Script
 import mysql_users
 from mysql_service import mysql_service
 from mysql_utils import mysql_configure
-
+from resource_management.core.resources.packaging import Package
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class MysqlServer(Script):
     def install(self, env):
@@ -33,7 +34,8 @@ class MysqlServer(Script):
     def clean(self, env):
         from params import params
         env.set_params(params)
-        mysql_users.mysql_deluser()
+        if params.install_mysql == 'Yes':
+            mysql_users.mysql_deluser()
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params

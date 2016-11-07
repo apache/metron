@@ -18,7 +18,7 @@
 
 package org.apache.metron.writer.message;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 
 public class NamedMessageGetter implements MessageGetter {

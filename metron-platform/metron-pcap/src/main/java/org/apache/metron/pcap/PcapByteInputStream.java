@@ -45,6 +45,19 @@ public class PcapByteInputStream implements PcapInputStream {
 
   /**
    * Opens pcap file input stream.
+   *
+   * @param pcap
+   *          the byte array to be read
+   *
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
+   */
+  public PcapByteInputStream(byte[] pcap) throws IOException {
+    this(pcap, 0, pcap.length);
+  }
+
+  /**
+   * Opens pcap file input stream.
    * 
    * @param pcap
    *          the byte array to be read
@@ -52,8 +65,9 @@ public class PcapByteInputStream implements PcapInputStream {
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public PcapByteInputStream(byte[] pcap) throws IOException {
-    is = new DataInputStream(new ByteArrayInputStream(pcap)); // $codepro.audit.disable
+  public PcapByteInputStream(byte[] pcap, int offset, int length) throws IOException {
+
+    is = new DataInputStream(new ByteArrayInputStream(pcap, offset, length )); // $codepro.audit.disable
                                                               // closeWhereCreated
     readGlobalHeader();
   }

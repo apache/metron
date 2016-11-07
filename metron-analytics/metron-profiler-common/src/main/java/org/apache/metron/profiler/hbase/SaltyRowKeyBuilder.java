@@ -178,7 +178,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param period The ProfilePeriod in which the ProfileMeasurement was taken.
    */
   private static byte[] timeKey(ProfilePeriod period) {
-    return Bytes.toBytes(period.getPeriod());
+    long thePeriod = period.getPeriod();
+    return Bytes.toBytes(thePeriod);
   }
 
   /**

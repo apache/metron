@@ -17,7 +17,8 @@
  */
 package org.apache.metron.writer.hdfs;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;

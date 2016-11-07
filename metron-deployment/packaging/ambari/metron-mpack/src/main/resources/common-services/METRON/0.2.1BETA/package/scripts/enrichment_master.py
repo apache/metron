@@ -30,7 +30,6 @@ class Enrichment(Script):
         env.set_params(params)
         commands = EnrichmentCommands(params)
         commands.setup_repo()
-        Logger.info('Install RPM packages')
         self.install_packages(env)
         self.configure(env)
 
@@ -52,6 +51,7 @@ class Enrichment(Script):
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.create_hbase_tables()
+            commands.init_hdfs_dir()
             commands.set_configured()
 
         commands.start_enrichment_topology()

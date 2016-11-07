@@ -48,25 +48,29 @@
         <value>metron</value>
         <property-type>GROUP</property-type>
         <description>The group for Metron</description>
+        <display-name>Metron Group Name</display-name>
     </property>
     <property>
         <name>metron_topic_retention</name>
         <description>Kafka Retention in GB</description>
         <value>10</value>
+        <display-name>Topic Retention</display-name>
     </property>
     <property>
         <name>parsers</name>
         <value>bro,snort,yaf</value>
         <description>Metron parsers to deploy</description>
-        <display-name>Metron parsers</display-name>
+        <display-name>Metron Parsers</display-name>
     </property>
     <property>
         <name>metron_enrichment_db_user</name>
         <value>metron</value>
         <description>Database username to use to connect to the database.</description>
+        <display-name>Enrichment Database User</display-name>
     </property>
     <property>
         <name>metron_enrichment_db_port</name>
+        <display-name>Metron Enrichment Database Port</display-name>
         <value>3306</value>
         <description>Database port to use to connect to the database.</description>
     </property>
@@ -83,31 +87,97 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
+        <name>mysql_admin_password</name>
+        <value></value>
+        <property-type>PASSWORD</property-type>
+        <display-name>MySQL root user password</display-name>
+        <description>Password to use to add Metron user to MySQL</description>
+        <value-attributes>
+            <type>password</type>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
         <name>metron_indexing_topology</name>
         <value>indexing</value>
         <description>The Storm topology name for Indexing</description>
+        <display-name>Indexing Topology Name</display-name>
     </property>
     <property>
         <name>es_cluster_name</name>
         <value>metron</value>
         <description>Name of Elasticsearch Cluster</description>
+        <display-name>Elasticsearch Cluster Name</display-name>
     </property>
     <property>
         <name>geoip_url</name>
         <value>http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz</value>
         <description>Location of the GeoIP data to load.</description>
+        <display-name>GEOIP Load Datafile URL</display-name>
     </property>
     <property require-input="true">
         <name>es_url</name>
         <value></value>
         <description>Comma delimited list of Elasticsearch URLs. (eshost1:9300,eshost2:9300)</description>
+        <display-name>Elasticsearch URL</display-name>
+    </property>
+    <property require-input = "true">
+        <name>storm_rest_addr</name>
+        <display-name>Storm Rest Server Address</display-name>
+        <description>URL of Storm UI (storm.ui.hostname:8744)</description>
+        <value></value>
     </property>
     <property>
-        <name>storm_rest_addr</name>
-        <!--<value-attributes>-->
-            <!--<editable-only-at-install>true</editable-only-at-install>-->
-            <!--<overridable>false</overridable>-->
-        <!--</value-attributes>-->
+        <name>repo_type</name>
+        <display-name>Repository Type</display-name>
+        <description>Type of Repository: Local or Remote</description>
+        <value>local</value>
+        <value-attributes>
+            <overridable>false</overridable>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>local</value>
+                    <label>Local</label>
+                </entry>
+                <entry>
+                    <value>remote</value>
+                    <label>Remote</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>repo_url</name>
+        <display-name>Repository URL</display-name>
+        <value></value>
+    </property>
+    <property>
+        <name>install_mysql</name>
+        <description>Install New MySQL Instance for Enrichments</description>
+        <display-name>Install MySQL</display-name>
+        <value>Yes</value>
+        <value-attributes>
+            <overridable>false</overridable>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>Yes</value>
+                    <label>Yes</label>
+                </entry>
+                <entry>
+                    <value>No</value>
+                    <label>No</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>mysql_host</name>
+        <display-name>MySQL Host Address</display-name>
         <value></value>
     </property>
     <property>
@@ -164,7 +234,7 @@ bolt.hdfs.file.system.url={{ default_fs }}
 bolt.hdfs.wip.file.path=/paloalto/wip
 bolt.hdfs.finished.file.path=/paloalto/rotated
 bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output=/tmp/metron/enriched
+index.hdfs.output={{ metron_apps_enrichment_dir }}
         </value>
         <value-attributes>
             <type>content</type>

@@ -39,6 +39,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
+user_group = config['configurations']['cluster-env']['user_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
 metron_ddl_dir = metron_home + '/ddl'
@@ -57,7 +58,13 @@ global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_url = config['configurations']['metron-env']['es_url']
-yum_repo_type = 'local'
+
+#install repo
+yum_repo_type = config['configurations']['metron-env']['repo_type']
+if yum_repo_type == 'local':
+    repo_url = 'file:///localrepo'
+else:
+    repo_url = config['configurations']['metron-env']['repo_url']
 
 # hadoop params
 stack_root = Script.get_stack_root()
@@ -96,6 +103,7 @@ if has_kafka_host:
     kafka_brokers += ':' + kafka_broker_port
 
 metron_apps_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+metron_apps_enrichment_dir = metron_apps_dir + '/enrichment'
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
@@ -119,16 +127,18 @@ else:
     mysql_configname = '/etc/my.cnf'
 
 daemon_name = status_params.daemon_name
+
+install_mysql = config['configurations']['metron-env']['install_mysql']
+mysql_admin_password = config['configurations']['metron-env']['mysql_admin_password']
+
 # There will always be exactly one mysql_host
 mysql_host = config['clusterHostInfo']['metron_enrichment_mysql_server_hosts'][0]
+
 mysql_port = config['configurations']['metron-env']['metron_enrichment_db_port']
 
 mysql_adduser_path = tmp_dir + "/addMysqlUser.sh"
 mysql_deluser_path = tmp_dir + "/removeMysqlUser.sh"
 mysql_create_geoip_path = tmp_dir + "/createMysqlGeoIp.sh"
-
-enrichment_hosts = default("/clusterHostInfo/enrichment_host", [])
-enrichment_host = enrichment_hosts[0] if len(enrichment_hosts) > 0 else None
 
 enrichment_metron_user = config['configurations']['metron-env']['metron_enrichment_db_user']
 enrichment_metron_user_passwd = config['configurations']['metron-env']['metron_enrichment_db_password']

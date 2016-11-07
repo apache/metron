@@ -19,26 +19,33 @@
 # under the License.
 #
 #
-
-mysqldservice=$1
-mysqldbuser=$2
-mysqldbpasswd=$3
-mysqldbhost=$4
+mysqldbuser=$1
+mysqldbpasswd=$2
+mysqldbhost=$3
+mysqlqdminpassword=$4
 myhostname=$(hostname -f)
 
-service $mysqldservice start
-echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
-mysql -u root -e "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';"
-mysql -u root -e "CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';"
 
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'localhost';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'%' IDENTIFIED BY '$mysqldbpasswd';"
-
-if [ '$(mysql -u root -e "select user from mysql.user where user='$mysqldbuser' and host='$myhostname'" | grep "$mysqldbuser")' != '0' ]; then
-  echo "Adding user $mysqldbuser@$myhostname";
-  mysql -u root -e "CREATE USER '$mysqldbuser'@'$myhostname' IDENTIFIED BY '$mysqldbpasswd';";
-  mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$myhostname';";
-fi
-mysql -u root -e "flush privileges;"
-service ${mysqldservice} stop
+echo "Adding user ${mysqldbuser}@${mysqldbhost} and ${mysqldbuser}@localhost"
+expect <<EOF
+log_user 0
+# start mysql process using password prompt
+spawn mysql -u root -p
+expect "password:"
+send "${mysqlqdminpassword}\r"
+# echo all output until the end
+expect "mysql>"
+send "CREATE USER '${mysqldbuser}'@'${mysqldbhost}' IDENTIFIED BY '${mysqldbpasswd}';\r"
+expect "mysql>"
+send "CREATE USER '${mysqldbuser}'@'localhost' IDENTIFIED BY '${mysqldbpasswd}';\r"
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON GEO.* TO '${mysqldbuser}'@'%' IDENTIFIED BY '${mysqldbpasswd}';\r"
+log_user 1
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON GEO.* TO '${mysqldbuser}'@'${mysqldbhost}';\r"
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON GEO.* TO '${mysqldbuser}'@'localhost';\r"
+expect "mysql>"
+send "flush privileges;\r"
+send "\q"
+EOF

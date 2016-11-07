@@ -18,7 +18,7 @@
 
 package org.apache.metron.writer.message;
 
-import backtype.storm.tuple.Tuple;
+import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.utils.JSONUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

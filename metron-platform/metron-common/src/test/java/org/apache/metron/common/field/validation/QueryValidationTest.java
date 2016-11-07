@@ -35,7 +35,7 @@ public class QueryValidationTest extends BaseValidationTest{
    {
     "fieldValidations" : [
           {
-           "validation" : "MQL"
+           "validation" : "STELLAR"
           ,"config" : {
                 "condition" : "exists(field1)"
                       }
@@ -50,7 +50,7 @@ public class QueryValidationTest extends BaseValidationTest{
    {
     "fieldValidations" : [
           {
-           "validation" : "MQL"
+           "validation" : "STELLAR"
           ,"config" : {
                       }
           }
@@ -64,7 +64,7 @@ public class QueryValidationTest extends BaseValidationTest{
    {
     "fieldValidations" : [
           {
-           "validation" : "MQL"
+           "validation" : "STELLAR"
           ,"config" : {
               "condition" : "exi and "
                       }
@@ -78,7 +78,7 @@ public class QueryValidationTest extends BaseValidationTest{
    {
     "fieldValidations" : [
           {
-           "validation" : "MQL"
+           "validation" : "STELLAR"
           ,"config" : {
                 "condition" : "MAP_EXISTS(dc, dc2tz)"
                 ,"dc2tz" : {

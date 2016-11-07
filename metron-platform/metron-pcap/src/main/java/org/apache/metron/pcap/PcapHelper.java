@@ -108,10 +108,14 @@ public class PcapHelper {
     }
   }
 
-  public static Long getTimestamp(byte[] pcap) {
+  public static Long getTimestamp(byte[] pcap ) {
+    return getTimestamp(pcap, 0, pcap.length);
+  }
+
+  public static Long getTimestamp(byte[] pcap, int offset, int length) {
     PcapByteInputStream pcapByteInputStream = null;
     try {
-      pcapByteInputStream = new PcapByteInputStream(pcap);
+      pcapByteInputStream = new PcapByteInputStream(pcap, offset, length);
       PcapPacket packet = pcapByteInputStream.getPacket();
       GlobalHeader globalHeader = pcapByteInputStream.getGlobalHeader();
       PacketHeader packetHeader = packet.getPacketHeader();
