@@ -17,26 +17,22 @@
  */
 package org.apache.metron.management;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.PosixParser;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
-import org.apache.metron.TestConstants;
+import org.apache.log4j.Level;
 import org.apache.metron.common.cli.ConfigurationManager;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.stellar.StellarTest;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
@@ -189,7 +185,15 @@ public class ConfigurationFunctionsTest {
 
   @Test(expected=ParseException.class)
   public void testGlobalPutBad() {
-    StellarTest.run("CONFIG_PUT('GLOBAL', 'foo bar')", new HashMap<>(), context);
+    {
+      UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
+      try {
+        StellarTest.run("CONFIG_PUT('GLOBAL', 'foo bar')", new HashMap<>(), context);
+      } catch(ParseException e) {
+        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
+        throw e;
+      }
+    }
   }
 
   @Test
@@ -211,7 +215,15 @@ public class ConfigurationFunctionsTest {
   @Test(expected= ParseException.class)
   public void testEnrichmentPutBad() throws InterruptedException {
     {
-      StellarTest.run("CONFIG_PUT('ENRICHMENT', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
+      {
+        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
+        try {
+          StellarTest.run("CONFIG_PUT('ENRICHMENT', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
+        } catch(ParseException e) {
+          UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
+          throw e;
+        }
+      }
     }
   }
 
@@ -234,7 +246,13 @@ public class ConfigurationFunctionsTest {
   @Test(expected= ParseException.class)
   public void testParserPutBad() throws InterruptedException {
     {
-      StellarTest.run("CONFIG_PUT('PARSER', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
+      UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
+      try {
+        StellarTest.run("CONFIG_PUT('PARSER', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
+      } catch(ParseException e) {
+        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
+        throw e;
+      }
     }
   }
 }

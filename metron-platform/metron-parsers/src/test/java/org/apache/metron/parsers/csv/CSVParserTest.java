@@ -20,8 +20,10 @@ package org.apache.metron.parsers.csv;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -96,12 +98,14 @@ public class CSVParserTest {
       Assert.assertEquals(" grok", o.get("col3"));
     }
     {
+      UnitTestHelper.setLog4jLevel(CSVParser.class, Level.FATAL);
       String line = "foo";
       try {
         List<JSONObject> results = parser.parse(Bytes.toBytes(line));
         Assert.fail("Expected exception");
       }
       catch(IllegalStateException iae) {}
+      UnitTestHelper.setLog4jLevel(CSVParser.class, Level.ERROR);
     }
   }
 }

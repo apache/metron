@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Level;
+import org.apache.metron.parsers.GrokParser;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -232,7 +235,9 @@ public class GrokWebSphereParserTest {
 		GrokWebSphereParser parser = new GrokWebSphereParser();
 		parser.configure(parserConfig);
 		String testString = "";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		UnitTestHelper.setLog4jLevel(GrokParser.class, Level.FATAL);
+		List<JSONObject> result = parser.parse(testString.getBytes());
+		UnitTestHelper.setLog4jLevel(GrokParser.class, Level.ERROR);
 	}
 		
 }

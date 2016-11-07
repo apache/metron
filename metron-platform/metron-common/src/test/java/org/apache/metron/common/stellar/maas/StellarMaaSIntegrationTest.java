@@ -18,6 +18,7 @@
 package org.apache.metron.common.stellar.maas;
 
 import com.google.common.collect.ImmutableMap;
+import com.sun.jersey.server.impl.application.WebApplicationImpl;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -28,22 +29,19 @@ import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceInstanceBuilder;
 import org.apache.curator.x.discovery.ServiceType;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.stellar.StellarTest;
 import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.ModelEndpoint;
 import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.util.ConfigUtil;
-import org.apache.metron.maas.util.RESTUtil;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.*;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class StellarMaaSIntegrationTest {
   private static Context context;
@@ -55,6 +53,7 @@ public class StellarMaaSIntegrationTest {
 
   @BeforeClass
   public static void setup() throws Exception {
+    UnitTestHelper.setJavaLoggingLevel(WebApplicationImpl.class, Level.WARNING);
     MockDGAModel.start(8282);
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
