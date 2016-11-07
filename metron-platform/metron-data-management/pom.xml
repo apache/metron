@@ -363,14 +363,6 @@
         </dependency>
     </dependencies>
     <build>
-        <resources>
-            <resource>
-                <directory>src</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -410,7 +402,23 @@
                                     <pattern>org.apache.http</pattern>
                                     <shadedPattern>org.apache.metron.httpcore.dataload</shadedPattern>
                                 </relocation>
-                            </relocations>
+                             </relocations>
+                             <transformers> 
+                                <transformer
+                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                     <resources>
+                                        <resource>.yaml</resource>
+                                        <resource>LICENSE.txt</resource>
+                                        <resource>ASL2.0</resource>
+                                        <resource>NOTICE.txt</resource>
+                                      </resources>
+                                </transformer>
+                                <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
+                                <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                                    <addHeader>false</addHeader>
+                                    <projectName>${project.name}</projectName>
+                                </transformer-->
+                            </transformers>
                             <artifactSet>
                                 <excludes>
                                     <exclude>classworlds:classworlds</exclude>
@@ -443,8 +451,12 @@
                     </execution>
                 </executions>
             </plugin>
-
-        </plugins>
+          </plugins>
+          <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
     </build>
 
 </project>
