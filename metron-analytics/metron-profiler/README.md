@@ -24,7 +24,7 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> create 'profiler', 'P'
     ```
     
-1. Define the profile in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
+1. Define the profile in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  The following example JSON will create a profile that simply counts the number of messages per `ip_src_addr`, during each sampling interval.
     ```
     {
       "profiles": [
@@ -58,7 +58,7 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> count 'profiler'
     ``` 
 
-1. Use the Profiler Client to read the profile data.  Replace the IP `10.0.0.1` with one specific to your environment.  More information on using the client can be found [here](../metron-profiler-client).
+1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.  More information on using the client can be found [here](../metron-profiler-client).
     ```
     $ bin/stellar -z node1:2181
     
@@ -178,7 +178,7 @@ $ /usr/metron/0.2.1BETA/start_profiler_topology.sh
 
 The following examples are intended to highlight the functionality provided by the Profiler. Each shows the configuration that would be required to generate the profile.  
 
-These examples assume a fictitious input messages that looks something like the following.
+These examples assume a fictitious input message stream that looks something like the following.
 
 ```
 {
@@ -313,7 +313,7 @@ Instead of storing the mean of the length, the profile could store a more generi
 }
 ``` 
 
-The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.  More information on accessing profile data can be found in the [Profiler Client](../metron-profiler-client).
+The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.  
 
 Retrieve the last 30 minutes of profile measurements for a specific host.
 ```
@@ -339,6 +339,10 @@ Merge all of the profile measurements over the past 30 minutes into a single sum
 [Stellar]>>> STATS_PERCENTILE(merged, 90)
 29810.992
 ```
+
+More information on accessing profile data can be found in the [Profiler Client](../metron-profiler-client).
+
+More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-platform/metron-common).
 
 ## Implementation
 
