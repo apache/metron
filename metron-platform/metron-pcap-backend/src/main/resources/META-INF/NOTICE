@@ -18,68 +18,11 @@ Please visit the Netty web site for more information:
 
 Copyright 2011 The Netty Project
 
-Curator Client
-Copyright 2011-2016 The Apache Software Foundation
-
-flux-core
-Copyright 2016 The Apache Software Foundation
-
-storm-kafka
-Copyright 2016 The Apache Software Foundation
-
-Curator Framework
-Copyright 2011-2016 The Apache Software Foundation
-
-Curator Service Discovery
-Copyright 2011-2015 The Apache Software Foundation
-
-Apache HttpClient
-Copyright 1999-2014 The Apache Software Foundation
-
-Apache HttpCore
-Copyright 2005-2013 The Apache Software Foundation
-
 This project contains annotations derived from JCIP-ANNOTATIONS
 Copyright (c) 2005 Brian Goetz and Tim Peierls. See http://www.jcip.net
 
 Objenesis
 Copyright 2006-2013 Joe Walnes, Henri Tremblay, Leonardo Mesquita
-
-Curator Client
-Copyright 2011-2015 The Apache Software Foundation
-
-Apache Avro
-Copyright 2009-2013 The Apache Software Foundation
-
-htrace-core
-Copyright 2015 The Apache Software Foundation
-
-Apache log4j
-Copyright 2007 The Apache Software Foundation
-
-ApacheDS Protocol Kerberos Codec
-Copyright 2003-2013 The Apache Software Foundation
-
-ApacheDS I18n
-Copyright 2003-2013 The Apache Software Foundation
-
-Apache Directory API ASN.1 API
-Copyright 2003-2013 The Apache Software Foundation
-
-Apache Directory LDAP API Utilities
-Copyright 2003-2013 The Apache Software Foundation
-
-Curator Framework
-Copyright 2011-2015 The Apache Software Foundation
-
-Curator Recipes
-Copyright 2011-2015 The Apache Software Foundation
-
-   Apache Xerces Java
-   Copyright 1999-2007 The Apache Software Foundation
-
-   This product includes software developed at
-   The Apache Software Foundation (http://www.apache.org/).
 
    Portions of this software were originally based on the following:
      - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
@@ -94,12 +37,4 @@ Copyright 2006-2011 Google, Inc.
 Google Guice - Extensions - Servlet
 Copyright 2006-2011 Google, Inc.
 
-HBase - Common
-Copyright 2015 The Apache Software Foundation
-
-HBase - Protocol
-Copyright 2015 The Apache Software Foundation
-
-HBase - Annotations
-Copyright 2015 The Apache Software Foundation
 
