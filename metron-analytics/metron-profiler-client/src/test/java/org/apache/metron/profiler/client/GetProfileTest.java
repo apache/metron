@@ -50,12 +50,18 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE;
 import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_SALT_DIVISOR;
 
 /**
  * Tests the GetProfile class.
  */
 public class GetProfileTest {
 
+  private static final long periodDuration = 15;
+  private static final TimeUnit periodUnits = TimeUnit.MINUTES;
+  private static final int saltDivisor = 1000;
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
   private StellarExecutor executor;
@@ -94,6 +100,9 @@ public class GetProfileTest {
       put(PROFILER_HBASE_TABLE, tableName);
       put(PROFILER_COLUMN_FAMILY, columnFamily);
       put(PROFILER_HBASE_TABLE_PROVIDER, MockTableProvider.class.getName());
+      put(PROFILER_PERIOD, Long.toString(periodDuration));
+      put(PROFILER_PERIOD_UNITS, periodUnits.toString());
+      put(PROFILER_SALT_DIVISOR, Integer.toString(saltDivisor));
     }};
 
     // create the necessary context
@@ -114,8 +123,6 @@ public class GetProfileTest {
    */
   @Test
   public void testWithNoGroups() {
-    final long periodDuration = 15;
-    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -140,8 +147,6 @@ public class GetProfileTest {
    */
   @Test
   public void testWithOneGroup() {
-    final long periodDuration = 15;
-    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -169,8 +174,6 @@ public class GetProfileTest {
    */
   @Test
   public void testWithTwoGroups() {
-    final long periodDuration = 15;
-    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int periodsPerHour = 4;
     final int expectedValue = 2302;
     final int hours = 2;
@@ -217,8 +220,6 @@ public class GetProfileTest {
    */
   @Test
   public void testOutsideTimeHorizon() {
-    final long periodDuration = 15;
-    final TimeUnit periodUnits = TimeUnit.MINUTES;
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);

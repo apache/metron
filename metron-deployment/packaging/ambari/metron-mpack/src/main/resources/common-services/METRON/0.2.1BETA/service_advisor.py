@@ -36,6 +36,19 @@ except Exception as e:
 
 class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
 
+    def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
+
+        #Suggest Storm Rest URL
+        stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]
+        stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
+        stormUIServerURL = stormUIServerHost + ":" + stormUIServerPort
+        putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+        putMetronEnvProperty("storm_rest_addr",stormUIServerURL)
+
+        #Suggest mysql server hostname
+        mySQLServerHost = self.getComponentHostNames(services, "METRON", "METRON_ENRICHMENT_MYSQL_SERVER")[0]
+        putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+        putMetronEnvProperty("mysql_host",mySQLServerHost)
     def getServiceComponentLayoutValidations(self, services, hosts):
 
         componentsListList = [service["components"] for service in services["services"]]

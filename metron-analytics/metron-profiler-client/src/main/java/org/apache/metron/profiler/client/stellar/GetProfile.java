@@ -36,6 +36,8 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,19 +84,53 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
 public class GetProfile implements StellarFunction {
 
   /**
-   * A global property that defines the name of the HBase table storing profile definitions.
+   * A global property that defines the name of the HBase table used to store profile data.
    */
-  public static final String PROFILER_HBASE_TABLE = "profiler.hbase.table";
+  public static final String PROFILER_HBASE_TABLE = "profiler.client.hbase.table";
 
   /**
    * A global property that defines the name of the column family used to store profile data.
    */
-  public static final String PROFILER_COLUMN_FAMILY = "profiler.column.family";
+  public static final String PROFILER_COLUMN_FAMILY = "profiler.client.hbase.column.family";
 
   /**
    * A global property that defines the name of the HBaseTableProvider implementation class.
    */
-  public static final String PROFILER_HBASE_TABLE_PROVIDER = "profiler.hbase.table.provider";
+  public static final String PROFILER_HBASE_TABLE_PROVIDER = "hbase.provider.impl";
+
+  /**
+   * A global property that defines the duration of each profile period.  This value
+   * should be defined along with 'profiler.client.period.duration.units'.
+   */
+  public static final String PROFILER_PERIOD = "profiler.client.period.duration";
+
+  /**
+   * A global property that defines the units of the profile period duration.  This value
+   * should be defined along with 'profiler.client.period.duration'.
+   */
+  public static final String PROFILER_PERIOD_UNITS = "profiler.client.period.duration.units";
+
+  /**
+   * A global property that defines the salt divisor used to store profile data.
+   */
+  public static final String PROFILER_SALT_DIVISOR = "profiler.client.salt.divisor";
+
+  /**
+   * The default Profile period duration should none be defined in the global properties.
+   */
+  public static final String PROFILER_PERIOD_DEFAULT = "15";
+
+  /**
+   * The default units of the Profile period should none be defined in the global properties.
+   */
+  public static final String PROFILER_PERIOD_UNITS_DEFAULT = "MINUTES";
+
+  /**
+   * The default salt divisor should none be defined in the global properties.
+   */
+  public static final String PROFILER_SALT_DIVISOR_DEFAULT = "1000";
+
+  private static final Logger LOG = LoggerFactory.getLogger(GetProfile.class);
 
   /**
    * A client that can retrieve profile values.
@@ -113,8 +149,8 @@ public class GetProfile implements StellarFunction {
     Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
 
     // create the profiler client
-    ColumnBuilder columnBuilder = getColumnBuilder(global);
     RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(global);
+    ColumnBuilder columnBuilder = getColumnBuilder(global);
     HTableInterface table = getTable(global);
     client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
   }
@@ -226,14 +262,23 @@ public class GetProfile implements StellarFunction {
    * @param global The global configuration.
    */
   private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
-    /*
-     * WARNING: the row key builder is not currently configurable.  by invoking
-     * the default constructor below, this defaults to generating keys using a
-     * period duration of 15 minutes. this function will NOT be able to read
-     * profiles created by a profiler running with any other period duration, but
-     * 15 minutes.
-     */
-    return new SaltyRowKeyBuilder();
+
+    // how long is the profile period?
+    String configuredDuration = (String) global.getOrDefault(PROFILER_PERIOD, PROFILER_PERIOD_DEFAULT);
+    long duration = Long.parseLong(configuredDuration);
+    LOG.debug("profiler client: {}={}", PROFILER_PERIOD, duration);
+
+    // which units are used to define the profile period?
+    String configuredUnits = (String) global.getOrDefault(PROFILER_PERIOD_UNITS, PROFILER_PERIOD_UNITS_DEFAULT);
+    TimeUnit units = TimeUnit.valueOf(configuredUnits);
+    LOG.debug("profiler client: {}={}", PROFILER_PERIOD_UNITS, units);
+
+    // what is the salt divisor?
+    String configuredSaltDivisor = (String) global.getOrDefault(PROFILER_SALT_DIVISOR, PROFILER_SALT_DIVISOR_DEFAULT);
+    int saltDivisor = Integer.parseInt(configuredSaltDivisor);
+    LOG.debug("profiler client: {}={}", PROFILER_SALT_DIVISOR, saltDivisor);
+
+    return new SaltyRowKeyBuilder(saltDivisor, duration, units);
   }
 
   /**

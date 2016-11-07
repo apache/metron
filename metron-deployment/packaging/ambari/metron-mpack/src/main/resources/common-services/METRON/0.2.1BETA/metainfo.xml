@@ -213,6 +213,9 @@
             <package>
               <name>metron-elasticsearch</name>
             </package>
+            <package>
+              <name>metron-pcap</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>

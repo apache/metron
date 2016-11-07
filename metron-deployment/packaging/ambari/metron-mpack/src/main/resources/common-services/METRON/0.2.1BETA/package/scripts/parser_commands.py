@@ -58,8 +58,8 @@ class ParserCommands:
     def init_parsers(self):
         Logger.info(
             "Copying grok patterns from local directory '{0}' to HDFS '{1}'".format(self.__params.local_grok_patterns_dir,
-                                                                                    self.__params.metron_apps_dir))
-        self.__params.HdfsResource(self.__params.metron_apps_dir,
+                                                                                    self.__params.hdfs_grok_patterns_dir))
+        self.__params.HdfsResource(self.__params.hdfs_grok_patterns_dir,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
