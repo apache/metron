@@ -52,7 +52,7 @@ public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
       return super.parse(rule, variableResolver, functionResolver, context);
     } catch (ClassCastException e) {
       // predicate must return boolean
-      throw new IllegalArgumentException(String.format("The rule '%s' does not return a boolean value.", rule));
+      throw new IllegalArgumentException(String.format("The rule '%s' does not return a boolean value.", rule), e);
     }
   }
 }
