@@ -21,10 +21,7 @@ package org.apache.metron.common.stellar;
 
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionResolver;
-import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.VariableResolver;
-
-import java.util.function.Function;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -51,6 +48,11 @@ public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
     if(rule == null || isEmpty(rule.trim())) {
       return true;
     }
-    return super.parse(rule, variableResolver, functionResolver, context);
+    try {
+      return super.parse(rule, variableResolver, functionResolver, context);
+    } catch (ClassCastException e) {
+      // predicate must return boolean
+      throw new IllegalArgumentException(String.format("The rule '%s' does not return a boolean value.", rule), e);
+    }
   }
 }

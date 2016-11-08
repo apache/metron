@@ -201,34 +201,46 @@ Apache License
    limitations under the License.
 
 ------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+  BSD
+------------------------------------------------------------------------------------
+This product contains a modified version of 'JZlib', a re-implementation of
+zlib in pure Java, which can be obtained at:
+
+  * LICENSE:
+    * license/LICENSE.jzlib.txt (BSD Style License)
+  * HOMEPAGE:
+    * http://www.jcraft.com/jzlib/
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------------------
+  Public Domain
+------------------------------------------------------------------------------------
+
+This product contains the extensions to Java Collections Framework which has
+been derived from the works by JSR-166 EG, Doug Lea, and Jason T. Greene:
+
+  * LICENSE:
+    * license/LICENSE.jsr166y.txt (Public Domain)
+  * HOMEPAGE:
+    * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/
+    * http://viewvc.jboss.org/cgi-bin/viewvc.cgi/jbosscache/experimental/jsr166/
+
+This product contains a modified version of Robert Harder's Public Domain
+Base64 Encoder and Decoder, which can be obtained at:
+
+  * LICENSE:
+    * license/LICENSE.base64.txt (Public Domain)
+  * HOMEPAGE:
+    * http://iharder.sourceforge.net/current/java/base64/
 
 
-
-This product bundles asm 3.1, which is available under a "BSD Software License" license.  For details, see http://asm.ow2.org/
-This product bundles kryo 2.21, which is available under a "BSD Software License" license.  For details, see http://code.google.com/p/kryo/
-This product bundles minlog 1.2, which is available under a "BSD Software License" license.  For details, see http://code.google.com/p/minlog/
-This product bundles reflectasm shaded, which is available under a "BSD Software License" license.  For details, see https://github.com/EsotericSoftware/reflectasm
-This product bundles protobuf-java 2.5.0, which is available under a "BSD Software License" license.  For details, see http://code.google.com/p/protobuf
-This product bundles jsch 0.1.42, which is available under a "BSD Software License" license.  For details, see http://www.jcraft.com/jsch/
-This product bundles jersey-guice 1.9, which is available under a "Common Development and Distribution License v1.1" license.  For details, see https://jersey.java.net/
-This product bundles jersey-client 1.9, which is available under a "Common Development and Distribution License v1.1" license.  For details, see https://jersey.java.net/
-This product bundles jersey-core 1.9, which is available under a "Common Development and Distribution License v1.1" license.  For details, see https://jersey.java.net/
-This product bundles jersey-json 1.9, which is available under a "Common Development and Distribution License v1.1" license.  For details, see https://jersey.java.net/
-This product bundles jersey-server 1.9, which is available under a "Common Development and Distribution License v1.1" license.  For details, see https://jersey.java.net/
-This product bundles jaxb-impl 2.2.3-1, which is available under a "Common Development and Distribution License" license.  For details, see http://jaxb.java.net/
-This product bundles paranamer 2.3, which is available under a "BSD Software License" license.  For details, see https://github.com/paul-hammant/paranamer
-This product bundles activation 1.1, which is available under a "Common Development and Distribution License v1.0" license.  For details, see http://java.sun.com/products/javabeans/jaf/index.jsp
-This product bundles servlet-api 2.5, which is available under a "Common Development and Distribution License" license.  For details, see http://oracle.com
-This product bundles jaxb-api 2.2.2, which is available under a "Common Development and Distribution License" license.  For details, see https://jaxb.dev.java.net/
-This product bundles stax-api 1.0-2, which is available under a "Common Development and Distribution License v1.0" license.  For details, see https://docs.oracle.com/javase/7/docs/api/javax/xml/stream/package-summary.html
-This product bundles jline 0.9.94, which is available under a "BSD Software License" license.  For details, see http://jline.sourceforge.net
-This product bundles jopt-simple 3.2, which is available under a "MIT Software License" license.  For details, see http://jopt-simple.sourceforge.net
-This product bundles clojure 1.6.0, which is available under a "Eclipse Public License v1.0" license.  For details, see http://clojure.org/
-This product bundles leveldbjni-all 1.8, which is available under a "BSD Software License" license.  For details, see https://github.com/fusesource/leveldbjni
-This product bundles jcodings 1.0.8, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/jcodings
-This product bundles joni 2.1.2, which is available under a "MIT Software License" license.  For details, see https://github.com/jruby/joni
-This product bundles asm 4.0, which is available under a "BSD Software License" license.  For details, see http://asm.ow2.org/
-This product bundles scala-library 2.10.6, which is available under a "BSD Software License" license.  For details, see http://www.scala-lang.org/
-This product bundles slf4j-api 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
-This product bundles slf4j-log4j12 1.7.10, which is available under a "MIT Software License" license.  For details, see http://www.slf4j.org
-This product bundles xmlenc 0.52, which is available under a "BSD Software License" license.  For details, see http://xmlenc.sourceforge.net

@@ -1,16 +1,74 @@
 # Metron Profiler
 
-The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity on a network.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior. 
+The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior. 
 
 This is achieved by summarizing the streaming telemetry data consumed by Metron over sliding windows. A summary statistic is applied to the data received within a given window.  Collecting this summary across many windows results in a time series that is useful for analysis.
  
-## Usage
+Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
-Any field contained within a message can be used to generate a profile.  A profile can even be produced from combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles in Zookeeper and ensure that the Profiler topology is running.
+* [Getting Started](#getting-started)
+* [Creating Profiles](#creating-profiles)
+* [Configuring the Profiler](#configuring-the-profiler)
+* [Examples](#examples)
+* [Implementation](#implementation)
 
-### Configuration
+## Getting Started
 
-The Profiler configuration requires a JSON-formatted set of elements, many of which can contain Stellar code.  The configuration contains the following elements.
+This section will describe the steps required to get your first profile running.
+
+1. Stand-up a Metron environment.  For this example, we will use the 'Quick Dev' environment.  Follow the instructions included with [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) or build your own.
+
+1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).
+    ```
+    $ /usr/hdp/current/hbase-client/bin/hbase shell
+    hbase(main):001:0> create 'profiler', 'P'
+    ```
+    
+1. Define the profile in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  The following example JSON will create a profile that simply counts the number of messages per `ip_src_addr`, during each sampling interval.
+    ```
+    {
+      "profiles": [
+        {
+          "profile": "test",
+          "foreach": "ip_src_addr",
+          "init":    { "count": 0 },
+          "update":  { "count": "count + 1" },
+          "result":  "count"
+        }
+      ]
+    }
+    ```
+
+1. Upload the profile definition to Zookeeper.
+    ```
+    $ cd /usr/metron/0.2.1BETA/
+    $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
+    ```
+
+1. Start the Profiler topology.
+    ```
+    $ bin/start_profiler_topology.sh
+    ```
+
+1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the [Profiler's configuration](#configuring-the-profiler).
+
+1. Check the HBase table to validate that the Profiler is writing the profile.  Remember that the Profiler is flushing the profile every 15 minutes.  You will need to wait at least this long to start seeing profile data in HBase.
+    ```
+    $ /usr/hdp/current/hbase-client/bin/hbase shell
+    hbase(main):001:0> count 'profiler'
+    ``` 
+
+1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.  More information on using the client can be found [here](../metron-profiler-client).
+    ```
+    $ bin/stellar -z node1:2181
+    
+    [Stellar]>>> PROFILE_GET( "test", "10.0.0.1", 30, "MINUTES")
+    [451, 448]
+    ```
+
+## Creating Profiles
+
+The Profiler configuration requires a JSON-formatted set of elements, many of which can contain Stellar code.  The configuration contains the following elements.  For the impatient, skip ahead to the [Examples](#examples).
 
 | Name 	                |               | Description 	
 |---	                |---	        |---
@@ -23,13 +81,13 @@ The Profiler configuration requires a JSON-formatted set of elements, many of wh
 | [result](#result)   	| Required  	| A Stellar expression that is executed when the window period expires.
 | [expires](#expires)   | Optional      | Profile data is purged after this period of time, specified in milliseconds.
 
-#### `profile` 
+### `profile` 
 
 *Required*
 
 A unique name identifying the profile.  The field is treated as a string. 
 
-#### `foreach`
+### `foreach`
 
 *Required*
 
@@ -37,13 +95,13 @@ A separate profile is maintained 'for each' of these.  This is effectively the e
 
 For example, if `ip_src_addr` then a separate profile would be maintained for each unique IP source address in the data; 10.0.0.1, 10.0.0.2, etc.
 
-#### `onlyif`
+### `onlyif`
 
 *Optional*
 
 An expression that determines if a message should be applied to the profile.  A Stellar expression that returns a Boolean is expected.  A message is only applied to a profile if this expression is true. This allows a profile to filter the messages that get applied to it. 
 
-#### `groupBy`
+### `groupBy`
 
 *Optional*
 
@@ -55,7 +113,7 @@ The 'groupBy' expressions can refer to any field within a `org.apache.metron.pro
 "groupBy": [ "DAY_OF_WEEK()" ] 
 ```
 
-#### `init`
+### `init`
 
 *Optional*
 
@@ -68,7 +126,7 @@ One or more expressions executed at the start of a window period.  A map is expe
 }
 ```
 
-#### `update`
+### `update`
 
 *Required*
 
@@ -81,21 +139,46 @@ One or more expressions executed when a message is applied to the profile.  A ma
 }
 ``` 
 
-#### `result`
+### `result`
 
 *Required*
 
 A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	   
 
-#### `expires`
+### `expires`
 
 *Optional*
 
 A numeric value that defines how many days the profile data is retained.  After this time, the data expires and is no longer accessible.  If no value is defined, the data does not expire.
 
-### Examples
+## Configuring the Profiler
 
-Examples of the types of profiles that can be built include the following.  Each shows the configuration that would be required to produce the profile.  These examples assume a fictitious input messages that looks something like the following.
+The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the the default installation of Metron at `$METRON_HOME/config/zookeeper/profiler.json`. The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
+
+| Setting   | Description   |
+|---        |---            |
+| profiler.workers | The number of worker processes to create for the topology.   |
+| profiler.executors | The number of executors to spawn per component.  |
+| profiler.input.topic | The name of the Kafka topic from which to consume data.  |
+| profiler.period.duration | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.  |
+| profiler.period.duration.units | The units used to specify the profile period duration.  This value should be defined along with `profiler.period.duration`. |
+| profiler.hbase.salt.divisor  |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
+| profiler.hbase.table | The name of the HBase table that profiles are written to.  |
+| profiler.hbase.column.family | The column family used to store profiles. |
+| profiler.hbase.batch | The number of puts that are written in a single batch.  |
+| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
+
+After altering the configuration, start the Profiler.
+
+```
+$ /usr/metron/0.2.1BETA/start_profiler_topology.sh
+```
+
+## Examples
+
+The following examples are intended to highlight the functionality provided by the Profiler. Each shows the configuration that would be required to generate the profile.  
+
+These examples assume a fictitious input message stream that looks something like the following.
 
 ```
 {
@@ -119,7 +202,7 @@ Examples of the types of profiles that can be built include the following.  Each
 ```
 
 
-#### Example 1
+### Example 1
 
 The total number of bytes of HTTP data for each host. The following configuration would be used to generate this profile.
 
@@ -152,7 +235,7 @@ This creates a profile...
  * Returns ‘total_bytes’ as the result
  * The profile data will expire in 30 days
 
-#### Example 2
+### Example 2
 
 The ratio of DNS traffic to HTTP traffic for each host. The following configuration would be used to generate this profile.
 
@@ -185,7 +268,7 @@ This creates a profile...
  * Accumulates the number of HTTP requests
  * Returns the ratio of these as the result
 
-#### Example 3
+### Example 3
 
 The average of the `length` field of HTTP traffic. The following configuration would be used to generate this profile.
 
@@ -210,78 +293,56 @@ This creates a profile...
  * Adds the `length` field from each message
  * Calculates the average as the result
 
-### Topology Configuration
+### Example 4
 
-The Profiler topology also accepts the following configuration settings.
+It is important to note that the Profiler can persist any serializable Object, not just numeric values.  An alternative to the previous example could take advantage of this.  
 
-| Setting   | Description   |
-|---        |---            |
-| profiler.workers | The number of worker processes to create for the topology.   |
-| profiler.executors | The number of executors to spawn per component.  |
-| profiler.input.topic | The name of the Kafka topic from which to consume data.  |
-| profiler.period.duration | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.  |
-| profiler.period.duration.units | The units used to specify the profile period duration.  This value should be defined along with `profiler.period.duration`. |
-| profiler.hbase.salt.divisor  |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
-| profiler.hbase.table | The name of the HBase table that profiles are written to.  |
-| profiler.hbase.column.family | The column family used to store profiles. |
-| profiler.hbase.batch | The number of puts that are written in a single batch.  |
-| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
-
-## Getting Started
-
-This section will describe the steps required to get your first profile running.
-
-1. Launch the 'Quick Dev' environment.
-    ```
-    $ cd metron-deployment/vagrant/quick-dev-platform/
-    $ ./run.sh
-    ```
-
-2. After the environment has been deployed, then login to the host.
-    ```
-    $ vagrant ssh
-    $ sudo su -
-    $ cd /usr/metron/0.2.1BETA/
-    ```
-
-3. Create a table within HBase that will store the profile data. The table name and column family must match the Profiler topology configuration stored at `/usr/metron/0.2.1BETA/config/profiler.properties`.
-    ```
-    $ /usr/hdp/current/hbase-client/bin/hbase shell
-    hbase(main):001:0> create 'profiler', 'P'
-    ```
-    
-4. Create the Profiler definition in a file located at `/usr/metron/0.2.1BETA/config/zookeeper/profiler.json`.  The following JSON will create a profile that simply counts the number of messages.
-    ```
+Instead of storing the mean of the length, the profile could store a more generic summary of the length.  This summary can then be used at a later time to calculate the mean, min, max, percentiles, or any other sensible metric.  This provides a much greater degree of flexibility.
+ 
+```
+{
+  "profiles": [
     {
-      "profiles": [
-        {
-          "profile": "test",
-          "foreach": "ip_src_addr",
-          "init":    { "sum": 0 },
-          "update":  { "sum": "sum + 1" },
-          "result":  "sum"
-        }
-      ]
+      "profile": "example4",
+      "foreach": "ip_src_addr",
+      "onlyif": "protocol == 'HTTP'",
+      "update": { "s": "STATS_ADD(s, length)" },
+      "result": "s"
     }
-    ```
+  ]
+}
+``` 
 
-5. Upload the Profiler definition to Zookeeper.
-    ```
-    $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
-    ```
+The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.  
 
-6. Start the Profiler topology.
-    ```
-    bin/start_profiler_topology.sh
-    ```
+Retrieve the last 30 minutes of profile measurements for a specific host.
+```
+$ bin/stellar -z node1:2181
 
-7. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` in the Profiler definition.
+[Stellar]>>> stats := PROFILE_GET( "example4", "10.0.0.1", 30, "MINUTES")
+[Stellar]>>> stats
+[org.apache.metron.common.math.stats.OnlineStatisticsProvider@79fe4ab9, ...]
+```
 
-8. Check the HBase table to validate that the Profiler is working.  Remember that the Profiler is flushing the profile every 15 minutes.  You will need to wait at least this long to start seeing profile data in HBase.
-    ```
-    $ /usr/hdp/current/hbase-client/bin/hbase shell
-    hbase(main):001:0> count 'profiler'
-    ``` 
+Calculate different metrics with the same profile data.
+```
+[Stellar]>>> STATS_MEAN( GET_FIRST( stats))
+15979.0625
+
+[Stellar]>>> STATS_PERCENTILE( GET_FIRST(stats), 90)
+30310.958
+```
+
+Merge all of the profile measurements over the past 30 minutes into a single summary and calculate the 90th percentile.
+```
+[Stellar]>>> merged := STATS_MERGE( stats)
+[Stellar]>>> STATS_PERCENTILE(merged, 90)
+29810.992
+```
+
+More information on accessing profile data can be found in the [Profiler Client](../metron-profiler-client).
+
+More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-platform/metron-common).
 
 ## Implementation
 
