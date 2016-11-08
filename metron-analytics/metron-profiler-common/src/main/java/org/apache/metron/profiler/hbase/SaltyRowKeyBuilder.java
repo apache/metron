@@ -106,20 +106,11 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   /**
    * Builds the row key for a given profile measurement.
    * @param m The profile measurement.
-   * @param groups The groups used to sort the profile data.
    * @return The HBase row key.
    */
   @Override
-  public byte[] rowKey(ProfileMeasurement m, List<Object> groups) {
-    return rowKey(m.getProfileName(), m.getEntity(), m.getPeriod(), groups);
-  }
-
-  public void withPeriodDuration(long duration, TimeUnit units) {
-    periodDurationMillis = units.toMillis(duration);
-  }
-
-  public void setSaltDivisor(int saltDivisor) {
-    this.saltDivisor = saltDivisor;
+  public byte[] rowKey(ProfileMeasurement m) {
+    return rowKey(m.getProfileName(), m.getEntity(), m.getPeriod(), m.getGroups());
   }
 
   /**
@@ -201,5 +192,13 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     } catch(NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void withPeriodDuration(long duration, TimeUnit units) {
+    periodDurationMillis = units.toMillis(duration);
+  }
+
+  public void setSaltDivisor(int saltDivisor) {
+    this.saltDivisor = saltDivisor;
   }
 }
