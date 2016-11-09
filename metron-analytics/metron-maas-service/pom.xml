@@ -117,6 +117,10 @@
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-framework</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -130,6 +134,16 @@
       <artifactId>metron-test-utilities</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-slf4j-impl</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
@@ -148,6 +162,10 @@
         <exclusion>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-framework</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -171,6 +189,12 @@
       <artifactId>hadoop-yarn-server-resourcemanager</artifactId>
       <version>${hadoop.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -267,8 +291,18 @@
               <transformers>
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                  <resource>.yaml</resource>
+                  <resources>
+                    <resource>.yaml</resource>
+                    <resource>LICENSE.txt</resource>
+                    <resource>ASL2.0</resource>
+                    <resource>NOTICE.txt</resource>
+                  </resources>
                 </transformer>
+                <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
+                <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                  <addHeader>false</addHeader>
+                  <projectName>${project.name}</projectName>
+                </transformer-->
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer

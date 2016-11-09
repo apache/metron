@@ -127,6 +127,7 @@ This package installs the Metron Parser files
 %{metron_home}/config/zookeeper/parsers/squid.json
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
+%{metron_home}/config/zookeeper/parsers/asa.json
 %{metron_home}/patterns/asa
 %{metron_home}/patterns/common
 %{metron_home}/patterns/fireeye
@@ -231,6 +232,7 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/snort.json
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
+%{metron_home}/config/zookeeper/enrichments/asa.json
 %{metron_home}/ddl/geoip_ddl.sql
 %{metron_home}/flux/enrichment/remote.yaml
 %exclude %{metron_home}/flux/enrichment/test.yaml
@@ -283,6 +285,8 @@ This package installs the Metron PCAP files %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
+- Add ASA parser/enrichment configuration files 
 * Thu Jul 21 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
 - Remove parser flux files
 - Add new enrichment files

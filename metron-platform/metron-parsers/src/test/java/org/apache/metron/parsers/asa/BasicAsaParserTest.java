@@ -17,6 +17,8 @@
  */
 package org.apache.metron.parsers.asa;
 
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -155,9 +157,10 @@ public class BasicAsaParserTest {
     @Test
     public void testUnexpectedMessage() {
         String rawMessage = "-- MARK --";
-
+        UnitTestHelper.setLog4jLevel(BasicAsaParser.class, Level.FATAL);
         thrown.expect(RuntimeException.class);
         thrown.expectMessage(startsWith("[Metron] Message '-- MARK --'"));
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
+        UnitTestHelper.setLog4jLevel(BasicAsaParser.class, Level.ERROR);
     }
 }

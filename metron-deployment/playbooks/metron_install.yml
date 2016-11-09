@@ -129,7 +129,6 @@
     - { role: tap_interface,          tags: ['tap'] }
     - { role: pycapa,                 tags: ['pycapa'] }
     - { role: bro,                    tags: ['bro'] }
-    - { role: flume,                  tags: ['snort','flume'] }
     - { role: snort,                  tags: ['snort'] }
     - { role: yaf,                    tags: ['yaf'] }
     - { role: pcap_replay,            tags: ['pcap-replay'] }

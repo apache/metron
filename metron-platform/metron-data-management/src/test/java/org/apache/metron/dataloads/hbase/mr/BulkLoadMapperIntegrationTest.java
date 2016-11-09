@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.hbase.mr;
 
+import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -36,7 +37,7 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,6 +47,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class BulkLoadMapperIntegrationTest {
   /** The test util. */
@@ -66,6 +68,7 @@ public class BulkLoadMapperIntegrationTest {
 
   @Before
   public void setup() throws Exception {
+    UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
     config = kv.getValue();
     testUtil = kv.getKey();
@@ -95,6 +98,7 @@ public class BulkLoadMapperIntegrationTest {
 
   @Test
   public void testCommandLine() throws Exception {
+    UnitTestHelper.setJavaLoggingLevel(GuiceComponentProviderFactory.class, Level.WARNING);
     Configuration conf = HBaseConfiguration.create();
 
     String[] argv = {"-f cf", "-t malicious_domains", "-e extractor.json", "-n enrichment_config.json", "-a 04/15/2016", "-i input.csv", "-z georgia", "-c threadIntel.class"};

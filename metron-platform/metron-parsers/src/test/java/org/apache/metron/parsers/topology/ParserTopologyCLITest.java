@@ -18,6 +18,9 @@
 
 package org.apache.metron.parsers.topology;
 
+import org.apache.commons.cli.Parser;
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.Config;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
@@ -97,9 +100,11 @@ public class ParserTopologyCLITest {
 
   @Test(expected=ParseException.class)
   public void testCLI_insufficientArg() throws ParseException {
+    UnitTestHelper.setLog4jLevel(Parser.class, Level.FATAL);
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
                                       .build(true);
+    UnitTestHelper.setLog4jLevel(Parser.class, Level.ERROR);
   }
   public void happyPath(boolean longOpt) throws ParseException {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")

@@ -14,9 +14,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-[defaults]
-host_key_checking = false
-library = ../../extra_modules
-roles_path = ../../roles
-pipelining = True
-log_path = ./ansible.log
+---
+- name: Create Snort producer home directory
+  file:
+    path: "{{ snort_producer_home }}"
+    state: directory
+    mode: 0755
+
+- name: Install Snort producer start script
+  template: src=start-snort-producer.sh dest={{ snort_producer_home }}/start-snort-producer.sh mode=0755
+
+- name: Install init.d service script
+  template: src=snort-producer dest=/etc/init.d/snort-producer mode=0755

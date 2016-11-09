@@ -91,6 +91,21 @@ public class UnitTestHelper {
     Logger.getRootLogger().addAppender(console);
   }
 
+  public static void setLog4jLevel(Class clazz, Level level) {
+    Logger logger = Logger.getLogger(clazz);
+    logger.setLevel(level);
+  }
+
+  public static void setJavaLoggingLevel(Class clazz, java.util.logging.Level level) {
+    java.util.logging.Logger logger = java.util.logging.Logger.getLogger(clazz.getName());
+    logger.setLevel(level);
+  }
+
+  public static void setJavaLoggingLevel(java.util.logging.Level level) {
+    java.util.logging.Logger logger = java.util.logging.Logger.getLogger("");
+    logger.setLevel(level);
+  }
+
   /**
    * Create directory that is automatically cleaned up after the
    * JVM shuts down through use of a Runtime shutdown hook.
