@@ -19,8 +19,10 @@
 package org.apache.metron.parsers;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.snort.BasicSnortParser;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,7 +88,9 @@ public class SnortParserTest {
     thrown.expect(IllegalStateException.class);
     BasicSnortParser parser = new BasicSnortParser();
     parser.init();
+    UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.FATAL);
     parser.parse("foo bar".getBytes());
+    UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.ERROR);
   }
 
   @Test

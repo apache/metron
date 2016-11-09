@@ -35,9 +35,7 @@ import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.metron.dataloads.bulk.ThreatIntelBulkLoader;
-import org.apache.metron.dataloads.nonbulk.taxii.TaxiiLoader;
-import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class LeastRecentlyUsedPrunerIntegrationTest {
     /** The test util. */
@@ -65,6 +64,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
 
     @Before
     public void setup() throws Exception {
+        UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
         Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
         config = kv.getValue();
         testUtil = kv.getKey();

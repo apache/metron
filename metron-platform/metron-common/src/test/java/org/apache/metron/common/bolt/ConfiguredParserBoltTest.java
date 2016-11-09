@@ -17,11 +17,12 @@
  */
 package org.apache.metron.common.bolt;
 
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.TestConstants;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -81,11 +82,13 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
   @Test
   public void test() throws Exception {
     ParserConfigurations sampleConfigurations = new ParserConfigurations();
+    UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.FATAL);
     try {
       StandAloneConfiguredParserBolt configuredBolt = new StandAloneConfiguredParserBolt(null);
       configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
       Assert.fail("A valid zookeeper url must be supplied");
     } catch (RuntimeException e){}
+    UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
     configsUpdated = new HashSet<>();
     sampleConfigurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));

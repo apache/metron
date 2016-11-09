@@ -20,6 +20,8 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.Constants;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -296,10 +298,11 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // setup - ensure the bad profile is used
     setup(profileWithBadUpdate);
-
+    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.FATAL);
     // execute
     ProfileBuilderBolt bolt = createBolt();
     bolt.execute(tuple);
+    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.ERROR);
 
     // verify - expect the tuple to be acked and an error reported
     verify(outputCollector, times(1)).ack(eq(tuple));
@@ -317,8 +320,9 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // execute
     ProfileBuilderBolt bolt = createBolt();
+    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.FATAL);
     bolt.execute(tuple);
-
+    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.ERROR);
     // verify - expect the tuple to be acked and an error reported
     verify(outputCollector, times(1)).ack(eq(tuple));
     verify(outputCollector, times(1)).reportError(any());

@@ -17,13 +17,13 @@
  */
 package org.apache.metron.common.bolt;
 
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.apache.curator.test.TestingServer;
-import org.apache.metron.common.Constants;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.*;
-import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +32,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -82,11 +81,13 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
   @Test
   public void test() throws Exception {
     EnrichmentConfigurations sampleConfigurations = new EnrichmentConfigurations();
+    UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.FATAL);
     try {
       StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(null);
       configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
       Assert.fail("A valid zookeeper url must be supplied");
     } catch (RuntimeException e){}
+    UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
     configsUpdated = new HashSet<>();
     sampleConfigurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));

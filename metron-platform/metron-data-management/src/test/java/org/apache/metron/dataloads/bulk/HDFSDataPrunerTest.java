@@ -19,6 +19,8 @@ package org.apache.metron.dataloads.bulk;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -112,6 +114,7 @@ public class HDFSDataPrunerTest {
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
+        UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.FATAL);
         try {
             filter.accept(new Path("foo"));
             Assert.fail("Expected Runtime exception, but did not receive one.");
@@ -119,6 +122,7 @@ public class HDFSDataPrunerTest {
         catch(RuntimeException e) {
 
         }
+        UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.ERROR);
     }
 
     @Test
@@ -145,13 +149,14 @@ public class HDFSDataPrunerTest {
 
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
+        UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.FATAL);
         try {
             filter.accept(new Path("foo"));
             Assert.fail("Expected Runtime exception, but did not receive one.");
         }
         catch(RuntimeException e) {
         }
-
+        UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.ERROR);
     }
 
     private void createTestFiles() throws IOException {
