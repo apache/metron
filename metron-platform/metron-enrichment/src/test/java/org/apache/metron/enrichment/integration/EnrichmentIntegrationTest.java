@@ -26,6 +26,7 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
@@ -103,11 +104,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
+      setProperty("enrichment.error.topic", Constants.ENRICHMENT_ERROR_TOPIC);
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.ENRICHMENT_ERROR_TOPIC, 1));
     }});
     String globalConfigStr = null;
     {
@@ -174,6 +177,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals(inputMessages.size(), docs.size());
         List<Map<String, Object>> cleanedDocs = docs;
         validateAll(cleanedDocs);
+
+        validateErrors(inputMessages, kafkaComponent);
       }
     } finally {
       runner.stop();
@@ -196,6 +201,15 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       geoEnrichmentValidation(doc);
       threatIntelValidation(doc);
       simpleEnrichmentValidation(doc);
+    }
+  }
+
+  protected void validateErrors(List<byte[]> inputMessages, KafkaWithZKComponent kafkaComponent) {
+    List<byte[]> enrichmentErrors = kafkaComponent.readMessages(Constants.ENRICHMENT_ERROR_TOPIC);
+    Assert.assertEquals("Should have one error per message passed to enrichment", inputMessages.size(), enrichmentErrors.size());
+    for(byte[] enrichmentError : enrichmentErrors) {
+      // Don't reconstruct the entire message, just ensure it contains the known error message inside.
+      Assert.assertTrue(new String(enrichmentError).contains(ErrorEnrichmentBolt.TEST_ERROR_MESSAGE));
     }
   }
 
