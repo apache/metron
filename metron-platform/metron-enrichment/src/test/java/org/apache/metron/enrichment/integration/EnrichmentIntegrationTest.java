@@ -151,6 +151,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(15000)
+            .withCustomShutdownOrder(new String[]{"storm","config","kafka"})
             .withNumRetries(10)
             .build();
     runner.start();

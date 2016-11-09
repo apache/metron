@@ -293,6 +293,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
+            .withCustomShutdownOrder(new String[] {"storm","config","kafka"})
             .build();
     runner.start();
   }

@@ -236,16 +236,18 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
 
   public void createTopic(String name, int numPartitions, boolean waitUntilMetadataIsPropagated) throws InterruptedException {
+    ZkUtils zkUtils = null;
     try {
-      ZkUtils zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
+      zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
       AdminUtilsWrapper.createTopic(zkUtils, name, numPartitions, 1, new Properties());
-//      AdminUtils.createTopic(zkClient, name, numPartitions, 1, new Properties());
       if (waitUntilMetadataIsPropagated) {
         waitUntilMetadataIsPropagated(name, numPartitions);
       }
-    }
-    catch(TopicExistsException tee) {
-
+    }catch(TopicExistsException tee) {
+    }finally {
+      if(zkUtils != null){
+        zkUtils.close();
+      }
     }
   }
 

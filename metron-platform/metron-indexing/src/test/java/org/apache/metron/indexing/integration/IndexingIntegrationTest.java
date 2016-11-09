@@ -155,6 +155,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withComponent("search", getSearchComponent(topologyProperties))
             .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
+            .withCustomShutdownOrder(new String[] {"search","storm","config","kafka"})
             .build();
     runner.start();
 

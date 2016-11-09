@@ -142,6 +142,9 @@ public class MaasIntegrationTest {
         yarnCluster = null;
       }
     }
+    if(client != null){
+      client.close();
+    }
     if(testZkServer != null) {
       testZkServer.close();
     }
