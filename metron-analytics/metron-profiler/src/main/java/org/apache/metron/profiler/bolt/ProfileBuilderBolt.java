@@ -40,6 +40,7 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -245,6 +246,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
     // clear the execution state to prepare for the next window
     executor.clearState();
+
+    profileConfig.getTickUpdate().forEach((var, expr) -> executor.assign(var, expr, new HashMap<>()));
 
     // reset measurement - used as a flag to indicate if initialized
     measurement = null;
