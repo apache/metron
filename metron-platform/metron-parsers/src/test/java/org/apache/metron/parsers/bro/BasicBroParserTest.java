@@ -19,6 +19,8 @@ package org.apache.metron.parsers.bro;
 
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -258,6 +260,7 @@ public class BasicBroParserTest extends TestCase {
 	}
 
 	public void testBadMessage()  throws ParseException{
+		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.FATAL);
 		try {
 			broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
 			Assert.fail("Should have marked this as a bad message.");
@@ -273,5 +276,6 @@ public class BasicBroParserTest extends TestCase {
 		catch(IllegalStateException ise) {
 
 		}
+		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.ERROR);
 	}
 }

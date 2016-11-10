@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -55,6 +56,7 @@ import org.apache.metron.maas.config.ModelEndpoint;
 import org.apache.metron.maas.queue.ZKQueue;
 import org.apache.metron.maas.submit.ModelSubmission;
 import org.apache.metron.maas.util.ConfigUtil;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Assert;
@@ -76,6 +78,7 @@ public class MaasIntegrationTest {
   private CuratorFramework client;
   @Before
   public void setup() throws Exception {
+    UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     setupInternal(NUM_NMS);
   }
 
