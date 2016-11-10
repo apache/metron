@@ -17,7 +17,7 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.common.math.stats;
+package org.apache.metron.statistics;
 
 
 /**

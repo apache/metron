@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.common.math.stats;
+package org.apache.metron.statistics;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;

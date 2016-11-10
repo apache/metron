@@ -1,21 +1,47 @@
-package org.apache.metron.common.math.stats.outlier;
+/*
+ *
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package org.apache.metron.statistics.outlier;
 
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.math.stats.OnlineStatisticsProvider;
+import org.apache.metron.statistics.OnlineStatisticsProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class MedianAbsoluteDeviation {
+public class MedianAbsoluteDeviationFunctions {
   public static class State {
     OnlineStatisticsProvider tickMedianProvider;
     OnlineStatisticsProvider tickMADProvider;
-    transient OnlineStatisticsProvider windowMedianProvider;
-    transient OnlineStatisticsProvider windowMADProvider;
+    OnlineStatisticsProvider windowMedianProvider;
+    OnlineStatisticsProvider windowMADProvider;
+
+    public State() {
+      tickMedianProvider = new OnlineStatisticsProvider();
+      tickMADProvider = new OnlineStatisticsProvider();
+      windowMedianProvider = new OnlineStatisticsProvider();
+      windowMADProvider = new OnlineStatisticsProvider();
+    }
 
     public State(Optional<List<State>> previousStates, Optional<State> currentState)
     {
@@ -30,17 +56,25 @@ public class MedianAbsoluteDeviation {
     }
 
     public void add(Double d) {
-      tickMedianProvider.addValue(d);
-      double deviation = Math.abs(d - windowMedianProvider.getPercentile(50));
-      windowMedianProvider.addValue(d);
-      windowMADProvider.addValue(deviation);
-      tickMADProvider.addValue(deviation);
+      if(!Double.isNaN(d)) {
+        tickMedianProvider.addValue(d);
+        double deviation = Math.abs(d - windowMedianProvider.getPercentile(50));
+        windowMedianProvider.addValue(d);
+        if(!Double.isNaN(deviation)) {
+          windowMADProvider.addValue(deviation);
+          tickMADProvider.addValue(deviation);
+        }
+      }
     }
   }
 
   @Stellar(namespace="OUTLIER"
-          ,name="MAD_STATE_UPDATE"
+          ,name="MAD_STATE_MERGE"
           ,description="Update the statistical state required to compute the Median Absolute Deviation"
+          ,params= {
+            "[state] - A list of Median Absolute Deviation States to merge.  Generally these are states across time."
+           ,"currentState? - The current state (optional)"
+          }
           ,returns="The state."
   )
   public static class StateUpdate implements StellarFunction{
@@ -49,7 +83,10 @@ public class MedianAbsoluteDeviation {
     public Object apply(List<Object> args, Context context) throws ParseException {
       State state = null;
       List<State> states = (List<State>) args.get(0);
-      State currentState = (State) args.get(1);
+      State currentState = null;
+      if(args.size() > 1) {
+        currentState = (State) args.get(1);
+      }
       state = new State(Optional.ofNullable(states), Optional.ofNullable(currentState));
       return state;
     }
@@ -75,9 +112,23 @@ public class MedianAbsoluteDeviation {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
       State state = (State) args.get(0);
-      Number datum = (Number)args.get(1);
-      if(datum != null && state != null) {
-        state.add(datum.doubleValue());
+      Object o = args.get(1);
+      List<Double> data = new ArrayList<>();
+      if(o != null) {
+        if (o instanceof List) {
+          for (Object datum : (List<Object>) o) {
+            Number n = (Number) datum;
+            data.add(n.doubleValue());
+          }
+        } else {
+          Number n = (Number)o;
+          data.add(n.doubleValue());
+        }
+      }
+      if(state != null) {
+        for(Double d : data) {
+          state.add(d);
+        }
       }
       return state;
     }
@@ -106,9 +157,15 @@ public class MedianAbsoluteDeviation {
       State state = (State) args.get(0);
       Number datum = (Number)args.get(1);
       if(args.size() > 2) {
-        zScore = ((Number)args.get(2)).doubleValue();
+        Number zScoreNum = (Number) args.get(2);
+        if(zScoreNum != null) {
+          zScore = zScoreNum.doubleValue();
+        }
       }
-      double deviation = datum.doubleValue() - state.windowMedianProvider.getPercentile(50);
+      if(datum == null || state == null) {
+        return Double.NaN;
+      }
+      double deviation = Math.abs(datum.doubleValue() - state.windowMedianProvider.getPercentile(50));
       double medianAbsoluteDeviation = state.windowMADProvider.getPercentile(50);
       double modifiedZScore = zScore*deviation/medianAbsoluteDeviation;
       return modifiedZScore;
