@@ -142,16 +142,12 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   public void start() {
     // setup Zookeeper
     if(zookeeperConnectString == null) {
-//    String zkConnect = TestZKUtils.zookeeperConnect();
-//    zkServer = new EmbeddedZookeeper(zkConnect);
-//    zookeeperConnectString = zkServer.connectString();
       EmbeddedZookeeper ezk = new EmbeddedZookeeper();
       zookeeperConnectString = "127.0.0.1:" + ezk.port();
     }
     zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 
     // setup Broker
-//    Properties props = TestUtilsWrapper.createBrokerConfig(0, brokerPort, true);
     Properties props = TestUtilsWrapper.createBrokerConfig(0, zookeeperConnectString, brokerPort);
     props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
@@ -208,7 +204,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
   public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic, String group, String consumerName) {
     // setup simple consumer
-//    Properties consumerProperties = TestUtils.createConsumerProperties(zkServer.connectString(), group, consumerName, -1);
     Properties consumerProperties = TestUtils.createConsumerProperties(zookeeperConnectString, group, consumerName, -1);
     consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
