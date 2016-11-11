@@ -246,8 +246,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
     // clear the execution state to prepare for the next window
     executor.clearState();
-
-    profileConfig.getTickUpdate().forEach((var, expr) -> executor.assign(var, expr, new HashMap<>()));
+    Map<String, String> tickUpdate = profileConfig.getTickUpdate();
+    if(tickUpdate != null) {
+      tickUpdate.forEach((var, expr) -> executor.assign(var, expr, executor.getState()));
+    }
 
     // reset measurement - used as a flag to indicate if initialized
     measurement = null;
