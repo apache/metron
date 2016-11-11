@@ -157,6 +157,8 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
 
+    org.apache.log4j.Level oldLevel = UnitTestHelper.getLog4jLevel(KafkaServer.class);
+    UnitTestHelper.setLog4jLevel(KafkaServer.class, org.apache.log4j.Level.OFF);
     // do not proceed until the broker is up
     TestUtilsWrapper.waitUntilBrokerIsRunning(kafkaServer,"Timed out waiting for RunningAsBroker State",100000);
 
@@ -167,6 +169,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
         throw new RuntimeException("Unable to create topic", e);
       }
     }
+    UnitTestHelper.setLog4jLevel(KafkaServer.class, oldLevel);
     postStartCallback.apply(this);
   }
 
