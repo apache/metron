@@ -40,6 +40,7 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -248,7 +249,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     Map<String, String> tickUpdate = profileConfig.getTickUpdate();
     Map<String, Object> state = executor.getState();
     if(tickUpdate != null) {
-      tickUpdate.forEach((var, expr) -> executor.assign(var, expr, executor.getState()));
+      tickUpdate.forEach((var, expr) -> executor.assign(var, expr, Collections.singletonMap("result", result)));
     }
     // clear the execution state to prepare for the next window
     executor.clearState();
