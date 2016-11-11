@@ -92,12 +92,13 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
             .withTopologyProperties(topologyProperties)
             .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
-    UnitTestHelper.verboseLogging();
+    //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
+            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka"})
             .withNumRetries(10)
             .build();
     try {

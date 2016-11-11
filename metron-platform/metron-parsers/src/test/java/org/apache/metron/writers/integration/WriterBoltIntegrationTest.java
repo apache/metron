@@ -110,13 +110,14 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
             .withTopologyProperties(topologyProperties)
             .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
-    UnitTestHelper.verboseLogging();
+    //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
             .withNumRetries(10)
+            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka"})
             .build();
     try {
       runner.start();
