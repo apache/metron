@@ -31,6 +31,7 @@ import kafka.javaapi.FetchResponse;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
+import kafka.utils.TestUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import kafka.server.KafkaConfig;
@@ -39,8 +40,10 @@ import kafka.utils.*;
 import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.utils.*;
 import org.apache.metron.integration.wrapper.AdminUtilsWrapper;
 import org.apache.metron.integration.wrapper.TestUtilsWrapper;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
@@ -50,6 +53,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Level;
 
 
 public class KafkaWithZKComponent implements InMemoryComponent {
@@ -225,9 +229,12 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   public void waitUntilMetadataIsPropagated(String topic, int numPartitions) {
     List<KafkaServer> servers = new ArrayList<>();
     servers.add(kafkaServer);
+    Level oldLevel = UnitTestHelper.getJavaLoggingLevel();
+    UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     for(int part = 0;part < numPartitions;++part) {
       TestUtils.waitUntilMetadataIsPropagated(scala.collection.JavaConversions.asScalaBuffer(servers), topic, part, 5000);
     }
+    UnitTestHelper.setJavaLoggingLevel(oldLevel);
   }
 
   public void createTopic(String name, int numPartitions, boolean waitUntilMetadataIsPropagated) throws InterruptedException {
