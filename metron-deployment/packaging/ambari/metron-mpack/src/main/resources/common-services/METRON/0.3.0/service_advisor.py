@@ -34,7 +34,7 @@ except Exception as e:
     traceback.print_exc()
     print "Failed to load parent"
 
-class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
+class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
 
     def getServiceComponentLayoutValidations(self, services, hosts):
 
