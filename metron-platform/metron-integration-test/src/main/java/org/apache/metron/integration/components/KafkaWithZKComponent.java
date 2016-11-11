@@ -229,17 +229,16 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   public void waitUntilMetadataIsPropagated(String topic, int numPartitions) {
     List<KafkaServer> servers = new ArrayList<>();
     servers.add(kafkaServer);
-    Level oldLevel = UnitTestHelper.getJavaLoggingLevel();
-    UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     for(int part = 0;part < numPartitions;++part) {
       TestUtils.waitUntilMetadataIsPropagated(scala.collection.JavaConversions.asScalaBuffer(servers), topic, part, 5000);
     }
-    UnitTestHelper.setJavaLoggingLevel(oldLevel);
   }
 
   public void createTopic(String name, int numPartitions, boolean waitUntilMetadataIsPropagated) throws InterruptedException {
     ZkUtils zkUtils = null;
+    Level oldLevel = UnitTestHelper.getJavaLoggingLevel();
     try {
+      UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
       zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
       AdminUtilsWrapper.createTopic(zkUtils, name, numPartitions, 1, new Properties());
       if (waitUntilMetadataIsPropagated) {
@@ -250,6 +249,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
       if(zkUtils != null){
         zkUtils.close();
       }
+      UnitTestHelper.setJavaLoggingLevel(oldLevel);
     }
   }
 
