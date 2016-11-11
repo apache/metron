@@ -31,11 +31,10 @@ import kafka.javaapi.FetchResponse;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
+import kafka.server.*;
 import kafka.utils.TestUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
 import kafka.utils.*;
 import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
@@ -157,6 +156,10 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     KafkaConfig config = new KafkaConfig(props);
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
+
+    // do not proceed until the broker is up
+    TestUtilsWrapper.waitUntilBrokerIsRunning(kafkaServer,"Timed out waiting for RunningAsBroker State",100000);
+
     for(Topic topic : getTopics()) {
       try {
         createTopic(topic.name, topic.numPartitions, true);
