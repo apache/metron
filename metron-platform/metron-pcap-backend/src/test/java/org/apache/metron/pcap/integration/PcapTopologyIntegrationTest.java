@@ -236,7 +236,7 @@ public class PcapTopologyIntegrationTest {
             .withTopologyName("pcap")
             .withTopologyProperties(topologyProperties)
             .build();
-    UnitTestHelper.verboseLogging();
+    //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("mr", mr)
             .withComponent("kafka", kafkaComponent)
