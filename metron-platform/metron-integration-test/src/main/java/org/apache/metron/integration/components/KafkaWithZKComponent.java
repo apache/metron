@@ -238,7 +238,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     ZkUtils zkUtils = null;
     Level oldLevel = UnitTestHelper.getJavaLoggingLevel();
     try {
-      UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
+      UnitTestHelper.setJavaLoggingLevel(Level.OFF);
       zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
       AdminUtilsWrapper.createTopic(zkUtils, name, numPartitions, 1, new Properties());
       if (waitUntilMetadataIsPropagated) {
