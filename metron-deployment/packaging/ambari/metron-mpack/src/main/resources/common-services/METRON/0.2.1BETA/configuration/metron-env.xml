@@ -117,10 +117,22 @@
         <display-name>GEOIP Load Datafile URL</display-name>
     </property>
     <property require-input="true">
-        <name>es_url</name>
+        <name>es_hosts</name>
         <value></value>
-        <description>Comma delimited list of Elasticsearch URLs. (eshost1:9300,eshost2:9300)</description>
-        <display-name>Elasticsearch URL</display-name>
+        <description>Comma delimited list of Elasticsearch Hosts. (eshost1,eshost2)</description>
+        <display-name>Elasticsearch Hosts</display-name>
+    </property>
+    <property>
+        <name>es_binary_port</name>
+        <value>9300</value>
+        <description>Elasticsearch binary port. (9300)</description>
+        <display-name>Elasticsearch Binary Port</display-name>
+    </property>
+    <property>
+        <name>es_http_port</name>
+        <value>9200</value>
+        <description>Elasticsearch HTTP port. (9200)</description>
+        <display-name>Elasticsearch HTTP port</display-name>
     </property>
     <property require-input = "true">
         <name>storm_rest_addr</name>
