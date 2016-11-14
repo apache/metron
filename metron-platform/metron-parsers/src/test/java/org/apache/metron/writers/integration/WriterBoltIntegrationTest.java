@@ -29,6 +29,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -83,6 +84,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void test() throws UnableToStartException, IOException {
+    UnitTestHelper.setLog4jLevel(CSVParser.class, org.apache.log4j.Level.FATAL);
     final String sensorType = "dummy";
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
       add(Bytes.toBytes("valid,foo"));

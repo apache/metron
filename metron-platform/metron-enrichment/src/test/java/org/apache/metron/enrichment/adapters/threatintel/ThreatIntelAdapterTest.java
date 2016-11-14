@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.adapters.threatintel;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.hbase.TableProvider;
@@ -32,6 +33,7 @@ import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
@@ -142,9 +144,10 @@ public class ThreatIntelAdapterTest {
     config.withTrackerHBaseCF(trackCf);
     config.withTrackerHBaseTable(trackTable);
     config.withProviderImpl(ExceptionProvider.class.getName());
-
     ThreatIntelAdapter tia = new ThreatIntelAdapter(config);
+    UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.FATAL);
     tia.initializeAdapter();
+    UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.ERROR);
     Assert.assertFalse(tia.isInitialized());
   }
 

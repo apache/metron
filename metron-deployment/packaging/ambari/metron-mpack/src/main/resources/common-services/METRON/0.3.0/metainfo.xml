@@ -1,0 +1,288 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>METRON</name>
+      <displayName>Metron</displayName>
+      <comment>A scalable advanced security analytics framework built on Hadoop</comment>
+      <version>0.3.0</version>
+      <components>
+
+        <component>
+          <name>METRON_PARSERS</name>
+          <displayName>Metron Parsers</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>false</reassignAllowed>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>STORM/SUPERVISOR</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/parser_master.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>METRON_ENRICHMENT_MASTER</name>
+          <displayName>Metron Enrichment</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/enrichment_master.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
+
+        <component>
+          <name>METRON_ENRICHMENT_MYSQL_SERVER</name>
+          <displayName>MySQL Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <commandScript>
+            <script>scripts/mysql_server.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>CLEAN</name>
+              <commandScript>
+                <script>scripts/mysql_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
+          <name>METRON_INDEXING</name>
+          <displayName>Metron Indexing</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>false</reassignAllowed>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>STORM/SUPERVISOR</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/indexing_master.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>ELASTICSEARCH_TEMPLATE_INSTALL</name>
+              <commandScript>
+                <script>scripts/indexing_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+               </commandScript>
+              </customCommand>
+              <customCommand>
+                <name>ELASTICSEARCH_TEMPLATE_DELETE</name>
+                <commandScript>
+                  <script>scripts/indexing_master.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </customCommand>
+          </customCommands>
+        </component>
+      </components>
+
+      <themes>
+        <theme>
+          <fileName>metron_theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>metron-common</name>
+            </package>
+            <package>
+              <name>metron-data-management</name>
+            </package>
+            <package>
+              <name>metron-parsers</name>
+            </package>
+            <package>
+              <name>metron-enrichment</name>
+            </package>
+            <package>
+              <name>metron-indexing</name>
+            </package>
+            <package>
+              <name>metron-elasticsearch</name>
+            </package>
+            <package>
+              <name>metron-pcap</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6,redhat7</osFamily>
+          <packages>
+            <package>
+              <name>expect</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>mysql-community-release</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>mysql-community-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>MySQL-python</package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat6</osFamily>
+          <packages>
+            <package>
+              <name>mysql-server</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>mysql</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>HDFS</service>
+        <service>KAFKA</service>
+        <service>STORM</service>
+        <service>ZOOKEEPER</service>
+        <service>HBASE</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>metron-env</config-type>
+        <config-type>storm-env</config-type>
+        <config-type>storm-site</config-type>
+        <config-type>kafka-broker</config-type>
+        <config-type>kafka-env</config-type>
+      </configuration-dependencies>
+      <restartRequiredAfterChange>true</restartRequiredAfterChange>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+    </service>
+  </services>
+</metainfo>

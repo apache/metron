@@ -17,6 +17,10 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.log4j.Level;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.adrianwalker.multilinestring.Multiline;
@@ -134,15 +138,20 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     }
     when(tuple.getValueByField("message")).thenReturn(messageList.get(4));
     tupleList.add(tuple);
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tupleList);
+    when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), argThat(new MessageListMatcher(messageList)))).thenReturn(response);
     bulkMessageWriterBolt.execute(tuple);
     verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), argThat(new MessageListMatcher(messageList)));
     verify(outputCollector, times(5)).ack(tuple);
     reset(outputCollector);
     doThrow(new Exception()).when(bulkMessageWriter).write(eq(sensorType), any(WriterConfiguration.class), Matchers.anyListOf(Tuple.class), Matchers.anyListOf(JSONObject.class));
     when(tuple.getValueByField("message")).thenReturn(messageList.get(0));
+    UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
     for(int i = 0; i < 5; i++) {
       bulkMessageWriterBolt.execute(tuple);
     }
+    UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
     verify(outputCollector, times(5)).ack(tuple);
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
     verify(outputCollector, times(1)).reportError(any(Throwable.class));

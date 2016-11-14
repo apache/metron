@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron</artifactId>
-		<version>0.2.1BETA</version>
+		<version>0.3.0</version>
 	</parent>
 	<description>Stream analytics for Metron</description>
 	<url>https://metron.incubator.apache.org/</url>
@@ -48,6 +48,16 @@
 		<module>metron-profiler-common</module>
     </modules>
 	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${global_slf4j_version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${global_slf4j_version}</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

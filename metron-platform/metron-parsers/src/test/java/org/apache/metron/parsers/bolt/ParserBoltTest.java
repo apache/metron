@@ -47,6 +47,8 @@ import org.mockito.Mock;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -233,6 +235,9 @@ public void testImplicitBatchOfOne() throws Exception {
   when(parser.validate(any())).thenReturn(true);
   when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
   when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
+  BulkWriterResponse response = new BulkWriterResponse();
+  response.addSuccess(t1);
+  when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(Collections.singleton(t1)), any())).thenReturn(response);
   parserBolt.withMessageFilter(filter);
   parserBolt.execute(t1);
   verify(outputCollector, times(1)).ack(t1);
@@ -372,6 +377,9 @@ public void testImplicitBatchOfOne() throws Exception {
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addSuccess(t1);
+    when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(Collections.singleton(t1)), any())).thenReturn(response);
     parserBolt.withMessageFilter(filter);
     parserBolt.execute(t1);
     verify(outputCollector, times(1)).ack(t1);
@@ -407,6 +415,10 @@ public void testImplicitBatchOfOne() throws Exception {
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
+    Set<Tuple> tuples = Stream.of(t1, t2, t3, t4, t5).collect(Collectors.toSet());
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tuples);
+    when(batchWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tuples), any())).thenReturn(response);
     parserBolt.withMessageFilter(filter);
     writeNonBatch(outputCollector, parserBolt, t1);
     writeNonBatch(outputCollector, parserBolt, t2);

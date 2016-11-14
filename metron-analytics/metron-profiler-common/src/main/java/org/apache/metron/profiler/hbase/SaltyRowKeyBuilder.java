@@ -41,10 +41,8 @@ import java.util.concurrent.TimeUnit;
  * <li>profile - The name of the profile.
  * <li>entity - The name of the entity being profiled.
  * <li>group(s) - The group(s) used to sort the data in HBase. For example, a group may distinguish between weekends and weekdays.
- * <li>year - The year based on UTC.
- * <li>day of year - The current day within the year based on UTC; [1, 366]
- * <li>hour - The hour within the day based on UTC; [0, 23]
- * </ul>period - The period within the hour.  The number of periods per hour can be defined by the user; defaults to 4.
+ * <li>period - The period in which the measurement was taken. The first period starts at the epoch and increases monotonically.
+ * </ul>
  */
 public class SaltyRowKeyBuilder implements RowKeyBuilder {
 
@@ -112,14 +110,6 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   @Override
   public byte[] rowKey(ProfileMeasurement m, List<Object> groups) {
     return rowKey(m.getProfileName(), m.getEntity(), m.getPeriod(), groups);
-  }
-
-  public void withPeriodDuration(long duration, TimeUnit units) {
-    periodDurationMillis = units.toMillis(duration);
-  }
-
-  public void setSaltDivisor(int saltDivisor) {
-    this.saltDivisor = saltDivisor;
   }
 
   /**
@@ -201,5 +191,13 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     } catch(NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void withPeriodDuration(long duration, TimeUnit units) {
+    periodDurationMillis = units.toMillis(duration);
+  }
+
+  public void setSaltDivisor(int saltDivisor) {
+    this.saltDivisor = saltDivisor;
   }
 }

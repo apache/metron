@@ -17,6 +17,9 @@
  */
 
 package org.apache.metron.parsers.bolt;
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
@@ -229,12 +232,13 @@ public class WriterBoltTest extends BaseBoltTest{
     writerResponse.addSuccess(goodTuple);
     writerResponse.addError(new IllegalStateException(), errorTuple);
     when(batchWriter.write(any(), any(), any(), any())).thenReturn(writerResponse);
-
     bolt.execute(errorTuple);
     for(Tuple t : tuples) {
       verify(outputCollector, times(0)).ack(t);
     }
+    UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
     bolt.execute(goodTuple);
+    UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
     for(Tuple t : tuples) {
       verify(outputCollector, times(1)).ack(t);
     }
@@ -267,7 +271,9 @@ public class WriterBoltTest extends BaseBoltTest{
       verify(outputCollector, times(0)).ack(t);
       verify(batchWriter, times(0)).write(eq(sensorType), any(), any(), any());
     }
+    UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
     bolt.execute(goodTuple);
+    UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.ERROR);
     for(Tuple t : tuples) {
       verify(outputCollector, times(1)).ack(t);
     }

@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+    <property>
+        <name>metron_home</name>
+        <value>/usr/metron/0.3.0</value>
+        <description>Metron home directory</description>
+        <display-name>Metron home</display-name>
+    </property>
+    <property>
+        <name>metron_apps_hdfs_dir</name>
+        <value>/apps/metron</value>
+        <description>Metron apps HDFS dir</description>
+        <display-name>Metron apps HDFS dir</display-name>
+    </property>
+    <property>
+        <name>metron_zookeeper_config_dir</name>
+        <value>config/zookeeper</value>
+        <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
+        <display-name>Metron Zookeeper config dir</display-name>
+    </property>
+    <property>
+        <name>metron_user</name>
+        <value>metron</value>
+        <property-type>USER</property-type>
+        <description>The user for Metron</description>
+        <display-name>Metron User</display-name>
+    </property>
+    <property>
+        <name>metron_group</name>
+        <value>metron</value>
+        <property-type>GROUP</property-type>
+        <description>The group for Metron</description>
+        <display-name>Metron Group Name</display-name>
+    </property>
+    <property>
+        <name>metron_topic_retention</name>
+        <description>Kafka Retention in GB</description>
+        <value>10</value>
+        <display-name>Topic Retention</display-name>
+    </property>
+    <property>
+        <name>parsers</name>
+        <value>bro,snort,yaf</value>
+        <description>Metron parsers to deploy</description>
+        <display-name>Metron Parsers</display-name>
+    </property>
+    <property>
+        <name>metron_enrichment_db_user</name>
+        <value>metron</value>
+        <description>Database username to use to connect to the database.</description>
+        <display-name>Enrichment Database User</display-name>
+    </property>
+    <property>
+        <name>metron_enrichment_db_port</name>
+        <display-name>Metron Enrichment Database Port</display-name>
+        <value>3306</value>
+        <description>Database port to use to connect to the database.</description>
+    </property>
+    <property>
+        <name>metron_enrichment_db_password</name>
+        <value></value>
+        <property-type>PASSWORD</property-type>
+        <display-name>Metron Enrichment Database Password</display-name>
+        <description>Password to use against database</description>
+        <value-attributes>
+            <type>password</type>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>mysql_admin_password</name>
+        <value></value>
+        <property-type>PASSWORD</property-type>
+        <display-name>MySQL root user password</display-name>
+        <description>Password to use to add Metron user to MySQL</description>
+        <value-attributes>
+            <type>password</type>
+            <overridable>false</overridable>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>metron_indexing_topology</name>
+        <value>indexing</value>
+        <description>The Storm topology name for Indexing</description>
+        <display-name>Indexing Topology Name</display-name>
+    </property>
+    <property>
+        <name>es_cluster_name</name>
+        <value>metron</value>
+        <description>Name of Elasticsearch Cluster</description>
+        <display-name>Elasticsearch Cluster Name</display-name>
+    </property>
+    <property>
+        <name>geoip_url</name>
+        <value>http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz</value>
+        <description>Location of the GeoIP data to load.</description>
+        <display-name>GEOIP Load Datafile URL</display-name>
+    </property>
+    <property require-input="true">
+        <name>es_hosts</name>
+        <value></value>
+        <description>Comma delimited list of Elasticsearch Hosts. (eshost1,eshost2)</description>
+        <display-name>Elasticsearch Hosts</display-name>
+    </property>
+    <property>
+        <name>es_binary_port</name>
+        <value>9300</value>
+        <description>Elasticsearch binary port. (9300)</description>
+        <display-name>Elasticsearch Binary Port</display-name>
+    </property>
+    <property>
+        <name>es_http_port</name>
+        <value>9200</value>
+        <description>Elasticsearch HTTP port. (9200)</description>
+        <display-name>Elasticsearch HTTP port</display-name>
+    </property>
+    <property require-input = "true">
+        <name>storm_rest_addr</name>
+        <display-name>Storm Rest Server Address</display-name>
+        <description>URL of Storm UI (storm.ui.hostname:8744)</description>
+        <value></value>
+    </property>
+    <property>
+        <name>repo_type</name>
+        <display-name>Repository Type</display-name>
+        <description>Type of Repository: Local or Remote</description>
+        <value>local</value>
+        <value-attributes>
+            <overridable>false</overridable>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>local</value>
+                    <label>Local</label>
+                </entry>
+                <entry>
+                    <value>remote</value>
+                    <label>Remote</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>repo_url</name>
+        <display-name>Repository URL</display-name>
+        <value></value>
+    </property>
+    <property>
+        <name>install_mysql</name>
+        <description>Install New MySQL Instance for Enrichments</description>
+        <display-name>Install MySQL</display-name>
+        <value>Yes</value>
+        <value-attributes>
+            <overridable>false</overridable>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>Yes</value>
+                    <label>Yes</label>
+                </entry>
+                <entry>
+                    <value>No</value>
+                    <label>No</label>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>mysql_host</name>
+        <display-name>MySQL Host Address</display-name>
+        <value></value>
+    </property>
+    <property>
+        <name>global-json</name>
+        <display-name>global.json template</display-name>
+        <description>This is the jinja template for global.json file</description>
+        <value>
+{
+"es.clustername": "{{ es_cluster_name }}",
+"es.ip": "{{ es_url }}",
+"es.date.format": "yyyy.MM.dd.HH"
+}
+        </value>
+        <value-attributes>
+            <type>content</type>
+        </value-attributes>
+    </property>
+    <property>
+        <name>elasticsearch-properties</name>
+        <description>The template for the elasticsearch.properties file.</description>
+        <display-name>elasticsearch.properties template</display-name>
+        <value>
+##### Storm #####
+indexing.workers=1
+indexing.executors=0
+##### Kafka #####
+kafka.zk={{ zookeeper_quorum }}
+kafka.broker={{ kafka_brokers }}
+kafka.start=WHERE_I_LEFT_OFF
+##### Indexing #####
+index.input.topic=indexing
+index.error.topic=indexing_error
+writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
+##### Metrics #####
+#reporters
+org.apache.metron.metrics.reporter.graphite=true
+org.apache.metron.metrics.reporter.console=false
+org.apache.metron.metrics.reporter.jmx=false
+#Graphite Addresses
+org.apache.metron.metrics.graphite.address=localhost
+org.apache.metron.metrics.graphite.port=2023
+#TelemetryParserBolt
+org.apache.metron.metrics.TelemetryParserBolt.acks=true
+org.apache.metron.metrics.TelemetryParserBolt.emits=true
+org.apache.metron.metrics.TelemetryParserBolt.fails=true
+##### HDFS #####
+bolt.hdfs.batch.size=5000
+bolt.hdfs.field.delimiter=|
+bolt.hdfs.rotation.policy=org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
+bolt.hdfs.rotation.policy.units=DAYS
+bolt.hdfs.rotation.policy.count=1
+bolt.hdfs.file.rotation.size.in.mb=5
+bolt.hdfs.file.system.url={{ default_fs }}
+bolt.hdfs.wip.file.path=/paloalto/wip
+bolt.hdfs.finished.file.path=/paloalto/rotated
+bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
+index.hdfs.output={{ metron_apps_enrichment_dir }}
+        </value>
+        <value-attributes>
+            <type>content</type>
+        </value-attributes>
+        <on-ambari-upgrade add="true"/>
+    </property>
+</configuration>

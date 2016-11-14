@@ -21,21 +21,17 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
 
@@ -659,6 +655,19 @@ public class StellarTest {
     Assert.assertFalse(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
     Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
     Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
+  }
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @Test
+  public void non_boolean_predicate_throws_exception() {
+    final Map<String, String> variableMap = new HashMap<String, String>() {{
+      put("protocol", "http");
+    }};
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("The rule 'TO_UPPER(protocol)' does not return a boolean value.");
+    runPredicate("TO_UPPER(protocol)", v -> variableMap.get(v));
   }
 
 }

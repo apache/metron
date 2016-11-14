@@ -19,6 +19,9 @@ package org.apache.metron.parsers.json;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.log4j.Level;
+import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -89,7 +92,9 @@ public class JSONMapParserTest {
   public void testCollectionHandlingError() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name()));
+    UnitTestHelper.setLog4jLevel(BasicParser.class, Level.FATAL);
     parser.parse(collectionHandlingJSON.getBytes());
+    UnitTestHelper.setLog4jLevel(BasicParser.class, Level.ERROR);
   }
 
 

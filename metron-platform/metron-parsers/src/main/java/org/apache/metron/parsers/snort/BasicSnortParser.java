@@ -18,7 +18,7 @@
 package org.apache.metron.parsers.snort;
 
 import com.google.common.collect.Lists;
-import jdk.nashorn.internal.runtime.arrays.ArrayIndex;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.parsers.BasicParser;
@@ -27,14 +27,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BasicSnortParser extends BasicParser {
 
-  private static final Logger _LOG = LoggerFactory
-          .getLogger(BasicSnortParser.class);
+  private static final Logger _LOG = LoggerFactory.getLogger(BasicSnortParser.class);
 
   /**
    * The default field names for Snort Alerts.
@@ -77,13 +81,44 @@ public class BasicSnortParser extends BasicParser {
 
   private transient CSVConverter converter;
 
+  private static String defaultDateFormat = "MM/dd/yy-HH:mm:ss.SSSSSS";
+  private transient DateTimeFormatter dateTimeFormatter;
+
   public BasicSnortParser() {
 
   }
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    dateTimeFormatter = getDateFormatter(parserConfig);
+    dateTimeFormatter = getDateFormatterWithZone(dateTimeFormatter, parserConfig);
     init();
+  }
+
+  private DateTimeFormatter getDateFormatter(Map<String, Object> parserConfig) {
+    String format = (String) parserConfig.get("dateFormat");
+    if (StringUtils.isNotEmpty(format)) {
+      _LOG.info("Using date format '{}'", format);
+      return DateTimeFormatter.ofPattern(format);
+    } else {
+      _LOG.info("Using default date format '{}'", defaultDateFormat);
+      return DateTimeFormatter.ofPattern(defaultDateFormat);
+    }
+  }
+
+  private DateTimeFormatter getDateFormatterWithZone(DateTimeFormatter formatter, Map<String, Object> parserConfig) {
+    String timezone = (String) parserConfig.get("timeZone");
+    if (StringUtils.isNotEmpty(timezone)) {
+      if(ZoneId.getAvailableZoneIds().contains(timezone)) {
+        _LOG.info("Using timezone '{}'", timezone);
+        return formatter.withZone(ZoneId.of(timezone));
+      } else {
+        throw new IllegalArgumentException("Unable to find ZoneId '" + timezone + "'");
+      }
+    } else {
+      _LOG.info("Using default timezone '{}'", ZoneId.systemDefault());
+      return formatter.withZone(ZoneId.systemDefault());
+    }
   }
 
   @Override
@@ -156,18 +191,8 @@ public class BasicSnortParser extends BasicParser {
    * @throws java.text.ParseException
    */
   private long toEpoch(String snortDatetime) throws ParseException {
-		
-		/*
-		 * TODO how does Snort not embed the year in their default timestamp?! need to change this in 
-		 * Snort configuration.  for now, just assume current year.
-		 */
-    int year = Calendar.getInstance().get(Calendar.YEAR);
-    String withYear = Integer.toString(year) + " " + snortDatetime;
-
-    // convert to epoch time
-    SimpleDateFormat df = new SimpleDateFormat("yyyy MM/dd-HH:mm:ss.S");
-    Date date = df.parse(withYear);
-    return date.getTime();
+    ZonedDateTime zonedDateTime = ZonedDateTime.parse(snortDatetime.trim(), dateTimeFormatter);
+    return zonedDateTime.toInstant().toEpochMilli();
   }
 
   public String getRecordDelimiter() {
