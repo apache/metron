@@ -104,6 +104,10 @@ public class MedianAbsoluteDeviationFunctions {
 
   @Stellar(namespace="OUTLIER"
           ,name="MAD_ADD"
+          ,params= {
+            "state - The MAD state"
+          , "value - The value to add"
+                   }
           ,description="Add a piece of data to the state."
           ,returns="The state."
   )
