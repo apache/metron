@@ -68,7 +68,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-profiler</artifactId>
+            <artifactId>metron-profiler-client</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
