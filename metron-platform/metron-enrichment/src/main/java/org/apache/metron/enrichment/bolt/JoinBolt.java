@@ -118,6 +118,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
         LOG.trace("Emitted message for key: {}", key);
       } else {
         cache.put(key, streamMessageMap);
+        collector.ack(tuple);
         if(LOG.isDebugEnabled()) {
           LOG.debug(getClass().getSimpleName() + ": Missed joining portions for "+ key + ". Expected " + Joiner.on(",").join(streamIds)
                   + " != " + Joiner.on(",").join(streamMessageKeys)
