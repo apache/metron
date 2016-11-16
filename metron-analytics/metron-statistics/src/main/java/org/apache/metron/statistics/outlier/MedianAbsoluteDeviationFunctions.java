@@ -75,7 +75,7 @@ public class MedianAbsoluteDeviationFunctions {
             "[state] - A list of Median Absolute Deviation States to merge.  Generally these are states across time."
            ,"currentState? - The current state (optional)"
           }
-          ,returns="The state."
+          ,returns="The Median Absolute Deviation state."
   )
   public static class StateUpdate implements StellarFunction{
 
@@ -106,10 +106,10 @@ public class MedianAbsoluteDeviationFunctions {
           ,name="MAD_ADD"
           ,params= {
             "state - The MAD state"
-          , "value - The value to add"
+          , "value - The numeric value to add"
                    }
           ,description="Add a piece of data to the state."
-          ,returns="The state."
+          ,returns="The MAD state."
   )
   public static class PointUpdate implements StellarFunction{
 
@@ -150,20 +150,25 @@ public class MedianAbsoluteDeviationFunctions {
 
   @Stellar(namespace="OUTLIER"
           ,name="MAD_SCORE"
-          ,description="Get the MAD score"
-          ,returns="The score."
+          ,params = {
+            "state - The MAD state"
+           ,"value - The value to score"
+           ,"scale? - Optionally the scale to use when computing the modified z-score.  Default is 0.6745, see the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf"
+            }
+          ,description="Get the modified z-score normalized by the MAD: scale * | x_i - median(X) | / MAD.  See the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf"
+          ,returns="The modified z-score."
   )
   public static class Score implements StellarFunction{
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      double zScore = 0.6745;
+      double scale = 0.6745;
       State state = (State) args.get(0);
       Number datum = (Number)args.get(1);
       if(args.size() > 2) {
-        Number zScoreNum = (Number) args.get(2);
-        if(zScoreNum != null) {
-          zScore = zScoreNum.doubleValue();
+        Number scaleNum = (Number) args.get(2);
+        if(scaleNum != null) {
+          scale = scaleNum.doubleValue();
         }
       }
       if(datum == null || state == null) {
@@ -171,7 +176,7 @@ public class MedianAbsoluteDeviationFunctions {
       }
       double deviation = Math.abs(datum.doubleValue() - state.windowMedianProvider.getPercentile(50));
       double medianAbsoluteDeviation = state.windowMADProvider.getPercentile(50);
-      double modifiedZScore = zScore*deviation/medianAbsoluteDeviation;
+      double modifiedZScore = scale*deviation/medianAbsoluteDeviation;
       return modifiedZScore;
     }
 
