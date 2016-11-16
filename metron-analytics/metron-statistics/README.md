@@ -315,7 +315,7 @@ Adjust `$METRON_HOME/config/zookeeper/global.json` to adjust the capture duratio
 Adjust `$METRON_HOME/config/profiler.properties` to adjust the capture
 duration by changing `profiler.period.duration=15` to `profiler.period.duration=1`
 
-## Execute the Flow
+#### Execute the Flow
 
 Install the elasticsearch head plugin by executing:
 `/usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head`
