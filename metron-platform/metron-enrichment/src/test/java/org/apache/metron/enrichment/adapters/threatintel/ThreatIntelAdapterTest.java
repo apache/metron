@@ -125,6 +125,19 @@ public class ThreatIntelAdapterTest {
   }
 
   @Test
+  public void testEnrichNonString() throws Exception {
+    ThreatIntelAdapter tia = new ThreatIntelAdapter();
+    tia.lookup = lookup;
+    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
+    JSONObject actualMessage = tia.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
+    Assert.assertNotNull(actualMessage);
+    Assert.assertEquals(expectedMessage, actualMessage);
+
+    actualMessage = tia.enrich(new CacheKey("ip_dst_addr", new Long(10L), broSc));
+    Assert.assertEquals(actualMessage,new JSONObject());
+  }
+
+  @Test
   public void testInitializeAdapter() {
 
     String cf = "cf";
