@@ -317,31 +317,29 @@ duration by changing `profiler.period.duration=15` to `profiler.period.duration=
 
 #### Execute the Flow
 
-Install the elasticsearch head plugin by executing:
+1. Install the elasticsearch head plugin by executing:
 `/usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head`
 
-Stopping all other parser topologies via monit
+2. Stopping all other parser topologies via monit
 
-Create the `mad` kafka topic by executing:
+3. Create the `mad` kafka topic by executing:
 `/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper node1:2181 --create --topic mad --partitions 1 --replication-factor 1`
 
-Push the modified configs by executing:
+4. Push the modified configs by executing:
 `$METRON_HOME/bin/zk_load_configs.sh --mode PUSH -z node1:2181 -i $METRON_HOME/config/zookeeper/`
 
-Start the profiler by executing:
+5. Start the profiler by executing:
 `$METRON_HOME/bin/start_profiler_topology.sh`
 
-Start the parser topology by executing:
+6. Start the parser topology by executing:
 `$METRON_HOME/bin/start_parser_topology.sh -k node1:6667 -z node1:2181 -s mad`
 
-Ensure that the enrichment and indexing topologies are started.  If not,
-then start those via monit or by hand.
+7. Ensure that the enrichment and indexing topologies are started.  If not, then start those via monit or by hand.
 
-Generate data into kafka by executing the following for at least 10
-minutes:
+8. Generate data into kafka by executing the following for at least 10 minutes:
 `~/rand_gen.py 0 1 1 | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic mad`
 
-Stop the above with ctrl-c and send in an obvious outlier into kafka:
+9. Stop the above with ctrl-c and send in an obvious outlier into kafka:
 `echo "1000" | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic mad`
 
 You should be able to find the outlier via the elasticsearch head plugin by
