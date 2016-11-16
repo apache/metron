@@ -171,7 +171,7 @@ To do this, we will create a
 * profiler profile
 * enrichment and threat triage
 
-## Data Generator
+#### Data Generator
 
 We can create a simple python script to generate a stream of gaussian
 noise at the frequency of one message per second as a python script
@@ -199,7 +199,7 @@ This script will take the following as arguments:
 * The standard deviation of the data generated
 * The frequency (in seconds) of the data generated
 
-## The Parser
+#### The Parser
 
 We will create a parser that will take the single numbers in and create
 a message with a field called `value` in them using the `CSVParser`.
@@ -227,7 +227,7 @@ Add the following file to
 }
 ```
 
-## Enrichment and Threat Intel
+#### Enrichment and Threat Intel
 
 We will set a threat triage level of `10` if a message generates a outlier score of more than 3.5.
 This cutoff will depend on your data and should be adjusted based on the
@@ -271,7 +271,7 @@ PROFILE_GET( 'sketchy_mad', 'global', 10, 'MINUTES') ), value)"
 }
 ```
 
-## The Profiler
+#### The Profiler
 
 We can set up the profiler to track the MAD statistical state required
 to compute MAD.  For the purposes of this demonstration, we will
