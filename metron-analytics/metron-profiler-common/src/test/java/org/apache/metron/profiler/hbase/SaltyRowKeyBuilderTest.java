@@ -70,6 +70,8 @@ public class SaltyRowKeyBuilderTest {
     // the tuple will contain the original message
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
+
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
   }
 
   /**
@@ -78,8 +80,8 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithOneGroup() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList("group1");
+    measurement.setGroups(groups);
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -95,7 +97,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = rowKeyBuilder.rowKey(measurement, groups);
+    byte[] actual = rowKeyBuilder.rowKey(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -105,8 +107,8 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithTwoGroups() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList("group1","group2");
+    measurement.setGroups(groups);
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -123,7 +125,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = rowKeyBuilder.rowKey(measurement, groups);
+    byte[] actual = rowKeyBuilder.rowKey(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -133,8 +135,8 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithOneIntegerGroup() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList(200);
+    measurement.setGroups(groups);
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -150,7 +152,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = rowKeyBuilder.rowKey(measurement, groups);
+    byte[] actual = rowKeyBuilder.rowKey(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -160,8 +162,8 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithMixedGroups() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Arrays.asList(200, "group1");
+    measurement.setGroups(groups);
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -178,7 +180,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = rowKeyBuilder.rowKey(measurement, groups);
+    byte[] actual = rowKeyBuilder.rowKey(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -188,8 +190,8 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithNoGroup() throws Exception {
     // setup
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
     List<Object> groups = Collections.emptyList();
+    measurement.setGroups(groups);
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -204,7 +206,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = rowKeyBuilder.rowKey(measurement, groups);
+    byte[] actual = rowKeyBuilder.rowKey(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -230,7 +232,7 @@ public class SaltyRowKeyBuilderTest {
     for  (int i=0; i<(hoursAgo * 4)+1; i++) {
 
       // generate the expected key
-      byte[] rk = rowKeyBuilder.rowKey(m, groups);
+      byte[] rk = rowKeyBuilder.rowKey(m);
       expectedKeys.add(rk);
 
       // advance to the next period
