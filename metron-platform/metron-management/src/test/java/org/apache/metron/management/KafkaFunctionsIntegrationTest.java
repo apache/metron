@@ -25,6 +25,7 @@ import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -55,21 +56,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   private static Properties global;
 
   @BeforeClass
-  public static void setup() throws Exception {
-
-    // messages that will be read/written during the tests
-    variables.put("message1", message1);
-    variables.put("message2", message2);
-    variables.put("message3", message3);
+  public static void setupKafka() throws Exception {
 
     Properties properties = new Properties();
     kafkaComponent = getKafkaComponent(properties, new ArrayList<>());
-
-    global = new Properties();
-    global.put("bootstrap.servers", kafkaComponent.getBrokerList());
-
-    //start reading from the earliest offset, which is necessary for these tests
-    global.put("auto.offset.reset", "earliest");
 
     runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaComponent)
@@ -77,6 +67,22 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
             .withNumRetries(5)
             .build();
     runner.start();
+  }
+
+  @Before
+  public void setup() {
+
+    // messages that will be read/written during the tests
+    variables.put("message1", message1);
+    variables.put("message2", message2);
+    variables.put("message3", message3);
+
+    // global properties
+    global = new Properties();
+    global.put("bootstrap.servers", kafkaComponent.getBrokerList());
+
+    // start reading from the earliest offset, which is necessary for these tests
+    global.put("auto.offset.reset", "earliest");
   }
 
   @AfterClass
@@ -122,6 +128,43 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     assertEquals(Collections.singletonList(message1), run("KAFKA_GET('topic3', 1)"));
     assertEquals(Collections.singletonList(message2), run("KAFKA_GET('topic3', 1)"));
     assertEquals(Collections.singletonList(message3), run("KAFKA_GET('topic3', 1)"));
+  }
+
+  /**
+   * The properties used for the KAFKA_* functions are calculated by compiling the default, global and user
+   * properties into a single set of properties.  The global properties should override any default properties.
+   */
+  @Test
+  public void testKafkaPropsWithGlobalOverride() {
+
+    // setup - override a key in the global properties
+    final String overriddenKey = "bootstrap.servers";
+    final String expected = "foo.global.override.com:9092";
+    global.setProperty(overriddenKey, expected);
+
+    // validate - ensure the global overrides the default property value
+    Map<String, String> properties = (Map<String, String>) run("KAFKA_PROPS()");
+    assertEquals(expected, properties.get(overriddenKey));
+  }
+
+  /**
+   * The properties used for the KAFKA_* functions are calculated by compiling the default, global and user
+   * properties into a single set of properties.  The user properties should override any default or global properties.
+   */
+  @Test
+  public void testKafkaPropsWithUserOverride() {
+
+    // setup - override a key in the global properties
+    final String overriddenKey = "bootstrap.servers";
+    global.setProperty(overriddenKey, "foo.global.override.com:9092");
+
+    // setup - override the same key in the user properties
+    final String expected = "foo.user.override.com:9092";
+    String expression = String.format("KAFKA_PROPS({ '%s' : '%s' })", overriddenKey, expected);
+
+    // validate - ensure the user properties override the global and defaults
+    Map<String, String> properties = (Map<String, String>) run(expression);
+    assertEquals(expected, properties.get(overriddenKey));
   }
 
   /**
