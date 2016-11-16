@@ -378,7 +378,7 @@ public class MaasIntegrationTest {
   private int verifyContainerLog(int containerNum,
                                  List<String> expectedContent, boolean count, String expectedWord) {
     File logFolder =
-            new File(yarnComponent.getNodeManager(0).getConfig()
+            new File(yarnComponent.getYARNCluster().getNodeManager(0).getConfig()
                     .get(YarnConfiguration.NM_LOG_DIRS,
                             YarnConfiguration.DEFAULT_NM_LOG_DIRS));
 

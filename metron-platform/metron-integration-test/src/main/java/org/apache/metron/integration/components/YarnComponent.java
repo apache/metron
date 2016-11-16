@@ -57,8 +57,8 @@ public class YarnComponent implements InMemoryComponent{
         return conf;
     }
 
-    public NodeManager getNodeManager(int nodeNum){
-        return yarnCluster.getNodeManager(nodeNum);
+    public MiniYARNCluster getYARNCluster(){
+        return yarnCluster;
     }
 
     @Override
