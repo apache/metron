@@ -128,11 +128,11 @@ functions can be used from everywhere where Stellar is used.
     * value - The numeric value to add
   * Returns: The MAD state
 * `OUTLIER_MAD_SCORE`
-  * Description: Get the modified z-score normalized by the MAD: : scale * | x_i - median(X) | / MAD.  See the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
+  * Description: Get the modified z-score normalized by the MAD: scale * | x_i - median(X) | / MAD.  See the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
   * Input:
     * state - The MAD state
     * value - The numeric value to score
-    * scale? - Optionally the scale to use when computing the modified z-score.  Default is 0.6745, see the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
+    * scale? - Optionally the scale to use when computing the modified z-score.  Default is `0.6745`, see the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
   * Returns: The modified z-score 
 
 # Outlier Analysis
