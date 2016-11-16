@@ -110,7 +110,15 @@
           "subsection-name": "subsection-general-database"
         },
         {
-          "config": "metron-env/es_url",
+          "config": "metron-env/es_hosts",
+          "subsection-name": "subsection-general-indexing"
+        },
+        {
+          "config": "metron-env/es_binary_port",
+          "subsection-name": "subsection-general-indexing"
+        },
+        {
+          "config": "metron-env/es_http_port",
           "subsection-name": "subsection-general-indexing"
         },
         {
@@ -171,7 +179,19 @@
         }
       },
       {
-        "config": "metron-env/es_url",
+        "config": "metron-env/es_hosts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_binary_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_http_port",
         "widget": {
           "type": "text-field"
         }

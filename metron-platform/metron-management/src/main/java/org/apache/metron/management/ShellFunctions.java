@@ -209,14 +209,16 @@ public class ShellFunctions {
   public static class Edit implements StellarFunction {
 
     private String getEditor() {
-      String editor = System.getenv().get("EDITOR");
-      if(editor == null) {
+      // if we have editor in the system properties, it should
+      // override the env so we check that first
+      String editor = System.getProperty("EDITOR");
+      if(org.apache.commons.lang3.StringUtils.isEmpty(editor)) {
+        editor = System.getenv().get("EDITOR");
+      }
+      if(org.apache.commons.lang3.StringUtils.isEmpty(editor)) {
         editor = System.getenv("VISUAL");
       }
-      if(editor == null) {
-        editor = System.getProperty("EDITOR");
-      }
-      if(editor == null) {
+      if(org.apache.commons.lang3.StringUtils.isEmpty(editor)) {
         editor = "/bin/vi";
       }
       return editor;

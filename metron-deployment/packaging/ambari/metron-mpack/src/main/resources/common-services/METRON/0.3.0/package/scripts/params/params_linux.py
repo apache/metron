@@ -56,10 +56,17 @@ enrichment_configured_flag_file = status_params.enrichment_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
-es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
-es_url = config['configurations']['metron-env']['es_url']
 
-#install repo
+# Elasticsearch hosts and port management
+es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
+es_hosts = config['configurations']['metron-env']['es_hosts']
+es_host_list = es_hosts.split(",")
+es_binary_port = config['configurations']['metron-env']['es_binary_port']
+es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
+es_http_port = config['configurations']['metron-env']['es_http_port']
+es_http_url = es_host_list[0] + ":" + es_http_port
+
+# install repo
 yum_repo_type = config['configurations']['metron-env']['repo_type']
 if yum_repo_type == 'local':
     repo_url = 'file:///localrepo'
