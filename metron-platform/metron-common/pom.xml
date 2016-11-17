@@ -29,7 +29,7 @@
         <commons.config.version>1.10</commons.config.version>
         <antlr.version>4.5</antlr.version>
     </properties>
-    <repositories>
+	 <repositories>
         <repository>
             <id>Metron-Kraken-Repo</id>
             <name>Metron Kraken Repository</name>
@@ -466,6 +466,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    <tarLongFileMode>posix</tarLongFileMode>
                 </configuration>
                 <executions>
                     <execution>
