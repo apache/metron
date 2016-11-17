@@ -38,10 +38,9 @@ public interface RowKeyBuilder extends Serializable {
    * This method is useful when writing ProfileMeasurements to HBase.
    *
    * @param measurement The profile measurement.
-   * @param groups      The groups used to sort the profile data.
    * @return The HBase row key.
    */
-  byte[] rowKey(ProfileMeasurement measurement, List<Object> groups);
+  byte[] rowKey(ProfileMeasurement measurement);
 
   /**
    * Builds a list of row keys necessary to retrieve a profile's measurements over

@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.storm.Config;
 import org.apache.storm.Constants;
 import org.apache.storm.task.OutputCollector;
@@ -42,10 +43,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * A bolt that is responsible for building a Profile.
@@ -231,18 +235,15 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     LOG.info(String.format("Flushing profile: profile=%s, entity=%s",
             measurement.getProfileName(), measurement.getEntity()));
 
-    // execute the 'result' expression
-    Object result;
-    try {
-      String resultExpr = profileConfig.getResult();
-      result = executor.execute(resultExpr, new JSONObject(), Object.class);
+    // calculate the result
+    Object result = executeResult(profileConfig.getResult());
+    measurement.setValue(result);
 
-    } catch(ParseException e) {
-      throw new ParseException("Bad 'result' expression", e);
-    }
+    // calculate the groups
+    List<Object> groups = executeGroupBy(profileConfig.getGroupBy());
+    measurement.setGroups(groups);
 
     // emit the completed profile measurement
-    measurement.setValue(result);
     emit(measurement, tickTuple);
 
     // Execute the update with the old state
@@ -263,12 +264,60 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   }
 
   /**
-   * Emits a message containing a ProfileMeasurement.
+   * Executes the 'result' expression of a Profile.
+   * @return The result of evaluating the 'result' expression.
+   */
+  private Object executeResult(String expression) {
+    Object result;
+    try {
+      result = executor.execute(expression, new JSONObject(), Object.class);
+
+    } catch(ParseException e) {
+      String msg = format("Bad 'result' expression: %s, profile=%s, entity=%s",
+              e.getMessage(), measurement.getProfileName(), measurement.getEntity());
+      throw new ParseException(msg, e);
+    }
+    return result;
+  }
+
+
+  /**
+   * Executes each of the 'groupBy' expressions.  The result of each
+   * expression are the groups used to sort the data as part of the
+   * row key.
+   * @param expressions The 'groupBy' expressions to execute.
+   * @return The result of executing the 'groupBy' expressions.
+   */
+  private List<Object> executeGroupBy(List<String> expressions) {
+    List<Object> groups = new ArrayList<>();
+
+    if(!isEmpty(expressions)) {
+      try {
+        // allows each 'groupBy' expression to refer to the fields of the ProfileMeasurement
+        BeanMap measureAsMap = new BeanMap(measurement);
+
+        for (String expr : expressions) {
+          Object result = executor.execute(expr, measureAsMap, Object.class);
+          groups.add(result);
+        }
+
+      } catch(Throwable e) {
+        String msg = format("Bad 'groupBy' expression: %s, profile=%s, entity=%s",
+                e.getMessage(), measurement.getProfileName(), measurement.getEntity());
+        throw new ParseException(msg, e);
+      }
+    }
+
+    return groups;
+  }
+
+  /**
+   * Emits a message containing a ProfileMeasurement and the Profile configuration.
    * @param measurement The completed ProfileMeasurement.
+   * @param anchor The original tuple to be used as the anchor.
    */
   private void emit(ProfileMeasurement measurement, Tuple anchor) {
     collector.emit(anchor, new Values(measurement, profileConfig));
-    collector.ack(anchor);
   }
 
   /**
