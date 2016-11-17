@@ -15,35 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.dsl;
-
-import java.util.function.Function;
+package org.apache.metron.common.dsl.functions.resolver;
 
 /**
- * Responsible for function resolution in Stellar.
+ * Performs function resolution for Stellar by searching the classpath. The
+ * class acts as a singleton to avoid repetitive classpath searches.
  */
-public interface FunctionResolver extends Function<String, StellarFunction> {
+public class SingletonFunctionResolver extends ClasspathFunctionResolver {
 
-  /**
-   * Provides metadata about each Stellar function that is resolvable.
-   */
-  Iterable<StellarFunctionInfo> getFunctionInfo();
+  private static SingletonFunctionResolver INSTANCE = new SingletonFunctionResolver();
 
-  /**
-   * The names of all Stellar functions that are resolvable.
-   */
-  Iterable<String> getFunctions();
+  private SingletonFunctionResolver() {}
 
-  /**
-   * Initialize the function resolver.
-   * @param context Context used to initialize.
-   */
-  void initialize(Context context);
+  public static FunctionResolver getInstance() {
+    return INSTANCE;
+  }
 
-  /**
-   * A 'factory reset' of the function resolver.
-   *
-   * Useful primarily for testing purposes only.
-   */
-  void reset();
 }

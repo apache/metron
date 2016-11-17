@@ -85,20 +85,33 @@ public class StellarFunctionInfo {
 
     StellarFunctionInfo that = (StellarFunctionInfo) o;
 
-    if (getDescription() != null ? !getDescription().equals(that.getDescription()) : that.getDescription() != null)
-      return false;
-    if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (description != null ? !description.equals(that.description) : that.description != null) return false;
+    if (returns != null ? !returns.equals(that.returns) : that.returns != null) return false;
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
-    if (!Arrays.equals(getParams(), that.getParams())) return false;
-    return getReturns() != null ? getReturns().equals(that.getReturns()) : that.getReturns() == null;
+    if (!Arrays.equals(params, that.params)) return false;
+    return function != null ? function.equals(that.function) : that.function == null;
+
   }
 
   @Override
   public int hashCode() {
-    int result = getDescription() != null ? getDescription().hashCode() : 0;
-    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-    result = 31 * result + Arrays.hashCode(getParams());
-    result = 31 * result + (getReturns() != null ? getReturns().hashCode() : 0);
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (description != null ? description.hashCode() : 0);
+    result = 31 * result + (returns != null ? returns.hashCode() : 0);
+    result = 31 * result + Arrays.hashCode(params);
+    result = 31 * result + (function != null ? function.hashCode() : 0);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "StellarFunctionInfo{" +
+            "name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", returns='" + returns + '\'' +
+            ", params=" + Arrays.toString(params) +
+            ", function=" + function +
+            '}';
   }
 }

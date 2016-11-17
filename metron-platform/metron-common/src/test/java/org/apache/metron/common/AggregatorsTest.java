@@ -51,11 +51,13 @@ public class AggregatorsTest {
     Assert.assertEquals(Double.NEGATIVE_INFINITY, Aggregators.MEAN.aggregate(ImmutableList.of(1, 5, -1, 7, 0), new HashMap<>()), 1e-7);
     Assert.assertEquals(12.0/5.0, Aggregators.MEAN.aggregate(ImmutableList.of(1, 5, -1, 7, 0), ImmutableMap.of(Aggregators.NEGATIVE_VALUES_TRUMP_CONF, "false")), 1e-7);
   }
+
   @Test
   public void testPositiveMean() {
     Assert.assertEquals(Double.NEGATIVE_INFINITY, Aggregators.POSITIVE_MEAN.aggregate(ImmutableList.of(1, 5, -1, 7, 0), new HashMap<>()), 1e-7);
     Assert.assertEquals(13.0/3.0, Aggregators.POSITIVE_MEAN.aggregate(ImmutableList.of(1, 5, -1, 7, 0), ImmutableMap.of(Aggregators.NEGATIVE_VALUES_TRUMP_CONF, "false")), 1e-7);
   }
+
   @Test
   public void testSum() {
     Assert.assertEquals(Double.NEGATIVE_INFINITY, Aggregators.SUM.aggregate(ImmutableList.of(1, 5, -1, 7), new HashMap<>()), 1e-7);

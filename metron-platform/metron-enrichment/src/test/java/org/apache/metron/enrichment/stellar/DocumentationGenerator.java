@@ -18,24 +18,16 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.Lists;
-import org.apache.metron.common.dsl.FunctionResolverSingleton;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-
-import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
 
 public class DocumentationGenerator {
 
   public static void main(String... argv) {
-    List<StellarFunctionInfo> functions = Lists.newArrayList(FunctionResolverSingleton.getInstance().getFunctionInfo());
+    List<StellarFunctionInfo> functions = Lists.newArrayList(SingletonFunctionResolver.getInstance().getFunctionInfo());
     Collections.sort(functions, (o1, o2) -> o1.getName().compareTo(o2.getName()));
     for(StellarFunctionInfo info: functions) {
       System.out.println( "* `" + info.getName() + "`");

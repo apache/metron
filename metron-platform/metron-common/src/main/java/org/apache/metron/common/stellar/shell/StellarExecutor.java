@@ -27,13 +27,23 @@ import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.JSONUtils;
 import org.jboss.aesh.console.Console;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -90,7 +100,7 @@ public class StellarExecutor {
   /**
    * The function resolver.
    */
-  private FunctionResolver functionResolver ;
+  private FunctionResolver functionResolver;
 
   /**
    * A Zookeeper client. Only defined if given a valid Zookeeper URL.
@@ -143,11 +153,13 @@ public class StellarExecutor {
 
   public StellarExecutor(String zookeeperUrl, Console console) throws Exception {
     this.variables = new HashMap<>();
-    this.functionResolver = new StellarFunctions().FUNCTION_RESOLVER();
     this.client = createClient(zookeeperUrl);
     this.context = createContext();
+    StellarFunctions.initialize(this.context);
+    this.functionResolver = StellarFunctions.FUNCTION_RESOLVER();
     this.autocompleteIndex = initializeIndex();
     this.console = console;
+
     //Asynchronously update the index with function names found from a classpath scan.
     new Thread( () -> {
         Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
