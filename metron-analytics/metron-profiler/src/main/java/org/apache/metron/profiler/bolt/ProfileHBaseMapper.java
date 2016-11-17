@@ -46,11 +46,6 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 public class ProfileHBaseMapper implements HBaseMapper {
 
   /**
-   * Executes Stellar code and maintains state across multiple invocations.
-   */
-  private StellarExecutor executor;
-
-  /**
    * Generates the row keys necessary to store profile data in HBase.
    */
   private RowKeyBuilder rowKeyBuilder;
@@ -78,9 +73,8 @@ public class ProfileHBaseMapper implements HBaseMapper {
    */
   @Override
   public byte[] rowKey(Tuple tuple) {
-    ProfileMeasurement m = (ProfileMeasurement) tuple.getValueByField("measurement");
-    List<Object> groups = executeGroupBy(m);
-    return rowKeyBuilder.rowKey(m, groups);
+    ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
+    return rowKeyBuilder.rowKey(measurement);
   }
 
   /**
@@ -113,40 +107,6 @@ public class ProfileHBaseMapper implements HBaseMapper {
     }
 
     return result;
-  }
-
-  /**
-   * Executes each of the 'groupBy' expressions.  The result of each
-   * expression are the groups used to sort the data as part of the
-   * row key.
-   * @param m The profile measurement.
-   * @return The result of executing the 'groupBy' expressions.
-   */
-  private List<Object> executeGroupBy(ProfileMeasurement m) {
-    List<Object> groups = new ArrayList<>();
-
-    if(!isEmpty(m.getGroupBy())) {
-      try {
-        // allows each 'groupBy' expression to refer to the fields of the ProfileMeasurement
-        BeanMap measureAsMap = new BeanMap(m);
-
-        for (String expr : m.getGroupBy()) {
-          Object result = executor.execute(expr, measureAsMap, Object.class);
-          groups.add(result);
-        }
-
-      } catch(Throwable e) {
-        String msg = format("Bad 'groupBy' expression: %s, profile=%s, entity=%s",
-                e.getMessage(), m.getProfileName(), m.getEntity());
-        throw new ParseException(msg, e);
-      }
-    }
-
-    return groups;
-  }
-
-  public void setExecutor(StellarExecutor executor) {
-    this.executor = executor;
   }
 
   public void setRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
