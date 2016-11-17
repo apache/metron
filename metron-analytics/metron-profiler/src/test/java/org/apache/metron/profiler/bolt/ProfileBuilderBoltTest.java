@@ -20,17 +20,16 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.Constants;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.test.bolt.BaseBoltTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Test;
@@ -44,7 +43,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.refEq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the ProfileBuilderBolt.
@@ -98,10 +102,10 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
-    bolt.setExecutor(new DefaultStellarExecutor());
-    bolt.setPeriodDurationMillis(TimeUnit.MINUTES.toMillis(15));
-
+    bolt.withPeriodDurationMillis(TimeUnit.MINUTES.toMillis(15));
+    bolt.withProfileTimeToLive(10);
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+
     return bolt;
   }
 
@@ -136,8 +140,9 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tuple);
 
     // validate that x=10+10+10 y=20+20+20
-    assertEquals(10+10+10.0, bolt.getExecutor().getState().get("x"));
-    assertEquals(20+20+20.0, bolt.getExecutor().getState().get("y"));
+    ProfileState state = bolt.getProfileState(tuple);
+    assertEquals(10+10+10.0, state.getExecutor().getState().get("x"));
+    assertEquals(20+20+20.0, state.getExecutor().getState().get("y"));
   }
 
   /**
@@ -164,7 +169,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tuple);
 
     // validate
-    assertEquals(2, bolt.getExecutor().getState().get("x"));
+    ProfileState state = bolt.getProfileState(tuple);
+    assertEquals(2, state.getExecutor().getState().get("x"));
   }
 
   /**
@@ -192,7 +198,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tuple);
 
     // validate
-    assertEquals(2, bolt.getExecutor().getState().get("x"));
+    ProfileState state = bolt.getProfileState(tuple);
+    assertEquals(2, state.getExecutor().getState().get("x"));
   }
 
   /**
@@ -212,7 +219,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(outputCollector, times(1)).emit(refEq(tuple), arg.capture());
+    verify(outputCollector, times(1)).emit(arg.capture());
 
     Values actual = arg.getValue();
     ProfileMeasurement measurement = (ProfileMeasurement) actual.get(0);
@@ -261,7 +268,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     // execute - should clear state from previous tuples
     bolt.execute(mockTickTuple());
 
-    assertThat(bolt.getExecutor().getState().size(), equalTo(0));
+    ProfileState state = bolt.getProfileState(tuple);
+    assertThat(state.getExecutor().getState().size(), equalTo(0));
   }
 
   /**
@@ -359,7 +367,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(outputCollector, times(1)).emit(refEq(tuple), arg.capture());
+    verify(outputCollector, times(1)).emit(arg.capture());
 
     Values actual = arg.getValue();
     ProfileMeasurement measurement = (ProfileMeasurement) actual.get(0);

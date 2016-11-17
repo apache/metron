@@ -89,10 +89,9 @@ bolts:
         className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
         constructorArgs:
             - "${kafka.zk}"
-        properties:
-            - name: "executor"
-              ref: "defaultExecutor"
         configMethods:
+            - name: "withProfileTimeToLive"
+              args: [${profiler.profile.ttl}]
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
 

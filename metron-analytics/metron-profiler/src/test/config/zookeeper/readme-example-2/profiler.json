@@ -5,12 +5,12 @@
       "foreach": "ip_src_addr",
       "onlyif": "protocol == 'DNS' or protocol == 'HTTP'",
       "init": {
-        "num_dns": 0.0,
-        "num_http": 0.0
+        "num_dns": 1.0,
+        "num_http": 1.0
       },
       "update": {
-        "num_dns": "if protocol == 'DNS' then num_dns + 1 else num_dns",
-        "num_http": "if protocol == 'HTTP' then num_http + 1 else num_http"
+        "num_dns": "num_dns + (if protocol == 'DNS' then 1 else 0)",
+        "num_http": "num_http + (if protocol == 'HTTP' then 1 else 0)"
       },
       "result": "num_dns / num_http"
     }

@@ -167,6 +167,7 @@ The Profiler runs as an independent Storm topology.  The configuration for the P
 | profiler.hbase.column.family | The column family used to store profiles. |
 | profiler.hbase.batch | The number of puts that are written in a single batch.  |
 | profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
+| profiler.profile.ttl | If a message has not been applied to a Profile in this number of periods, the Profile will be forgotten and its resources will be cleaned up. If the profile TTL is `10` and the period duration is `15 minutes`, then any Profile that has not had a message applied in the previous 10 periods, which is the same as `150 minutes`, will be eligible for deletion. |
 
 After altering the configuration, start the Profiler.
 
