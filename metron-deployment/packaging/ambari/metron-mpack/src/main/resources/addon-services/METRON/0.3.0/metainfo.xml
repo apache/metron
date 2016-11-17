@@ -19,8 +19,8 @@
     <services>
         <service>
             <name>METRON</name>
-            <version>0.2.1BETA</version>
-            <extends>common-services/METRON/0.2.1BETA</extends>
+            <version>0.3.0</version>
+            <extends>common-services/METRON/0.3.0</extends>
         </service>
     </services>
 </metainfo>

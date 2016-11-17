@@ -94,24 +94,24 @@ class Indexing(Script):
              )
 
         bro_cmd = ambari_format(
-            'curl -s -XPOST http://{es_url}/_template/bro_index -d @{bro_index_path}')
+            'curl -s -XPOST http://{es_http_url}/_template/bro_index -d @{bro_index_path}')
         Execute(bro_cmd, logoutput=True)
         snort_cmd = ambari_format(
-            'curl -s -XPOST http://{es_url}/_template/snort_index -d @{snort_index_path}')
+            'curl -s -XPOST http://{es_http_url}/_template/snort_index -d @{snort_index_path}')
         Execute(snort_cmd, logoutput=True)
         yaf_cmd = ambari_format(
-            'curl -s -XPOST http://{es_url}/_template/yaf_index -d @{yaf_index_path}')
+            'curl -s -XPOST http://{es_http_url}/_template/yaf_index -d @{yaf_index_path}')
         Execute(yaf_cmd, logoutput=True)
 
     def elasticsearch_template_delete(self, env):
         from params import params
         env.set_params(params)
 
-        bro_cmd = ambari_format('curl -s -XDELETE "http://{es_url}/bro_index*"')
+        bro_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/bro_index*"')
         Execute(bro_cmd, logoutput=True)
-        snort_cmd = ambari_format('curl -s -XDELETE "http://{es_url}/snort_index*"')
+        snort_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/snort_index*"')
         Execute(snort_cmd, logoutput=True)
-        yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_url}/yaf_index*"')
+        yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/yaf_index*"')
         Execute(yaf_cmd, logoutput=True)
 
 

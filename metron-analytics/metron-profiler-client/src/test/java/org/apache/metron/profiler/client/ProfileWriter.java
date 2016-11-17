@@ -82,20 +82,20 @@ public class ProfileWriter {
       // generate the next value that should be written
       Object nextValue = valueGenerator.apply(m.getValue());
       m.setValue(nextValue);
+      m.setGroups(group);
 
       // write the measurement
-      write(m, group);
+      write(m);
     }
   }
 
   /**
    * Write a ProfileMeasurement.
    * @param m The ProfileMeasurement to write.
-   * @param groups The groups to use when writing the ProfileMeasurement.
    */
-  private void write(ProfileMeasurement m, List<Object> groups) {
+  private void write(ProfileMeasurement m) {
 
-    byte[] rowKey = rowKeyBuilder.rowKey(m, groups);
+    byte[] rowKey = rowKeyBuilder.rowKey(m);
     ColumnList cols = columnBuilder.columns(m);
 
     hbaseClient.addMutation(rowKey, cols, Durability.SKIP_WAL);

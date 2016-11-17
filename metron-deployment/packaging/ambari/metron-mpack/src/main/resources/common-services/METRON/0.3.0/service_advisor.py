@@ -34,21 +34,8 @@ except Exception as e:
     traceback.print_exc()
     print "Failed to load parent"
 
-class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
+class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
 
-    def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
-
-        #Suggest Storm Rest URL
-        stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]
-        stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
-        stormUIServerURL = stormUIServerHost + ":" + stormUIServerPort
-        putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
-        putMetronEnvProperty("storm_rest_addr",stormUIServerURL)
-
-        #Suggest mysql server hostname
-        mySQLServerHost = self.getComponentHostNames(services, "METRON", "METRON_ENRICHMENT_MYSQL_SERVER")[0]
-        putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
-        putMetronEnvProperty("mysql_host",mySQLServerHost)
     def getServiceComponentLayoutValidations(self, services, hosts):
 
         componentsListList = [service["components"] for service in services["services"]]
@@ -97,20 +84,18 @@ class METRON021BETAServiceAdvisor(service_advisor.ServiceAdvisor):
         return items
 
     def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
-
-        #Suggest Storm Rest URL
-        stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]
-        stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
-        stormUIServerURL = stormUIServerHost + ":" + stormUIServerPort
-        putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
-        putMetronEnvProperty("storm_rest_addr",stormUIServerURL)
-
         #Suggest mysql server hostname
         mySQLServerHost = self.getComponentHostNames(services, "METRON", "METRON_ENRICHMENT_MYSQL_SERVER")[0]
         putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
         putMetronEnvProperty("mysql_host",mySQLServerHost)
 
+        #Suggest Storm Rest URL
         if "storm-site" in services["configurations"]:
+            stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]
+            stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
+            stormUIServerURL = stormUIServerHost + ":" + stormUIServerPort
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty("storm_rest_addr",stormUIServerURL)
 
             storm_site = services["configurations"]["storm-site"]["properties"]
             putStormSiteProperty = self.putProperty(configurations, "storm-site", services)

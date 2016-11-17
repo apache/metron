@@ -46,8 +46,6 @@ components:
               ref: "rowKeyBuilder"
             - name: "columnBuilder"
               ref: "columnBuilder"
-            - name: "executor"
-              ref: "defaultExecutor"
 
     -   id: "zkHosts"
         className: "org.apache.storm.kafka.ZkHosts"

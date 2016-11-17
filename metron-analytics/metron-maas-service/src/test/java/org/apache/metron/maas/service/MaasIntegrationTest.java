@@ -20,10 +20,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -38,7 +35,6 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.JarFinder;
@@ -48,7 +44,9 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.server.MiniYARNCluster;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.components.YarnComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.Model;
@@ -66,97 +64,40 @@ import org.junit.Test;
 public class MaasIntegrationTest {
   private static final Log LOG =
           LogFactory.getLog(MaasIntegrationTest.class);
-
-  protected MiniYARNCluster yarnCluster = null;
-  protected YarnConfiguration conf = null;
-  private static final int NUM_NMS = 1;
-
-  protected final static String APPMASTER_JAR =
-          JarFinder.getJar(ApplicationMaster.class);
-  private TestingServer testZkServer;
-  private String zookeeperUrl;
   private CuratorFramework client;
+  private ComponentRunner runner;
+  private YarnComponent yarnComponent;
+  private ZKServerComponent zkServerComponent;
   @Before
   public void setup() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
-    setupInternal(NUM_NMS);
-  }
-
-  protected void setupInternal(int numNodeManager) throws Exception {
-
     LOG.info("Starting up YARN cluster");
-    testZkServer = new TestingServer(true);
-    zookeeperUrl = testZkServer.getConnectString();
+
+    Map<String, String> properties = new HashMap<>();
+    zkServerComponent = new ZKServerComponent();
+
+    yarnComponent = new YarnComponent().withApplicationMasterClass(ApplicationMaster.class).withTestName(MaasIntegrationTest.class.getSimpleName());
+
+    runner = new ComponentRunner.Builder()
+            .withComponent("yarn", yarnComponent)
+            .withComponent("zk", zkServerComponent)
+            .withMillisecondsBetweenAttempts(15000)
+            .withNumRetries(10)
+            .build();
+    runner.start();
+
+    String zookeeperUrl = zkServerComponent.getConnectionString();
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
     client.start();
-    conf = new YarnConfiguration();
-    conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 128);
-    conf.set("yarn.log.dir", "target");
-    conf.setBoolean(YarnConfiguration.TIMELINE_SERVICE_ENABLED, true);
-    conf.set(YarnConfiguration.RM_SCHEDULER, CapacityScheduler.class.getName());
-    conf.setBoolean(YarnConfiguration.NODE_LABELS_ENABLED, true);
-
-    if (yarnCluster == null) {
-      yarnCluster =
-              new MiniYARNCluster(MaasIntegrationTest.class.getSimpleName(), 1,
-                      numNodeManager, 1, 1, true);
-      yarnCluster.init(conf);
-
-      yarnCluster.start();
-
-      waitForNMsToRegister();
-
-      URL url = Thread.currentThread().getContextClassLoader().getResource("yarn-site.xml");
-      if (url == null) {
-        throw new RuntimeException("Could not find 'yarn-site.xml' dummy file in classpath");
-      }
-      Configuration yarnClusterConfig = yarnCluster.getConfig();
-      yarnClusterConfig.set("yarn.application.classpath", new File(url.getPath()).getParent());
-      //write the document to a buffer (not directly to the file, as that
-      //can cause the file being written to get read -which will then fail.
-      ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
-      yarnClusterConfig.writeXml(bytesOut);
-      bytesOut.close();
-      //write the bytes to the file in the classpath
-      OutputStream os = new FileOutputStream(new File(url.getPath()));
-      os.write(bytesOut.toByteArray());
-      os.close();
-    }
-    FileContext fsContext = FileContext.getLocalFSFileContext();
-    fsContext
-            .delete(
-                    new Path(conf
-                            .get("yarn.timeline-service.leveldb-timeline-store.path")),
-                    true);
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      LOG.info("setup thread sleep interrupted. message=" + e.getMessage());
-    }
   }
 
   @After
-  public void tearDown() throws IOException {
-    if (yarnCluster != null) {
-      try {
-        yarnCluster.stop();
-      } finally {
-        yarnCluster = null;
-      }
-    }
+  public void tearDown(){
     if(client != null){
       client.close();
     }
-    if(testZkServer != null) {
-      testZkServer.close();
-    }
-    FileContext fsContext = FileContext.getLocalFSFileContext();
-    fsContext
-            .delete(
-                    new Path(conf
-                            .get("yarn.timeline-service.leveldb-timeline-store.path")),
-                    true);
+    runner.stop();
   }
 
   @Test(timeout=900000)
@@ -185,8 +126,8 @@ public class MaasIntegrationTest {
       client.create().creatingParentsIfNeeded().forPath(configRoot, configData);
     }
     String[] args = {
-            "--jar", APPMASTER_JAR,
-            "--zk_quorum", zookeeperUrl,
+            "--jar", yarnComponent.getAppMasterJar(),
+            "--zk_quorum", zkServerComponent.getConnectionString(),
             "--zk_root", configRoot,
             "--master_memory", "512",
             "--master_vcores", "2",
@@ -206,8 +147,9 @@ public class MaasIntegrationTest {
       args = argsList.toArray(new String[argsList.size()]);
     }
 
+    YarnConfiguration conf = yarnComponent.getConfig();
     LOG.info("Initializing DS Client");
-    final Client client = new Client(new Configuration(yarnCluster.getConfig()));
+    final Client client = new Client(new Configuration(conf));
     boolean initSuccess = client.init(args);
     Assert.assertTrue(initSuccess);
     LOG.info("Running DS Client");
@@ -224,7 +166,7 @@ public class MaasIntegrationTest {
     t.start();
 
     YarnClient yarnClient = YarnClient.createYarnClient();
-    yarnClient.init(new Configuration(yarnCluster.getConfig()));
+    yarnClient.init(new Configuration(conf));
     yarnClient.start();
     String hostName = NetUtils.getHostname();
 
@@ -259,7 +201,7 @@ public class MaasIntegrationTest {
               , new String[]{
                       "--name", "dummy",
                       "--version", "1.0",
-                      "--zk_quorum", zookeeperUrl,
+                      "--zk_quorum", zkServerComponent.getConnectionString(),
                       "--zk_root", configRoot,
                       "--local_model_path", "src/test/resources/maas",
                       "--hdfs_model_path", new Path(fs.getHomeDirectory(), "maas/dummy").toString(),
@@ -299,7 +241,7 @@ public class MaasIntegrationTest {
               , new String[]{
                       "--name", "dummy",
                       "--version", "1.0",
-                      "--zk_quorum", zookeeperUrl,
+                      "--zk_quorum", zkServerComponent.getConnectionString(),
                       "--zk_root", configRoot,
                       "--num_instances", "1",
                       "--mode", "REMOVE",
@@ -433,23 +375,10 @@ public class MaasIntegrationTest {
 
   }
 
-
-
-  protected void waitForNMsToRegister() throws Exception {
-    int sec = 60;
-    while (sec >= 0) {
-      if (yarnCluster.getResourceManager().getRMContext().getRMNodes().size()
-              >= NUM_NMS) {
-        break;
-      }
-      Thread.sleep(1000);
-      sec--;
-    }
-  }
   private int verifyContainerLog(int containerNum,
                                  List<String> expectedContent, boolean count, String expectedWord) {
     File logFolder =
-            new File(yarnCluster.getNodeManager(0).getConfig()
+            new File(yarnComponent.getYARNCluster().getNodeManager(0).getConfig()
                     .get(YarnConfiguration.NM_LOG_DIRS,
                             YarnConfiguration.DEFAULT_NM_LOG_DIRS));
 

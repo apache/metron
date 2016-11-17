@@ -49,18 +49,14 @@ public class ProfileHBaseMapperTest {
   private Tuple tuple;
   private ProfileHBaseMapper mapper;
   private ProfileMeasurement measurement;
-  private DefaultStellarExecutor executor;
   private RowKeyBuilder rowKeyBuilder;
   private ProfileConfig profile;
 
   @Before
   public void setup() {
-    executor = new DefaultStellarExecutor();
-
     rowKeyBuilder = mock(RowKeyBuilder.class);
 
     mapper = new ProfileHBaseMapper();
-    mapper.setExecutor(executor);
     mapper.setRowKeyBuilder(rowKeyBuilder);
 
     measurement = new ProfileMeasurement("profile", "entity", 20000, 15, TimeUnit.MINUTES);
@@ -68,56 +64,10 @@ public class ProfileHBaseMapperTest {
 
     profile = new ProfileConfig();
 
-
     // the tuple will contain the original message
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
     when(tuple.getValueByField(eq("profile"))).thenReturn(profile);
-  }
-
-  /**
-   * The mapper should execute the 'groupBy' Stellar expressions and use that to generate
-   * a row key.
-   */
-  @Test
-  public void testExecuteGroupBy() throws Exception {
-
-    // setup - expression that refers to the ProfileMeasurement.end
-    measurement.setGroupBy(Arrays.asList("2 + 2"));
-
-    // execute
-    mapper.rowKey(tuple);
-
-    // capture the ProfileMeasurement that should be emitted
-    ArgumentCaptor<List> arg = ArgumentCaptor.forClass(List.class);
-    verify(rowKeyBuilder).rowKey(any(), arg.capture());
-
-    // validate
-    List<Object> actual = arg.getValue();
-    Assert.assertEquals(4.0, actual.get(0));
-  }
-
-  /**
-   * The mapper should execute each 'groupBy' Stellar expression and use that to generate
-   * a row key.  There can be multiple groups.
-   */
-  @Test
-  public void testExecuteMultipleGroupBys() throws Exception {
-
-    // setup - expression that refers to the ProfileMeasurement.end
-    measurement.setGroupBy(Arrays.asList("2 + 2", "4 + 4"));
-
-    // execute
-    mapper.rowKey(tuple);
-
-    // capture the ProfileMeasurement that should be emitted
-    ArgumentCaptor<List> arg = ArgumentCaptor.forClass(List.class);
-    verify(rowKeyBuilder).rowKey(any(), arg.capture());
-
-    // validate
-    List<Object> actual = arg.getValue();
-    Assert.assertEquals(4.0, actual.get(0));
-    Assert.assertEquals(8.0, actual.get(1));
   }
 
   /**

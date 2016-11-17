@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -47,9 +48,10 @@ public class ProfileMeasurement {
   private Object value;
 
   /**
-   * A set of expressions used to group the profile measurements when persisted.
+   * The 'groups' used to sort the Profile data. The groups are the result of
+   * executing the Profile's 'groupBy' expression.
    */
-  private List<String> groupBy;
+  private List<Object> groups;
 
   /**
    * The period in which the ProfileMeasurement was taken.
@@ -67,6 +69,7 @@ public class ProfileMeasurement {
     this.profileName = profileName;
     this.entity = entity;
     this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
+    this.groups = Collections.emptyList();
   }
 
   public String getProfileName() {
@@ -85,16 +88,16 @@ public class ProfileMeasurement {
     return period;
   }
 
-  public List<String> getGroupBy() {
-    return groupBy;
-  }
-
   public void setValue(Object value) {
     this.value = value;
   }
 
-  public void setGroupBy(List<String> groupBy) {
-    this.groupBy = groupBy;
+  public List<Object> getGroups() {
+    return groups;
+  }
+
+  public void setGroups(List<Object> groups) {
+    this.groups = groups;
   }
 
   @Override
@@ -103,12 +106,12 @@ public class ProfileMeasurement {
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileMeasurement that = (ProfileMeasurement) o;
+
     if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
     if (value != null ? !value.equals(that.value) : that.value != null) return false;
-    if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
+    if (groups != null ? !groups.equals(that.groups) : that.groups != null) return false;
     return period != null ? period.equals(that.period) : that.period == null;
-
   }
 
   @Override
@@ -116,7 +119,7 @@ public class ProfileMeasurement {
     int result = profileName != null ? profileName.hashCode() : 0;
     result = 31 * result + (entity != null ? entity.hashCode() : 0);
     result = 31 * result + (value != null ? value.hashCode() : 0);
-    result = 31 * result + (groupBy != null ? groupBy.hashCode() : 0);
+    result = 31 * result + (groups != null ? groups.hashCode() : 0);
     result = 31 * result + (period != null ? period.hashCode() : 0);
     return result;
   }
@@ -127,7 +130,7 @@ public class ProfileMeasurement {
             "profileName='" + profileName + '\'' +
             ", entity='" + entity + '\'' +
             ", value=" + value +
-            ", groupBy=" + groupBy +
+            ", groups=" + groups +
             ", period=" + period +
             '}';
   }

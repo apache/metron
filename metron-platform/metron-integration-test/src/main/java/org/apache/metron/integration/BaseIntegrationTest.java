@@ -27,7 +27,7 @@ import java.util.Properties;
 
 public abstract class BaseIntegrationTest {
 
-  protected KafkaWithZKComponent getKafkaComponent(final Properties topologyProperties, List<KafkaWithZKComponent.Topic> topics) {
+  protected static KafkaWithZKComponent getKafkaComponent(final Properties topologyProperties, List<KafkaWithZKComponent.Topic> topics) {
     return new KafkaWithZKComponent().withTopics(topics)
             .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
               @Nullable
