@@ -1,0 +1,6 @@
+/mysql/enrichment
+/hbase/data-management
+/storm/elasticsearch
+/storm/enrichment
+/storm/parser
+/storm/indexing

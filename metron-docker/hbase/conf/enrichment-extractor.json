@@ -1,0 +1,12 @@
+{
+  "config" : {
+    "columns" : {
+      "ip" : 0
+    ,"message" : 1
+    }
+  ,"indicator_column" : "ip"
+  ,"type" : "sample"
+  ,"separator" : ","
+  }
+,"extractor" : "CSV"
+}

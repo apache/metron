@@ -1,0 +1,73 @@
+version: '2'
+services:
+  mysql:
+    #container_name: metron-mysql
+    build:
+      context: ./mysql
+      args:
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+#    networks:
+#      - metron-network
+  kafkazk:
+    #container_name: metron-kafkazk
+    build:
+      context: ./kafkazk
+      args:
+        DOCKER_HOST: $DOCKER_HOST
+    ports:
+      - "9092:9092"
+      - "2181:2181"
+#    networks:
+#      - metron-network
+  hbase:
+   # container_name: metron-hbase
+    build:
+      context: ./hbase
+      args:
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "16010:16010"
+    volumes:
+      - "/opt/hbase-1.1.6/conf"
+#    networks:
+#      - metron-network
+    depends_on:
+      - kafkazk
+  storm:
+   # container_name: metron-storm
+    build:
+      context: ./storm
+      args:
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      ZOOKEEPER_ADDR: kafkazk
+    volumes_from:
+      - hbase
+    depends_on:
+      - mysql
+      - kafkazk
+      - hbase
+      - elasticsearch
+#    networks:
+#      - metron-network
+    command: --daemon nimbus supervisor ui logviewer
+  elasticsearch:
+   # container_name: metron-elasticsearch
+    image: elasticsearch:2.3
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+  kibana:
+    build: ./kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
