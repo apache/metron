@@ -90,10 +90,10 @@ bolts:
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
-            - name: "withProfileTimeToLive"
-              args: [${profiler.profile.ttl}]
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
+            - name: "withTimeToLive"
+              args: [${profiler.ttl}, "${profiler.ttl.units}"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"

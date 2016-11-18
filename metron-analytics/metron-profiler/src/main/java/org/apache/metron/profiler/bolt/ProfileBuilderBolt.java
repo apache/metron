@@ -22,7 +22,6 @@ package org.apache.metron.profiler.bolt;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.sun.tools.javac.jvm.Profile;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
@@ -74,16 +73,12 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private long periodDurationMillis;
 
   /**
-   * If a message has not been applied to a Profile in this number of periods,
+   * If a message has not been applied to a Profile in this number of milliseconds,
    * the Profile will be forgotten and its resources will be cleaned up.
    *
-   * If the profile TTL is `10` and the period duration is `15 minutes`, then
-   * any Profile that has not had a message applied in the previous 10 periods,
-   * which is the same as `150 minutes`, will be eligible for deletion.
-   *
-   * If not otherwise set, defaults to 20.
+   * The TTL must be at least greater than the period duration.
    */
-  private int profileTimeToLive = 20;
+  private long timeToLiveMillis;
 
   /**
    * Maintains the state of a profile which is unique to a profile/entity pair.
@@ -117,11 +112,18 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
+
+    if(timeToLiveMillis < periodDurationMillis) {
+      String msg = String.format("invalid configuration: expect profile TTL (%d) greater than period duration (%d)",
+              timeToLiveMillis, periodDurationMillis);
+      throw new IllegalStateException(msg);
+    }
+
     this.collector = collector;
     this.parser = new JSONParser();
     this.profileCache = CacheBuilder
             .newBuilder()
-            .expireAfterAccess(periodDurationMillis * profileTimeToLive, TimeUnit.MILLISECONDS)
+            .expireAfterAccess(timeToLiveMillis, TimeUnit.MILLISECONDS)
             .build();
   }
 
@@ -251,6 +253,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       // clear the execution state to prepare for the next window
       executor.clearState();
     });
+
+    // cache maintenance
+    profileCache.cleanUp();
   }
 
   /**
@@ -435,12 +440,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     return withPeriodDurationMillis(units.toMillis(duration));
   }
 
-  public ProfileBuilderBolt withProfileTimeToLive(int ttl) {
-    if(ttl < 1) {
-      throw new IllegalStateException("invalid profile time to live; must be > 0");
-    }
-    this.profileTimeToLive = ttl;
+  public ProfileBuilderBolt withTimeToLiveMillis(long timeToLiveMillis) {
+    this.timeToLiveMillis = timeToLiveMillis;
     return this;
+  }
+
+  public ProfileBuilderBolt withTimeToLive(int duration, TimeUnit units) {
+    return withTimeToLiveMillis(units.toMillis(duration));
   }
 
 }
