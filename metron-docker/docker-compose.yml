@@ -1,7 +1,6 @@
 version: '2'
 services:
   mysql:
-    #container_name: metron-mysql
     build:
       context: ./mysql
       args:
@@ -10,10 +9,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
-#    networks:
-#      - metron-network
   kafkazk:
-    #container_name: metron-kafkazk
     build:
       context: ./kafkazk
       args:
@@ -21,10 +17,7 @@ services:
     ports:
       - "9092:9092"
       - "2181:2181"
-#    networks:
-#      - metron-network
   hbase:
-   # container_name: metron-hbase
     build:
       context: ./hbase
       args:
@@ -33,12 +26,9 @@ services:
       - "16010:16010"
     volumes:
       - "/opt/hbase-1.1.6/conf"
-#    networks:
-#      - metron-network
     depends_on:
       - kafkazk
   storm:
-   # container_name: metron-storm
     build:
       context: ./storm
       args:
@@ -56,11 +46,8 @@ services:
       - kafkazk
       - hbase
       - elasticsearch
-#    networks:
-#      - metron-network
     command: --daemon nimbus supervisor ui logviewer
   elasticsearch:
-   # container_name: metron-elasticsearch
     image: elasticsearch:2.3
     ports:
       - "9200:9200"
