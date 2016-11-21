@@ -19,8 +19,8 @@
     <services>
         <service>
             <name>METRON</name>
-            <version>${project.parent.version}</version>
-            <extends>common-services/METRON/${project.parent.version}</extends>
+            <version>${metron.version}</version>
+            <extends>common-services/METRON/${metron.version}</extends>
         </service>
     </services>
 </metainfo>

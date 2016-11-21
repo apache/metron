@@ -22,7 +22,7 @@
       <name>METRON</name>
       <displayName>Metron</displayName>
       <comment>A scalable advanced security analytics framework built on Hadoop</comment>
-      <version>${project.parent.version}</version>
+      <version>${metron.version}</version>
       <components>
 
         <component>

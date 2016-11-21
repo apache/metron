@@ -26,7 +26,7 @@
     <fileSets>
         <fileSet>
             <directory>src/main/resources/common-services/METRON/CURRENT</directory>
-            <outputDirectory>common-services/METRON/${project.parent.version}</outputDirectory>
+            <outputDirectory>common-services/METRON/${metron.version}</outputDirectory>
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
@@ -38,7 +38,7 @@
         </fileSet>
         <fileSet>
             <directory>src/main/resources/addon-services/METRON/CURRENT</directory>
-            <outputDirectory>addon-services/METRON/${project.parent.version}</outputDirectory>
+            <outputDirectory>addon-services/METRON/${metron.version}</outputDirectory>
             <filtered>true</filtered>
         </fileSet>
         <fileSet>

@@ -62,7 +62,7 @@
         },
         {
           "service_name" : "METRON",
-          "service_version" : "${project.parent.version}",
+          "service_version" : "${metron.version}",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",

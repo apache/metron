@@ -70,8 +70,8 @@ class EnrichmentCommands:
         if repo_type in yum_repo_types:
             yum_repo_types[repo_type]()
             Logger.info("Writing out repo file")
-            repo_template = ("echo \"[METRON-${project.parent.version}]\n"
-                            "name=Metron ${project.parent.version} packages\n"
+            repo_template = ("echo \"[METRON-${metron.version}]\n"
+                            "name=Metron ${metron.version} packages\n"
                             "baseurl={0}\n"
                             "gpgcheck=0\n"
                             "enabled=1\n\""

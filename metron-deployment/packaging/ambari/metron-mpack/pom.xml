@@ -30,6 +30,10 @@
         <relativePath>../../..</relativePath>
     </parent>
 
+    <properties>
+        <metron.version>${project.parent.version}</metron.version>
+    </properties>
+
     <dependencies>
     </dependencies>
 
@@ -58,6 +62,19 @@
                             <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
                             <replacement>$1.$2.$3.$4</replacement>
                             <failIfNoMatch>false</failIfNoMatch>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>metron-short-version</id>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>metron.short.version</name>
+                            <value>${project.parent.version}</value>
+                            <regex>\.</regex>
+                            <replacement></replacement>
+                            <failIfNoMatch>true</failIfNoMatch>
                         </configuration>
                     </execution>
                 </executions>
