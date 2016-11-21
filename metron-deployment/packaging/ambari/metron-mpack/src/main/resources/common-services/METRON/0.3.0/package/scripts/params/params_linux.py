@@ -109,12 +109,12 @@ if has_kafka_host:
     kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
     kafka_brokers += ':' + kafka_broker_port
 
-metron_apps_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
-metron_apps_enrichment_dir = metron_apps_dir + '/enrichment'
+metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+metron_apps_enrichment_dir = metron_apps_hdfs_dir + '/enrichment'
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
-hdfs_grok_patterns_dir = format("{metron_apps_dir}/patterns")
+hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
 
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']

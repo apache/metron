@@ -246,7 +246,7 @@ bolt.hdfs.file.system.url={{ default_fs }}
 bolt.hdfs.wip.file.path=/paloalto/wip
 bolt.hdfs.finished.file.path=/paloalto/rotated
 bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output={{ metron_apps_enrichment_dir }}
+index.hdfs.output={{ metron_apps_hdfs_dir }}/enrichment/indexing
         </value>
         <value-attributes>
             <type>content</type>
