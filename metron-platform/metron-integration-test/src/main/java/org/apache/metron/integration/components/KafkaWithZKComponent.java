@@ -73,8 +73,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   private transient ZkClient zkClient;
   private transient ConsumerConnector consumer;
   private String zookeeperConnectString;
-//  def zkPort: Int = zookeeper.port
-//  def zkConnect: String = s
+  private Properties topologyProperties;
 
   private int brokerPort = 6667;
   private List<Topic> topics = Collections.emptyList();
@@ -90,6 +89,10 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     return this;
   }
 
+  public KafkaWithZKComponent withTopologyProperties(Properties properties){
+    this.topologyProperties = properties;
+    return this;
+  }
   public KafkaWithZKComponent withBrokerPort(int brokerPort) {
     if(brokerPort <= 0)
     {
@@ -144,6 +147,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   @Override
   public void start() {
     // setup Zookeeper
+    zookeeperConnectString = topologyProperties.getProperty("kafka.zk");
     if(zookeeperConnectString == null) {
       EmbeddedZookeeper ezk = new EmbeddedZookeeper();
       zookeeperConnectString = "127.0.0.1:" + ezk.port();
@@ -170,7 +174,9 @@ public class KafkaWithZKComponent implements InMemoryComponent {
       }
     }
     UnitTestHelper.setLog4jLevel(KafkaServer.class, oldLevel);
-    postStartCallback.apply(this);
+    if(postStartCallback != null) {
+      postStartCallback.apply(this);
+    }
   }
 
   public String getZookeeperConnect() {
@@ -179,8 +185,10 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
+    shutdownConsumer();
     if(kafkaServer != null) {
       kafkaServer.shutdown();
+      kafkaServer.awaitShutdown();
     }
     if(zkClient != null) {
       zkClient.close();
@@ -225,7 +233,9 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
 
   public void shutdownConsumer() {
-    consumer.shutdown();
+    if(consumer != null) {
+      consumer.shutdown();
+    }
   }
 
   public void createTopic(String name) throws InterruptedException {
@@ -260,10 +270,10 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
 
   public void writeMessages(String topic, Collection<byte[]> messages) {
-    KafkaProducer<String, byte[]> kafkaProducer = createProducer();
-    for(byte[] message: messages) {
-      kafkaProducer.send(new ProducerRecord<String, byte[]>(topic, message));
+    try(KafkaProducer<String, byte[]> kafkaProducer = createProducer()) {
+      for (byte[] message : messages) {
+        kafkaProducer.send(new ProducerRecord<String, byte[]>(topic, message));
+      }
     }
-    kafkaProducer.close();
   }
 }

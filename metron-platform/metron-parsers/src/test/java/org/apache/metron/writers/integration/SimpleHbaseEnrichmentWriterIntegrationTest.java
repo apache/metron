@@ -33,6 +33,7 @@ import org.apache.metron.enrichment.integration.mock.MockTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -77,6 +78,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     }};
     MockTableProvider.addTable(sensorType, "cf");
     final Properties topologyProperties = new Properties();
+    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(sensorType, 1));
     }});
@@ -94,11 +96,12 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
     //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("zk", zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
-            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka"})
+            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka","zk"})
             .withNumRetries(10)
             .build();
     try {

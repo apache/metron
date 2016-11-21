@@ -23,6 +23,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
@@ -46,6 +47,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
+    ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
+
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
@@ -58,12 +61,13 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
     //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("zk", zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
             .withNumRetries(10)
-            .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka"})
+            .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
             .build();
     runner.start();
     try {

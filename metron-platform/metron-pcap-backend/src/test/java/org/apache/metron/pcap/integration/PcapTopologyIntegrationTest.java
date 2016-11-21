@@ -40,6 +40,7 @@ import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.components.MRComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
@@ -214,19 +215,17 @@ public class PcapTopologyIntegrationTest {
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
+    final ZKServerComponent zkServerComponent = new ZKServerComponent().withPostStartCallback(new Function<ZKServerComponent, Void>() {
+      @Nullable
+      @Override
+      public Void apply(@Nullable ZKServerComponent zkComponent) {
+        topologyProperties.setProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
+        return null;
+      }
+    });
     final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(KAFKA_TOPIC, 1));
-    }})
-            .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
-                                     @Nullable
-                                     @Override
-                                     public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-
-                                       topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
-                                       return null;
-                                     }
-                                   }
-            );
+    }}).withTopologyProperties(topologyProperties);
 
 
     final MRComponent mr = new MRComponent().withBasePath(baseDir.getAbsolutePath());
@@ -239,12 +238,13 @@ public class PcapTopologyIntegrationTest {
     //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("mr", mr)
+            .withComponent("zk",zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("storm", fluxComponent)
             .withMaxTimeMS(-1)
             .withMillisecondsBetweenAttempts(2000)
             .withNumRetries(10)
-            .withCustomShutdownOrder(new String[]{"storm","kafka","mr"})
+            .withCustomShutdownOrder(new String[]{"storm","kafka","zk","mr"})
             .build();
     try {
       runner.start();

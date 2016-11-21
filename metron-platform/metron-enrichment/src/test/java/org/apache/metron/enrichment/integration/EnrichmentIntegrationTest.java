@@ -34,6 +34,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.integration.*;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.integration.components.FluxTopologyComponent;
@@ -104,6 +105,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
     }};
+    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1));
@@ -147,11 +149,12 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
     //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("zk",zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(15000)
-            .withCustomShutdownOrder(new String[]{"storm","config","kafka"})
+            .withCustomShutdownOrder(new String[]{"storm","config","kafka","zk"})
             .withNumRetries(10)
             .build();
     runner.start();

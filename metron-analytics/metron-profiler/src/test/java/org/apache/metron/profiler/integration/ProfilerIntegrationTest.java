@@ -34,6 +34,7 @@ import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.test.mock.MockHTable;
@@ -97,6 +98,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private String message3;
 
   private ColumnBuilder columnBuilder;
+  private ZKServerComponent zkComponent;
   private FluxTopologyComponent fluxComponent;
   private KafkaWithZKComponent kafkaComponent;
   private List<byte[]> input;
@@ -269,6 +271,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // create the mock table
     profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
 
+    zkComponent = getZKServerComponent(topologyProperties);
+
     // create the input topic
     kafkaComponent = getKafkaComponent(topologyProperties,
             Arrays.asList(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1)));
@@ -288,12 +292,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // start all components
     runner = new ComponentRunner.Builder()
+            .withComponent("zk",zkComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
-            .withCustomShutdownOrder(new String[] {"storm","config","kafka"})
+            .withCustomShutdownOrder(new String[] {"storm","config","kafka","zk"})
             .build();
     runner.start();
   }

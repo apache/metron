@@ -29,6 +29,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -92,6 +93,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
       add(Bytes.toBytes("error"));
     }};
     final Properties topologyProperties = new Properties();
+    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
       add(new KafkaWithZKComponent.Topic(sensorType, 1));
       add(new KafkaWithZKComponent.Topic(Constants.DEFAULT_PARSER_ERROR_TOPIC, 1));
@@ -112,12 +114,13 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
 
     //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("zk", zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
             .withNumRetries(10)
-            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka"})
+            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka","zk"})
             .build();
     try {
       runner.start();
