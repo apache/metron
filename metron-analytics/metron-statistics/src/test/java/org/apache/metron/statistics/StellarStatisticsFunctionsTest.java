@@ -18,10 +18,9 @@
  *
  */
 
-package org.apache.metron.common.stellar;
+package org.apache.metron.statistics;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -29,8 +28,7 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.math.stats.OnlineStatisticsProviderTest;
-import org.apache.metron.common.math.stats.StatisticsProvider;
+import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Before;

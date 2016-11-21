@@ -17,11 +17,10 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.common.math.stats;
+package org.apache.metron.statistics;
 
-import org.apache.commons.math.random.GaussianRandomGenerator;
-import org.apache.commons.math.random.MersenneTwister;
-import org.apache.commons.math.random.RandomGenerator;
+import org.apache.commons.math3.random.GaussianRandomGenerator;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.junit.Assert;

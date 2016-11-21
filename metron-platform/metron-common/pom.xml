@@ -317,11 +317,6 @@
             <version>0.38</version>
         </dependency>
         <dependency>
-            <groupId>com.tdunning</groupId>
-            <artifactId>t-digest</artifactId>
-            <version>3.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.1</version>
@@ -427,14 +422,7 @@
                                     <pattern>org.apache.commons.beanutils</pattern>
                                     <shadedPattern>org.apache.metron.beanutils</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>com.esotericsoftware</pattern>
-                                    <shadedPattern>org.apache.metron.esotericsoftware</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>de.javakaffee</pattern>
-                                    <shadedPattern>org.apache.metron.javakaffee</shadedPattern>
-                                </relocation>
+
                             </relocations>
                             <transformers>
                                 <transformer
