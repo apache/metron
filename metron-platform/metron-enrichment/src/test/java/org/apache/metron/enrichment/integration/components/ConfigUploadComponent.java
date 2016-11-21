@@ -21,7 +21,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,7 +76,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
   @Override
   public void start() throws UnableToStartException {
     try {
-      final String zookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
+      final String zookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
 
       if(globalConfigPath != null
       || parserConfigsPath != null
@@ -101,7 +101,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
-    CuratorFramework client = getClient(topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY));
+    CuratorFramework client = getClient(topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY));
     client.start();
     try {
       sensorParserConfig = readSensorParserConfigFromZookeeper(sensorType, client);

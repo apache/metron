@@ -33,7 +33,7 @@ import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
@@ -100,7 +100,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private ColumnBuilder columnBuilder;
   private ZKServerComponent zkComponent;
   private FluxTopologyComponent fluxComponent;
-  private KafkaWithZKComponent kafkaComponent;
+  private KafkaComponent kafkaComponent;
   private List<byte[]> input;
   private ComponentRunner runner;
   private MockHTable profilerTable;
@@ -275,7 +275,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // create the input topic
     kafkaComponent = getKafkaComponent(topologyProperties,
-            Arrays.asList(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1)));
+            Arrays.asList(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1)));
 
     // upload profiler configuration to zookeeper
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()

@@ -28,7 +28,7 @@ import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
@@ -94,11 +94,11 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }};
     final Properties topologyProperties = new Properties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
-    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(sensorType, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.DEFAULT_PARSER_ERROR_TOPIC, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.DEFAULT_PARSER_INVALID_TOPIC, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(sensorType, 1));
+      add(new KafkaComponent.Topic(Constants.DEFAULT_PARSER_ERROR_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.DEFAULT_PARSER_INVALID_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
@@ -130,10 +130,10 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
                 Map<String, List<JSONObject>> messages = null;
 
                 public ReadinessState process(ComponentRunner runner) {
-                  KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
-                  List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                  List<byte[]> invalid = kafkaWithZKComponent.readMessages(Constants.DEFAULT_PARSER_INVALID_TOPIC);
-                  List<byte[]> error = kafkaWithZKComponent.readMessages(Constants.DEFAULT_PARSER_ERROR_TOPIC);
+                  KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
+                  List<byte[]> outputMessages = kafkaComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                  List<byte[]> invalid = kafkaComponent.readMessages(Constants.DEFAULT_PARSER_INVALID_TOPIC);
+                  List<byte[]> error = kafkaComponent.readMessages(Constants.DEFAULT_PARSER_ERROR_TOPIC);
                   if(outputMessages.size() == 1 && invalid.size() == 1 && error.size() == 1) {
                     messages = new HashMap<String, List<JSONObject>>() {{
                       put(Constants.ENRICHMENT_TOPIC, loadMessages(outputMessages));

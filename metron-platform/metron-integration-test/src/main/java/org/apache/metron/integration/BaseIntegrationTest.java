@@ -18,8 +18,7 @@
 package org.apache.metron.integration;
 
 import com.google.common.base.Function;
-import org.apache.metron.TestConstants;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 
 import javax.annotation.Nullable;
@@ -28,16 +27,8 @@ import java.util.Properties;
 
 public abstract class BaseIntegrationTest {
 
-  protected static KafkaWithZKComponent getKafkaComponent(final Properties topologyProperties, List<KafkaWithZKComponent.Topic> topics) {
-    return new KafkaWithZKComponent().withTopics(topics).withTopologyProperties(topologyProperties);
-          /*  .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
-              @Nullable
-              @Override
-              public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-                topologyProperties.setProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY, kafkaWithZKComponent.getZookeeperConnect());
-                return null;
-              }
-            }); */
+  protected static KafkaComponent getKafkaComponent(final Properties topologyProperties, List<KafkaComponent.Topic> topics) {
+    return new KafkaComponent().withTopics(topics).withTopologyProperties(topologyProperties);
   }
 
     protected static ZKServerComponent getZKServerComponent(final Properties topologyProperties) {
@@ -46,7 +37,7 @@ public abstract class BaseIntegrationTest {
                     @Nullable
                     @Override
                     public Void apply(@Nullable ZKServerComponent zkComponent) {
-                        topologyProperties.setProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
+                        topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
                         return null;
                     }
                 });

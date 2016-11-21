@@ -32,8 +32,8 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.components.FluxTopologyComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
@@ -129,9 +129,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     }};
     setAdditionalProperties(topologyProperties);
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
-    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.INDEXING_ERROR_TOPIC, 1));
+    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.INDEXING_ERROR_TOPIC, 1));
     }});
     List<Map<String, Object>> inputDocs = new ArrayList<>();
     for(byte[] b : inputMessages) {

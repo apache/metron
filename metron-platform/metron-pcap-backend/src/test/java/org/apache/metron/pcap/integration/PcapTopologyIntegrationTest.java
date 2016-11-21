@@ -38,7 +38,7 @@ import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.KafkaUtil;
@@ -158,7 +158,7 @@ public class PcapTopologyIntegrationTest {
       }
     }, new SendEntries() {
       @Override
-      public void send(KafkaWithZKComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> pcapEntries) throws Exception {
+      public void send(KafkaComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> pcapEntries) throws Exception {
         Producer<byte[], byte[]> producer = kafkaComponent.createProducer(byte[].class, byte[].class);
         KafkaUtil.send(producer, pcapEntries, KAFKA_TOPIC, 2);
         System.out.println("Sent pcap data: " + pcapEntries.size());
@@ -180,7 +180,7 @@ public class PcapTopologyIntegrationTest {
   }
 
   private static interface SendEntries {
-    public void send(KafkaWithZKComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> entries) throws Exception;
+    public void send(KafkaComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> entries) throws Exception;
   }
 
   public void testTopology(Function<Properties, Void> updatePropertiesCallback
@@ -219,12 +219,12 @@ public class PcapTopologyIntegrationTest {
       @Nullable
       @Override
       public Void apply(@Nullable ZKServerComponent zkComponent) {
-        topologyProperties.setProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
+        topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
         return null;
       }
     });
-    final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(KAFKA_TOPIC, 1));
+    final KafkaComponent kafkaComponent = new KafkaComponent().withTopics(new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(KAFKA_TOPIC, 1));
     }}).withTopologyProperties(topologyProperties);
 
 

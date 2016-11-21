@@ -24,6 +24,7 @@ import org.apache.metron.integration.UnableToStartException;
 import org.apache.curator.test.TestingServer;
 import java.util.Map;
 public class ZKServerComponent implements InMemoryComponent{
+    public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
     private TestingServer testZkServer;
     private String zookeeperUrl = null;
     private Map<String,String> properties = null;

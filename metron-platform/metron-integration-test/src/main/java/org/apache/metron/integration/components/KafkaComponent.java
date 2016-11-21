@@ -19,8 +19,6 @@ package org.apache.metron.integration.components;
 
 
 import com.google.common.base.Function;
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -36,28 +34,18 @@ import kafka.utils.TestUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import kafka.utils.*;
-import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.utils.*;
 import org.apache.metron.integration.wrapper.AdminUtilsWrapper;
 import org.apache.metron.integration.wrapper.TestUtilsWrapper;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.apache.zookeeper.server.NIOServerCnxnFactory;
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.apache.zookeeper.server.ZooKeeperServer;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Level;
 
 
-public class KafkaWithZKComponent implements InMemoryComponent {
-
-  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
+public class KafkaComponent implements InMemoryComponent {
 
   public static class Topic {
     public int numPartitions;
@@ -69,7 +57,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     }
   }
   private transient KafkaServer kafkaServer;
-  private transient EmbeddedZookeeper zkServer;
   private transient ZkClient zkClient;
   private transient ConsumerConnector consumer;
   private String zookeeperConnectString;
@@ -77,23 +64,23 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
   private int brokerPort = 6667;
   private List<Topic> topics = Collections.emptyList();
-  private Function<KafkaWithZKComponent, Void> postStartCallback;
+  private Function<KafkaComponent, Void> postStartCallback;
 
-  public KafkaWithZKComponent withPostStartCallback(Function<KafkaWithZKComponent, Void> f) {
+  public KafkaComponent withPostStartCallback(Function<KafkaComponent, Void> f) {
     postStartCallback = f;
     return this;
   }
 
-  public KafkaWithZKComponent withExistingZookeeper(String zookeeperConnectString) {
+  public KafkaComponent withExistingZookeeper(String zookeeperConnectString) {
     this.zookeeperConnectString = zookeeperConnectString;
     return this;
   }
 
-  public KafkaWithZKComponent withTopologyProperties(Properties properties){
+  public KafkaComponent withTopologyProperties(Properties properties){
     this.topologyProperties = properties;
     return this;
   }
-  public KafkaWithZKComponent withBrokerPort(int brokerPort) {
+  public KafkaComponent withBrokerPort(int brokerPort) {
     if(brokerPort <= 0)
     {
       brokerPort = TestUtils.RandomPort();
@@ -103,7 +90,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     return this;
   }
 
-  public KafkaWithZKComponent withTopics(List<Topic> topics) {
+  public KafkaComponent withTopics(List<Topic> topics) {
     this.topics = topics;
     return this;
   }
@@ -148,10 +135,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   public void start() {
     // setup Zookeeper
     zookeeperConnectString = topologyProperties.getProperty("kafka.zk");
-    if(zookeeperConnectString == null) {
-      EmbeddedZookeeper ezk = new EmbeddedZookeeper();
-      zookeeperConnectString = "127.0.0.1:" + ezk.port();
-    }
+
     zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 
     // setup Broker
@@ -192,9 +176,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     }
     if(zkClient != null) {
       zkClient.close();
-    }
-    if(zkServer != null) {
-      zkServer.shutdown();
     }
   }
 

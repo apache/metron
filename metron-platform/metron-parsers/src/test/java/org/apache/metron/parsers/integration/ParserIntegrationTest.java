@@ -22,13 +22,12 @@ import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
-import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Test;
 
 import java.util.*;
@@ -41,9 +40,9 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     final List<byte[]> inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
 
     final Properties topologyProperties = new Properties();
-    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(sensorType, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(sensorType, 1));
+      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
@@ -79,14 +78,14 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 List<byte[]> invalids = null;
 
                 public ReadinessState process(ComponentRunner runner) {
-                  KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
-                  List<byte[]> outputMessages = kafkaWithZKComponent.readMessages(Constants.ENRICHMENT_TOPIC);
+                  KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
+                  List<byte[]> outputMessages = kafkaComponent.readMessages(Constants.ENRICHMENT_TOPIC);
                   if (outputMessages.size() == inputMessages.size()) {
                     messages = outputMessages;
                     return ReadinessState.READY;
                   } else {
-                    errors = kafkaWithZKComponent.readMessages(Constants.ERROR_STREAM);
-                    invalids = kafkaWithZKComponent.readMessages(Constants.INVALID_STREAM);
+                    errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
+                    invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
                     if(errors.size() > 0 || invalids.size() > 0) {
                       messages = outputMessages;
                       return ReadinessState.READY;
