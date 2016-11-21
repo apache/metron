@@ -20,6 +20,7 @@
 package org.apache.metron.statistics.outlier;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -77,6 +78,51 @@ public class MedianAbsoluteDeviationTest {
     currentState = (MedianAbsoluteDeviationFunctions.State) run("OUTLIER_MAD_STATE_MERGE(states, NULL)", ImmutableMap.of("states", states));
     for(int i = 0,j=0;i < 10000;++i,++j) {
       Double d = gaussian.nextNormalizedDouble();
+      stats.addValue(d);
+      run("OUTLIER_MAD_ADD(currentState, data)", ImmutableMap.of("currentState", currentState, "data", d));
+      if(j >= 1000) {
+        j = 0;
+        List<MedianAbsoluteDeviationFunctions.State> stateWindow = new ArrayList<>();
+        for(int stateIndex = Math.max(0, states.size() - 5);stateIndex < states.size();++stateIndex) {
+          stateWindow.add(states.get(stateIndex));
+        }
+        currentState = (MedianAbsoluteDeviationFunctions.State) run("OUTLIER_MAD_STATE_MERGE(states, currentState)"
+                , ImmutableMap.of("states", stateWindow, "currentState", currentState));
+      }
+    }
+    {
+      Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMin()));
+      Assert.assertTrue("Score: " + score + " is not an outlier despite being a minimum.", score > 3.5);
+    }
+    {
+      Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMax()));
+      Assert.assertTrue("Score: " + score + " is not an outlier despite being a maximum", score > 3.5);
+    }
+    {
+      Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean() + 4*stats.getStandardDeviation()));
+      Assert.assertTrue("Score: " + score + " is not an outlier despite being 4 std deviations away from the mean", score > 3.5);
+    }
+    {
+      Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean() - 4*stats.getStandardDeviation()));
+      Assert.assertTrue("Score: " + score + " is not an outlier despite being 4 std deviations away from the mean", score > 3.5);
+    }
+    {
+      Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean()));
+      Assert.assertFalse("Score: " + score + " is an outlier despite being the mean", score > 3.5);
+    }
+  }
+
+  @Test
+  public void testLongTailed() {
+
+    TDistribution generator = new TDistribution(new MersenneTwister(0L), 100);
+    DescriptiveStatistics stats = new DescriptiveStatistics();
+    List<MedianAbsoluteDeviationFunctions.State> states = new ArrayList<>();
+    MedianAbsoluteDeviationFunctions.State currentState = null;
+    //initialize the state
+    currentState = (MedianAbsoluteDeviationFunctions.State) run("OUTLIER_MAD_STATE_MERGE(states, NULL)", ImmutableMap.of("states", states));
+    for(int i = 0,j=0;i < 10000;++i,++j) {
+      Double d = generator.sample();
       stats.addValue(d);
       run("OUTLIER_MAD_ADD(currentState, data)", ImmutableMap.of("currentState", currentState, "data", d));
       if(j >= 1000) {

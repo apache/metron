@@ -199,6 +199,32 @@ This script will take the following as arguments:
 * The standard deviation of the data generated
 * The frequency (in seconds) of the data generated
 
+If, however, you'd like to test a longer tailed distribution, like the
+student t-distribution and have numpy installed, you can use the
+following as `~/rand_gen.py`:
+```
+#!/usr/bin/python
+import random
+import sys
+import time
+import numpy as np
+
+def main():
+  df = float(sys.argv[1])
+  freq_s = int(sys.argv[2])
+  while True:
+    print str(np.random.standard_t(df))
+    sys.stdout.flush()
+    time.sleep(freq_s)
+
+if __name__ == '__main__':
+  main()
+```
+
+This script will take the following as arguments:
+* The degrees of freedom for the distribution
+* The frequency (in seconds) of the data generated
+
 #### The Parser
 
 We will create a parser that will take the single numbers in and create
@@ -338,6 +364,7 @@ duration by changing `profiler.period.duration=15` to `profiler.period.duration=
 
 8. Generate data into kafka by executing the following for at least 10 minutes:
 `~/rand_gen.py 0 1 1 | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic mad`
+Note: if you chose the use the t-distribution script above, you would adjust the parameters of the `rand_gen.py` script accordingly.
 
 9. Stop the above with ctrl-c and send in an obvious outlier into kafka:
 `echo "1000" | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic mad`
