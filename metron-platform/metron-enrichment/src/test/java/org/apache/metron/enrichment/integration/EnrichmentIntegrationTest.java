@@ -166,20 +166,14 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
       ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor(inputMessages));
+      // We expect failures, so we don't care if result returned failure or not
       List<Map<String, Object>> docs = result.getResult();
-      if (result.failed()){
-        StringBuffer buffer = new StringBuffer();
-        result.getBadResults(buffer);
-        buffer.append(String.format("%d Valid Messages Processed", docs.size())).append("\n");
-        dumpParsedMessages(docs,buffer);
-        Assert.fail(buffer.toString());
-      } else {
-        Assert.assertEquals(inputMessages.size(), docs.size());
-        List<Map<String, Object>> cleanedDocs = docs;
-        validateAll(cleanedDocs);
+      Assert.assertEquals(inputMessages.size(), docs.size());
+      validateAll(docs);
 
-        validateErrors(inputMessages, kafkaComponent);
-      }
+      List<byte[]> errors = result.getProcessErrors();
+      Assert.assertEquals(inputMessages.size(), errors.size());
+      validateErrors(result.getProcessErrors());
     } finally {
       runner.stop();
     }
@@ -204,12 +198,10 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  protected void validateErrors(List<byte[]> inputMessages, KafkaWithZKComponent kafkaComponent) {
-    List<byte[]> enrichmentErrors = kafkaComponent.readMessages(Constants.ENRICHMENT_ERROR_TOPIC);
-    Assert.assertEquals("Should have one error per message passed to enrichment", inputMessages.size(), enrichmentErrors.size());
-    for(byte[] enrichmentError : enrichmentErrors) {
+  protected void validateErrors(List<byte[]> errors) {
+    for(byte[] error : errors) {
       // Don't reconstruct the entire message, just ensure it contains the known error message inside.
-      Assert.assertTrue(new String(enrichmentError).contains(ErrorEnrichmentBolt.TEST_ERROR_MESSAGE));
+      Assert.assertTrue(new String(error).contains(ErrorEnrichmentBolt.TEST_ERROR_MESSAGE));
     }
   }
 
@@ -462,6 +454,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       public ReadinessState process(ComponentRunner runner) {
         KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
         List<byte[]> messages = kafkaComponent.readMessages(Constants.INDEXING_TOPIC);
+        errors = kafkaComponent.readMessages(Constants.ENRICHMENT_ERROR_TOPIC);
         if (messages.size() == inputMessages.size()) {
           docs = new ArrayList<>();
           for(byte[] message : messages) {
@@ -473,12 +466,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
           }
           return ReadinessState.READY;
         } else {
-          errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
-          invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
-          if(errors.size() > 0 || invalids.size() > 0) {
-            messages = messages;
-            return ReadinessState.READY;
-          }
           return ReadinessState.NOT_READY;
         }
       }
