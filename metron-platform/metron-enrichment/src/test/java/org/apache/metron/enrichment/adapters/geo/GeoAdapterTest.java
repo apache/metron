@@ -95,5 +95,22 @@ public class GeoAdapterTest {
     Assert.assertEquals(expectedMessage, actualMessage);
   }
 
+  @Test
+  public void testEnrichNonString() throws Exception {
+    GeoAdapter geo = new GeoAdapter() {
+      @Override
+      public boolean initializeAdapter() {
+        return true;
+      }
+    };
+    geo.setStatement(statetment);
+    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", ip, null));
+    Assert.assertNotNull(actualMessage.get("locID"));
+    Assert.assertEquals(expectedMessage, actualMessage);
+
+    actualMessage = geo.enrich(new CacheKey("dummy", new Long(10L), null));
+    Assert.assertEquals(actualMessage,new JSONObject());
+  }
+
 }
 

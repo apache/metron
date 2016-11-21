@@ -72,7 +72,16 @@ public class HostFromJSONListAdapterTest {
     Assert.assertEquals(emptyJson, actualMessage);
   }
 
-
+  @Test
+  public void testEnrichNonString() throws Exception {
+    HostFromJSONListAdapter hja = new HostFromJSONListAdapter(expectedKnownHostsString);
+    JSONObject actualMessage = hja.enrich(new CacheKey("dummy", ip, null));
+    Assert.assertNotNull(actualMessage);
+    Assert.assertEquals(expectedMessage, actualMessage);
+    actualMessage = hja.enrich(new CacheKey("dummy",new Long(10L), null));
+    JSONObject emptyJson = new JSONObject();
+    Assert.assertEquals(emptyJson, actualMessage);
+  }
   @Test
   public void testInitializeAdapter() throws Exception {
     HostFromJSONListAdapter hja = new HostFromJSONListAdapter(expectedKnownHostsString);

@@ -44,6 +44,8 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -250,12 +252,24 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       // emit the completed profile measurement
       emit(measurement, definition);
 
+      // execute the update with the old state
+      Map<String, String> tickUpdate = definition.getTickUpdate();
+      Map<String, Object> state = executor.getState();
+      if(tickUpdate != null) {
+        tickUpdate.forEach((var, expr) -> executor.assign(var, expr, Collections.singletonMap("result", value)));
+      }
+
       // clear the execution state to prepare for the next window
       executor.clearState();
-    });
 
-    // cache maintenance
-    profileCache.cleanUp();
+      //make sure that we bring along the update state
+      if(tickUpdate != null) {
+        tickUpdate.forEach((var, expr) -> executor.getState().put(var, state.get(var)));
+      }
+
+      // cache maintenance
+      profileCache.cleanUp();
+    });
   }
 
   /**
