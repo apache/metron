@@ -18,10 +18,7 @@
 package org.apache.metron.common.configuration.profiler;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,6 +63,13 @@ public class ProfileConfig implements Serializable {
    * expression.  The map can include 0 or more variables/expressions.
    */
   private Map<String, String> update = new HashMap<>();
+
+   /**
+   * A set of expressions that is executed when a tick happens.
+   * A map is expected where the key is the variable name and the value is a Stellar
+   * expression.  The map can include 0 or more variables/expressions.
+   */
+  private Map<String, String> tickUpdate = new LinkedHashMap<>();
 
   /**
    * A list of Stellar expressions that is executed in order and used to group the
@@ -127,6 +131,14 @@ public class ProfileConfig implements Serializable {
     this.update = update;
   }
 
+  public Map<String, String> getTickUpdate() {
+    return tickUpdate;
+  }
+
+  public void setTickUpdate(Map<String, String> tickUpdate) {
+    this.tickUpdate = tickUpdate;
+  }
+
   public List<String> getGroupBy() {
     return groupBy;
   }
@@ -152,6 +164,21 @@ public class ProfileConfig implements Serializable {
   }
 
   @Override
+  public String toString() {
+    return "ProfileConfig{" +
+            "profile='" + profile + '\'' +
+            ", foreach='" + foreach + '\'' +
+            ", onlyif='" + onlyif + '\'' +
+            ", init=" + init +
+            ", update=" + update +
+            ", tickUpdate=" + tickUpdate +
+            ", groupBy=" + groupBy +
+            ", result='" + result + '\'' +
+            ", expires=" + expires +
+            '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -163,6 +190,7 @@ public class ProfileConfig implements Serializable {
     if (onlyif != null ? !onlyif.equals(that.onlyif) : that.onlyif != null) return false;
     if (init != null ? !init.equals(that.init) : that.init != null) return false;
     if (update != null ? !update.equals(that.update) : that.update != null) return false;
+    if (tickUpdate != null ? !tickUpdate.equals(that.tickUpdate) : that.tickUpdate != null) return false;
     if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
     if (result != null ? !result.equals(that.result) : that.result != null) return false;
     return expires != null ? expires.equals(that.expires) : that.expires == null;
@@ -176,23 +204,10 @@ public class ProfileConfig implements Serializable {
     result1 = 31 * result1 + (onlyif != null ? onlyif.hashCode() : 0);
     result1 = 31 * result1 + (init != null ? init.hashCode() : 0);
     result1 = 31 * result1 + (update != null ? update.hashCode() : 0);
+    result1 = 31 * result1 + (tickUpdate != null ? tickUpdate.hashCode() : 0);
     result1 = 31 * result1 + (groupBy != null ? groupBy.hashCode() : 0);
     result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
     result1 = 31 * result1 + (expires != null ? expires.hashCode() : 0);
     return result1;
-  }
-
-  @Override
-  public String toString() {
-    return "ProfileConfig{" +
-            "profile='" + profile + '\'' +
-            ", foreach='" + foreach + '\'' +
-            ", onlyif='" + onlyif + '\'' +
-            ", init=" + init +
-            ", update=" + update +
-            ", groupBy=" + groupBy +
-            ", result='" + result + '\'' +
-            ", expires=" + expires +
-            '}';
   }
 }
