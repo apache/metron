@@ -57,7 +57,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     List<String> enrichmentTypes = value.getConfig().getThreatIntel().getFieldToTypeMap().get(value.getField());
     if(enrichmentTypes != null) {
       for(String enrichmentType : enrichmentTypes) {
-        lookup.getAccessTracker().logAccess(new EnrichmentKey(enrichmentType, value.getValue(String.class)));
+        lookup.getAccessTracker().logAccess(new EnrichmentKey(enrichmentType, value.coerceValue(String.class)));
       }
     }
   }
@@ -77,7 +77,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       try {
         for (Boolean isThreat :
                 lookup.exists(Iterables.transform(enrichmentTypes
-                                                 , new EnrichmentUtils.TypeToKey(value.getValue(String.class)
+                                                 , new EnrichmentUtils.TypeToKey(value.coerceValue(String.class)
                                                                                 , lookup.getTable()
                                                                                 , value.getConfig().getThreatIntel()
                                                                                 )
