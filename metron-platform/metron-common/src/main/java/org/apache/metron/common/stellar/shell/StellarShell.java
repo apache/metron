@@ -47,6 +47,7 @@ import org.jboss.aesh.terminal.TerminalCharacter;
 import org.jboss.aesh.terminal.TerminalColor;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -114,6 +115,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     options.addOption("irc", "inputrc", true, "File containing the inputrc if not the default ~/.inputrc");
     options.addOption("na", "no_ansi", false, "Make the input prompt not use ANSI colors.");
     options.addOption("h", "help", false, "Print help");
+    options.addOption("p", "properties", true, "File containing Stellar properties");
 
     CommandLineParser parser = new PosixParser();
     CommandLine commandLine = parser.parse(options, args);
@@ -126,7 +128,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     }
 
     console = createConsole(commandLine);
-    executor = createExecutor(commandLine, console, getStellarProperties());
+    executor = createExecutor(commandLine, console, getStellarProperties(commandLine));
     loadVariables(commandLine, executor);
     console.setPrompt(new Prompt(EXPRESSION_PROMPT));
     console.addCompletion(this);
@@ -198,15 +200,30 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * Retrieves the Stellar properties. The properties are either loaded from a file in
    * the classpath or a set of defaults are used.
    */
-  private Properties getStellarProperties() throws IOException {
+  private Properties getStellarProperties(CommandLine commandLine) throws IOException {
     Properties properties = new Properties();
 
-    // look for a properties file on the classpath
-    InputStream in = getClass().getClassLoader().getResourceAsStream(STELLAR_PROPERTIES_FILENAME);
-    if(in != null) {
-      properties.load(in);
+    if (commandLine.hasOption("p")) {
+
+      // first attempt to load properties from a file specified on the command-line
+      try (InputStream in = new FileInputStream(commandLine.getOptionValue("p"))) {
+        if(in != null) {
+          properties.load(in);
+        }
+      }
 
     } else {
+
+      // otherwise attempt to load properties from the classpath
+      try (InputStream in = getClass().getClassLoader().getResourceAsStream(STELLAR_PROPERTIES_FILENAME)) {
+        if(in != null) {
+          properties.load(in);
+        }
+      }
+    }
+
+    // if still no properties, use the default set
+    if(properties.size() == 0) {
       addDefaultStellarProperties(properties);
     }
 
