@@ -126,7 +126,40 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     }
 
     console = createConsole(commandLine);
-    Properties properties = getStellarProperties();
+    executor = createExecutor(commandLine, console, getStellarProperties());
+    loadVariables(commandLine, executor);
+    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
+    console.addCompletion(this);
+    console.setConsoleCallback(this);
+  }
+
+  /**
+   * Loads any variables defined in an external file.
+   * @param commandLine The command line arguments.
+   * @param executor The stellar executor.
+   * @throws IOException
+   */
+  private static void loadVariables(CommandLine commandLine, StellarExecutor executor) throws IOException {
+    if(commandLine.hasOption("v")) {
+
+      Map<String, Object> variables = JSONUtils.INSTANCE.load(
+              new File(commandLine.getOptionValue("v")),
+              new TypeReference<Map<String, Object>>() {});
+
+      for(Map.Entry<String, Object> kv : variables.entrySet()) {
+        executor.assign(kv.getKey(), null, kv.getValue());
+      }
+    }
+  }
+
+  /**
+   * Creates the Stellar execution environment.
+   * @param commandLine The command line arguments.
+   * @param console The console which drives the REPL.
+   * @param properties Stellar properties.
+   */
+  private static StellarExecutor createExecutor(CommandLine commandLine, Console console, Properties properties) throws Exception {
+    StellarExecutor executor;
 
     // create the executor
     if(commandLine.hasOption("z")) {
@@ -137,19 +170,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       executor = new StellarExecutor(console, properties);
     }
 
-    // -v load any variables defined externally
-    if(commandLine.hasOption("v")) {
-      Map<String, Object> variables = JSONUtils.INSTANCE.load(
-              new File(commandLine.getOptionValue("v")),
-              new TypeReference<Map<String, Object>>() {});
-      for(Map.Entry<String, Object> kv : variables.entrySet()) {
-        executor.assign(kv.getKey(), null, kv.getValue());
-      }
-    }
-
-    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
-    console.addCompletion(this);
-    console.setConsoleCallback(this);
+    return executor;
   }
 
   /**
@@ -178,9 +199,9 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * the classpath or a set of defaults are used.
    */
   private Properties getStellarProperties() throws IOException {
-    // stellar properties
     Properties properties = new Properties();
 
+    // look for a properties file on the classpath
     InputStream in = getClass().getClassLoader().getResourceAsStream(STELLAR_PROPERTIES_FILENAME);
     if(in != null) {
       properties.load(in);
