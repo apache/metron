@@ -50,11 +50,11 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
 
         kafkaBrokers = self.getHosts(componentsList, "KAFKA_BROKER")
         stormSupervisors = self.getHosts(componentsList, "SUPERVISOR")
-        zookeeperServers = self.getHosts(componentsList, "ZOOKEEPER_SERVER")
+        zookeeperClientHosts = self.getHosts(componentsList, "ZOOKEEPER_CLIENT")
 
         items = []
 
-        #Metron Must Co-locate with KAFKA_BROKER and STORM_SUPERVISOR
+        # Metron Must Co-locate with KAFKA_BROKER and STORM_SUPERVISOR
         if metronParsersHost not in kafkaBrokers:
             message = "Metron must be colocated with an instance of KAFKA BROKER"
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
@@ -75,9 +75,9 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
             message = "Metron MySQL Server must be co-located with Metron Parsers on {0}".format(metronParsersHost)
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MYSQL_SERVER', "host": metronEnrichmentMysqlServer })
 
-        # Enrichment Master also needs ZK Server, but this is already guaranteed by being colocated with Parsers Master
-        if metronParsersHost not in zookeeperServers:
-            message = "Metron must be co-located with an instance of Zookeeper Server"
+        # Enrichment Master also needs ZK Client, but this is already guaranteed by being colocated with Parsers Master
+        if metronParsersHost not in zookeeperClientHosts:
+            message = "Metron must be co-located with an instance of Zookeeper Client"
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
 
         if metronEnrichmentMaster not in hbaseClientHosts:
