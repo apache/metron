@@ -245,7 +245,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }
 
   /**
-   * Adds default Stellar properties.  Only used if there is no 'stellar.properties' file.
+   * Adds default Stellar properties.  Only used if no properties file can be found.
    */
   private void addDefaultStellarProperties(Properties props) {
 
