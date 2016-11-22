@@ -81,14 +81,14 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
             message = "Metron must be co-located with an instance of Zookeeper Client"
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
 
-        if metronEnrichmentMaster not in hbaseClientHosts:
-            message = "Metron Enrichment Master must be co-located with an instance of HBase Client"
-            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
-
-        # Enrichment Master also needs HDFS clients, but this is already guaranteed by being colocated with Parsers Master
+            # Enrichment Master also needs HDFS clients, but this is already guaranteed by being colocated with Parsers Master
         if metronParsersHost not in hdfsClientHosts:
             message = "Metron must be co-located with an instance of HDFS Client"
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
+
+        if metronEnrichmentMaster not in hbaseClientHosts:
+            message = "Metron Enrichment Master must be co-located with an instance of HBase Client"
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
 
         return items
 
