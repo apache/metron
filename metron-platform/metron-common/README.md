@@ -107,6 +107,7 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `TO_DOUBLE`](#to_double)|
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)|
 | [ `TO_INTEGER`](#to_integer)|
+| [ `TO_LONG`](#to_long)|
 | [ `TO_LOWER`](#to_lower)|
 | [ `TO_STRING`](#to_string)|
 | [ `TO_UPPER`](#to_upper)|
@@ -423,6 +424,12 @@ MAP_GET`
   * Input:
     * input - Object of string or numeric type
   * Returns: Integer version of the first argument
+
+### `TO_LONG`
+  * Description: Transforms the first argument to a long integer
+  * Input:
+    * input - Object of string or numeric type
+  * Returns: Long version of the first argument
 
 ### `TO_LOWER`
   * Description: Transforms the first argument to a lowercase string
