@@ -218,7 +218,7 @@ public class MaasIntegrationTest {
           try {
             List<ModelEndpoint> endpoints = discoverer.getEndpoints(new Model("dummy", "1.0"));
             if (endpoints != null && endpoints.size() == 1) {
-              System.out.println("Found endpoints: " + endpoints.get(0));
+              LOG.trace("Found endpoints: " + endpoints.get(0));
               String output = makeRESTcall(new URL(endpoints.get(0).getEndpoint().getUrl() + "/echo/casey"));
               if (output.contains("casey")) {
                 passed = true;
@@ -271,7 +271,7 @@ public class MaasIntegrationTest {
 
   private void cleanup() {
     try {
-      System.out.println("Cleaning up...");
+      LOG.trace("Cleaning up...");
       String line;
       Process p = Runtime.getRuntime().exec("ps -e");
       BufferedReader input =
@@ -279,7 +279,7 @@ public class MaasIntegrationTest {
       while ((line = input.readLine()) != null) {
         if(line.contains("dummy_rest.sh")) {
           String pid = Iterables.get(Splitter.on(" ").split(line.replaceAll("\\s+", " ").trim()), 0);
-          System.out.println("Killing " + pid + " from " + line);
+          LOG.trace("Killing " + pid + " from " + line);
           Runtime.getRuntime().exec("kill -9 " + pid);
         }
       }

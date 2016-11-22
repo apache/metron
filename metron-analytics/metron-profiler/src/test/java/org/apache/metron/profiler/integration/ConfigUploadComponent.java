@@ -22,7 +22,7 @@ package org.apache.metron.profiler.integration;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 
 import java.util.Properties;
 
@@ -61,7 +61,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
    * @throws Exception
    */
   private void upload() throws Exception {
-    final String zookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
+    final String zookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
       uploadGlobalConfig(client);

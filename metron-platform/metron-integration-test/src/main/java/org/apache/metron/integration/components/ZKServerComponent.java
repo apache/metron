@@ -18,17 +18,24 @@
 
 package org.apache.metron.integration.components;
 
+import com.google.common.base.Function;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.curator.test.TestingServer;
 import java.util.Map;
 public class ZKServerComponent implements InMemoryComponent{
+    public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
     private TestingServer testZkServer;
     private String zookeeperUrl = null;
     private Map<String,String> properties = null;
-
-    public String getConnectionString(){
+    private Function<ZKServerComponent, Void> postStartCallback;
+    public String getConnectionString()
+    {
         return this.zookeeperUrl;
+    }
+    public ZKServerComponent withPostStartCallback(Function<ZKServerComponent, Void> f) {
+        postStartCallback = f;
+        return this;
     }
 
     @Override
@@ -36,6 +43,9 @@ public class ZKServerComponent implements InMemoryComponent{
         try {
             testZkServer = new TestingServer(true);
             zookeeperUrl = testZkServer.getConnectString();
+            if(postStartCallback != null) {
+                postStartCallback.apply(this);
+            }
         }catch(Exception e){
             throw new UnableToStartException("Unable to start TestingServer",e);
         }
