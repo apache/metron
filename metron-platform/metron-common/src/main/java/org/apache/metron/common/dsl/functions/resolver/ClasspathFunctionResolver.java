@@ -40,9 +40,12 @@ import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
  * Performs function resolution for Stellar by searching the classpath.
  *
  * By default, the entire classpath will be searched for Stellar functions.  At times,
- * this can take quite a while.  To shorten the search time, a global property can be
+ * this can take quite a while.  To shorten the search time, a property can be
  * defined to either include or exclude certain packages.  The fewer packages there are
  * to search, the quicker the search will be.
+ *
+ * The properties are pulled from the Context's 'STELLAR_CONFIG'. In the REPL, this
+ * is defined in a file called 'stellar.properties' on the classpath.
  *
  * The following property definition will include only Stellar functions that are
  * part of Apache Metron.
