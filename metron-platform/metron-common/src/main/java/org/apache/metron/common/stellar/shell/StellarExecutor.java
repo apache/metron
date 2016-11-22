@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.SortedMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -50,6 +51,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
 import static org.apache.metron.common.stellar.shell.StellarExecutor.OperationType.DOC;
 import static org.apache.metron.common.stellar.shell.StellarExecutor.OperationType.NORMAL;
+
+import static org.apache.metron.common.dsl.Context.Capabilities.*;
 
 /**
  * Executes Stellar expressions and maintains state across multiple invocations.
@@ -147,20 +150,33 @@ public class StellarExecutor {
 
   }
 
-  public StellarExecutor(Console console) throws Exception {
-    this(null, console);
+  /**
+   * @param console The console used to drive the REPL.
+   * @param properties The Stellar properties.
+   * @throws Exception
+   */
+  public StellarExecutor(Console console, Properties properties) throws Exception {
+    this(null, console, properties);
   }
 
-  public StellarExecutor(String zookeeperUrl, Console console) throws Exception {
+  /**
+   * @param console The console used to drive the REPL.
+   * @param properties The Stellar properties.
+   * @throws Exception
+   */
+  public StellarExecutor(String zookeeperUrl, Console console, Properties properties) throws Exception {
     this.variables = new HashMap<>();
     this.client = createClient(zookeeperUrl);
-    this.context = createContext();
+    this.context = createContext(properties);
+
+    // initialize the default function resolver
     StellarFunctions.initialize(this.context);
     this.functionResolver = StellarFunctions.FUNCTION_RESOLVER();
+
     this.autocompleteIndex = initializeIndex();
     this.console = console;
 
-    //Asynchronously update the index with function names found from a classpath scan.
+    // asynchronously update the index with function names found from a classpath scan.
     new Thread( () -> {
         Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
         indexLock.writeLock().lock();
@@ -224,8 +240,12 @@ public class StellarExecutor {
   /**
    * Creates a Context initialized with configuration stored in Zookeeper.
    */
-  private Context createContext() throws Exception {
-    Context context = Context.EMPTY_CONTEXT();
+  private Context createContext(Properties properties) throws Exception {
+
+    Context.Builder contextBuilder = new Context.Builder()
+            .with(SHELL_VARIABLES, () -> variables)
+            .with(CONSOLE, () -> console)
+            .with(STELLAR_CONFIG, () -> properties);
 
     // load global configuration from zookeeper
     if (client.isPresent()) {
@@ -233,24 +253,14 @@ public class StellarExecutor {
       // fetch the global configuration
       Map<String, Object> global = JSONUtils.INSTANCE.load(
               new ByteArrayInputStream(readGlobalConfigBytesFromZookeeper(client.get())),
-              new TypeReference<Map<String, Object>>() {
-              });
+              new TypeReference<Map<String, Object>>() {});
 
-      context = new Context.Builder()
-              .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
-              .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client.get())
-              .with(SHELL_VARIABLES, () -> variables)
-              .with(CONSOLE, () -> console)
-              .build();
-    }
-    else {
-      context = new Context.Builder()
-              .with(SHELL_VARIABLES, () -> variables)
-              .with(CONSOLE, () -> console)
-              .build();
+      contextBuilder
+              .with(GLOBAL_CONFIG, () -> global)
+              .with(ZOOKEEPER_CLIENT, () -> client.get());
     }
 
-    return context;
+    return contextBuilder.build();
   }
 
   /**

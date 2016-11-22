@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -67,13 +67,13 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    * The key for a global property that defines one or more regular expressions
    * that specify what should be included when searching for Stellar functions.
    */
-  protected static final String STELLAR_SEARCH_INCLUDES_KEY = "stellar.function.resolver.includes";
+  public static final String STELLAR_SEARCH_INCLUDES_KEY = "stellar.function.resolver.includes";
 
   /**
    * The key for a global property that defines one or more regular expressions
    * that specify what should be excluded when searching for Stellar functions.
    */
-  protected static final String STELLAR_SEARCH_EXCLUDES_KEY = "stellar.function.resolver.excludes";
+  public static final String STELLAR_SEARCH_EXCLUDES_KEY = "stellar.function.resolver.excludes";
 
   /**
    * The includes and excludes can include a list of multiple includes or excludes that
@@ -123,22 +123,20 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
   @Override
   public void initialize(Context context) {
     super.initialize(context);
-
-    // do we have access to the global configuration?
     if(context != null) {
 
-      Optional<Object> optional = context.getCapability(GLOBAL_CONFIG, false);
+      Optional<Object> optional = context.getCapability(STELLAR_CONFIG, false);
       if (optional.isPresent()) {
-        Map<String, Object> global = (Map<String, Object>) optional.get();
+        Map<String, String> stellarConfig = (Map<String, String>) optional.get();
 
         // handle any includes
-        String includes = (String) global.getOrDefault(STELLAR_SEARCH_INCLUDES_KEY, "");
+        String includes = stellarConfig.getOrDefault(STELLAR_SEARCH_INCLUDES_KEY, "");
         if(StringUtils.isNotBlank(includes)) {
           include(includes.split(STELLAR_SEARCH_DELIMS));
         }
 
         // handle any excludes
-        String excludes = (String) global.getOrDefault(STELLAR_SEARCH_EXCLUDES_KEY, "");
+        String excludes = stellarConfig.getOrDefault(STELLAR_SEARCH_EXCLUDES_KEY, "");
         if(StringUtils.isNotBlank(excludes)) {
           exclude(excludes.split(STELLAR_SEARCH_DELIMS));
         }

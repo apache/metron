@@ -18,7 +18,6 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
-
 import com.google.common.collect.Lists;
 import org.apache.metron.common.dsl.Context;
 import org.junit.Assert;
@@ -36,25 +35,25 @@ public class ClasspathFunctionResolverTest {
   public static void setup() {
 
     // search the entire classpath for functions - provides a baseline to test against
-    Properties global = new Properties();
-    global.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "");
-    global.put(ClasspathFunctionResolver.STELLAR_SEARCH_EXCLUDES_KEY, "");
+    Properties config = new Properties();
+    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "");
+    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_EXCLUDES_KEY, "");
 
     // use a permissive regex that should not filter anything
-    ClasspathFunctionResolver resolver = create(global);
+    ClasspathFunctionResolver resolver = create(config);
 
     expectedFunctions = Lists.newArrayList(resolver.getFunctions());
   }
 
   /**
    * Create a function resolver to test.
-   * @param global The global properties.
+   * @param config The configuration for Stellar.
    */
-  public static ClasspathFunctionResolver create(Properties global) {
+  public static ClasspathFunctionResolver create(Properties config) {
     ClasspathFunctionResolver resolver = new ClasspathFunctionResolver();
 
     Context context = new Context.Builder()
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> config)
             .build();
     resolver.initialize(context);
 
@@ -65,11 +64,11 @@ public class ClasspathFunctionResolverTest {
   public void testInclude() {
 
     // setup - include all `org.apache.metron.*` functions
-    Properties global = new Properties();
-    global.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.*");
+    Properties config = new Properties();
+    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.*");
 
     // execute
-    ClasspathFunctionResolver resolver = create(global);
+    ClasspathFunctionResolver resolver = create(config);
     List<String> actual = Lists.newArrayList(resolver.getFunctions());
 
     // validate - should have found all of the functions
@@ -80,11 +79,11 @@ public class ClasspathFunctionResolverTest {
   public void testWithMultipleIncludes() {
 
     // setup - include all of the common and management functions, which is most of them
-    Properties global = new Properties();
-    global.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.common.*, org.apache.metron.management.*");
+    Properties config = new Properties();
+    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.common.*, org.apache.metron.management.*");
 
     // execute
-    ClasspathFunctionResolver resolver = create(global);
+    ClasspathFunctionResolver resolver = create(config);
     List<String> actual = Lists.newArrayList(resolver.getFunctions());
 
     // validate - should have found all of the functions
@@ -96,11 +95,11 @@ public class ClasspathFunctionResolverTest {
   public void testExclude() {
 
     // setup - exclude all `org.apache.metron.*` functions
-    Properties global = new Properties();
-    global.put(ClasspathFunctionResolver.STELLAR_SEARCH_EXCLUDES_KEY, "org.apache.metron.*");
+    Properties config = new Properties();
+    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_EXCLUDES_KEY, "org.apache.metron.*");
 
     // use a permissive regex that should not filter anything
-    ClasspathFunctionResolver resolver = create(global);
+    ClasspathFunctionResolver resolver = create(config);
     List<String> actual = Lists.newArrayList(resolver.getFunctions());
 
     // both should have resolved the same functions

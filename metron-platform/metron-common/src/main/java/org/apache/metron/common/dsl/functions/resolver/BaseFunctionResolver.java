@@ -35,9 +35,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.String.format;
+
 /**
- * The base implementation of a function resolver.
+ * The base implementation of a function resolver that provides a means for lazy
+ * initialization, thread-safety, and a mechanism for function resolution.
  *
+ * Concrete function resolvers can override the `resolvables` method which
+ * defines the classes that are interrogated further to discover Stellar functions.
  */
 public abstract class BaseFunctionResolver implements FunctionResolver, Serializable {
 
@@ -98,7 +103,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   public StellarFunction apply(String functionName) {
     StellarFunctionInfo info = functions.get().get(functionName);
     if(info == null) {
-      throw new IllegalStateException("Unable to resolve function by name: " + functionName);
+      throw new IllegalStateException(format("Unknown function: `%s`", functionName));
     }
     return info.getFunction();
   }
@@ -106,8 +111,9 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   /**
    * Performs the core process of function resolution.
    */
-  private Map<String, StellarFunctionInfo> resolveFunctions() {
+  protected Map<String, StellarFunctionInfo> resolveFunctions() {
 
+    // maps a function name to its definition
     Map<String, StellarFunctionInfo> functions = new HashMap<>();
 
     for(Class<? extends StellarFunction> clazz : resolvables()) {
@@ -117,9 +123,9 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
         // check for duplicate function names
         StellarFunctionInfo fnSameName = functions.get(fn.getName());
         if (fnSameName != null && ObjectUtils.notEqual(fnSameName, fn)) {
-          String msg = String.format("Namespace conflict: duplicate function names; `%s` implemented by [%s, %s]",
-                  fn.getName(), fnSameName.getFunction(), fn.getFunction());
-          throw new IllegalStateException(msg);
+          throw new IllegalStateException(format(
+                  "Namespace conflict: duplicate function names; `%s` implemented by [%s, %s]",
+                  fn.getName(), fnSameName.getFunction(), fn.getFunction()));
         }
 
         functions.put(fn.getName(), fn);
@@ -157,7 +163,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   }
 
   /**
-   * Find the fully-qualified function name.
+   * Returns the fully-qualified function name from a Stellar annotation.
    * @param annotation The Stellar annotation.
    */
   public static String getNameFromAnnotation(Stellar annotation) {
@@ -183,8 +189,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
 
   /**
    * Instantiate the StellarFunction implementation class.
-   * @param clazz
-   * @return
+   * @param clazz The class containing a Stellar function definition.
    */
   public static StellarFunction createFunction(Class<? extends StellarFunction> clazz) {
     try {

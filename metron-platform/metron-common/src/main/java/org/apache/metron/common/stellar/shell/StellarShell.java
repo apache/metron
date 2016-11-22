@@ -29,10 +29,10 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
-import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.apache.metron.common.utils.JSONUtils;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.complete.Completion;
@@ -40,7 +40,6 @@ import org.jboss.aesh.console.AeshConsoleCallback;
 import org.jboss.aesh.console.Console;
 import org.jboss.aesh.console.ConsoleOperation;
 import org.jboss.aesh.console.Prompt;
-import org.jboss.aesh.console.settings.Settings;
 import org.jboss.aesh.console.settings.SettingsBuilder;
 import org.jboss.aesh.terminal.CharacterType;
 import org.jboss.aesh.terminal.Color;
@@ -49,10 +48,11 @@ import org.jboss.aesh.terminal.TerminalColor;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -82,11 +82,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     add(new TerminalCharacter(' ', new TerminalColor(Color.DEFAULT, Color.DEFAULT)));
   }};
 
-  private static final String ERROR_PROMPT = "[!] ";
+  public static final String ERROR_PROMPT = "[!] ";
   public static final String MAGIC_PREFIX = "%";
   public static final String MAGIC_FUNCTIONS = MAGIC_PREFIX + "functions";
   public static final String MAGIC_VARS = MAGIC_PREFIX + "vars";
   public static final String DOC_PREFIX = "?";
+  public static final String STELLAR_PROPERTIES_FILENAME = "stellar.properties";
 
   private StellarExecutor executor;
 
@@ -123,37 +124,72 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       formatter.printHelp("stellar", options);
       System.exit(0);
     }
+
+    console = createConsole(commandLine);
+    Properties properties = getStellarProperties();
+
+    // create the executor
+    if(commandLine.hasOption("z")) {
+      String zookeeperUrl = commandLine.getOptionValue("z");
+      executor = new StellarExecutor(zookeeperUrl, console, properties);
+
+    } else {
+      executor = new StellarExecutor(console, properties);
+    }
+
+    // -v load any variables defined externally
+    if(commandLine.hasOption("v")) {
+      Map<String, Object> variables = JSONUtils.INSTANCE.load(
+              new File(commandLine.getOptionValue("v")),
+              new TypeReference<Map<String, Object>>() {});
+      for(Map.Entry<String, Object> kv : variables.entrySet()) {
+        executor.assign(kv.getKey(), null, kv.getValue());
+      }
+    }
+
+    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
+    console.addCompletion(this);
+    console.setConsoleCallback(this);
+  }
+
+  /**
+   * Creates the REPL's console.
+   * @param commandLine The command line options.
+   */
+  private Console createConsole(CommandLine commandLine) {
+
+    // console settings
     boolean useAnsi = !commandLine.hasOption("na");
     SettingsBuilder settings = new SettingsBuilder().enableAlias(true)
                                                     .enableMan(true)
                                                     .ansi(useAnsi)
                                                     .parseOperators(false)
-                                                    .inputStream(PausableInput.INSTANCE)
-                                                    ;
+                                                    .inputStream(PausableInput.INSTANCE);
+
     if(commandLine.hasOption("irc")) {
       settings = settings.inputrc(new File(commandLine.getOptionValue("irc")));
     }
 
-    console = new Console(settings.create());
-    // create the executor
-    if(commandLine.hasOption("z")) {
-      String zookeeperUrl = commandLine.getOptionValue("z");
-      executor = new StellarExecutor(zookeeperUrl, console);
+    return new Console(settings.create());
+  }
+
+  /**
+   * Retrieves the Stellar properties. The properties are either loaded from a file in
+   * the classpath or a set of defaults are used.
+   */
+  private Properties getStellarProperties() throws IOException {
+    // stellar properties
+    Properties properties = new Properties();
+
+    InputStream in = getClass().getClassLoader().getResourceAsStream(STELLAR_PROPERTIES_FILENAME);
+    if(in != null) {
+      properties.load(in);
 
     } else {
-      executor = new StellarExecutor(console);
+      addDefaultStellarProperties(properties);
     }
 
-    if(commandLine.hasOption("v")) {
-      Map<String, Object> variables = JSONUtils.INSTANCE.load(new File(commandLine.getOptionValue("v")), new TypeReference<Map<String, Object>>() {
-      });
-      for(Map.Entry<String, Object> kv : variables.entrySet()) {
-        executor.assign(kv.getKey(), null, kv.getValue());
-      }
-    }
-    console.setPrompt(new Prompt(EXPRESSION_PROMPT));
-    console.addCompletion(this);
-    console.setConsoleCallback(this);
+    return properties;
   }
 
   /**
@@ -168,6 +204,15 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
             .ifPresent(conf -> writeLine(conf.toString()));
 
     console.start();
+  }
+
+  /**
+   * Adds default Stellar properties.  Only used if there is no 'stellar.properties' file.
+   */
+  private void addDefaultStellarProperties(Properties props) {
+
+    // only functions defined by metron are resolved, by default
+    props.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.*");
   }
 
   /**
