@@ -276,8 +276,12 @@ public class StellarTest {
       Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
-      String query = "TO_LONG(bob)";
-      Assert.assertNull(run(query,new HashMap<>()));
+      String query = "TO_LONG(foo)";
+      Assert.assertNull(run(query,ImmutableMap.of("foo","not a number")));
+    }
+    {
+      String query = "TO_LONG(foo)";
+      Assert.assertEquals(new Long(232321L),run(query,ImmutableMap.of("foo","00232321")));
     }
     {
       String query = "TO_LONG(foo)";
