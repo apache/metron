@@ -45,12 +45,13 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
         metronEnrichmentMaster = self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER")[0]
         metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
         metronEnrichmentMysqlServer = self.getHosts(componentsList, "METRON_ENRICHMENT_MYSQL_SERVER")[0]
+
         hbaseClientHosts = self.getHosts(componentsList, "HBASE_CLIENT")
         hdfsClientHosts = self.getHosts(componentsList, "HDFS_CLIENT")
+        zookeeperClientHosts = self.getHosts(componentsList, "ZOOKEEPER_CLIENT")
 
         kafkaBrokers = self.getHosts(componentsList, "KAFKA_BROKER")
         stormSupervisors = self.getHosts(componentsList, "SUPERVISOR")
-        zookeeperClientHosts = self.getHosts(componentsList, "ZOOKEEPER_CLIENT")
 
         items = []
 
