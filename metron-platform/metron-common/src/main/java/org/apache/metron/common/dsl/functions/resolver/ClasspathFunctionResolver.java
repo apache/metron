@@ -130,16 +130,16 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
 
       Optional<Object> optional = context.getCapability(STELLAR_CONFIG, false);
       if (optional.isPresent()) {
-        Map<String, String> stellarConfig = (Map<String, String>) optional.get();
+        Map<String, Object> stellarConfig = (Map<String, Object>) optional.get();
 
         // handle any includes
-        String includes = stellarConfig.getOrDefault(STELLAR_SEARCH_INCLUDES_KEY, "");
+        String includes = (String) stellarConfig.getOrDefault(STELLAR_SEARCH_INCLUDES_KEY, "");
         if(StringUtils.isNotBlank(includes)) {
           include(includes.split(STELLAR_SEARCH_DELIMS));
         }
 
         // handle any excludes
-        String excludes = stellarConfig.getOrDefault(STELLAR_SEARCH_EXCLUDES_KEY, "");
+        String excludes = (String) stellarConfig.getOrDefault(STELLAR_SEARCH_EXCLUDES_KEY, "");
         if(StringUtils.isNotBlank(excludes)) {
           exclude(excludes.split(STELLAR_SEARCH_DELIMS));
         }
