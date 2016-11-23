@@ -110,7 +110,9 @@ if has_kafka_host:
     kafka_brokers += ':' + kafka_broker_port
 
 metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
-metron_apps_enrichment_dir = metron_apps_hdfs_dir + '/enrichment'
+# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
+# well enough until we find a better way via Ambari
+metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_indexed_hdfs_dir']))
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")

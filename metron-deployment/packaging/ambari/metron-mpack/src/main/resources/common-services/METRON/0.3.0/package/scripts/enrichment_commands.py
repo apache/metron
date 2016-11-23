@@ -104,15 +104,6 @@ class EnrichmentCommands:
                                         retention_bytes))
         Logger.info("Done creating Kafka topics")
 
-    def init_hdfs_dir(self):
-        self.__params.HdfsResource(self.__params.metron_apps_enrichment_dir,
-                                   type="directory",
-                                   action="create_on_execute",
-                                   owner=self.__params.metron_user,
-                                   group=self.__params.user_group,
-                                   mode=0775,
-                                   )
-
     def start_enrichment_topology(self):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
         start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
