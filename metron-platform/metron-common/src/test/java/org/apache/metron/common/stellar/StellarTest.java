@@ -21,6 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -33,6 +34,7 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.util.*;
 
+import static java.util.function.Function.identity;
 import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
 
 public class StellarTest {
@@ -590,6 +592,39 @@ public class StellarTest {
     Assert.assertFalse(runPredicate("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("foo in myList", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("foo not in myList", v -> variableMap.get(v)));
+  }
+
+  @Test
+  public void testLeftRightFills() throws Exception{
+    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
+      put("foo", null);
+      put("bar", null);
+      put("notInt","oh my");
+    }};
+
+    Object left = run("FILL_LEFT('123','X', 10)",new HashedMap());
+    Object right = run("FILL_RIGHT('123','X', 10)", new HashedMap());
+    Object same = run("FILL_RIGHT('123','X', 3)", new HashedMap());
+    Object nullIn = run("FILL_RIGHT('123',foo,bar)", variableMap);
+    Object notInt= run("FILL_RIGHT('123',foo, notInt)", variableMap);
+    boolean thrown = false;
+    try {
+      Object badParms = run("FILL_RIGHT('123',foo)", variableMap);
+    }catch(ParseException p){
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+    Assert.assertNotNull(left);
+    Assert.assertNotNull(right);
+    Assert.assertNotNull(nullIn);
+    Assert.assertEquals(10,((String)left).length());
+    Assert.assertEquals(10,((String)right).length());
+    Assert.assertEquals(3,((String)same).length());
+    Assert.assertEquals("XXXXXXX123",(String)left);
+    Assert.assertEquals("123XXXXXXX",(String)right);
+    Assert.assertEquals("123",(String)same);
+    Assert.assertEquals("123",(String)nullIn);
+    Assert.assertEquals("123",(String)notInt);
   }
 
   @Test
