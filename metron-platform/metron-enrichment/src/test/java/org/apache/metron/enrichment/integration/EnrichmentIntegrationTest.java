@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
 
 import com.google.common.collect.Iterables;
+import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
@@ -36,6 +37,7 @@ import org.apache.metron.integration.*;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.enrichment.integration.mock.MockGeoAdapter;
@@ -438,43 +440,44 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
     return ret;
   }
-
+  List<Map<String,Object>> docs;
+  @SuppressWarnings("unchecked")
   public Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages) {
-    return new Processor<List<Map<String, Object>>>() {
-      List<Map<String, Object>> docs = null;
-      List<byte[]> errors = null;
-      List<byte[]> invalids = null;
 
-      public ReadinessState process(ComponentRunner runner) {
-        KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
-        List<byte[]> messages = kafkaComponent.readMessages(Constants.INDEXING_TOPIC);
-        if (messages.size() == inputMessages.size()) {
-          docs = new ArrayList<>();
-          for(byte[] message : messages) {
-            try {
-              docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {}));
-            } catch (IOException e) {
-              throw new IllegalStateException(e.getMessage(), e);
-            }
-          }
-          return ReadinessState.READY;
-        } else {
-          errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
-          invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
-          if(errors.size() > 0 || invalids.size() > 0) {
-            messages = messages;
-            return ReadinessState.READY;
-          }
-          return ReadinessState.NOT_READY;
-        }
-      }
-
-      public ProcessorResult<List<Map<String, Object>>> getResult()
-      {
-        ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
-        return builder.withResult(docs).withProcessErrors(errors).withProcessInvalids(invalids).build();
-      }
-    };
+    KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
+            .withReadTopic(Constants.INDEXING_TOPIC)
+            .withErrorTopic(Constants.ERROR_STREAM)
+            .withInvalidTopic(Constants.INVALID_STREAM)
+            .withValidateReadMessages(new Function<List<byte[]>, Boolean>() {
+              @Nullable
+              @Override
+              public Boolean apply(@Nullable List<byte[]> messages) {
+                return messages.size() == inputMessages.size();
+              }
+            })
+            .withHandleReadMessages(new Function<List<byte[]>, ReadinessState>() {
+              @Nullable
+              @Override
+              public ReadinessState apply(@Nullable List<byte[]> messages) {
+                docs = new ArrayList<>();
+                for (byte[] message : messages) {
+                  try {
+                    docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {
+                    }));
+                  } catch (IOException e) {
+                    throw new IllegalStateException(e.getMessage(), e);
+                  }
+                }
+                return ReadinessState.READY;
+              }
+            })
+            .withProvideResult(new Function<KafkaProcessor, List<Map<String, Object>>>() {
+              @Nullable
+              @Override
+              public List<Map<String, Object>> apply(@Nullable KafkaProcessor o) {
+                return docs;
+              }
+            });
+    return kafkaProcessor;
   }
-
 }
