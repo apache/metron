@@ -95,6 +95,11 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
     state.put(variable, result);
   }
 
+  @Override
+  public void assign(String variable, Object value) {
+    state.put(variable, value);
+  }
+
   /**
    * Execute a Stellar expression and return the result.  The internal state of the executor
    * is not modified.
