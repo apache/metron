@@ -17,27 +17,35 @@
  */
 package org.apache.metron.parsers.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Function;
+import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import junit.framework.Assert;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
-
+  protected List<byte[]> inputMessages;
   @Test
   public void test() throws Exception {
     final String sensorType = getSensorType();
-    final List<byte[]> inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
+    inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
 
     final Properties topologyProperties = new Properties();
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -71,34 +79,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     runner.start();
     try {
       kafkaComponent.writeMessages(sensorType, inputMessages);
-      ProcessorResult<List<byte[]>> result =
-              runner.process(new Processor<List<byte[]>>() {
-                List<byte[]> messages = null;
-                List<byte[]> errors = null;
-                List<byte[]> invalids = null;
-
-                public ReadinessState process(ComponentRunner runner) {
-                  KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
-                  List<byte[]> outputMessages = kafkaComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                  if (outputMessages.size() == inputMessages.size()) {
-                    messages = outputMessages;
-                    return ReadinessState.READY;
-                  } else {
-                    errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
-                    invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
-                    if(errors.size() > 0 || invalids.size() > 0) {
-                      messages = outputMessages;
-                      return ReadinessState.READY;
-                    }
-                    return ReadinessState.NOT_READY;
-                  }
-                }
-
-                public ProcessorResult<List<byte[]>> getResult() {
-                  ProcessorResult.Builder<List<byte[]>> builder = new ProcessorResult.Builder();
-                  return builder.withResult(messages).withProcessErrors(errors).withProcessInvalids(invalids).build();
-                }
-              });
+      ProcessorResult<List<byte[]>> result = runner.process(getProcessor());
       List<byte[]> outputMessages = result.getResult();
       StringBuffer buffer = new StringBuffer();
       if (result.failed()){
@@ -130,6 +111,29 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @SuppressWarnings("unchecked")
+  private KafkaProcessor<List<byte[]>> getProcessor(){
+
+    return new KafkaProcessor<>()
+            .withKafkaComponentName("kafka")
+            .withReadTopic(Constants.ENRICHMENT_TOPIC)
+            .withErrorTopic(Constants.ERROR_STREAM)
+            .withInvalidTopic(Constants.INVALID_STREAM)
+            .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
+              @Nullable
+              @Override
+              public Boolean apply(@Nullable KafkaMessageSet messageSet) {
+                return messageSet.getMessages().size() == inputMessages.size();
+              }
+            })
+            .withProvideResult(new Function<KafkaMessageSet,List<byte[]>>(){
+              @Nullable
+              @Override
+              public List<byte[]> apply(@Nullable KafkaMessageSet messageSet) {
+                  return messageSet.getMessages();
+              }
+            });
+  }
   abstract String getSensorType();
   abstract List<ParserValidation> getValidations();
 

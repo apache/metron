@@ -23,6 +23,7 @@ import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.KafkaMessageSet;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,9 +32,10 @@ public class KafkaProcessor<T> implements Processor<T> {
     private String readTopic;
     private String errorTopic;
     private String invalidTopic;
+    private List<byte[]> messages = new LinkedList<>();
     private List<byte[]> errors = new LinkedList<>();
     private List<byte[]> invalids = new LinkedList<>();
-    public Object cookie;
+    private boolean readErrorsBefore = false;
 
     public KafkaProcessor(){}
     public KafkaProcessor withKafkaComponentName(String name){
@@ -52,44 +54,48 @@ public class KafkaProcessor<T> implements Processor<T> {
         this.invalidTopic = topicName;
         return this;
     }
-    public KafkaProcessor withValidateReadMessages(Function<List<byte[]>, Boolean> validate){
+    public KafkaProcessor withValidateReadMessages(Function<KafkaMessageSet, Boolean> validate){
         this.validateReadMessages = validate;
         return this;
     }
-    public KafkaProcessor withHandleReadMessages(Function<List<byte[]>, ReadinessState> handle){
-        this.handleReadMessages = handle;
-        return this;
-    }
-    public KafkaProcessor withProvideResult(Function<KafkaProcessor<T>, T> provide){
+    public KafkaProcessor withProvideResult(Function<KafkaMessageSet, T> provide){
         this.provideResult = provide;
         return this;
     }
-
-
-    private Function<List<byte[]>, Boolean> validateReadMessages;
-    private Function<List<byte[]>, ReadinessState> handleReadMessages;
-    private Function<KafkaProcessor<T>,T> provideResult;
-
-    public Object getCookie(){
-        return this.cookie;
+    public KafkaProcessor withReadErrorsBefore(boolean flag){
+        this.readErrorsBefore = flag;
+        return this;
     }
+
+    private Function<KafkaMessageSet, Boolean> validateReadMessages;
+    private Function<KafkaMessageSet,T> provideResult;
 
     public ReadinessState process(ComponentRunner runner){
         KafkaComponent kafkaComponent = runner.getComponent(kafkaComponentName, KafkaComponent.class);
-        List<byte[]> messages = kafkaComponent.readMessages(readTopic);
-        if(errorTopic != null) {
-            errors.addAll(kafkaComponent.readMessages(errorTopic));
+        messages.addAll(kafkaComponent.readMessages(readTopic));
+        if(readErrorsBefore) {
+            if (errorTopic != null) {
+                errors.addAll(kafkaComponent.readMessages(errorTopic));
+            }
+            if (invalidTopic != null) {
+                invalids.addAll(kafkaComponent.readMessages(invalidTopic));
+            }
         }
-        if(invalidTopic != null) {
-            invalids.addAll(kafkaComponent.readMessages(invalidTopic));
-        }
-        Boolean validated = validateReadMessages.apply(messages);
+        Boolean validated = validateReadMessages.apply(new KafkaMessageSet(messages,errors,invalids));
         if(validated == null){
             validated = false;
         }
         if(validated){
-            return handleReadMessages.apply(messages);
+            return ReadinessState.READY;
         }else{
+            if(!readErrorsBefore){
+                if (errorTopic != null) {
+                    errors.addAll(kafkaComponent.readMessages(errorTopic));
+                }
+                if (invalidTopic != null) {
+                    invalids.addAll(kafkaComponent.readMessages(invalidTopic));
+                }
+            }
             if(errors.size() > 0 || invalids.size() > 0) {
                 return ReadinessState.READY;
             }
@@ -99,6 +105,8 @@ public class KafkaProcessor<T> implements Processor<T> {
     @SuppressWarnings("unchecked")
     public ProcessorResult<T> getResult(){
         ProcessorResult.Builder<T> builder = new ProcessorResult.Builder();
-        return builder.withResult(provideResult.apply(this)).withProcessErrors(errors).withProcessInvalids(invalids).build();
+        return builder.withResult(provideResult.apply(new KafkaMessageSet(messages,errors,invalids))).withProcessErrors(errors).withProcessInvalids(invalids).build();
     }
 }
+
+

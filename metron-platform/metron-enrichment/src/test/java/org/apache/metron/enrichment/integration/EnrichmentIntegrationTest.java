@@ -37,6 +37,7 @@ import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.integration.*;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
@@ -446,27 +447,28 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
     return ret;
   }
-  List<Map<String,Object>> docs;
+
   @SuppressWarnings("unchecked")
-  public Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages) {
+  private Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages) {
 
     KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
             .withReadTopic(Constants.INDEXING_TOPIC)
             .withErrorTopic(Constants.ENRICHMENT_ERROR_TOPIC)
             .withInvalidTopic(Constants.INVALID_STREAM)
-            .withValidateReadMessages(new Function<List<byte[]>, Boolean>() {
+            .withReadErrorsBefore(true)
+            .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
-              public Boolean apply(@Nullable List<byte[]> messages) {
-                return messages.size() == inputMessages.size();
+              public Boolean apply(@Nullable KafkaMessageSet messageSet) {
+                return messageSet.getMessages().size() == inputMessages.size();
               }
             })
-            .withHandleReadMessages(new Function<List<byte[]>, ReadinessState>() {
+            .withProvideResult(new Function<KafkaMessageSet , List<Map<String, Object>>>() {
               @Nullable
               @Override
-              public ReadinessState apply(@Nullable List<byte[]> messages) {
-                docs = new ArrayList<>();
-                for (byte[] message : messages) {
+              public List<Map<String, Object>> apply(@Nullable KafkaMessageSet messageSet) {
+                List<Map<String,Object>> docs = new ArrayList<>();
+                for (byte[] message : messageSet.getMessages()) {
                   try {
                     docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {
                     }));
@@ -474,54 +476,9 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                     throw new IllegalStateException(e.getMessage(), e);
                   }
                 }
-                return ReadinessState.READY;
-              }
-            })
-            .withProvideResult(new Function<KafkaProcessor, List<Map<String, Object>>>() {
-              @Nullable
-              @Override
-              public List<Map<String, Object>> apply(@Nullable KafkaProcessor o) {
                 return docs;
               }
             });
     return kafkaProcessor;
   }
-    /*
-    return new Processor<List<Map<String, Object>>>() {
-      List<Map<String, Object>> docs = null;
-      List<byte[]> errors = null;
-      List<byte[]> invalids = null;
-
-      public ReadinessState process(ComponentRunner runner) {
-        KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
-        List<byte[]> messages = kafkaComponent.readMessages(Constants.INDEXING_TOPIC);
-        if (messages.size() == inputMessages.size()) {
-          docs = new ArrayList<>();
-          for(byte[] message : messages) {
-            try {
-              docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {}));
-            } catch (IOException e) {
-              throw new IllegalStateException(e.getMessage(), e);
-            }
-          }
-          return ReadinessState.READY;
-        } else {
-          errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
-          invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
-          if(errors.size() > 0 || invalids.size() > 0) {
-            messages = messages;
-            return ReadinessState.READY;
-          }
-          return ReadinessState.NOT_READY;
-        }
-      }
-
-      public ProcessorResult<List<Map<String, Object>>> getResult()
-      {
-        ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
-        return builder.withResult(docs).withProcessErrors(errors).withProcessInvalids(invalids).build();
-      }
-    };
-  }*/
-
 }
