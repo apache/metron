@@ -7,7 +7,7 @@ categories: [team]
 ---
 
 I am very pleased to announce that the Podling Project Management
-Committee (PPMC) of Apache Metron has asked Debo Dutta to become an
+Committee (PPMC) of Apache Metron (Incubating) has asked Debo Dutta to become an
 Apache Metron committer, and he has already accepted.
 
 Debo has already made many contributions to Metron community, working
