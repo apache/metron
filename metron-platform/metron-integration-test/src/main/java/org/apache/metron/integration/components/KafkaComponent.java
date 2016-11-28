@@ -19,8 +19,6 @@ package org.apache.metron.integration.components;
 
 
 import com.google.common.base.Function;
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -31,30 +29,23 @@ import kafka.javaapi.FetchResponse;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
+import kafka.server.*;
+import kafka.utils.TestUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
 import kafka.utils.*;
-import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.wrapper.AdminUtilsWrapper;
 import org.apache.metron.integration.wrapper.TestUtilsWrapper;
-import org.apache.zookeeper.server.NIOServerCnxnFactory;
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.metron.test.utils.UnitTestHelper;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Level;
 
 
-public class KafkaWithZKComponent implements InMemoryComponent {
-
-  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
+public class KafkaComponent implements InMemoryComponent {
 
   public static class Topic {
     public int numPartitions;
@@ -66,28 +57,30 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     }
   }
   private transient KafkaServer kafkaServer;
-  private transient EmbeddedZookeeper zkServer;
   private transient ZkClient zkClient;
   private transient ConsumerConnector consumer;
   private String zookeeperConnectString;
-//  def zkPort: Int = zookeeper.port
-//  def zkConnect: String = s
+  private Properties topologyProperties;
 
   private int brokerPort = 6667;
   private List<Topic> topics = Collections.emptyList();
-  private Function<KafkaWithZKComponent, Void> postStartCallback;
+  private Function<KafkaComponent, Void> postStartCallback;
 
-  public KafkaWithZKComponent withPostStartCallback(Function<KafkaWithZKComponent, Void> f) {
+  public KafkaComponent withPostStartCallback(Function<KafkaComponent, Void> f) {
     postStartCallback = f;
     return this;
   }
 
-  public KafkaWithZKComponent withExistingZookeeper(String zookeeperConnectString) {
+  public KafkaComponent withExistingZookeeper(String zookeeperConnectString) {
     this.zookeeperConnectString = zookeeperConnectString;
     return this;
   }
 
-  public KafkaWithZKComponent withBrokerPort(int brokerPort) {
+  public KafkaComponent withTopologyProperties(Properties properties){
+    this.topologyProperties = properties;
+    return this;
+  }
+  public KafkaComponent withBrokerPort(int brokerPort) {
     if(brokerPort <= 0)
     {
       brokerPort = TestUtils.RandomPort();
@@ -97,7 +90,7 @@ public class KafkaWithZKComponent implements InMemoryComponent {
     return this;
   }
 
-  public KafkaWithZKComponent withTopics(List<Topic> topics) {
+  public KafkaComponent withTopics(List<Topic> topics) {
     this.topics = topics;
     return this;
   }
@@ -141,22 +134,22 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   @Override
   public void start() {
     // setup Zookeeper
-    if(zookeeperConnectString == null) {
-//    String zkConnect = TestZKUtils.zookeeperConnect();
-//    zkServer = new EmbeddedZookeeper(zkConnect);
-//    zookeeperConnectString = zkServer.connectString();
-      EmbeddedZookeeper ezk = new EmbeddedZookeeper();
-      zookeeperConnectString = "127.0.0.1:" + ezk.port();
-    }
+    zookeeperConnectString = topologyProperties.getProperty("kafka.zk");
+
     zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 
     // setup Broker
-//    Properties props = TestUtilsWrapper.createBrokerConfig(0, brokerPort, true);
     Properties props = TestUtilsWrapper.createBrokerConfig(0, zookeeperConnectString, brokerPort);
     props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
+
+    org.apache.log4j.Level oldLevel = UnitTestHelper.getLog4jLevel(KafkaServer.class);
+    UnitTestHelper.setLog4jLevel(KafkaServer.class, org.apache.log4j.Level.OFF);
+    // do not proceed until the broker is up
+    TestUtilsWrapper.waitUntilBrokerIsRunning(kafkaServer,"Timed out waiting for RunningAsBroker State",100000);
+
     for(Topic topic : getTopics()) {
       try {
         createTopic(topic.name, topic.numPartitions, true);
@@ -164,7 +157,10 @@ public class KafkaWithZKComponent implements InMemoryComponent {
         throw new RuntimeException("Unable to create topic", e);
       }
     }
-    postStartCallback.apply(this);
+    UnitTestHelper.setLog4jLevel(KafkaServer.class, oldLevel);
+    if(postStartCallback != null) {
+      postStartCallback.apply(this);
+    }
   }
 
   public String getZookeeperConnect() {
@@ -173,14 +169,13 @@ public class KafkaWithZKComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
+    shutdownConsumer();
     if(kafkaServer != null) {
       kafkaServer.shutdown();
+      kafkaServer.awaitShutdown();
     }
     if(zkClient != null) {
       zkClient.close();
-    }
-    if(zkServer != null) {
-      zkServer.shutdown();
     }
   }
 
@@ -208,7 +203,6 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
   public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic, String group, String consumerName) {
     // setup simple consumer
-//    Properties consumerProperties = TestUtils.createConsumerProperties(zkServer.connectString(), group, consumerName, -1);
     Properties consumerProperties = TestUtils.createConsumerProperties(zookeeperConnectString, group, consumerName, -1);
     consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
@@ -220,7 +214,9 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
 
   public void shutdownConsumer() {
-    consumer.shutdown();
+    if(consumer != null) {
+      consumer.shutdown();
+    }
   }
 
   public void createTopic(String name) throws InterruptedException {
@@ -236,24 +232,29 @@ public class KafkaWithZKComponent implements InMemoryComponent {
   }
 
   public void createTopic(String name, int numPartitions, boolean waitUntilMetadataIsPropagated) throws InterruptedException {
+    ZkUtils zkUtils = null;
+    Level oldLevel = UnitTestHelper.getJavaLoggingLevel();
     try {
-      ZkUtils zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
+      UnitTestHelper.setJavaLoggingLevel(Level.OFF);
+      zkUtils = ZkUtils.apply(zookeeperConnectString, 30000, 30000, false);
       AdminUtilsWrapper.createTopic(zkUtils, name, numPartitions, 1, new Properties());
-//      AdminUtils.createTopic(zkClient, name, numPartitions, 1, new Properties());
       if (waitUntilMetadataIsPropagated) {
         waitUntilMetadataIsPropagated(name, numPartitions);
       }
-    }
-    catch(TopicExistsException tee) {
-
+    }catch(TopicExistsException tee) {
+    }finally {
+      if(zkUtils != null){
+        zkUtils.close();
+      }
+      UnitTestHelper.setJavaLoggingLevel(oldLevel);
     }
   }
 
   public void writeMessages(String topic, Collection<byte[]> messages) {
-    KafkaProducer<String, byte[]> kafkaProducer = createProducer();
-    for(byte[] message: messages) {
-      kafkaProducer.send(new ProducerRecord<String, byte[]>(topic, message));
+    try(KafkaProducer<String, byte[]> kafkaProducer = createProducer()) {
+      for (byte[] message : messages) {
+        kafkaProducer.send(new ProducerRecord<String, byte[]>(topic, message));
+      }
     }
-    kafkaProducer.close();
   }
 }

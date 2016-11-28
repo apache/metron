@@ -23,7 +23,8 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -51,7 +52,8 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   private static final String message3 = "{ \"ip_src_addr\": \"10.0.0.1\", \"value\": 29011 }";
 
   private static Map<String, Object> variables = new HashMap<>();
-  private static KafkaWithZKComponent kafkaComponent;
+  private static ZKServerComponent zkServerComponent;
+  private static KafkaComponent kafkaComponent;
   private static ComponentRunner runner;
   private static Properties global;
 
@@ -59,12 +61,15 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   public static void setupKafka() throws Exception {
 
     Properties properties = new Properties();
+    zkServerComponent = getZKServerComponent(properties);
     kafkaComponent = getKafkaComponent(properties, new ArrayList<>());
 
     runner = new ComponentRunner.Builder()
+            .withComponent("zk", zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withMillisecondsBetweenAttempts(5000)
             .withNumRetries(5)
+            .withCustomShutdownOrder(new String[]{"kafka","zk"})
             .build();
     runner.start();
   }

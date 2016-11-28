@@ -59,13 +59,9 @@ public class ConfigurationsUtils {
   }
 
   public static void writeGlobalConfigToZookeeper(byte[] globalConfig, String zookeeperUrl) throws Exception {
-    CuratorFramework client = getClient(zookeeperUrl);
-    client.start();
-    try {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
       writeGlobalConfigToZookeeper(globalConfig, client);
-    }
-    finally {
-      client.close();
     }
   }
 
@@ -84,13 +80,9 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
-    CuratorFramework client = getClient(zookeeperUrl);
-    client.start();
-    try {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
       writeSensorParserConfigToZookeeper(sensorType, configData, client);
-    }
-    finally {
-      client.close();
     }
   }
 
@@ -105,13 +97,9 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
-    CuratorFramework client = getClient(zookeeperUrl);
-    client.start();
-    try {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
       writeSensorEnrichmentConfigToZookeeper(sensorType, configData, client);
-    }
-    finally {
-      client.close();
     }
   }
 
@@ -128,13 +116,9 @@ public class ConfigurationsUtils {
   }
 
   public static void writeConfigToZookeeper(String name, byte[] config, String zookeeperUrl) throws Exception {
-    CuratorFramework client = getClient(zookeeperUrl);
-    client.start();
-    try {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
       writeToZookeeper(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name, config, client);
-    }
-    finally {
-      client.close();
     }
   }
 

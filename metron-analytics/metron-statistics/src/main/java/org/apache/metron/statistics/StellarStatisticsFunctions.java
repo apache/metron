@@ -18,13 +18,10 @@
  *
  */
 
-package org.apache.metron.common.dsl.functions;
+package org.apache.metron.statistics;
 
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.math.stats.OnlineStatisticsProvider;
-import org.apache.metron.common.math.stats.StatisticsProvider;
-import org.apache.metron.common.math.stats.WindowedStatisticsProvider;
 
 import java.util.Collections;
 import java.util.List;
