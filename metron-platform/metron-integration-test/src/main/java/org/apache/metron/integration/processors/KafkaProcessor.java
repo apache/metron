@@ -77,6 +77,12 @@ public class KafkaProcessor<T> implements Processor<T> {
     public ReadinessState process(ComponentRunner runner){
         KafkaComponent kafkaComponent = runner.getComponent(kafkaComponentName, KafkaComponent.class);
         List<byte[]> messages = kafkaComponent.readMessages(readTopic);
+        if(errorTopic != null) {
+            errors.addAll(kafkaComponent.readMessages(errorTopic));
+        }
+        if(invalidTopic != null) {
+            invalids.addAll(kafkaComponent.readMessages(invalidTopic));
+        }
         Boolean validated = validateReadMessages.apply(messages);
         if(validated == null){
             validated = false;
@@ -84,14 +90,7 @@ public class KafkaProcessor<T> implements Processor<T> {
         if(validated){
             return handleReadMessages.apply(messages);
         }else{
-            if(errorTopic != null) {
-                errors.addAll(kafkaComponent.readMessages(errorTopic));
-            }
-            if(invalidTopic != null) {
-                invalids.addAll(kafkaComponent.readMessages(invalidTopic));
-            }
             if(errors.size() > 0 || invalids.size() > 0) {
-                messages = messages;
                 return ReadinessState.READY;
             }
             return ReadinessState.NOT_READY;
