@@ -27,6 +27,7 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
@@ -105,11 +106,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
+      setProperty("enrichment.error.topic", Constants.ENRICHMENT_ERROR_TOPIC);
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.ENRICHMENT_ERROR_TOPIC, 1));
     }});
     String globalConfigStr = null;
     {
@@ -165,18 +168,14 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
       ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor(inputMessages));
+      // We expect failures, so we don't care if result returned failure or not
       List<Map<String, Object>> docs = result.getResult();
-      if (result.failed()){
-        StringBuffer buffer = new StringBuffer();
-        result.getBadResults(buffer);
-        buffer.append(String.format("%d Valid Messages Processed", docs.size())).append("\n");
-        dumpParsedMessages(docs,buffer);
-        Assert.fail(buffer.toString());
-      } else {
-        Assert.assertEquals(inputMessages.size(), docs.size());
-        List<Map<String, Object>> cleanedDocs = docs;
-        validateAll(cleanedDocs);
-      }
+      Assert.assertEquals(inputMessages.size(), docs.size());
+      validateAll(docs);
+
+      List<byte[]> errors = result.getProcessErrors();
+      Assert.assertEquals(inputMessages.size(), errors.size());
+      validateErrors(result.getProcessErrors());
     } finally {
       runner.stop();
     }
@@ -198,6 +197,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       geoEnrichmentValidation(doc);
       threatIntelValidation(doc);
       simpleEnrichmentValidation(doc);
+    }
+  }
+
+  protected void validateErrors(List<byte[]> errors) {
+    for(byte[] error : errors) {
+      // Don't reconstruct the entire message, just ensure it contains the known error message inside.
+      Assert.assertTrue(new String(error).contains(ErrorEnrichmentBolt.TEST_ERROR_MESSAGE));
     }
   }
 
@@ -446,7 +452,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
     KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
             .withReadTopic(Constants.INDEXING_TOPIC)
-            .withErrorTopic(Constants.ERROR_STREAM)
+            .withErrorTopic(Constants.ENRICHMENT_ERROR_TOPIC)
             .withInvalidTopic(Constants.INVALID_STREAM)
             .withValidateReadMessages(new Function<List<byte[]>, Boolean>() {
               @Nullable
@@ -480,4 +486,42 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             });
     return kafkaProcessor;
   }
+    /*
+    return new Processor<List<Map<String, Object>>>() {
+      List<Map<String, Object>> docs = null;
+      List<byte[]> errors = null;
+      List<byte[]> invalids = null;
+
+      public ReadinessState process(ComponentRunner runner) {
+        KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
+        List<byte[]> messages = kafkaComponent.readMessages(Constants.INDEXING_TOPIC);
+        if (messages.size() == inputMessages.size()) {
+          docs = new ArrayList<>();
+          for(byte[] message : messages) {
+            try {
+              docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {}));
+            } catch (IOException e) {
+              throw new IllegalStateException(e.getMessage(), e);
+            }
+          }
+          return ReadinessState.READY;
+        } else {
+          errors = kafkaComponent.readMessages(Constants.ERROR_STREAM);
+          invalids = kafkaComponent.readMessages(Constants.INVALID_STREAM);
+          if(errors.size() > 0 || invalids.size() > 0) {
+            messages = messages;
+            return ReadinessState.READY;
+          }
+          return ReadinessState.NOT_READY;
+        }
+      }
+
+      public ProcessorResult<List<Map<String, Object>>> getResult()
+      {
+        ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
+        return builder.withResult(docs).withProcessErrors(errors).withProcessInvalids(invalids).build();
+      }
+    };
+  }*/
+
 }
