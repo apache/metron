@@ -17,13 +17,10 @@
  */
 package org.apache.metron.parsers.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
-import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import junit.framework.Assert;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;

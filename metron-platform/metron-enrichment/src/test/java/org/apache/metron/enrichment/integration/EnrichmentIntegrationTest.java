@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
 
 import com.google.common.collect.Iterables;
-import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
