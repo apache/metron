@@ -23,7 +23,6 @@ import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.components.KafkaMessageSet;
 
 import java.util.LinkedList;
 import java.util.List;

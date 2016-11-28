@@ -36,7 +36,7 @@ import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.integration.*;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.components.KafkaMessageSet;
+import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;

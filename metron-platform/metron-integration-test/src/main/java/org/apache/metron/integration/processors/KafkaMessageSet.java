@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.integration.components;
+package org.apache.metron.integration.processors;
 
 import java.util.List;
 
