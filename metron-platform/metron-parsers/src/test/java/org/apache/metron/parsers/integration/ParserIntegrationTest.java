@@ -51,6 +51,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(sensorType, 1));
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.INVALID_STREAM,1));
+      add(new KafkaComponent.Topic(Constants.ERROR_STREAM,1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
@@ -73,7 +75,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
-            .withNumRetries(10)
+            .withNumRetries(15)
             .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
             .build();
     runner.start();
