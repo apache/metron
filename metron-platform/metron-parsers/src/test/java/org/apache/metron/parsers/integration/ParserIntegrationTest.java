@@ -71,7 +71,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
-            .withNumRetries(15)
+            .withNumRetries(10)
             .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
             .build();
     runner.start();
