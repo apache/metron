@@ -119,6 +119,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       return ImmutableList.of(new HostnamePort(host, Integer.parseInt(portStr)));
     }
     else if(ipObj instanceof List) {
+      @SuppressWarnings("unchecked")
       List<String> ips = (List)ipObj;
       List<HostnamePort> ret = new ArrayList<>();
       for(String ip : ips) {

@@ -31,7 +31,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static java.lang.String.format;
 
 /**
  * Tests the DateFunctions class.
@@ -46,6 +45,7 @@ public class DateFunctionsTest {
    * @param expr The expression to run.
    */
   private Object run(String expr) {
+    System.out.println("EXPR IS: " + expr);
     StellarProcessor processor = new StellarProcessor();
     assertTrue(processor.validate(expr));
     return processor.parse(expr, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
@@ -64,7 +64,9 @@ public class DateFunctionsTest {
 
   @Test
   public void testDayOfWeek() {
-    Object result = run(format("DAY_OF_WEEK(epoch)", AUG2016));
+    Object result = run("DAY_OF_WEEK(epoch)");
+    System.out.println(Calendar.THURSDAY);
+    System.out.println(result);
     assertEquals(Calendar.THURSDAY, result);
   }
 
@@ -73,7 +75,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testDayOfWeekNow() {
-    Object result = run(format("DAY_OF_WEEK()", AUG2016));
+    Object result = run("DAY_OF_WEEK()");
     assertEquals(calendar.get(Calendar.DAY_OF_WEEK), result);
   }
 
@@ -82,13 +84,13 @@ public class DateFunctionsTest {
    */
   @Test
   public void testDayOfWeekNull() {
-    Object result = run(format("DAY_OF_WEEK(nada)", AUG2016));
+    Object result = run("DAY_OF_WEEK(nada)");
     assertEquals(null, result);
   }
 
   @Test
   public void testWeekOfMonth() {
-    Object result = run(format("WEEK_OF_MONTH(epoch)", AUG2016));
+    Object result = run("WEEK_OF_MONTH(epoch)");
     assertEquals(4, result);
   }
 
@@ -97,7 +99,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testWeekOfMonthNow() {
-    Object result = run(format("WEEK_OF_MONTH()", AUG2016));
+    Object result = run("WEEK_OF_MONTH()");
     assertEquals(calendar.get(Calendar.WEEK_OF_MONTH), result);
   }
 
@@ -106,13 +108,13 @@ public class DateFunctionsTest {
    */
   @Test
   public void testWeekOfMonthNull() {
-    Object result = run(format("WEEK_OF_MONTH(nada)", AUG2016));
+    Object result = run("WEEK_OF_MONTH(nada)");
     assertEquals(null, result);
   }
 
   @Test
   public void testMonth() {
-    Object result = run(format("MONTH(epoch)", AUG2016));
+    Object result = run("MONTH(epoch)");
     assertEquals(Calendar.AUGUST, result);
   }
 
@@ -121,7 +123,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testMonthNow() {
-    Object result = run(format("MONTH()", AUG2016));
+    Object result = run("MONTH()");
     assertEquals(calendar.get(Calendar.MONTH), result);
   }
 
@@ -130,13 +132,13 @@ public class DateFunctionsTest {
    */
   @Test
   public void testMonthNull() {
-    Object result = run(format("MONTH(nada)", AUG2016));
+    Object result = run("MONTH(nada)");
     assertEquals(null, result);
   }
 
   @Test
   public void testYear() {
-    Object result = run(format("YEAR(epoch)", AUG2016));
+    Object result = run("YEAR(epoch)");
     assertEquals(2016, result);
   }
 
@@ -145,7 +147,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testYearNow() {
-    Object result = run(format("YEAR()", AUG2016));
+    Object result = run("YEAR()");
     assertEquals(calendar.get(Calendar.YEAR), result);
   }
 
@@ -154,13 +156,13 @@ public class DateFunctionsTest {
    */
   @Test
   public void testYearNull() {
-    Object result = run(format("YEAR(nada)", AUG2016));
+    Object result = run("YEAR(nada)");
     assertEquals(null, result);
   }
 
   @Test
   public void testDayOfMonth() {
-    Object result = run(format("DAY_OF_MONTH(epoch)", AUG2016));
+    Object result = run("DAY_OF_MONTH(epoch)");
     assertEquals(25, result);
   }
 
@@ -169,7 +171,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testDayOfMonthNow() {
-    Object result = run(format("DAY_OF_MONTH()", AUG2016));
+    Object result = run("DAY_OF_MONTH()");
     assertEquals(calendar.get(Calendar.DAY_OF_MONTH), result);
   }
 
@@ -178,13 +180,13 @@ public class DateFunctionsTest {
    */
   @Test
   public void testDayOfMonthNull() {
-    Object result = run(format("DAY_OF_MONTH(nada)", AUG2016));
+    Object result = run("DAY_OF_MONTH(nada)");
     assertEquals(null, result);
   }
 
   @Test
   public void testWeekOfYear() {
-    Object result = run(format("WEEK_OF_YEAR(epoch)", AUG2016));
+    Object result = run("WEEK_OF_YEAR(epoch)");
     assertEquals(35, result);
   }
 
@@ -193,7 +195,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testWeekOfYearNow() {
-    Object result = run(format("WEEK_OF_YEAR()", AUG2016));
+    Object result = run("WEEK_OF_YEAR()");
     assertEquals(calendar.get(Calendar.WEEK_OF_YEAR), result);
   }
 
@@ -202,13 +204,13 @@ public class DateFunctionsTest {
    */
   @Test
   public void testWeekOfYearNull() {
-    Object result = run(format("WEEK_OF_YEAR(nada)", AUG2016));
+    Object result = run("WEEK_OF_YEAR(nada)");
     assertEquals(null, result);
   }
 
   @Test
   public void testDayOfYear() {
-    Object result = run(format("DAY_OF_YEAR(epoch)", AUG2016));
+    Object result = run("DAY_OF_YEAR(epoch)");
     assertEquals(238, result);
   }
 
@@ -217,7 +219,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testDayOfYearNow() {
-    Object result = run(format("DAY_OF_YEAR()", AUG2016));
+    Object result = run("DAY_OF_YEAR()");
     assertEquals(calendar.get(Calendar.DAY_OF_YEAR), result);
   }
 
@@ -226,7 +228,7 @@ public class DateFunctionsTest {
    */
   @Test
   public void testDayOfYearNull() {
-    Object result = run(format("DAY_OF_YEAR(nada)", AUG2016));
+    Object result = run("DAY_OF_YEAR(nada)");
     assertEquals(null, result);
   }
 }

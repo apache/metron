@@ -378,7 +378,7 @@
                     <source>${global_java_version}</source>
                     <compilerArgument>-Xlint:unchecked</compilerArgument>
                     <target>${global_java_version}</target>
-                    <!--<showWarnings>true</showWarnings>-->
+                    <showWarnings>true</showWarnings>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -391,7 +391,7 @@
                     <dependency>
                         <groupId>com.google.errorprone</groupId>
                         <artifactId>error_prone_core</artifactId>
-                        <version>2.0.14</version>
+                        <version>${global_errorprone_core_version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
