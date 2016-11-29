@@ -17,21 +17,15 @@
  */
 package org.apache.metron.management;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolverSingleton;
-import org.apache.metron.common.dsl.StellarFunctionInfo;
 import org.apache.metron.common.stellar.StellarTest;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ShellFunctionsTest {

@@ -23,10 +23,12 @@ package org.apache.metron.profiler.client;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolverSingleton;
+import org.apache.metron.common.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.client.stellar.GetProfile;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
@@ -105,17 +107,13 @@ public class GetProfileTest {
       put(PROFILER_SALT_DIVISOR, Integer.toString(saltDivisor));
     }};
 
-    // create the necessary context
-    Context context = new Context.Builder()
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
-            .build();
-
-    // initialize the executor with that context
-    executor = new DefaultStellarExecutor();
-    executor.setContext(context);
-
-    // force re-initialization before each test
-    FunctionResolverSingleton.getInstance().reset();
+    // create the stellar execution environment
+    executor = new DefaultStellarExecutor(
+            new SimpleFunctionResolver()
+                    .withClass(GetProfile.class),
+            new Context.Builder()
+                    .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+                    .build());
   }
 
   /**
@@ -207,7 +205,7 @@ public class GetProfileTest {
     executor.setContext(empty);
 
     // force re-initialization with no context
-    FunctionResolverSingleton.getInstance().initialize(empty);
+    SingletonFunctionResolver.getInstance().initialize(empty);
 
     // validate - function should be unable to initialize
     String expr = "PROFILE_GET('profile1', 'entity1', 1000, 'SECONDS', groups)";

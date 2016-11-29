@@ -15,19 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.dsl.functions.resolver;
 
-package org.apache.metron.common.dsl;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.StellarFunctionInfo;
 
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
+import java.util.function.Function;
 
-public class StellarFunctions {
+/**
+ * Responsible for function resolution in Stellar.
+ */
+public interface FunctionResolver extends Function<String, StellarFunction> {
 
-  public static FunctionResolver FUNCTION_RESOLVER() {
-    return SingletonFunctionResolver.getInstance();
-  }
+  /**
+   * Provides metadata about each Stellar function that is resolvable.
+   */
+  Iterable<StellarFunctionInfo> getFunctionInfo();
 
-  public static void initialize(Context context) {
-    SingletonFunctionResolver.getInstance().initialize(context);
-  }
+  /**
+   * The names of all Stellar functions that are resolvable.
+   */
+  Iterable<String> getFunctions();
+
+  /**
+   * Initialize the function resolver.
+   * @param context Context used to initialize.
+   */
+  void initialize(Context context);
 }
