@@ -236,6 +236,11 @@
                         <exclude>**/src/main/sample/data/**</exclude>
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
+                        <exclude>**/src/main/webapp/coverage/**</exclude>
+                        <exclude>**/src/main/webapp/dist/**</exclude>
+                        <exclude>**/src/main/webapp/e2e/*.js</exclude>
+                        <exclude>**/src/main/webapp/e2e/*.js.map</exclude>
+                        <exclude>**/src/main/webapp/node_modules/**</exclude>
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
                         <exclude>**/files/opensoc-ui</exclude>
                         <!-- pickle file - binary format -->

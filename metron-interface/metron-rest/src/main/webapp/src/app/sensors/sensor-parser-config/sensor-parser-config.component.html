@@ -1,0 +1,131 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<metron-config-metron-modal>
+      <metron-config-sensor-grok [hidden]="!showGrokValidator" [showGrok]="showGrokValidator"
+                                 [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                                 [(sensorParserConfig)]="sensorParserConfig"
+                                 (hideGrok)="hidePane(pane.GROK)"></metron-config-sensor-grok>
+
+      <metron-config-sensor-stellar [hidden]="!showStellar" [showStellar]="showStellar"
+                                    [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                                    [(sensorParserConfig)]="sensorParserConfig" (hideStellar)="hidePane(pane.STELLAR)"
+                                    (onStellarChanged)="onStellarChanged()"></metron-config-sensor-stellar>
+
+      <metron-config-sensor-field-schema [hidden]="!showFieldSchema" [showFieldSchema]="showFieldSchema"
+                                         [(sensorParserConfig)]="sensorParserConfig"
+                                         [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                                         (hideFieldSchema)="hidePane(pane.FIELDSCHEMA)"
+                                         (onFieldSchemaChanged)="onFieldSchemaChanged()"></metron-config-sensor-field-schema>
+
+
+      <div class="metron-slider-pane-edit fill load-right-to-left dialog1x" style="overflow: auto" >
+      <div style="height:100%">
+        <div class="form-title">{{sensorParserConfig.sensorTopic}} </div>
+        <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+
+        <!--form role="form" [formGroup]="sensorConfigForm"-->
+        <form role="form" [formGroup]="sensorConfigForm">
+          <!--<fieldset class="form-group">-->
+
+          <div class="form-group">
+            <label attr.for="sensorTopic">NAME</label>
+            <input type="text" class="form-control" name="sensorTopic" (blur)="onSetSensorName()" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" [readonly]="editMode">
+          </div>
+
+          <div class="form-group">
+            <label attr.for="parserClassName">PARSER TYPE</label>
+            <select  class="form-control" formControlName="parserClassName"  [(ngModel)]="sensorParserConfig.parserClassName">
+              <option *ngFor="let parserName of availableParserNames" [value]="availableParsers[parserName]">{{parserName}}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label attr.for="grokStatement" *ngIf="isGrokParser()">GROK STATEMENT</label>
+            <div  class="input-group" *ngIf="isGrokParser()">
+              <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="sensorParserConfig.parserConfig['grokStatement']" readonly>
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" (click)="showPane(pane.GROK)" readonly>
+                        <i class="fa fa-columns" aria-hidden="true"></i>
+                        <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
+                  </button>
+                </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label attr.for="fieldSchema">FIELD SCHEMA</label>
+            <div  class="input-group">
+              <div  class="form-control"   style="height: 80px; resize: none;" readonly>
+                <table cellspacing="10">
+                  <tr> <td class="p-l-1">TRANSFORMATIONS </td> <td class="p-l-1">&nbsp;-&nbsp;</td><td class="p-1-1">{{getTransformationCount()}}</td> </tr>
+                  <tr> <td>ENRICHMENTS</td> <td class="p-l-1">&nbsp;-&nbsp;</td> <td class="p-1-1">{{getEnrichmentCount()}}</td></tr>
+                  <tr> <td>THREAT INTEL</td> <td class="p-l-1">&nbsp;-&nbsp;</td> <td class="p-1-1">{{getThreatIntelCount()}}</td></tr>
+                </table>
+              </div>
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" (click)="showPane(pane.FIELDSCHEMA)" style="height: 80px;" readonly>
+                        <i class="fa fa-columns" aria-hidden="true"></i>
+                        <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
+                  </button>
+                </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label attr.for="stellar">STELLAR</label>
+            <div  class="input-group">
+              <input type="text" class="form-control" formControlName="stellar"  [ngModel]="getStellar()" readonly>
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" (click)="showPane(pane.STELLAR)" readonly>
+                        <i class="fa fa-columns" aria-hidden="true"></i>
+                        <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
+                  </button>
+                </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label attr.for="index">INDEX NAME</label>
+            <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorEnrichmentConfig.index" >
+          </div>
+
+          <div class="form-group">
+            <label attr.for="batchSize">BATCH SIZE</label>
+            <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorEnrichmentConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
+          </div>
+
+          <!--</fieldset>-->
+
+
+          <div [hidden]="!showAdvancedParserConfiguration">
+            <metron-config-advanced-form [(config)]="sensorParserConfig.parserConfig" (onFormClosed)="onAdvancedConfigFormClose($event)"></metron-config-advanced-form>
+          </div>
+
+        </form>
+
+      <br> <br> <br> <br>
+
+        <div class="metron-button-bar">
+          <div class="row mx-0 py-1">
+            <button type="submit" class="btn form-enable-disable-button"  [disabled]="!sensorConfigForm.valid" (click)="onSave()">SAVE</button>
+            <button class="btn form-enable-disable-button" (click)="goBack()" >CANCEL</button>
+            <span class="advanced" [hidden]="showAdvancedParserConfiguration"><a class="advanced-link" (click)="showAdvancedParserConfiguration = true">Advanced</a></span>
+          </div>
+        </div>
+      </div>
+    </div>
+</metron-config-metron-modal>
+

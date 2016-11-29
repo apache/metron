@@ -1,0 +1,107 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div >
+  <div class="container-fluid details-pane-padding">
+    <div class="row mb-1 mx-0">
+      <div class="metron-title"> General Settings </div>
+    </div>
+
+    <div class="row mx-0">
+      <form #globalSettingsForm="ngForm">
+        <div class="col-md-4 pl-0">
+          <div class="section px-1 py-1">
+            <label class="h6"> <strong> Elasticsearch </strong> </label>
+            <div class="form-group">
+              <label>INDEX DATE FORMAT</label>
+              <input type="text" class="form-control" name="es.date.format" [(ngModel)]="globalConfig['es.date.format']">
+            </div>
+
+          </div>
+
+          <div class="section px-1 py-1 mt-1">
+            <label class="h6"> <strong> Validation </strong> </label>
+
+            <div class="form-group">
+              <label>FIELD</label>
+              <textarea rows="15" class="form-control" name="fieldValidations" (blur)="onBlur()" [(ngModel)]="fieldValidations"></textarea>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!--div class="col-md-4 pl-0">
+          <div class="section px-1 py-1">
+            <label class="h6"> <strong> Kafka Writer </strong> </label>
+
+            <div class="form-group">
+              <label>TOPIC</label>
+              <input type="text" class="form-control" name="kafkaWriter.topic" [(ngModel)]="globalConfig['kafkaWriter.topic']">
+            </div>
+            <div class="form-group">
+              <label>KEY SERIALIZER</label>
+              <input type="text" class="form-control" name="kafkaWriter.keySerializer" [(ngModel)]="globalConfig['kafkaWriter.keySerializer']">
+            </div>
+            <div class="form-group">
+              <label>VALUE SERIALIZER</label>
+              <input type="text" class="form-control" name="kafkaWriter.valueSerializer" [(ngModel)]="globalConfig['kafkaWriter.valueSerializer']">
+            </div>
+            <div class="form-group">
+              <label>REQUEST REQUIRED ACKS</label>
+              <metron-config-number-spinner name="kafkaWriter.requestRequiredAcks" [(ngModel)]="globalConfig['kafkaWriter.requestRequiredAcks']"> </metron-config-number-spinner>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="col-md-4 pl-0">
+          <div class="section px-1 py-1">
+            <label class="h6"> <strong> SOLR Writer </strong> </label>
+
+            <div class="form-group">
+              <label>INDEX NAME</label>
+              <input type="text" class="form-control" name="solrWriter.indexName" [(ngModel)]="globalConfig['solrWriter.indexName']">
+            </div>
+            <div class="form-group">
+              <label>SHARDS</label>
+              <metron-config-number-spinner name="solrWriter.shards" [(ngModel)]="globalConfig['solrWriter.shards']"> </metron-config-number-spinner>
+            </div>
+            <div class="form-group">
+              <label>REPLICATION FACTOR</label>
+              <metron-config-number-spinner name="solrWriter.replicationFactor" [(ngModel)]="globalConfig['solrWriter.replicationFactor']"> </metron-config-number-spinner>
+            </div>
+            <div class="form-group">
+              <label>BATCH SIZE</label>
+              <metron-config-number-spinner name="solrWriter.batchSize" [(ngModel)]="globalConfig['solrWriter.batchSize']"> </metron-config-number-spinner>
+            </div>
+
+          </div>
+        </div-->
+      </form>
+    </div>
+
+  </div>
+
+  <br> <br> <br>  <br>
+
+  <div class="container-fluid metron-button-bar-settings details-pane-padding" >
+    <div class="row px-1 py-1">
+      <button type="submit" class="btn btn-primary" (click)="onSave()">SAVE</button>
+      <button class="btn form-enable-disable-button" (click)="onCancel()">CANCEL</button>
+    </div>
+  </div>
+
+</div>

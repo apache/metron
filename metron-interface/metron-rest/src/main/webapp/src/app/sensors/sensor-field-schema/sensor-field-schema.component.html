@@ -1,0 +1,103 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+  <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
+
+  <div class="form-title">Field Schema</div>
+  <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
+
+
+  <form role="form" class="fieldschema-form">
+      <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic" (onSampleDataChanged)="onSampleDataChanged($event)" (onSampleDataNotAvailable)="onSampleDataNotAvailable($event)"></metron-config-sample-data>
+
+      <br><br>
+
+      <div class="metron-bg-inverse">
+        <div class="p-2">
+
+          <div class="row">
+            <div class="col-md-3 title text-grey"> Field </div>
+            <div class="col-md-9 title text-grey"> Changes </div>
+          </div>
+
+          <div *ngFor="let fieldSchemaRow of fieldSchemaRows" class="row pb-1">
+              <!-- Readonly Field Schema Row -->
+              <div class="field-schema-row" *ngIf="!fieldSchemaRow.showConfig" [class.field-suppressed]="fieldSchemaRow.isRemoved">
+                <div class="col-md-3 field-schema-cell"> {{ fieldSchemaRow.inputFieldName }} </div>
+                <div class="col-md-7 field-schema-cell"> {{ getChanges(fieldSchemaRow) }} </div>
+                <div class="col-md-2 field-schema-cell icon-blue" style="font-size: 16px">
+                  <i class="fa fa-pencil pull-right" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
+                  <i *ngIf="!fieldSchemaRow.isRemoved" class="fa fa-ban pull-right" aria-hidden="true" (click)="onRemove(fieldSchemaRow)"></i>
+                  <i *ngIf="fieldSchemaRow.isRemoved" class="fa fa-check-circle-o pull-right" style="color:lightgreen" aria-hidden="true" (click)="onEnable(fieldSchemaRow)"></i>
+                </div>
+              </div>
+
+              <!-- Editable Enrichments Pane -->
+              <div class="config container" *ngIf="fieldSchemaRow.showConfig">
+
+                <!--Title-->
+                <div class="row py-1">
+                  <div class="col-md-10 enrichments-edit-title"> {{ fieldSchemaRow.inputFieldName }} </div>
+                  <div class="col-md-2  enrichment-cell">
+                    <i class="fa fa-times-circle pull-right small-close-button" aria-hidden="true" (click)="onCancelChange(fieldSchemaRow)"></i>
+                  </div>
+                </div>
+
+                <!--Field Name-->
+                <div class="form-group  px-1 col-md-10">
+                  <label [attr.for]="fieldSchemaRow.fieldName">OUTPUT FIELD NAME</label>
+                  <input type="text" class="form-control" [name]="fieldSchemaRow.outputFieldName" [(ngModel)]="fieldSchemaRow.outputFieldName">
+                </div>
+
+                <!-- Transforms -->
+                <div class="form-group  px-1 col-md-12">
+                  <label attr.for="fieldName">TRANSFORMATIONS</label>
+                  <div class="edit-pane-readonly rounded col-md-10"> {{ fieldSchemaRow.preview }} </div>
+                  <metron-config-multiple-input [type]="'select'" [availableItems]="transformOptions" [(configuredItems)]="fieldSchemaRow.transformConfigured" (onConfigChange)="onTransformsChange(fieldSchemaRow)"> </metron-config-multiple-input>
+                </div>
+
+                <!-- Enrichmnets -->
+                <div class="form-group  px-1 col-md-12">
+                  <label attr.for="fieldName">ENRICHMENTS</label>
+                  <metron-config-multiple-input [availableItems]="enrichmentOptions" [(configuredItems)]="fieldSchemaRow.enrichmentConfigured" [allowDuplicates]="false"> </metron-config-multiple-input>
+                </div>
+
+                <!-- Threat Intel -->
+                <div class="form-group  px-1 col-md-12">
+                  <label attr.for="fieldName">THREAT INTEL </label>
+                  <metron-config-multiple-input [availableItems]="threatIntelOptions" [(configuredItems)]="fieldSchemaRow.threatIntelConfigured" [allowDuplicates]="false"> </metron-config-multiple-input>
+                </div>
+
+                <div class="form-group  p-1 col-md-12">
+                  <button type="submit" class="btn form-enable-disable-button pull-left" (click)="onSaveChange(fieldSchemaRow)">SAVE</button>
+                </div>
+
+              </div>
+          </div>
+
+        </div>
+      </div>
+
+  </form>
+  <br>
+  <br>
+  <div class="metron-button-bar" >
+    <div class="row mx-0 py-1">
+      <button type="submit" class="btn form-enable-disable-button" (click)="onSave()">SAVE</button>
+      <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
+    </div>
+  </div>
+
+</div>

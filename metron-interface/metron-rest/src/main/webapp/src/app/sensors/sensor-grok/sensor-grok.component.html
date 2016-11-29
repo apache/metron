@@ -1,0 +1,53 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div class="metron-slider-pane-edit-child fill load-left-to-right dialog2x">
+
+    <div class="form-title">Grok Validator</div>
+    <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancelGrok()"></i>
+
+    <form role="form">
+        <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
+                                   (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
+        <label attr.for="grokStatement">STATEMENT</label>
+        <metron-config-autocomplete [id]="grokValidator" [statement]="grokStatement" [options]="grokFunctionList"
+                                    (result)="onGrokStatementChange($event)" [height]="200"
+                                    [autocompleteStatementGenerator]="autocompleteStatementGenerator"></metron-config-autocomplete>
+
+        <div class="form-seperator-edit"></div>
+        <button type="submit" class="btn form-enable-disable-button" (click)="onTestGrokStatement()">TEST</button>
+        <br/><br/>
+
+        <label> PREVIEW </label>
+
+        <table class="table form-table" #table>
+            <tbody>
+            <tr *ngFor="let key of grokValidationResultKeys();">
+                <td>{{ key }}</td>
+                <td>{{ parsedMessage[key] }}</td>
+            </tr>
+            </tbody>
+        </table>
+
+    </form>
+
+    <div class="metron-button-bar">
+        <div class="row mx-0 py-1">
+            <button type="submit" class="btn form-enable-disable-button" (click)="onSaveGrok()">SAVE</button>
+            <button class="btn form-enable-disable-button" (click)="onCancelGrok()">CANCEL</button>
+        </div>
+    </div>
+
+</div>
