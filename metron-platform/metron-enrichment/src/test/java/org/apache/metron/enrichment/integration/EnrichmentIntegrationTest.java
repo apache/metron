@@ -75,7 +75,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
-
+  private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
   public static class Provider implements TableProvider, Serializable {
     MockHTable.Provider  provider = new MockHTable.Provider();
     @Override
@@ -84,11 +84,17 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  private static List<byte[]> getInputMessages(String path){
+    try{
+      return TestUtils.readSampleData(path);
+    }catch(IOException ioe){
+      return null;
+    }
+  }
   @Test
   public void test() throws Exception {
     final EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
     final String dateFormat = "yyyy.MM.dd.HH";
-    final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
     final String threatIntelTableName = "threat_intel";
@@ -167,7 +173,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor(inputMessages));
+      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor());
       // We expect failures, so we don't care if result returned failure or not
       List<Map<String, Object>> docs = result.getResult();
       Assert.assertEquals(inputMessages.size(), docs.size());
@@ -448,7 +454,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   }
 
   @SuppressWarnings("unchecked")
-  private Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages) {
+  private Processor<List<Map<String, Object>>> getProcessor() {
 
     KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
             .withReadTopic(Constants.INDEXING_TOPIC)
