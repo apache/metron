@@ -73,11 +73,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings settings = settingsBuilder.build();
 
     try{
+      client = TransportClient.builder().settings(settings).build();
       for(HostnamePort hp : getIps(globalConfiguration)) {
-        client = TransportClient.builder().settings(settings).build()
-                .addTransportAddress(
-                        new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
-                );
+        client.addTransportAddress(
+                new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
+        );
       }
 
 
