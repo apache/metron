@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
@@ -24,6 +25,7 @@ import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.rest.repository.SensorParserConfigVersionRepository;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +41,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -56,7 +60,16 @@ public class SensorParserConfigTest {
   private DeleteBuilder deleteBuilder;
 
   @Mock
+  private ObjectMapper objectMapper;
+
+  @Mock
   private CuratorFramework client;
+
+  @Mock
+  private GrokService grokService;
+
+  @Mock
+  private SensorParserConfigVersionRepository sensorParserRepository;
 
   @InjectMocks
   private SensorParserConfigService sensorParserConfigService;
@@ -66,6 +79,7 @@ public class SensorParserConfigTest {
     MockitoAnnotations.initMocks(this);
     Mockito.when(client.getChildren()).thenReturn(getChildrenBuilder);
     Mockito.when(client.delete()).thenReturn(deleteBuilder);
+
   }
 
   @Test
@@ -73,32 +87,34 @@ public class SensorParserConfigTest {
     mockStatic(ConfigurationsUtils.class);
     SensorParserConfig broParserConfig = new SensorParserConfig();
     broParserConfig.setParserClassName("org.apache.metron.parsers.bro.BasicBroParser");
-    broParserConfig.setSensorTopic("bro");
+    broParserConfig.setSensorTopic("broTest");
+    Mockito.when(objectMapper.writeValueAsString(broParserConfig)).thenReturn(new String(JSONUtils.INSTANCE.toJSON(broParserConfig)));
+    Mockito.when(grokService.isGrokConfig(broParserConfig)).thenReturn(false);
     sensorParserConfigService.save(broParserConfig);
     verifyStatic(times(1));
-    ConfigurationsUtils.writeSensorParserConfigToZookeeper("bro", JSONUtils.INSTANCE.toJSON(broParserConfig), client);
+    ConfigurationsUtils.writeSensorParserConfigToZookeeper("broTest", JSONUtils.INSTANCE.toJSON(broParserConfig), client);
 
-    PowerMockito.when(ConfigurationsUtils.readSensorParserConfigFromZookeeper("bro", client)).thenReturn(broParserConfig);
-    assertEquals(broParserConfig, sensorParserConfigService.findOne("bro"));
+    PowerMockito.when(ConfigurationsUtils.readSensorParserConfigFromZookeeper("broTest", client)).thenReturn(broParserConfig);
+    assertEquals(broParserConfig, sensorParserConfigService.findOne("broTest"));
 
     SensorParserConfig squidParserConfig = new SensorParserConfig();
     squidParserConfig.setParserClassName("org.apache.metron.parsers.GrokParser");
     squidParserConfig.setSensorTopic("squid");
-    PowerMockito.when(ConfigurationsUtils.readSensorParserConfigFromZookeeper("squid", client)).thenReturn(squidParserConfig);
+    PowerMockito.when(ConfigurationsUtils.readSensorParserConfigFromZookeeper("squidTest", client)).thenReturn(squidParserConfig);
 
     List<String> allTypes = new ArrayList<String>() {{
-      add("bro");
-      add("squid");
+      add("broTest");
+      add("squidTest");
     }};
     Mockito.when(getChildrenBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot())).thenReturn(allTypes);
-    assertEquals(new ArrayList<SensorParserConfig>() {{ add(broParserConfig); add(squidParserConfig); }}, sensorParserConfigService.findAll());
+    assertEquals(new ArrayList<SensorParserConfig>() {{ add(broParserConfig); add(squidParserConfig); }}, sensorParserConfigService.getAll());
 
     Mockito.when(getChildrenBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot())).thenThrow(new KeeperException.NoNodeException());
-    assertEquals(new ArrayList<>(), sensorParserConfigService.findAll());
+    assertEquals(new ArrayList<>(), sensorParserConfigService.getAll());
 
-    assertTrue(sensorParserConfigService.delete("bro"));
-    verify(deleteBuilder, times(1)).forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro");
-    Mockito.when(deleteBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenThrow(new KeeperException.NoNodeException());
-    assertFalse(sensorParserConfigService.delete("bro"));
+    assertTrue(sensorParserConfigService.delete("broTest"));
+    verify(deleteBuilder, times(1)).forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/broTest");
+    Mockito.when(deleteBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/broTest")).thenThrow(new KeeperException.NoNodeException());
+    assertFalse(sensorParserConfigService.delete("broTest"));
   }
 }

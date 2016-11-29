@@ -17,10 +17,8 @@
  */
 package org.apache.metron.rest.controller;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.rest.model.ParseMessageRequest;
-import org.apache.metron.rest.service.SensorParserConfigService;
-import org.json.simple.JSONObject;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,38 +28,39 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("/sensorParserConfig")
-public class SensorParserConfigController {
+@RequestMapping("/sensorEnrichmentConfig")
+public class SensorEnrichmentConfigController {
 
   @Autowired
-  private SensorParserConfigService sensorParserConfigService;
+  private SensorEnrichmentConfigService sensorEnrichmentConfigService;
 
-  @RequestMapping(method = RequestMethod.POST)
-  ResponseEntity<SensorParserConfig> save(@RequestBody SensorParserConfig sensorParserConfig) throws Exception {
-    return new ResponseEntity<>(sensorParserConfigService.save(sensorParserConfig), HttpStatus.CREATED);
+  @RequestMapping(value = "/{name}", method = RequestMethod.POST)
+  ResponseEntity<SensorEnrichmentConfig> save(@PathVariable String name, @RequestBody SensorEnrichmentConfig sensorEnrichmentConfig) throws Exception {
+    return new ResponseEntity<>(sensorEnrichmentConfigService.save(name, sensorEnrichmentConfig), HttpStatus.CREATED);
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-  ResponseEntity<SensorParserConfig> findOne(@PathVariable String name) throws Exception {
-    SensorParserConfig sensorParserConfig = sensorParserConfigService.findOne(name);
-    if (sensorParserConfig != null) {
-      return new ResponseEntity<>(sensorParserConfig, HttpStatus.OK);
+  ResponseEntity<SensorEnrichmentConfig> findOne(@PathVariable String name) throws Exception {
+    SensorEnrichmentConfig sensorEnrichmentConfig = sensorEnrichmentConfigService.findOne(name);
+    if (sensorEnrichmentConfig != null) {
+      return new ResponseEntity<>(sensorEnrichmentConfig, HttpStatus.OK);
     }
 
     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
   }
 
+
   @RequestMapping(method = RequestMethod.GET)
-  ResponseEntity<Iterable<SensorParserConfig>> findAll() throws Exception {
-    return new ResponseEntity<>(sensorParserConfigService.getAll(), HttpStatus.OK);
+  ResponseEntity<List<SensorEnrichmentConfig>> getAll() throws Exception {
+    return new ResponseEntity<>(sensorEnrichmentConfigService.getAll(), HttpStatus.OK);
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   ResponseEntity<Void> delete(@PathVariable String name) throws Exception {
-    if (sensorParserConfigService.delete(name)) {
+    if (sensorEnrichmentConfigService.delete(name)) {
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -69,17 +68,7 @@ public class SensorParserConfigController {
   }
 
   @RequestMapping(value = "/list/available", method = RequestMethod.GET)
-  ResponseEntity<Map<String, String>> getAvailable() throws Exception {
-    return new ResponseEntity<>(sensorParserConfigService.getAvailableParsers(), HttpStatus.OK);
-  }
-
-  @RequestMapping(value = "/reload/available", method = RequestMethod.GET)
-  ResponseEntity<Map<String, String>> reloadAvailable() throws Exception {
-    return new ResponseEntity<>(sensorParserConfigService.reloadAvailableParsers(), HttpStatus.OK);
-  }
-
-  @RequestMapping(value = "/parseMessage", method = RequestMethod.POST)
-  ResponseEntity<JSONObject> parseMessage(@RequestBody ParseMessageRequest parseMessageRequest) throws Exception {
-    return new ResponseEntity<>(sensorParserConfigService.parseMessage(parseMessageRequest), HttpStatus.OK);
+  ResponseEntity<List<String>> getAvailable() throws Exception {
+    return new ResponseEntity<>(sensorEnrichmentConfigService.getAvailableEnrichments(), HttpStatus.OK);
   }
 }

@@ -13,8 +13,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-metron:
-  version: 0.3.0
+docker:
+  host:
+    address: 192.168.99.107
+  compose:
+    path: ../../metron-docker/docker-compose.yml
+
+spring:
+  datasource:
+      driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://${docker.host.address}:3306/metronconfig
+      username: root
+      password: root
+      platform: mysql
+  jpa:
+    hibernate:
+      ddl-auto: update
 
 logging:
   level:
@@ -23,6 +37,26 @@ logging:
 server:
   contextPath: /api/v1
 
-spring:
-  jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
+zookeeper:
+  url:  ${docker.host.address}:2181
+
+kafka:
+  broker:
+    url: ${docker.host.address}:9092
+
+hdfs:
+  namenode:
+    url: file:///
+
+grok:
+  path: target/patterns
+
+storm:
+  ui:
+    url:   ${docker.host.address}:8080
+  parser:
+    script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
+  enrichment:
+    script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
+  indexing:
+    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh

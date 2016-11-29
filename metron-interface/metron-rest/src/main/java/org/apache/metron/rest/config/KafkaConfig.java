@@ -17,31 +17,44 @@
  */
 package org.apache.metron.rest.config;
 
-import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
+import java.util.Properties;
+
 @Configuration
 @Profile("!test")
-public class ZookeeperConfig {
+public class KafkaConfig {
 
-  public static final String ZK_URL_SPRING_PROPERTY = "zookeeper.url";
+  public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
 
-  @Bean(initMethod = "start", destroyMethod="close")
-  public CuratorFramework client(Environment environment) {
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-    return CuratorFrameworkFactory.newClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), retryPolicy);
+  @Autowired
+  private Environment environment;
+
+  @Autowired
+  private ZkClient zkClient;
+
+  @Bean
+  public ZkUtils zkUtils() {
+    return ZkUtils.apply(zkClient, false);
   }
 
   @Bean(destroyMethod="close")
-  public ZkClient zkClient(Environment environment) {
-    return new ZkClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), 10000, 10000, ZKStringSerializer$.MODULE$);
+  public KafkaConsumer<String, String> kafkaConsumer() {
+    Properties props = new Properties();
+    props.put("bootstrap.servers", environment.getProperty(KAFKA_BROKER_URL_SPRING_PROPERTY));
+    props.put("group.id", "metron-config");
+    props.put("enable.auto.commit", "false");
+    props.put("auto.commit.interval.ms", "1000");
+    props.put("session.timeout.ms", "30000");
+    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    return new KafkaConsumer<>(props);
   }
 }

@@ -17,31 +17,29 @@
  */
 package org.apache.metron.rest.config;
 
-import kafka.utils.ZKStringSerializer$;
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.rest.service.DockerStormCLIWrapper;
+import org.apache.metron.rest.service.StormCLIWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
+import java.util.Arrays;
+
 @Configuration
 @Profile("!test")
-public class ZookeeperConfig {
+public class StormConfig {
 
-  public static final String ZK_URL_SPRING_PROPERTY = "zookeeper.url";
+  @Autowired
+  private Environment environment;
 
-  @Bean(initMethod = "start", destroyMethod="close")
-  public CuratorFramework client(Environment environment) {
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-    return CuratorFrameworkFactory.newClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), retryPolicy);
-  }
-
-  @Bean(destroyMethod="close")
-  public ZkClient zkClient(Environment environment) {
-    return new ZkClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), 10000, 10000, ZKStringSerializer$.MODULE$);
+  @Bean
+  public StormCLIWrapper stormCLIClientWrapper() {
+    if (Arrays.asList(environment.getActiveProfiles()).contains("docker")) {
+      return new DockerStormCLIWrapper();
+    } else {
+      return new StormCLIWrapper();
+    }
   }
 }

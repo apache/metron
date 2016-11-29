@@ -17,31 +17,24 @@
  */
 package org.apache.metron.rest.config;
 
-import kafka.utils.ZKStringSerializer$;
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
 @Configuration
-@Profile("!test")
-public class ZookeeperConfig {
+public class HadoopConfig {
 
-  public static final String ZK_URL_SPRING_PROPERTY = "zookeeper.url";
+    public static final String HDFS_URL_SPRING_PROPERTY = "hdfs.namenode.url";
+    public static final String DEFAULT_HDFS_URL = "file:///";
 
-  @Bean(initMethod = "start", destroyMethod="close")
-  public CuratorFramework client(Environment environment) {
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-    return CuratorFrameworkFactory.newClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), retryPolicy);
-  }
+    @Autowired
+    private Environment environment;
 
-  @Bean(destroyMethod="close")
-  public ZkClient zkClient(Environment environment) {
-    return new ZkClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), 10000, 10000, ZKStringSerializer$.MODULE$);
-  }
+    @Bean
+    public org.apache.hadoop.conf.Configuration configuration() {
+        org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
+        configuration.set("fs.defaultFS", environment.getProperty(HDFS_URL_SPRING_PROPERTY, DEFAULT_HDFS_URL));
+        return configuration;
+    }
 }
