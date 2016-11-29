@@ -19,12 +19,12 @@
 package org.apache.metron.common.field.transformation;
 
 import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 public class RemoveTransformation implements FieldTransformation {
   public static final String CONDITION_CONF = "condition";
