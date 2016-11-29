@@ -45,7 +45,6 @@ public class DateFunctionsTest {
    * @param expr The expression to run.
    */
   private Object run(String expr) {
-    System.out.println("EXPR IS: " + expr);
     StellarProcessor processor = new StellarProcessor();
     assertTrue(processor.validate(expr));
     return processor.parse(expr, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
@@ -65,8 +64,6 @@ public class DateFunctionsTest {
   @Test
   public void testDayOfWeek() {
     Object result = run("DAY_OF_WEEK(epoch)");
-    System.out.println(Calendar.THURSDAY);
-    System.out.println(result);
     assertEquals(Calendar.THURSDAY, result);
   }
 
