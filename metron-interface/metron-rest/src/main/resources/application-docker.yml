@@ -15,7 +15,7 @@
 # limitations under the License.
 docker:
   host:
-    address: 192.168.99.107
+    address: 192.168.99.100
   compose:
     path: ../../metron-docker/docker-compose.yml
 
@@ -29,13 +29,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-
-logging:
-  level:
-    root: ERROR
-
-server:
-  contextPath: /api/v1
 
 zookeeper:
   url:  ${docker.host.address}:2181
