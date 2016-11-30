@@ -106,6 +106,25 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       return Collections.emptyList();
     }
     if(ipObj instanceof String
+            && ipObj.toString().contains(",") && ipObj.toString().contains(":")){
+      List<String> ips = Arrays.asList(((String)ipObj).split(","));
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        Iterable<String> tokens = Splitter.on(":").split(ip);
+        String host = Iterables.getFirst(tokens, null);
+        String portStr = Iterables.getLast(tokens, null);
+        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
+      }
+      return ret;
+    }else if(ipObj instanceof String
+            && ipObj.toString().contains(",")){
+      List<String> ips = Arrays.asList(((String)ipObj).split(","));
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        ret.add(new HostnamePort(ip, Integer.parseInt(portObj + "")));
+      }
+      return ret;
+    }else if(ipObj instanceof String
     && !ipObj.toString().contains(":")
       ) {
       return ImmutableList.of(new HostnamePort(ipObj.toString(), Integer.parseInt(portObj + "")));
