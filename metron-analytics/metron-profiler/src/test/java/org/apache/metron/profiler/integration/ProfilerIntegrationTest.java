@@ -126,7 +126,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests the first example contained within the README.
    */
-  @Test
+  //@Test
+  // TODO need to re-enable these test per METRON-597
   public void testExample1() throws Exception {
 
     setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
@@ -151,7 +152,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests the second example contained within the README.
    */
-  @Test
+  //@Test
+  // TODO need to re-enable these test per METRON-597
   public void testExample2() throws Exception {
 
     setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
@@ -181,7 +183,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests the third example contained within the README.
    */
-  @Test
+  //@Test
+  // TODO need to re-enable these test per METRON-597
   public void testExample3() throws Exception {
 
     setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
@@ -203,7 +206,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
-  @Test
+  //@Test
+  // TODO need to re-enable these test per METRON-597
   public void testWriteInteger() throws Exception {
 
     setup(TEST_RESOURCES + "/config/zookeeper/write-integer");
@@ -227,7 +231,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     actuals.forEach(actual -> Assert.assertEquals(10.0, actual, 0.01));
   }
 
-  @Test
+  //@Test
+  // TODO need to re-enable these test per METRON-597
   public void testPercentiles() throws Exception {
 
     setup(TEST_RESOURCES + "/config/zookeeper/percentiles");
