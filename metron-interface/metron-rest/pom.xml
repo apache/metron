@@ -108,6 +108,14 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.metron</groupId>
+          <artifactId>metron-profiler-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.metron</groupId>
+          <artifactId>metron-writer</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -192,6 +200,10 @@
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
