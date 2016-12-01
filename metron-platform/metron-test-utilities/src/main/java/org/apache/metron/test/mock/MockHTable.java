@@ -18,8 +18,6 @@
 package org.apache.metron.test.mock;
 
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
@@ -52,6 +50,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -94,7 +93,7 @@ public class MockHTable implements HTableInterface {
   private final String tableName;
   private final List<String> columnFamilies = new ArrayList<>();
   private HColumnDescriptor[] descriptors;
-  private Supplier<List<Put>> putLog;
+  private List<Put> putLog;
   private NavigableMap<byte[], NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>> data
           = new TreeMap<>(Bytes.BYTES_COMPARATOR);
 
@@ -123,7 +122,7 @@ public class MockHTable implements HTableInterface {
   }
   public MockHTable(String tableName) {
     this.tableName = tableName;
-    this.putLog = Suppliers.memoize(() -> new ArrayList<Put>());
+    this.putLog = Collections.synchronizedList(new ArrayList<>());
   }
 
   public MockHTable(String tableName, String... columnFamilies) {
