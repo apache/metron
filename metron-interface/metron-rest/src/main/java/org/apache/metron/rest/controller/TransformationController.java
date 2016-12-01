@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/transformation")
+@RequestMapping("/api/v1/transformation")
 public class TransformationController {
 
     @Autowired

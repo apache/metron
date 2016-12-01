@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/kafka")
+@RequestMapping("/api/v1/kafka")
 public class KafkaController {
 
     @Autowired

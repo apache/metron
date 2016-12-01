@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/sensorParserConfig")
+@RequestMapping("/api/v1/sensorParserConfig")
 public class SensorParserConfigController {
 
   @Autowired

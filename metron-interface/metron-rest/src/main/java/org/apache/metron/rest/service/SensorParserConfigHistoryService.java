@@ -83,6 +83,9 @@ public class SensorParserConfigHistoryService {
             sensorParserConfigHistory.setCreatedDate(new DateTime(firstUserRevEntity.getTimestamp()));
 
         } catch (NoResultException e){
+          SensorParserConfig sensorParserConfig = sensorParserConfigService.findOne(name);
+          sensorParserConfigHistory = new SensorParserConfigHistory();
+          sensorParserConfigHistory.setConfig(sensorParserConfig);
         }
         return sensorParserConfigHistory;
     }

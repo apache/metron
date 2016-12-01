@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/globalConfig")
+@RequestMapping("/api/v1/globalConfig")
 public class GlobalConfigController {
 
     @Autowired

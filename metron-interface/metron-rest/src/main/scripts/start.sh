@@ -17,10 +17,9 @@
 #
 METRON_VERSION=0.3.0
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT=$SCRIPTS_ROOT/../../..
 if [ "$#" -ne 1 ]; then
   echo "Usage: start.sh <path to application.yml file>"
-  echo "Path can be absolute or relative to $PROJECT_ROOT"
+  echo "Path can be absolute or relative to $SCRIPTS_ROOT"
 else
-  cd $PROJECT_ROOT && java -jar $PROJECT_ROOT/target/metron-rest-$METRON_VERSION.jar --spring.config.location=$1
+  java -jar $SCRIPTS_ROOT/../lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$1
 fi
