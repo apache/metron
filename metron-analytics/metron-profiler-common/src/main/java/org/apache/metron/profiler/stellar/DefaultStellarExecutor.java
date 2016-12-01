@@ -20,7 +20,6 @@
 
 package org.apache.metron.profiler.stellar;
 
-import org.apache.commons.lang.ClassUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.MapVariableResolver;
@@ -115,7 +114,7 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
     T result = ConversionUtils.convert(resultObject, clazz);
     if (result == null) {
       throw new IllegalArgumentException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
-              clazz.getSimpleName(), ClassUtils.getShortClassName(resultObject, "null"), expression));
+              clazz.getSimpleName(), resultObject.getClass().getSimpleName(), expression));
     }
 
     return result;
