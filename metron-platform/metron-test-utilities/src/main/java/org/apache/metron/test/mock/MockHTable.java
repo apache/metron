@@ -463,12 +463,12 @@ public class MockHTable implements HTableInterface {
   }
 
   public List<Put> getPutLog() {
-    return ImmutableList.copyOf(putLog.get());
+    return ImmutableList.copyOf(putLog);
   }
 
   @Override
   public void put(Put put) throws IOException {
-    putLog.get().add(put);
+    putLog.add(put);
 
     byte[] row = put.getRow();
     NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> rowData = forceFind(data, row, new TreeMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>(Bytes.BYTES_COMPARATOR));
