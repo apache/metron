@@ -192,7 +192,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             () -> new ProfileBuilder.Builder()
                     .withDefinition(getField("profile", tuple, ProfileConfig.class))
                     .withEntity(getField("entity", tuple, String.class))
-                    .withPeriodAt(getTimestamp())
                     .withPeriodDurationMillis(periodDurationMillis)
                     .withGlobalConfiguration(getConfigurations().getGlobalConfig())
                     .withZookeeperClient(client)

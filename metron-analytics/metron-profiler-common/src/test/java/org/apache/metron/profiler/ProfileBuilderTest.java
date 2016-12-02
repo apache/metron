@@ -80,7 +80,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -103,7 +102,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -142,7 +140,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -178,7 +175,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -212,7 +208,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -251,7 +246,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -291,7 +285,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity(entity)
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 
@@ -323,7 +316,6 @@ public class ProfileBuilderTest {
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
-            .withPeriodAt(System.currentTimeMillis())
             .withPeriodDuration(10, TimeUnit.MINUTES)
             .build();
 

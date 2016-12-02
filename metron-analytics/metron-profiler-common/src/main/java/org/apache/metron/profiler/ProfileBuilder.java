@@ -20,7 +20,7 @@
 
 package org.apache.metron.profiler;
 
-import org.apache.commons.beanutils.BeanMap;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,10 +58,14 @@ public class ProfileBuilder {
   protected static final Logger LOG = LoggerFactory.getLogger(ProfileBuilder.class);
 
   /**
-   * A ProfileMeasurement is created and emitted each window period.  A Profile
-   * itself is composed of many ProfileMeasurements.
+   * The name of the profile.
    */
-  private ProfileMeasurement measurement;
+  private String profileName;
+
+  /**
+   * The name of the entity.
+   */
+  private String entity;
 
   /**
    * The definition of the Profile that the bolt is building.
@@ -79,23 +83,24 @@ public class ProfileBuilder {
   private boolean isInitialized;
 
   /**
+   * The duration of each period in milliseconds.
+   */
+  private long periodDurationMillis;
+
+  /**
    * Use the ProfileBuilder.Builder to create a new ProfileBuilder.
    */
   private ProfileBuilder(ProfileConfig definition,
                          String entity,
-                         long whenMillis,
                          long periodDurationMillis,
                          CuratorFramework client,
                          Map<String, Object> global) {
 
     this.isInitialized = false;
     this.definition = definition;
-    this.measurement = new ProfileMeasurement(
-            definition.getProfile(),
-            entity,
-            whenMillis,
-            periodDurationMillis,
-            TimeUnit.MILLISECONDS);
+    this.profileName = definition.getProfile();
+    this.entity = entity;
+    this.periodDurationMillis = periodDurationMillis;
     this.executor = new DefaultStellarExecutor();
     Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
@@ -120,6 +125,15 @@ public class ProfileBuilder {
   }
 
   /**
+   * Used to determine when the profile measurement occurred.
+   *
+   * Ultimately, this needs refactored to handle wall clock versus event time.
+   */
+  public long getTimestamp() {
+    return System.currentTimeMillis();
+  }
+
+  /**
    * Flush the Profile.
    *
    * Completes and emits the ProfileMeasurement.  Clears all state in preparation for
@@ -127,18 +141,16 @@ public class ProfileBuilder {
    * @return Returns the completed profile measurement.
    */
   public ProfileMeasurement flush() {
-    LOG.debug("Flushing profile: profile={}, entity={}", measurement.getProfileName(), measurement.getEntity());
+    LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
 
     // execute the 'result' expression
     Object value = execute(definition.getResult(), new JSONObject(), "result");
-    measurement.setValue(value);
 
-    // execute the 'groupBy' expression(s) - allow each expression to refer to the fields of the ProfileMeasurement
-    List<Object> groups = execute(definition.getGroupBy(), new BeanMap(measurement), "groupBy");
-    measurement.setGroups(groups);
+    // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
+    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", value), "groupBy");
 
-    // execute the 'tickUpdate' expression(s)
-    assign(definition.getTickUpdate(), Collections.singletonMap("result", value),"tickUpdate");
+    // execute the 'tickUpdate' expression(s) - can refer to value of 'result' expression
+    assign(definition.getTickUpdate(), ImmutableMap.of("result", value),"tickUpdate");
 
     // save a copy of current state then clear it to prepare for the next window
     Map<String, Object> state = executor.getState();
@@ -151,7 +163,13 @@ public class ProfileBuilder {
     });
 
     isInitialized = false;
-    return measurement;
+
+    return new ProfileMeasurement()
+            .withProfileName(profileName)
+            .withEntity(entity)
+            .withGroups(groups)
+            .withPeriod(getTimestamp(), periodDurationMillis, TimeUnit.MILLISECONDS)
+            .withValue(value);
   }
 
   /**
@@ -188,12 +206,7 @@ public class ProfileBuilder {
     } catch(ParseException e) {
 
       // make it brilliantly clear that one of the 'update' expressions is bad
-      String msg = format(
-              "Bad '%s' expression: %s, profile=%s, entity=%s",
-              expressionType,
-              e.getMessage(),
-              measurement.getProfileName(),
-              measurement.getEntity());
+      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
       throw new ParseException(msg, e);
     }
   }
@@ -213,11 +226,7 @@ public class ProfileBuilder {
               .forEach((expr) -> results.add(executor.execute(expr, transientState, Object.class)));
 
     } catch (Throwable e) {
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s",
-              expressionType,
-              e.getMessage(),
-              measurement.getProfileName(),
-              measurement.getEntity());
+      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
       throw new ParseException(msg, e);
     }
 
@@ -247,7 +256,6 @@ public class ProfileBuilder {
 
     private ProfileConfig definition;
     private String entity;
-    private long periodAt;
     private long periodDurationMillis;
     private CuratorFramework zookeeperClient;
     private Map<String, Object> global;
@@ -265,14 +273,6 @@ public class ProfileBuilder {
      */
     public Builder withEntity(String entity) {
       this.entity = entity;
-      return this;
-    }
-
-    /**
-     * @param periodAtMillis A time within the profile period when the measurement was taken in epoch milliseconds.
-     */
-    public Builder withPeriodAt(long periodAtMillis) {
-      this.periodAt = periodAtMillis;
       return this;
     }
 
@@ -305,9 +305,7 @@ public class ProfileBuilder {
      * @param global The global configuration.
      */
     public Builder withGlobalConfiguration(Map<String, Object> global) {
-
       // TODO how does the profile builder ever seen a global that has been update in zookeeper?
-
       this.global = global;
       return this;
     }
@@ -320,12 +318,11 @@ public class ProfileBuilder {
       if(definition == null) {
         throw new IllegalArgumentException("missing profiler definition; got null");
       }
-
       if(StringUtils.isEmpty(entity)) {
         throw new IllegalArgumentException(format("missing entity name; got '%s'", entity));
       }
 
-      return new ProfileBuilder(definition, entity, periodAt, periodDurationMillis, zookeeperClient, global);
+      return new ProfileBuilder(definition, entity, periodDurationMillis, zookeeperClient, global);
     }
   }
 }

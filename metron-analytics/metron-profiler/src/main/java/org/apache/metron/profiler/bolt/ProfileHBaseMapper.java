@@ -20,10 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
-import org.apache.storm.tuple.Tuple;
-import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -31,14 +28,9 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.storm.tuple.Tuple;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-
-import static java.lang.String.format;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * An HbaseMapper that defines how a ProfileMeasurement is persisted within an HBase table.
