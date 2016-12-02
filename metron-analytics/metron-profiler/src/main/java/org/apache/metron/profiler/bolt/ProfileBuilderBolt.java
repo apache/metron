@@ -27,6 +27,7 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.clock.WallClock;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -195,6 +196,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
                     .withPeriodDurationMillis(periodDurationMillis)
                     .withGlobalConfiguration(getConfigurations().getGlobalConfig())
                     .withZookeeperClient(client)
+                    .withClock(new WallClock())
                     .build());
   }
 
@@ -213,14 +215,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     }
 
     return value;
-  }
-
-  /**
-   * Returns a value that can be used as the current timestamp.  Allows subclasses
-   * to override, if necessary.
-   */
-  private long getTimestamp() {
-    return System.currentTimeMillis();
   }
 
   public ProfileBuilderBolt withPeriodDurationMillis(long periodDurationMillis) {

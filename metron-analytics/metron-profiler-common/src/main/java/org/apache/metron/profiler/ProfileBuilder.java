@@ -29,6 +29,8 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.profiler.clock.Clock;
+import org.apache.metron.profiler.clock.WallClock;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
@@ -88,10 +90,16 @@ public class ProfileBuilder {
   private long periodDurationMillis;
 
   /**
+   * A clock is used to tell time; imagine that.
+   */
+  private Clock clock;
+
+  /**
    * Use the ProfileBuilder.Builder to create a new ProfileBuilder.
    */
   private ProfileBuilder(ProfileConfig definition,
                          String entity,
+                         Clock clock,
                          long periodDurationMillis,
                          CuratorFramework client,
                          Map<String, Object> global) {
@@ -100,6 +108,7 @@ public class ProfileBuilder {
     this.definition = definition;
     this.profileName = definition.getProfile();
     this.entity = entity;
+    this.clock = clock;
     this.periodDurationMillis = periodDurationMillis;
     this.executor = new DefaultStellarExecutor();
     Context context = new Context.Builder()
@@ -122,15 +131,6 @@ public class ProfileBuilder {
     }
 
     assign(definition.getUpdate(), message, "update");
-  }
-
-  /**
-   * Used to determine when the profile measurement occurred.
-   *
-   * Ultimately, this needs refactored to handle wall clock versus event time.
-   */
-  public long getTimestamp() {
-    return System.currentTimeMillis();
   }
 
   /**
@@ -168,7 +168,7 @@ public class ProfileBuilder {
             .withProfileName(profileName)
             .withEntity(entity)
             .withGroups(groups)
-            .withPeriod(getTimestamp(), periodDurationMillis, TimeUnit.MILLISECONDS)
+            .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
             .withValue(value);
   }
 
@@ -259,6 +259,12 @@ public class ProfileBuilder {
     private long periodDurationMillis;
     private CuratorFramework zookeeperClient;
     private Map<String, Object> global;
+    private Clock clock = new WallClock();
+
+    public Builder withClock(Clock clock) {
+      this.clock = clock;
+      return this;
+    }
 
     /**
      * @param definition The profiler definition.
@@ -322,7 +328,7 @@ public class ProfileBuilder {
         throw new IllegalArgumentException(format("missing entity name; got '%s'", entity));
       }
 
-      return new ProfileBuilder(definition, entity, periodDurationMillis, zookeeperClient, global);
+      return new ProfileBuilder(definition, entity, clock, periodDurationMillis, zookeeperClient, global);
     }
   }
 }

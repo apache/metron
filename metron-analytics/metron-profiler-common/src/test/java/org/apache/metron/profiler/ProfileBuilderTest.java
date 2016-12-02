@@ -23,6 +23,8 @@ package org.apache.metron.profiler;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.profiler.clock.Clock;
+import org.apache.metron.profiler.clock.FixedClock;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
@@ -185,6 +187,47 @@ public class ProfileBuilderTest {
     // validate
     assertEquals(100, (int) convert(m.getValue(), Integer.class));
   }
+
+  /**
+   * Ensure that time advances properly on each flush.
+   */
+  @Test
+  public void testProfilePeriodOnFlush() throws Exception {
+    // setup
+    FixedClock clock = new FixedClock();
+    clock.setTime(100);
+
+    definition = JSONUtils.INSTANCE.load(testResultProfile, ProfileConfig.class);
+    builder = new ProfileBuilder.Builder()
+            .withDefinition(definition)
+            .withEntity("10.0.0.1")
+            .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withClock(clock)
+            .build();
+
+    {
+      // apply a message and flush
+      builder.apply(message);
+      ProfileMeasurement m = builder.flush();
+
+      // validate the profile period
+      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      assertEquals(expected, m.getPeriod());
+    }
+    {
+      // advance time by at least one period - 10 minutes
+      clock.setTime(clock.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10));
+
+      // apply a message and flush again
+      builder.apply(message);
+      ProfileMeasurement m = builder.flush();
+
+      // validate the profile period
+      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      assertEquals(expected, m.getPeriod());
+    }
+  }
+
 
   /**
    * {
