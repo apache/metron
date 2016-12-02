@@ -63,11 +63,11 @@ public class SensorParserConfigService {
     String serializedConfig;
     if (grokService.isGrokConfig(sensorParserConfig)) {
       grokService.addGrokPathToConfig(sensorParserConfig);
+      sensorParserConfig.getParserConfig().putIfAbsent(GrokService.GROK_PATTERN_LABEL_KEY, sensorParserConfig.getSensorTopic().toUpperCase());
       String statement = (String) sensorParserConfig.getParserConfig().remove(GrokService.GROK_STATEMENT_KEY);
       serializedConfig = objectMapper.writeValueAsString(sensorParserConfig);
       ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(), serializedConfig.getBytes(), client);
       sensorParserConfig.getParserConfig().put(GrokService.GROK_STATEMENT_KEY, statement);
-      sensorParserConfig.getParserConfig().put(GrokService.GROK_PATTERN_LABEL_KEY, sensorParserConfig.getSensorTopic().toUpperCase());
       grokService.saveGrokStatement(sensorParserConfig);
     } else {
       serializedConfig = objectMapper.writeValueAsString(sensorParserConfig);
