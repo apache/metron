@@ -45,9 +45,17 @@
   font-style: italic;
   color:#999999;
 }
-//.metron-button-bar
-//{
-//  background: $edit-background;
-//  border-top: solid 2px $edit-background-border;
-//  border-right: solid 1px $edit-background-border;
-//}
+
+.input-group[disabled='true'] {
+  cursor: not-allowed;
+  opacity: .65;
+  background-color: #333333;
+
+  .btn {
+    cursor: inherit;
+  }
+
+  table tr td {
+    border: none !important;
+  }
+}

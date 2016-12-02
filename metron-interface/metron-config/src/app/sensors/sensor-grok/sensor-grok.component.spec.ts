@@ -169,6 +169,10 @@ describe('Component: SensorFieldSchema', () => {
     component.onTestGrokStatement();
     expect(component.parsedMessage).toEqual({'abc': 'def'});
 
+    component.grokStatement = '';
+    component.onTestGrokStatement();
+    expect(component.parsedMessage).toEqual({});
+
     fixture.destroy();
   }));
 
@@ -284,7 +288,7 @@ describe('Component: SensorFieldSchema', () => {
 
 
     expect(component.showGrok).toEqual(false);
-    expect(component.sensorParserConfig.parserConfig['grokStatement']).toEqual('ABC test sample');
+    expect(component.sensorParserConfig.parserConfig['grokStatement']).toEqual('test sample');
     expect(component.hideGrok.emit).toHaveBeenCalled();
     fixture.destroy();
   });

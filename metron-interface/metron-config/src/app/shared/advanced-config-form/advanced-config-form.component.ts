@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, OnChanges, EventEmitter, Input, Output} from '@angular/core';
+import {Component, OnInit, OnChanges, Input} from '@angular/core';
 import {FormGroup, Validators, FormControl} from '@angular/forms';
 
 @Component({
@@ -30,7 +30,6 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
   newConfigKey: string = 'enter field';
   newConfigValue: string = 'enter value';
   configForm: FormGroup;
-  @Output() onFormClosed = new EventEmitter<boolean>();
 
   constructor() {
 
@@ -106,10 +105,6 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
     delete this.config[key];
     this.configKeys = Object.keys(this.config);
     this.configForm.removeControl(key);
-  }
-
-  closeForm() {
-    this.onFormClosed.emit(true);
   }
 
 }

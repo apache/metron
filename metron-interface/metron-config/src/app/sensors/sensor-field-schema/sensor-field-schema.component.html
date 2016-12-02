@@ -15,7 +15,7 @@
   -->
   <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
-  <div class="form-title">Field Schema</div>
+  <div class="form-title">Schema</div>
   <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
 
 
@@ -36,7 +36,7 @@
               <!-- Readonly Field Schema Row -->
               <div class="field-schema-row" *ngIf="!fieldSchemaRow.showConfig" [class.field-suppressed]="fieldSchemaRow.isRemoved">
                 <div class="col-md-3 field-schema-cell"> {{ fieldSchemaRow.inputFieldName }} </div>
-                <div class="col-md-7 field-schema-cell"> {{ getChanges(fieldSchemaRow) }} </div>
+                <div class="col-md-7 field-schema-cell" [innerHtml]="getChanges(fieldSchemaRow)"> </div>
                 <div class="col-md-2 field-schema-cell icon-blue" style="font-size: 16px">
                   <i class="fa fa-pencil pull-right" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
                   <i *ngIf="!fieldSchemaRow.isRemoved" class="fa fa-ban pull-right" aria-hidden="true" (click)="onRemove(fieldSchemaRow)"></i>

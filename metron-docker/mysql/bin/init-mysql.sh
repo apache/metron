@@ -15,5 +15,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS metronconfig"
+mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS metronrest"
 mysql -uroot -proot < /usr/metron/$METRON_VERSION/ddl/geoip_ddl.sql

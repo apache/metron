@@ -65,9 +65,9 @@ export class MultipleInputComponent {
     return new AutocompleteOption();
   }
 
-  onAdd(value: string) {
-    this.configuredItems.push(this.getAvailableItemByName(value));
-    this.showAddNew = false;
+  onAdd(select: any) {
+    this.configuredItems.push(this.getAvailableItemByName(select.value));
+    select.value = '';
     this.onConfigChange.emit();
   }
 

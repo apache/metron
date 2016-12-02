@@ -146,10 +146,6 @@ describe('Component: AdvancedConfigFormComponent', () => {
       expect(component.configForm.controls['newConfigValue'].value).toEqual('enter value');
       expect(component.configForm.controls['field2'].value).toEqual('value2');
       expect(component.configForm.controls['field3'].value).toEqual('value3');
-
-      component.onFormClosed.emit = jasmine.createSpy('emit');
-      component.closeForm();
-      expect(component.onFormClosed.emit).toHaveBeenCalled();
   }));
 
 });

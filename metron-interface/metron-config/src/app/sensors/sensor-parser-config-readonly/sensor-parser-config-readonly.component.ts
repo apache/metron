@@ -42,20 +42,22 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   grokMainStatement: string = '';
   grokFunctionStatement: string = '';
 
-  editViewMetaData: {label?: string, value?: string, type?: string, model?: string}[] = [
+  editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
     {type: 'SEPARATOR', model: '', value: ''},
-    {label: 'PARSER', model: 'sensorParserConfigHistory', value: 'parserName'},
-    {label: 'STATUS', model: 'topologyStatus', value: 'status'},
-    {label: 'LATENCY', model: 'topologyStatus', value: 'latency'},
-    {label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput'},
-    {label: 'CREATION DATE', model: 'sensorParserConfigHistory', value: 'createdDate'},
-    {label: 'ORIGINATOR', model: 'sensorParserConfigHistory', value: 'createdBy'},
     {label: 'LAST EDITED', model: 'sensorParserConfigHistory', value: 'modifiedByDate'},
     {label: 'LAST EDITED BY', model: 'sensorParserConfigHistory', value: 'modifiedBy'},
+    {label: 'ORIGINATOR', model: 'sensorInfo', value: 'createdBy'},
+    {label: 'CREATION DATE', model: 'sensorInfo', value: 'createdDate'},
 
-    {type: 'SEPARATOR', model: '', value: ''},
+    {type: 'SPACER', model: '', value: ''},
 
-    {type: 'TITLE', model: '', value: 'Kafka Topic'},
+    {label: 'STORM', model: 'sensorStatus', value: 'status', boldTitle: true},
+    {label: 'LATENCY', model: 'sensorStatus', value: 'latency'},
+    {label: 'THROUGHPUT', model: 'sensorStatus', value: 'throughput'},
+
+    {type: 'SPACER', model: '', value: ''},
+
+    {label: 'KAFKA', model: 'kafka', value: 'currentKafkaStatus', boldTitle: true},
     {label: 'PARTITONS', model: 'kafka', value: 'numPartitions'},
     {label: 'REPLICATION FACTOR', model: 'kafka', value: 'replicationFactor'},
     {type: 'SEPARATOR', model: '', value: ''},
@@ -114,6 +116,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.kafkaService.get(this.selectedSensorName).subscribe(
       (results: KafkaTopic) => {
         this.kafkaTopic = results;
+        this.kafkaService.sample(this.selectedSensorName).subscribe((sampleData: string) => {
+              this.kafkaTopic['currentKafkaStatus'] = (sampleData && sampleData.length > 0) ? 'Emitting' : 'Not Emitting';
+            },
+            error => {
+              this.kafkaTopic['currentKafkaStatus'] = 'Not Emitting';
+            });
+      }, error => {
+          this.kafkaTopic['currentKafkaStatus'] = 'No Kafka Topic';
       });
   }
 
@@ -148,8 +158,13 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   getTransformsConfigKeys(): string[] {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.fieldTransformations &&
         this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
-      return Object.keys(this.sensorParserConfigHistory.config.fieldTransformations[0].config);
+      let output = [];
+      for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
+        if (transforms.config) {
+          output = output.concat(Object.keys(transforms.config));
+        }
       }
+    }
 
     return [];
   }
@@ -157,8 +172,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   getTransformsOutput(): string {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.fieldTransformations &&
         this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
-      return this.sensorParserConfigHistory.config.fieldTransformations[0].output.join(', ');
+      let output = '';
+      for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
+        if (transforms.output) {
+          output += (output.length > 0 ? ',' : '' ) + transforms.output.join(', ');
+        }
       }
+      return output;
+    }
 
     return '-';
   }

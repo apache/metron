@@ -27,9 +27,14 @@ import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
 import {SensorStellarComponent} from '../sensor-stellar/sensor-stellar.component';
 import {HttpUtil} from '../../util/httpUtil';
+import {KafkaService} from '../../service/kafka.service';
 
 export enum Pane {
   GROK, STELLAR, FIELDSCHEMA
+}
+
+export enum KafkaStatus {
+  NO_TOPIC, NOT_EMITTING, EMITTING
 }
 
 @Component({
@@ -65,12 +70,15 @@ export class SensorParserConfigComponent implements OnInit {
   pane = Pane;
   openPane: Pane = null;
 
+  kafkaStatus = KafkaStatus;
+  currentKafkaStatus = null;
+
   @ViewChild(SensorFieldSchemaComponent) sensorFieldSchema: SensorFieldSchemaComponent;
   @ViewChild(SensorStellarComponent) sensorStellar: SensorStellarComponent;
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private metronAlerts: MetronAlerts,
               private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router, private kafkaService: KafkaService) {
     this.sensorParserConfig.parserConfig = {};
   }
 
@@ -79,12 +87,13 @@ export class SensorParserConfigComponent implements OnInit {
     if (id !== 'new') {
       this.editMode = true;
 
-      this.sensorParserConfigService.get(id).subscribe(
-        (results: SensorParserConfig) => {
-          this.sensorParserConfig = results;
-          if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
-            this.showAdvancedParserConfiguration = true;
-          }
+      this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
+        this.sensorParserConfig = results;
+        this.getKafkaStatus();
+        this.removeGrokPrefix();
+        if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
+          this.showAdvancedParserConfiguration = true;
+        }
         });
 
       this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
@@ -157,6 +166,26 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.sensorEnrichmentConfig.index) {
       this.sensorEnrichmentConfig.index = this.sensorParserConfig.sensorTopic;
     }
+    this.getKafkaStatus();
+  }
+
+  getKafkaStatus() {
+    if (!this.sensorParserConfig.sensorTopic || this.sensorParserConfig.sensorTopic.length === 0) {
+      this.currentKafkaStatus = null;
+      return;
+    }
+
+    this.kafkaService.get(this.sensorParserConfig.sensorTopic).subscribe(kafkaTopic => {
+      this.kafkaService.sample(this.sensorParserConfig.sensorTopic).subscribe((sampleData: string) => {
+          this.currentKafkaStatus = (sampleData && sampleData.length > 0) ? KafkaStatus.EMITTING : KafkaStatus.NOT_EMITTING;
+        }, error => {
+            this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
+          });
+        },
+        error => {
+          this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
+        });
+
   }
 
   getTransforms(): string {
@@ -202,7 +231,7 @@ export class SensorParserConfigComponent implements OnInit {
     sensorParserConfigSave.parserClassName = this.sensorParserConfig.parserClassName;
     sensorParserConfigSave.parserConfig = this.sensorParserConfig.parserConfig;
     if (this.isGrokParser()) {
-      sensorParserConfigSave.parserConfig['grokStatement'] = this.sensorParserConfig.parserConfig['grokStatement'];
+      sensorParserConfigSave.parserConfig['grokStatement'] = this.sensorParserConfig.sensorTopic.toUpperCase() + ' ' + this.sensorParserConfig.parserConfig['grokStatement'];
     }
     sensorParserConfigSave.fieldTransformations = this.sensorParserConfig.fieldTransformations;
 
@@ -293,5 +322,25 @@ export class SensorParserConfigComponent implements OnInit {
 
   onAdvancedConfigFormClose(): void {
     this.showAdvancedParserConfiguration = false;
+  }
+
+  removeGrokPrefix() {
+    let grokStatement = this.sensorParserConfig.parserConfig['grokStatement'];
+    if (grokStatement) {
+      let regExp = new RegExp('^(.*) ');
+      this.sensorParserConfig.parserConfig['grokStatement'] = grokStatement.replace(regExp, '').trim();
+    }
+  }
+
+  disableSchemaConfig(): boolean {
+    if ( !this.sensorConfigForm.valid ) {
+      return true;
+    }
+
+    if (this.isGrokParser() && (!this.sensorParserConfig.parserConfig['grokStatement'] || this.sensorParserConfig.parserConfig['grokStatement'].length === 0)) {
+      return true;
+    }
+
+    return !(this.sensorParserConfig.parserClassName && this.sensorParserConfig.parserClassName.length > 0);
   }
 }

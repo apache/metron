@@ -91,12 +91,14 @@ describe('Component: MultipleInput', () => {
     availableItems.push(new AutocompleteOption('option2'));
     availableItems.push(new AutocompleteOption('option3'));
 
+    let select = {'value': 'option1'};
     component.availableItems = availableItems;
-    component.onAdd('option1');
+    component.onAdd(select);
     expect(component.configuredItems.length).toEqual(1);
     expect(component.configuredItems[0].name).toEqual('option1');
     expect(component.showAddNew).toEqual(false);
     expect(component.onConfigChange.emit).toHaveBeenCalled();
+    expect(select.value).toEqual('');
 
     fixture.destroy();
   });

@@ -139,6 +139,13 @@ class MockKafkaService extends KafkaService {
       observer.complete();
     });
   }
+
+  public sample(name: string): Observable<string> {
+    return Observable.create(observer => {
+      observer.next(JSON.stringify({'data': 'data1', 'data2': 'data3'}));
+      observer.complete();
+    });
+  }
 }
 
 describe('Component: SensorParserConfigReadonly', () => {
@@ -193,7 +200,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('should have metadata defined ', async(() => {
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
-    expect(component.editViewMetaData.length).toEqual(19);
+    expect(component.editViewMetaData.length).toEqual(20);
   }));
 
   it('should have sensorsService with parserName and grokPattern defined and kafkaService defined', async(() => {

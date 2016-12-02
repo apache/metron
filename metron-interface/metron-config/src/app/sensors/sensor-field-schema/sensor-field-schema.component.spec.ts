@@ -270,7 +270,7 @@ describe('Component: SensorFieldSchema', () => {
         fieldSchemaRow.enrichmentConfigured = [new AutocompleteOption('GEO'), new AutocompleteOption('WHOIS')];
         fieldSchemaRow.threatIntelConfigured = [new AutocompleteOption('MALICIOUS-IP')];
 
-        expect(component.getChanges(fieldSchemaRow)).toEqual('2 Enrichments, 1 Threat Intel');
+        expect(component.getChanges(fieldSchemaRow)).toEqual('Enrichments: GEO, WHOIS <br> Threat Intel: MALICIOUS-IP');
 
         fieldSchemaRow.transformConfigured = [new AutocompleteOption('TO_STRING')];
         fieldSchemaRow.enrichmentConfigured = [new AutocompleteOption('GEO')];
@@ -283,13 +283,17 @@ describe('Component: SensorFieldSchema', () => {
         fieldSchemaRow.enrichmentConfigured = [];
         fieldSchemaRow.threatIntelConfigured = [new AutocompleteOption('MALICIOUS-IP'), new AutocompleteOption('MALICIOUS-IP')];
 
-        expect(component.getChanges(fieldSchemaRow)).toEqual('2 Transformations, 2 Threat Intels');
+        expect(component.getChanges(fieldSchemaRow)).toEqual('Transforms: TO_STRING(TO_STRING(method)) <br> Threat Intel: MALICIOUS-IP, MALICIOUS-IP');
 
         fieldSchemaRow.transformConfigured = [new AutocompleteOption('TO_STRING'), new AutocompleteOption('TO_STRING')];
         fieldSchemaRow.enrichmentConfigured = [];
         fieldSchemaRow.threatIntelConfigured = [];
 
-        expect(component.getChanges(fieldSchemaRow)).toEqual('2 Transformations');
+        expect(component.getChanges(fieldSchemaRow)).toEqual('Transforms: TO_STRING(TO_STRING(method)) <br> ');
+
+        fieldSchemaRow.transformConfigured = [new AutocompleteOption('TO_STRING'), new AutocompleteOption('TO_STRING')];
+        fieldSchemaRow.isRemoved = true;
+        expect(component.getChanges(fieldSchemaRow)).toEqual('Disabled');
 
         fixture.destroy();
     });

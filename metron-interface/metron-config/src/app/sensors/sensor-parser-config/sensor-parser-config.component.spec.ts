@@ -124,6 +124,13 @@ class MockKafkaService extends KafkaService {
     this.kafkaTopic = kafkaTopic;
   }
 
+  public sample(name: string): Observable<string> {
+    return Observable.create(observer => {
+      observer.next(JSON.stringify({'key1': 'value1', 'key2': 'value2'}));
+      observer.complete();
+    });
+  }
+
   public get(name: string): Observable<KafkaTopic> {
     return Observable.create(observer => {
       observer.next(this.kafkaTopic);
@@ -457,6 +464,9 @@ describe('Component: SensorParserConfig', () => {
     component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
     component.sensorParserConfig.fieldTransformations = [fieldTransformer];
     component.sensorParserConfig.parserConfig['grokStatement'] = 'SQUID %{NUMBER:timestamp}';
+
+    component.removeGrokPrefix();
+    expect(component.sensorParserConfig.parserConfig['grokStatement']).toEqual('%{NUMBER:timestamp}');
 
     component.onSave();
     expect(sensorParserConfigService.post).toHaveBeenCalledWith(sensorParserConfigSave);

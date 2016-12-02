@@ -28,9 +28,9 @@
 </div>
 
 <!--new-->
-<div class="row mx-0" *ngIf="showAddNew || configuredItems.length === 0">
+<div class="row mx-0" *ngIf="(this.configuredItems.length !== this.availableItems.length) || configuredItems.length === 0 ">
   <div class="col-md-10 px-0">
-    <select #select class="form-control" (change)="onAdd(select.value)">
+      <select #select class="form-control" (change)="onAdd(select)">
       <option [disabled]="true" [selected]="true"></option>
       <option *ngFor="let availableFunction of getAvailableFunctions()"> {{ availableFunction.name }} </option>
     </select>

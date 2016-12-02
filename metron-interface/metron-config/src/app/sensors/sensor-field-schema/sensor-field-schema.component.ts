@@ -251,23 +251,19 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
   }
 
   getChanges(fieldSchemaRow: FieldSchemaRow): string {
-    let changes = [];
-    if (fieldSchemaRow.transformConfigured.length === 1 || !fieldSchemaRow.isSimple) {
-      changes.push('1 Transformation');
-    } else if (fieldSchemaRow.transformConfigured.length > 1) {
-      changes.push(fieldSchemaRow.transformConfigured.length + ' Transformations');
+
+    if (fieldSchemaRow.isRemoved) {
+      return 'Disabled';
     }
-    if (fieldSchemaRow.enrichmentConfigured.length === 1) {
-      changes.push('1 Enrichment');
-    } else if (fieldSchemaRow.enrichmentConfigured.length > 1) {
-      changes.push(fieldSchemaRow.enrichmentConfigured.length + ' Enrichments');
-    }
-    if (fieldSchemaRow.threatIntelConfigured.length === 1) {
-      changes.push('1 Threat Intel');
-    } else if (fieldSchemaRow.threatIntelConfigured.length > 1) {
-      changes.push(fieldSchemaRow.threatIntelConfigured.length + ' Threat Intels');
-    }
-    return changes.join(', ');
+
+    let transformFunction = fieldSchemaRow.transformConfigured.length > 0 ? this.createTransformFunction(fieldSchemaRow) : '';
+    let enrichments = fieldSchemaRow.enrichmentConfigured.map(autocomplete => autocomplete.name).join(', ');
+    let threatIntel = fieldSchemaRow.threatIntelConfigured.map(autocomplete => autocomplete.name).join(', ');
+    let displayString = transformFunction.length > 0 ? ('Transforms: ' + transformFunction) : '';
+    displayString += (transformFunction.length > 0 ? ' <br> ' : '') + (enrichments.length > 0 ? ('Enrichments: ' + enrichments) : '');
+    displayString += (enrichments.length > 0 ? ' <br> ' : '') + (threatIntel.length > 0 ? ('Threat Intel: ' + threatIntel) : '');
+
+    return displayString;
   }
 
   onSampleDataChanged(sampleData: string) {

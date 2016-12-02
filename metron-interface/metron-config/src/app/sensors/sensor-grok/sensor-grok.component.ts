@@ -67,7 +67,13 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   }
 
   onTestGrokStatement() {
-    this.parseMessageRequest.sensorParserConfig = this.sensorParserConfig;
+    this.parsedMessage = {};
+
+    if (this.grokStatement.length === 0) {
+      return;
+    }
+
+    this.parseMessageRequest.sensorParserConfig = JSON.parse(JSON.stringify(this.sensorParserConfig));
     this.parseMessageRequest.sensorParserConfig.parserConfig['grokStatement'] =
         this.sensorParserConfig.sensorTopic.toUpperCase() + ' ' + this.grokStatement;
 
@@ -114,7 +120,7 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   onSaveGrok(): void {
     this.showGrok = false;
-    this.sensorParserConfig.parserConfig['grokStatement'] = this.sensorParserConfig.sensorTopic.toUpperCase() + ' ' + this.grokStatement;
+    this.sensorParserConfig.parserConfig['grokStatement'] = this.grokStatement;
     this.hideGrok.emit();
   }
 

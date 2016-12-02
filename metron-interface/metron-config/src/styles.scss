@@ -91,6 +91,7 @@ table, .table
     }
     td
     {
+      border-top: none;
       border-bottom: 1px solid #404040 !important;
     }
   }
@@ -524,6 +525,12 @@ form
 {
   color: $warning-color;
 }
+
+.success-text-color
+{
+  color: $ocean-green;
+}
+
 
 .icon-container
 {
