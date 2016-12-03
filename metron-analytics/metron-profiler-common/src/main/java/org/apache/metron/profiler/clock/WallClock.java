@@ -20,10 +20,12 @@
 
 package org.apache.metron.profiler.clock;
 
+import java.io.Serializable;
+
 /**
  * A clock that uses the system clock to provide wall clock time.
  */
-public class WallClock implements Clock {
+public class WallClock implements Clock, Serializable {
 
   @Override
   public long currentTimeMillis() {

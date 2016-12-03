@@ -20,10 +20,12 @@
 
 package org.apache.metron.profiler.clock;
 
+import java.io.Serializable;
+
 /**
  * A clock that reports whatever time you tell it to.  Most useful for testing.
  */
-public class FixedClock implements Clock {
+public class FixedClock implements Clock, Serializable {
 
   private long epochMillis;
 

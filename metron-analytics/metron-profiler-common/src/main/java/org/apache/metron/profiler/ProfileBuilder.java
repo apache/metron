@@ -37,6 +37,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +56,7 @@ import static java.lang.String.format;
  * pairing.  There will exist many instances, one for each [profile, entity] pair that exists
  * within the incoming telemetry data applied to the profile.
  */
-public class ProfileBuilder {
+public class ProfileBuilder implements Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(ProfileBuilder.class);
 
