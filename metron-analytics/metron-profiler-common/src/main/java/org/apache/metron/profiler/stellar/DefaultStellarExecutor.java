@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.stellar;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
@@ -77,7 +78,7 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   @Override
   public Map<String, Object> getState() {
-    return new HashMap<>(state);
+    return ImmutableMap.copyOf(state);
   }
 
   /**
