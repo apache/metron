@@ -130,13 +130,13 @@ public class SensorParserConfigHistoryControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(get("/sensorParserInfo/broTest"))
+        this.mockMvc.perform(get("/api/v1/sensorParserInfo/broTest"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/sensorParserInfo/getall"))
+        this.mockMvc.perform(get("/api/v1/sensorParserInfo/getall"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/sensorParserInfo/history/bro"))
+        this.mockMvc.perform(get("/api/v1/sensorParserInfo/history/bro"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -146,20 +146,19 @@ public class SensorParserConfigHistoryControllerIntegrationTest {
         resetConfigs();
         resetAuditTables();
         SensorParserConfig bro3 = fromJson(broJson3);
-        SensorParserConfig bro2 = fromJson(broJson2);
 
-        this.mockMvc.perform(get("/sensorParserConfigHistory/broTest").with(httpBasic(user1,password)))
+        this.mockMvc.perform(get("/api/v1/sensorParserConfigHistory/broTest").with(httpBasic(user1,password)))
                 .andExpect(status().isNotFound());
 
-        this.mockMvc.perform(post("/sensorParserConfig").with(httpBasic(user1,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson1));
+        this.mockMvc.perform(post("/api/v1/sensorParserConfig").with(httpBasic(user1,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson1));
         Thread.sleep(1000);
-        this.mockMvc.perform(post("/sensorParserConfig").with(httpBasic(user1,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson2));
+        this.mockMvc.perform(post("/api/v1/sensorParserConfig").with(httpBasic(user1,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson2));
         Thread.sleep(1000);
-        this.mockMvc.perform(post("/sensorParserConfig").with(httpBasic(user2,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson3));
+        this.mockMvc.perform(post("/api/v1/sensorParserConfig").with(httpBasic(user2,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson3));
 
         assertEquals(bro3.getParserConfig().get("version"), fromJson(sensorParserConfigVersionRepository.findOne("broTest").getConfig()).getParserConfig().get("version"));
 
-        String json = this.mockMvc.perform(get("/sensorParserConfigHistory/broTest").with(httpBasic(user1,password)))
+        String json = this.mockMvc.perform(get("/api/v1/sensorParserConfigHistory/broTest").with(httpBasic(user1,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.config.parserClassName").value("org.apache.metron.parsers.bro.BasicBroParser"))
@@ -172,14 +171,14 @@ public class SensorParserConfigHistoryControllerIntegrationTest {
         Map<String, Object> result = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         validateCreateModifiedByDate(result, false);
 
-        this.mockMvc.perform(get("/sensorParserConfigHistory").with(httpBasic(user1,password)))
+        this.mockMvc.perform(get("/api/v1/sensorParserConfigHistory").with(httpBasic(user1,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$[?(@.config.sensorTopic == 'broTest')]").exists());
 
-        this.mockMvc.perform(delete("/sensorParserConfig/broTest").with(httpBasic(user2,password)).with(csrf()));
+        this.mockMvc.perform(delete("/api/v1/sensorParserConfig/broTest").with(httpBasic(user2,password)).with(csrf()));
 
-        json = this.mockMvc.perform(get("/sensorParserConfigHistory/history/broTest").with(httpBasic(user1,password)))
+        json = this.mockMvc.perform(get("/api/v1/sensorParserConfigHistory/history/broTest").with(httpBasic(user1,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$[0].config", isEmptyOrNullString()))

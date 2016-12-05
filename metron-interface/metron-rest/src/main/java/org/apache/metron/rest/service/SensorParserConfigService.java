@@ -30,6 +30,7 @@ import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -111,6 +112,8 @@ public class SensorParserConfigService {
       sensorParserRepository.delete(name);
     } catch (KeeperException.NoNodeException e) {
       return false;
+    } catch (EmptyResultDataAccessException e) {
+      return true;
     }
     return true;
   }
@@ -156,8 +159,6 @@ public class SensorParserConfigService {
       throw new Exception("Could not find parser class name");
     } else {
       MessageParser<JSONObject> parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName()).newInstance();
-      sensorParserConfig.getParserConfig().put(GrokService.GROK_PATTERN_LABEL_KEY, sensorParserConfig.getSensorTopic().toUpperCase());
-      sensorParserConfig.getParserConfig().put(GrokService.GROK_PATH_KEY, grokService.getTempGrokPath(sensorParserConfig.getSensorTopic()).toString());
       grokService.saveTemporaryGrokStatement(sensorParserConfig);
       parser.configure(sensorParserConfig.getParserConfig());
       JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);

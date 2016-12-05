@@ -74,32 +74,32 @@ public class GlobalConfigControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post("/globalConfig").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
+        this.mockMvc.perform(post("/api/v1/globalConfig").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/globalConfig"))
+        this.mockMvc.perform(get("/api/v1/globalConfig"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(delete("/globalConfig").with(csrf()))
+        this.mockMvc.perform(delete("/api/v1/globalConfig").with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void test() throws Exception {
-        this.mockMvc.perform(get("/globalConfig").with(httpBasic(user,password)))
+        this.mockMvc.perform(get("/api/v1/globalConfig").with(httpBasic(user,password)))
                 .andExpect(status().isNotFound());
 
-        this.mockMvc.perform(post("/globalConfig").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
+        this.mockMvc.perform(post("/api/v1/globalConfig").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
 
-        this.mockMvc.perform(get("/globalConfig").with(httpBasic(user,password)))
+        this.mockMvc.perform(get("/api/v1/globalConfig").with(httpBasic(user,password)))
                 .andExpect(status().isOk());
 
-        this.mockMvc.perform(delete("/globalConfig").with(httpBasic(user,password)).with(csrf()))
+        this.mockMvc.perform(delete("/api/v1/globalConfig").with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isOk());
 
-        this.mockMvc.perform(delete("/globalConfig").with(httpBasic(user,password)).with(csrf()))
+        this.mockMvc.perform(delete("/api/v1/globalConfig").with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isNotFound());
     }
 }

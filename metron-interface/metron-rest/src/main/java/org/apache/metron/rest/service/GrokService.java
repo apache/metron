@@ -26,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -86,16 +88,21 @@ public class GrokService {
         String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
         if (grokPath != null) {
             try {
-                grokStatement = getGrokStatement(grokPath);
+                String fullGrokStatement = getGrokStatement(grokPath);
+                String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
+                grokStatement = fullGrokStatement.replaceFirst(patternLabel + " ", "");
             } catch(FileNotFoundException e) {}
         }
         sensorParserConfig.getParserConfig().put(GROK_STATEMENT_KEY, grokStatement);
     }
 
     public void addGrokPathToConfig(SensorParserConfig sensorParserConfig) {
-        String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
-        if (grokStatement != null) {
-            sensorParserConfig.getParserConfig().put(GROK_PATH_KEY, getGrokPath(sensorParserConfig.getSensorTopic()).toString());
+        if (sensorParserConfig.getParserConfig().get(GROK_PATH_KEY) == null) {
+            String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
+            if (grokStatement != null) {
+              sensorParserConfig.getParserConfig().put(GROK_PATH_KEY,
+                      new Path(environment.getProperty(GROK_PATH_SPRING_PROPERTY), sensorParserConfig.getSensorTopic()).toString());
+            }
         }
     }
 
@@ -112,26 +119,25 @@ public class GrokService {
     }
 
     private void saveGrokStatement(SensorParserConfig sensorParserConfig, boolean isTemporary) throws IOException {
+        String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
+        String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
         String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
+        String fullGrokStatement = patternLabel + " " + grokStatement;
         if (grokStatement != null) {
             if (!isTemporary) {
-                hdfsService.write(getGrokPath(sensorParserConfig.getSensorTopic()), grokStatement.getBytes());
+                hdfsService.write(new Path(grokPath), fullGrokStatement.getBytes());
             } else {
-                hdfsService.write(getTempGrokPath(sensorParserConfig.getSensorTopic()), grokStatement.getBytes());
+                FileWriter fileWriter = new FileWriter(new File(grokPath));
+                fileWriter.write(fullGrokStatement);
+                fileWriter.close();
             }
         }
     }
 
-    public Path getGrokPath(String name) {
-        return new Path(environment.getProperty(GROK_PATH_SPRING_PROPERTY), name);
-    }
-
-    public Path getTempGrokPath(String name) {
-        return new Path(environment.getProperty(GROK_PATH_SPRING_PROPERTY) + "/temp", name);
-    }
-
     public void deleteTemporaryGrokStatement(SensorParserConfig sensorParserConfig) throws IOException {
-        hdfsService.delete(getTempGrokPath(sensorParserConfig.getSensorTopic()), false);
+        String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
+        File file = new File(grokPath);
+        file.delete();
     }
 
 
