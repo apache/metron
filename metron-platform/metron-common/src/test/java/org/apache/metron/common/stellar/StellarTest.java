@@ -26,6 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -41,8 +48,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.effectiveClassPathUrls;
 import static java.util.function.Function.identity;
-import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
 import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
@@ -285,6 +292,18 @@ public class StellarTest {
     {
       String query = "1 + 2*3";
       Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+    }
+    {
+      String query = "TO_LONG(foo)";
+      Assert.assertNull(run(query,ImmutableMap.of("foo","not a number")));
+    }
+    {
+      String query = "TO_LONG(foo)";
+      Assert.assertEquals(new Long(232321L),run(query,ImmutableMap.of("foo","00232321")));
+    }
+    {
+      String query = "TO_LONG(foo)";
+      Assert.assertEquals(Long.MAX_VALUE,run(query,ImmutableMap.of("foo",new Long(Long.MAX_VALUE).toString())));
     }
   }
   @Test

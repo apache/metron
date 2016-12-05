@@ -106,7 +106,6 @@ public class SolrComponent implements InMemoryComponent {
     try {
       miniSolrCloudCluster.shutdown();
     } catch (Exception e) {
-      e.printStackTrace();
     }
   }
 

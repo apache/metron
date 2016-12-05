@@ -21,9 +21,8 @@
 package org.apache.metron.profiler.stellar;
 
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
@@ -49,9 +48,19 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   private Context context;
 
+  /**
+   * Responsible for function resolution.
+   */
+  private FunctionResolver functionResolver;
+
   public DefaultStellarExecutor() {
+    this(StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+  }
+
+  public DefaultStellarExecutor(FunctionResolver functionResolver, Context context) {
     clearState();
-    context = Context.EMPTY_CONTEXT();
+    this.context = context;
+    this.functionResolver = functionResolver;
   }
 
   /**
@@ -116,15 +125,13 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
     this.state = new HashMap<>();
   }
 
-  /**
-   * Sets the Context for the Stellar execution environment.  This provides global data used
-   * to initialize Stellar functions.
-   *
-   * @param context The Stellar context.
-   */
   @Override
   public void setContext(Context context) {
     this.context = context;
+  }
+
+  public void setFunctionResolver(FunctionResolver functionResolver) {
+    this.functionResolver = functionResolver;
   }
 
   /**
@@ -136,7 +143,6 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    *                       maps a variable name to a variable's value.
    */
   private Object execute(String expression, Map<String, Object> transientState) {
-    FunctionResolver functionResolver = StellarFunctions.FUNCTION_RESOLVER();
     VariableResolver variableResolver = new MapVariableResolver(state, transientState);
     StellarProcessor processor = new StellarProcessor();
     return processor.parse(expression, variableResolver, functionResolver, context);

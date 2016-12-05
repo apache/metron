@@ -140,6 +140,17 @@ public class SimpleHBaseAdapterTest {
   }
 
   @Test
+  public void testEnrichNonStringValue() throws Exception {
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
+    sha.lookup = lookup;
+    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
+    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
+    Assert.assertEquals(actualMessage, new JSONObject());
+    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", new Long(10L), broSc));
+    Assert.assertEquals(actualMessage,new JSONObject());
+  }
+
+  @Test
   public void testMultiColumnFamilies() throws Exception {
     SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
     sha.lookup = lookup;

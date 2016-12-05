@@ -46,12 +46,16 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
         metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
         metronEnrichmentMysqlServer = self.getHosts(componentsList, "METRON_ENRICHMENT_MYSQL_SERVER")[0]
 
+        hbaseClientHosts = self.getHosts(componentsList, "HBASE_CLIENT")
+        hdfsClientHosts = self.getHosts(componentsList, "HDFS_CLIENT")
+        zookeeperClientHosts = self.getHosts(componentsList, "ZOOKEEPER_CLIENT")
+
         kafkaBrokers = self.getHosts(componentsList, "KAFKA_BROKER")
-        stormSupervisors = self.getHosts(componentsList,"SUPERVISOR")
+        stormSupervisors = self.getHosts(componentsList, "SUPERVISOR")
 
         items = []
 
-        #Metron Must Co-locate with KAFKA_BROKER and STORM_SUPERVISOR
+        # Metron Must Co-locate with KAFKA_BROKER and STORM_SUPERVISOR
         if metronParsersHost not in kafkaBrokers:
             message = "Metron must be colocated with an instance of KAFKA BROKER"
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
@@ -71,6 +75,20 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
         if metronParsersHost != metronEnrichmentMysqlServer:
             message = "Metron MySQL Server must be co-located with Metron Parsers on {0}".format(metronParsersHost)
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MYSQL_SERVER', "host": metronEnrichmentMysqlServer })
+
+        # Enrichment Master also needs ZK Client, but this is already guaranteed by being colocated with Parsers Master
+        if metronParsersHost not in zookeeperClientHosts:
+            message = "Metron must be co-located with an instance of Zookeeper Client"
+            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
+
+            # Enrichment Master also needs HDFS clients, but this is already guaranteed by being colocated with Parsers Master
+        if metronParsersHost not in hdfsClientHosts:
+            message = "Metron must be co-located with an instance of HDFS Client"
+            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_PARSERS', "host": metronParsersHost })
+
+        if metronEnrichmentMaster not in hbaseClientHosts:
+            message = "Metron Enrichment Master must be co-located with an instance of HBase Client"
+            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
 
         return items
 

@@ -209,6 +209,7 @@ public class MockHTable implements HTableInterface {
    * @param actions
    * @deprecated
    */
+  @Deprecated
   @Override
   public Object[] batch(List<? extends Row> actions) throws IOException, InterruptedException {
     List<Result> results = new ArrayList<Result>();
@@ -239,6 +240,7 @@ public class MockHTable implements HTableInterface {
    * @param callback
    * @deprecated
    */
+  @Deprecated
   @Override
   public <R> Object[] batchCallback(List<? extends Row> list, Batch.Callback<R> callback) throws IOException, InterruptedException {
     throw new UnsupportedOperationException();
@@ -311,6 +313,7 @@ public class MockHTable implements HTableInterface {
    * @param bytes1
    * @deprecated
    */
+  @Deprecated
   @Override
   public Result getRowOrBefore(byte[] bytes, byte[] bytes1) throws IOException {
     throw new UnsupportedOperationException();
@@ -579,6 +582,7 @@ public class MockHTable implements HTableInterface {
    * @param b
    * @deprecated
    */
+  @Deprecated
   @Override
   public long incrementColumnValue(byte[] bytes, byte[] bytes1, byte[] bytes2, long l, boolean b) throws IOException {
     throw new UnsupportedOperationException();
@@ -620,6 +624,7 @@ public class MockHTable implements HTableInterface {
    * @param b
    * @deprecated
    */
+  @Deprecated
   @Override
   public void setAutoFlush(boolean b) {
     autoflush = b;
