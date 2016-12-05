@@ -22,7 +22,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -31,9 +37,14 @@ import org.junit.rules.ExpectedException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
-import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.effectiveClassPathUrls;
 
 public class StellarTest {
 

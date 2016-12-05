@@ -130,7 +130,7 @@ public class KafkaFunctions {
       Properties properties = buildKafkaProperties(overrides, context);
 
       // read some messages
-      try (KafkaConsumer<String, String> consumer = new KafkaConsumer(properties)) {
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
         consumer.subscribe(Arrays.asList(topic));
 
         int maxAttempts = getMaxAttempts(properties);
@@ -207,7 +207,7 @@ public class KafkaFunctions {
       properties.put("group.id", generateGroupId());
       properties.put("auto.offset.reset", "latest");
 
-      try (KafkaConsumer<String, String> consumer = new KafkaConsumer(properties)) {
+      try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
         consumer.subscribe(Arrays.asList(topic));
 
         int maxAttempts = getMaxAttempts(properties);
@@ -288,7 +288,7 @@ public class KafkaFunctions {
      * @param properties The properties to use with Kafka.
      */
     private void send(String topic, List<String> messages, Properties properties) throws InterruptedException, ExecutionException {
-      try (KafkaProducer<String, String> producer = new KafkaProducer(properties)) {
+      try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
 
         // send each message synchronously, hence the get()
         for(String msg : messages) {

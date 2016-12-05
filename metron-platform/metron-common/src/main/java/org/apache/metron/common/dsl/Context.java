@@ -33,7 +33,8 @@ public class Context implements Serializable {
     , HBASE_PROVIDER
     , GLOBAL_CONFIG
     , ZOOKEEPER_CLIENT
-    , SERVICE_DISCOVERER;
+    , SERVICE_DISCOVERER
+    , STELLAR_CONFIG;
   }
 
   public static class Builder {
