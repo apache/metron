@@ -17,15 +17,10 @@
  */
 package org.apache.metron.management;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

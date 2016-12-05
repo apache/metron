@@ -23,7 +23,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -32,10 +34,17 @@ import org.junit.rules.ExpectedException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import static java.util.function.Function.identity;
 import static org.apache.metron.common.dsl.FunctionResolverSingleton.effectiveClassPathUrls;
+import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
+import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class StellarTest {
 
@@ -435,32 +444,6 @@ public class StellarTest {
     Assert.assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
   }
 
-  
-
-  public static Object run(String rule, Map<String, Object> variables) {
-    return run(rule, variables, Context.EMPTY_CONTEXT());
-  }
-
-  /**
-   * This ensures the basic contract of a stellar expression is adhered to:
-   * 1. Validate works on the expression
-   * 2. The output can be serialized and deserialized properly
-   *
-   * @param rule
-   * @param variables
-   * @param context
-   * @return
-   */
-  public static Object run(String rule, Map<String, Object> variables, Context context) {
-    StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
-    byte[] raw = SerDeUtils.toBytes(ret);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(ret, actual);
-    return ret;
-  }
-  
   @Test
   public void testValidation() throws Exception {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
@@ -480,23 +463,6 @@ public class StellarTest {
     }
   }
 
-  public static boolean runPredicate(String rule, Map resolver) {
-    return runPredicate(rule, resolver, Context.EMPTY_CONTEXT());
-  }
-
-  public static boolean runPredicate(String rule, Map resolver, Context context) {
-    return runPredicate(rule, new MapVariableResolver(resolver), context);
-  }
-
-  public static boolean runPredicate(String rule, VariableResolver resolver) {
-    return runPredicate(rule, resolver, Context.EMPTY_CONTEXT());
-  }
-
-  public static boolean runPredicate(String rule, VariableResolver resolver, Context context) {
-    StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
-    return processor.parse(rule, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
-  }
 
   @Test
   public void testSimpleOps() throws Exception {
@@ -562,69 +528,6 @@ public class StellarTest {
     Assert.assertTrue(runPredicate("exists(foo)", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("exists(bar)", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("exists(bar) or true", v -> variableMap.get(v)));
-  }
-
-  @Test
-  public void testStringFunctions() throws Exception {
-    final Map<String, String> variableMap = new HashMap<String, String>() {{
-      put("foo", "casey");
-      put("ip", "192.168.0.1");
-      put("empty", "");
-      put("spaced", "metron is great");
-    }};
-    Assert.assertTrue(runPredicate("true and TO_UPPER(foo) == 'CASEY'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ TO_LOWER('CASEY'), 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
-  }
-
-  @Test
-  public void testStringFunctions_advanced() throws Exception {
-    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
-      put("foo", "casey");
-      put("bar", "bar.casey.grok");
-      put("ip", "192.168.0.1");
-      put("empty", "");
-      put("spaced", "metron is great");
-      put("myList", ImmutableList.of("casey", "apple", "orange"));
-    }};
-    Assert.assertTrue(runPredicate("foo in SPLIT(bar, '.')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in myList", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in myList", v -> variableMap.get(v)));
-  }
-
-  @Test
-  public void testLeftRightFills() throws Exception{
-    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
-      put("foo", null);
-      put("bar", null);
-      put("notInt","oh my");
-    }};
-
-    Object left = run("FILL_LEFT('123','X', 10)",new HashedMap());
-    Object right = run("FILL_RIGHT('123','X', 10)", new HashedMap());
-    Object same = run("FILL_RIGHT('123','X', 3)", new HashedMap());
-    Object nullIn = run("FILL_RIGHT('123',foo,bar)", variableMap);
-    Object notInt= run("FILL_RIGHT('123',foo, notInt)", variableMap);
-    boolean thrown = false;
-    try {
-      Object badParms = run("FILL_RIGHT('123',foo)", variableMap);
-    }catch(ParseException p){
-      thrown = true;
-    }
-    Assert.assertTrue(thrown);
-    Assert.assertNotNull(left);
-    Assert.assertNotNull(right);
-    Assert.assertNotNull(nullIn);
-    Assert.assertEquals(10,((String)left).length());
-    Assert.assertEquals(10,((String)right).length());
-    Assert.assertEquals(3,((String)same).length());
-    Assert.assertEquals("XXXXXXX123",(String)left);
-    Assert.assertEquals("123XXXXXXX",(String)right);
-    Assert.assertEquals("123",(String)same);
-    Assert.assertEquals("123",(String)nullIn);
-    Assert.assertEquals("123",(String)notInt);
   }
 
   @Test

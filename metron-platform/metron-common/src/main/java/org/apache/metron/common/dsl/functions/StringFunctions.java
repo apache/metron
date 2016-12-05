@@ -22,11 +22,12 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public class StringFunctions {
 
@@ -258,35 +259,29 @@ public class StringFunctions {
     }
   }
 
-  private static Object fill(FillDirection direction, Object inputObject, Object fillObject, Object requiredLengthObject){
+  private static Object fill(FillDirection direction, Object inputObject, Object fillObject, Object requiredLengthObject)throws ParseException{
     if(inputObject == null) {
       return null;
     }
     String input = inputObject.toString();
 
     if(requiredLengthObject == null || fillObject == null) {
-      return input;
+       throw new IllegalStateException("Required Length and Fill String are both required");
     }
 
-    String fill = fillObject.toString().substring(0,1);
-    int requiredLength = 0;
-    if(requiredLengthObject instanceof Integer){
-      requiredLength = (int)requiredLengthObject;
-    }else{
-      return input;
+    String fill = fillObject.toString();
+    if(org.apache.commons.lang.StringUtils.isEmpty(fill)){
+      throw new IllegalStateException("The fill cannot be an empty string");
     }
-    int actualLength = input.length();
-    if(actualLength >= requiredLength){
-      return input;
+    fill = fill.substring(0,1);
+    Integer requiredLength = ConversionUtils.convert(requiredLengthObject,Integer.class);
+    if(requiredLength == null){
+      throw new IllegalStateException("Required Length  not a valid Integer: " + requiredLengthObject.toString());
     }
-    int howMany = requiredLength - actualLength;
-    String fillString = fill;
-    for(int i = 0; i < (howMany - 1); i++){
-      fillString += fill;
-    }
+
     if(direction == FillDirection.LEFT) {
-      return fillString += input;
+      return org.apache.commons.lang.StringUtils.leftPad(input,requiredLength,fill);
     }
-    return input += fillString;
+    return org.apache.commons.lang.StringUtils.rightPad(input,requiredLength,fill);
   }
 }
