@@ -23,7 +23,7 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;

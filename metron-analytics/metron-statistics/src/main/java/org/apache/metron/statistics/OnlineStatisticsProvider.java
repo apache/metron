@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.common.math.stats;
+package org.apache.metron.statistics;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
@@ -234,8 +234,14 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
     //Combining the simple terms that obviously form a semigroup
     combined.n = a.n + b.n;
     combined.sum = a.sum + b.sum;
-    combined.min = Math.min(a.min, b.min);
-    combined.max = Math.max(a.max, b.max);
+    if(a.min != null && b.min != null) {
+      combined.min = Math.min(a.min, b.min);
+      combined.max = Math.max(a.max, b.max);
+    }
+    else {
+      combined.min = a.min;
+      combined.max = a.max;
+    }
     combined.sumOfSquares = a.sumOfSquares + b.sumOfSquares;
     combined.sumOfLogs = a.sumOfLogs+ b.sumOfLogs;
 

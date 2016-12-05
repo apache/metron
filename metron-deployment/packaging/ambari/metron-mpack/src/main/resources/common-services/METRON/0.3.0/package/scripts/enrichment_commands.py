@@ -20,7 +20,6 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 import metron_service
 
@@ -30,6 +29,8 @@ class EnrichmentCommands:
     __params = None
     __enrichment_topology = None
     __enrichment_topic = None
+    __enrichment_error_topic = None
+    __threat_intel_error_topic = None
     __configured = False
 
     def __init__(self, params):
@@ -38,6 +39,8 @@ class EnrichmentCommands:
         self.__params = params
         self.__enrichment_topology = params.metron_enrichment_topology
         self.__enrichment_topic = params.metron_enrichment_topic
+        self.__enrichment_error_topic = params.metron_enrichment_error_topic
+        self.__threat_intel_error_topic = params.metron_threat_intel_error_topic
         self.__configured = os.path.isfile(self.__params.enrichment_configured_flag_file)
 
     def is_configured(self):
@@ -71,11 +74,11 @@ class EnrichmentCommands:
             yum_repo_types[repo_type]()
             Logger.info("Writing out repo file")
             repo_template = ("echo \"[METRON-0.3.0]\n"
-                            "name=Metron 0.3.0 packages\n"
-                            "baseurl={0}\n"
-                            "gpgcheck=0\n"
-                            "enabled=1\n\""
-                         "   > /etc/yum.repos.d/metron.repo")
+                             "name=Metron 0.3.0 packages\n"
+                             "baseurl={0}\n"
+                             "gpgcheck=0\n"
+                             "enabled=1\n\""
+                             "   > /etc/yum.repos.d/metron.repo")
             Execute(repo_template.format(self.__params.repo_url))
         else:
             raise ValueError("Unsupported repo type '{0}'".format(repo_type))
@@ -93,25 +96,19 @@ class EnrichmentCommands:
         replication_factor = 1
         retention_gigabytes = int(self.__params.metron_topic_retention)
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
+
         Logger.info("Creating topics for enrichment")
+        topics = [self.__enrichment_topic, self.__enrichment_error_topic, self.__threat_intel_error_topic]
+        for topic in topics:
+            Logger.info("Creating topic'{0}'".format(topic))
+            Execute(command_template.format(self.__params.kafka_bin_dir,
+                                            self.__params.zookeeper_quorum,
+                                            topic,
+                                            num_partitions,
+                                            replication_factor,
+                                            retention_bytes))
 
-        Logger.info("Creating topic'{0}'".format(self.__enrichment_topic))
-        Execute(command_template.format(self.__params.kafka_bin_dir,
-                                        self.__params.zookeeper_quorum,
-                                        self.__enrichment_topic,
-                                        num_partitions,
-                                        replication_factor,
-                                        retention_bytes))
         Logger.info("Done creating Kafka topics")
-
-    def init_hdfs_dir(self):
-        self.__params.HdfsResource(self.__params.metron_apps_enrichment_dir,
-                                   type="directory",
-                                   action="create_on_execute",
-                                   owner=self.__params.metron_user,
-                                   group=self.__params.user_group,
-                                   mode=0775,
-                                   )
 
     def start_enrichment_topology(self):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))

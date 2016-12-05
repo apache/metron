@@ -32,8 +32,9 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
 import org.apache.metron.integration.components.FluxTopologyComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.junit.Assert;
@@ -127,9 +128,10 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       setProperty("index.hdfs.output", hdfsDir);
     }};
     setAdditionalProperties(topologyProperties);
-    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1));
-      add(new KafkaWithZKComponent.Topic(Constants.INDEXING_ERROR_TOPIC, 1));
+    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
+    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.INDEXING_ERROR_TOPIC, 1));
     }});
     List<Map<String, Object>> inputDocs = new ArrayList<>();
     for(byte[] b : inputMessages) {
@@ -149,12 +151,14 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
 
 
     ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("zk",zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withComponent("search", getSearchComponent(topologyProperties))
             .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
+            .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
     runner.start();
 

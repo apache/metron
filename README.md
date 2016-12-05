@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/apache/incubator-metron.svg?branch=master)](https://travis-ci.org/apache/incubator-metron)
 
-# Metron
+# Apache Metron (Incubating)
  
 Metron integrates a variety of open source big data technologies in order
 to offer a centralized tool for security monitoring and analysis. Metron
@@ -95,3 +95,4 @@ Some useful utilities that cross all of these parts of the architecture:
 * [Stellar](metron-platform/metron-common) : A custom data transformation language that is used throughout metron from simple field transformation to expressing triage rules.
 * [Model as a Service](metron-analytics/metron-maas-service) : A Yarn application which can deploy machine learning and statistical models onto the cluster along with the associated Stellar functions to be able to call out to them in a scalable manner.
 * [Data management](metron-platform/metron-data-management) : A set of data management utilities aimed at getting data into HBase in a format which will allow data flowing through metron to be enriched with the results.  Contains integrations with threat intelligence feeds exposed via TAXII as well as simple flat file structures.
+* [Profiler](metron-analytics/metron-profiler) : A feature extraction mechanism that can generate a profile describing the behavior of an entity. An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior.

@@ -19,6 +19,7 @@ package org.apache.metron.integration.wrapper
 
 import java.util.Properties
 
+import kafka.server.{KafkaServer, RunningAsBroker}
 import kafka.utils.TestUtils
 
 object TestUtilsWrapper {
@@ -26,4 +27,9 @@ object TestUtilsWrapper {
   def createBrokerConfig(nodeId: Int, zkConnect: String, port: Int): Properties = {
     TestUtils.createBrokerConfig(nodeId = nodeId, zkConnect = zkConnect, port = port)
   }
+
+  def waitUntilBrokerIsRunning(kafkaServer: KafkaServer, msg: String, waitTime: Long) = {
+    TestUtils.waitUntilTrue(()=>{ kafkaServer.brokerState.currentState == RunningAsBroker.state},msg,waitTime)
+  }
+
 }

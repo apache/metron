@@ -49,10 +49,10 @@ public class GeoAdapter extends JdbcAdapter {
       return enriched;
     }
     try {
-      InetAddress addr = InetAddress.getByName(value.getValue(String.class));
+      InetAddress addr = InetAddress.getByName(value.coerceValue(String.class));
       if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
               || addr.isSiteLocalAddress() || addr.isMulticastAddress()
-              || !ipvalidator.isValidInet4Address(value.getValue(String.class))) {
+              || !ipvalidator.isValidInet4Address(value.coerceValue(String.class))) {
         return new JSONObject();
       }
       String locidQuery = "select IPTOLOCID(\"" + value.getValue()

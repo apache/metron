@@ -28,7 +28,6 @@ import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.common.configuration.FieldTransformer;

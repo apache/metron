@@ -257,7 +257,7 @@ public class RestTestingUtil {
             .println("----------------------------------------------------------------------------------------------------");
     System.out
             .format(
-                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
+                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; endTime=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
                     srcIp, dstIp, protocol, endTime, srcPort, dstPort, response1);
     System.out
             .println("----------------------------------------------------------------------------------------------------");
@@ -274,7 +274,7 @@ public class RestTestingUtil {
             .println("----------------------------------------------------------------------------------------------------");
     System.out
             .format(
-                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
+                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; endTime=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
                     srcIp, dstIp, protocol, endTime, srcPort, dstPort, response2);
     System.out
             .println("----------------------------------------------------------------------------------------------------");
@@ -289,7 +289,7 @@ public class RestTestingUtil {
             .println("----------------------------------------------------------------------------------------------------");
     System.out
             .format(
-                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
+                    "getPcapsByIdentifiers : request= <srcIp=%s; dstIp=%s; protocol=%s; endTime=%s; srcPort=%s; dstPort=%s> \n response= %s \n",
                     srcIp, dstIp, protocol, endTime, srcPort, dstPort, response3);
     System.out
             .println("----------------------------------------------------------------------------------------------------");

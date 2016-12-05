@@ -20,7 +20,7 @@ package org.apache.metron.common.stellar;
 
 
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.VariableResolver;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;

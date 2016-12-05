@@ -17,7 +17,7 @@ subscribe to the user list, please send email to
 ## Bug Reports
 
 Please file any issues you encounter or fixes you'd like on the
-[Apache Metron Jira](https://issues.apache.org/jira/browse/metron). We welcome
+[Apache Metron (Incubating) Jira](https://issues.apache.org/jira/browse/metron). We welcome
 patches!
 
 ## StackOverflow

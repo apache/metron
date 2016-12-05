@@ -34,6 +34,8 @@ parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parser
 # Enrichment
 metron_enrichment_topology = 'enrichment'
 metron_enrichment_topic = 'enrichments'
+metron_enrichment_error_topic = 'enrichments_error'
+metron_threat_intel_error_topic = 'threatintel_error'
 
 enrichment_table = 'enrichment'
 enrichment_cf = 't'

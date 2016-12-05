@@ -21,10 +21,6 @@ config:
     topology.acker.executors: ${profiler.executors}
 
 components:
-
-    -   id: "defaultExecutor"
-        className: "org.apache.metron.profiler.stellar.DefaultStellarExecutor"
-
     -   id: "rowKeyBuilder"
         className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
         properties:
@@ -81,20 +77,16 @@ bolts:
         className: "org.apache.metron.profiler.bolt.ProfileSplitterBolt"
         constructorArgs:
             - "${kafka.zk}"
-        properties:
-            - name: "executor"
-              ref: "defaultExecutor"
 
     -   id: "builderBolt"
         className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
         constructorArgs:
             - "${kafka.zk}"
-        properties:
-            - name: "executor"
-              ref: "defaultExecutor"
         configMethods:
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
+            - name: "withTimeToLive"
+              args: [${profiler.ttl}, "${profiler.ttl.units}"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"

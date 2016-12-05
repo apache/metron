@@ -73,11 +73,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings settings = settingsBuilder.build();
 
     try{
+      client = TransportClient.builder().settings(settings).build();
       for(HostnamePort hp : getIps(globalConfiguration)) {
-        client = TransportClient.builder().settings(settings).build()
-                .addTransportAddress(
-                        new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
-                );
+        client.addTransportAddress(
+                new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
+        );
       }
 
 
@@ -106,6 +106,25 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       return Collections.emptyList();
     }
     if(ipObj instanceof String
+            && ipObj.toString().contains(",") && ipObj.toString().contains(":")){
+      List<String> ips = Arrays.asList(((String)ipObj).split(","));
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        Iterable<String> tokens = Splitter.on(":").split(ip);
+        String host = Iterables.getFirst(tokens, null);
+        String portStr = Iterables.getLast(tokens, null);
+        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
+      }
+      return ret;
+    }else if(ipObj instanceof String
+            && ipObj.toString().contains(",")){
+      List<String> ips = Arrays.asList(((String)ipObj).split(","));
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        ret.add(new HostnamePort(ip, Integer.parseInt(portObj + "")));
+      }
+      return ret;
+    }else if(ipObj instanceof String
     && !ipObj.toString().contains(":")
       ) {
       return ImmutableList.of(new HostnamePort(ipObj.toString(), Integer.parseInt(portObj + "")));

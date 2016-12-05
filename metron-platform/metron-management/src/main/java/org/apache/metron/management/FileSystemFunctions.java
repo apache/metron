@@ -254,7 +254,7 @@ public class FileSystemFunctions {
                 return ret;
               }
             } catch (java.text.ParseException e) {
-              String message = "Unable to parse " + o1 + " or " + o2 + " : " + e.getMessage();
+              String message = "Unable to parse " + Arrays.toString(o1) + " or " + Arrays.toString(o2) + " : " + e.getMessage();
               LOG.error(message, e);
               throw new IllegalStateException(message, e);
             }

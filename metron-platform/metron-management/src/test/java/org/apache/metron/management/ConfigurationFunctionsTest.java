@@ -29,6 +29,8 @@ import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.stellar.StellarTest;
 import org.apache.metron.test.utils.UnitTestHelper;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,11 +75,12 @@ public class ConfigurationFunctionsTest {
   static String goodBroParserConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
 
   /**
-{
-  "sensorTopic" : "brop",
-  "parserConfig" : { },
-  "fieldTransformations" : [ ]
-}*/
+    {
+      "sensorTopic" : "brop",
+      "parserConfig" : { },
+      "fieldTransformations" : [ ]
+    }
+   */
   @Multiline
   static String defaultBropParserConfig;
 
@@ -99,41 +102,45 @@ public class ConfigurationFunctionsTest {
   }
 
   @Test
-  public void testParserGetMissWithDefault() {
+  public void testParserGetMissWithDefault() throws Exception {
+    JSONObject expected = (JSONObject) new JSONParser().parse(defaultBropParserConfig);
 
     {
       Object out = StellarTest.run("CONFIG_GET('PARSER', 'brop')", new HashMap<>(), context);
-      Assert.assertEquals(defaultBropParserConfig, out);
+      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
+      Assert.assertEquals(expected, actual);
     }
     {
       Object out = StellarTest.run("CONFIG_GET('PARSER', 'brop', true)", new HashMap<>(), context);
-      Assert.assertEquals(defaultBropParserConfig, out);
+      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
+      Assert.assertEquals(expected, actual);
     }
   }
 
   static String goodTestEnrichmentConfig = slurp( SAMPLE_CONFIG_PATH + "/enrichments/test.json");
 
   /**
-{
-  "index" : "brop",
-  "batchSize" : 0,
-  "enrichment" : {
-    "fieldMap" : { },
-    "fieldToTypeMap" : { },
-    "config" : { }
-  },
-  "threatIntel" : {
-    "fieldMap" : { },
-    "fieldToTypeMap" : { },
-    "config" : { },
-    "triageConfig" : {
-      "riskLevelRules" : { },
-      "aggregator" : "MAX",
-      "aggregationConfig" : { }
+    {
+      "index" : "brop",
+      "batchSize" : 0,
+      "enrichment" : {
+        "fieldMap" : { },
+        "fieldToTypeMap" : { },
+        "config" : { }
+      },
+      "threatIntel" : {
+        "fieldMap" : { },
+        "fieldToTypeMap" : { },
+        "config" : { },
+        "triageConfig" : {
+          "riskLevelRules" : { },
+          "aggregator" : "MAX",
+          "aggregationConfig" : { }
+        }
+      },
+      "configuration" : { }
     }
-  },
-  "configuration" : { }
-}*/
+   */
   @Multiline
   static String defaultBropEnrichmentConfig;
 
@@ -155,15 +162,18 @@ public class ConfigurationFunctionsTest {
   }
 
   @Test
-  public void testEnrichmentGetMissWithDefault() {
+  public void testEnrichmentGetMissWithDefault() throws Exception {
+    JSONObject expected = (JSONObject) new JSONParser().parse(defaultBropEnrichmentConfig);
 
     {
       Object out = StellarTest.run("CONFIG_GET('ENRICHMENT', 'brop')", new HashMap<>(), context);
-      Assert.assertEquals(defaultBropEnrichmentConfig, out.toString().trim());
+      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
+      Assert.assertEquals(expected, actual);
     }
     {
       Object out = StellarTest.run("CONFIG_GET('ENRICHMENT', 'brop', true)", new HashMap<>(), context);
-      Assert.assertEquals(defaultBropEnrichmentConfig, out.toString().trim());
+      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
+      Assert.assertEquals(expected, actual);
     }
   }
 
