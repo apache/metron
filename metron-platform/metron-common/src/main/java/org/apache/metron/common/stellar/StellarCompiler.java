@@ -22,7 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionMarker;
-import org.apache.metron.common.dsl.FunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.Token;

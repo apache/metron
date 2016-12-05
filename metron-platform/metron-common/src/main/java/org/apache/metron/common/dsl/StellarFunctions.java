@@ -18,13 +18,16 @@
 
 package org.apache.metron.common.dsl;
 
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
+
 public class StellarFunctions {
 
   public static FunctionResolver FUNCTION_RESOLVER() {
-    return FunctionResolverSingleton.getInstance();
+    return SingletonFunctionResolver.getInstance();
   }
 
   public static void initialize(Context context) {
-    FunctionResolverSingleton.getInstance().initialize(context);
+    SingletonFunctionResolver.getInstance().initialize(context);
   }
 }

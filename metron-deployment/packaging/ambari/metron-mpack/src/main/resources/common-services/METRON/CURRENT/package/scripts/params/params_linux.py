@@ -109,12 +109,14 @@ if has_kafka_host:
     kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
     kafka_brokers += ':' + kafka_broker_port
 
-metron_apps_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
-metron_apps_enrichment_dir = metron_apps_dir + '/enrichment'
+metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
+# well enough until we find a better way via Ambari
+metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_indexed_hdfs_dir']))
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
-hdfs_grok_patterns_dir = format("{metron_apps_dir}/patterns")
+hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
 
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -179,6 +181,8 @@ threatintel_cf = status_params.threatintel_cf
 
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
+metron_enrichment_error_topic = status_params.metron_enrichment_error_topic
+metron_threat_intel_error_topic = status_params.metron_threat_intel_error_topic
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"

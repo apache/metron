@@ -45,6 +45,7 @@ class Indexing(Script):
 
         if not commands.is_configured():
             commands.init_kafka_topics()
+            commands.init_hdfs_dir()
             commands.set_configured()
 
     def start(self, env, upgrade_type=None):

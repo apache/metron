@@ -31,6 +31,12 @@
         <display-name>Metron apps HDFS dir</display-name>
     </property>
     <property>
+        <name>metron_apps_indexed_hdfs_dir</name>
+        <value>{{metron_apps_hdfs_dir}}/indexing/indexed</value>
+        <description>Indexing bolts will write to this HDFS directory</description>
+        <display-name>Metron apps indexed HDFS dir</display-name>
+    </property>
+    <property>
         <name>metron_zookeeper_config_dir</name>
         <value>config/zookeeper</value>
         <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
@@ -246,7 +252,7 @@ bolt.hdfs.file.system.url={{ default_fs }}
 bolt.hdfs.wip.file.path=/paloalto/wip
 bolt.hdfs.finished.file.path=/paloalto/rotated
 bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output={{ metron_apps_enrichment_dir }}
+index.hdfs.output={{ metron_apps_indexed_hdfs_dir }}
         </value>
         <value-attributes>
             <type>content</type>

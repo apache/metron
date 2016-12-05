@@ -32,10 +32,10 @@ import org.apache.metron.enrichment.integration.components.ConfigUploadComponent
 import org.apache.metron.enrichment.integration.mock.MockTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.integration.*;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.mock.MockHTable;
-import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -77,8 +77,9 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     }};
     MockTableProvider.addTable(sensorType, "cf");
     final Properties topologyProperties = new Properties();
-    final KafkaWithZKComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(sensorType, 1));
+    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
+    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(sensorType, 1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
@@ -92,12 +93,14 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
             .withTopologyProperties(topologyProperties)
             .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
-    UnitTestHelper.verboseLogging();
+    //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
+            .withComponent("zk", zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("org/apache/storm", parserTopologyComponent)
             .withMillisecondsBetweenAttempts(5000)
+            .withCustomShutdownOrder(new String[]{"org/apache/storm","config","kafka","zk"})
             .withNumRetries(10)
             .build();
     try {

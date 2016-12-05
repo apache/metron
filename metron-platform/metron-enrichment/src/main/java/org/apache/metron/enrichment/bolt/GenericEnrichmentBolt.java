@@ -69,6 +69,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
+  private static final String ERROR_STREAM = "error";
   private OutputCollector collector;
   private Context stellarContext;
   protected String enrichmentType;
@@ -166,7 +167,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     declarer.declareStream(enrichmentType, new Fields("key", "message", "subgroup"));
-    declarer.declareStream("error", new Fields("message"));
+    declarer.declareStream(ERROR_STREAM, new Fields("message"));
   }
 
   @SuppressWarnings("unchecked")
@@ -202,7 +203,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
           if (value != null) {
             SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
-              LOG.error("Unable to find " + config);
+              LOG.error("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType);
               error = true;
               continue;
             }
@@ -240,17 +241,27 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       if(error) {
         throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
       }
-      if (enrichedMessage != null && !enrichedMessage.isEmpty()) {
+      if (!enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
       }
     } catch (Exception e) {
-      LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
-      JSONObject error = ErrorUtils.generateErrorMessage("Enrichment problem: " + rawMessage, e);
-      if (key != null) {
-        collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
-      }
-      collector.emit("error", new Values(error));
+      handleError(key, rawMessage, subGroup, enrichedMessage, e);
     }
+  }
+
+  // Made protected to allow for error testing in integration test. Directly flaws inputs while everything is functioning hits other
+  // errors, so this is made available in order to ensure ERROR_STREAM is output properly.
+  protected void handleError(String key, JSONObject rawMessage, String subGroup, JSONObject enrichedMessage, Exception e) {
+    LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
+    JSONObject error = ErrorUtils.generateErrorMessage("Enrichment problem: " + rawMessage, e);
+    if (key != null) {
+      collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
+    }
+    collector.emit(ERROR_STREAM, new Values(error));
+  }
+
+  protected void handleError() {
+
   }
 
   @Override

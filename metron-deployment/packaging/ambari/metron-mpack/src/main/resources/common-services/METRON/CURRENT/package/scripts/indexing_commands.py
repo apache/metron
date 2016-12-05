@@ -95,6 +95,18 @@ class IndexingCommands:
                                         retention_bytes))
         Logger.info("Done creating Kafka topics")
 
+    def init_hdfs_dir(self):
+        Logger.info('Creating HDFS indexing directory')
+        self.__params.HdfsResource(self.__params.metron_apps_indexed_hdfs_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.user_group,
+                                   mode=0775,
+                                   )
+        Logger.info('Done creating HDFS indexing directory')
+
+
     def start_indexing_topology(self):
         Logger.info("Starting Metron indexing topology: {0}".format(self.__indexing))
         start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \

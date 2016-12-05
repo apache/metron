@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -77,6 +78,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     this.parser = new JSONParser();
+    this.executor = new DefaultStellarExecutor();
     initializeStellar();
   }
 

@@ -38,8 +38,9 @@ import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.MRComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.KafkaUtil;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
@@ -157,7 +158,7 @@ public class PcapTopologyIntegrationTest {
       }
     }, new SendEntries() {
       @Override
-      public void send(KafkaWithZKComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> pcapEntries) throws Exception {
+      public void send(KafkaComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> pcapEntries) throws Exception {
         Producer<byte[], byte[]> producer = kafkaComponent.createProducer(byte[].class, byte[].class);
         KafkaUtil.send(producer, pcapEntries, KAFKA_TOPIC, 2);
         System.out.println("Sent pcap data: " + pcapEntries.size());
@@ -179,7 +180,7 @@ public class PcapTopologyIntegrationTest {
   }
 
   private static interface SendEntries {
-    public void send(KafkaWithZKComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> entries) throws Exception;
+    public void send(KafkaComponent kafkaComponent, List<Map.Entry<byte[], byte[]>> entries) throws Exception;
   }
 
   public void testTopology(Function<Properties, Void> updatePropertiesCallback
@@ -214,19 +215,17 @@ public class PcapTopologyIntegrationTest {
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
-    final KafkaWithZKComponent kafkaComponent = new KafkaWithZKComponent().withTopics(new ArrayList<KafkaWithZKComponent.Topic>() {{
-      add(new KafkaWithZKComponent.Topic(KAFKA_TOPIC, 1));
-    }})
-            .withPostStartCallback(new Function<KafkaWithZKComponent, Void>() {
-                                     @Nullable
-                                     @Override
-                                     public Void apply(@Nullable KafkaWithZKComponent kafkaWithZKComponent) {
-
-                                       topologyProperties.setProperty("kafka.zk", kafkaWithZKComponent.getZookeeperConnect());
-                                       return null;
-                                     }
-                                   }
-            );
+    final ZKServerComponent zkServerComponent = new ZKServerComponent().withPostStartCallback(new Function<ZKServerComponent, Void>() {
+      @Nullable
+      @Override
+      public Void apply(@Nullable ZKServerComponent zkComponent) {
+        topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
+        return null;
+      }
+    });
+    final KafkaComponent kafkaComponent = new KafkaComponent().withTopics(new ArrayList<KafkaComponent.Topic>() {{
+      add(new KafkaComponent.Topic(KAFKA_TOPIC, 1));
+    }}).withTopologyProperties(topologyProperties);
 
 
     final MRComponent mr = new MRComponent().withBasePath(baseDir.getAbsolutePath());
@@ -236,14 +235,16 @@ public class PcapTopologyIntegrationTest {
             .withTopologyName("pcap")
             .withTopologyProperties(topologyProperties)
             .build();
-    UnitTestHelper.verboseLogging();
+    //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()
             .withComponent("mr", mr)
+            .withComponent("zk",zkServerComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("storm", fluxComponent)
             .withMaxTimeMS(-1)
             .withMillisecondsBetweenAttempts(2000)
             .withNumRetries(10)
+            .withCustomShutdownOrder(new String[]{"storm","kafka","zk","mr"})
             .build();
     try {
       runner.start();

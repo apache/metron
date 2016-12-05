@@ -21,6 +21,7 @@
 package org.apache.metron.profiler.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
@@ -33,7 +34,8 @@ import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.test.mock.MockHTable;
@@ -44,6 +46,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -97,8 +100,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private String message3;
 
   private ColumnBuilder columnBuilder;
+  private ZKServerComponent zkComponent;
   private FluxTopologyComponent fluxComponent;
-  private KafkaWithZKComponent kafkaComponent;
+  private KafkaComponent kafkaComponent;
   private List<byte[]> input;
   private ComponentRunner runner;
   private MockHTable profilerTable;
@@ -135,8 +139,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
+    // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
+    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
+    Assert.assertEquals(1, actuals.size());
+
     // verify - there are 5 'HTTP' each with 390 bytes
-    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
+    double actual = actuals.get(0);
     Assert.assertEquals(390.0 * 5, actual, 0.01);
   }
 
@@ -152,13 +160,22 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     fluxComponent.submitTopology();
     kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
 
+    // expect 2 values written by the profile; one for 10.0.0.2 and another for 10.0.0.3
+    final int expected = 2;
+
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected,
             timeout(seconds(90)));
 
-    // verify - there are 5 'HTTP' and 5 'DNS' messages thus 5/5 = 1
-    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
-    Assert.assertEquals(5.0 / 5.0, actual, 0.01);
+    // verify - expect 2 results as 2 hosts involved; 10.0.0.2 sends 'HTTP' and 10.0.0.3 send 'DNS'
+    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
+    Assert.assertEquals(expected, actuals.size());
+
+    // verify - 10.0.0.3 -> 1/6
+    Assert.assertTrue(actuals.stream().anyMatch(val -> MathUtils.equals(val, 1.0/6.0, 0.1)));
+
+    // verify - 10.0.0.2 -> 6/1
+    Assert.assertTrue(actuals.stream().anyMatch(val -> MathUtils.equals(val, 6.0/1.0, 0.1)));
   }
 
   /**
@@ -177,8 +194,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
+    // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
+    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
+    Assert.assertEquals(1, actuals.size());
+
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
+    double actual = actuals.get(0);
     Assert.assertEquals(20.0, actual, 0.01);
   }
 
@@ -191,13 +212,19 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     fluxComponent.submitTopology();
     kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
 
+    // expect 3 values written by the profile; one for each host
+    final int expected = 3;
+
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected,
             timeout(seconds(90)));
 
-    // verify - the profile literally writes 10 as an integer
-    int actual = read(columnBuilder.getColumnQualifier("value"), Integer.class);
-    Assert.assertEquals(10, actual);
+    // verify - the profile sees messages from 3 hosts; 10.0.0.[1-3]
+    List<Integer> actuals = read(columnBuilder.getColumnQualifier("value"), Integer.class);
+    Assert.assertEquals(3, actuals.size());
+
+    // verify - the profile writes 10 as an integer
+    actuals.forEach(actual -> Assert.assertEquals(10.0, actual, 0.01));
   }
 
   @Test
@@ -213,9 +240,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
+    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
+
+    // verify - the profile only cares about HTTP and only 1 host sends HTTP
+    Assert.assertEquals(1, actuals.size());
+
     // verify - the 70th percentile of 5 x 20s = 20.0
-    double actual = read(columnBuilder.getColumnQualifier("value"), Double.class);
-    Assert.assertEquals(20.0, actual, 0.01);
+    actuals.forEach(actual -> Assert.assertEquals(20.0, actual, 0.01));
   }
 
   /**
@@ -226,18 +257,19 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * @param <T> The expected type of the result.
    * @return The value contained within the column.
    */
-  private <T> T read(byte[] column, Class<T> clazz) throws IOException {
+  private <T> List<T> read(byte[] column, Class<T> clazz) throws IOException {
+    List<T> results = new ArrayList<>();
+
     final byte[] cf = Bytes.toBytes(columnFamily);
     ResultScanner scanner = profilerTable.getScanner(cf, column);
-
-    for (Result result : scanner) {
-      if(result.containsColumn(cf, column)) {
+    for (Result result : scanner.next(10)) {
+      if (result.containsColumn(cf, column)) {
         byte[] raw = result.getValue(cf, column);
-        return SerDeUtils.fromBytes(raw, clazz);
+        results.add(SerDeUtils.fromBytes(raw, clazz));
       }
     }
 
-    throw new IllegalStateException("No results found");
+    return results;
   }
 
   public void setup(String pathToConfig) throws Exception {
@@ -258,20 +290,25 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
       setProperty("profiler.period.duration", "5");
       setProperty("profiler.period.duration.units", "SECONDS");
+      setProperty("profiler.ttl", "30");
+      setProperty("profiler.ttl.units", "MINUTES");
       setProperty("profiler.hbase.salt.divisor", "10");
       setProperty("profiler.hbase.table", tableName);
       setProperty("profiler.hbase.column.family", columnFamily);
       setProperty("profiler.hbase.batch", "10");
       setProperty("profiler.hbase.flush.interval.seconds", "1");
+      setProperty("profiler.profile.ttl", "20");
       setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
     }};
 
     // create the mock table
     profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
 
+    zkComponent = getZKServerComponent(topologyProperties);
+
     // create the input topic
     kafkaComponent = getKafkaComponent(topologyProperties,
-            Arrays.asList(new KafkaWithZKComponent.Topic(Constants.INDEXING_TOPIC, 1)));
+            Arrays.asList(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1)));
 
     // upload profiler configuration to zookeeper
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
@@ -288,17 +325,20 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // start all components
     runner = new ComponentRunner.Builder()
+            .withComponent("zk",zkComponent)
             .withComponent("kafka", kafkaComponent)
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
+            .withCustomShutdownOrder(new String[] {"storm","config","kafka","zk"})
             .build();
     runner.start();
   }
 
   @After
   public void tearDown() throws Exception {
+    MockHTable.Provider.clear();
     if (runner != null) {
       runner.stop();
     }

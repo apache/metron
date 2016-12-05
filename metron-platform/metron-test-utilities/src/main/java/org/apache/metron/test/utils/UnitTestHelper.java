@@ -96,14 +96,29 @@ public class UnitTestHelper {
     logger.setLevel(level);
   }
 
+  public static Level getLog4jLevel(Class clazz) {
+    Logger logger = Logger.getLogger(clazz);
+    return logger.getLevel();
+  }
+
   public static void setJavaLoggingLevel(Class clazz, java.util.logging.Level level) {
     java.util.logging.Logger logger = java.util.logging.Logger.getLogger(clazz.getName());
     logger.setLevel(level);
   }
 
+  public static java.util.logging.Level getJavaLoggingLevel(Class clazz) {
+    java.util.logging.Logger logger = java.util.logging.Logger.getLogger(clazz.getName());
+    return logger.getLevel();
+  }
+
   public static void setJavaLoggingLevel(java.util.logging.Level level) {
     java.util.logging.Logger logger = java.util.logging.Logger.getLogger("");
     logger.setLevel(level);
+  }
+
+  public static java.util.logging.Level getJavaLoggingLevel(){
+    java.util.logging.Logger logger = java.util.logging.Logger.getLogger("");
+    return logger.getLevel();
   }
 
   /**

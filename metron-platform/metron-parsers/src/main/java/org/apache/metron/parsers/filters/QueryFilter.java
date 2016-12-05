@@ -19,6 +19,7 @@
 package org.apache.metron.parsers.filters;
 
 import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;

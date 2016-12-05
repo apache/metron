@@ -28,7 +28,8 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.components.KafkaWithZKComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.JSONUtils;
@@ -58,7 +59,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
               public Void apply(@Nullable SolrComponent solrComponent) {
                 topologyProperties.setProperty("solr.zk", solrComponent.getZookeeperUrl());
                 try {
-                  String testZookeeperUrl = topologyProperties.getProperty(KafkaWithZKComponent.ZOOKEEPER_PROPERTY);
+                  String testZookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
                   Configurations configurations = SampleUtil.getSampleConfigs();
                   Map<String, Object> globalConfig = configurations.getGlobalConfig();
                   globalConfig.put("solr.zookeeper", solrComponent.getZookeeperUrl());
@@ -80,7 +81,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
       List<byte[]> errors = null;
       public ReadinessState process(ComponentRunner runner) {
         SolrComponent solrComponent = runner.getComponent("search", SolrComponent.class);
-        KafkaWithZKComponent kafkaWithZKComponent = runner.getComponent("kafka", KafkaWithZKComponent.class);
+        KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
         if (solrComponent.hasCollection(collection)) {
           List<Map<String, Object>> docsFromDisk;
           try {
@@ -91,7 +92,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
           if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
-            errors = kafkaWithZKComponent.readMessages(Constants.INDEXING_ERROR_TOPIC);
+            errors = kafkaComponent.readMessages(Constants.INDEXING_ERROR_TOPIC);
             if(errors.size() > 0){
               return ReadinessState.READY;
             }
