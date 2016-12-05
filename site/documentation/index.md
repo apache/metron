@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Apache Metron Documentation
+title: Apache Metron (Incubating) Documentation
 ---
 
 <section class="hero-second-level no-padding">
@@ -34,7 +34,7 @@ title: Apache Metron Documentation
             <h2>Quick Start</h2>
         </div>
         <div class="content-960 hover-btn text-center">
-            <p>The Quick Start installation fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running on VirtualBox.</p>
+            <p>The Quick Start installation fully automates the provisioning and deployment of Apache Metron (Incubating) and all necessary prerequisites on a single, virtualized host running on VirtualBox.</p>
             <br>
             <p> This image is designed for quick deployment of a single node Metron cluster running on VirtualBox. This platform is ideal for use by Metron developers. It uses a base image that has been pre-loaded with Ambari and HDP.</p>
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Quick+Start" target="_blank">LEARN MORE</a>

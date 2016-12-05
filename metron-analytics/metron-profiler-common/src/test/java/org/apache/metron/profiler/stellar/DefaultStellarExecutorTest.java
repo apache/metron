@@ -22,6 +22,11 @@ package org.apache.metron.profiler.stellar;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.functions.StringFunctions;
+import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.common.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.common.field.validation.primitive.IntegerValidation;
 import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -66,6 +71,9 @@ public class DefaultStellarExecutorTest {
     // create the executor to test
     executor = new DefaultStellarExecutor();
     executor.setContext(Context.EMPTY_CONTEXT());
+
+    ClasspathFunctionResolver resolver = new ClasspathFunctionResolver();
+    executor.setFunctionResolver(resolver);
   }
 
   /**
