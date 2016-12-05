@@ -89,6 +89,7 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
 
   }
 
+  @Override
   public void removeTimingFields(JSONObject message) {
     ImmutableSet keys = ImmutableSet.copyOf(message.keySet());
     for(Object key: keys) {

@@ -269,6 +269,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       this._predicate = predicate;
     }
 
+    @Override
     public boolean apply(EvaluationPayload payload) {
       return _predicate.apply(payload);
     }
@@ -439,6 +440,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<byte[]> errors = null;
       List<byte[]> invalids = null;
 
+      @Override
       public ReadinessState process(ComponentRunner runner) {
         KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
         List<byte[]> messages = kafkaComponent.readMessages(Constants.INDEXING_TOPIC);
@@ -458,6 +460,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
         }
       }
 
+      @Override
       public ProcessorResult<List<Map<String, Object>>> getResult()
       {
         ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();

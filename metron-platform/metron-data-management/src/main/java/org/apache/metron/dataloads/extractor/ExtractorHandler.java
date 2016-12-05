@@ -24,6 +24,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class ExtractorHandler {
     public void setInputFormatHandler(String handler) {
         try {
             this.inputFormatHandler= Formats.create(handler);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Unable to create an inputformathandler", e);
         }
     }
@@ -60,7 +61,7 @@ public class ExtractorHandler {
     public void setExtractor(String extractor) {
         try {
             this.extractor = Extractors.create(extractor);
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Unable to create an extractor", e);
         }
     }

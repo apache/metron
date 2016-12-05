@@ -107,6 +107,7 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
          * @throws Exception
          */
          
+        @Override
         protected boolean validateJsonData(final String jsonSchema, final String jsonData)
             throws Exception {
     
@@ -122,6 +123,7 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
             return report.toString().contains("success");
         }
         
+        @Override
         protected String readSchemaFromFile(URL schema_url) throws Exception {
             BufferedReader br = new BufferedReader(new FileReader(
                     schema_url.getFile()));
@@ -145,6 +147,7 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
        /**
         * Skip Tests
         */
+       @Override
        public boolean skipTests(Object mode){
            if(mode.toString().equals("local")){
                return true;
@@ -158,6 +161,7 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
         * @return the mode.
         */
        
+       @Override
        public Object getMode() {
            return mode;
        }
@@ -167,6 +171,7 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
         * @param mode the mode.
         */
        
+       @Override
        public void setMode(Object mode) {
        
            this.mode = mode;
@@ -175,9 +180,10 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
     
      /**
      
-     * @param readSchemaFromFile
+     * @param schemaJsonString
      */
      
+    @Override
     public void setSchemaJsonString(String schemaJsonString) {
         this.schemaJsonString=schemaJsonString;
     }
@@ -188,6 +194,7 @@ public class AbstractSchemaTest  extends AbstractConfigTest{
      * @return
      */
      
+    @Override
     public String getSchemaJsonString() {
        return this.schemaJsonString;
     }

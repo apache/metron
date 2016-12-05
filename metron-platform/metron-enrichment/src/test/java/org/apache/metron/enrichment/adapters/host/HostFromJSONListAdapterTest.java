@@ -78,7 +78,7 @@ public class HostFromJSONListAdapterTest {
     JSONObject actualMessage = hja.enrich(new CacheKey("dummy", ip, null));
     Assert.assertNotNull(actualMessage);
     Assert.assertEquals(expectedMessage, actualMessage);
-    actualMessage = hja.enrich(new CacheKey("dummy",new Long(10L), null));
+    actualMessage = hja.enrich(new CacheKey("dummy", 10L, null));
     JSONObject emptyJson = new JSONObject();
     Assert.assertEquals(emptyJson, actualMessage);
   }

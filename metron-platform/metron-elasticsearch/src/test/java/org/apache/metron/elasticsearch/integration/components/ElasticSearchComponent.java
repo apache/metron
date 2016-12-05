@@ -90,6 +90,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
         }
         dir.mkdirs();
     }
+    @Override
     public void start() throws UnableToStartException {
         File logDir= new File(indexDir, "/logs");
         File dataDir= new File(indexDir, "/data");
@@ -175,6 +176,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
     }
 
+    @Override
     public void stop() {
         node.close();
         node = null;

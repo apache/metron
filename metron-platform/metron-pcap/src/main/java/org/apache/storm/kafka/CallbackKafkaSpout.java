@@ -20,6 +20,7 @@ package org.apache.storm.kafka;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class CallbackKafkaSpout extends KafkaSpout {
@@ -56,8 +57,8 @@ public class CallbackKafkaSpout extends KafkaSpout {
 
     protected Callback createCallback(Class<? extends Callback> callbackClass)  {
         try {
-            return callbackClass.newInstance();
-        } catch (InstantiationException e) {
+            return callbackClass.getConstructor().newInstance();
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException("Unable to instantiate callback", e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Illegal access", e);

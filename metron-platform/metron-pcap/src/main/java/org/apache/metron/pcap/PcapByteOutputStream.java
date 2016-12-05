@@ -190,6 +190,7 @@ public class PcapByteOutputStream implements PcapOutputStream {
    *           org.krakenapps.pcap.PcapOutputStream#write(PcapPacket)
    */
  
+  @Override
   public void write(PcapPacket packet) throws IOException {
     PacketHeader packetHeader = packet.getPacketHeader();
 
@@ -273,6 +274,7 @@ public class PcapByteOutputStream implements PcapOutputStream {
    *           org.krakenapps.pcap.PcapOutputStream#flush()
    */
  
+  @Override
   public void flush() throws IOException {
     byte[] fileBinary = new byte[list.size()];
     for (int i = 0; i < fileBinary.length; i++) {
@@ -298,6 +300,7 @@ public class PcapByteOutputStream implements PcapOutputStream {
    *           org.krakenapps.pcap.PcapOutputStream#close()
    */
  
+  @Override
   public void close() throws IOException {
     flush();
     baos.close(); // $codepro.audit.disable closeInFinally

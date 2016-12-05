@@ -106,6 +106,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
     return "localhost:2000";
   }
 
+  @Override
   public void start() throws UnableToStartException {
     try {
       stormCluster = new LocalCluster();
@@ -129,6 +130,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
   }
 
+  @Override
   public void stop() {
     if (stormCluster != null) {
       stormCluster.shutdown();
@@ -161,19 +163,9 @@ public class FluxTopologyComponent implements InMemoryComponent {
   private static TopologyDef loadYaml(String topologyName, File yamlFile, Properties properties) throws IOException {
     File tmpFile = File.createTempFile(topologyName, "props");
     tmpFile.deleteOnExit();
-    FileWriter propWriter = null;
-    try {
-      propWriter = new FileWriter(tmpFile);
+    try (FileWriter propWriter = new FileWriter(tmpFile)){
       properties.store(propWriter, topologyName + " properties");
-    } finally {
-      if (propWriter != null) {
-        propWriter.close();
-        return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
-      }
-
-      return null;
+      return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
     }
   }
-
-
 }
