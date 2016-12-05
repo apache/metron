@@ -54,10 +54,10 @@ public class UserControllerIntegrationTest {
 
     @Test
     public void test() throws Exception {
-        this.mockMvc.perform(get("/user"))
+        this.mockMvc.perform(get("/api/v1/user"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/user").with(httpBasic(user,password)))
+        this.mockMvc.perform(get("/api/v1/user").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(user));
     }

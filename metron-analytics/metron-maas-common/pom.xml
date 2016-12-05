@@ -129,15 +129,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>${global_java_version}</source>
-          <target>${global_java_version}</target>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>

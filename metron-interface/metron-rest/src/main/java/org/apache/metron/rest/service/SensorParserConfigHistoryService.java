@@ -63,16 +63,18 @@ public class SensorParserConfigHistoryService {
                     .getSingleResult();
             SensorParserConfigVersion sensorParserConfigVersion = (SensorParserConfigVersion) latestResults[0];
             sensorParserConfigHistory = new SensorParserConfigHistory();
-            sensorParserConfigHistory.setConfig(deserializeSensorParserConfig(sensorParserConfigVersion.getConfig()));
-
+            String config = sensorParserConfigVersion.getConfig();
+            if (config != null) {
+              sensorParserConfigHistory.setConfig(deserializeSensorParserConfig(config));
+              if (grokService.isGrokConfig(sensorParserConfigHistory.getConfig())) {
+                grokService.addGrokStatementToConfig(sensorParserConfigHistory.getConfig());
+              }
+            } else {
+              sensorParserConfigHistory.setConfig(null);
+            }
             UserRevEntity latestUserRevEntity = (UserRevEntity) latestResults[1];
             sensorParserConfigHistory.setModifiedBy(latestUserRevEntity.getUsername());
             sensorParserConfigHistory.setModifiedByDate(new DateTime(latestUserRevEntity.getTimestamp()));
-
-            if (grokService.isGrokConfig(sensorParserConfigHistory.getConfig())) {
-                grokService.addGrokStatementToConfig(sensorParserConfigHistory.getConfig());
-            }
-
             Object[] firstResults = (Object[]) reader.createQuery().forRevisionsOfEntity(SensorParserConfigVersion.class, false, true)
                     .add(AuditEntity.property("name").eq(name))
                     .addOrder(AuditEntity.revisionNumber().asc())
@@ -84,8 +86,10 @@ public class SensorParserConfigHistoryService {
 
         } catch (NoResultException e){
           SensorParserConfig sensorParserConfig = sensorParserConfigService.findOne(name);
-          sensorParserConfigHistory = new SensorParserConfigHistory();
-          sensorParserConfigHistory.setConfig(sensorParserConfig);
+          if (sensorParserConfig != null) {
+            sensorParserConfigHistory = new SensorParserConfigHistory();
+            sensorParserConfigHistory.setConfig(sensorParserConfig);
+          }
         }
         return sensorParserConfigHistory;
     }

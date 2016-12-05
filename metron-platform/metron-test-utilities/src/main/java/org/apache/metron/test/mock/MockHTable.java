@@ -18,6 +18,7 @@
 package org.apache.metron.test.mock;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 import com.google.protobuf.Service;
@@ -28,7 +29,18 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Append;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Durability;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Increment;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Row;
+import org.apache.hadoop.hbase.client.RowMutations;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.coprocessor.Batch;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
@@ -37,7 +49,16 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.NoSuchElementException;
+import java.util.TreeMap;
 
 /**
  * MockHTable.
@@ -53,9 +74,11 @@ public class MockHTable implements HTableInterface {
       HTableInterface ret = _cache.get(tableName);
       return ret;
     }
+
     public static HTableInterface getFromCache(String tableName) {
       return _cache.get(tableName);
     }
+
     public static HTableInterface addToCache(String tableName, String... columnFamilies) {
       MockHTable ret =  new MockHTable(tableName, columnFamilies);
       _cache.put(tableName, ret);
@@ -70,7 +93,7 @@ public class MockHTable implements HTableInterface {
   private final String tableName;
   private final List<String> columnFamilies = new ArrayList<>();
   private HColumnDescriptor[] descriptors;
-
+  private List<Put> putLog;
   private NavigableMap<byte[], NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>> data
           = new TreeMap<>(Bytes.BYTES_COMPARATOR);
 
@@ -99,10 +122,11 @@ public class MockHTable implements HTableInterface {
   }
   public MockHTable(String tableName) {
     this.tableName = tableName;
+    this.putLog = new ArrayList<>();
   }
 
   public MockHTable(String tableName, String... columnFamilies) {
-    this.tableName = tableName;
+    this(tableName);
     for(String cf : columnFamilies) {
       addColumnFamily(cf);
     }
@@ -111,6 +135,7 @@ public class MockHTable implements HTableInterface {
   public int size() {
     return data.size();
   }
+
   public void addColumnFamily(String columnFamily) {
     this.columnFamilies.add(columnFamily);
     descriptors = new HColumnDescriptor[columnFamilies.size()];
@@ -209,6 +234,7 @@ public class MockHTable implements HTableInterface {
    * @param actions
    * @deprecated
    */
+  @Deprecated
   @Override
   public Object[] batch(List<? extends Row> actions) throws IOException, InterruptedException {
     List<Result> results = new ArrayList<Result>();
@@ -239,6 +265,7 @@ public class MockHTable implements HTableInterface {
    * @param callback
    * @deprecated
    */
+  @Deprecated
   @Override
   public <R> Object[] batchCallback(List<? extends Row> list, Batch.Callback<R> callback) throws IOException, InterruptedException {
     throw new UnsupportedOperationException();
@@ -311,6 +338,7 @@ public class MockHTable implements HTableInterface {
    * @param bytes1
    * @deprecated
    */
+  @Deprecated
   @Override
   public Result getRowOrBefore(byte[] bytes, byte[] bytes1) throws IOException {
     throw new UnsupportedOperationException();
@@ -437,15 +465,22 @@ public class MockHTable implements HTableInterface {
     return getScanner(scan);
   }
 
-  List<Put> putLog = new ArrayList<>();
-
   public List<Put> getPutLog() {
-    return putLog;
+    synchronized (putLog) {
+      return ImmutableList.copyOf(putLog);
+    }
+  }
+
+  public void addToPutLog(Put put) {
+    synchronized(putLog) {
+      putLog.add(put);
+    }
   }
 
   @Override
   public void put(Put put) throws IOException {
-    putLog.add(put);
+    addToPutLog(put);
+
     byte[] row = put.getRow();
     NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> rowData = forceFind(data, row, new TreeMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>(Bytes.BYTES_COMPARATOR));
     for (byte[] family : put.getFamilyMap().keySet()){
@@ -579,6 +614,7 @@ public class MockHTable implements HTableInterface {
    * @param b
    * @deprecated
    */
+  @Deprecated
   @Override
   public long incrementColumnValue(byte[] bytes, byte[] bytes1, byte[] bytes2, long l, boolean b) throws IOException {
     throw new UnsupportedOperationException();
@@ -620,6 +656,7 @@ public class MockHTable implements HTableInterface {
    * @param b
    * @deprecated
    */
+  @Deprecated
   @Override
   public void setAutoFlush(boolean b) {
     autoflush = b;

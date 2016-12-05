@@ -18,11 +18,9 @@
 package org.apache.metron.rest.controller;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
-import org.apache.metron.rest.service.StormService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,16 +35,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -80,62 +78,62 @@ public class StormControllerIntegrationTest {
 
   @Test
   public void testSecurity() throws Exception {
-    this.mockMvc.perform(get("/storm"))
+    this.mockMvc.perform(get("/api/v1/storm"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/broTest"))
+    this.mockMvc.perform(get("/api/v1/storm/broTest"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/parser/start/broTest"))
+    this.mockMvc.perform(get("/api/v1/storm/parser/start/broTest"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/parser/stop/broTest"))
+    this.mockMvc.perform(get("/api/v1/storm/parser/stop/broTest"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/parser/activate/broTest"))
+    this.mockMvc.perform(get("/api/v1/storm/parser/activate/broTest"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/parser/deactivate/broTest"))
+    this.mockMvc.perform(get("/api/v1/storm/parser/deactivate/broTest"))
             .andExpect(status().isUnauthorized());
 
     this.mockMvc.perform(get("/enrichment"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/enrichment/start"))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/start"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/enrichment/stop"))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/stop"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/enrichment/activate"))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/activate"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/enrichment/deactivate"))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/deactivate"))
             .andExpect(status().isUnauthorized());
 
     this.mockMvc.perform(get("/indexing"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/indexing/start"))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/start"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/indexing/stop"))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/stop"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/indexing/activate"))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/activate"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/storm/indexing/deactivate"))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/deactivate"))
             .andExpect(status().isUnauthorized());
   }
 
   @Test
   public void test() throws Exception {
-    this.mockMvc.perform(get("/storm").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(0)));
 
-    this.mockMvc.perform(get("/storm/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/broTest").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
 
     Map<String, Object> globalConfig = globalConfigService.get();
@@ -145,29 +143,29 @@ public class StormControllerIntegrationTest {
     globalConfigService.delete();
     sensorParserConfigService.delete("broTest");
 
-    this.mockMvc.perform(get("/storm/parser/stop/broTest?stopNow=true").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/stop/broTest?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
-    this.mockMvc.perform(get("/storm/parser/activate/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/activate/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get("/storm/parser/deactivate/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/deactivate/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get("/storm/parser/start/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.GLOBAL_CONFIG_MISSING.name()));
 
     globalConfigService.save(globalConfig);
 
-    this.mockMvc.perform(get("/storm/parser/start/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.SENSOR_PARSER_CONFIG_MISSING.name()));
@@ -177,12 +175,12 @@ public class StormControllerIntegrationTest {
     sensorParserConfig.setSensorTopic("broTest");
     sensorParserConfigService.save(sensorParserConfig);
 
-    this.mockMvc.perform(get("/storm/parser/start/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.name()));
 
-    this.mockMvc.perform(get("/storm/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.name").value("broTest"))
@@ -191,55 +189,55 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.latency").exists())
             .andExpect(jsonPath("$.throughput").exists());
 
-    this.mockMvc.perform(get("/storm").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.name == 'broTest' && @.status == 'ACTIVE')]").exists());
 
-    this.mockMvc.perform(get("/storm/parser/stop/broTest?stopNow=true").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/parser/stop/broTest?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
-    this.mockMvc.perform(get("/storm/enrichment").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
 
-    this.mockMvc.perform(get("/storm/enrichment/activate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get("/storm/enrichment/deactivate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get("/storm/enrichment/stop?stopNow=true").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/stop?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
-    this.mockMvc.perform(get("/storm/enrichment/start").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/start").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.toString()));
 
-    this.mockMvc.perform(get("/storm/enrichment/deactivate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
-    this.mockMvc.perform(get("/storm/enrichment/deactivate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
-    this.mockMvc.perform(get("/storm/enrichment/activate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.ACTIVE.name()));
 
-    this.mockMvc.perform(get("/storm/enrichment").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.name").value("enrichment"))
@@ -248,50 +246,50 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.latency").exists())
             .andExpect(jsonPath("$.throughput").exists());
 
-    this.mockMvc.perform(get("/storm").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.name == 'enrichment' && @.status == 'ACTIVE')]").exists());
 
-    this.mockMvc.perform(get("/storm/enrichment/stop").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/enrichment/stop").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
-    this.mockMvc.perform(get("/storm/indexing").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
 
-    this.mockMvc.perform(get("/storm/indexing/activate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get("/storm/indexing/deactivate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get("/storm/indexing/stop?stopNow=true").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/stop?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("error"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
-    this.mockMvc.perform(get("/storm/indexing/start").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/start").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.toString()));
 
-    this.mockMvc.perform(get("/storm/indexing/deactivate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
-    this.mockMvc.perform(get("/storm/indexing/activate").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.ACTIVE.name()));
 
-    this.mockMvc.perform(get("/storm/indexing").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.name").value("indexing"))
@@ -300,17 +298,17 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.latency").exists())
             .andExpect(jsonPath("$.throughput").exists());
 
-    this.mockMvc.perform(get("/storm").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.name == 'indexing' && @.status == 'ACTIVE')]").exists());
 
-    this.mockMvc.perform(get("/storm/indexing/stop").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/indexing/stop").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("success"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
-    this.mockMvc.perform(get("/storm/client/status").with(httpBasic(user,password)))
+    this.mockMvc.perform(get("/api/v1/storm/client/status").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.stormClientVersionInstalled").value("1.0.1"))
             .andExpect(jsonPath("$.parserScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_parser_topology.sh"))
