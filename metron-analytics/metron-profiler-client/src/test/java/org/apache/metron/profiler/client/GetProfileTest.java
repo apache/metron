@@ -129,7 +129,11 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
+
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
@@ -153,7 +157,10 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
@@ -180,7 +187,10 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
@@ -224,7 +234,10 @@ public class GetProfileTest {
     final List<Object> group = Collections.emptyList();
 
     // setup - write a single value from 2 hours ago
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, 1, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
