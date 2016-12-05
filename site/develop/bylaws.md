@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Apache Metron Bylaws
+title: Apache Metron (Incubating) Bylaws
 ---
 
 ## Introduction
 
-This document defines the bylaws under which the Apache Metron project
+This document defines the bylaws under which the Apache Metron (Incubating) project
 operates. It defines the roles and responsibilities of the project,
 who may vote, how voting works, how conflicts are resolved, etc.
 
