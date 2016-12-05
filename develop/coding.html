@@ -4,7 +4,7 @@
         
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
         <link rel="profile" href="http://gmpg.org/xfn/11">
-        <title>Apache Metron (Incubating) Documentation</title>
+        <title>Coding Guidelines</title>
 
         <style type="text/css">
             img.wp-smiley,
@@ -140,71 +140,60 @@
 </header>
 
 
-  <section class="hero-second-level no-padding">
-    <div class="bg-img">
-        <img src="/img/metron_datacenter.jpg" alt="UNLOCK THE POWER OF YOUR DATA" style="width: 100%; left: 0px;" />
-    </div>
-    <div class="v-middle-wrapper">
-        <div class="v-middle-inner">
-            <div class="v-middle">
-              <h1>real-time big data security </h1>
-            </div>
-        </div>
-    </div>
-</section>
+  <section class="standalone">
+  <div class="grid">
 
-<section class="no-padding">
-      <div class="fixed-anchor" style="min-height: 99px;">
-        <div class="fixed-links" style="top: 63px; transition: top 0.5s ease;">
-            <ul>
-                <li class="active"><a href="#quickstart">Quick Start</a></li>
-                <li class=""><a href="#installation">Installation</a></li>
-                <li class=""><a href="#docshome">DOCS Home</a></li>
-            </ul>
-        </div>
-    </div>  
-</section>
+    <div class="unit whole">
+      <article>
+        <h1>Coding Guidelines</h1>
+        <h2 id="general-rules">General rules</h2>
 
-<section class="intro-block" id="quickstart">
-    <div class="wrapper">
-        <div class="text-center">
-            <h2>Quick Start</h2>
-        </div>
-        <div class="content-960 hover-btn text-center">
-            <p>The Quick Start installation fully automates the provisioning and deployment of Apache Metron (Incubating) and all necessary prerequisites on a single, virtualized host running on VirtualBox.</p>
-            <br />
-            <p> This image is designed for quick deployment of a single node Metron cluster running on VirtualBox. This platform is ideal for use by Metron developers. It uses a base image that has been pre-loaded with Ambari and HDP.</p>
-            <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Quick+Start" target="_blank">LEARN MORE</a>
-        </div>
-    </div>
-</section>
+<ul>
+  <li>All files must have an Apache copyright header at the top of the file.</li>
+  <li>Code should be removed rather than commented out.</li>
+  <li>All public functions should have javadoc comments.</li>
+  <li>Always use braces to surround branches.</li>
+  <li>try-finally should be avoided.</li>
+</ul>
 
-<section class="events-section info-block darken" id="installation">
-    <div class="wrapper"><div class="text-center">
-                <h2>Installation</h2>
-            </div>
-            <div class="col-two text-center">
-                <h5 class="bold blue-text">Ansible-based Vagrant single node VM install</h5> <br />      
-                <p>This is the best place to play with Metron first. This approach uses the Quick Start installation which automates the provisioning and deployment of Apache Metron on a single, virtualized host running on VirtualBox.</p>
-            </div>
-            <div class="col-two text-center">
-                <h5 class="bold blue-text">Fully automated 10 Node Ansible-based install on AWS using Ambari blueprints and AWS APIs</h5> <br />                
-                <p>If you want a more realistic setup of the Metron application, use this approach. This install creates a full-functioning, end-to-end, multi-node cluster running Apache Metron. Keep in mind that this install will spin up 10 m4.xlarge EC2 instances by default.</p>
-            </div>
-            </div>
-<div class="hover-btn text-center">
-    			<a class="button-default" href=" https://cwiki.apache.org/confluence/display/METRON/Installation" target="_blank">LEARN MORE</a>
-    		</div>
-</section>
+<h2 id="formatting">Formatting</h2>
 
-<section class="intro-block" id="docshome">
-    <div class="text-center">
-        <h2>DOCS Home</h2>
+<ul>
+  <li>All files must have an 80 character maximum line length.</li>
+  <li>Indentation should be 2 spaces.</li>
+  <li>Files should use spaces instead of tabs.</li>
+  <li>Wrapping lines
+    <ul>
+      <li>Break after a comma.</li>
+      <li>Break before an operator.</li>
+      <li>Prefer higher-level breaks to lower-level breaks.</li>
+      <li>Align the new line with beginning of the expression at the same level
+on the previous line.</li>
+      <li>If the above rules lead to confusing code, just indent 8 spaces.</li>
+    </ul>
+  </li>
+  <li>One variable declaration per a line.</li>
+</ul>
+
+<h2 id="naming">Naming</h2>
+
+<ul>
+  <li>Packages should be all lowercase.
+    <ul>
+      <li>Java code should be in <code>org.apache.,metron</code>, except for compatibility classes</li>
+    </ul>
+  </li>
+  <li>Classes should be in mixed case.</li>
+  <li>Variables should be in camel case.</li>
+  <li>Constants should be in upper case.</li>
+</ul>
+
+      </article>
     </div>
-    <div class="content-960 hover-btn text-center">
-        <p> Apache Metron documentation provides information on quickly getting started with Metron, performing a full installation, adding additional data sources, and using Metron to triage alerts. Metron documentation is currently a work in progress. Please check back again later as we continue to grow this documentation set.</p>
-        <a class="button-default" href=" https://cwiki.apache.org/confluence/display/METRON/Documentation" target="_blank">LEARN MORE</a>
-    </div>
+
+    <div class="clear"></div>
+
+  </div>
 </section>
 
 

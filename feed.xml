@@ -3,16 +3,16 @@
   <channel>
     <title></title>
     <description></description>
-    <link></link>
+    <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 01 Nov 2016 22:37:58 -0400</pubDate>
-    <lastBuildDate>Tue, 01 Nov 2016 22:37:58 -0400</lastBuildDate>
-    <generator>Jekyll v3.3.0</generator>
+    <pubDate>Mon, 05 Dec 2016 13:32:42 -0500</pubDate>
+    <lastBuildDate>Mon, 05 Dec 2016 13:32:42 -0500</lastBuildDate>
+    <generator>Jekyll v2.4.0</generator>
     
       <item>
         <title>Debo Dutta joins PPMC</title>
         <description>&lt;p&gt;I am very pleased to announce that the Podling Project Management
-Committee (PPMC) of Apache Metron has asked Debo Dutta to become an
+Committee (PPMC) of Apache Metron (Incubating) has asked Debo Dutta to become an
 Apache Metron committer, and he has already accepted.&lt;/p&gt;
 
 &lt;p&gt;Debo has already made many contributions to Metron community, working
