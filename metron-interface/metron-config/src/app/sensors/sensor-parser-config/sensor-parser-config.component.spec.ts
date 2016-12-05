@@ -414,17 +414,6 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
-  it('should return Stellar information with formatting ', async(() => {
-    activatedRoute.setNameForTest('squid');
-    sensorParserConfigService.setSensorParserConfig(Object.assign(new SensorParserConfig(), squidSensorData));
-
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-    component.ngOnInit();
-    expect(component.getStellar()).toEqual('2 Stellar Configs Applied');
-
-    fixture.destroy();
-  }));
-
   it('should call window history back', async(() => {
     activatedRoute.setNameForTest('new');
     let component: SensorParserConfigComponent = fixture.componentInstance;
@@ -446,7 +435,7 @@ describe('Component: SensorParserConfig', () => {
     sensorParserConfigSave.sensorTopic = 'squid';
     sensorParserConfigSave.parserClassName = 'org.apache.metron.parsers.GrokParser';
     sensorParserConfigSave.parserConfig = {};
-    sensorParserConfigSave.parserConfig['grokStatement'] = 'SQUID %{NUMBER:timestamp}';
+    sensorParserConfigSave.parserConfig['grokStatement'] = '%{NUMBER:timestamp}';
     sensorParserConfigSave.fieldTransformations = [fieldTransformer];
     activatedRoute.setNameForTest('new');
 
@@ -463,9 +452,8 @@ describe('Component: SensorParserConfig', () => {
     component.sensorParserConfig.sensorTopic = 'squid';
     component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
     component.sensorParserConfig.fieldTransformations = [fieldTransformer];
-    component.sensorParserConfig.parserConfig['grokStatement'] = 'SQUID %{NUMBER:timestamp}';
+    component.sensorParserConfig.parserConfig['grokStatement'] = '%{NUMBER:timestamp}';
 
-    component.removeGrokPrefix();
     expect(component.sensorParserConfig.parserConfig['grokStatement']).toEqual('%{NUMBER:timestamp}');
 
     component.onSave();

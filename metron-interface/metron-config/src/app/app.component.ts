@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import './rxjs-operators';
 import {AuthenticationService} from './service/authentication.service';
 import 'jquery';
@@ -28,7 +28,7 @@ declare var $: any;
   styleUrls: ['app.component.scss']
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent {
 
   loggedIn: boolean = false;
 
@@ -38,10 +38,4 @@ export class AppComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-    $('body').tooltip({
-      selector: '[data-toggle="tooltip"]',
-      trigger: 'hover focus'
-    });
-  }
 }

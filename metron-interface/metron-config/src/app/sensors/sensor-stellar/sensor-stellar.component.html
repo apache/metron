@@ -15,23 +15,19 @@
   -->
 <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
-  <div class="form-title">Configure Stellar</div>
+  <div class="form-title">Configure Raw JSON</div>
   <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
 
 
   <form role="form" class="enrichments-form">
     <fieldset class="form-group">
       <div class="form-group">
-        <label attr.for="transformationConfig">TRANSFORMATION</label>
-        <textarea rows="10" class="form-control" name="transformationConfig" (blur)="onTransformationBlur()" [(ngModel)]="transformationConfig"></textarea>
+        <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
+        <textarea rows="20" class="form-control" name="newSensorParserConfig" (blur)="onSensorParserConfigBlur()" [(ngModel)]="newSensorParserConfig"></textarea>
       </div>
       <div class="form-group">
-        <label attr.for="enrichmentConfig">ENRICHMENT</label>
-        <textarea rows="10" class="form-control" name="enrichmentConfig" (blur)="onEnrichmentBlur()" [(ngModel)]="enrichmentConfig"></textarea>
-      </div>
-      <div class="form-group">
-        <label attr.for="triageConfig">THREAT TRIAGE</label>
-        <textarea rows="10" class="form-control" name="triageConfig" (blur)="onTriageBlur()" [(ngModel)]="triageConfig"></textarea>
+        <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
+        <textarea rows="20" class="form-control" name="newSensorEnrichmentConfig" (blur)="onSensorEnrichmentConfigBlur()" [(ngModel)]="newSensorEnrichmentConfig"></textarea>
       </div>
 
     </fieldset>

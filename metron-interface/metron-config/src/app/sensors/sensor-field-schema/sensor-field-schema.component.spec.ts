@@ -97,7 +97,7 @@ describe('Component: SensorFieldSchema', () => {
         'sensorTopic': 'squid',
         'parserConfig': {
             'grokPath': 'target/patterns/squid',
-            'grokStatement': 'SQUID %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
+            'grokStatement': '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
                              '%{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\\/%{IPV4:ip_dst_addr} ' +
                              '%{WORD:UNWANTED}\\/%{WORD:UNWANTED}'
         },
@@ -276,7 +276,7 @@ describe('Component: SensorFieldSchema', () => {
         fieldSchemaRow.enrichmentConfigured = [new AutocompleteOption('GEO')];
         fieldSchemaRow.threatIntelConfigured = [new AutocompleteOption('MALICIOUS-IP'), new AutocompleteOption('MALICIOUS-IP')];
 
-        expect(component.getChanges(fieldSchemaRow)).toEqual('1 Transformation, 1 Enrichment, 2 Threat Intels');
+        expect(component.getChanges(fieldSchemaRow)).toEqual('Transforms: TO_STRING(method) <br> Enrichments: GEO <br> Threat Intel: MALICIOUS-IP, MALICIOUS-IP');
 
 
         fieldSchemaRow.transformConfigured = [new AutocompleteOption('TO_STRING'), new AutocompleteOption('TO_STRING')];
@@ -303,6 +303,8 @@ describe('Component: SensorFieldSchema', () => {
         spyOn(component, 'createFieldSchemaRows');
         spyOn(component, 'onSampleDataNotAvailable');
         spyOn(sensorParserConfigService, 'parseMessage').and.callFake(function(parseMessageRequest: ParseMessageRequest) {
+            expect(parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual(parseMessageRequest.sensorParserConfig.sensorTopic.toUpperCase());
+            expect(parseMessageRequest.sensorParserConfig.parserConfig['grokPath']).toEqual('./' + parseMessageRequest.sensorParserConfig.sensorTopic);
             if (returnSuccess) {
                 return Observable.create(observer => {
                     observer.next({'a': 'b', 'c': 'd'});
@@ -312,6 +314,8 @@ describe('Component: SensorFieldSchema', () => {
             return Observable.throw('Error');
         });
 
+        component.sensorParserConfig = sensorParserConfig;
+        component.sensorParserConfig.parserConfig['patternLabel'] = null;
         component.onSampleDataChanged('DoctorStrange');
         expect(component.parserResult).toEqual({'a': 'b', 'c': 'd'});
         expect(component.createFieldSchemaRows).toHaveBeenCalled();

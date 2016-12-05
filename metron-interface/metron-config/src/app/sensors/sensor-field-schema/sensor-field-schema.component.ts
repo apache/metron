@@ -268,8 +268,12 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
   onSampleDataChanged(sampleData: string) {
     let parseMessageRequest = new ParseMessageRequest();
-    parseMessageRequest.sensorParserConfig = this.sensorParserConfig;
+    parseMessageRequest.sensorParserConfig = JSON.parse(JSON.stringify(this.sensorParserConfig));
     parseMessageRequest.sampleData = sampleData;
+    if (parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] == null) {
+      parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] = parseMessageRequest.sensorParserConfig.sensorTopic.toUpperCase();
+    }
+    parseMessageRequest.sensorParserConfig.parserConfig['grokPath'] = './' + parseMessageRequest.sensorParserConfig.sensorTopic;
 
     this.sensorParserConfigService.parseMessage(parseMessageRequest).subscribe(
         parserResult => {

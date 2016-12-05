@@ -164,6 +164,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
           output = output.concat(Object.keys(transforms.config));
         }
       }
+      return output;
     }
 
     return [];

@@ -15,20 +15,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* tslint:disable:no-unused-variable */
 
 import {async, TestBed, ComponentFixture} from '@angular/core/testing';
 import {SensorStellarComponent} from './sensor-stellar.component';
 import {SharedModule} from '../../shared/shared.module';
 import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
-import {FieldTransformer} from '../../model/field-transformer';
+import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 
 describe('Component: SensorStellarComponent', () => {
 
     let fixture: ComponentFixture<SensorStellarComponent>;
     let component: SensorStellarComponent;
+    let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
+    sensorParserConfig.sensorTopic = 'bro';
+    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
+    sensorParserConfig.parserConfig = {};
+    let sensorParserConfigString = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
+        '"parserConfig": {},"fieldTransformations":[]}';
+    let sensorEnrichmentConfig = new SensorEnrichmentConfig();
+    sensorEnrichmentConfig.index = 'bro';
+    sensorEnrichmentConfig.batchSize = 5;
+    sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), {
+      'fieldMap': {
+        'geo': ['ip_dst_addr', 'ip_src_addr'],
+        'host': ['host']
+      }
+    });
+    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
+          'fieldMap': {
+            'hbaseThreatIntel': ['ip_src_addr', 'ip_dst_addr']
+          },
+          'fieldToTypeMap': {
+            'ip_src_addr' : ['malicious_ip'],
+            'ip_dst_addr' : ['malicious_ip']
+          }
+        });
+
+    let sensorEnrichmentConfigString = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
+        '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
+        ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
@@ -42,7 +68,6 @@ describe('Component: SensorStellarComponent', () => {
 
         fixture = TestBed.createComponent(SensorStellarComponent);
         component = fixture.componentInstance;
-
     }));
 
     it('should create an instance', () => {
@@ -64,62 +89,14 @@ describe('Component: SensorStellarComponent', () => {
     });
 
     it('should initialise the fields', () => {
-        let transforms =
-        [
-            Object.assign(new FieldTransformer(), {
-                'input': [
-                    'method'
-                ],
-                'output': null,
-                'transformation': 'REMOVE',
-                'config': {
-                    'condition': 'exists(method) and method == "foo"'
-                }
-            }),
-            Object.assign(new FieldTransformer(), {
-                'input': [],
-                'output': [
-                    'method',
-                    'status_code',
-                    'url'
-                ],
-                'transformation': 'STELLAR',
-                'config': {
-                    'method': 'TO_UPPER(method)',
-                    'status_code': 'TO_LOWER(code)',
-                    'url': 'TO_STRING(TRIM(url))'
-                }
-            })
-        ];
-        let stellarconfig = {
-            'numeric': {
-                'foo': '1 + 1'
-            },
-            'ALL_CAPS': 'TO_UPPER(method)'
-        };
-        let triageConfig = {
-            'riskLevelRules': {},
-            'aggregator': 'MAX',
-            'aggregationConfig': {}
-        };
 
-        component.sensorParserConfig = new SensorParserConfig();
-        component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
-        component.sensorParserConfig.fieldTransformations = transforms;
-        component.sensorEnrichmentConfig.enrichment.fieldMap['stellar'] = {'config': stellarconfig};
-        component.sensorEnrichmentConfig.threatIntel.triageConfig = triageConfig;
+        component.sensorParserConfig = this.sensorParserConfig;
+        component.sensorEnrichmentConfig = this.sensorEnrichmentConfig;
 
         component.init();
 
-        expect(component.transformationConfig).toEqual(JSON.stringify(transforms, null, '\t'));
-        expect(component.enrichmentConfig).toEqual(JSON.stringify(stellarconfig, null, '\t'));
-        expect(component.triageConfig).toEqual(JSON.stringify(triageConfig, null, '\t'));
-
-        delete component.sensorEnrichmentConfig.enrichment.fieldMap['stellar'];
-
-        component.init();
-
-        expect(component.enrichmentConfig).toEqual('{}');
+        expect(component.newSensorParserConfig).toEqual(JSON.stringify(this.sensorParserConfig, null, '\t'));
+        expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(this.sensorEnrichmentConfig, null, '\t'));
 
         fixture.destroy();
     });
@@ -128,57 +105,16 @@ describe('Component: SensorStellarComponent', () => {
         spyOn(component.hideStellar, 'emit');
         spyOn(component.onStellarChanged, 'emit');
 
-        let transforms =
-        [
-            Object.assign(new Object(), {
-                'input': [
-                    'method'
-                ],
-                'output': null,
-                'transformation': 'REMOVE',
-                'config': {
-                    'condition': 'exists(method) and method == "foo"'
-                }
-            }),
-            Object.assign(new Object(), {
-                'input': [],
-                'output': [
-                    'method',
-                    'status_code',
-                    'url'
-                ],
-                'transformation': 'STELLAR',
-                'config': {
-                    'method': 'TO_UPPER(method)',
-                    'status_code': 'TO_LOWER(code)',
-                    'url': 'TO_STRING(TRIM(url))'
-                }
-            })
-        ];
-        let stellarconfig = {
-            'numeric': {
-                'foo': '1 + 1'
-            },
-            'ALL_CAPS': 'TO_UPPER(method)'
-        };
-        let triageConfig = {
-            'riskLevelRules': {},
-            'aggregator': 'MAX',
-            'aggregationConfig': {}
-        };
-
         component.sensorParserConfig = new SensorParserConfig();
         component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
 
-        component.transformationConfig = JSON.stringify(transforms);
-        component.enrichmentConfig = JSON.stringify(stellarconfig);
-        component.triageConfig = JSON.stringify(triageConfig);
+        component.newSensorParserConfig = sensorParserConfigString;
+        component.newSensorEnrichmentConfig = sensorEnrichmentConfigString;
 
         component.onSave();
 
-        expect(component.sensorParserConfig.fieldTransformations).toEqual(transforms);
-        expect(component.sensorEnrichmentConfig.enrichment.fieldMap['stellar']).toEqual({'config': stellarconfig});
-        expect(component.sensorEnrichmentConfig.threatIntel.triageConfig).toEqual(triageConfig);
+        expect(component.sensorParserConfig).toEqual(sensorParserConfig);
+        expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
 
         expect(component.hideStellar.emit).toHaveBeenCalled();
         expect(component.onStellarChanged.emit).toHaveBeenCalled();
@@ -186,7 +122,7 @@ describe('Component: SensorStellarComponent', () => {
         fixture.destroy();
     });
 
-    it('should save the fields', () => {
+    it('should hide panel', () => {
         spyOn(component, 'init');
         spyOn(component.hideStellar, 'emit');
 
@@ -199,37 +135,24 @@ describe('Component: SensorStellarComponent', () => {
     });
 
     it('should format transformationConfig', () => {
-        component.transformationConfig = '[{"input":[],"output":' +
-                        '["method","status_code","url"],"transformation":"STELLAR","config":' +
-                        '{"method":"TO_UPPER(method)","status_code":"TO_LOWER(code)","url":"TO_STRING(TRIM(url))"}}]';
+        component.newSensorParserConfig = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser",' +
+            '"sensorTopic":"bro","parserConfig": {}}';
 
-        component.onTransformationBlur();
+        component.onSensorParserConfigBlur();
 
-        expect(component.transformationConfig).toEqual(JSON.stringify(JSON.parse(component.transformationConfig), null, '\t'));
+        expect(component.newSensorParserConfig).toEqual(JSON.stringify(JSON.parse(component.newSensorParserConfig), null, '\t'));
 
         fixture.destroy();
     });
 
     it('should format enrichmentConfig', () => {
-        component.enrichmentConfig = '[{"input":[],"output":' +
-            '["method","status_code","url"],"transformation":"STELLAR","config":' +
-            '{"method":"TO_UPPER(method)","status_code":"TO_LOWER(code)","url":"TO_STRING(TRIM(url))"}}]';
+        component.newSensorEnrichmentConfig = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
+            '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
+            ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
 
-        component.onEnrichmentBlur();
+        component.onSensorEnrichmentConfigBlur();
 
-        expect(component.enrichmentConfig).toEqual(JSON.stringify(JSON.parse(component.enrichmentConfig), null, '\t'));
-
-        fixture.destroy();
-    });
-
-    it('should format triageConfig', () => {
-        component.triageConfig = '[{"input":[],"output":' +
-            '["method","status_code","url"],"transformation":"STELLAR","config":' +
-            '{"method":"TO_UPPER(method)","status_code":"TO_LOWER(code)","url":"TO_STRING(TRIM(url))"}}]';
-
-        component.onTriageBlur();
-
-        expect(component.triageConfig).toEqual(JSON.stringify(JSON.parse(component.triageConfig), null, '\t'));
+        expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(JSON.parse(component.newSensorEnrichmentConfig), null, '\t'));
 
         fixture.destroy();
     });

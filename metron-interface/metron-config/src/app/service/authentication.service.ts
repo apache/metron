@@ -28,7 +28,7 @@ export class AuthenticationService {
   private static USER_NOT_VERIFIED: string = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
   loginUrl: string = this.config.apiEndpoint + '/user';
-  logoutUrl: string = this.config.apiEndpoint + '/logout';
+  logoutUrl: string = '/logout';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 

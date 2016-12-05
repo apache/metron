@@ -17,7 +17,7 @@
  */
 import {Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
+import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 
 @Component({
   selector: 'metron-config-sensor-stellar',
@@ -34,9 +34,8 @@ export class SensorStellarComponent implements OnInit, OnChanges {
   @Output() hideStellar: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onStellarChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  transformationConfig: string;
-  enrichmentConfig: string;
-  triageConfig: string;
+  newSensorParserConfig: string;
+  newSensorEnrichmentConfig: string;
 
   constructor() { }
 
@@ -50,30 +49,41 @@ export class SensorStellarComponent implements OnInit, OnChanges {
   }
 
   init(): void {
-    if (this.sensorParserConfig.fieldTransformations) {
-      this.transformationConfig = JSON.stringify(this.sensorParserConfig.fieldTransformations, null, '\t');
+    if (this.sensorParserConfig) {
+      this.newSensorParserConfig = JSON.stringify(this.sensorParserConfig, null, '\t');
     }
 
-    let enrichmentConfigObject = this.sensorEnrichmentConfig.enrichment.fieldMap['stellar'];
-    if (enrichmentConfigObject) {
-      this.enrichmentConfig = JSON.stringify(enrichmentConfigObject.config, null, '\t');
-    } else {
-      this.enrichmentConfig = '{}';
-    }
-
-    let triageConfigObject = this.sensorEnrichmentConfig.threatIntel.triageConfig;
-    if (triageConfigObject) {
-      this.triageConfig = JSON.stringify(triageConfigObject, null, '\t');
+    if (this.sensorEnrichmentConfig) {
+      this.newSensorEnrichmentConfig = JSON.stringify(this.sensorEnrichmentConfig, null, '\t');
     }
   }
 
   onSave() {
-    let transformationConfigObjects = JSON.parse(this.transformationConfig);
-    this.sensorParserConfig.fieldTransformations = transformationConfigObjects;
-    let enrichmentConfigObject = JSON.parse('{"config": ' + this.enrichmentConfig + '}');
-    this.sensorEnrichmentConfig.enrichment.fieldMap['stellar'] = enrichmentConfigObject;
-    let triageConfigObject = JSON.parse(this.triageConfig);
-    this.sensorEnrichmentConfig.threatIntel.triageConfig = triageConfigObject;
+    let newParsedSensorParserConfig = JSON.parse(this.newSensorParserConfig);
+    this.sensorParserConfig.sensorTopic = newParsedSensorParserConfig.sensorTopic;
+    this.sensorParserConfig.parserClassName = newParsedSensorParserConfig.parserClassName;
+    if (newParsedSensorParserConfig.writerClassName != null) {
+      this.sensorParserConfig.writerClassName = newParsedSensorParserConfig.writerClassName;
+    }
+    if (newParsedSensorParserConfig.errorWriterClassName != null) {
+      this.sensorParserConfig.errorWriterClassName = newParsedSensorParserConfig.errorWriterClassName;
+    }
+    if (newParsedSensorParserConfig.filterClassName != null) {
+      this.sensorParserConfig.filterClassName = newParsedSensorParserConfig.filterClassName;
+    }
+    if (newParsedSensorParserConfig.invalidWriterClassName != null) {
+      this.sensorParserConfig.invalidWriterClassName = newParsedSensorParserConfig.invalidWriterClassName;
+    }
+    this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
+    this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
+    let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
+    this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
+    if (newParsedSensorEnrichmentConfig.configuration != null) {
+      this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;
+    }
+    this.sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), newParsedSensorEnrichmentConfig.enrichment);
+    this.sensorEnrichmentConfig.index = newParsedSensorEnrichmentConfig.index;
+    this.sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), newParsedSensorEnrichmentConfig.threatIntel);
     this.hideStellar.emit(true);
     this.onStellarChanged.emit(true);
   }
@@ -83,23 +93,16 @@ export class SensorStellarComponent implements OnInit, OnChanges {
     this.hideStellar.emit(true);
   }
 
-  onTransformationBlur(): void {
+  onSensorParserConfigBlur(): void {
     try {
-      this.transformationConfig = JSON.stringify(JSON.parse(this.transformationConfig), null, '\t');
+      this.newSensorParserConfig = JSON.stringify(JSON.parse(this.newSensorParserConfig), null, '\t');
     } catch (e) {
     }
   }
 
-  onEnrichmentBlur(): void {
+  onSensorEnrichmentConfigBlur(): void {
     try {
-      this.enrichmentConfig = JSON.stringify(JSON.parse(this.enrichmentConfig), null, '\t');
-    } catch (e) {
-    }
-  }
-
-  onTriageBlur(): void {
-    try {
-      this.triageConfig = JSON.stringify(JSON.parse(this.triageConfig), null, '\t');
+      this.newSensorEnrichmentConfig = JSON.stringify(JSON.parse(this.newSensorEnrichmentConfig), null, '\t');
     } catch (e) {
     }
   }

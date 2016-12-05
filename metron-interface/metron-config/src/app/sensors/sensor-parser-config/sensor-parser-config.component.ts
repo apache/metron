@@ -90,7 +90,6 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
         this.sensorParserConfig = results;
         this.getKafkaStatus();
-        this.removeGrokPrefix();
         if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
           this.showAdvancedParserConfiguration = true;
         }
@@ -125,7 +124,7 @@ export class SensorParserConfigComponent implements OnInit {
     group['parserClassName'] = new FormControl(this.sensorParserConfig.parserClassName, Validators.required);
     group['grokStatement'] = new FormControl(this.sensorParserConfig.parserConfig['grokStatement']);
     group['transforms'] = new FormControl(this.sensorParserConfig['transforms']);
-    group['stellar'] = new FormControl(this.sensorParserConfig, Validators.required);
+    group['stellar'] = new FormControl(this.sensorParserConfig);
     group['index'] = new FormControl(this.sensorEnrichmentConfig.index, Validators.required);
     group['batchSize'] = new FormControl(this.sensorEnrichmentConfig.batchSize, Validators.required);
 
@@ -169,6 +168,12 @@ export class SensorParserConfigComponent implements OnInit {
     this.getKafkaStatus();
   }
 
+  onParserTypeChange(parserClassName: string): void {
+    if (parserClassName === 'org.apache.metron.parsers.GrokParser' && this.sensorParserConfig.parserConfig['patternLabel'] === null) {
+      this.sensorParserConfig.parserConfig['patternLabel'] = this.sensorParserConfig.sensorTopic.toUpperCase();
+    }
+  }
+
   getKafkaStatus() {
     if (!this.sensorParserConfig.sensorTopic || this.sensorParserConfig.sensorTopic.length === 0) {
       this.currentKafkaStatus = null;
@@ -201,25 +206,6 @@ export class SensorParserConfigComponent implements OnInit {
     return count + ' Transformations Applied';
   }
 
-  getStellar(): string {
-    let count = 0;
-    let transformConfigObject = this.sensorParserConfig.fieldTransformations.filter(fieldTransformer =>
-      fieldTransformer.transformation === 'STELLAR');
-    if (transformConfigObject.length > 0 && transformConfigObject[0].config &&
-        Object.keys(transformConfigObject[0].config).length > 0) {
-      count++;
-    }
-    let enrichmentConfig = this.sensorEnrichmentConfig.enrichment.fieldMap['stellar'];
-    if (enrichmentConfig && enrichmentConfig.config && Object.keys(enrichmentConfig.config).length > 0) {
-      count++;
-    }
-    let triageConfigObject = this.sensorEnrichmentConfig.threatIntel.triageConfig;
-    if (triageConfigObject && triageConfigObject.riskLevelRules && Object.keys(triageConfigObject.riskLevelRules).length > 0) {
-      count++;
-    }
-    return count + ' Stellar Configs Applied';
-  }
-
   goBack() {
     this.router.navigateByUrl('/sensors');
   }
@@ -230,9 +216,6 @@ export class SensorParserConfigComponent implements OnInit {
     sensorParserConfigSave.sensorTopic = this.sensorParserConfig.sensorTopic;
     sensorParserConfigSave.parserClassName = this.sensorParserConfig.parserClassName;
     sensorParserConfigSave.parserConfig = this.sensorParserConfig.parserConfig;
-    if (this.isGrokParser()) {
-      sensorParserConfigSave.parserConfig['grokStatement'] = this.sensorParserConfig.sensorTopic.toUpperCase() + ' ' + this.sensorParserConfig.parserConfig['grokStatement'];
-    }
     sensorParserConfigSave.fieldTransformations = this.sensorParserConfig.fieldTransformations;
 
     this.sensorParserConfigService.post(sensorParserConfigSave).subscribe(
@@ -324,20 +307,13 @@ export class SensorParserConfigComponent implements OnInit {
     this.showAdvancedParserConfiguration = false;
   }
 
-  removeGrokPrefix() {
-    let grokStatement = this.sensorParserConfig.parserConfig['grokStatement'];
-    if (grokStatement) {
-      let regExp = new RegExp('^(.*) ');
-      this.sensorParserConfig.parserConfig['grokStatement'] = grokStatement.replace(regExp, '').trim();
-    }
-  }
-
   disableSchemaConfig(): boolean {
-    if ( !this.sensorConfigForm.valid ) {
+    if ( this.sensorParserConfig.sensorTopic === undefined || this.sensorParserConfig.sensorTopic.length === 0 ) {
       return true;
     }
 
-    if (this.isGrokParser() && (!this.sensorParserConfig.parserConfig['grokStatement'] || this.sensorParserConfig.parserConfig['grokStatement'].length === 0)) {
+    if (this.isGrokParser() && (!this.sensorParserConfig.parserConfig['grokStatement'] ||
+        this.sensorParserConfig.parserConfig['grokStatement'].length === 0)) {
       return true;
     }
 

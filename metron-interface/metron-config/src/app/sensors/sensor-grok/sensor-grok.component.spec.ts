@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* tslint:disable:no-unused-variable */
 
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 import {Http} from '@angular/http';
@@ -76,27 +75,6 @@ describe('Component: SensorFieldSchema', () => {
   let grokValidationService: GrokValidationService;
   let fixture: ComponentFixture<SensorGrokComponent>;
   let sensorParserConfigService: MockSensorParserConfigService;
-
-  let squidSensorConfigJson = {
-    'parserClassName': 'org.apache.metron.parsers.GrokParser',
-    'sensorTopic': 'squid',
-    'parserConfig': {
-      'grokPath': 'target/patterns/squid',
-      'grokStatement': 'SQUID %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} ' +
-      '%{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\\/%{IPV4:ip_dst_addr} ' +
-      '%{WORD:UNWANTED}\\/%{WORD:UNWANTED}'
-    },
-    'fieldTransformations': [
-      {
-        'input': [],
-        'output': ['method'],
-        'transformation': 'STELLAR',
-        'config': {
-          'method': 'TRIM(TO_LOWER(method))'
-        }
-      }
-    ]
-  };
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -159,7 +137,7 @@ describe('Component: SensorFieldSchema', () => {
 
     component.onTestGrokStatement();
 
-    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['grokStatement']).toEqual('SQUID ' + grokStatement);
+    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['grokStatement']).toEqual(grokStatement);
     expect(component.parsedMessage).toEqual(parsedMessage);
     expect(component.transformsValidation.sampleData).toEqual(JSON.stringify(parsedMessage));
 
@@ -187,7 +165,7 @@ describe('Component: SensorFieldSchema', () => {
     expect(component.grokStatement).toEqual('%{key:value} %{key:value} %{key:value}');
 
 
-    component.sensorParserConfig.parserConfig['grokStatement'] = 'SQUID  %{key:value} %{key:value} %{key:value}';
+    component.sensorParserConfig.parserConfig['grokStatement'] = '%{key:value} %{key:value} %{key:value}';
     component.prepareGrokStatement();
     expect(component.grokStatement).toEqual('%{key:value} %{key:value} %{key:value}');
   }));
