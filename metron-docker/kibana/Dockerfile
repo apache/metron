@@ -17,4 +17,3 @@
 FROM kibana:4.5.3
 
 ADD /images/metron.svg /opt/kibana/optimize/bundles/src/ui/public/images/kibana.svg
-ADD /styles/commons.style.css /opt/kibana/optimize/bundles/commons.style.css

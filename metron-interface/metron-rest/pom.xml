@@ -33,6 +33,7 @@
     <swagger.version>2.5.0</swagger.version>
     <mysql.client.version>5.1.36</mysql.client.version>
     <joda.time.version>2.9.4</joda.time.version>
+    <hibernate.version>5.0.11.Final</hibernate.version>
     <hibernate.envers.version>5.0.9.Final</hibernate.envers.version>
   </properties>
   <dependencies>
@@ -48,6 +49,10 @@
           <groupId>org.slf4j</groupId>
           <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-validator</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -57,11 +62,28 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-entitymanager</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>${hibernate.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>${mysql.client.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
@@ -142,6 +164,7 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-envers</artifactId>
       <version>${hibernate.envers.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.thekraken</groupId>
@@ -271,6 +294,66 @@
           <execution>
             <goals>
               <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.hibernate.common</groupId>
+              <artifactId>hibernate-commons-annotations</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.hibernate</groupId>
+              <artifactId>hibernate-core</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.hibernate</groupId>
+              <artifactId>hibernate-envers</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.hibernate</groupId>
+              <artifactId>hibernate-entitymanager</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.hibernate.javax.persistence</groupId>
+              <artifactId>hibernate-jpa-2.1-api</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.5.0</version>
+        <executions>
+          <execution>
+            <id>install-config-ui</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>bash</executable>
+              <workingDirectory>./src/main/scripts</workingDirectory>
+              <arguments>
+                <argument>install_config_ui.sh</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptor>src/main/assembly/assembly.xml</descriptor>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id> <!-- this is used for inheritance merges -->
+            <phase>package</phase> <!-- bind to the packaging phase -->
+            <goals>
+              <goal>single</goal>
             </goals>
           </execution>
         </executions>
