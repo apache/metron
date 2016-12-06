@@ -264,6 +264,11 @@
                         <exclude>**/packer-build/bin/**</exclude>
                         <!-- Packer/Bento non-source directory -->
                         <exclude>**/packer_cache/**</exclude>
+                        <exclude>**/hbase/data/**</exclude>
+                        <exclude>**/hbase/bin/init-commands.txt</exclude>
+                        <exclude>**/kafkazk/data/**</exclude>
+                        <exclude>**/wait-for-it.sh</exclude>
+                        <exclude>metron-docker/kibana/styles/commons.style.css</exclude>
                     </excludes>
                 </configuration>
             </plugin>
