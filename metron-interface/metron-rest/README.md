@@ -21,9 +21,9 @@ This UI exposes and aids in sensor configuration.
 
 3. Create a Config UI database in MySQL with this command:
 
-  ```
+```
 CREATE DATABASE IF NOT EXISTS metronrest
-  ```
+```
  
 4. Create an "application.yml" file with the contents of src/main/resource/application-docker.yml
 
@@ -34,10 +34,14 @@ CREATE DATABASE IF NOT EXISTS metronrest
 
 6. Start the UI with this command:
 
-  ```
+```
 ./bin/start.sh path_to_config_file_from_step_4
-  ```
+```
 
 # Usage
 
 The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
+
+# License
+
+This project depends on the Java Transaction API.  See https://java.net/projects/jta-spec/ for more details.

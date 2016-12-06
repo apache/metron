@@ -18,9 +18,9 @@
 package org.apache.metron.rest.service;
 
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.FunctionResolverSingleton;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.rest.model.StellarFunctionDescription;
@@ -67,7 +67,7 @@ public class TransformationService {
 
     public List<StellarFunctionDescription> getStellarFunctions() {
         List<StellarFunctionDescription> stellarFunctionDescriptions = new ArrayList<>();
-        Iterable<StellarFunctionInfo> stellarFunctionsInfo = FunctionResolverSingleton.getInstance().getFunctionInfo();
+        Iterable<StellarFunctionInfo> stellarFunctionsInfo = SingletonFunctionResolver.getInstance().getFunctionInfo();
         stellarFunctionsInfo.forEach(stellarFunctionInfo -> {
             stellarFunctionDescriptions.add(new StellarFunctionDescription(
                     stellarFunctionInfo.getName(),
