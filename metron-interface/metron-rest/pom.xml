@@ -31,10 +31,9 @@
     <powermock.version>1.6.4</powermock.version>
     <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
     <swagger.version>2.5.0</swagger.version>
-    <mysql.client.version>5.1.36</mysql.client.version>
+    <mysql.client.version>5.1.40</mysql.client.version>
     <joda.time.version>2.9.4</joda.time.version>
     <hibernate.version>5.0.11.Final</hibernate.version>
-    <hibernate.envers.version>5.0.9.Final</hibernate.envers.version>
   </properties>
   <dependencies>
     <dependency>
@@ -163,7 +162,7 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-envers</artifactId>
-      <version>${hibernate.envers.version}</version>
+      <version>${hibernate.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -298,7 +297,12 @@
           </execution>
         </executions>
         <configuration>
+          <layout>ZIP</layout>
           <excludes>
+            <exclude>
+              <groupId>mysql</groupId>
+              <artifactId>mysql-connector-java</artifactId>
+            </exclude>
             <exclude>
               <groupId>org.hibernate.common</groupId>
               <artifactId>hibernate-commons-annotations</artifactId>
