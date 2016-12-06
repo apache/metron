@@ -255,11 +255,6 @@
                         <exclude>**/src/main/sample/data/**</exclude>
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
-                        <exclude>**/src/main/webapp/coverage/**</exclude>
-                        <exclude>**/src/main/webapp/dist/**</exclude>
-                        <exclude>**/src/main/webapp/e2e/*.js</exclude>
-                        <exclude>**/src/main/webapp/e2e/*.js.map</exclude>
-                        <exclude>**/src/main/webapp/node_modules/**</exclude>
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
                         <exclude>**/files/opensoc-ui</exclude>
                         <!-- pickle file - binary format -->
@@ -273,6 +268,12 @@
                         <exclude>**/hbase/bin/init-commands.txt</exclude>
                         <exclude>**/kafkazk/data/**</exclude>
                         <exclude>**/wait-for-it.sh</exclude>
+                        <exclude>metron-docker/kibana/styles/commons.style.css</exclude>
+                        <exclude>**/metron-config/coverage/**</exclude>
+                        <exclude>**/metron-config/dist/**</exclude>
+                        <exclude>**/metron-config/e2e/*.js</exclude>
+                        <exclude>**/metron-config/e2e/*.js.map</exclude>
+                        <exclude>**/metron-config/node_modules/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
