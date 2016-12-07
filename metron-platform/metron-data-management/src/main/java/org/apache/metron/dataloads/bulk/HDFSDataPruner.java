@@ -137,9 +137,10 @@ public class HDFSDataPruner extends DataPruner {
 
     }
 
+    @Override
     public Long prune() throws IOException {
 
-        Long filesPruned = new Long(0);
+        long filesPruned = 0L;
 
         FileStatus[] filesToDelete = fileSystem.globStatus(globPath, new HDFSDataPruner.DateFileFilter(this));
 
@@ -157,7 +158,7 @@ public class HDFSDataPruner extends DataPruner {
         return filesPruned;
     }
 
-    class DateFileFilter extends Configured implements PathFilter {
+    static class DateFileFilter extends Configured implements PathFilter {
 
         HDFSDataPruner pruner;
         Boolean failOnError = false;
@@ -177,8 +178,8 @@ public class HDFSDataPruner extends DataPruner {
         public boolean accept(Path path) {
             try {
 
-                if(pruner.LOG.isDebugEnabled()) {
-                    pruner.LOG.debug("ACCEPT - working with file: " + path);
+                if(LOG.isDebugEnabled()) {
+                    LOG.debug("ACCEPT - working with file: " + path);
                 }
 
                 if (pruner.fileSystem.isDirectory(path)) {
@@ -187,7 +188,7 @@ public class HDFSDataPruner extends DataPruner {
                 }
             } catch (IOException e) {
 
-                pruner.LOG.error("IOException", e);
+                LOG.error("IOException", e);
 
                 if (failOnError) {
                     throw new RuntimeException(e);
@@ -211,7 +212,7 @@ public class HDFSDataPruner extends DataPruner {
 
             } catch (IOException e) {
 
-                pruner.LOG.error("IOException", e);
+                LOG.error("IOException", e);
 
                 if (failOnError) {
                     throw new RuntimeException(e);

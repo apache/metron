@@ -129,6 +129,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
               runner.process(new Processor<Map<String, List<JSONObject>>>() {
                 Map<String, List<JSONObject>> messages = null;
 
+                @Override
                 public ReadinessState process(ComponentRunner runner) {
                   KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
                   List<byte[]> outputMessages = kafkaComponent.readMessages(Constants.ENRICHMENT_TOPIC);
@@ -145,6 +146,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
                   return ReadinessState.NOT_READY;
                 }
 
+                @Override
                 public ProcessorResult<Map<String, List<JSONObject>>> getResult() {
                   ProcessorResult.Builder<Map<String,List<JSONObject>>> builder = new ProcessorResult.Builder();
                   return builder.withResult(messages).build();

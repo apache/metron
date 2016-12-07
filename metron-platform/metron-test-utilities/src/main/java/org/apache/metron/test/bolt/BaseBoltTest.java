@@ -61,7 +61,7 @@ public abstract class BaseBoltTest {
     MockitoAnnotations.initMocks(this);
   }
 
-  protected class FieldsMatcher extends ArgumentMatcher<Fields> {
+  protected static class FieldsMatcher extends ArgumentMatcher<Fields> {
 
     private List<String> expectedFields;
 

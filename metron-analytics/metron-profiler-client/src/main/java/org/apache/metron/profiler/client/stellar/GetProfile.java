@@ -309,7 +309,7 @@ public class GetProfile implements StellarFunction {
     TableProvider provider;
     try {
       Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(clazzName);
-      provider = clazz.newInstance();
+      provider = clazz.getConstructor().newInstance();
 
     } catch (Exception e) {
       provider = new HTableProvider();

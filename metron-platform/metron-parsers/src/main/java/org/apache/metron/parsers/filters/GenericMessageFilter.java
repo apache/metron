@@ -31,6 +31,7 @@ public class GenericMessageFilter implements MessageFilter<JSONObject>{
 	public GenericMessageFilter() {
 	}
 
+	@Override
 	public boolean emitTuple(JSONObject message, Context context) {
 		return true;
 	}

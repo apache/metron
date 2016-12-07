@@ -292,11 +292,11 @@ public class StellarTest {
     }
     {
       String query = "TO_LONG(foo)";
-      Assert.assertEquals(new Long(232321L),run(query,ImmutableMap.of("foo","00232321")));
+      Assert.assertEquals(232321L,run(query,ImmutableMap.of("foo","00232321")));
     }
     {
       String query = "TO_LONG(foo)";
-      Assert.assertEquals(Long.MAX_VALUE,run(query,ImmutableMap.of("foo",new Long(Long.MAX_VALUE).toString())));
+      Assert.assertEquals(Long.MAX_VALUE,run(query,ImmutableMap.of("foo", Long.toString(Long.MAX_VALUE))));
     }
   }
   @Test
@@ -443,8 +443,8 @@ public class StellarTest {
 
   @Test
   public void testToDouble() {
-    Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
-    Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
+    Assert.assertEquals(5.1d, run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
+    Assert.assertEquals(5.1d, run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
   }
 
   @Test

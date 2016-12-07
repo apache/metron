@@ -77,6 +77,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                 List<byte[]> errors = null;
                 List<byte[]> invalids = null;
 
+                @Override
                 public ReadinessState process(ComponentRunner runner) {
                   KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
                   List<byte[]> outputMessages = kafkaComponent.readMessages(Constants.ENRICHMENT_TOPIC);
@@ -94,6 +95,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
                   }
                 }
 
+                @Override
                 public ProcessorResult<List<byte[]>> getResult() {
                   ProcessorResult.Builder<List<byte[]>> builder = new ProcessorResult.Builder();
                   return builder.withResult(messages).withProcessErrors(errors).withProcessInvalids(invalids).build();

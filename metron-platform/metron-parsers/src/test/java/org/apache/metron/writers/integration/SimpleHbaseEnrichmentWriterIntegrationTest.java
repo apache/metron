@@ -110,6 +110,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
               runner.process(new Processor<List<LookupKV<EnrichmentKey, EnrichmentValue>>>() {
                 List<LookupKV<EnrichmentKey, EnrichmentValue>> messages = null;
 
+                @Override
                 public ReadinessState process(ComponentRunner runner) {
                   MockHTable table = MockTableProvider.getTable(sensorType);
                   if (table != null && table.size() == inputMessages.size()) {
@@ -126,6 +127,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
                   return ReadinessState.NOT_READY;
                 }
 
+                @Override
                 public ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> getResult() {
                   ProcessorResult.Builder<List<LookupKV<EnrichmentKey,EnrichmentValue>>> builder = new ProcessorResult.Builder();
                   return builder.withResult(messages).build();

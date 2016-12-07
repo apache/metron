@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class ExtractorTest {
         }
     }
     @Test
-    public void testDummyExtractor() throws IllegalAccessException, InstantiationException, ClassNotFoundException, IOException {
+    public void testDummyExtractor() throws IllegalAccessException, InstantiationException, ClassNotFoundException, IOException, NoSuchMethodException, InvocationTargetException {
         Extractor extractor = Extractors.create(DummyExtractor.class.getName());
         LookupKV results = Iterables.getFirst(extractor.extract(null), null);
         EnrichmentKey key = (EnrichmentKey) results.getKey();

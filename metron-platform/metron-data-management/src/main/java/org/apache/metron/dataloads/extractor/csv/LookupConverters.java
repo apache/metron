@@ -23,6 +23,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.LookupValue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public enum LookupConverters {
@@ -54,12 +55,8 @@ public enum LookupConverters {
         }
         catch(Throwable t) {
             try {
-                return (LookupConverter) Class.forName(name).newInstance();
-            } catch (InstantiationException e) {
-                throw new IllegalStateException("Unable to parse " + name, e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Unable to parse " + name, e);
-            } catch (ClassNotFoundException e) {
+                return (LookupConverter) Class.forName(name).getConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
                 throw new IllegalStateException("Unable to parse " + name, e);
             }
         }
