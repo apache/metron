@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -56,6 +56,37 @@ import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 public class StellarTest {
 
   @Test
+  public void addingLongsShouldYieldLong() throws Exception {
+    final long timestamp = 1452013350000L;
+    String query = "TO_EPOCH_TIMESTAMP('2016-01-05 17:02:30', 'yyyy-MM-dd HH:mm:ss', 'UTC') + 2";
+    Assert.assertEquals(timestamp + 2, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void addingIntegersShouldYieldAnInteger() throws Exception {
+    String query = "1 + 2";
+    Assert.assertEquals(3, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void addingDoublesShouldYieldADouble() throws Exception {
+    String query = "1.0 + 2.0";
+    Assert.assertEquals(3.0, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void addingDoubleAndIntegerWhereSubjectIsDoubleShouldYieldADouble() throws Exception {
+    String query = "2.1 + 1";
+    Assert.assertEquals(3.1, run(query, new HashMap<>()));
+  }
+
+  @Test
+  public void addingDoubleAndIntegerWhereSubjectIsIntegerShouldYieldADouble() throws Exception {
+    String query = "1 + 2.1";
+    Assert.assertEquals(3.1, run(query, new HashMap<>()));
+  }
+
+  @Test
   public void ensureDocumentation() {
     ClassLoader classLoader = getClass().getClassLoader();
     Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
@@ -90,24 +121,24 @@ public class StellarTest {
   @Test
   public void testIfThenElseBug1() {
     String query = "50 + (true == true ? 10 : 20)";
-    Assert.assertEquals(60.0, run(query, new HashMap<>()));
+    Assert.assertEquals(60, run(query, new HashMap<>()));
   }
 
   @Test
   public void testIfThenElseBug2() {
     String query = "50 + (true == false ? 10 : 20)";
-    Assert.assertEquals(70.0, run(query, new HashMap<>()));
+    Assert.assertEquals(70, run(query, new HashMap<>()));
   }
 
   @Test
   public void testIfThenElseBug3() {
     String query = "50 * (true == false ? 2 : 10) + 20";
-    Assert.assertEquals(520.0, run(query, new HashMap<>()));
+    Assert.assertEquals(520, run(query, new HashMap<>()));
   }
 
   @Test
   public void testIfThenElseBug4() {
-    String query = "TO_INTEGER(true == true ? 10 : 20 )";
+    String query = "TO_INTEGER(true == true ? 10.0 : 20.0 )";
     Assert.assertEquals(10, run(query, new HashMap<>()));
   }
 
@@ -251,7 +282,7 @@ public class StellarTest {
     }
     {
       String query = "1 < 2 ? one*3 : 'two'";
-      Assert.assertTrue(Math.abs(3.0 - (double)run(query, ImmutableMap.of("one", 1))) < 1e-6);
+      Assert.assertTrue(Math.abs(3 - (int) run(query, ImmutableMap.of("one", 1))) < 1e-6);
     }
   }
 
@@ -259,39 +290,39 @@ public class StellarTest {
   public void testNumericOperations() {
     {
       String query = "TO_INTEGER(1 + 2*2 + 3 - 4 - 0.5)";
-      Assert.assertEquals(3, (Integer)run(query, new HashMap<>()), 1e-6);
+      Assert.assertEquals(3, (Integer) run(query, new HashMap<>()), 1e-6);
     }
     {
       String query = "1 + 2*2 + 3 - 4 - 0.5";
-      Assert.assertEquals(3.5, (Double)run(query, new HashMap<>()), 1e-6);
+      Assert.assertEquals(3.5, (Double) run(query, new HashMap<>()), 1e-6);
     }
     {
       String query = "2*one*(1 + 2*2 + 3 - 4)";
-      Assert.assertEquals(8, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(8, run(query, ImmutableMap.of("one", 1)));
     }
     {
       String query = "2*(1 + 2 + 3 - 4)";
-      Assert.assertEquals(4, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(4, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "1 + 2 + 3 - 4 - 2";
-      Assert.assertEquals(0, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(0, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "1 + 2 + 3 + 4";
-      Assert.assertEquals(10, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(10, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "(one + 2)*3";
-      Assert.assertEquals(9, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(9, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "TO_INTEGER((one + 2)*3.5)";
-      Assert.assertEquals(10, (Integer)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(10, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "1 + 2*3";
-      Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
+      Assert.assertEquals(7, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
     }
     {
       String query = "TO_LONG(foo)";
@@ -306,6 +337,7 @@ public class StellarTest {
       Assert.assertEquals(Long.MAX_VALUE,run(query,ImmutableMap.of("foo", Long.toString(Long.MAX_VALUE))));
     }
   }
+
   @Test
   public void testHappyPath() {
     String query = "TO_UPPER(TRIM(foo))";

@@ -113,7 +113,7 @@ public class DefaultStellarExecutorTest {
 
     // verify
     Object var = executor.getState().get("sum");
-    assertEquals(6.0, var);
+    assertEquals(6, var);
   }
 
   /**
