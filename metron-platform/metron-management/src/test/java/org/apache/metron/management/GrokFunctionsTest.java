@@ -20,12 +20,11 @@ package org.apache.metron.management;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.stellar.StellarTest;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
-import java.util.Map;
+import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class GrokFunctionsTest {
   private String grokExpr = "%{NUMBER:timestamp}[^0-9]*%{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url}[^0-9]*(%{IP:ip_dst_addr})?";
@@ -34,7 +33,7 @@ public class GrokFunctionsTest {
   @Test
   public void testGrokEvalSingleMessage() {
     String message = "1474583120.343    142 127.0.0.1 TCP_MISS/301 494 GET http://cnn.com/ - DIRECT/157.166.226.26 text/html";
-    String out = (String) StellarTest.run( "GROK_EVAL( grok, messages )"
+    String out = (String) run( "GROK_EVAL( grok, messages )"
                                                       , ImmutableMap.of("messages", ImmutableList.of(message), "grok", grokExpr)
                                                       , Context.EMPTY_CONTEXT()
                                                       );
@@ -47,7 +46,7 @@ public class GrokFunctionsTest {
   public void testGrokEvalMultiMessages() {
     String message = "1474583120.343    142 127.0.0.1 TCP_MISS/301 494 GET http://cnn.com/ - DIRECT/157.166.226.26 text/html";
     String message2 = "1474583120.343    142 127.0.0.1 TCP_MISS/404 494 GET http://google.com/ - DIRECT/157.166.226.26 text/html";
-    String out = (String) StellarTest.run( "GROK_EVAL( grok, messages )"
+    String out = (String) run( "GROK_EVAL( grok, messages )"
                                                       , ImmutableMap.of("messages", ImmutableList.of(message, message2), "grok", grokExpr)
                                                       , Context.EMPTY_CONTEXT()
                                                       );
@@ -60,7 +59,7 @@ public class GrokFunctionsTest {
   @Test
   public void testGrokEvalBadData() {
     String message = "1474583120.343    142 foo TCP_MISS/301 494 GET http://cnn.com/ - DIRECT/157.166.226.26 text/html";
-    String out = (String) StellarTest.run( "GROK_EVAL( grok, message )"
+    String out = (String) run( "GROK_EVAL( grok, message )"
                                                       , ImmutableMap.of("message", message, "grok", grokExpr)
                                                       , Context.EMPTY_CONTEXT()
                                                       );
@@ -71,7 +70,7 @@ public class GrokFunctionsTest {
   public void testGrokEvalBadDataMultiMessages() {
     String message = "1474583120.343    142 foo TCP_MISS/301 494 GET http://cnn.com/ - DIRECT/157.166.226.26 text/html";
     String message2 = "1474583120.343    142 127.0.0.1 TCP_MISS/404 494 GET http://google.com/ - DIRECT/157.166.226.26 text/html";
-    String out = (String) StellarTest.run( "GROK_EVAL( grok, messages )"
+    String out = (String) run( "GROK_EVAL( grok, messages )"
                                                       , ImmutableMap.of("messages", ImmutableList.of(message, message2), "grok", grokExpr)
                                                       , Context.EMPTY_CONTEXT()
                                                       );
@@ -81,7 +80,7 @@ public class GrokFunctionsTest {
 
   @Test
   public void testGrokDiscover() {
-    String out = (String) StellarTest.run("GROK_PREDICT( '1474583120.343    142 127.0.0.1 TCP_MISS/301')"
+    String out = (String) run("GROK_PREDICT( '1474583120.343    142 127.0.0.1 TCP_MISS/301')"
                                                       , new HashMap<>()
                                                       , Context.EMPTY_CONTEXT()
                                                       );
