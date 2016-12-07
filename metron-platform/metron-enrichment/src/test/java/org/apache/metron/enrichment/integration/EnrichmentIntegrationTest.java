@@ -69,8 +69,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
-  protected String testSensorType = "test";
-  protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
   protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
