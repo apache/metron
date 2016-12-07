@@ -2,7 +2,7 @@
 
 The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior. 
 
-This is achieved by summarizing the streaming telemetry data consumed by Metron over sliding windows. A summary statistic is applied to the data received within a given window.  Collecting this summary across many windows results in a time series that is useful for analysis.
+This is achieved by grouping the incoming telemetry data into fixed windows and summarizing. Each telemetry message belongs to only one window, which is known as a tumbling window.  A summary statistic is applied to the data received within a given window.  Collecting this summary across many windows results in a time series that is useful for analysis.
  
 Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
@@ -345,7 +345,7 @@ Merge all of the profile measurements over the past 30 minutes into a single sum
 
 More information on accessing profile data can be found in the [Profiler Client](../metron-profiler-client).
 
-More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-platform/metron-common).
+More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-analytics/metron-statistics).
 
 ## Implementation
 

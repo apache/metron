@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
@@ -28,7 +29,7 @@ import static java.lang.String.format;
  * The Profiler captures a ProfileMeasurement once every ProfilePeriod.  There can be
  * multiple ProfilePeriods every hour.
  */
-public class ProfilePeriod {
+public class ProfilePeriod implements Serializable {
 
   /**
    * A monotonically increasing number identifying the period.  The first period is 0

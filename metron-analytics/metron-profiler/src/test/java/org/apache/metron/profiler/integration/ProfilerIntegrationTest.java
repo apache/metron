@@ -20,9 +20,9 @@
 
 package org.apache.metron.profiler.integration;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -39,7 +39,11 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.apache.metron.test.mock.MockHTable;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,11 +53,12 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.LongStream;
 
 import static com.google.code.tempusfugit.temporal.Duration.seconds;
 import static com.google.code.tempusfugit.temporal.Timeout.timeout;
@@ -76,7 +81,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message1;
+  private String httpsMessage;
 
   /**
    * {
@@ -87,7 +92,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message2;
+  private String httpMessage;
 
   /**
    * {
@@ -98,19 +103,251 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message3;
+  private String dnsMessage;
 
   private ColumnBuilder columnBuilder;
   private ZKServerComponent zkComponent;
   private FluxTopologyComponent fluxComponent;
   private KafkaComponent kafkaComponent;
-  private List<byte[]> input;
   private ComponentRunner runner;
   private MockHTable profilerTable;
 
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
-  private static final double epsilon = 0.001;
+
+  /**
+   * Tests the first example contained within the README.
+   *
+   * The test uses the Profiler's ability to drive profile creation based on the time when
+   * the input data actually occurred versus when that data is being processed.  This is
+   * known as event time processing.
+   *
+   * The test generates 24 hours worth of telemetry, sending each telemetry message type
+   * (there are 3) once per minute.  The Profiler consumes this data and flushes the profile
+   * every 15 minutes.
+   *
+   * This produces a large set of profile measurements that should be mostly consistent.
+   * Depending on where the windows are cut some of the profile measurements will be skewed,
+   * especially early in the testing cycle.  To validate the test, we expect at least 95%
+   * of them are accurate.
+   */
+  @Test
+  public void testExample1() throws Exception {
+
+    final long testDuration = TimeUnit.HOURS.toMillis(24);
+    final int periodDuration = 15;
+    final long periodDurationMillis = TimeUnit.MINUTES.toMillis(periodDuration);
+    final long messageFrequency = TimeUnit.MINUTES.toMillis(1);
+    final long numberOfPeriods = testDuration / periodDurationMillis;
+    final long numberOfEntities = 1;  // only 10.0.0.2 sends HTTP messages that will be applied to this profile
+    final long numberOfFlushes = numberOfPeriods * numberOfEntities;
+    final long messagesPerPeriod = periodDurationMillis / messageFrequency;
+    final double percentageCorrect = 0.95;
+
+    Properties properties = createProperties(periodDuration, TimeUnit.MINUTES);
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1", properties);
+
+    // start the profiler
+    fluxComponent.submitTopology();
+
+    // create the messages that will be consumed by the Profiler
+    kafkaComponent.writeMessages(
+            Constants.INDEXING_TOPIC,
+            createMessages(messageFrequency, testDuration, httpsMessage, httpMessage, dnsMessage));
+
+    // verify - ensure the profile is being persisted
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= numberOfFlushes,
+            timeout(seconds(90)));
+
+    // validate - fetch the actual data that was written by the profiler
+    Multiset<Double> actuals = HashMultiset.create(
+            read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class));
+
+    // validate - each 'HTTP' message sent by 10.0.0.2 has a value of 390 bytes
+    final double expected = 390.0 * messagesPerPeriod;
+    final long expectedCount = (long) Math.floor(numberOfPeriods * percentageCorrect);
+    Assert.assertTrue(String.format("expected to see '%s' more than %s time(s), but got %s", expected, expectedCount, actuals),
+            actuals.count(expected) > expectedCount);
+  }
+
+  /**
+   * Tests the second example contained within the README.
+   *
+   * The test uses the Profiler's ability to drive profile creation based on the time when
+   * the input data actually occurred versus when that data is being processed.  This is
+   * known as event time processing.
+   *
+   * The test generates 24 hours worth of telemetry, sending each telemetry message type
+   * (there are 3) once per minute.  The Profiler consumes this data and flushes the profile
+   * every 15 minutes.
+   *
+   * This produces a large set of profile measurements that should be mostly consistent.
+   * Depending on where the windows are cut some of the profile measurements will be skewed,
+   * especially early in the testing cycle.  To validate the test, we expect at least 95%
+   * of them are accurate.
+   */
+  @Test
+  public void testExample2() throws Exception {
+
+    final long testDuration = TimeUnit.HOURS.toMillis(24);
+    final int periodDuration = 15;
+    final long periodDurationMillis = TimeUnit.MINUTES.toMillis(periodDuration);
+    final long messageFrequency = TimeUnit.MINUTES.toMillis(1);
+    final long numberOfPeriods = testDuration / periodDurationMillis;
+    final long numberOfEntities = 2;  // 10.0.0.2 and 10.0.0.3 produce data that will be included in the profile
+    final long numberOfFlushes = numberOfPeriods * numberOfEntities;
+    final long messagesPerPeriod = periodDurationMillis / messageFrequency;
+    final double percentageCorrect = 0.95;
+
+    Properties properties = createProperties(periodDuration, TimeUnit.MINUTES);
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2", properties);
+
+    // start the profiler
+    fluxComponent.submitTopology();
+
+    // create the messages that will be consumed by the Profiler
+    kafkaComponent.writeMessages(
+            Constants.INDEXING_TOPIC,
+            createMessages(messageFrequency, testDuration, httpsMessage, httpMessage, dnsMessage));
+
+    // wait for the expected number of writes to hbase
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= numberOfFlushes,
+            timeout(seconds(90)));
+
+    // validate - fetch the actual data that was written by the profiler
+    Multiset<Double> actuals = HashMultiset.create(
+            read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class));
+
+    {
+      // validate the profile generated for 10.0.0.3 which sends DNS only
+      final double expected = messagesPerPeriod + 1.0;
+      final long expectedCount = (long) Math.floor(numberOfPeriods * percentageCorrect);
+      Assert.assertTrue(String.format("expected to see '%s' more than %s time(s), but got %s", expected, expectedCount, actuals),
+              actuals.count(expected) > expectedCount);
+    }
+    {
+      // validate the profile generated for 10.0.0.2 which sends HTTP only
+      final double expected = 1.0 / (messagesPerPeriod + 1.0);
+      final long expectedCount = (long) Math.floor(numberOfPeriods * percentageCorrect);
+      Assert.assertTrue(String.format("expected to see '%s' more than %s time(s), but got %s", expected, expectedCount, actuals),
+              actuals.count(expected) > expectedCount);
+    }
+  }
+
+  /**
+   * Tests the third example contained within the README.
+   *
+   * The test uses the Profiler's ability to drive profile creation based on the time when
+   * the input data actually occurred versus when that data is being processed.  This is
+   * known as event time processing.
+   *
+   * The test generates 24 hours worth of telemetry, sending each telemetry message type
+   * (there are 3) once per minute.  The Profiler consumes this data and flushes the profile
+   * every 15 minutes.
+   *
+   * This produces a large set of profile measurements that should be mostly consistent.
+   * Depending on where the windows are cut some of the profile measurements will be skewed,
+   * especially early in the testing cycle.  To validate the test, we expect at least 95%
+   * of them are accurate.
+   */
+  @Test
+  public void testExample3() throws Exception {
+
+    final long testDuration = TimeUnit.HOURS.toMillis(24);
+    final int periodDuration = 15;
+    final long periodDurationMillis = TimeUnit.MINUTES.toMillis(periodDuration);
+    final long messageFrequency = TimeUnit.MINUTES.toMillis(1);
+    final long numberOfPeriods = testDuration / periodDurationMillis;
+    final long numberOfEntities = 1;  // only 10.0.0.2 sends HTTP messages that will be applied to this profile
+    final long numberOfFlushes = numberOfPeriods * numberOfEntities;
+    final double percentageCorrect = 0.95;
+
+    Properties properties = createProperties(periodDuration, TimeUnit.MINUTES);
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3", properties);
+
+    // start the profiler
+    fluxComponent.submitTopology();
+
+    // create the messages that will be consumed by the Profiler
+    kafkaComponent.writeMessages(
+            Constants.INDEXING_TOPIC,
+            createMessages(messageFrequency, testDuration, httpsMessage, httpMessage, dnsMessage));
+
+    // wait for the expected number of writes to hbase
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= numberOfFlushes,
+            timeout(seconds(90)));
+
+    // validate - fetch the actual data that was written by the profiler
+    Multiset<Double> actuals = HashMultiset.create(
+            read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class));
+
+    // verify - only 10.0.0.2 sends 'HTTP', each with a length of 20, thus the average should be 20
+    final double expected = 20.0;
+    final long expectedCount = (long) Math.floor(numberOfPeriods * percentageCorrect);
+    Assert.assertTrue(String.format("expected to see '%s' more than %s time(s), but got %s", expected, expectedCount, actuals),
+            actuals.count(expected) > expectedCount);
+  }
+
+  /**
+   * Tests the fourth example contained within the README.
+   *
+   * The test uses the Profiler's ability to drive profile creation based on the time when
+   * the input data actually occurred versus when that data is being processed.  This is
+   * known as event time processing.
+   *
+   * The test generates 24 hours worth of telemetry, sending each telemetry message type
+   * (there are 3) once per minute.  The Profiler consumes this data and flushes the profile
+   * every 15 minutes.
+   *
+   * This produces a large set of profile measurements that should be mostly consistent.
+   * Depending on where the windows are cut some of the profile measurements will be skewed,
+   * especially early in the testing cycle.  To validate the test, we expect at least 95%
+   * of them are accurate.
+   */
+  @Test
+  public void testExample4() throws Exception {
+
+    final long testDuration = TimeUnit.HOURS.toMillis(24);
+    final int periodDuration = 15;
+    final long periodDurationMillis = TimeUnit.MINUTES.toMillis(periodDuration);
+    final long messageFrequency = TimeUnit.MINUTES.toMillis(1);
+    final long numberOfPeriods = testDuration / periodDurationMillis;
+    final long numberOfEntities = 1;  // only 10.0.0.2 sends HTTP messages that will be applied to this profile
+    final long numberOfFlushes = numberOfPeriods * numberOfEntities;
+    final double percentageCorrect = 0.95;
+
+    Properties properties = createProperties(periodDuration, TimeUnit.MINUTES);
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-4", properties);
+
+    // start the profiler
+    fluxComponent.submitTopology();
+
+    // create the messages that will be consumed by the Profiler
+    kafkaComponent.writeMessages(
+            Constants.INDEXING_TOPIC,
+            createMessages(messageFrequency, testDuration, httpsMessage, httpMessage, dnsMessage));
+
+    // wait for the expected number of writes to hbase
+    waitOrTimeout(() -> profilerTable.getPutLog().size() >= numberOfFlushes,
+            timeout(seconds(90)));
+
+    // the profiler stored statistical summaries of the data
+    List<OnlineStatisticsProvider> summaries = read(
+            profilerTable.getPutLog(),
+            columnFamily,
+            columnBuilder.getColumnQualifier("value"),
+            OnlineStatisticsProvider.class);
+
+    // use the statistical summaries to calculate the mean
+    Multiset<Double> actuals = HashMultiset.create(
+            summaries.stream().map(s -> s.getMean()).collect(Collectors.toList()));
+
+    // verify - only 10.0.0.2 sends 'HTTP', each with a length of 20, thus the average should be 20
+    final double expected = 20.0;
+    final long expectedCount = (long) Math.floor(numberOfPeriods * percentageCorrect);
+    Assert.assertTrue(String.format("expected to see '%s' more than %s time(s), but got %s", expected, expectedCount, actuals),
+            actuals.count(expected) > expectedCount);
+  }
 
   /**
    * A TableProvider that allows us to mock HBase.
@@ -123,135 +360,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     public HTableInterface getTable(Configuration config, String tableName) throws IOException {
       return provider.getTable(config, tableName);
     }
-  }
-
-  /**
-   * Tests the first example contained within the README.
-   */
-  @Test
-  public void testExample1() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
-
-    // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
-    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
-
-    // verify - there are 5 'HTTP' each with 390 bytes
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(390.0 * 5, val, epsilon)
-    ));
-  }
-
-  /**
-   * Tests the second example contained within the README.
-   */
-  @Test
-  public void testExample2() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // expect 2 values written by the profile; one for 10.0.0.2 and another for 10.0.0.3
-    final int expected = 2;
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected,
-            timeout(seconds(90)));
-
-    // verify - expect 2 results as 2 hosts involved; 10.0.0.2 sends 'HTTP' and 10.0.0.3 send 'DNS'
-    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
-
-    // verify - 10.0.0.3 -> 1/6
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 1.0/6.0, epsilon)
-    ));
-
-    // verify - 10.0.0.2 -> 6/1
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 6.0/1.0, epsilon)
-    ));
-  }
-
-  /**
-   * Tests the third example contained within the README.
-   */
-  @Test
-  public void testExample3() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
-
-    // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
-    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
-
-    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 20.0, epsilon)
-    ));
-  }
-
-  @Test
-  public void testWriteInteger() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/write-integer");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // expect 3 values written by the profile; one for each host
-    final int expected = 3;
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected,
-            timeout(seconds(90)));
-
-    // verify - the profile sees messages from 3 hosts; 10.0.0.[1-3]
-    List<Integer> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Integer.class);
-    Assert.assertEquals(3, actuals.size());
-
-    // verify - the profile writes 10 as an integer
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 10.0, epsilon)
-    ));
-  }
-
-  @Test
-  public void testPercentiles() throws Exception {
-
-    setup(TEST_RESOURCES + "/config/zookeeper/percentiles");
-
-    // start the topology and write test messages to kafka
-    fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
-            timeout(seconds(90)));
-
-    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
-
-    // verify - the 70th percentile of 5 x 20s = 20.0
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 20.0, epsilon)));
   }
 
   /**
@@ -275,38 +383,65 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     return results;
   }
 
-  public void setup(String pathToConfig) throws Exception {
-    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+  /**
+   * Parse a JSON string to a JSONObject.  Only needed to catch the checked exception.
+   * @param json The JSON string.
+   * @param parser The JSON parser.
+   */
+  private JSONObject parse(String json, JSONParser parser) {
+    try {
+      return (JSONObject) parser.parse(json);
+    } catch (ParseException e) {
+      throw new IllegalStateException(e);
+    }
+  }
 
-    // create input messages for the profiler to consume
-    input = Stream.of(message1, message2, message3)
+  /**
+   * Parse a JSON string to a JSONObject.  Only needed to catch the checked exception.
+   * @param json The JSON string.
+   * @param parser The JSON parser.
+   */
+  private JSONObject parseAndAddField(String json, JSONParser parser, String field, Long value) {
+    try {
+      JSONObject parsed = (JSONObject) parser.parse(json);
+      parsed.put(field, value);
+      return parsed;
+
+    } catch (ParseException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private List<byte[]> createMessages(long frequencyMillis, long durationMillis, String... messages) {
+
+    List<JSONObject> results = new ArrayList<>();
+    JSONParser parser = new JSONParser();
+
+    long count = durationMillis / frequencyMillis;
+    for(String message : messages) {
+      LongStream
+              .iterate(0, i -> i + frequencyMillis)
+              .limit(count)
+              .mapToObj(i -> parseAndAddField(message, parser, "timestamp", i))
+              .forEach(o -> results.add(o));
+    }
+
+    // sort and serialize each message
+    return results
+            .stream()
+            .sorted(Comparator.comparingLong(m -> (Long) m.get("timestamp")))
+            .map(json -> json.toJSONString())
             .map(Bytes::toBytes)
-            .map(m -> Collections.nCopies(5, m))
-            .flatMap(l -> l.stream())
             .collect(Collectors.toList());
+  }
 
-    // storm topology properties
-    final Properties topologyProperties = new Properties() {{
-      setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
-      setProperty("profiler.workers", "1");
-      setProperty("profiler.executors", "0");
-      setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("profiler.period.duration", "20");
-      setProperty("profiler.period.duration.units", "SECONDS");
-      setProperty("profiler.ttl", "30");
-      setProperty("profiler.ttl.units", "MINUTES");
-      setProperty("profiler.hbase.salt.divisor", "10");
-      setProperty("profiler.hbase.table", tableName);
-      setProperty("profiler.hbase.column.family", columnFamily);
-      setProperty("profiler.hbase.batch", "10");
-      setProperty("profiler.hbase.flush.interval.seconds", "1");
-      setProperty("profiler.profile.ttl", "20");
-      setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
-    }};
+  public void setup(String pathToConfig, Properties topologyProperties) throws Exception {
+    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
     // create the mock table
     profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
 
+    // zookeeper
     zkComponent = getZKServerComponent(topologyProperties);
 
     // create the input topic
@@ -337,6 +472,47 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             .withCustomShutdownOrder(new String[] {"storm","config","kafka","zk"})
             .build();
     runner.start();
+  }
+
+  /**
+   * Creates the set of properties used by the Profiler topology.
+   */
+  private Properties createProperties(int periodDuration, TimeUnit periodUnits) {
+    return new Properties() {{
+
+      setProperty("profiler.workers", "1");
+      setProperty("profiler.executors", "0");
+
+      // how the profiler consumes messages
+      setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
+      setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
+
+      // duration of each profile period
+      setProperty("profiler.period.duration", Integer.toString(periodDuration));
+      setProperty("profiler.period.duration.units", periodUnits.toString());
+
+      // lifespan of a tuple - must be greater than twice the profile period
+      setProperty("topology.message.timeout.secs", Long.toString(periodUnits.toSeconds(periodDuration) * 3));
+
+      // lifespan of a profile - will be forgotten if no messages received within
+      setProperty("profiler.ttl", Integer.toString(periodDuration * 3));
+      setProperty("profiler.ttl.units", periodUnits.toString());
+
+      // where profiles are written to in hbase
+      setProperty("profiler.hbase.table", tableName);
+      setProperty("profiler.hbase.column.family", columnFamily);
+
+      // how profiles are written to hbase
+      setProperty("profiler.hbase.batch", "1");
+      setProperty("profiler.hbase.flush.interval.seconds", "1");
+      setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
+      setProperty("profiler.hbase.salt.divisor", "10");
+
+      // event time processing
+      setProperty("profiler.event.timestamp.field","timestamp");
+      setProperty("profiler.event.time.lag","0");
+      setProperty("profiler.event.time.lag.units","SECONDS");
+    }};
   }
 
   @After

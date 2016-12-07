@@ -39,6 +39,11 @@ public class ProfilerConfig implements Serializable {
     this.profiles = profiles;
   }
 
+  public ProfilerConfig withProfile(ProfileConfig profile) {
+    this.profiles.add(profile);
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -51,5 +56,12 @@ public class ProfilerConfig implements Serializable {
   @Override
   public int hashCode() {
     return profiles != null ? profiles.hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return "ProfilerConfig{" +
+            "profiles=" + profiles +
+            '}';
   }
 }

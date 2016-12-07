@@ -99,12 +99,22 @@ public class ProfileConfig implements Serializable {
     this.profile = profile;
   }
 
+  public ProfileConfig withProfile(String profile) {
+    this.profile = profile;
+    return this;
+  }
+
   public String getForeach() {
     return foreach;
   }
 
   public void setForeach(String foreach) {
     this.foreach = foreach;
+  }
+
+  public ProfileConfig withForeach(String foreach) {
+    this.foreach = foreach;
+    return this;
   }
 
   public String getOnlyif() {
@@ -115,12 +125,22 @@ public class ProfileConfig implements Serializable {
     this.onlyif = onlyif;
   }
 
+  public ProfileConfig withOnlyif(String onlyif) {
+    this.onlyif = onlyif;
+    return this;
+  }
+
   public Map<String, String> getInit() {
     return init;
   }
 
   public void setInit(Map<String, String> init) {
     this.init = init;
+  }
+
+  public ProfileConfig withInit(Map<String, String> init) {
+    this.init = init;
+    return this;
   }
 
   public Map<String, String> getUpdate() {
@@ -131,12 +151,22 @@ public class ProfileConfig implements Serializable {
     this.update = update;
   }
 
+  public ProfileConfig withUpdate(Map<String, String> update) {
+    this.update = update;
+    return this;
+  }
+
   public Map<String, String> getTickUpdate() {
     return tickUpdate;
   }
 
   public void setTickUpdate(Map<String, String> tickUpdate) {
     this.tickUpdate = tickUpdate;
+  }
+
+  public ProfileConfig withTickUpdate(Map<String, String> tickUpdate) {
+    this.tickUpdate = tickUpdate;
+    return this;
   }
 
   public List<String> getGroupBy() {
@@ -147,6 +177,11 @@ public class ProfileConfig implements Serializable {
     this.groupBy = groupBy;
   }
 
+  public ProfileConfig withGroupBy(List<String> groupBy) {
+    this.groupBy = groupBy;
+    return this;
+  }
+
   public String getResult() {
     return result;
   }
@@ -155,12 +190,22 @@ public class ProfileConfig implements Serializable {
     this.result = result;
   }
 
+  public ProfileConfig withResult(String result) {
+    this.result = result;
+    return this;
+  }
+
   public Long getExpires() {
     return expires;
   }
 
   public void setExpires(Long expiresDays) {
     this.expires = TimeUnit.DAYS.toMillis(expiresDays);
+  }
+
+  public ProfileConfig withExpires(Long expiresDays) {
+    this.expires = TimeUnit.DAYS.toMillis(expiresDays);
+    return this;
   }
 
   @Override

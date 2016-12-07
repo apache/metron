@@ -20,11 +20,9 @@
 
 package org.apache.metron.profiler.hbase;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.storm.tuple.Tuple;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.storm.tuple.Tuple;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
