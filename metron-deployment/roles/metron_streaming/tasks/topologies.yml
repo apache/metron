@@ -57,7 +57,7 @@
     - { regexp: "kafka.zk=", line: "kafka.zk={{ zookeeper_url }}" }
     - { regexp: "kafka.broker=", line: "kafka.broker={{ kafka_broker_url }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
+    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/indexing/indexed" }
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
     - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }
@@ -74,7 +74,7 @@
     - { regexp: "es.port=", line: "es.port={{ elasticsearch_transport_port }}" }
     - { regexp: "es.clustername=", line: "es.clustername={{ elasticsearch_cluster_name }}" }
     - { regexp: "bolt.hdfs.file.system.url=", line: "bolt.hdfs.file.system.url={{ hdfs_url }}" }
-    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/enrichment/indexed" }
+    - { regexp: "index.hdfs.output=", line: "index.hdfs.output={{ metron_hdfs_output_dir }}/indexing/indexed" }
     - { regexp: "bolt.hdfs.rotation.policy=", line: "bolt.hdfs.rotation.policy={{ metron_hdfs_rotation_policy }}" }
     - { regexp: "bolt.hdfs.rotation.policy.count=", line: "bolt.hdfs.rotation.policy.count={{ metron_hdfs_rotation_policy_count}}" }
     - { regexp: "bolt.hdfs.rotation.policy.units=", line: "bolt.hdfs.rotation.policy.units={{ metron_hdfs_rotation_policy_units }}" }

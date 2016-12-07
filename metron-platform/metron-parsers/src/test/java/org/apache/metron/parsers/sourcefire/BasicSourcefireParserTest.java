@@ -75,6 +75,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	/**
 	 * @throws java.lang.Exception
 	 */
+	@Override
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsing.test.BasicSoureceFireParserTest");
         setSourceFireStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
@@ -86,6 +87,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	 * 	
 	 * @throws java.lang.Exception
 	 */
+	@Override
 	public void tearDown() throws Exception {
 		sourceFireParser = null;
 	}

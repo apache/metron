@@ -29,7 +29,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class ContainerTracker {
-  private TreeMap<Integer, BlockingQueue<Container>> acceptedContainersByResource = Maps.newTreeMap();
+  private final TreeMap<Integer, BlockingQueue<Container>> acceptedContainersByResource = Maps.newTreeMap();
   private HashMap<Model, List<Container>> launchedContainers = Maps.newHashMap();
 
   int minimumContainerSize;

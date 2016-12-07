@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 
 public class SolrWriterTest {
 
-  class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
+  static class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
 
     private String name;
 
@@ -59,7 +59,7 @@ public class SolrWriterTest {
     }
   }
 
-  class SolrInputDocumentMatcher extends ArgumentMatcher<SolrInputDocument> {
+  static class SolrInputDocumentMatcher extends ArgumentMatcher<SolrInputDocument> {
 
     private int expectedId;
     private String expectedSourceType;

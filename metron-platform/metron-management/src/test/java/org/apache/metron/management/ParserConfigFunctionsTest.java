@@ -22,7 +22,6 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.stellar.StellarTest;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -35,6 +34,7 @@ import java.util.Map;
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class ParserConfigFunctionsTest {
 
@@ -72,7 +72,7 @@ public class ParserConfigFunctionsTest {
 
   @Test
   public void testAddEmpty() {
-    String newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     Map<String, Object> transformations = transform(newConfig);
     Assert.assertEquals(1, transformations.size());
     Assert.assertEquals("FOO", transformations.get("upper") );
@@ -80,7 +80,7 @@ public class ParserConfigFunctionsTest {
 
   @Test
   public void testAddHasExisting() {
-    String newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))"
+    String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))"
             , ImmutableMap.of("config", existingTransformationsConfig )
             , context
     );
@@ -92,15 +92,15 @@ public class ParserConfigFunctionsTest {
 
   @Test
   public void testAddMalformed() {
-    String newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('blah'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('blah'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     Map<String, Object> transformations = transform(newConfig);
     Assert.assertEquals(0, transformations.size());
   }
 
   @Test
   public void testAddDuplicate() {
-    String newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
-    newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", newConfig), context);
+    String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", newConfig), context);
     Map<String, Object> transformations = transform(newConfig);
     Assert.assertEquals(1, transformations.size());
     Assert.assertEquals("FOO", transformations.get("upper") );
@@ -108,16 +108,16 @@ public class ParserConfigFunctionsTest {
 
   @Test
   public void testRemove() {
-    String newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
-    newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['upper'])", ImmutableMap.of("config", newConfig), context);
+    String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    newConfig = (String)run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['upper'])", ImmutableMap.of("config", newConfig), context);
     Map<String, Object> transformations = transform(newConfig);
     Assert.assertEquals(0, transformations.size());
   }
 
   @Test
   public void testRemoveMultiple() {
-    String newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper', 'lower'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
-    newConfig = (String)StellarTest.run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['upper', 'lower'])", ImmutableMap.of("config", newConfig), context);
+    String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper', 'lower'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    newConfig = (String)run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['upper', 'lower'])", ImmutableMap.of("config", newConfig), context);
     Map<String, Object> transformations = transform(newConfig);
     Assert.assertEquals(0, transformations.size());
   }
@@ -125,15 +125,15 @@ public class ParserConfigFunctionsTest {
   @Test
   public void testRemoveMissing() {
     {
-      String newConfig = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
-      newConfig = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['lower'])", ImmutableMap.of("config", newConfig), context);
+      String newConfig = (String) run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+      newConfig = (String) run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['lower'])", ImmutableMap.of("config", newConfig), context);
       Map<String, Object> transformations = transform(newConfig);
       Assert.assertEquals(1, transformations.size());
       Assert.assertEquals("FOO", transformations.get("upper"));
     }
     {
-      String newConfig = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
-      newConfig = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_REMOVE(config, [''])", ImmutableMap.of("config", newConfig), context);
+      String newConfig = (String) run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+      newConfig = (String) run("PARSER_STELLAR_TRANSFORM_REMOVE(config, [''])", ImmutableMap.of("config", newConfig), context);
       Map<String, Object> transformations = transform(newConfig);
       Assert.assertEquals(1, transformations.size());
       Assert.assertEquals("FOO", transformations.get("upper"));
@@ -151,8 +151,8 @@ public class ParserConfigFunctionsTest {
   static String testPrintExpected;
   @Test
   public void testPrint() {
-    String newConfig = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
-    String out = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_PRINT(config )", ImmutableMap.of("config", newConfig), context);
+    String newConfig = (String) run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", ImmutableMap.of("config", newConfig), context);
     Assert.assertEquals(testPrintExpected, out);
   }
   /**
@@ -167,14 +167,14 @@ public class ParserConfigFunctionsTest {
 
   @Test
   public void testPrintEmpty() {
-    String out = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_PRINT(config )", ImmutableMap.of("config", emptyTransformationsConfig), context);
+    String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", ImmutableMap.of("config", emptyTransformationsConfig), context);
     Assert.assertEquals(testPrintEmptyExpected, out);
   }
 
   @Test
   public void testPrintNull() {
 
-    String out = (String) StellarTest.run("PARSER_STELLAR_TRANSFORM_PRINT(config )", new HashMap<>(), context);
+    String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", new HashMap<>(), context);
     Assert.assertNull( out);
   }
 }

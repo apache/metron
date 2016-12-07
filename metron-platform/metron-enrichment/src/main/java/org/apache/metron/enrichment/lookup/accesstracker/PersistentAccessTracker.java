@@ -100,7 +100,7 @@ public class PersistentAccessTracker implements AccessTracker {
         }
     }
 
-    Object sync = new Object();
+    final Object sync = new Object();
     HTableInterface accessTrackerTable;
     String accessTrackerColumnFamily;
     AccessTracker underlyingTracker;

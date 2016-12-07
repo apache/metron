@@ -28,6 +28,7 @@ import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.lookup.LookupKV;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 public class BulkLoadMapper extends Mapper<Object, Text, ImmutableBytesWritable, Put>
 {
@@ -59,12 +60,8 @@ public class BulkLoadMapper extends Mapper<Object, Text, ImmutableBytesWritable,
         extractor = ExtractorHandler.load(configStr).getExtractor();
         columnFamily = configuration.get(COLUMN_FAMILY_KEY);
         try {
-            converter = (HbaseConverter) Class.forName(configuration.get(CONVERTER_KEY)).newInstance();
-        } catch (InstantiationException e) {
-            throw new IllegalStateException("Unable to create converter object: " + configuration.get(CONVERTER_KEY), e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Unable to create converter object: " + configuration.get(CONVERTER_KEY), e);
-        } catch (ClassNotFoundException e) {
+            converter = (HbaseConverter) Class.forName(configuration.get(CONVERTER_KEY)).getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Unable to create converter object: " + configuration.get(CONVERTER_KEY), e);
         }
     }

@@ -35,6 +35,7 @@ public abstract class AbstractCIFAdapter implements EnrichmentAdapter<CacheKey>,
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(AbstractCIFAdapter.class);
 	
+	@Override
 	abstract public boolean initializeAdapter();
 	abstract public String enrichByIP(String metadata);
 	abstract public String enrichByDomain(String metadata);

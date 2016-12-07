@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.metron.common.stellar.StellarTest.run;
+import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class BloomFilterTest {
   private Map<String, Object> variables = new HashMap<String, Object>() {{

@@ -58,6 +58,8 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `ENDS_WITH`](#ends_with)|
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)|
 | [ `ENRICHMENT_GET`](#enrichment_get)|
+| [ `FILL_LEFT`](#fill_left)|
+| [ `FILL_RIGHT`](#fill_right)|
 | [ `GET`](#get)|
 | [ `GET_FIRST`](#get_first)|
 | [ `GET_LAST`](#get_last)|
@@ -225,6 +227,22 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
   * Description: Returns the last element of the list
   * Input:
     * input - List
+  * Returns: Last element of the list
+
+### `FILL_LEFT`
+  * Description: Fills or pads a given string with a given character, to a given length on the left
+  * Input:
+    * input - string
+    * fill - the fill character
+    * len - the required length
+  * Returns: the filled string
+
+### `FILL_RIGHT`
+  * Description: Fills or pads a given string with a given character, to a given length on the right
+  * Input:
+    * input - string
+    * fill - the fill character string
+    * len - the required length
   * Returns: Last element of the list
 
 ### `IN_SUBNET`

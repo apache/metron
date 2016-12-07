@@ -48,7 +48,7 @@ public class SourceHandler {
   private long offset = 0;
   private int rotation = 0;
   private transient FSDataOutputStream out;
-  private transient Object writeLock;
+  private transient final Object writeLock = new Object();
   protected transient Timer rotationTimer; // only used for TimedRotationPolicy
   protected transient FileSystem fs;
   protected transient Path currentFile;
@@ -92,7 +92,6 @@ public class SourceHandler {
   }
 
   private void initialize(Map config) throws IOException {
-    this.writeLock = new Object();
     Configuration hdfsConfig = new Configuration();
     this.fs = FileSystem.get(new Configuration());
     HdfsSecurityUtil.login(config, hdfsConfig);

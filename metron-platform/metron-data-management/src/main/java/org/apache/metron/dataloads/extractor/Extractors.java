@@ -20,6 +20,7 @@ package org.apache.metron.dataloads.extractor;
 import org.apache.metron.dataloads.extractor.csv.CSVExtractor;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public enum Extractors implements ExtractorCreator {
@@ -45,13 +46,13 @@ public enum Extractors implements ExtractorCreator {
     public Extractor create() {
         return _creator.create();
     }
-    public static Extractor create(String extractorName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static Extractor create(String extractorName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         try {
             ExtractorCreator ec = Extractors.valueOf(extractorName);
             return ec.create();
         }
         catch(IllegalArgumentException iae) {
-            Extractor ex = (Extractor) Class.forName(extractorName).newInstance();
+            Extractor ex = (Extractor) Class.forName(extractorName).getConstructor().newInstance();
             return ex;
         }
     }

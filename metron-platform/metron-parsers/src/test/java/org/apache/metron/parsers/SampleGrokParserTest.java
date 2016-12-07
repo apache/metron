@@ -68,24 +68,29 @@ public class SampleGrokParserTest extends GrokParserTest {
 
   }
 
+  @Override
   public String getGrokPath() {
     return "../metron-integration-test/src/main/sample/patterns/test";
   }
 
+  @Override
   public String getGrokPatternLabel() {
     return "YAF_DELIMITED";
   }
 
+  @Override
   public List<String> getTimeFields() {
     return new ArrayList<String>() {{
       add("end_time");
     }};
   }
 
+  @Override
   public String getDateFormat() {
     return "yyyy-MM-dd HH:mm:ss";
   }
 
+  @Override
   public String getTimestampField() {
     return "start_time";
   }

@@ -19,14 +19,19 @@ package org.apache.metron.enrichment.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
-
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
+import org.apache.metron.enrichment.converter.EnrichmentHelper;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.enrichment.integration.mock.MockGeoAdapter;
+import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
@@ -34,19 +39,13 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.integration.*;
-import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
-import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.enrichment.integration.mock.MockGeoAdapter;
 import org.apache.metron.test.mock.MockHTable;
-import org.apache.metron.enrichment.lookup.LookupKV;
-
-import org.apache.metron.enrichment.integration.utils.SampleUtil;
-import org.apache.metron.common.utils.JSONUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -93,8 +92,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   }
   @Test
   public void test() throws Exception {
-    final EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
-    final String dateFormat = "yyyy.MM.dd.HH";
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
     final String threatIntelTableName = "threat_intel";
@@ -289,6 +286,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       this._predicate = predicate;
     }
 
+    @Override
     public boolean apply(EvaluationPayload payload) {
       return _predicate.apply(payload);
     }

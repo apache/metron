@@ -33,7 +33,7 @@ public abstract class SimpleFieldTransformation implements FieldTransformation {
                                 , Context context
                                 )
   {
-    Object value = (input == null || input.values() == null && input.values().isEmpty())
+    Object value = (input == null)
                  ? null
                  : Iterables.getFirst(input.values(), null)
                  ;

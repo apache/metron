@@ -21,11 +21,12 @@
 package org.apache.metron.profiler.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
@@ -109,6 +110,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
+  private static final double epsilon = 0.001;
 
   /**
    * A TableProvider that allows us to mock HBase.
@@ -140,12 +142,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
-    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
-    Assert.assertEquals(1, actuals.size());
+    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - there are 5 'HTTP' each with 390 bytes
-    double actual = actuals.get(0);
-    Assert.assertEquals(390.0 * 5, actual, 0.01);
+    Assert.assertTrue(actuals.stream().anyMatch(val ->
+            MathUtils.equals(390.0 * 5, val, epsilon)
+    ));
   }
 
   /**
@@ -168,14 +170,17 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - expect 2 results as 2 hosts involved; 10.0.0.2 sends 'HTTP' and 10.0.0.3 send 'DNS'
-    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
-    Assert.assertEquals(expected, actuals.size());
+    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - 10.0.0.3 -> 1/6
-    Assert.assertTrue(actuals.stream().anyMatch(val -> MathUtils.equals(val, 1.0/6.0, 0.1)));
+    Assert.assertTrue(actuals.stream().anyMatch(val ->
+            MathUtils.equals(val, 1.0/6.0, epsilon)
+    ));
 
     // verify - 10.0.0.2 -> 6/1
-    Assert.assertTrue(actuals.stream().anyMatch(val -> MathUtils.equals(val, 6.0/1.0, 0.1)));
+    Assert.assertTrue(actuals.stream().anyMatch(val ->
+            MathUtils.equals(val, 6.0/1.0, epsilon)
+    ));
   }
 
   /**
@@ -195,12 +200,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
-    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
-    Assert.assertEquals(1, actuals.size());
+    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    double actual = actuals.get(0);
-    Assert.assertEquals(20.0, actual, 0.01);
+    Assert.assertTrue(actuals.stream().anyMatch(val ->
+            MathUtils.equals(val, 20.0, epsilon)
+    ));
   }
 
   @Test
@@ -220,11 +225,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             timeout(seconds(90)));
 
     // verify - the profile sees messages from 3 hosts; 10.0.0.[1-3]
-    List<Integer> actuals = read(columnBuilder.getColumnQualifier("value"), Integer.class);
+    List<Integer> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Integer.class);
     Assert.assertEquals(3, actuals.size());
 
     // verify - the profile writes 10 as an integer
-    actuals.forEach(actual -> Assert.assertEquals(10.0, actual, 0.01));
+    Assert.assertTrue(actuals.stream().anyMatch(val ->
+            MathUtils.equals(val, 10.0, epsilon)
+    ));
   }
 
   @Test
@@ -240,32 +247,28 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
-    List<Double> actuals = read(columnBuilder.getColumnQualifier("value"), Double.class);
-
-    // verify - the profile only cares about HTTP and only 1 host sends HTTP
-    Assert.assertEquals(1, actuals.size());
+    List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - the 70th percentile of 5 x 20s = 20.0
-    actuals.forEach(actual -> Assert.assertEquals(20.0, actual, 0.01));
+    Assert.assertTrue(actuals.stream().anyMatch(val ->
+            MathUtils.equals(val, 20.0, epsilon)));
   }
 
   /**
    * Reads a value written by the Profiler.
-   *
-   * @param column The column qualifier.
-   * @param clazz The expected type of the result.
-   * @param <T> The expected type of the result.
-   * @return The value contained within the column.
+   * @param family The column family.
+   * @param qualifier The column qualifier.
+   * @param clazz The expected type of the value.
+   * @param <T> The expected type of the value.
+   * @return The value written by the Profiler.
    */
-  private <T> List<T> read(byte[] column, Class<T> clazz) throws IOException {
+  private <T> List<T> read(List<Put> puts, String family, byte[] qualifier, Class<T> clazz) {
     List<T> results = new ArrayList<>();
 
-    final byte[] cf = Bytes.toBytes(columnFamily);
-    ResultScanner scanner = profilerTable.getScanner(cf, column);
-    for (Result result : scanner.next(10)) {
-      if (result.containsColumn(cf, column)) {
-        byte[] raw = result.getValue(cf, column);
-        results.add(SerDeUtils.fromBytes(raw, clazz));
+    for(Put put: puts) {
+      for(Cell cell: put.get(Bytes.toBytes(family), qualifier)) {
+        T value = SerDeUtils.fromBytes(cell.getValue(), clazz);
+        results.add(value);
       }
     }
 
@@ -288,7 +291,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
       setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("profiler.period.duration", "5");
+      setProperty("profiler.period.duration", "20");
       setProperty("profiler.period.duration.units", "SECONDS");
       setProperty("profiler.ttl", "30");
       setProperty("profiler.ttl.units", "MINUTES");
