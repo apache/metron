@@ -19,9 +19,11 @@
 package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Token;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -361,5 +363,50 @@ public class ArithmeticEvaluatorTest {
 
     assertTrue(evaluated.getValue() instanceof Integer);
     assertEquals(1, evaluated.getValue());
+  }
+
+  @Test
+  public void verifyExpectedReturnTypes() throws Exception {
+    Token<Integer> integer = mock(Token.class);
+    when(integer.getValue()).thenReturn(1);
+
+    Token<Long> lng = mock(Token.class);
+    when(lng.getValue()).thenReturn(1L);
+
+    Token<Double> dbl = mock(Token.class);
+    when(dbl.getValue()).thenReturn(1.0D);
+
+    Token<Float> flt = mock(Token.class);
+    when(flt.getValue()).thenReturn(1.0F);
+
+    Map<Pair<Token<? extends Number>, Token<? extends Number>>, Class<? extends Number>> expectedReturnTypeMappings =
+        new HashMap<Pair<Token<? extends Number>, Token<? extends Number>>, Class<? extends Number>>() {{
+          put(Pair.of(flt, lng), Float.class);
+          put(Pair.of(flt, dbl), Double.class);
+          put(Pair.of(flt, flt), Float.class);
+          put(Pair.of(flt, integer), Float.class);
+
+          put(Pair.of(lng, lng), Long.class);
+          put(Pair.of(lng, dbl), Double.class);
+          put(Pair.of(lng, flt), Float.class);
+          put(Pair.of(lng, integer), Long.class);
+
+          put(Pair.of(dbl, lng), Double.class);
+          put(Pair.of(dbl, dbl), Double.class);
+          put(Pair.of(dbl, flt), Double.class);
+          put(Pair.of(dbl, integer), Double.class);
+
+          put(Pair.of(integer, lng), Long.class);
+          put(Pair.of(integer, dbl), Double.class);
+          put(Pair.of(integer, flt), Float.class);
+          put(Pair.of(integer, integer), Integer.class);
+    }};
+
+    expectedReturnTypeMappings.forEach( (pair, expectedClass) -> {
+      assertTrue(evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(), pair).getValue().getClass() == expectedClass);
+      assertTrue(evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(), pair).getValue().getClass() == expectedClass);
+      assertTrue(evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(), pair).getValue().getClass() == expectedClass);
+      assertTrue(evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.multiplication(), pair).getValue().getClass() == expectedClass);
+    });
   }
 }

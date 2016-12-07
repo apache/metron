@@ -18,22 +18,12 @@
 
 package org.apache.metron.common.stellar;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,42 +39,10 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.effectiveClassPathUrls;
-import static java.util.function.Function.identity;
-import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
 public class StellarTest {
-
-  @Test
-  public void addingLongsShouldYieldLong() throws Exception {
-    final long timestamp = 1452013350000L;
-    String query = "TO_EPOCH_TIMESTAMP('2016-01-05 17:02:30', 'yyyy-MM-dd HH:mm:ss', 'UTC') + 2";
-    Assert.assertEquals(timestamp + 2, run(query, new HashMap<>()));
-  }
-
-  @Test
-  public void addingIntegersShouldYieldAnInteger() throws Exception {
-    String query = "1 + 2";
-    Assert.assertEquals(3, run(query, new HashMap<>()));
-  }
-
-  @Test
-  public void addingDoublesShouldYieldADouble() throws Exception {
-    String query = "1.0 + 2.0";
-    Assert.assertEquals(3.0, run(query, new HashMap<>()));
-  }
-
-  @Test
-  public void addingDoubleAndIntegerWhereSubjectIsDoubleShouldYieldADouble() throws Exception {
-    String query = "2.1 + 1";
-    Assert.assertEquals(3.1, run(query, new HashMap<>()));
-  }
-
-  @Test
-  public void addingDoubleAndIntegerWhereSubjectIsIntegerShouldYieldADouble() throws Exception {
-    String query = "1 + 2.1";
-    Assert.assertEquals(3.1, run(query, new HashMap<>()));
-  }
 
   @Test
   public void ensureDocumentation() {
@@ -222,22 +180,6 @@ public class StellarTest {
   }
 
   @Test
-  public void testArithmetic() {
-    {
-      String query = "1 + 2";
-      Assert.assertEquals(3, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
-    }
-    {
-      String query = "1.2 + 2";
-      Assert.assertEquals(3.2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
-    }
-    {
-      String query = "1.2e-3 + 2";
-      Assert.assertEquals(1.2e-3 + 2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
-    }
-  }
-
-  @Test
   public void testIfThenElse() {
     {
       String query = "if STARTS_WITH(casey, 'case') then 'one' else 'two'";
@@ -283,58 +225,6 @@ public class StellarTest {
     {
       String query = "1 < 2 ? one*3 : 'two'";
       Assert.assertTrue(Math.abs(3 - (int) run(query, ImmutableMap.of("one", 1))) < 1e-6);
-    }
-  }
-
-  @Test
-  public void testNumericOperations() {
-    {
-      String query = "TO_INTEGER(1 + 2*2 + 3 - 4 - 0.5)";
-      Assert.assertEquals(3, (Integer) run(query, new HashMap<>()), 1e-6);
-    }
-    {
-      String query = "1 + 2*2 + 3 - 4 - 0.5";
-      Assert.assertEquals(3.5, (Double) run(query, new HashMap<>()), 1e-6);
-    }
-    {
-      String query = "2*one*(1 + 2*2 + 3 - 4)";
-      Assert.assertEquals(8, run(query, ImmutableMap.of("one", 1)));
-    }
-    {
-      String query = "2*(1 + 2 + 3 - 4)";
-      Assert.assertEquals(4, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "1 + 2 + 3 - 4 - 2";
-      Assert.assertEquals(0, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "1 + 2 + 3 + 4";
-      Assert.assertEquals(10, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "(one + 2)*3";
-      Assert.assertEquals(9, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "TO_INTEGER((one + 2)*3.5)";
-      Assert.assertEquals(10, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "1 + 2*3";
-      Assert.assertEquals(7, (Integer) run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "TO_LONG(foo)";
-      Assert.assertNull(run(query,ImmutableMap.of("foo","not a number")));
-    }
-    {
-      String query = "TO_LONG(foo)";
-      Assert.assertEquals(232321L,run(query,ImmutableMap.of("foo","00232321")));
-    }
-    {
-      String query = "TO_LONG(foo)";
-      Assert.assertEquals(Long.MAX_VALUE,run(query,ImmutableMap.of("foo", Long.toString(Long.MAX_VALUE))));
     }
   }
 
@@ -658,5 +548,4 @@ public class StellarTest {
     thrown.expectMessage("The rule 'TO_UPPER(protocol)' does not return a boolean value.");
     runPredicate("TO_UPPER(protocol)", v -> variableMap.get(v));
   }
-
 }
