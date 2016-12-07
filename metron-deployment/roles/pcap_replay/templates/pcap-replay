@@ -73,9 +73,14 @@ case "$1" in
     PID=`cat $PIDFILE`
     cd $DAEMON_PATH
     if [ -f $PIDFILE ]; then
-        kill -HUP $PID
-        printf "%s\n" "Ok"
-        rm -f $PIDFILE
+      while sleep 1
+        echo -n "."
+        kill -0 $PID >/dev/null 2>&1
+      do
+        kill $PID
+      done
+      printf "%s\n" "Ok"
+      rm -f $PIDFILE
     else
         printf "%s\n" "pidfile not found"
     fi
