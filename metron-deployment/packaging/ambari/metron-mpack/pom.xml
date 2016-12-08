@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.0-SNAPSHOT</version>
         <relativePath>../../..</relativePath>
     </parent>
 
@@ -72,7 +72,7 @@
                         <configuration>
                             <name>metron.short.version</name>
                             <value>${project.parent.version}</value>
-                            <regex>\.</regex>
+                            <regex>[^a-zA-Z0-9]</regex>
                             <replacement></replacement>
                             <failIfNoMatch>true</failIfNoMatch>
                         </configuration>
