@@ -1,0 +1,28 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "metron_ui",
+        "label": "Metron UI",
+        "requires_user_name": "false",
+        "component_name": "KIBANA_MASTER",
+        "url":"%@://%@:%@/",
+        "port":{
+          "http_property": "kibana_server_port",
+          "http_default_port": "5601",
+          "https_property": "kibana_server_port",
+          "https_default_port": "5601",
+          "regex": "^(\\d+)$",
+          "site": "kibana-env"
+        }
+      }
+    ]
+  }
+}
