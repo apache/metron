@@ -70,4 +70,14 @@ public class ConversionFunctions {
 
     public TO_LONG() { super(Long.class); }
   }
+
+  @Stellar(name="TO_FLOAT"
+      , description="Transforms the first argument to a float"
+      , params = { "input - Object of string or numeric type"}
+      , returns = "Float version of the first argument"
+  )
+  public static class TO_FLOAT extends Cast<Float> {
+
+    public TO_FLOAT() { super(Float.class); }
+  }
 }
