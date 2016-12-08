@@ -26,13 +26,9 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.3.0-SNAPSHOT</version>
+        <version>0.3.0</version>
         <relativePath>../../..</relativePath>
     </parent>
-
-    <properties>
-        <metron.version>${project.parent.version}</metron.version>
-    </properties>
 
     <dependencies>
     </dependencies>
@@ -52,15 +48,15 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>regex-property</id>
+                        <id>metron-version</id>
                         <goals>
                             <goal>regex-property</goal>
                         </goals>
                         <configuration>
-                            <name>mpackVersion</name>
-                            <value>${project.version}</value>
-                            <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-                            <replacement>$1.$2.$3.$4</replacement>
+                            <name>metron.version</name>
+                            <value>${project.parent.version}</value>
+                            <regex>-SNAPSHOT</regex>
+                            <replacement></replacement>
                             <failIfNoMatch>false</failIfNoMatch>
                         </configuration>
                     </execution>
@@ -72,9 +68,9 @@
                         <configuration>
                             <name>metron.short.version</name>
                             <value>${project.parent.version}</value>
-                            <regex>[^a-zA-Z0-9]</regex>
+                            <regex>\.|-SNAPSHOT</regex>
                             <replacement></replacement>
-                            <failIfNoMatch>true</failIfNoMatch>
+                            <failIfNoMatch>false</failIfNoMatch>
                         </configuration>
                     </execution>
                 </executions>
