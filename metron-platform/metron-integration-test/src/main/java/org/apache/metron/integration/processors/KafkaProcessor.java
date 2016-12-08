@@ -34,7 +34,6 @@ public class KafkaProcessor<T> implements Processor<T> {
     private List<byte[]> messages = new LinkedList<>();
     private List<byte[]> errors = new LinkedList<>();
     private List<byte[]> invalids = new LinkedList<>();
-    private boolean readErrorsBefore = false;
 
     public KafkaProcessor(){}
     public KafkaProcessor withKafkaComponentName(String name){
@@ -61,10 +60,6 @@ public class KafkaProcessor<T> implements Processor<T> {
         this.provideResult = provide;
         return this;
     }
-    public KafkaProcessor withReadErrorsBefore(boolean flag){
-        this.readErrorsBefore = flag;
-        return this;
-    }
 
     private Function<KafkaMessageSet, Boolean> validateReadMessages;
     private Function<KafkaMessageSet,T> provideResult;
@@ -72,38 +67,29 @@ public class KafkaProcessor<T> implements Processor<T> {
     public ReadinessState process(ComponentRunner runner){
         KafkaComponent kafkaComponent = runner.getComponent(kafkaComponentName, KafkaComponent.class);
         LinkedList<byte[]> outputMessages = new LinkedList<>(kafkaComponent.readMessages(readTopic));
-        if(readErrorsBefore) {
-            if (errorTopic != null) {
-                errors.addAll(kafkaComponent.readMessages(errorTopic));
-            }
-            if (invalidTopic != null) {
-                invalids.addAll(kafkaComponent.readMessages(invalidTopic));
-            }
+        LinkedList<byte[]> outputErrors = null;
+        LinkedList<byte[]> outputInvalids = null;
+
+        if (errorTopic != null) {
+            outputErrors = new LinkedList<>(kafkaComponent.readMessages(errorTopic));
         }
-        Boolean validated = validateReadMessages.apply(new KafkaMessageSet(outputMessages,errors,invalids));
+        if (invalidTopic != null) {
+            outputInvalids = new LinkedList<>(kafkaComponent.readMessages(invalidTopic));
+        }
+        Boolean validated = validateReadMessages.apply(new KafkaMessageSet(outputMessages,outputErrors,outputInvalids));
         if(validated == null){
             validated = false;
         }
         if(validated){
             messages.addAll(outputMessages);
+            errors.addAll(outputErrors);
+            invalids.addAll(outputInvalids);
             outputMessages.clear();
+            outputErrors.clear();
+            outputInvalids.clear();
             return ReadinessState.READY;
-        }else{
-            if(!readErrorsBefore){
-                if (errorTopic != null) {
-                    errors.addAll(kafkaComponent.readMessages(errorTopic));
-                }
-                if (invalidTopic != null) {
-                    invalids.addAll(kafkaComponent.readMessages(invalidTopic));
-                }
-            }
-            if(errors.size() > 0 || invalids.size() > 0) {
-                messages.addAll(outputMessages);
-                outputMessages.clear();
-                return ReadinessState.READY;
-            }
-            return ReadinessState.NOT_READY;
         }
+        return ReadinessState.NOT_READY;
     }
     @SuppressWarnings("unchecked")
     public ProcessorResult<T> getResult(){

@@ -171,6 +171,14 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor());
       // We expect failures, so we don't care if result returned failure or not
       List<Map<String, Object>> docs = result.getResult();
+      // OTTO>>>>>>>>>>>>>>>>>>>
+      System.out.println(String.format("result: %d error: %d invalid %d  ", docs.size(),result.getProcessErrors().size(), result.getProcessInvalids().size()));
+      if(result.getProcessErrors().size() > 0){
+        for (byte[] ebytes : result.getProcessErrors()){
+          System.out.println(new String(ebytes));
+        }
+      }
+      // OTTO>>>>>>>>>>>>>>>>>>>
       Assert.assertEquals(inputMessages.size(), docs.size());
       validateAll(docs);
 
@@ -456,11 +464,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withReadTopic(Constants.INDEXING_TOPIC)
             .withErrorTopic(Constants.ENRICHMENT_ERROR_TOPIC)
             .withInvalidTopic(Constants.INVALID_STREAM)
-            .withReadErrorsBefore(true)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
               public Boolean apply(@Nullable KafkaMessageSet messageSet) {
+                // this test is written to return 10 errors and 10 messages
+                // we can just check when the messages match here
+                // if they do then we are good
                 return messageSet.getMessages().size() == inputMessages.size();
               }
             })

@@ -121,7 +121,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
               @Nullable
               @Override
               public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-                return messageSet.getMessages().size() == inputMessages.size();
+                return (messageSet.getMessages().size() + messageSet.getErrors().size() + messageSet.getInvalids().size()) == inputMessages.size();
               }
             })
             .withProvideResult(new Function<KafkaMessageSet,List<byte[]>>(){
