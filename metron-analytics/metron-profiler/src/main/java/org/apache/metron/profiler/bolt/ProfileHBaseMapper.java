@@ -91,11 +91,11 @@ public class ProfileHBaseMapper implements HBaseMapper {
    */
   @Override
   public Optional<Long> getTTL(Tuple tuple) {
-    Optional result = Optional.empty();
+    Optional<Long> result = Optional.empty();
 
     ProfileConfig profileConfig = (ProfileConfig) tuple.getValueByField("profile");
     if(profileConfig.getExpires() != null) {
-      result = result.of(profileConfig.getExpires());
+      result = Optional.of(profileConfig.getExpires());
     }
 
     return result;
