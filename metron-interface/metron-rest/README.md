@@ -7,6 +7,8 @@ This UI exposes and aids in sensor configuration.
 * A running Metron cluster
 * A running instance of MySQL 
 * Java 8 installed
+* Node and NPM installed
+* Storm command line client co-located
 
 ## Installation
 1. Package the Application with Maven:
@@ -48,7 +50,7 @@ This UI exposes and aids in sensor configuration.
 
 ## Usage
 
-The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
+The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.  The Config UI can be found at http://host:port/.
 
 ## License
 
