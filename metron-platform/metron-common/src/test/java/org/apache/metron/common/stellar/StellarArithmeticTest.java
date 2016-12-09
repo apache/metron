@@ -20,9 +20,12 @@ package org.apache.metron.common.stellar;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Token;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +38,8 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class StellarArithmeticTest {
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
   @Test
   public void addingLongsShouldYieldLong() throws Exception {
@@ -216,5 +221,80 @@ public class StellarArithmeticTest {
     assertEquals(Double.class, run("(((((1L) + .5d)))) * 6.f / 0.f", ImmutableMap.of()).getClass());
   }
 
+  @Test
+  public void makeSureStellarProperlyEvaluatesLiteralsToExpectedTypes() throws Exception {
+    {
+      assertEquals(Float.class, run("6.f", ImmutableMap.of()).getClass());
+      assertEquals(Float.class, run(".0f", ImmutableMap.of()).getClass());
+      assertEquals(Float.class, run("6.0F", ImmutableMap.of()).getClass());
+      assertEquals(Float.class, run("6f", ImmutableMap.of()).getClass());
+      assertEquals(Float.class, run("6e-6f", ImmutableMap.of()).getClass());
+      assertEquals(Float.class, run("6e+6f", ImmutableMap.of()).getClass());
+      assertEquals(Float.class, run("6e6f", ImmutableMap.of()).getClass());
+    }
+    {
+      assertEquals(Double.class, run("6.d", ImmutableMap.of()).getClass());
+      assertEquals(Double.class, run("6.D", ImmutableMap.of()).getClass());
+      assertEquals(Double.class, run("6.0d", ImmutableMap.of()).getClass());
+      assertEquals(Double.class, run("6D", ImmutableMap.of()).getClass());
+      assertEquals(Double.class, run("6e5D", ImmutableMap.of()).getClass());
+      assertEquals(Double.class, run("6e-5D", ImmutableMap.of()).getClass());
+      assertEquals(Double.class, run("6e+5D", ImmutableMap.of()).getClass());
+    }
+    {
+      assertEquals(Integer.class, run("6", ImmutableMap.of()).getClass());
+      assertEquals(Integer.class, run("60000000", ImmutableMap.of()).getClass());
+      assertEquals(Integer.class, run("-0", ImmutableMap.of()).getClass());
+      assertEquals(Integer.class, run("-60000000", ImmutableMap.of()).getClass());
+    }
+    {
+      assertEquals(Long.class, run("12345678910l", ImmutableMap.of()).getClass());
+      assertEquals(Long.class, run("0l", ImmutableMap.of()).getClass());
+      assertEquals(Long.class, run("-0l", ImmutableMap.of()).getClass());
+      assertEquals(Long.class, run("-60000000L", ImmutableMap.of()).getClass());
+      assertEquals(Long.class, run("-60000000L", ImmutableMap.of()).getClass());
+    }
+  }
 
+  @Test
+  public void parseExceptionMultipleLeadingZerosOnInteger() throws Exception {
+    exception.expect(ParseException.class);
+    run("000000", ImmutableMap.of());
+  }
+
+  @Test
+  public void parseExceptionMultipleLeadingZerosOnLong() throws Exception {
+    exception.expect(ParseException.class);
+    run("000000l", ImmutableMap.of());
+  }
+
+  @Test
+  public void parseExceptionMultipleLeadingZerosOnDouble() throws Exception {
+    exception.expect(ParseException.class);
+    run("000000d", ImmutableMap.of());
+  }
+
+  @Test
+  public void parseExceptionMultipleLeadingZerosOnFloat() throws Exception {
+    exception.expect(ParseException.class);
+    run("000000f", ImmutableMap.of());
+  }
+
+  @Test
+  public void parseExceptionMultipleLeadingNegativeSignsFloat() throws Exception {
+    exception.expect(ParseException.class);
+    run("--000000f", ImmutableMap.of());
+  }
+
+  @Test
+  public void parseExceptionMultipleLeadingNegativeSignsDouble() throws Exception {
+    exception.expect(ParseException.class);
+    run("--000000D", ImmutableMap.of());
+  }
+
+  @Test
+  public void parseExceptionMultipleLeadingNegativeSignsLong() throws Exception {
+    exception.expect(ParseException.class);
+    run("--000000L", ImmutableMap.of());
+  }
 }

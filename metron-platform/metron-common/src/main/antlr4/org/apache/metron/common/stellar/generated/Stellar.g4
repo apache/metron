@@ -93,15 +93,15 @@ INT_LITERAL     :
   | MINUS? '1'..'9''0'..'9'*
   ;
 DOUBLE_LITERAL  :
-  MINUS? '0'..'9'+ '.' '0'..'9'* EXPONENT? ('d'|'D')?
+  INT_LITERAL '.' '0'..'9'* EXPONENT? ('d'|'D')?
   | '.' '0'..'9'+ EXPONENT? ('d'|'D')?
-  | MINUS? '0'..'9'+ EXPONENT ('d'|'D')?
-  | MINUS? '0'..'9'+ EXPONENT? ('d'|'D')
+  | INT_LITERAL EXPONENT ('d'|'D')?
+  | INT_LITERAL EXPONENT? ('d'|'D')
   ;
 FLOAT_LITERAL  :
-  MINUS? '0'..'9'+'.''0'..'9'* EXPONENT? ('f'|'F')
+  INT_LITERAL'.''0'..'9'* EXPONENT? ('f'|'F')
   | MINUS? '.''0'..'9'+ EXPONENT? ('f'|'F')
-  | MINUS? '0'..'9'+ EXPONENT? ('f'|'F')
+  | INT_LITERAL EXPONENT? ('f'|'F')
   ;
 LONG_LITERAL  : INT_LITERAL ('l'|'L') ;
 IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]* ;
