@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/storm")
+@RequestMapping("/api/v1/storm")
 public class StormController {
 
   @Autowired

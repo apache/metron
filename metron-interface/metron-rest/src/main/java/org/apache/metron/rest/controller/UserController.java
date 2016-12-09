@@ -25,7 +25,7 @@ import java.security.Principal;
 @RestController
 public class UserController {
 
-    @RequestMapping("/user")
+    @RequestMapping("/api/v1/user")
     public String user(Principal user) {
         return user.getName();
     }

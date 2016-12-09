@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/grok")
+@RequestMapping("/api/v1/grok")
 public class GrokController {
 
     @Autowired

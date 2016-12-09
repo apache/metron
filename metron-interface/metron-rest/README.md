@@ -9,8 +9,12 @@ This UI exposes and aids in sensor configuration.
 * Java 8 installed
 
 ## Installation
+1. Package the Application with Maven:
+    ```
+    mvn clean package
+    ```
 
-1. Download and Unpack RPM.  The directory structure will look like: 
+1. Untar the archive in the target directory.  The directory structure will look like: 
     ```
     bin
       start.sh
@@ -44,7 +48,7 @@ This UI exposes and aids in sensor configuration.
 
 ## Usage
 
-The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.   The Config UI can be accessed at http://host:port:8080 with credentials user/password.
+The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
 
 ## License
 

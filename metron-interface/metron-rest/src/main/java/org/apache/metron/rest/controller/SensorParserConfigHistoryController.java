@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sensorParserConfigHistory")
+@RequestMapping("/api/v1/sensorParserConfigHistory")
 public class SensorParserConfigHistoryController {
 
     @Autowired

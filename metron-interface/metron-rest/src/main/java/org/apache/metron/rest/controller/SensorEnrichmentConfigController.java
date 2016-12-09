@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sensorEnrichmentConfig")
+@RequestMapping("/api/v1/sensorEnrichmentConfig")
 public class SensorEnrichmentConfigController {
 
   @Autowired
