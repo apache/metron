@@ -29,7 +29,7 @@ import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
-import org.apache.metron.common.stellar.evaluators.NumberEvaluatorFactory;
+import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -53,20 +53,20 @@ public class StellarCompiler extends StellarBaseListener {
   private final VariableResolver variableResolver;
   private Throwable actualException;
   private final ArithmeticEvaluator arithmeticEvaluator;
-  private final NumberEvaluatorFactory numberEvaluatorFactory;
+  private final NumberLiteralEvaluator numberLiteralEvaluator;
 
   public StellarCompiler(VariableResolver variableResolver,
                          FunctionResolver functionResolver,
                          Context context,
                          Stack<Token<?>> tokenStack,
                          ArithmeticEvaluator arithmeticEvaluator,
-                         NumberEvaluatorFactory numberEvaluatorFactory) {
+                         NumberLiteralEvaluator numberLiteralEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;
     this.tokenStack = tokenStack;
     this.arithmeticEvaluator = arithmeticEvaluator;
-    this.numberEvaluatorFactory = numberEvaluatorFactory;
+    this.numberLiteralEvaluator = numberLiteralEvaluator;
   }
 
   @Override
@@ -183,22 +183,22 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitIntLiteral(StellarParser.IntLiteralContext ctx) {
-    tokenStack.push(numberEvaluatorFactory.evaluate(ctx));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
   public void exitDoubleLiteral(StellarParser.DoubleLiteralContext ctx) {
-    tokenStack.push(numberEvaluatorFactory.evaluate(ctx));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
   public void exitFloatLiteral(StellarParser.FloatLiteralContext ctx) {
-    tokenStack.push(numberEvaluatorFactory.evaluate(ctx));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
   public void exitLongLiteral(StellarParser.LongLiteralContext ctx) {
-    tokenStack.push(numberEvaluatorFactory.evaluate(ctx));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override

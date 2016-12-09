@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
-public class NumberEvaluatorFactoryTest {
+public class NumberLiteralEvaluatorTest {
   NumberEvaluator<StellarParser.IntLiteralContext> intLiteralContextNumberEvaluator;
   NumberEvaluator<StellarParser.DoubleLiteralContext> doubleLiteralContextNumberEvaluator;
   NumberEvaluator<StellarParser.FloatLiteralContext> floatLiteralContextNumberEvaluator;
@@ -60,7 +60,7 @@ public class NumberEvaluatorFactoryTest {
   @Test
   public void verifyIntLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.IntLiteralContext context = mock(StellarParser.IntLiteralContext.class);
-    NumberEvaluatorFactory.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
 
     verify(intLiteralContextNumberEvaluator).evaluate(context);
     verifyZeroInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
@@ -69,7 +69,7 @@ public class NumberEvaluatorFactoryTest {
   @Test
   public void verifyDoubleLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.DoubleLiteralContext context = mock(StellarParser.DoubleLiteralContext.class);
-    NumberEvaluatorFactory.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
 
     verify(doubleLiteralContextNumberEvaluator).evaluate(context);
     verifyZeroInteractions(intLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
@@ -78,7 +78,7 @@ public class NumberEvaluatorFactoryTest {
   @Test
   public void verifyFloatLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.FloatLiteralContext context = mock(StellarParser.FloatLiteralContext.class);
-    NumberEvaluatorFactory.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
 
     verify(floatLiteralContextNumberEvaluator).evaluate(context);
     verifyZeroInteractions(doubleLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
@@ -87,7 +87,7 @@ public class NumberEvaluatorFactoryTest {
   @Test
   public void verifyLongLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.LongLiteralContext context = mock(StellarParser.LongLiteralContext.class);
-    NumberEvaluatorFactory.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
 
     verify(longLiteralContextNumberEvaluator).evaluate(context);
     verifyZeroInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
@@ -100,7 +100,7 @@ public class NumberEvaluatorFactoryTest {
     exception.expect(ParseException.class);
     exception.expectMessage("Does not support evaluation for type " + context.getClass());
 
-    NumberEvaluatorFactory.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
 
     verifyZeroInteractions(longLiteralContextNumberEvaluator, doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
   }

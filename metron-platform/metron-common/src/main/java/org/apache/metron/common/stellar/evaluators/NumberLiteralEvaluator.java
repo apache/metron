@@ -25,7 +25,7 @@ import org.apache.metron.common.stellar.generated.StellarParser;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum NumberEvaluatorFactory {
+public enum NumberLiteralEvaluator {
   INSTANCE;
   private enum Strategy {
      INTEGER(StellarParser.IntLiteralContext.class, new IntLiteralEvaluator())
