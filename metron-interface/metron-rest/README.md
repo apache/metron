@@ -35,7 +35,7 @@ This UI exposes and aids in sensor configuration.
     CREATE DATABASE IF NOT EXISTS metronrest
     ```
  
-1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resource/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.username` and `spring.datasource.password` properties using the MySQL credentials from step 4.
+1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.username` and `spring.datasource.password` properties using the MySQL credentials from step 4.
 
 1. Start the UI with this command:
     ```
@@ -44,7 +44,7 @@ This UI exposes and aids in sensor configuration.
 
 ## Usage
 
-The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
+The exposed REST endpoints can be accessed at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.   The Config UI can be accessed at http://host:port:8080 with credentials user/password.
 
 ## License
 
