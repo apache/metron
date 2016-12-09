@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -178,4 +179,42 @@ public class StellarArithmeticTest {
       assertTrue(run(pair.getLeft() + " / " + pair.getRight(), ImmutableMap.of()).getClass() == expectedClass);
     });
   }
+
+  @Test
+  public void happyPathFloatArithmetic() throws Exception {
+    Object run = run(".0f * 1", ImmutableMap.of());
+    assertEquals(.0f * 1, run);
+    assertEquals(Float.class, run.getClass());
+
+    Object run1 = run("0.f / 1F", ImmutableMap.of());
+    assertEquals(0.f / 1F, run1);
+    assertEquals(Float.class, run1.getClass());
+
+    Object run2 = run(".0F + 1.0f", ImmutableMap.of());
+    assertEquals(.0F + 1.0f, run2);
+    assertEquals(Float.class, run2.getClass());
+
+    Object run3 = run("0.0f - 0.1f", ImmutableMap.of());
+    assertEquals(0.0f - 0.1f, run3);
+    assertEquals(Float.class, run2.getClass());
+  }
+
+  @SuppressWarnings("PointlessArithmeticExpression")
+  @Test
+  public void happyPathLongArithmetic() throws Exception {
+    assertEquals(0L * 1L, run("0L * 1L", ImmutableMap.of()));
+    assertEquals(0l / 1L, run("0l / 1L", ImmutableMap.of()));
+    assertEquals(1L - 1l, run("1L - 1l", ImmutableMap.of()));
+    assertEquals(2147483648L + 1L, run("2147483648L + 1L", ImmutableMap.of()));
+  }
+
+  @SuppressWarnings("NumericOverflow")
+  @Test
+  public void checkInterestingCases() throws Exception {
+    assertEquals((((((1L) + .5d)))) * 6.f, run("(((((1L) + .5d)))) * 6.f", ImmutableMap.of()));
+    assertEquals((((((1L) + .5d)))) * 6.f / 0.f, run("(((((1L) + .5d)))) * 6.f / 0.f", ImmutableMap.of()));
+    assertEquals(Double.class, run("(((((1L) + .5d)))) * 6.f / 0.f", ImmutableMap.of()).getClass());
+  }
+
+
 }
