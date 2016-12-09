@@ -27,11 +27,19 @@ import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Stack;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.*;
 
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ArithmeticEvaluator.class, NumberLiteralEvaluator.class})
 public class StellarCompilerTest {
   VariableResolver variableResolver;
   FunctionResolver functionResolver;
