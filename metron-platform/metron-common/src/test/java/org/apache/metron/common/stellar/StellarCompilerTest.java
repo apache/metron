@@ -23,7 +23,7 @@ import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
-import org.apache.metron.common.stellar.evaluators.NumberEvaluatorFactory;
+import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class StellarCompilerTest {
   Context context;
   Stack<Token<?>> tokenStack;
   ArithmeticEvaluator arithmeticEvaluator;
-  NumberEvaluatorFactory numberEvaluatorFactory;
+  NumberLiteralEvaluator numberLiteralEvaluator;
   StellarCompiler compiler;
 
   @SuppressWarnings("unchecked")
@@ -49,9 +49,9 @@ public class StellarCompilerTest {
     context = mock(Context.class);
     tokenStack = mock(Stack.class);
     arithmeticEvaluator = mock(ArithmeticEvaluator.class);
-    numberEvaluatorFactory = mock(NumberEvaluatorFactory.class);
+    numberLiteralEvaluator = mock(NumberLiteralEvaluator.class);
 
-    compiler = new StellarCompiler(variableResolver, functionResolver, context, tokenStack, arithmeticEvaluator, numberEvaluatorFactory);
+    compiler = new StellarCompiler(variableResolver, functionResolver, context, tokenStack, arithmeticEvaluator, numberLiteralEvaluator);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class StellarCompilerTest {
 
     compiler.exitIntLiteral(ctx);
 
-    verify(numberEvaluatorFactory).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx);
     verify(tokenStack).push(any(Token.class));
     verifyNoMoreInteractions(tokenStack);
     verifyZeroInteractions(variableResolver);
@@ -77,7 +77,7 @@ public class StellarCompilerTest {
 
     compiler.exitDoubleLiteral(ctx);
 
-    verify(numberEvaluatorFactory).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx);
     verify(tokenStack).push(any(Token.class));
     verifyNoMoreInteractions(tokenStack);
     verifyZeroInteractions(variableResolver);
@@ -93,7 +93,7 @@ public class StellarCompilerTest {
 
     compiler.exitFloatLiteral(ctx);
 
-    verify(numberEvaluatorFactory).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx);
     verify(tokenStack).push(any(Token.class));
     verifyNoMoreInteractions(tokenStack);
     verifyZeroInteractions(variableResolver);
@@ -109,7 +109,7 @@ public class StellarCompilerTest {
 
     compiler.exitLongLiteral(ctx);
 
-    verify(numberEvaluatorFactory).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx);
     verify(tokenStack).push(any(Token.class));
     verifyNoMoreInteractions(tokenStack);
     verifyZeroInteractions(variableResolver);

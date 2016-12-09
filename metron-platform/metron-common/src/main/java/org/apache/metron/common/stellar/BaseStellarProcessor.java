@@ -29,7 +29,7 @@ import java.util.Stack;
 import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
-import org.apache.metron.common.stellar.evaluators.NumberEvaluatorFactory;
+import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarLexer;
 import org.apache.metron.common.stellar.generated.StellarParser;
@@ -87,8 +87,8 @@ public class BaseStellarProcessor<T> {
     StellarParser parser = new StellarParser(tokens);
 
     StellarCompiler treeBuilder = new StellarCompiler(variableResolver, functionResolver, context, new Stack<>(),
-        new ArithmeticEvaluator(),
-        new NumberEvaluatorFactory()
+        ArithmeticEvaluator.INSTANCE,
+        NumberLiteralEvaluator.INSTANCE
     );
     parser.addParseListener(treeBuilder);
     parser.removeErrorListeners();
