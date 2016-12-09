@@ -9,8 +9,12 @@ This UI exposes and aids in sensor configuration.
 * Java 8 installed
 
 ## Installation
+1. Package the Application with Maven:
+    ```
+    mvn clean package
+    ```
 
-1. Download and Unpack RPM.  The directory structure will look like: 
+1. Untar the archive in the target directory.  The directory structure will look like: 
     ```
     bin
       start.sh
@@ -35,7 +39,7 @@ This UI exposes and aids in sensor configuration.
     CREATE DATABASE IF NOT EXISTS metronrest
     ```
  
-1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resource/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.username` and `spring.datasource.password` properties using the MySQL credentials from step 4.
+1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.username` and `spring.datasource.password` properties using the MySQL credentials from step 4.
 
 1. Start the UI with this command:
     ```
