@@ -22,41 +22,48 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
-public class NumberEvaluatorFactory {
-  private NumberEvaluator<StellarParser.IntLiteralContext> intLiteralEvaluator;
-  private NumberEvaluator<StellarParser.DoubleLiteralContext> doubleLiteralEvaluator;
-  private NumberEvaluator<StellarParser.FloatLiteralContext> floatLiteralEvaluator;
-  private NumberEvaluator<StellarParser.LongLiteralContext> longLiteralEvaluator;
+import java.util.HashMap;
+import java.util.Map;
 
-  public NumberEvaluatorFactory(NumberEvaluator<StellarParser.IntLiteralContext> intLiteralEvaluator,
-                                NumberEvaluator<StellarParser.DoubleLiteralContext> doubleLiteralEvaluator,
-                                NumberEvaluator<StellarParser.FloatLiteralContext> floatLiteralEvaluator,
-                                NumberEvaluator<StellarParser.LongLiteralContext> longLiteralEvaluator) {
-    this.intLiteralEvaluator = intLiteralEvaluator;
-    this.doubleLiteralEvaluator = doubleLiteralEvaluator;
-    this.floatLiteralEvaluator = floatLiteralEvaluator;
-    this.longLiteralEvaluator = longLiteralEvaluator;
+public enum NumberEvaluatorFactory {
+  INSTANCE;
+  private enum Strategy {
+     INTEGER(StellarParser.IntLiteralContext.class, new IntLiteralEvaluator())
+    , DOUBLE(StellarParser.DoubleLiteralContext.class, new DoubleLiteralEvaluator())
+    , FLOAT(StellarParser.FloatLiteralContext.class, new FloatLiteralEvaluator())
+    , LONG(StellarParser.LongLiteralContext.class, new LongLiteralEvaluator());
+    Class<? extends StellarParser.Arithmetic_operandsContext> context;
+    NumberEvaluator evaluator;
+    private static Map<Class<? extends StellarParser.Arithmetic_operandsContext>, NumberEvaluator> strategyMap;
+
+    static {
+      strategyMap = new HashMap<>();
+      for (Strategy strat : Strategy.values()) {
+        strategyMap.put(strat.context, strat.evaluator);
+      }
+    }
+
+    Strategy(Class<? extends StellarParser.Arithmetic_operandsContext> context
+            , NumberEvaluator<? extends StellarParser.Arithmetic_operandsContext> evaluator
+    ) {
+      this.context = context;
+      this.evaluator = evaluator;
+    }
   }
 
-  public NumberEvaluatorFactory() {
-    this.intLiteralEvaluator = new IntLiteralEvaluator();
-    this.doubleLiteralEvaluator = new DoubleLiteralEvaluator();
-    this.floatLiteralEvaluator = new FloatLiteralEvaluator();
-    this.longLiteralEvaluator = new LongLiteralEvaluator();
+  Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context
+                                         , Map<Class<? extends StellarParser.Arithmetic_operandsContext>, NumberEvaluator> instanceMap
+                                         )
+  {
+    NumberEvaluator evaluator = instanceMap.get(context.getClass());
+    if(evaluator == null) {
+      throw new ParseException("Does not support evaluation for type " + context.getClass());
+    }
+    return evaluator.evaluate(context);
   }
 
   public Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context) {
-    if (context instanceof StellarParser.IntLiteralContext) {
-      return intLiteralEvaluator.evaluate((StellarParser.IntLiteralContext) context);
-    } else if (context instanceof StellarParser.DoubleLiteralContext) {
-      return doubleLiteralEvaluator.evaluate((StellarParser.DoubleLiteralContext) context);
-    } else if (context instanceof StellarParser.FloatLiteralContext) {
-      return floatLiteralEvaluator.evaluate((StellarParser.FloatLiteralContext) context);
-    } else if (context instanceof StellarParser.LongLiteralContext) {
-      return longLiteralEvaluator.evaluate((StellarParser.LongLiteralContext) context);
-    }
-
-    throw new ParseException("Does not support evaluation for type " + context.getClass());
+    return evaluate(context, Strategy.strategyMap);
   }
 
 }

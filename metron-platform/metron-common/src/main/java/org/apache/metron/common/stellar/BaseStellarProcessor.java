@@ -87,8 +87,8 @@ public class BaseStellarProcessor<T> {
     StellarParser parser = new StellarParser(tokens);
 
     StellarCompiler treeBuilder = new StellarCompiler(variableResolver, functionResolver, context, new Stack<>(),
-        new ArithmeticEvaluator(),
-        new NumberEvaluatorFactory()
+        ArithmeticEvaluator.INSTANCE,
+        NumberEvaluatorFactory.INSTANCE
     );
     parser.addParseListener(treeBuilder);
     parser.removeErrorListeners();
