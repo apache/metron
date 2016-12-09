@@ -27,7 +27,7 @@ import java.util.Map;
 
 public enum NumberLiteralEvaluator {
   INSTANCE;
-  private enum Strategy {
+  public enum Strategy {
      INTEGER(StellarParser.IntLiteralContext.class, new IntLiteralEvaluator())
     , DOUBLE(StellarParser.DoubleLiteralContext.class, new DoubleLiteralEvaluator())
     , FLOAT(StellarParser.FloatLiteralContext.class, new FloatLiteralEvaluator())
