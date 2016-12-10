@@ -21,6 +21,7 @@ limitations under the License.
 import functools
 import os
 
+from urlparse import urlparse
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
@@ -57,9 +58,11 @@ indexing_configured_flag_file = status_params.indexing_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
-es_url = config['configurations']['metron-env']['es_url']
-es_host = es_url.split(':')[0]
-es_binary_port = es_url.split(':')[1]
+es_binary_urls = config['configurations']['metron-env']['es_binary_urls']
+es_http_url = config['configurations']['metron-env']['es_http_url']
+parsed = urlparse(es_http_url)
+es_http_host = parsed.netloc.split(':')[0]
+es_http_port = parsed.netloc.split(':')[1]
 
 #install repo
 yum_repo_type = config['configurations']['metron-env']['repo_type']

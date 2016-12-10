@@ -117,10 +117,16 @@
         <display-name>GEOIP Load Datafile URL</display-name>
     </property>
     <property require-input="true">
-        <name>es_url</name>
+        <name>es_http_url</name>
         <value></value>
-        <description>The primary Elasticsearch Master host name and port number for binary traffic (eshost:9300).  Only one host may be named.</description>
-        <display-name>Elasticsearch Host and Port Number</display-name>
+        <description>Elasticsearch Master url for HTTP queries (http://eshost:9200).</description>
+        <display-name>Elasticsearch HTTP URL</display-name>
+    </property>
+    <property require-input="true">
+        <name>es_binary_urls</name>
+        <value></value>
+        <description>Comma delimited list of Elasticsearch Masters, with binary-protocol port numbers. (eshost1:9300,eshost2:9300)</description>
+        <display-name>Elasticsearch Binary URLs</display-name>
     </property>
     <property require-input = "true">
         <name>storm_rest_addr</name>
@@ -186,9 +192,8 @@
         <description>This is the jinja template for global.json file</description>
         <value>
 {
-"es.clustername": "{{es_cluster_name}}",
-"es.ip": "{{es_host}}",
-"es.port": "{{es_binary_port}}",
+"es.clustername": "{{ es_cluster_name }}",
+"es.ip": "{{ es_binary_urls }}",
 "es.date.format": "yyyy.MM.dd.HH"
 }
         </value>

@@ -110,11 +110,15 @@
           "subsection-name": "subsection-general-database"
         },
         {
-          "config": "metron-env/es_url",
+          "config": "metron-env/es_cluster_name",
           "subsection-name": "subsection-general-indexing"
         },
         {
-          "config": "metron-env/es_cluster_name",
+          "config": "metron-env/es_http_url",
+          "subsection-name": "subsection-general-indexing"
+        },
+        {
+          "config": "metron-env/es_binary_urls",
           "subsection-name": "subsection-general-indexing"
         },
         {
@@ -171,18 +175,24 @@
         }
       },
       {
-        "config": "metron-env/es_url",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
         "config": "metron-env/es_cluster_name",
         "widget": {
           "type": "text-field"
         }
       },
       {
+        "config": "metron-env/es_http_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_binary_urls",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+     {
         "config": "metron-env/repo_type",
         "widget": {
           "type": "toggle"
