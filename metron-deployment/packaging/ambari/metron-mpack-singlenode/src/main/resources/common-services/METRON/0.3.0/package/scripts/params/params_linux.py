@@ -21,7 +21,6 @@ limitations under the License.
 import functools
 import os
 
-from urlparse import urlparse
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
@@ -57,14 +56,17 @@ enrichment_configured_flag_file = status_params.enrichment_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
-es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
-es_binary_urls = config['configurations']['metron-env']['es_binary_urls']
-es_http_url = config['configurations']['metron-env']['es_http_url']
-parsed = urlparse(es_http_url)
-es_http_host = parsed.netloc.split(':')[0]
-es_http_port = parsed.netloc.split(':')[1]
 
-#install repo
+# Elasticsearch hosts and port management
+es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
+es_hosts = config['configurations']['metron-env']['es_hosts']
+es_host_list = es_hosts.split(",")
+es_binary_port = config['configurations']['metron-env']['es_binary_port']
+es_binary_urls = ",".join([host + ":" + es_binary_port for host in es_host_list])
+es_http_port = config['configurations']['metron-env']['es_http_port']
+es_http_url = es_host_list[0] + ":" + es_http_port
+
+# install repo
 yum_repo_type = config['configurations']['metron-env']['repo_type']
 if yum_repo_type == 'local':
     repo_url = 'file:///localrepo'
@@ -107,12 +109,12 @@ if has_kafka_host:
     kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
     kafka_brokers += ':' + kafka_broker_port
 
-metron_apps_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
-metron_apps_enrichment_dir = metron_apps_dir + '/enrichment'
+metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+metron_apps_indexed_hdfs_dir = format("{metron_apps_hdfs_dir}/indexing/indexed")
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
-hdfs_grok_patterns_dir = format("{metron_apps_dir}/patterns")
+hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
 
 # for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -177,6 +179,8 @@ threatintel_cf = status_params.threatintel_cf
 
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
+metron_enrichment_error_topic = status_params.metron_enrichment_error_topic
+metron_threat_intel_error_topic = status_params.metron_threat_intel_error_topic
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"

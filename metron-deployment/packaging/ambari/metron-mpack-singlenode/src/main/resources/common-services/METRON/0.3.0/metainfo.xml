@@ -22,7 +22,7 @@
       <name>METRON</name>
       <displayName>Metron</displayName>
       <comment>A scalable advanced security analytics framework built on Hadoop</comment>
-      <version>0.2.1BETA</version>
+      <version>0.3.0</version>
       <components>
 
         <component>
@@ -78,6 +78,13 @@
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HBASE/HBASE_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>

@@ -26,10 +26,11 @@
         <value>metron</value>
         <description>Elasticsearch Cluster Name identifies your Elasticsearch subsystem</description>
     </property>
-    <property>
+    <property require-input="true">
         <name>es_cluster_hosts</name>
+        <!-- Should self-populate the list of selected ES nodes (masters only?). -->
         <value></value>
-        <description>Elasticsearch Cluster hostnames, comma-separated list.  Used for zen_discovery_ping_unicast_hosts.</description>
+        <description>Elasticsearch Cluster hostnames, comma-separated list.  Used for unicast discovery (zen_discovery_ping_unicast_hosts).</description>
     </property>
     <property>
         <name>index_number_of_shards</name>
@@ -44,7 +45,7 @@
     <property>
         <name>path_data</name>
         <value>"/opt/lmm/es_data"</value>
-        <description>Comma-separated list of directories where to store index data allocated for each node. e.g. "/mnt/first,/mnt/second".  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
+        <description>Comma-separated list of directories where to store index data allocated for each node. e.g. "/mnt/first","/mnt/second".  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
     </property>
     <!--  Network access -->
     <property>

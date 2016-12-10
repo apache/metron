@@ -20,7 +20,7 @@
 <configuration supports_final="true">
     <property>
         <name>metron_home</name>
-        <value>/usr/metron/0.2.1BETA</value>
+        <value>/usr/metron/0.3.0</value>
         <description>Metron home directory</description>
         <display-name>Metron home</display-name>
     </property>
@@ -117,16 +117,22 @@
         <display-name>GEOIP Load Datafile URL</display-name>
     </property>
     <property require-input="true">
-        <name>es_http_url</name>
+        <name>es_hosts</name>
         <value></value>
-        <description>Elasticsearch Master url for HTTP queries (http://eshost:9200).</description>
-        <display-name>Elasticsearch HTTP URL</display-name>
+        <description>Comma delimited list of Elasticsearch Master hosts (eshost1,eshost2).</description>
+        <display-name>Elasticsearch Hosts</display-name>
     </property>
-    <property require-input="true">
-        <name>es_binary_urls</name>
-        <value></value>
-        <description>Comma delimited list of Elasticsearch Masters, with binary-protocol port numbers. (eshost1:9300,eshost2:9300)</description>
-        <display-name>Elasticsearch Binary URLs</display-name>
+    <property>
+        <name>es_binary_port</name>
+        <value>9300</value>
+        <description>Elasticsearch binary port (9300).</description>
+        <display-name>Elasticsearch Binary Port</display-name>
+    </property>
+    <property>
+        <name>es_http_port</name>
+        <value>9200</value>
+        <description>Elasticsearch HTTP port (9200).</description>
+        <display-name>Elasticsearch HTTP port</display-name>
     </property>
     <property require-input = "true">
         <name>storm_rest_addr</name>
@@ -240,7 +246,7 @@ bolt.hdfs.file.system.url={{ default_fs }}
 bolt.hdfs.wip.file.path=/paloalto/wip
 bolt.hdfs.finished.file.path=/paloalto/rotated
 bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output={{ metron_apps_enrichment_dir }}
+index.hdfs.output={{ metron_apps_indexed_hdfs_dir }}
         </value>
         <value-attributes>
             <type>content</type>
