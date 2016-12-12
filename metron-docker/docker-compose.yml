@@ -55,6 +55,7 @@ services:
       - "8081:8081"
     environment:
       ZOOKEEPER_ADDR: kafkazk
+      CONFIG_TOPOLOGY_CLASSPATH: /opt/hbase-1.1.6/conf
     volumes_from:
       - hbase
     depends_on:

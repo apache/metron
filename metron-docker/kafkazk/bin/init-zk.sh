@@ -17,6 +17,5 @@
 #
 echo "create /metron metron" | ./bin/zookeeper-shell.sh localhost:2181
 echo "create /metron/topology topology" | ./bin/zookeeper-shell.sh localhost:2181
-echo 'create /metron/topology/global {"solr.zookeeper":"metron-kafkazk:2181","solr.collection":"metron","solr.numShards":1,"solr.replicationFactor":1,"es.clustername":"elasticsearch","es.ip":"metron-elasticsearch","es.port":"9300","es.date.format":"yyyy.MM.dd.HH"}' | ./bin/zookeeper-shell.sh localhost:2181
 echo "create /metron/topology/parsers parsers" | ./bin/zookeeper-shell.sh localhost:2181
 echo "create /metron/topology/enrichments enrichments" | ./bin/zookeeper-shell.sh localhost:2181

@@ -15,5 +15,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-METRON_VERSION=0.3.0
-cd /opt/hbase-1.1.6/conf && jar uf $METRON_HOME/lib/metron-enrichment-$METRON_VERSION-uber.jar hbase-site.xml
+trap trapint 2
+function trapint {
+    exit 0
+}
+if [ $# -ne 2 ]
+  then
+    echo "Usage: output-data.sh data_path [message_delay_in_seconds]"
+    exit 0
+fi
+
+FILE_PATH=$1
+DELAY=$2
+while :
+do
+cat $FILE_PATH | while read line
+do
+echo "$line"
+sleep $DELAY
+done
+done

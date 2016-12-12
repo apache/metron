@@ -4,3 +4,6 @@
 /storm/enrichment
 /storm/parser
 /storm/indexing
+/kafkazk/data/*
+!/kafkazk/data/BroExampleOutput.txt
+!/kafkazk/data/SquidExampleOutput.txt

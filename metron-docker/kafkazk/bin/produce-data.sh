@@ -15,23 +15,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-trap trapint 2
-function trapint {
-    exit 0
-}
-if [ $# -ne 2 ]
+if [ $# -lt 2 ]
   then
-    echo "Usage: produce-data.sh <path to data file> <topic>"
+    echo "Usage:  produce-data.sh data_path topic [message_delay_in_seconds]"
     exit 0
 fi
 
-TOPIC=$1
-FILE_PATH=$2
-while :
-do
-cat $FILE_PATH | while read line
-do
-echo "Emitting data in $FILE_PATH to Kafka topic $TOPIC"
-echo "$line" | ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic $TOPIC > /dev/null
-done
-done
+FILE_PATH=$1
+TOPIC=$2
+DELAY=${3:-1}
+echo "Emitting data in $FILE_PATH to Kafka topic $TOPIC every $DELAY second(s)"
+exec ./bin/output-data.sh $FILE_PATH $DELAY | ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic $TOPIC > /dev/null

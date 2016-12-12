@@ -47,7 +47,7 @@ eval "$(docker-machine env metron-machine)"
 Usage
 -----
 
-The Metron Docker environment lifecycle is controlled by the [docker-compose](https://docs.docker.com/compose/reference/overview/) command.  For example, to build the environment run this command:
+The Metron Docker environment lifecycle is controlled by the [docker-compose](https://docs.docker.com/compose/reference/overview/) command.  These service names can be found in the docker-compose.yml file.  For example, to build the environment run this command:
 ```
 docker-compose up -d
 ```
@@ -65,4 +65,28 @@ If there is a problem with Kafka, run this command to connect and explore the Ka
 docker-compose exec kafkazk bash
 ```
 
-These service names can be found in the docker-compose.yml file.
+A tool for producing test data in Kafka is included with the Kafka/Zookeeper image.  It loops through lines in a test data file and outputs them to Kafka at the desired frequency.  Create a test data file in `./kafkazk/data/` and rebuild the Kafka/Zookeeper image:
+```
+printf 'first test data\nsecond test data\nthird test data\n' > ./kafkazk/data/TestData.txt
+docker-compose down
+docker-compose build kafkazk
+docker-compose up -d
+```
+
+This will deploy the test data file to the Kafka/Zookeeper container.  Now that data can be streamed to a Kafka topic:
+```
+docker-compose exec kafkazk ./bin/produce-data.sh
+Usage:  produce-data.sh data_path topic [message_delay_in_seconds]
+
+# Stream data in TestData.txt to the 'test' Kafka topic at a frequency of 5 seconds (default is 1 second)
+docker-compose exec kafkazk ./bin/produce-data.sh /data/TestData.txt test 5 
+```
+
+The Kafka/Zookeeper image comes with sample Bro and Squid data:
+```
+# Stream Bro test data every 1 second
+docker-compose exec kafkazk ./bin/produce-data.sh /data/BroExampleOutput.txt bro
+
+# Stream Squid test data every 0.1 seconds
+docker-compose exec kafkazk ./bin/produce-data.sh /data/SquidExampleOutput.txt squid 0.1
+```
