@@ -147,6 +147,24 @@ class METRON030ServiceAdvisor(service_advisor.ServiceAdvisor):
                         item = self.getErrorItem(message)
                         validationItems.append({"config-name": property, "item": item})
 
+        #Check adequate number of slots = slots-per-supervisor * number-of-supervisors
+        componentsListList = [service["components"] for service in services["services"]]
+        componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+        num_supervisors = len( self.getHosts(componentsList, "SUPERVISOR") )
+        s = storm_site["supervisor.slots.ports"]
+        if isinstance(s, str) : slots_per_supervisor = len( s.split(',') )
+        elif isinstance(s, {int, long}) : slots_per_supervisor = 1
+        else : slots_per_supervisor = len(s)  # expect it is a list or tuple
+        num_slots = slots_per_supervisor * num_supervisors
+        if num_slots < 5 :
+            message = ("A default install of Metron requires five Storm slots (3 parsers, 1 enricher/threat-intel, and 1 indexer/persistence topology). "
+                "Additional Metron features, such as Profiling, require additional Storm slots. This property currently specifies only {0} "
+                "slots per supervisor, which, times {1} supervisors, provisions {2} total slots. Please extend this property so at least 5 total slots are provisioned, "
+                "and be aware if some topologies are not running it may be due to lack of slots to assign them.  Topology slot assignments can be checked at runtime "
+                "in the Storm UI.").format(slots_per_supervisor, num_supervisors, num_slots)
+            item = self.getErrorItem(message)
+            validationItems.append({"config-name": "supervisor.slots.ports", "item": item})
+
         return self.toConfigurationValidationProblems(validationItems, "storm-site")
 
     def getSTORMSiteDesiredValues(self):

@@ -30,7 +30,7 @@
         <name>es_cluster_hosts</name>
         <!-- Should self-populate the list of selected ES nodes (masters only?). -->
         <value></value>
-        <description>Elasticsearch Cluster hostnames, comma-separated list.  Used for unicast discovery (zen_discovery_ping_unicast_hosts).</description>
+        <description>Elasticsearch Cluster hostnames, comma-separated list.  Used for unicast discovery in zen_discovery_ping_unicast_hosts (eshost1,eshost2).</description>
     </property>
     <property>
         <name>index_number_of_shards</name>
