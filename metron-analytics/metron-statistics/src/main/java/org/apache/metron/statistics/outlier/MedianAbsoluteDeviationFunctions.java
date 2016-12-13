@@ -82,6 +82,7 @@ public class MedianAbsoluteDeviationFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
       State state = null;
+      @SuppressWarnings("unchecked")
       List<State> states = (List<State>) args.get(0);
       State currentState = null;
       if(args.size() > 1) {
@@ -120,7 +121,9 @@ public class MedianAbsoluteDeviationFunctions {
       List<Double> data = new ArrayList<>();
       if(o != null) {
         if (o instanceof List) {
-          for (Object datum : (List<Object>) o) {
+          @SuppressWarnings("unchecked")
+          List<Object> oList = (List<Object>) o;
+          for (Object datum : oList) {
             Number n = (Number) datum;
             data.add(n.doubleValue());
           }

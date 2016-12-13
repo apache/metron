@@ -47,6 +47,9 @@ import static org.junit.Assert.assertThat;
 /**
  * Tests the DefaultStellarExecutor.
  */
+@SuppressWarnings("unchecked")
+// This test class passes raw JSONObject to the the executor, which gives unchecked cast warnings.
+// Suppressing on the class level, given that every test is a typical example of use pattern.
 public class DefaultStellarExecutorTest {
 
   /**

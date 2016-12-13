@@ -138,6 +138,7 @@ public class GetProfileTest {
 
     // execute - read the profile values - no groups
     String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS')";
+    @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -168,6 +169,7 @@ public class GetProfileTest {
 
     // execute - read the profile values
     String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -198,6 +200,7 @@ public class GetProfileTest {
 
     // execute - read the profile values
     String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekdays', 'tuesday')";
+    @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -245,6 +248,7 @@ public class GetProfileTest {
 
     // execute - read the profile values
     String expr = "PROFILE_GET('profile1', 'entity1', 4, 'SECONDS')";
+    @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
     // validate - there should be no values from only 4 seconds ago

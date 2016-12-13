@@ -124,6 +124,7 @@ public class ProfileBuilder implements Serializable {
    * Apply a message to the profile.
    * @param message The message to apply.
    */
+  @SuppressWarnings("unchecked")
   public void apply(JSONObject message) {
 
     if(!isInitialized()) {
@@ -145,6 +146,7 @@ public class ProfileBuilder implements Serializable {
     LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
 
     // execute the 'result' expression
+    @SuppressWarnings("unchecked")
     Object value = execute(definition.getResult(), new JSONObject(), "result");
 
     // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
