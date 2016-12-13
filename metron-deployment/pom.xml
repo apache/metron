@@ -43,6 +43,7 @@
             </activation>
             <modules>
                 <module>packaging/ambari/metron-mpack</module>
+                <module>packaging/ambari/metron-mpack-singlenode</module>
             </modules>
         </profile>
     </profiles>
