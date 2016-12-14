@@ -24,7 +24,8 @@ import org.apache.metron.common.dsl.Token;
 
 import java.util.function.BiFunction;
 
-public class ArithmeticEvaluator {
+public enum ArithmeticEvaluator {
+  INSTANCE;
 
   public Token<? extends Number> evaluate(BiFunction<Number, Number, Token<? extends Number>> function,
                                           Pair<Token<? extends Number>, Token<? extends Number>> p) {
