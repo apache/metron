@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -47,7 +48,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
-  private MessageFilter<JSONObject> filter = new GenericMessageFilter();
+  private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
   private org.apache.metron.common.dsl.Context stellarContext;
   public ParserBolt( String zookeeperUrl
@@ -76,12 +77,15 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     if(getSensorParserConfig() == null) {
       filter = new GenericMessageFilter();
     }
-    else if(filter == null) {
+    if(filter == null) {
       getSensorParserConfig().getParserConfig().putIfAbsent("stellarContext", stellarContext);
-      filter = Filters.get(getSensorParserConfig().getFilterClassName()
-              , getSensorParserConfig().getParserConfig()
-      );
+      if(!StringUtils.isEmpty(getSensorParserConfig().getFilterClassName())) {
+        filter = Filters.get(getSensorParserConfig().getFilterClassName()
+                , getSensorParserConfig().getParserConfig()
+        );
+      }
     }
+
     parser.init();
 
     writer.init(stormConf, collector, getConfigurations());
@@ -124,7 +128,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
             }
           }
-          if (parser.validate(message) && filter != null && filter.emitTuple(message, stellarContext)) {
+          if (parser.validate(message) && (filter == null || filter.emitTuple(message, stellarContext))) {
             numWritten++;
             if(!isGloballyValid(message, fieldValidations)) {
               message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
