@@ -32,7 +32,6 @@ import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.common.configuration.FieldTransformer;
-import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
@@ -48,6 +47,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
+  //default filter is noop, so pass everything through.
   private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
   private org.apache.metron.common.dsl.Context stellarContext;
@@ -74,12 +74,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     initializeStellar();
-    if(getSensorParserConfig() == null) {
-      filter = new GenericMessageFilter();
-    }
-    if(filter == null) {
+    if(getSensorParserConfig() != null && filter == null) {
       getSensorParserConfig().getParserConfig().putIfAbsent("stellarContext", stellarContext);
-      if(!StringUtils.isEmpty(getSensorParserConfig().getFilterClassName())) {
+      if (!StringUtils.isEmpty(getSensorParserConfig().getFilterClassName())) {
         filter = Filters.get(getSensorParserConfig().getFilterClassName()
                 , getSensorParserConfig().getParserConfig()
         );
