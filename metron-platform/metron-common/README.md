@@ -60,6 +60,10 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `ENRICHMENT_GET`](#enrichment_get)|
 | [ `FILL_LEFT`](#fill_left)|
 | [ `FILL_RIGHT`](#fill_right)|
+| [ `HLLP_CARDINALITY`](#hllp_cardinality)|
+| [ `HLLP_INIT`](#hllp_init)|
+| [ `HLLP_MERGE`](#hllp_merge)|
+| [ `HLLP_OFFER`](#hllp_offer)|
 | [ `GET`](#get)|
 | [ `GET_FIRST`](#get_first)|
 | [ `GET_LAST`](#get_last)|
@@ -210,6 +214,22 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
     * column_family - The Column Family to use
   * Returns: A Map associated with the indicator and enrichment type.  Empty otherwise.
 
+### `FILL_LEFT`
+  * Description: Fills or pads a given string with a given character, to a given length on the left
+  * Input:
+    * input - string
+    * fill - the fill character
+    * len - the required length
+  * Returns: the filled string
+
+### `FILL_RIGHT`
+  * Description: Fills or pads a given string with a given character, to a given length on the right
+  * Input:
+    * input - string
+    * fill - the fill character string
+    * len - the required length
+  * Returns: Last element of the list
+
 ### `GET`
   * Description: Returns the i'th element of the list 
   * Input:
@@ -229,21 +249,33 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
     * input - List
   * Returns: Last element of the list
 
-### `FILL_LEFT`
-  * Description: Fills or pads a given string with a given character, to a given length on the left
+### `HLLP_CARDINALITY`
+  * Description: Returns HyperLogLogPlus-estimated cardinality for this set
   * Input:
-    * input - string
-    * fill - the fill character
-    * len - the required length
-  * Returns: the filled string
+    * hyperLogLogPlus - the hllp set
+  * Returns: Long value representing the cardinality for this set
 
-### `FILL_RIGHT`
-  * Description: Fills or pads a given string with a given character, to a given length on the right
+### `HLLP_INIT`
+  * Description: Initializes the set
   * Input:
-    * input - string
-    * fill - the fill character string
-    * len - the required length
-  * Returns: Last element of the list
+    * p (required) - the precision value for the normal set
+    * sp - the precision value for the sparse set. If sp is not specified the sparse set will be disabled.
+  * Returns: A new HyperLogLogPlus set
+
+### `HLLP_MERGE`
+  * Description: Merge hllp sets together
+  * Input:
+    * hllp1 - first hllp set
+    * hllp2 - second hllp set
+    * hllpn - additional sets to merge
+  * Returns: A new merged HyperLogLogPlus estimator set
+
+### `HLLP_OFFER`
+  * Description: Add value to the set
+  * Input:
+    * hyperLogLogPlus - the hllp set
+    * o - Object to add to the set
+  * Returns: The HyperLogLogPlus set with a new object added
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.
@@ -360,7 +392,8 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
     * key - The key to check for existence
     * map - The map to check for existence of the key
   * Returns: True if the key is found in the map and false if otherwise.
-MAP_GET`
+
+### `MAP_GET`
   * Description: Gets the value associated with a key from a map
   * Input:
     * key - The key
