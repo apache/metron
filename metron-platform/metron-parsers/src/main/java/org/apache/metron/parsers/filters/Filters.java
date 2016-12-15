@@ -22,13 +22,11 @@ import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public enum Filters {
    BRO(BroMessageFilter.class)
-  ,QUERY(QueryFilter.class)
+  ,STELLAR(StellarFilter.class)
   ,DEFAULT(null)
   ;
   Class<? extends MessageFilter> clazz;

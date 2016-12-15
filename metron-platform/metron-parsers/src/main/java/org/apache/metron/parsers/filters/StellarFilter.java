@@ -26,13 +26,13 @@ import org.json.simple.JSONObject;
 
 import java.util.Map;
 
-public class QueryFilter implements MessageFilter<JSONObject> {
+public class StellarFilter implements MessageFilter<JSONObject> {
   public static final String QUERY_STRING_CONF = "filter.query";
   private StellarPredicateProcessor processor = new StellarPredicateProcessor();
   private String query;
   private FunctionResolver functionResolver = StellarFunctions.FUNCTION_RESOLVER();
 
-  public QueryFilter()
+  public StellarFilter()
   {
 
   }

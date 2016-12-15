@@ -242,7 +242,7 @@ public void testImplicitBatchOfOne() throws Exception {
 
   /**
    {
-    "filterClassName" : "QUERY"
+    "filterClassName" : "STELLAR"
    ,"parserConfig" : {
     "filter.query" : "exists(field1)"
     }
