@@ -41,7 +41,7 @@ public class FiltersTest {
       Map<String, Object> config = new HashMap<String, Object>() {{
         put("filter.query", "exists(foo)");
       }};
-      MessageFilter<JSONObject> filter = Filters.get("QUERY", config);
+      MessageFilter<JSONObject> filter = Filters.get(Filters.STELLAR.name(), config);
       Assert.assertTrue(filter.emitTuple(new JSONObject(ImmutableMap.of("foo", 1)), Context.EMPTY_CONTEXT()));
       Assert.assertFalse(filter.emitTuple(new JSONObject(ImmutableMap.of("bar", 1)), Context.EMPTY_CONTEXT()));
     }
