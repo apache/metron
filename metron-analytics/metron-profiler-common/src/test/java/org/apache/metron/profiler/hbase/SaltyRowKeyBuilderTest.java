@@ -72,7 +72,7 @@ public class SaltyRowKeyBuilderTest {
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
 
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor);
   }
 
   /**
@@ -215,15 +215,15 @@ public class SaltyRowKeyBuilderTest {
 
     // setup
     List<Object> groups = Collections.emptyList();
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor);
 
     // a dummy profile measurement
-    long now = System.currentTimeMillis();
-    long oldest = now - TimeUnit.HOURS.toMillis(hoursAgo);
+    long end = System.currentTimeMillis();
+    long start = end - TimeUnit.HOURS.toMillis(hoursAgo);
     ProfileMeasurement m = new ProfileMeasurement()
             .withProfileName("profile")
             .withEntity("entity")
-            .withPeriod(oldest, periodDuration, periodUnits)
+            .withPeriod(start, periodDuration, periodUnits)
             .withValue(22);
 
     // generate a list of expected keys
@@ -243,7 +243,8 @@ public class SaltyRowKeyBuilderTest {
     }
 
     // execute
-    List<byte[]> actualKeys = rowKeyBuilder.rowKeys(measurement.getProfileName(), measurement.getEntity(), groups, oldest, now);
+    List<ProfilePeriod> periods = new ProfilePeriod(start, periodDuration, periodUnits).until(end);
+    List<byte[]> actualKeys = rowKeyBuilder.rowKeys(periods, measurement.getProfileName(), measurement.getEntity(), groups);
 
     // validate - expectedKeys == actualKeys
     for(int i=0; i<actualKeys.size(); i++) {

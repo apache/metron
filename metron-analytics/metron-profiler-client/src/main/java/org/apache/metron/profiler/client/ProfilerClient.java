@@ -21,26 +21,11 @@
 package org.apache.metron.profiler.client;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * An interface for a client capable of retrieving the profile data that has been persisted by the Profiler.
  */
 public interface ProfilerClient {
-
-  /**
-   * Fetch the measurement values associated with a profile.
-   *
-   * @param clazz       The type of values stored by the profile.
-   * @param profile     The name of the profile.
-   * @param entity      The name of the entity.
-   * @param groups      The groups used to sort the profile data.
-   * @param durationAgo How far in the past to fetch values from.
-   * @param unit        The time unit of 'durationAgo'.
-   * @param <T>         The type of values stored by the Profile.
-   * @return A list of values.
-   */
-  <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit);
 
   /**
    * Fetch the values stored in a profile based on a start and end timestamp.

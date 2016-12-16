@@ -25,12 +25,9 @@ components:
 
     -   id: "rowKeyBuilder"
         className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
-        properties:
-            - name: "saltDivisor"
-              value: ${profiler.hbase.salt.divisor}
         configMethods:
-            - name: "withPeriodDuration"
-              args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
+            - name: "withSaltDivisor"
+              args: [${profiler.hbase.salt.divisor}]
 
     -   id: "columnBuilder"
         className: "org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder"

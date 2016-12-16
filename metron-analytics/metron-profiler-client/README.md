@@ -87,3 +87,57 @@ Returns: The profile measurements.
 ```
 
 The client API call above has retrieved the past hour of the 'test' profile for the entity '192.168.138.158'.
+
+## Functions
+
+### `PROFILE_GET`
+
+Retrieves a series of values from a stored profile.
+
+Arguments
+ * profile - The name of the profile.
+ * entity - The name of the entity.
+ * durationAgo - How long ago should values be retrieved from?
+ * units - The units of 'durationAgo'.
+ * groups - Optional - The groups used to sort the profile.
+
+Returns
+ * The profile measurements.
+
+Examples
+
+Retrieve the last 30 minutes of measurements for profile 'profile1' and entity '10.0.0.1'.
+```
+PROFILE_GET('profile1', '10.0.0.1', 30, 'MINUTES')
+```
+
+Retrieve the last 30 minutes of measurements for profile 'profile1' and entity '10.0.0.1' in the group named 'mondays'.
+```
+PROFILE_GET('profile1', '10.0.0.1', 30, 'MINUTES', 'mondays')
+```
+
+### `PROFILE_GET_FROM`
+
+Retrieves a series of values from a stored profile.
+
+Arguments
+ * profile - The name of the profile.
+ * entity - The name of the entity.
+ * lookBack - How long to look back in milliseconds
+ * offset - Optional - When to start the look back from in epoch milliseconds. Defaults to current time.
+ * groups - Optional - The groups used to sort the profile.
+
+Returns
+ * The profile measurements.
+ 
+Examples
+
+Retrieve the last 30 minutes of measurements for profile 'profile1' and entity '10.0.0.1'.  Equivalent to the `PROFILE_GET` example from above.
+```
+PROFILE_GET_FROM('profile1', 'entity1', MILLIS(30, 'MINUTES')
+```
+
+Starting from 3 days ago, look back 30 minutes and retrieve the measurements from profile 'profile1' and entity 'entity1'.
+```
+PROFILE_GET_FROM('profile1', 'entity1', MILLIS(30, 'MINUTES'), NOW() - MILLIS(3, 'DAYS'))
+```

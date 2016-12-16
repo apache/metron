@@ -21,6 +21,8 @@
 package org.apache.metron.profiler;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
@@ -48,12 +50,15 @@ public class ProfilePeriod implements Serializable {
    * @param units The units of the duration; hours, minutes, etc.
    */
   public ProfilePeriod(long epochMillis, long duration, TimeUnit units) {
-    if(duration <= 0) {
-      throw new IllegalArgumentException(format(
-              "period duration must be greater than 0; got '%d %s'", duration, units));
+    this(epochMillis, units.toMillis(duration));
+  }
+
+  public ProfilePeriod(long epochMillis, long periodDurationMillis) {
+    if(periodDurationMillis <= 0) {
+      throw new IllegalArgumentException(format("period duration must be greater than 0; got '%d'", periodDurationMillis));
     }
 
-    this.durationMillis = units.toMillis(duration);
+    this.durationMillis = periodDurationMillis;
     this.period = epochMillis / durationMillis;
   }
 
@@ -80,6 +85,24 @@ public class ProfilePeriod implements Serializable {
     return durationMillis;
   }
 
+  /**
+   * Finds all profile periods between this period and an end timestamp.  This will
+   * include the current profile period.
+   *
+   * @param endAt The end timestamp in epoch milliseconds.
+   */
+  public List<ProfilePeriod> until(long endAt) {
+    List<ProfilePeriod> periods = new ArrayList<>();
+
+    ProfilePeriod current = this;
+    while(current.getStartTimeMillis() <= endAt) {
+      periods.add(current);
+      current = current.next();
+    }
+
+    return periods;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -101,6 +124,7 @@ public class ProfilePeriod implements Serializable {
   public String toString() {
     return "ProfilePeriod{" +
             "period=" + period +
+            ", startTime=" + getStartTimeMillis() +
             ", durationMillis=" + durationMillis +
             '}';
   }

@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -55,29 +56,16 @@ public class HBaseProfilerClient implements ProfilerClient {
    */
   private ColumnBuilder columnBuilder;
 
-  public HBaseProfilerClient(HTableInterface table, RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder) {
-    setTable(table);
-    setRowKeyBuilder(rowKeyBuilder);
-    setColumnBuilder(columnBuilder);
-  }
-
   /**
-   * Fetches all of the data values associated with a Profile.
-   *
-   * @param clazz       The type of values stored by the profile.
-   * @param profile     The name of the profile.
-   * @param entity      The name of the entity.
-   * @param groups      The groups used to sort the profile data.
-   * @param durationAgo How far in the past to fetch values from.
-   * @param unit        The time unit of 'durationAgo'.
-   * @param <T>         The type of values stored by the Profile.
-   * @return A list of values.
+   * The duration of each profile period in milliseconds.
    */
-  @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long durationAgo, TimeUnit unit) {
-    long end = System.currentTimeMillis();
-    long start = end - unit.toMillis(durationAgo);
-    return fetch(clazz, profile, entity, groups, start, end);
+  private long periodDurationMillis;
+
+  public HBaseProfilerClient(HTableInterface table, RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, long periodDurationMillis) {
+    this.table = table;
+    this.rowKeyBuilder = rowKeyBuilder;
+    this.columnBuilder = columnBuilder;
+    this.periodDurationMillis = periodDurationMillis;
   }
 
   /**
@@ -97,8 +85,10 @@ public class HBaseProfilerClient implements ProfilerClient {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
+
     // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, start, end);
+    List<ProfilePeriod> periods = new ProfilePeriod(start, periodDurationMillis).until(end);
+    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(periods, profile, entity, groups);
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch

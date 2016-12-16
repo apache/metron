@@ -27,9 +27,8 @@ import org.apache.metron.profiler.ProfilePeriod;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * A RowKeyBuilder that uses a salt to prevent hot-spotting.
@@ -53,52 +52,32 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   private int saltDivisor;
 
-  /**
-   * The duration of each profile period in milliseconds.
-   */
-  private long periodDurationMillis;
-
   public SaltyRowKeyBuilder() {
     this.saltDivisor = 1000;
-    this.periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
   }
 
-  public SaltyRowKeyBuilder(int saltDivisor, long duration, TimeUnit units) {
+  public SaltyRowKeyBuilder(int saltDivisor) {
     this.saltDivisor = saltDivisor;
-    this.periodDurationMillis = units.toMillis(duration);
   }
 
   /**
-   * Builds a list of row keys necessary to retrieve profile measurements over
+   * Builds a list of row keys necessary to retrieve a profile's measurements over
    * a time horizon.
    *
+   * This method is useful when attempting to read ProfileMeasurements stored in HBase.
+   *
+   * @param periods All of the profile periods for which row keys are needed.
    * @param profile The name of the profile.
    * @param entity The name of the entity.
    * @param groups The group(s) used to sort the profile data.
-   * @param start When the time horizon starts in epoch milliseconds.
-   * @param end When the time horizon ends in epoch milliseconds.
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   @Override
-  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end) {
-    List<byte[]> rowKeys = new ArrayList<>();
+  public List<byte[]> rowKeys(List<ProfilePeriod> periods, String profile, String entity, List<Object> groups) {
 
-    // be forgiving of out-of-order start and end times; order is critical to this algorithm
-    end = Math.max(start, end);
-    start = Math.min(start, end);
-
-    // find the starting period and advance until the end time is reached
-    ProfilePeriod period = new ProfilePeriod(start, periodDurationMillis, TimeUnit.MILLISECONDS);
-    while(period.getStartTimeMillis() <= end) {
-
-      byte[] k = rowKey(profile, entity, period, groups);
-      rowKeys.add(k);
-
-      // advance to the next period
-      period = period.next();
-    }
-
-    return rowKeys;
+    return periods.stream()
+            .map(period -> rowKey(period, profile, entity, groups))
+            .collect(Collectors.toList());
   }
 
   /**
@@ -108,18 +87,18 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   @Override
   public byte[] rowKey(ProfileMeasurement m) {
-    return rowKey(m.getProfileName(), m.getEntity(), m.getPeriod(), m.getGroups());
+    return rowKey(m.getPeriod(), m.getProfileName(), m.getEntity(), m.getGroups());
   }
 
   /**
    * Build the row key.
+   * @param period The period in which the measurement was taken.
    * @param profile The name of the profile.
    * @param entity The name of the entity.
-   * @param period The period in which the measurement was taken.
    * @param groups The groups.
    * @return The HBase row key.
    */
-  public byte[] rowKey(String profile, String entity, ProfilePeriod period, List<Object> groups) {
+  public byte[] rowKey(ProfilePeriod period, String profile, String entity, List<Object> groups) {
 
     // row key = salt + prefix + group(s) + time
     byte[] salt = getSalt(period, saltDivisor);
@@ -192,11 +171,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     }
   }
 
-  public void withPeriodDuration(long duration, TimeUnit units) {
-    periodDurationMillis = units.toMillis(duration);
-  }
-
-  public void setSaltDivisor(int saltDivisor) {
+  public SaltyRowKeyBuilder withSaltDivisor(int saltDivisor) {
     this.saltDivisor = saltDivisor;
+    return this;
   }
 }
