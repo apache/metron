@@ -18,6 +18,8 @@
 package org.apache.metron.rest.controller;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.io.FileUtils;
+import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,12 +27,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -101,13 +107,10 @@ public class SensorParserConfigControllerIntegrationTest {
   public static String parseRequest;
 
   @Autowired
-  private SensorParserConfigService sensorParserConfigService;
+  private Environment environment;
 
   @Autowired
   private WebApplicationContext wac;
-
-  @Autowired
-  private ApplicationContext applicationContext;
 
   private MockMvc mockMvc;
 
@@ -136,6 +139,7 @@ public class SensorParserConfigControllerIntegrationTest {
 
   @Test
   public void test() throws Exception {
+    cleanFileSystem();
 
     this.mockMvc.perform(post("/api/v1/sensorParserConfig").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(squidJson))
             .andExpect(status().isCreated())
@@ -255,8 +259,19 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.ip_src_addr").value("127.0.0.1"))
             .andExpect(jsonPath("$.url").value("http://www.aliexpress.com/af/shoes.html?"))
             .andExpect(jsonPath("$.timestamp").value(1467011157401L));
+  }
 
-    //runner.stop();
+  private void cleanFileSystem() throws IOException {
+    File grokTempPath = new File(environment.getProperty(GrokService.GROK_TEMP_PATH_SPRING_PROPERTY));
+    if (grokTempPath.exists()) {
+      FileUtils.cleanDirectory(grokTempPath);
+      FileUtils.deleteDirectory(grokTempPath);
+    }
+    File grokPath = new File(environment.getProperty(GrokService.GROK_DEFAULT_PATH_SPRING_PROPERTY));
+    if (grokPath.exists()) {
+      FileUtils.cleanDirectory(grokPath);
+      FileUtils.deleteDirectory(grokPath);
+    }
   }
 }
 

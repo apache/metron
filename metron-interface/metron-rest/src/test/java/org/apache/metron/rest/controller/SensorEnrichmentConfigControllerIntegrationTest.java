@@ -218,8 +218,7 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[0]").value("geo"))
             .andExpect(jsonPath("$[1]").value("host"))
-            .andExpect(jsonPath("$[2]").value("whois"))
-            .andExpect(jsonPath("$[3]").value("sample"));
+            .andExpect(jsonPath("$[2]").value("whois"));
   }
 }
 

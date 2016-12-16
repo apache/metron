@@ -17,6 +17,9 @@
  */
 package org.apache.metron.rest.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.rest.model.StellarFunctionDescription;
 import org.apache.metron.rest.model.TransformationValidation;
@@ -39,26 +42,36 @@ public class TransformationController {
     @Autowired
     private TransformationService transformationService;
 
+  @ApiOperation(value = "Tests Stellar statements to ensure they are well-formed")
+  @ApiResponse(message = "Validation results", code = 200)
     @RequestMapping(value = "/validate/rules", method = RequestMethod.POST)
-    ResponseEntity<Map<String, Boolean>> validateRule(@RequestBody List<String> rules) throws Exception {
-        return new ResponseEntity<>(transformationService.validateRules(rules), HttpStatus.OK);
+    ResponseEntity<Map<String, Boolean>> validateRule(@ApiParam(name="statements", value="List of statements to validate", required=true)@RequestBody List<String> statements) throws Exception {
+        return new ResponseEntity<>(transformationService.validateRules(statements), HttpStatus.OK);
     }
 
+  @ApiOperation(value = "Executes transformations against a sample message")
+  @ApiResponse(message = "Transformation results", code = 200)
     @RequestMapping(value = "/validate", method = RequestMethod.POST)
-    ResponseEntity<Map<String, Object>> validateTransformation(@RequestBody TransformationValidation transformationValidation) throws Exception {
+    ResponseEntity<Map<String, Object>> validateTransformation(@ApiParam(name="transformationValidation", value="Object containing SensorParserConfig and sample message", required=true)@RequestBody TransformationValidation transformationValidation) throws Exception {
         return new ResponseEntity<>(transformationService.validateTransformation(transformationValidation), HttpStatus.OK);
     }
 
+  @ApiOperation(value = "Retrieves field transformations")
+  @ApiResponse(message = "List field transformations", code = 200)
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     ResponseEntity<FieldTransformations[]> list() throws Exception {
         return new ResponseEntity<>(transformationService.getTransformations(), HttpStatus.OK);
     }
 
+  @ApiOperation(value = "Lists the Stellar functions that can be found on the classpath")
+  @ApiResponse(message = "List of Stellar functions", code = 200)
     @RequestMapping(value = "/list/functions", method = RequestMethod.GET)
     ResponseEntity<List<StellarFunctionDescription>> listFunctions() throws Exception {
         return new ResponseEntity<>(transformationService.getStellarFunctions(), HttpStatus.OK);
     }
 
+  @ApiOperation(value = "Lists the simple Stellar functions (functions with only 1 input) that can be found on the classpath")
+  @ApiResponse(message = "List of simple Stellar functions", code = 200)
     @RequestMapping(value = "/list/simple/functions", method = RequestMethod.GET)
     ResponseEntity<List<StellarFunctionDescription>> listSimpleFunctions() throws Exception {
         return new ResponseEntity<>(transformationService.getSimpleStellarFunctions(), HttpStatus.OK);

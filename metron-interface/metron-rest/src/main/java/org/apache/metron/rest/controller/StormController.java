@@ -17,6 +17,9 @@
  */
 package org.apache.metron.rest.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.service.StormService;
@@ -39,41 +42,56 @@ public class StormController {
   @Autowired
   private StormService stormService;
 
+  @ApiOperation(value = "Retrieves the status of all Storm topologies")
+  @ApiResponse(message = "List of topologies with status information", code = 200)
   @RequestMapping(method = RequestMethod.GET)
   ResponseEntity<List<TopologyStatus>> getAll() throws Exception {
     return new ResponseEntity<>(stormService.getAllTopologyStatus(), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Retrieves the status of a Storm topology")
+  @ApiResponse(message = "Topology status information", code = 200)
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-  ResponseEntity<TopologyStatus> get(@PathVariable String name) throws Exception {
-    TopologyStatus sensorParserStatus = stormService.getTopologyStatus(name);
-    if (sensorParserStatus != null) {
-      return new ResponseEntity<>(sensorParserStatus, HttpStatus.OK);
+  ResponseEntity<TopologyStatus> get(@ApiParam(name="name", value="Topology name", required=true)@PathVariable String name) throws Exception {
+    TopologyStatus topologyStatus = stormService.getTopologyStatus(name);
+    if (topologyStatus != null) {
+      return new ResponseEntity<>(topologyStatus, HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
   }
 
+  @ApiOperation(value = "Starts a Storm parser topology")
+  @ApiResponse(message = "Start response message", code = 200)
   @RequestMapping(value = "/parser/start/{name}", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> start(@PathVariable String name) throws Exception {
+  ResponseEntity<TopologyResponse> start(@ApiParam(name="name", value="Parser name", required=true)@PathVariable String name) throws Exception {
     return new ResponseEntity<>(stormService.startParserTopology(name), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Stops a Storm parser topology")
+  @ApiResponse(message = "Stop response message", code = 200)
   @RequestMapping(value = "/parser/stop/{name}", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> stop(@PathVariable String name, @RequestParam(required = false, defaultValue = "false") boolean stopNow) throws Exception {
+  ResponseEntity<TopologyResponse> stop(@ApiParam(name="name", value="Parser name", required=true)@PathVariable String name,
+                                        @ApiParam(name="stopNow", value="Stop the topology immediately")@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws Exception {
     return new ResponseEntity<>(stormService.stopParserTopology(name, stopNow), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Activates a Storm parser topology")
+  @ApiResponse(message = "Activate response message", code = 200)
   @RequestMapping(value = "/parser/activate/{name}", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> activate(@PathVariable String name) throws Exception {
+  ResponseEntity<TopologyResponse> activate(@ApiParam(name="name", value="Parser name", required=true)@PathVariable String name) throws Exception {
     return new ResponseEntity<>(stormService.activateTopology(name), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Deactivates a Storm parser topology")
+  @ApiResponse(message = "Deactivate response message", code = 200)
   @RequestMapping(value = "/parser/deactivate/{name}", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> deactivate(@PathVariable String name) throws Exception {
+  ResponseEntity<TopologyResponse> deactivate(@ApiParam(name="name", value="Parser name", required=true)@PathVariable String name) throws Exception {
     return new ResponseEntity<>(stormService.deactivateTopology(name), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Retrieves the status of the Storm enrichment topology")
+  @ApiResponse(message = "Topology status information", code = 200)
   @RequestMapping(value = "/enrichment", method = RequestMethod.GET)
   ResponseEntity<TopologyStatus> getEnrichment() throws Exception {
     TopologyStatus sensorParserStatus = stormService.getTopologyStatus(StormService.ENRICHMENT_TOPOLOGY_NAME);
@@ -84,56 +102,76 @@ public class StormController {
     }
   }
 
+  @ApiOperation(value = "Starts a Storm enrichment topology")
+  @ApiResponse(message = "Start response message", code = 200)
   @RequestMapping(value = "/enrichment/start", method = RequestMethod.GET)
   ResponseEntity<TopologyResponse> startEnrichment() throws Exception {
     return new ResponseEntity<>(stormService.startEnrichmentTopology(), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Stops a Storm enrichment topology")
+  @ApiResponse(message = "Stop response message", code = 200)
   @RequestMapping(value = "/enrichment/stop", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> stopEnrichment(@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws Exception {
+  ResponseEntity<TopologyResponse> stopEnrichment(@ApiParam(name="stopNow", value="Stop the topology immediately")@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws Exception {
     return new ResponseEntity<>(stormService.stopEnrichmentTopology(stopNow), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Activates a Storm enrichment topology")
+  @ApiResponse(message = "Activate response message", code = 200)
   @RequestMapping(value = "/enrichment/activate", method = RequestMethod.GET)
   ResponseEntity<TopologyResponse> activateEnrichment() throws Exception {
     return new ResponseEntity<>(stormService.activateTopology(StormService.ENRICHMENT_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Deactivates a Storm enrichment topology")
+  @ApiResponse(message = "Deactivate response message", code = 200)
   @RequestMapping(value = "/enrichment/deactivate", method = RequestMethod.GET)
   ResponseEntity<TopologyResponse> deactivateEnrichment() throws Exception {
     return new ResponseEntity<>(stormService.deactivateTopology(StormService.ENRICHMENT_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Retrieves the status of the Storm indexing topology")
+  @ApiResponse(message = "Topology status information", code = 200)
   @RequestMapping(value = "/indexing", method = RequestMethod.GET)
   ResponseEntity<TopologyStatus> getIndexing() throws Exception {
-    TopologyStatus sensorParserStatus = stormService.getTopologyStatus(StormService.INDEXING_TOPOLOGY_NAME);
-    if (sensorParserStatus != null) {
-      return new ResponseEntity<>(sensorParserStatus, HttpStatus.OK);
+    TopologyStatus topologyStatus = stormService.getTopologyStatus(StormService.INDEXING_TOPOLOGY_NAME);
+    if (topologyStatus != null) {
+      return new ResponseEntity<>(topologyStatus, HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
   }
 
+  @ApiOperation(value = "Starts a Storm indexing topology")
+  @ApiResponse(message = "Start response message", code = 200)
   @RequestMapping(value = "/indexing/start", method = RequestMethod.GET)
   ResponseEntity<TopologyResponse> startIndexing() throws Exception {
     return new ResponseEntity<>(stormService.startIndexingTopology(), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Stops a Storm enrichment topology")
+  @ApiResponse(message = "Stop response message", code = 200)
   @RequestMapping(value = "/indexing/stop", method = RequestMethod.GET)
-  ResponseEntity<TopologyResponse> stopIndexing(@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws Exception {
+  ResponseEntity<TopologyResponse> stopIndexing(@ApiParam(name="stopNow", value="Stop the topology immediately")@RequestParam(required = false, defaultValue = "false") boolean stopNow) throws Exception {
     return new ResponseEntity<>(stormService.stopIndexingTopology(stopNow), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Activates a Storm indexing topology")
+  @ApiResponse(message = "Activate response message", code = 200)
   @RequestMapping(value = "/indexing/activate", method = RequestMethod.GET)
   ResponseEntity<TopologyResponse> activateIndexing() throws Exception {
     return new ResponseEntity<>(stormService.activateTopology(StormService.INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Deactivates a Storm indexing topology")
+  @ApiResponse(message = "Deactivate response message", code = 200)
   @RequestMapping(value = "/indexing/deactivate", method = RequestMethod.GET)
   ResponseEntity<TopologyResponse> deactivateIndexing() throws Exception {
     return new ResponseEntity<>(stormService.deactivateTopology(StormService.INDEXING_TOPOLOGY_NAME), HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Retrieves information about the Storm command line client")
+  @ApiResponse(message = "Storm command line client information", code = 200)
   @RequestMapping(value = "/client/status", method = RequestMethod.GET)
   ResponseEntity<Map<String, String>> clientStatus() throws Exception {
     return new ResponseEntity<>(stormService.getStormClientStatus(), HttpStatus.OK);
