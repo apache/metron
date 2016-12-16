@@ -68,7 +68,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 |            |
 | ---------- |
 #foreach( $restControllerInfo in $endpoints )
-| [ `$restControllerInfo.getMethod().toString() $restControllerInfo.getPath()`](#$restControllerInfo.getMethod().toString().toLowerCase()-$restControllerInfo.getPath().toLowerCase())|
+| [ `$restControllerInfo.getMethod().toString() $restControllerInfo.getPath()`](#$restControllerInfo.getMethod().toString().toLowerCase()-$restControllerInfo.getPath().toLowerCase().replaceAll("/", ""))|
 #end
 
 #foreach( $restControllerInfo in $endpoints )
