@@ -171,14 +171,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor());
       // We expect failures, so we don't care if result returned failure or not
       List<Map<String, Object>> docs = result.getResult();
-      // OTTO>>>>>>>>>>>>>>>>>>>
-      System.out.println(String.format("result: %d error: %d invalid %d  ", docs.size(),result.getProcessErrors().size(), result.getProcessInvalids().size()));
-      if(result.getProcessErrors().size() > 0){
-        for (byte[] ebytes : result.getProcessErrors()){
-          System.out.println(new String(ebytes));
-        }
-      }
-      // OTTO>>>>>>>>>>>>>>>>>>>
       Assert.assertEquals(inputMessages.size(), docs.size());
       validateAll(docs);
 
