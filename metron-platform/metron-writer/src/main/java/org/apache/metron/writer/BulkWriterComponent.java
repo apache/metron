@@ -57,7 +57,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
   public void commit(BulkWriterResponse response) {
-      commit(response.getSuccesses());
+    commit(response.getSuccesses());
   }
 
   public void error(Throwable e, Iterable<Tuple> tuples) {
