@@ -21,18 +21,16 @@
 package org.apache.metron.common.configuration.manager;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.utils.CloseableUtils;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.commons.lang.ArrayUtils.isNotEmpty;
 
@@ -48,44 +46,18 @@ public class ZkConfigurationManager implements ConfigurationManager {
   private CuratorFramework zookeeperClient;
 
   /**
-   * A cache of the values stored in Zookeeper.
+   * The configuration values under management.  Maps the path to the configuration values
+   * in Zookeeper to the cache of its values.
    */
-  private TreeCache zookeeperCache;
-
-  /**
-   * The configuration values under management
-   */
-  private Map<String, byte[]> values;
-
-  /**
-   * The paths within Zookeeper that we care about.
-   */
-  private List<String> paths;
-
-  /**
-   * All configuration values must live under this root path.
-   */
-  private String rootPath;
+  private Map<String, NodeCache> valuesCache;
 
   /**
    * @param zookeeperClient The client used to communicate with Zookeeper.  The client is not
    *                        closed.  It must be managed externally.
    */
   public ZkConfigurationManager(CuratorFramework zookeeperClient) {
-    this(zookeeperClient, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
-  }
-
-  /**
-   * @param zookeeperClient The client used to communicate with Zookeeper.  The client is not
-   *                        closed.  It must be managed externally.
-   * @param rootPath        The root of all configuration paths in Zookeeper that should be
-   *                        monitored for configuration values.
-   */
-  public ZkConfigurationManager(CuratorFramework zookeeperClient, String rootPath) {
     this.zookeeperClient = zookeeperClient;
-    this.paths = new ArrayList<>();
-    this.values = new ConcurrentHashMap<>();
-    this.rootPath = rootPath;
+    this.valuesCache = Collections.synchronizedMap(new HashMap<>());
   }
 
   /**
@@ -94,7 +66,8 @@ public class ZkConfigurationManager implements ConfigurationManager {
    */
   @Override
   public ZkConfigurationManager with(String zookeeperPath) {
-    paths.add(zookeeperPath);
+    NodeCache cache = new NodeCache(zookeeperClient, zookeeperPath);
+    valuesCache.put(zookeeperPath, cache);
     return this;
   }
 
@@ -102,7 +75,7 @@ public class ZkConfigurationManager implements ConfigurationManager {
    * Open a connection to Zookeeper and retrieve the initial configuration value.
    */
   @Override
-  public ZkConfigurationManager open() throws IOException {
+  public synchronized ZkConfigurationManager open() throws IOException {
     try {
       doOpen();
     } catch(Exception e) {
@@ -113,51 +86,21 @@ public class ZkConfigurationManager implements ConfigurationManager {
   }
 
   private void doOpen() throws Exception {
-
-    // the cache which will remain synced with zookeeper
-    zookeeperCache = new TreeCache(zookeeperClient, rootPath);
-    zookeeperCache.getListenable().addListener((client, event) -> {
-
-      // is there data that was added or changed?
-      if(event != null && event.getData() != null) {
-        String pathAffected = event.getData().getPath();
-
-        switch(event.getType()) {
-          case NODE_ADDED:
-          case NODE_UPDATED:
-            paths.stream()
-                    .filter(path -> path.equals(pathAffected))
-                    .forEach(path -> values.put(path, event.getData().getData()));
-            break;
-
-          case NODE_REMOVED:
-            paths.stream()
-                    .filter(path -> path.equals(pathAffected))
-                    .forEach(path -> values.remove(path));
-            break;
-        }
-      }
-    });
-
-    // initialize the values
-    for (String path : paths) {
-      fetch(path).ifPresent(val -> values.put(path, val));
+    for (NodeCache cache : valuesCache.values()) {
+      cache.start(true);
     }
-
-    // start the cache
-    zookeeperCache.start();
   }
 
   /**
    * Retrieve the configuration object.
    */
   @Override
-  public <T> Optional<T> get(String key, Class<T> clazz) throws IOException {
+  public synchronized <T> Optional<T> get(String key, Class<T> clazz) throws IOException {
     T result = null;
 
-    byte[] val = values.get(key);
-    if(isNotEmpty(val)) {
-      result = deserialize(val, clazz);
+    NodeCache cache = valuesCache.get(key);
+    if(cache != null && cache.getCurrentData() != null && isNotEmpty(cache.getCurrentData().getData())) {
+      result = deserialize(cache.getCurrentData().getData(), clazz);
     }
 
     return Optional.ofNullable(result);
@@ -169,22 +112,10 @@ public class ZkConfigurationManager implements ConfigurationManager {
    * Does not close the zookeeperClient that was passed in to the constructor.
    */
   @Override
-  public void close() {
-    CloseableUtils.closeQuietly(zookeeperCache);
-  }
-
-  /**
-   * Retrieves the initial configuration value from Zookeeper
-   * @param zookeeperPath The path in Zookeeper where the value is stored.
-   */
-  private Optional<byte[]> fetch(String zookeeperPath) throws Exception {
-    byte[] result = null;
-
-    if(zookeeperClient.checkExists().forPath(zookeeperPath) != null) {
-      result = zookeeperClient.getData().forPath(zookeeperPath);
+  public synchronized void close() {
+    for (NodeCache cache : valuesCache.values()) {
+      CloseableUtils.closeQuietly(cache);
     }
-
-    return Optional.ofNullable(result);
   }
 
   /**

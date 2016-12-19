@@ -18,11 +18,12 @@
 
 package org.apache.metron.common.utils;
 
-import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.stellar.StellarProcessor;
 import org.junit.Assert;
-import org.junit.Test;
 
 import java.util.Map;
 

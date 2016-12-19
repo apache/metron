@@ -168,7 +168,6 @@ public class ZkConfigurationManagerTest {
     }
   }
 
-
   /**
    * If the path is deleted from Zookeeper, the configuration value should be removed.
    */
@@ -196,11 +195,12 @@ public class ZkConfigurationManagerTest {
 
     // wait until the 'delete' takes
     waitOrTimeout(() -> {
-      boolean result = false;
+      boolean result;
       try {
         result = !manager.get(GLOBAL.getZookeeperRoot(), Map.class).isPresent();
       } catch(Exception e) {
-        throw new RuntimeException(e);
+        System.out.println("unexpected exception: " + e);
+        result = false;
       }
       return result;
     }, timeout(seconds(90)));
