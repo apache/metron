@@ -86,8 +86,10 @@ public class ZkConfigurationManager implements ConfigurationManager {
   }
 
   private void doOpen() throws Exception {
-    for (NodeCache cache : valuesCache.values()) {
-      cache.start(true);
+    synchronized (valuesCache) {
+      for (NodeCache cache : valuesCache.values()) {
+        cache.start(true);
+      }
     }
   }
 
@@ -113,8 +115,10 @@ public class ZkConfigurationManager implements ConfigurationManager {
    */
   @Override
   public synchronized void close() {
-    for (NodeCache cache : valuesCache.values()) {
-      CloseableUtils.closeQuietly(cache);
+    synchronized (valuesCache) {
+      for (NodeCache cache : valuesCache.values()) {
+        CloseableUtils.closeQuietly(cache);
+      }
     }
   }
 
