@@ -203,7 +203,7 @@ public class ZkConfigurationManagerTest {
         throw new RuntimeException(e);
       }
       return result;
-    }, timeout(seconds(15)));
+    }, timeout(seconds(90)));
 
     {
       // validate - the configuration value should have been removed
