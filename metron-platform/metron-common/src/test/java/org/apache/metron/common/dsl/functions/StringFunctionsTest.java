@@ -27,8 +27,8 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
-import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.runPredicate;
 
 public class StringFunctionsTest {
 

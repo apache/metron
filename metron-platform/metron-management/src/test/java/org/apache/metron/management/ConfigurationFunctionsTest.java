@@ -39,7 +39,7 @@ import java.util.HashMap;
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
 
 public class ConfigurationFunctionsTest {
   private TestingServer testZkServer;

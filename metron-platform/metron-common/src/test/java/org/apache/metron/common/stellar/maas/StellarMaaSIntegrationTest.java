@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
 
 public class StellarMaaSIntegrationTest {
   private static Context context;

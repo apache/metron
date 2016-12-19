@@ -27,7 +27,7 @@ import org.junit.Assert;
 
 import java.util.Map;
 
-public class StellarProcessorUtils {
+public class StellarExecutorUtils {
 
   /**
    * Execute a Stellar expression.
