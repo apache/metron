@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class ArithmeticEvaluatorTest {
-  ArithmeticEvaluator evaluator = new ArithmeticEvaluator();
+  ArithmeticEvaluator evaluator = ArithmeticEvaluator.INSTANCE;
 
   @Test
   public void evaluateDoubleShouldReturnDoubleAdd() throws Exception {

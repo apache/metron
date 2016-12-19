@@ -404,28 +404,6 @@ public class StellarTest {
     }
   }
 
-
-  @Test
-  public void testSimpleOps() throws Exception {
-    final Map<String, String> variableMap = new HashMap<String, String>() {{
-      put("foo", "casey");
-      put("empty", "");
-      put("spaced", "metron is great");
-      put("foo.bar", "casey");
-    }};
-    Assert.assertTrue(runPredicate("'casey' == foo.bar", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'casey' == foo", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'casey' != foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'stella' == 'stella'", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'stella' == foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo== foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("empty== ''", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("spaced == 'metron is great'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate(null, v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate(" ", v -> variableMap.get(v)));
-  }
-
   @Test
   public void testBooleanOps() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
