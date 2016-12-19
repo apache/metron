@@ -28,6 +28,7 @@
             <module>metron-analytics</module>
             <module>metron-platform</module>
             <module>metron-deployment</module>
+            <module>metron-docker</module>
     </modules>
 
     <repositories>
