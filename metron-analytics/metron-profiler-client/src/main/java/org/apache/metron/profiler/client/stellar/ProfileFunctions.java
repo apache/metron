@@ -174,7 +174,7 @@ public class ProfileFunctions {
                   "profile - The name of the profile.",
                   "entity - The name of the entity.",
                   "lookBack - How long to look back in milliseconds",
-                  "offset - Optional - When to start the look back from in epoch milliseconds. Defaults to current time.",
+                  "offset - When to start the look back from in epoch milliseconds. Defaults to current time.",
                   "groups - Optional - The groups used to sort the profile."
           },
           returns="The profile measurements.")
@@ -190,7 +190,7 @@ public class ProfileFunctions {
       String profile = getArg(0, args, String.class);
       String entity = getArg(1, args, String.class);
       long lookBack = getArg(2, args, Long.class);
-      long offset = getOptionalArg(3, args, Long.class, System.currentTimeMillis());
+      long offset = getArg(3, args, Long.class);
       List<Object> groups = getGroupsArg(4, args);
 
       long end = offset;

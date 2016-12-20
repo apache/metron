@@ -134,12 +134,6 @@ public class ProfileGetFromTest {
       assertTrue(results.stream().allMatch(val -> val == expectedValue));
     }
     {
-      // expect data from today - implicit NOW()
-      List<Long> results = run("PROFILE_GET_FROM('profile1', 'entity1', MILLIS(15, 'MINUTES'))");
-      assertEquals(2, results.size());
-      assertTrue(results.stream().allMatch(val -> val == expectedValue));
-    }
-    {
       // expect data from 1 day back
       List<Long> results = run("PROFILE_GET_FROM('profile1', 'entity1', MILLIS(15, 'MINUTES'), NOW() - MILLIS(1, 'DAYS'))");
       assertEquals(2, results.size());
@@ -170,12 +164,6 @@ public class ProfileGetFromTest {
     {
       // expect data from today
       List<Long> results = run("PROFILE_GET_FROM('profile1', 'entity1', MILLIS(30, 'MINUTES'), NOW())");
-      assertEquals(3, results.size());
-      assertTrue(results.stream().allMatch(val -> val == expectedValue));
-    }
-    {
-      // expect data from today - implicit NOW()
-      List<Long> results = run("PROFILE_GET_FROM('profile1', 'entity1', MILLIS(30, 'MINUTES'))");
       assertEquals(3, results.size());
       assertTrue(results.stream().allMatch(val -> val == expectedValue));
     }
