@@ -25,6 +25,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.CloseableUtils;
+import org.apache.metron.common.configuration.manager.ConfigurationManager;
 import org.apache.metron.common.configuration.manager.ZkConfigurationManager;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -77,7 +78,7 @@ public class ZkConfigurationManagerTest {
   @Test
   public void testInitialize() throws Exception {
 
-    // write the configuration to zookeeper
+    // write the configuration to zookeeper and wait for the write to finish
     final Map<String, Object> expected = Collections.singletonMap("key", 22);
     writeToZookeeper(GLOBAL.getZookeeperRoot(), expected);
 
@@ -86,9 +87,8 @@ public class ZkConfigurationManagerTest {
             .with(GLOBAL.getZookeeperRoot())
             .open();
 
-    // validate
+    // validate that the global configuration can be read
     Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
-    assertTrue(actual.isPresent());
     assertEquals(expected, actual.get());
   }
 
@@ -114,15 +114,13 @@ public class ZkConfigurationManagerTest {
             .open();
 
     {
-      // validate global configuration
+      // validate that the global configuration can be read
       Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
-      assertTrue(actual.isPresent());
       assertEquals(expectedGlobal, actual.get());
     }
     {
-      // validate the profiler configuration
+      // validate that the profiler configuration can be read
       Optional<ProfilerConfig> actual = manager.get(PROFILER.getZookeeperRoot(), ProfilerConfig.class);
-      assertTrue(actual.isPresent());
       assertEquals(expectedProfiler, actual.get());
     }
   }
@@ -140,7 +138,7 @@ public class ZkConfigurationManagerTest {
             .open();
 
     {
-      // ensure no configuration defined yet
+      // ensure that the global configuration is not defined yet
       Optional<String> value = manager.get(GLOBAL.getZookeeperRoot(), String.class);
       assertFalse(value.isPresent());
     }
@@ -148,22 +146,11 @@ public class ZkConfigurationManagerTest {
     // write the global configuration to zookeeper
     final Map<String, Object> expected = Collections.singletonMap("key", 22);
     writeToZookeeper(GLOBAL.getZookeeperRoot(), expected);
-
-    // wait until the 'update' takes
-    waitOrTimeout(() -> {
-      boolean result = false;
-      try {
-        result = manager.get(GLOBAL.getZookeeperRoot(), Map.class).isPresent();
-      } catch(Exception e) {
-        throw new RuntimeException(e);
-      }
-      return result;
-    }, timeout(seconds(90)));
+    waitOrTimeout(() -> pathExists(GLOBAL.getZookeeperRoot(), manager), timeout(seconds(90)));
 
     {
-      // validate
+      // validate that the global configuration can be read
       Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
-      assertTrue(actual.isPresent());
       assertEquals(expected, actual.get());
     }
   }
@@ -184,45 +171,35 @@ public class ZkConfigurationManagerTest {
             .open();
 
     {
-      // ensure the value is in zookeeper
+      // validate that the global configuration exists
       Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
-      assertTrue(actual.isPresent());
       assertEquals(expected, actual.get());
     }
 
-    // delete the path from zookeeper
+    // delete the path from zookeeper and wait for the delete to finish
     deleteInZookeeper(GLOBAL.getZookeeperRoot());
-
-    // wait until the 'delete' takes
-    waitOrTimeout(() -> {
-      boolean result;
-      try {
-        result = !manager.get(GLOBAL.getZookeeperRoot(), Map.class).isPresent();
-      } catch(Exception e) {
-        System.out.println("unexpected exception: " + e);
-        result = false;
-      }
-      return result;
-    }, timeout(seconds(90)));
+    waitOrTimeout(() -> !pathExists(GLOBAL.getZookeeperRoot(), manager), timeout(seconds(90)));
 
     {
-      // validate - the configuration value should have been removed
+      // validate that the global configuration does not exist
       Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
       assertFalse(actual.isPresent());
     }
   }
 
+  /**
+   * If nothing defined in Zookeeper, then no configuration value should be present.
+   */
   @Test
   public void testMissing() throws Exception {
 
     // setup
-    final String path = "/path/does/not/exist";
     manager = new ZkConfigurationManager(client)
-            .with(path)
+            .with(GLOBAL.getZookeeperRoot())
             .open();
 
     // validate
-    Optional<String> value = manager.get(path, String.class);
+    Optional<String> value = manager.get(GLOBAL.getZookeeperRoot(), String.class);
     assertFalse(value.isPresent());
   }
 
@@ -239,9 +216,64 @@ public class ZkConfigurationManagerTest {
     // create the manager - do not call with(...)
     manager = new ZkConfigurationManager(client).open();
 
-    // validate
+    // validate that the global configuration cannot be read as not initialized using with(...)
     Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
     assertFalse(actual.isPresent());
+  }
+
+  /**
+   * Ensure that the manager can keep up with a series of write and delete operations to Zookeeper.
+   */
+  @Test
+  public void testLongAndWindingTest() throws Exception {
+
+    // write the configuration to zookeeper
+    final Map<String, Object> expected = Collections.singletonMap("key", 22);
+    writeToZookeeper(GLOBAL.getZookeeperRoot(), expected);
+
+    // create the manager
+    manager = new ZkConfigurationManager(client)
+            .with(GLOBAL.getZookeeperRoot())
+            .open();
+
+    {
+      // validate that the configuration can be read
+      Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
+      assertTrue(actual.isPresent());
+      assertEquals(expected, actual.get());
+    }
+    {
+      // validate that the configuration can be read - hits the cache
+      Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
+      assertTrue(actual.isPresent());
+      assertEquals(expected, actual.get());
+    }
+    {
+      // validate that the configuration can be read - hits the cache
+      Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
+      assertTrue(actual.isPresent());
+      assertEquals(expected, actual.get());
+    }
+
+    // delete the path from zookeeper and wait for the delete to finish
+    deleteInZookeeper(GLOBAL.getZookeeperRoot());
+    waitOrTimeout(() -> !pathExists(GLOBAL.getZookeeperRoot(), manager), timeout(seconds(90)));
+
+    {
+      // validate
+      Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
+      assertFalse(actual.isPresent());
+    }
+
+    // write the value to zookeeper and wait for the write to finish
+    writeToZookeeper(GLOBAL.getZookeeperRoot(), expected);
+    waitOrTimeout(() -> pathExists(GLOBAL.getZookeeperRoot(), manager), timeout(seconds(90)));
+
+    {
+      // validate
+      Optional<Map> actual = manager.get(GLOBAL.getZookeeperRoot(), Map.class);
+      assertEquals(expected, actual.get());
+    }
   }
 
   /**
@@ -264,5 +296,21 @@ public class ZkConfigurationManagerTest {
     client.delete()
             .deletingChildrenIfNeeded()
             .forPath(zkPath);
+  }
+
+  /**
+   * Returns true if the Zk path exists.
+   * @param zkPath The Zookeeper path.
+   * @param manager The ConfigurationManager.
+   * @return If the path exists in Zookeeper, then true.  Otherwise, false.
+   */
+  private static boolean pathExists(String zkPath, ConfigurationManager manager) {
+    boolean result;
+    try {
+      result = manager.get(zkPath, Map.class).isPresent();
+    } catch(Exception e) {
+      result = false;
+    }
+    return result;
   }
 }

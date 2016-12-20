@@ -39,7 +39,7 @@ public interface ConfigurationManager extends Closeable {
    * Defines the configuration values that will be managed.
    * @param key A key that identifies the configuration value.
    */
-  ConfigurationManager with(String key);
+  <T> ConfigurationManager with(String key);
 
   /**
    * Open the configuration manager.

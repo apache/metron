@@ -20,6 +20,8 @@
 
 package org.apache.metron.common.configuration.manager;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.utils.CloseableUtils;
@@ -31,8 +33,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang.ArrayUtils.isNotEmpty;
+import static org.apache.metron.common.utils.ConversionUtils.convert;
 
 /**
  * Responsible for managing configuration values that are created, persisted, and updated
@@ -46,38 +51,61 @@ public class ZkConfigurationManager implements ConfigurationManager {
   private CuratorFramework zookeeperClient;
 
   /**
-   * The configuration values under management.  Maps the path to the configuration values
-   * in Zookeeper to the cache of its values.
+   * Maps a zookeeper path to the Curator cache used to retrieve the raw data from Zookeeper.
    */
-  private Map<String, NodeCache> valuesCache;
+  private Map<String, NodeCache> zookeeperCache;
+
+  /**
+   * A cache of the deserialized objects stored in Zookeeper.  This cache helps limit how
+   * frequently we need to deserialize the raw data stored in Zookeeper.
+   */
+  private Cache<String, Object> configurationCache;
 
   /**
    * @param zookeeperClient The client used to communicate with Zookeeper.  The client is not
    *                        closed.  It must be managed externally.
    */
   public ZkConfigurationManager(CuratorFramework zookeeperClient) {
+    this(zookeeperClient, 15, TimeUnit.MINUTES);
+  }
+
+  /**
+   * @param zookeeperClient The client used to communicate with Zookeeper.  The client is not
+   *                        closed.  It must be managed externally.
+   */
+  public ZkConfigurationManager(CuratorFramework zookeeperClient, long cacheExpiration, TimeUnit cacheExpirationUnits) {
     this.zookeeperClient = zookeeperClient;
-    this.valuesCache = Collections.synchronizedMap(new HashMap<>());
+    this.zookeeperCache = Collections.synchronizedMap(new HashMap<>());
+    this.configurationCache = CacheBuilder.newBuilder()
+            .expireAfterAccess(cacheExpiration, cacheExpirationUnits)
+            .build();
   }
 
   /**
    * Define the paths within Zookeeper that contains configuration values that need managed.
-   * @param zookeeperPath The Zookeeper path.
+   * @param zkPath The Zookeeper path.
    */
   @Override
-  public ZkConfigurationManager with(String zookeeperPath) {
-    NodeCache cache = new NodeCache(zookeeperClient, zookeeperPath);
-    valuesCache.put(zookeeperPath, cache);
+  public <T> ZkConfigurationManager with(String zkPath) {
+
+    NodeCache cache = new NodeCache(zookeeperClient, zkPath);
+    cache.getListenable().addListener(() -> configurationCache.invalidate(zkPath));
+    zookeeperCache.put(zkPath, cache);
+
     return this;
   }
 
   /**
-   * Open a connection to Zookeeper and retrieve the initial configuration value.
+   * Open a connection to Zookeeper.
    */
   @Override
   public synchronized ZkConfigurationManager open() throws IOException {
     try {
-      doOpen();
+      synchronized (zookeeperCache) {
+        for (NodeCache cache : zookeeperCache.values()) {
+          cache.start(true);
+        }
+      }
     } catch(Exception e) {
       throw new IOException(e);
     }
@@ -85,27 +113,47 @@ public class ZkConfigurationManager implements ConfigurationManager {
     return this;
   }
 
-  private void doOpen() throws Exception {
-    synchronized (valuesCache) {
-      for (NodeCache cache : valuesCache.values()) {
-        cache.start(true);
+  /**
+   * Retrieve the configuration object.
+   * @param zkPath A key to identify which configuration value.
+   * @param clazz The expected type of the configuration value.
+   * @param <T> The expected type of the configuration value.
+   */
+  @Override
+  public <T> Optional<T> get(String zkPath, Class<T> clazz) throws IOException {
+    try {
+      Object value = configurationCache.get(zkPath, () -> doGet(zkPath, clazz));
+      return Optional.ofNullable(convert(value, clazz));
+
+    } catch(ExecutionException e) {
+
+      // exception used to signal no value exists for this key; cannot use null with a guava cache
+      if(e.getCause() instanceof ZkPathNotFoundException) {
+        return Optional.empty();
+
+      } else {
+        throw new IOException(e);
       }
     }
   }
 
   /**
-   * Retrieve the configuration object.
+   * Retrieves the serialized data stored in Zookeeper and deserializes it.
+   * @param zkPath The key of the configuration value to get.
+   * @param clazz The type of configuration value expected.
+   * @param <T> The type of configuration value expected.
+   * @return The configuration value.  If value does not exist, an exception is thrown.
+   * @throws ZkPathNotFoundException If no such path exists in Zookeeper.
+   * @throws IOException
    */
-  @Override
-  public synchronized <T> Optional<T> get(String key, Class<T> clazz) throws IOException {
-    T result = null;
-
-    NodeCache cache = valuesCache.get(key);
+  public synchronized <T> T doGet(String zkPath, Class<T> clazz) throws ZkPathNotFoundException, IOException {
+    NodeCache cache = zookeeperCache.get(zkPath);
     if(cache != null && cache.getCurrentData() != null && isNotEmpty(cache.getCurrentData().getData())) {
-      result = deserialize(cache.getCurrentData().getData(), clazz);
-    }
+      return deserialize(cache.getCurrentData().getData(), clazz);
 
-    return Optional.ofNullable(result);
+    } else {
+      throw new ZkPathNotFoundException(zkPath);
+    }
   }
 
   /**
@@ -115,8 +163,8 @@ public class ZkConfigurationManager implements ConfigurationManager {
    */
   @Override
   public synchronized void close() {
-    synchronized (valuesCache) {
-      for (NodeCache cache : valuesCache.values()) {
+    synchronized (zookeeperCache) {
+      for (NodeCache cache : zookeeperCache.values()) {
         CloseableUtils.closeQuietly(cache);
       }
     }
@@ -129,5 +177,14 @@ public class ZkConfigurationManager implements ConfigurationManager {
    */
   protected static <T> T deserialize(byte[] raw, Class<T> clazz) throws IOException {
     return JSONUtils.INSTANCE.load(new ByteArrayInputStream(raw), clazz);
+  }
+
+  /**
+   * Indicates that a zookeeper path does not exist.
+   */
+  public static class ZkPathNotFoundException extends Exception {
+    public ZkPathNotFoundException(String zkPath) {
+      super("zookeeper path does not exist: " + zkPath);
+    }
   }
 }

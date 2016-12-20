@@ -49,7 +49,7 @@ public class InMemoryConfigurationManager implements ConfigurationManager {
   }
 
   @Override
-  public ConfigurationManager with(String key) {
+  public <T> ConfigurationManager with(String key) {
     // nothing to do
     return this;
   }
