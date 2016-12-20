@@ -157,6 +157,7 @@ commons-httpclient:commons-httpclient:jar:3.1:compile,Apache License,http://jaka
 commons-io:commons-io:jar:2.4:compile,ASLv2,http://commons.apache.org/io/
 commons-io:commons-io:jar:2.5:compile,ASLv2,http://commons.apache.org/io/
 commons-io:commons-io:jar:2.4:provided,ASLv2,http://commons.apache.org/io/
+commons-lang:commons-lang:jar:2.4:compile,ASLv2,http://commons.apache.org/lang/
 commons-lang:commons-lang:jar:2.5:compile,ASLv2,http://commons.apache.org/lang/
 commons-lang:commons-lang:jar:2.6:compile,ASLv2,http://commons.apache.org/lang/
 commons-lang:commons-lang:jar:2.6:provided,ASLv2,http://commons.apache.org/lang/
