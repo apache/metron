@@ -20,9 +20,10 @@
 
 package org.apache.metron.profiler;
 
-import org.apache.metron.profiler.ProfilePeriod;
+import com.google.common.collect.Iterables;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
@@ -124,5 +125,60 @@ public class ProfilePeriodTest {
     long duration = 0;
     TimeUnit units = TimeUnit.HOURS;
     new ProfilePeriod(0, duration, units);
+  }
+
+  @Test
+  public void testUntilCurrentPeriod() {
+    long duration = 2;
+    TimeUnit units = TimeUnit.HOURS;
+    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+
+    // validate
+    {
+      List<ProfilePeriod> actuals = period.until(AUG2016);
+      assertEquals(1, actuals.size());
+      assertEquals(period, actuals.get(0));
+    }
+    {
+      List<ProfilePeriod> actuals = period.until(period.getStartTimeMillis());
+      assertEquals(1, actuals.size());
+      assertEquals(period, actuals.get(0));
+    }
+  }
+
+  @Test
+  public void testUntilBeforeThisPeriod() {
+    long duration = 2;
+    TimeUnit units = TimeUnit.HOURS;
+    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+
+    // validate - there are no periods between this one and a previous one
+    long endAt = AUG2016 - TimeUnit.DAYS.toMillis(2);
+    List<ProfilePeriod> actuals = period.until(endAt);
+    assertEquals(0, actuals.size());
+  }
+
+  @Test
+  public void testUntil() {
+    long duration = 2;
+    TimeUnit units = TimeUnit.HOURS;
+    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+
+    // execute
+    long endAt = AUG2016 + TimeUnit.HOURS.toMillis(duration) * 3;
+    List<ProfilePeriod> actuals = period.until(endAt);
+
+    // validate
+    assertEquals(4, actuals.size());
+
+    // each subsequent period is just an increment of the previous
+    long expected = period.getPeriod();
+    for(ProfilePeriod p : actuals) {
+      assertEquals(expected++, p.getPeriod());
+    }
+
+    // validate the last period
+    ProfilePeriod expectedLast = new ProfilePeriod(endAt, duration, units);
+    assertEquals(expectedLast, Iterables.getLast(actuals));
   }
 }

@@ -364,5 +364,21 @@ public class DateFunctions {
       return calendar.get(Calendar.DAY_OF_YEAR);
     }
   }
+
+  /**
+   * Stellar Function: NOW
+   *
+   * The current time in epoch milliseconds.
+   */
+  @Stellar(name="NOW"
+          , description="Returns the current time in epoch milliseconds."
+          , params={"none"}
+          , returns="Current time in epoch milliseconds")
+  public static class Now extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      return System.currentTimeMillis();
+    }
+  }
 }
 

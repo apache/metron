@@ -50,11 +50,11 @@ public class ProfileWriter {
   private HBaseClient hbaseClient;
   private HBaseProfilerClient client;
 
-  public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table) {
+  public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table, long periodDurationMillis) {
     this.rowKeyBuilder = rowKeyBuilder;
     this.columnBuilder = columnBuilder;
     this.hbaseClient = new HBaseClient((c, t) -> table, table.getConfiguration(), table.getName().getNameAsString());
-    this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+    this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDurationMillis);
   }
 
   /**
@@ -81,7 +81,6 @@ public class ProfileWriter {
               .withPeriod(next.getStartTimeMillis(), prototype.getPeriod().getDurationMillis(), TimeUnit.MILLISECONDS)
               .withGroups(group)
               .withValue(nextValue);
-
       write(m);
     }
   }
@@ -111,13 +110,16 @@ public class ProfileWriter {
     HTableProvider provider = new HTableProvider();
     HTableInterface table = provider.getTable(config, "profiler");
 
+    long periodDuration = 15;
+    TimeUnit periodUnits = TimeUnit.MINUTES;
+
     long when = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2);
     ProfileMeasurement measure = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("192.168.66.121")
-            .withPeriod(when, 15, TimeUnit.MINUTES);
+            .withPeriod(when, periodDuration, periodUnits);
 
-    ProfileWriter writer = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    ProfileWriter writer = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodUnits.toMillis(periodDuration));
     writer.write(measure, 2 * 24 * 4, Collections.emptyList(), val -> new Random().nextInt(10));
   }
 }

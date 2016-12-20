@@ -2,7 +2,7 @@
 
 The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior. 
 
-This is achieved by summarizing the streaming telemetry data consumed by Metron over sliding windows. A summary statistic is applied to the data received within a given window.  Collecting this summary across many windows results in a time series that is useful for analysis.
+This is achieved by grouping the incoming telemetry data into fixed windows and summarizing. Each telemetry message belongs to only one window, which is known as a tumbling window.  A summary statistic is applied to the data received within a given window.  Collecting this summary across many windows results in a time series that is useful for analysis.
  
 Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
@@ -159,16 +159,20 @@ The Profiler runs as an independent Storm topology.  The configuration for the P
 |---        |---            |
 | profiler.workers | The number of worker processes to create for the topology.   |
 | profiler.executors | The number of executors to spawn per component.  |
-| profiler.input.topic | The name of the Kafka topic from which to consume data.  |
-| profiler.period.duration | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.  |
+| profiler.input.topic | The name of the Kafka topic from which the Profiler consumes data.  |
+| profiler.period.duration | The duration of each profile period. Defines how frequently the Profiler summarizes data. This value should be defined along with `profiler.period.duration.units`.  |
 | profiler.period.duration.units | The units used to specify the `profiler.period.duration`. |
-| profiler.ttl | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with `profiler.ttl.units`. |
+| profiler.ttl | The lifetime of an inactive profile. If a message has not been applied to a profile in this period of time, the buffered state of the profile will be forgotten and its resources will be released. This value should be defined along with `profiler.ttl.units`. |
 | profiler.ttl.units | The units used to specify the `profiler.ttl`. |
+| profiler.event.time.lag | The maximum time lag of the event timestamp. The event timestamps cannot be out of order by more than this amount. Effectively, the current event time is assumed to be the maximum event timestamp minus this lag.  New messages with a timestamp less than the current event time will be ignored. This value should be defined along with `profiler.period.duration.units`.  |
+| profiler.event.time.lag.units | The units used to specify the `profiler.event.time.lag`. |
+| profiler.event.timestamp.field | The name of the message field containing the timestamp.  The timestamp value is expected to be epoch milliseconds. Any message that does not contain this field will be ignored by the Profiler. |
 | profiler.hbase.salt.divisor  |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
 | profiler.hbase.table | The name of the HBase table that profiles are written to.  |
 | profiler.hbase.column.family | The column family used to store profiles. |
 | profiler.hbase.batch | The number of puts that are written in a single batch.  |
 | profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
+
 
 
 After altering the configuration, start the Profiler.
@@ -345,7 +349,7 @@ Merge all of the profile measurements over the past 30 minutes into a single sum
 
 More information on accessing profile data can be found in the [Profiler Client](../metron-profiler-client).
 
-More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-platform/metron-common).
+More information on using the [`STATS_*` functions in Stellar can be found here](../../metron-analytics/metron-statistics).
 
 ## Implementation
 

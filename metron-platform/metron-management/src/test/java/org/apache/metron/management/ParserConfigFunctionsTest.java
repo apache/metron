@@ -34,7 +34,7 @@ import java.util.Map;
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
 
 public class ParserConfigFunctionsTest {
 

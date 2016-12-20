@@ -30,7 +30,7 @@ import org.junit.rules.ExpectedException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;

@@ -21,19 +21,25 @@
 package org.apache.metron.profiler;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.manager.ConfigurationManager;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.profiler.clock.Clock;
-import org.apache.metron.profiler.clock.FixedClock;
+import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
+import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.common.utils.ConversionUtils.convert;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the ProfileBuilder class.
@@ -52,10 +58,17 @@ public class ProfileBuilderTest {
   private JSONObject message;
   private ProfileBuilder builder;
   private ProfileConfig definition;
+  private ConfigurationManager configurationManager;
+  private StellarExecutor executor;
+  private Context context;
 
   @Before
   public void setup() throws Exception {
     message = (JSONObject) new JSONParser().parse(input);
+    executor = new DefaultStellarExecutor();
+    context = Context.EMPTY_CONTEXT();
+    configurationManager = Mockito.mock(ConfigurationManager.class);
+    when(configurationManager.get(any(), any())).thenReturn(Optional.empty());
   }
 
   /**
@@ -83,11 +96,12 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute
-    builder.apply(message);
-    ProfileMeasurement m = builder.flush();
+    builder.apply(message, context);
+    ProfileMeasurement m = builder.flush(100, context);
 
     // validate that x = 100, y = 200
     assertEquals(100 + 200, (int) convert(m.getValue(), Integer.class));
@@ -105,10 +119,11 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute
-    ProfileMeasurement m = builder.flush();
+    ProfileMeasurement m = builder.flush(100, context);
 
     // validate that x = 0 and y = 0 as no initialization occurred
     assertEquals(0, (int) convert(m.getValue(), Integer.class));
@@ -143,14 +158,15 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute
     int count = 10;
     for(int i=0; i<count; i++) {
-      builder.apply(message);
+      builder.apply(message, context);
     }
-    ProfileMeasurement m = builder.flush();
+    ProfileMeasurement m = builder.flush(100, context);
 
     // validate that x=0, y=0 then x+=1, y+=2 for each message
     assertEquals(count*1 + count*2, (int) convert(m.getValue(), Integer.class));
@@ -178,11 +194,12 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute
-    builder.apply(message);
-    ProfileMeasurement m = builder.flush();
+    builder.apply(message, context);
+    ProfileMeasurement m = builder.flush(100, context);
 
     // validate
     assertEquals(100, (int) convert(m.getValue(), Integer.class));
@@ -194,36 +211,34 @@ public class ProfileBuilderTest {
   @Test
   public void testProfilePeriodOnFlush() throws Exception {
     // setup
-    FixedClock clock = new FixedClock();
-    clock.setTime(100);
-
     definition = JSONUtils.INSTANCE.load(testResultProfile, ProfileConfig.class);
     builder = new ProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
-            .withClock(clock)
+            .withExecutor(executor)
             .build();
 
+    long flushTimeMillis = 100;
     {
       // apply a message and flush
-      builder.apply(message);
-      ProfileMeasurement m = builder.flush();
+      builder.apply(message, context);
+      ProfileMeasurement m = builder.flush(flushTimeMillis, context);
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = new ProfilePeriod(flushTimeMillis, 10, TimeUnit.MINUTES);
       assertEquals(expected, m.getPeriod());
     }
     {
       // advance time by at least one period - 10 minutes
-      clock.setTime(clock.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10));
+      flushTimeMillis += TimeUnit.MINUTES.toMillis(10);
 
       // apply a message and flush again
-      builder.apply(message);
-      ProfileMeasurement m = builder.flush();
+      builder.apply(message, context);
+      ProfileMeasurement m = builder.flush(flushTimeMillis, context);
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = new ProfilePeriod(flushTimeMillis, 10, TimeUnit.MINUTES);
       assertEquals(expected, m.getPeriod());
     }
   }
@@ -252,11 +267,12 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute
-    builder.apply(message);
-    ProfileMeasurement m = builder.flush();
+    builder.apply(message, context);
+    ProfileMeasurement m = builder.flush(100, context);
 
     // validate
     assertEquals(2, m.getGroups().size());
@@ -290,18 +306,21 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute - accumulate some state then flush it
     int count = 10;
     for(int i=0; i<count; i++) {
-      builder.apply(message);
+      builder.apply(message, context);
     }
-    builder.flush();
+
+    long flushTimeMillis = 100;
+    builder.flush(flushTimeMillis, context);
 
     // apply another message to accumulate new state, then flush again to validate original state was cleared
-    builder.apply(message);
-    ProfileMeasurement m = builder.flush();
+    builder.apply(message, context);
+    ProfileMeasurement m = builder.flush(flushTimeMillis + TimeUnit.MINUTES.toMillis(10), context);
 
     // validate
     assertEquals(3, (int) convert(m.getValue(), Integer.class));
@@ -329,11 +348,12 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity(entity)
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
 
     // execute
-    builder.apply(message);
-    ProfileMeasurement m = builder.flush();
+    builder.apply(message, context);
+    ProfileMeasurement m = builder.flush(100, context);
 
     // validate
     assertEquals(entity, m.getEntity());
@@ -360,23 +380,27 @@ public class ProfileBuilderTest {
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withExecutor(executor)
             .build();
+
+    long flushTimeMillis = 100;
 
     // 'tickUpdate' only executed when flushed - 'result' only has access to the 'old' tick value, not latest
     {
-      ProfileMeasurement m = builder.flush();
+      ProfileMeasurement m = builder.flush(flushTimeMillis, context);
       assertEquals(0, (int) convert(m.getValue(), Integer.class));
     }
 
     // execute many flushes
     int count = 10;
     for(int i=0; i<count; i++) {
-      builder.flush();
+      builder.flush(flushTimeMillis, context);
+      flushTimeMillis += TimeUnit.MINUTES.toMillis(10);
     }
 
     {
       // validate - the tickUpdate state should not be cleared between periods and is only run once per period
-      ProfileMeasurement m = builder.flush();
+      ProfileMeasurement m = builder.flush(flushTimeMillis, context);
       assertEquals(11, (int) convert(m.getValue(), Integer.class));
     }
   }

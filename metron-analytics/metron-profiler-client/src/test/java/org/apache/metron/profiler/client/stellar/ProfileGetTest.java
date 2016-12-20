@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.profiler.client;
+package org.apache.metron.profiler.client.stellar;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -28,7 +28,7 @@ import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.client.stellar.GetProfile;
+import org.apache.metron.profiler.client.ProfileWriter;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
@@ -49,17 +49,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.ProfileFunctions.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfileFunctions.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfileFunctions.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfileFunctions.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfileFunctions.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfileFunctions.PROFILER_SALT_DIVISOR;
 
 /**
  * Tests the GetProfile class.
  */
-public class GetProfileTest {
+public class ProfileGetTest {
 
   private static final long periodDuration = 15;
   private static final TimeUnit periodUnits = TimeUnit.MINUTES;
@@ -95,7 +95,7 @@ public class GetProfileTest {
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodUnits.toMillis(periodDuration));
 
     // global properties
     Map<String, Object> global = new HashMap<String, Object>() {{
@@ -110,10 +110,18 @@ public class GetProfileTest {
     // create the stellar execution environment
     executor = new DefaultStellarExecutor(
             new SimpleFunctionResolver()
-                    .withClass(GetProfile.class),
+                    .withClass(ProfileFunctions.ProfileGet.class)
+                    .withClass(ProfileFunctions.ProfileGetFrom.class),
             new Context.Builder()
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
                     .build());
+  }
+
+  private ProfileMeasurement createMeasurement(long startTime) {
+    return new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
   }
 
   /**
@@ -129,11 +137,7 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-
+    ProfileMeasurement m = createMeasurement(startTime);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
@@ -158,10 +162,7 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = createMeasurement(startTime);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
@@ -189,10 +190,7 @@ public class GetProfileTest {
 
     // setup - write some measurements to be read later
     final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = createMeasurement(startTime);
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // create a variable that contains the groups to use

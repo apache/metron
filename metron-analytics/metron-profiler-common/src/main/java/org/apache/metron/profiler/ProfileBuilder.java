@@ -24,14 +24,9 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.profiler.clock.Clock;
-import org.apache.metron.profiler.clock.WallClock;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
 import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -91,48 +86,32 @@ public class ProfileBuilder implements Serializable {
   private long periodDurationMillis;
 
   /**
-   * A clock is used to tell time; imagine that.
-   */
-  private Clock clock;
-
-  /**
    * Use the ProfileBuilder.Builder to create a new ProfileBuilder.
    */
-  private ProfileBuilder(ProfileConfig definition,
-                         String entity,
-                         Clock clock,
-                         long periodDurationMillis,
-                         CuratorFramework client,
-                         Map<String, Object> global) {
+  private ProfileBuilder(ProfileConfig definition, String entity, long periodDurationMillis, StellarExecutor executor) {
 
     this.isInitialized = false;
     this.definition = definition;
     this.profileName = definition.getProfile();
     this.entity = entity;
-    this.clock = clock;
     this.periodDurationMillis = periodDurationMillis;
-    this.executor = new DefaultStellarExecutor();
-    Context context = new Context.Builder()
-            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
-            .build();
-    StellarFunctions.initialize(context);
-    this.executor.setContext(context);
+    this.executor = executor;
   }
 
   /**
    * Apply a message to the profile.
    * @param message The message to apply.
+   * @param context The Stellar execution context.
    */
   @SuppressWarnings("unchecked")
-  public void apply(JSONObject message) {
+  public void apply(JSONObject message, Context context) {
 
     if(!isInitialized()) {
-      assign(definition.getInit(), message, "init");
+      assign(definition.getInit(), message, context, "init");
       isInitialized = true;
     }
 
-    assign(definition.getUpdate(), message, "update");
+    assign(definition.getUpdate(), message, context, "update");
   }
 
   /**
@@ -140,20 +119,22 @@ public class ProfileBuilder implements Serializable {
    *
    * Completes and emits the ProfileMeasurement.  Clears all state in preparation for
    * the next window period.
-   * @return Returns the completed profile measurement.
+   *
+   * @param flushTimeMillis When the flush occurred in epoch milliseconds.
+   * @param context The Stellar execution context.
    */
-  public ProfileMeasurement flush() {
+  public ProfileMeasurement flush(long flushTimeMillis, Context context) {
     LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
 
     // execute the 'result' expression
     @SuppressWarnings("unchecked")
-    Object value = execute(definition.getResult(), new JSONObject(), "result");
+    Object value = execute(definition.getResult(), new JSONObject(), context, "result");
 
     // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
-    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", value), "groupBy");
+    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", value), context,"groupBy");
 
     // execute the 'tickUpdate' expression(s) - can refer to value of 'result' expression
-    assign(definition.getTickUpdate(), ImmutableMap.of("result", value),"tickUpdate");
+    assign(definition.getTickUpdate(), ImmutableMap.of("result", value), context, "tickUpdate");
 
     // save a copy of current state then clear it to prepare for the next window
     Map<String, Object> state = executor.getState();
@@ -166,12 +147,11 @@ public class ProfileBuilder implements Serializable {
     });
 
     isInitialized = false;
-
     return new ProfileMeasurement()
             .withProfileName(profileName)
             .withEntity(entity)
             .withGroups(groups)
-            .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
+            .withPeriod(flushTimeMillis, periodDurationMillis, TimeUnit.MILLISECONDS)
             .withValue(value);
   }
 
@@ -179,13 +159,14 @@ public class ProfileBuilder implements Serializable {
    * Executes an expression contained within the profile definition.
    * @param expression The expression to execute.
    * @param transientState Additional transient state provided to the expression.
+   * @param context The Stellar execution context.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    * @return The result of executing the expression.
    */
-  private Object execute(String expression, Map<String, Object> transientState, String expressionType) {
+  private Object execute(String expression, Map<String, Object> transientState, Context context, String expressionType) {
     Object result = null;
 
-    List<Object> allResults = execute(Collections.singletonList(expression), transientState, expressionType);
+    List<Object> allResults = execute(Collections.singletonList(expression), transientState, context, expressionType);
     if(allResults.size() > 0) {
       result = allResults.get(0);
     }
@@ -197,18 +178,21 @@ public class ProfileBuilder implements Serializable {
    * Executes a set of expressions whose results need to be assigned to a variable.
    * @param expressions Maps the name of a variable to the expression whose result should be assigned to it.
    * @param transientState Additional transient state provided to the expression.
+   * @param context The Stellar execution context.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    */
-  private void assign(Map<String, String> expressions, Map<String, Object> transientState, String expressionType) {
+  private void assign(Map<String, String> expressions, Map<String, Object> transientState, Context context, String expressionType) {
     try {
+      // set the execution context
+      executor.setContext(context);
 
-      // execute each of the 'update' expressions
+      // execute each of the expressions
       MapUtils.emptyIfNull(expressions)
               .forEach((var, expr) -> executor.assign(var, expr, transientState));
 
     } catch(ParseException e) {
 
-      // make it brilliantly clear that one of the 'update' expressions is bad
+      // make it brilliantly clear that one of the expressions is bad
       String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
       throw new ParseException(msg, e);
     }
@@ -218,13 +202,17 @@ public class ProfileBuilder implements Serializable {
    * Executes the expressions contained within the profile definition.
    * @param expressions A list of expressions to execute.
    * @param transientState Additional transient state provided to the expressions.
+   * @param context The Stellar execution context.
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    * @return The result of executing each expression.
    */
-  private List<Object> execute(List<String> expressions, Map<String, Object> transientState, String expressionType) {
+  private List<Object> execute(List<String> expressions, Map<String, Object> transientState, Context context, String expressionType) {
     List<Object> results = new ArrayList<>();
 
     try {
+      // set the execution context
+      executor.setContext(context);
+
       ListUtils.emptyIfNull(expressions)
               .forEach((expr) -> results.add(executor.execute(expr, transientState, Object.class)));
 
@@ -248,8 +236,25 @@ public class ProfileBuilder implements Serializable {
     return isInitialized;
   }
 
+  public String getProfileName() {
+    return profileName;
+  }
+
+  public String getEntity() {
+    return entity;
+  }
+
   public ProfileConfig getDefinition() {
     return definition;
+  }
+
+  @Override
+  public String toString() {
+    return "ProfileBuilder{" +
+            "profileName='" + profileName + '\'' +
+            ", entity='" + entity + '\'' +
+            ", isInitialized=" + isInitialized +
+            '}';
   }
 
   /**
@@ -260,12 +265,10 @@ public class ProfileBuilder implements Serializable {
     private ProfileConfig definition;
     private String entity;
     private long periodDurationMillis;
-    private CuratorFramework zookeeperClient;
-    private Map<String, Object> global;
-    private Clock clock = new WallClock();
+    private StellarExecutor executor;
 
-    public Builder withClock(Clock clock) {
-      this.clock = clock;
+    public Builder withExecutor(StellarExecutor executor) {
+      this.executor = executor;
       return this;
     }
 
@@ -303,35 +306,21 @@ public class ProfileBuilder implements Serializable {
     }
 
     /**
-     * @param zookeeperClient The zookeeper client.
-     */
-    public Builder withZookeeperClient(CuratorFramework zookeeperClient) {
-      this.zookeeperClient = zookeeperClient;
-      return this;
-    }
-
-    /**
-     * @param global The global configuration.
-     */
-    public Builder withGlobalConfiguration(Map<String, Object> global) {
-      // TODO how does the profile builder ever seen a global that has been update in zookeeper?
-      this.global = global;
-      return this;
-    }
-
-    /**
      * Construct a ProfileBuilder.
      */
     public ProfileBuilder build() {
 
       if(definition == null) {
-        throw new IllegalArgumentException("missing profiler definition; got null");
+        throw new IllegalArgumentException("missing profiler definition");
       }
       if(StringUtils.isEmpty(entity)) {
-        throw new IllegalArgumentException(format("missing entity name; got '%s'", entity));
+        throw new IllegalArgumentException("missing entity name");
+      }
+      if(executor == null) {
+        throw new IllegalArgumentException("missing stellar executor");
       }
 
-      return new ProfileBuilder(definition, entity, clock, periodDurationMillis, zookeeperClient, global);
+      return new ProfileBuilder(definition, entity, periodDurationMillis, executor);
     }
   }
 }

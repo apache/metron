@@ -24,10 +24,11 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
-import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
-import static org.junit.Assert.*;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.runPredicate;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class StellarComparisonExpressionWithOperatorTest {
   @SuppressWarnings({"RedundantConditionalExpression", "ConstantConditions"})

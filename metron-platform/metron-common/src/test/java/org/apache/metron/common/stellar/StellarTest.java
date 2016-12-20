@@ -39,8 +39,8 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.effectiveClassPathUrls;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
-import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
+import static org.apache.metron.common.utils.StellarExecutorUtils.run;
+import static org.apache.metron.common.utils.StellarExecutorUtils.runPredicate;
 
 public class StellarTest {
 

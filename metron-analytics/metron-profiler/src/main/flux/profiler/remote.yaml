@@ -19,16 +19,15 @@ name: "profiler"
 config:
     topology.workers: ${profiler.workers}
     topology.acker.executors: ${profiler.executors}
+    topology.message.timeout.secs: ${topology.message.timeout.secs}
 
 components:
+
     -   id: "rowKeyBuilder"
         className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
-        properties:
-            - name: "saltDivisor"
-              value: ${profiler.hbase.salt.divisor}
         configMethods:
-            - name: "withPeriodDuration"
-              args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
+            - name: "withSaltDivisor"
+              args: [${profiler.hbase.salt.divisor}]
 
     -   id: "columnBuilder"
         className: "org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder"
@@ -51,18 +50,28 @@ components:
     -   id: "kafkaConfig"
         className: "org.apache.metron.common.spout.kafka.SpoutConfig"
         constructorArgs:
-            # zookeeper hosts
-            - ref: "zkHosts"
-            # topic name
-            - "${profiler.input.topic}"
-            # zk root
-            - ""
-            # id
-            - "indexing"
+            - ref: "zkHosts"              # zookeeper hosts
+            - "${profiler.input.topic}"   # topic name
+            - ""                          # zk root
+            - "profiler"                  # id
         configMethods:
             -   name: "from"
-                args:
-                    - "${kafka.start}"
+                args: ["${kafka.start}"]
+
+    -   id: "windowDuration"
+        className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+        constructorArgs:
+            - ${profiler.period.duration}
+            - "${profiler.period.duration.units}"
+
+    -   id: "eventTimeLag"
+        className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
+        constructorArgs:
+            - ${profiler.event.time.lag}
+            - "${profiler.event.time.lag.units}"
+
+    -   id: "clock"
+        className: "org.apache.metron.profiler.clock.WallClock"
 
 spouts:
 
@@ -75,18 +84,29 @@ bolts:
 
     -   id: "splitterBolt"
         className: "org.apache.metron.profiler.bolt.ProfileSplitterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
+        configMethods:
+            - name: "withZookeeperUrl"
+              args: ["${kafka.zk}"]
+            - name: "withTimestampField"
+              args: ["${profiler.event.timestamp.field}"]
+            - name: "withClock"
+              args: [ref: "clock"]
 
     -   id: "builderBolt"
         className: "org.apache.metron.profiler.bolt.ProfileBuilderBolt"
-        constructorArgs:
-            - "${kafka.zk}"
         configMethods:
-            - name: "withPeriodDuration"
-              args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
+            - name: "withZookeeperUrl"
+              args: ["${kafka.zk}"]
             - name: "withTimeToLive"
               args: [${profiler.ttl}, "${profiler.ttl.units}"]
+            - name: "withPeriodDuration"
+              args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
+            - name: "withTumblingWindow"
+              args: [ref: "windowDuration"]
+            - name: "withTimestampField"
+              args: ["timestamp"]  # field in the tuple where storm gets the timestamp.  this should NEVER need to change.
+            - name: "withLag"
+              args: [ref: "eventTimeLag"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
@@ -114,7 +134,7 @@ streams:
         to: "builderBolt"
         grouping:
             type: FIELDS
-            args: ["entity", "profile", "message"]
+            args: ["entity", "profile"]
 
     -   name: "builder -> hbase"
         from: "builderBolt"

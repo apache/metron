@@ -20,6 +20,9 @@
 
 package org.apache.metron.profiler;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
@@ -28,7 +31,7 @@ import static java.lang.String.format;
  * The Profiler captures a ProfileMeasurement once every ProfilePeriod.  There can be
  * multiple ProfilePeriods every hour.
  */
-public class ProfilePeriod {
+public class ProfilePeriod implements Serializable {
 
   /**
    * A monotonically increasing number identifying the period.  The first period is 0
@@ -47,12 +50,15 @@ public class ProfilePeriod {
    * @param units The units of the duration; hours, minutes, etc.
    */
   public ProfilePeriod(long epochMillis, long duration, TimeUnit units) {
-    if(duration <= 0) {
-      throw new IllegalArgumentException(format(
-              "period duration must be greater than 0; got '%d %s'", duration, units));
+    this(epochMillis, units.toMillis(duration));
+  }
+
+  public ProfilePeriod(long epochMillis, long periodDurationMillis) {
+    if(periodDurationMillis <= 0) {
+      throw new IllegalArgumentException(format("period duration must be greater than 0; got '%d'", periodDurationMillis));
     }
 
-    this.durationMillis = units.toMillis(duration);
+    this.durationMillis = periodDurationMillis;
     this.period = epochMillis / durationMillis;
   }
 
@@ -79,6 +85,24 @@ public class ProfilePeriod {
     return durationMillis;
   }
 
+  /**
+   * Finds all profile periods between this period and an end timestamp.  This will
+   * include the current profile period.
+   *
+   * @param endAt The end timestamp in epoch milliseconds.
+   */
+  public List<ProfilePeriod> until(long endAt) {
+    List<ProfilePeriod> periods = new ArrayList<>();
+
+    ProfilePeriod current = this;
+    while(current.getStartTimeMillis() <= endAt) {
+      periods.add(current);
+      current = current.next();
+    }
+
+    return periods;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -100,6 +124,7 @@ public class ProfilePeriod {
   public String toString() {
     return "ProfilePeriod{" +
             "period=" + period +
+            ", startTime=" + getStartTimeMillis() +
             ", durationMillis=" + durationMillis +
             '}';
   }
