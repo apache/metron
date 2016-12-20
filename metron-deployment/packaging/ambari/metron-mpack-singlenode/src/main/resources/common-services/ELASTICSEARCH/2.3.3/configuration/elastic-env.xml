@@ -31,14 +31,14 @@
     <description>The group for Elasticsearch</description>
   </property>
   <property>
+    <name>conf_dir</name>
+    <value>/etc/elasticsearch/</value>
+    <description>Elasticsearch Configuration Directory</description>
+  </property>
+  <property>
     <name>elastic_log_dir</name>
     <value>/var/log/elasticsearch</value>
     <description>Log directory for elastic</description>
-  </property>
-  <property>
-    <name>elastic_pid_dir</name>
-    <value>/var/run/elasticsearch</value>
-    <description>The directory for pid files</description>
   </property>
 
   <!-- elasticsearch-env.sh -->

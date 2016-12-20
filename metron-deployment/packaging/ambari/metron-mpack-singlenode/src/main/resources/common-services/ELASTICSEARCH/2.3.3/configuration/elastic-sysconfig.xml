@@ -35,9 +35,9 @@
         <description>Elasticsearch Work Directory</description>
     </property>
     <property>
-        <name>conf_dir</name>
-        <value>/etc/elasticsearch/</value>
-        <description>Elasticsearch Configuration Directory</description>
+        <name>elastic_pid_dir</name>
+        <value>/var/run/elasticsearch</value>
+        <description>The directory for pid files</description>
     </property>
     <property>
         <name>heap_size</name>
@@ -92,8 +92,8 @@ ES_USER={{elastic_user}}
 # Elasticsearch pid directory
 PID_DIR={{pid_dir}}
 
-# Fetch JAVA_HOME and set PATH
-source $CONF_DIR/elastic-env.sh
+# JAVA_HOME must be provided here for OS that use systemd service launch
+JAVA_HOME={{java64_home}}
 
 # Additional Java OPTS
 ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcurrentMTEnabled \

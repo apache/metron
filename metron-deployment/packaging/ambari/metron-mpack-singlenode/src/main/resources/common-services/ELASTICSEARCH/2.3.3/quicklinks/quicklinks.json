@@ -22,7 +22,7 @@
           "regex": "^(\\d+)",
           "site": "elastic-site"
         }
-      }
+      },
       {
         "name": "es_indices_link",
         "label": "Elasticsearch Indexes",

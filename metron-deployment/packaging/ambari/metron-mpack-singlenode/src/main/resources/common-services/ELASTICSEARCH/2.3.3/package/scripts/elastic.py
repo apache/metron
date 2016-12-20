@@ -62,7 +62,7 @@ def elastic():
          )
 
     print "Master sysconfig: /etc/sysconfig/elasticsearch"
-    File(format("/etc/sysconfig/elasticsearch"),
+    File("/etc/sysconfig/elasticsearch",
          owner="root",
          group="root",
          content=InlineTemplate(params.sysconfig_template)
