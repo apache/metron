@@ -23,6 +23,7 @@ title: Apache Metron (Incubating) Documentation
                 <li class="active"><a href="#quickstart">Quick Start</a></li>
                 <li class=""><a href="#installation">Installation</a></li>
                 <li class=""><a href="#docshome">DOCS Home</a></li>
+                <li class=""><a href="#releases">Releases</a></li>
             </ul>
         </div>
     </div>  
@@ -67,5 +68,31 @@ title: Apache Metron (Incubating) Documentation
     <div class="content-960 hover-btn text-center">
         <p> Apache Metron documentation provides information on quickly getting started with Metron, performing a full installation, adding additional data sources, and using Metron to triage alerts. Metron documentation is currently a work in progress. Please check back again later as we continue to grow this documentation set.</p>
         <a class="button-default" href=" https://cwiki.apache.org/confluence/display/METRON/Documentation" target="_blank">LEARN MORE</a>
+    </div>
+</section>
+
+<section class="events-section info-block darken" id="releases">
+    <div class="wrapper downloads">
+        <div class="text-center">
+            <h4>Current Release</h4>
+        </div>
+        <div class="content-960 hover-btn text-center">
+            <ul>
+                <li>
+                <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz" target="new">
+                    apache-metron-0.3.0-incubating.tar.gz
+                </a>
+                 [ <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.asc" target="new">
+                    PGP
+                 </a>]
+                 [ <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.sha" target="new">
+                    SHA512
+                 </a>]
+                 [ <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.md5" target="new">
+                    MD5
+                  </a>]
+                </li>
+            </ul>
+        </div>
     </div>
 </section>

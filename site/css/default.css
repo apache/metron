@@ -6941,7 +6941,7 @@ nav .main-menu > li.mobile-only {
   -webkit-transform: translate3d(0, 0, 0); }
 
 .main-nav.off-canvas {
-  top: -65px; }
+  top: -106px; }
   .main-nav.off-canvas.fixed {
     top: 0; }
   .main-nav.off-canvas .fix-search {
@@ -11399,4 +11399,18 @@ nav .main-menu > li.mobile-only {
 		}
     .disclaimer{
       font-size:13px;
+    }
+    .apache-logo button {
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+    .downloads{
+      margin-top: 25px;
+    }
+    .downloads h4, .mailing-list h4{
+      margin: 12px 0px;
+    }
+    .downloads a, .mailing-list a {
+      color: #0199d1;
     }
