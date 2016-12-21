@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -159,10 +160,15 @@ public class SensorParserConfigService {
       throw new Exception("Could not find parser class name");
     } else {
       MessageParser<JSONObject> parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName()).newInstance();
-      grokService.saveTemporaryGrokStatement(sensorParserConfig);
+      if (grokService.isGrokConfig(sensorParserConfig)) {
+        grokService.saveTemporaryGrokStatement(sensorParserConfig);
+        sensorParserConfig.getParserConfig().put(GrokService.GROK_PATH_KEY, new File(grokService.getTemporaryGrokRootPath(), sensorParserConfig.getSensorTopic()).toString());
+      }
       parser.configure(sensorParserConfig.getParserConfig());
       JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
-      grokService.deleteTemporaryGrokStatement(sensorParserConfig);
+      if (grokService.isGrokConfig(sensorParserConfig)) {
+        grokService.deleteTemporaryGrokStatement(sensorParserConfig);
+      }
       return results;
     }
   }

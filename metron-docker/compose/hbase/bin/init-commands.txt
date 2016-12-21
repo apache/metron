@@ -1,3 +1,4 @@
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -13,30 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-spring:
-  datasource:
-      driverClassName: org.h2.Driver
-      url: jdbc:h2:mem:testdb
-      username: sa
-      password:
-      platform: h2
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-  main:
-    banner-mode: off
-
-grok:
-  path:
-    temp: target/patterns/temp
-    default: target/patterns
-
-storm:
-  ui:
-    url: stormUITestUrl
-  parser:
-    script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
-  enrichment:
-    script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
-  indexing:
-    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+#
+create 'access_tracker', 'cf'
+create 'ip', 'cf'
+create 'enrichment', 'cf'
+create 'threatintel', 'cf'
+exit

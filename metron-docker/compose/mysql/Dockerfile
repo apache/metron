@@ -23,6 +23,7 @@ ENV METRON_HOME /usr/metron/$METRON_VERSION/
 
 ADD http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz /tmp/geoip/GeoLiteCity-latest.tar.xz
 ADD ./bin /usr/local/bin
+RUN chmod 755 /usr/local/bin/wait-for-it.sh
 ADD ./enrichment /enrichment
 
 RUN apt-get update

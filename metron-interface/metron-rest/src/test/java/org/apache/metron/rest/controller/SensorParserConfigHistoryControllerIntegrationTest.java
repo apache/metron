@@ -223,10 +223,15 @@ public class SensorParserConfigHistoryControllerIntegrationTest {
     }
 
     private void cleanFileSystem() throws IOException {
-        File grokPath = new File(environment.getProperty(GrokService.GROK_PATH_SPRING_PROPERTY));
+        File grokTempPath = new File(environment.getProperty(GrokService.GROK_TEMP_PATH_SPRING_PROPERTY));
+        if (grokTempPath.exists()) {
+            FileUtils.cleanDirectory(grokTempPath);
+            FileUtils.deleteDirectory(grokTempPath);
+        }
+        File grokPath = new File(environment.getProperty(GrokService.GROK_DEFAULT_PATH_SPRING_PROPERTY));
         if (grokPath.exists()) {
-            FileUtils.cleanDirectory(grokPath);
-            FileUtils.deleteDirectory(grokPath);
+          FileUtils.cleanDirectory(grokPath);
+          FileUtils.deleteDirectory(grokPath);
         }
     }
 

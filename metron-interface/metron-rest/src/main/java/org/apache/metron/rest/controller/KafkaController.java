@@ -17,6 +17,9 @@
  */
 package org.apache.metron.rest.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +40,17 @@ public class KafkaController {
     @Autowired
     private KafkaService kafkaService;
 
+    @ApiOperation(value = "Creates a new Kafka topic")
+    @ApiResponse(message = "Saved Kafka topic", code = 200)
     @RequestMapping(value = "/topic", method = RequestMethod.POST)
-    ResponseEntity<KafkaTopic> save(@RequestBody KafkaTopic topic) throws Exception {
+    ResponseEntity<KafkaTopic> save(@ApiParam(name="topic", value="Kafka topic", required=true)@RequestBody KafkaTopic topic) throws Exception {
         return new ResponseEntity<>(kafkaService.createTopic(topic), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Retrieves a Kafka topic")
+    @ApiResponse(message = "Kafka topic", code = 200)
     @RequestMapping(value = "/topic/{name}", method = RequestMethod.GET)
-    ResponseEntity<KafkaTopic> get(@PathVariable String name) throws Exception {
+    ResponseEntity<KafkaTopic> get(@ApiParam(name="name", value="Kafka topic name", required=true)@PathVariable String name) throws Exception {
         KafkaTopic kafkaTopic = kafkaService.getTopic(name);
         if (kafkaTopic != null) {
             return new ResponseEntity<>(kafkaTopic, HttpStatus.OK);
@@ -52,13 +59,17 @@ public class KafkaController {
         }
     }
 
+    @ApiOperation(value = "Retrieves all Kafka topics")
+    @ApiResponse(message = "A list of all Kafka topics", code = 200)
     @RequestMapping(value = "/topic", method = RequestMethod.GET)
     ResponseEntity<Set<String>> list() throws Exception {
         return new ResponseEntity<>(kafkaService.listTopics(), HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Delets a Kafka topic")
+    @ApiResponse(message = "No return value", code = 200)
     @RequestMapping(value = "/topic/{name}", method = RequestMethod.DELETE)
-    ResponseEntity<Void> delete(@PathVariable String name) throws Exception {
+    ResponseEntity<Void> delete(@ApiParam(name="name", value="Kafka topic name", required=true)@PathVariable String name) throws Exception {
         if (kafkaService.deleteTopic(name)) {
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
@@ -66,8 +77,10 @@ public class KafkaController {
         }
     }
 
+    @ApiOperation(value = "Retrieves a sample message from a Kafka topic using the most recent offset")
+    @ApiResponse(message = "Sample message", code = 200)
     @RequestMapping(value = "/topic/{name}/sample", method = RequestMethod.GET)
-    ResponseEntity<String> getSample(@PathVariable String name) throws Exception {
+    ResponseEntity<String> getSample(@ApiParam(name="name", value="Kafka topic name", required=true)@PathVariable String name) throws Exception {
         String sampleMessage = kafkaService.getSampleMessage(name);
         if (sampleMessage != null) {
             return new ResponseEntity<>(sampleMessage, HttpStatus.OK);

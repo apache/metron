@@ -1,0 +1,6 @@
+{
+  "es.clustername": "elasticsearch",
+  "es.ip": "elasticsearch",
+  "es.port": "9300",
+  "es.date.format": "yyyy.MM.dd.HH"
+}

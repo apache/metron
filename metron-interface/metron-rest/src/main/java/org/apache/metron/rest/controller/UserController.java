@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +27,8 @@ import java.security.Principal;
 @RestController
 public class UserController {
 
+  @ApiOperation(value = "Retrieves the current user")
+  @ApiResponse(message = "Current user", code = 200)
     @RequestMapping("/api/v1/user")
     public String user(Principal user) {
         return user.getName();

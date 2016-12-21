@@ -35,6 +35,7 @@ ADD ./conf/enrichment-extractor.json /conf/enrichment-extractor.json
 ADD ./conf/threatintel-extractor.json /conf/threatintel-extractor.json
 ADD ./conf/hbase-site.docker.xml $HBASE_HOME/conf/hbase-site.xml
 ADD ./bin $HBASE_HOME/bin
+RUN chmod 755 $HBASE_HOME/bin/wait-for-it.sh
 
 EXPOSE 8080 8085 9090 9095 16000 16010 16201 16301
 

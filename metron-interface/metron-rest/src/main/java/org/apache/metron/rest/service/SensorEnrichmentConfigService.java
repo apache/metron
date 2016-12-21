@@ -85,7 +85,6 @@ public class SensorEnrichmentConfigService {
             add("geo");
             add("host");
             add("whois");
-            add("sample");
         }};
     }
 

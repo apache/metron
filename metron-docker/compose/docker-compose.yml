@@ -30,6 +30,7 @@ services:
       context: ./kafkazk
       args:
         DOCKER_HOST: $DOCKER_HOST
+        METRON_VERSION: $METRON_VERSION
     ports:
       - "9092:9092"
       - "2181:2181"
@@ -55,6 +56,7 @@ services:
       - "8081:8081"
     environment:
       ZOOKEEPER_ADDR: kafkazk
+      CONFIG_TOPOLOGY_CLASSPATH: /opt/hbase-1.1.6/conf
     volumes_from:
       - hbase
     depends_on:

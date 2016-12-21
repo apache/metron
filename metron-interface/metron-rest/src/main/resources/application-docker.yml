@@ -42,7 +42,9 @@ hdfs:
     url: file:///
 
 grok:
-  path: target/patterns
+  path:
+    temp: target/patterns/temp
+    default: target/patterns
 
 storm:
   ui:
