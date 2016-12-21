@@ -437,13 +437,15 @@ public class StellarStatisticsFunctions {
           , params = {
           "stats - The Stellar statistics object"
           , "value - The value to bin"
-          , "range? - A list of percentile bin ranges (excluding min and max) or a string representing a known and common set of bins.  " +
+          , "bounds? - A list of percentile bin bounds (excluding min and max) or a string representing a known and common set of bins.  " +
           "For convenience, we have provided QUARTILE, QUINTILE, and DECILE which you can pass in as a string arg." +
           " If this argument is omitted, then we assume a Quartile bin split."
-  }
-          , returns = "Which bin the value falls in such that bin < value < bin + 1"
+                    }
+          ,returns = "Which bin N the value falls in such that bound(N-1) < value <= bound(N). " +
+          "No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, " +
+          "and values greater than the last bound go in the M'th bin."
   )
-  public static class Bin extends BaseStellarFunction {
+  public static class StatsBin extends BaseStellarFunction {
     public enum BinSplits {
       QUARTILE(ImmutableList.of(25.0, 50.0, 75.0)),
       QUINTILE(ImmutableList.of(20.0, 40.0, 60.0, 80.0)),
@@ -474,27 +476,12 @@ public class StellarStatisticsFunctions {
     public Object apply(List<Object> args) {
       StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       Double value = convert(args.get(1), Double.class);
-      List<Double> bins = BinSplits.QUARTILE.split;
-      if (args.size() > 2) {
-        bins = BinSplits.getSplit(args.get(2));
-      }
+      final List<Double> bins = args.size() > 2?BinSplits.getSplit(args.get(2)):BinSplits.QUARTILE.split;
+
       if (stats == null || value == null || bins.size() == 0) {
         return -1;
       }
-
-      double prevPctile = stats.getPercentile(bins.get(0));
-
-      if(value <= prevPctile) {
-        return 0;
-      }
-      for(int bin = 1; bin < bins.size();++bin) {
-        double pctile = stats.getPercentile(bins.get(bin));
-        if(value > prevPctile && value <= pctile) {
-          return bin;
-        }
-        prevPctile = pctile;
-      }
-      return bins.size();
+      return MathFunctions.Bin.getBin(value, bins, bin -> stats.getPercentile(bins.get(bin)));
     }
   }
 

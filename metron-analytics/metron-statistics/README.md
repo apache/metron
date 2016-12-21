@@ -16,6 +16,12 @@ functions can be used from everywhere where Stellar is used.
   * Input:
     * number - The number to take the absolute value of
   * Returns: The absolute value of the number passed in.
+* `BIN`
+  * Description: Computes the bin that the value is in given a set of bounds.
+  * Input:
+    * value - The value to bin
+    * bounds - A list of value bounds (excluding min and max) in sorted order.
+  * Returns: Which bin N the value falls in such that bound(N-1) < value <= bound(N).  No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, and values greater than the last bound go in the M'th bin.
 
 
 ### Distributional Statistics
@@ -117,8 +123,8 @@ functions can be used from everywhere where Stellar is used.
   * Input:
     * stats - The Stellar statistics object
     * value - The value to bin
-    * range? - A list of percentile bin ranges (excluding min and max) or a string representing a known and common set of bins.  For convenience, we have provided QUARTILE, QUINTILE, and DECILE which you can pass in as a string arg. If this argument is omitted, then we assume a Quartile bin split.
-  * Returns: Which bin the value falls in such that bin < value < bin + 1
+    * bounds? - A list of percentile bin bounds (excluding min and max) or a string representing a known and common set of bins.  For convenience, we have provided QUARTILE, QUINTILE, and DECILE which you can pass in as a string arg. If this argument is omitted, then we assume a Quartile bin split. 
+  * Returns: "Which bin N the value falls in such that bound(N-1) < value <= bound(N). No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, and values greater than the last bound go in the M'th bin.
 
 ### Statistical Outlier Detection
 

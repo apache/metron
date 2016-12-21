@@ -19,12 +19,13 @@
  */
 package org.apache.metron.statistics;
 
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+
+import static org.apache.metron.common.utils.ConversionUtils.convert;
 
 public class MathFunctions {
 
@@ -57,6 +58,51 @@ public class MathFunctions {
     @Override
     public boolean isInitialized() {
       return true;
+    }
+  }
+
+  /**
+   * Calculates the statistical bin that a value falls in.
+   */
+  @Stellar(name = "BIN"
+          , description = "Computes the bin that the value is in given a set of bounds."
+          , params = {
+           "value - The value to bin"
+          , "bounds - A list of value bounds (excluding min and max) in sorted order."
+                    }
+          ,returns = "Which bin N the value falls in such that bound(N-1) < value <= bound(N). " +
+          "No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, " +
+          "and values greater than the last bound go in the M'th bin."
+  )
+  public static class Bin extends BaseStellarFunction {
+
+    public static int getBin(double value, List<Double> bins, Function<Integer, Double> boundFunc) {
+      for(int bin = 0; bin < bins.size();++bin) {
+        double bound = boundFunc.apply(bin);
+        if(value <= bound) {
+          return bin;
+        }
+      }
+      return bins.size();
+    }
+
+    @Override
+    public Object apply(List<Object> args) {
+      Double value = convert(args.get(0), Double.class);
+      List<Double> bins = new ArrayList<>();
+      if (args.size() > 1) {
+        List<Number> objList = convert(args.get(1), List.class);
+        if(objList == null) {
+          return null;
+        }
+        for(Number n : objList) {
+          bins.add(n.doubleValue());
+        }
+      }
+      if ( value == null || bins == null || bins.size() == 0) {
+        return -1;
+      }
+      return getBin(value, bins, bin -> bins.get(bin));
     }
   }
 }

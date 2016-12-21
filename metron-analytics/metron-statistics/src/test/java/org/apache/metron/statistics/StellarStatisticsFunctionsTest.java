@@ -360,10 +360,10 @@ public class StellarStatisticsFunctionsTest {
   @Test
   public void testStatsBin() throws Exception {
     statsInit(windowSize);
-    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.QUARTILE.split);
-    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.QUARTILE.split, "'QUARTILE'");
-    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.QUINTILE.split, "'QUINTILE'");
-    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.DECILE.split, "'DECILE'");
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUARTILE.split);
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUARTILE.split, "'QUARTILE'");
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUINTILE.split, "'QUINTILE'");
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.DECILE.split, "'DECILE'");
     statsBinRunner(ImmutableList.of(25.0, 50.0, 75.0), "[25.0, 50.0, 75.0]");
   }
 
@@ -373,15 +373,16 @@ public class StellarStatisticsFunctionsTest {
 
   public void statsBinRunner(List<Double> splits, String splitsName) throws Exception {
     int bin = 0;
+    StatisticsProvider provider = (StatisticsProvider)variables.get("stats");
     for(Double d : stats.getSortedValues()) {
-      StatisticsProvider provider = (StatisticsProvider)variables.get("stats");
       if(bin < splits.size()) {
         double percentileOfBin = provider.getPercentile(splits.get(bin));
         if (d > percentileOfBin) {
           //we aren't the right bin, so let's find the right one.
           // Keep in mind that this value could be more than one bin away from the last good bin.
-          for(;bin < splits.size() && d > provider.getPercentile(splits.get(bin));bin++) {
-
+          while ( bin < splits.size()  &&  d > provider.getPercentile(splits.get(bin)) ) {
+            //increment the bin number until it includes the target value, or we run out of bins
+            bin++;
           }
         }
       }
