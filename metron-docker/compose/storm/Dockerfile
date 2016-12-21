@@ -22,7 +22,6 @@ ENV METRON_VERSION $METRON_VERSION
 ENV METRON_HOME /usr/metron/$METRON_VERSION/
 
 ADD ./bin $METRON_HOME/bin
-ADD ./conf $METRON_HOME/config/zookeeper
 ADD ./parser /parser
 ADD ./enrichment /enrichment
 ADD ./indexing /indexing
