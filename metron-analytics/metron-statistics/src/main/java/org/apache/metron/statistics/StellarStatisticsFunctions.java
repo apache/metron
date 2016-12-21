@@ -20,9 +20,12 @@
 
 package org.apache.metron.statistics;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.utils.ConversionUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -425,4 +428,74 @@ public class StellarStatisticsFunctions {
       return result;
     }
   }
+
+  /**
+   * Calculates the statistical bin that a value falls in.
+   */
+  @Stellar(namespace = "STATS", name = "BIN"
+          , description = "Computes the bin that the value is in."
+          , params = {
+          "stats - The Stellar statistics object"
+          , "value - The value to bin"
+          , "range? - A list of percentile bin ranges (excluding min and max) or a string representing a known and common set of bins.  " +
+          "For convenience, we have provided QUARTILE, QUINTILE, and DECILE which you can pass in as a string arg." +
+          " If this argument is omitted, then we assume a Quartile bin split."
+  }
+          , returns = "Which bin the value falls in such that bin < value < bin + 1"
+  )
+  public static class Bin extends BaseStellarFunction {
+    public enum BinSplits {
+      QUARTILE(ImmutableList.of(25.0, 50.0, 75.0)),
+      QUINTILE(ImmutableList.of(20.0, 40.0, 60.0, 80.0)),
+      DECILE(ImmutableList.of(10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0))
+      ;
+      public final List<Double> split;
+      BinSplits(List<Double> split) {
+        this.split = split;
+      }
+
+      public static List<Double> getSplit(Object o) {
+        if(o instanceof String) {
+          return BinSplits.valueOf((String)o).split;
+        }
+        else if(o instanceof List) {
+          List<Double> ret = new ArrayList<>();
+          for(Object valO : (List<Object>)o) {
+            ret.add(ConversionUtils.convert(valO, Double.class));
+          }
+          return ret;
+        }
+        throw new IllegalStateException("The split you tried to pass is not a valid split: " + o.toString());
+      }
+    }
+
+
+    @Override
+    public Object apply(List<Object> args) {
+      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
+      Double value = convert(args.get(1), Double.class);
+      List<Double> bins = BinSplits.QUARTILE.split;
+      if (args.size() > 2) {
+        bins = BinSplits.getSplit(args.get(2));
+      }
+      if (stats == null || value == null || bins.size() == 0) {
+        return -1;
+      }
+
+      double prevPctile = stats.getPercentile(bins.get(0));
+
+      if(value <= prevPctile) {
+        return 0;
+      }
+      for(int bin = 1; bin < bins.size();++bin) {
+        double pctile = stats.getPercentile(bins.get(bin));
+        if(value > prevPctile && value <= pctile) {
+          return bin;
+        }
+        prevPctile = pctile;
+      }
+      return bins.size();
+    }
+  }
+
 }

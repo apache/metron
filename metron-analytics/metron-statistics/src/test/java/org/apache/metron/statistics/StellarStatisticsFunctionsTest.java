@@ -21,6 +21,7 @@
 package org.apache.metron.statistics;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -356,6 +357,44 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
+  @Test
+  public void testStatsBin() throws Exception {
+    statsInit(windowSize);
+    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.QUARTILE.split);
+    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.QUARTILE.split, "'QUARTILE'");
+    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.QUINTILE.split, "'QUINTILE'");
+    statsBinRunner(StellarStatisticsFunctions.Bin.BinSplits.DECILE.split, "'DECILE'");
+    statsBinRunner(ImmutableList.of(25.0, 50.0, 75.0), "[25.0, 50.0, 75.0]");
+  }
+
+  public void statsBinRunner(List<Double> splits) throws Exception {
+    statsBinRunner(splits, null);
+  }
+
+  public void statsBinRunner(List<Double> splits, String splitsName) throws Exception {
+    int bin = 0;
+    for(Double d : stats.getSortedValues()) {
+      StatisticsProvider provider = (StatisticsProvider)variables.get("stats");
+      if(bin < splits.size()) {
+        double percentileOfBin = provider.getPercentile(splits.get(bin));
+        if (d > percentileOfBin) {
+          //we aren't the right bin, so let's find the right one.
+          // Keep in mind that this value could be more than one bin away from the last good bin.
+          for(;bin < splits.size() && d > provider.getPercentile(splits.get(bin));bin++) {
+
+          }
+        }
+      }
+      Object actual = null;
+      if(splitsName != null) {
+        actual = run(format("STATS_BIN(stats, %f, %s)", d, splitsName), variables);
+      }
+      else {
+        actual = run(format("STATS_BIN(stats, %f)", d), variables);
+      }
+      assertEquals(bin, actual);
+    }
+  }
 
   @Test
   public void testPercentileNoWindow() throws Exception {
