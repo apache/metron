@@ -134,7 +134,7 @@ public class StormCLIWrapper {
     BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
     List<String> lines = reader.lines().collect(toList());
     lines.forEach(System.out::println);
-    if (lines.size() > 0) {
+    if (lines.size() > 1) {
       stormClientVersionInstalled = lines.get(1).replaceFirst("Storm ", "");
     }
     return stormClientVersionInstalled;
