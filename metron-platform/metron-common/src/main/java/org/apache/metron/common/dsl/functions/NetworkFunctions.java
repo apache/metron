@@ -18,18 +18,18 @@
 
 package org.apache.metron.common.dsl.functions;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
-import java.util.function.Function;
 
 public class NetworkFunctions {
   @Stellar(name="IN_SUBNET"
@@ -55,7 +55,7 @@ public class NetworkFunctions {
       }
       boolean inSubnet = false;
       for(int i = 1;i < list.size() && !inSubnet;++i) {
-        String cidr = (String) list.get(1);
+        String cidr = (String) list.get(i);
         if(cidr == null) {
           continue;
         }
@@ -86,15 +86,19 @@ public class NetworkFunctions {
       InternetDomainName idn = toDomainName(dnObj);
       if(idn != null) {
         String dn = dnObj.toString();
-        String tld = Joiner.on(".").join(idn.publicSuffix().parts());
-        String suffix = dn.substring(0, dn.length() - tld.length());
-        String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
-        String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
-        if(hostnameWithoutSubsAndTLD == null) {
-          return null;
+        String tld = extractTld(idn, dn);
+        if(!StringUtils.isEmpty(dn)) {
+          String suffix = safeSubstring(dn, 0, dn.length() - tld.length());
+          String hostnameWithoutTLD = safeSubstring(suffix, 0, suffix.length() - 1);
+          if(hostnameWithoutTLD == null) {
+            return dn;
+          }
+          String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
+          if(hostnameWithoutSubsAndTLD == null) {
+            return null;
+          }
+          return hostnameWithoutSubsAndTLD + "." + tld;
         }
-        return hostnameWithoutSubsAndTLD + "." + tld;
-
       }
       return null;
     }
@@ -116,14 +120,13 @@ public class NetworkFunctions {
       InternetDomainName idn = toDomainName(dnObj);
       if(idn != null) {
         String dn = dnObj.toString();
-        String tld = idn.publicSuffix().toString();
-        String suffix = Iterables.getFirst(Splitter.on(tld).split(dn), null);
-        if(suffix != null)
-        {
-          return suffix.substring(0, suffix.length() - 1);
+        String tld = extractTld(idn, dn);
+        String suffix = safeSubstring(dn, 0, dn.length() - tld.length());
+        if(StringUtils.isEmpty(suffix)) {
+          return suffix;
         }
         else {
-          return null;
+          return suffix.substring(0, suffix.length() - 1);
         }
       }
       return null;
@@ -144,10 +147,7 @@ public class NetworkFunctions {
     public Object apply(List<Object> objects) {
       Object dnObj = objects.get(0);
       InternetDomainName idn = toDomainName(dnObj);
-      if(idn != null) {
-        return idn.publicSuffix().toString();
-      }
-      return null;
+      return extractTld(idn, dnObj + "");
     }
   }
 
@@ -163,12 +163,16 @@ public class NetworkFunctions {
   public static class URLToPort extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
-      URL url =  toUrl(objects.get(0));
+      URI url =  toUri(objects.get(0));
       if(url == null) {
         return null;
       }
       int port = url.getPort();
-      return port >= 0?port:url.getDefaultPort();
+      try {
+        return port >= 0?port:url.toURL().getDefaultPort();
+      } catch (MalformedURLException e) {
+        return null;
+      }
     }
   }
 
@@ -182,8 +186,8 @@ public class NetworkFunctions {
   public static class URLToPath extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
-      URL url =  toUrl(objects.get(0));
-      return url == null?null:url.getPath();
+      URI uri =  toUri(objects.get(0));
+      return uri == null?null:uri.getPath();
     }
   }
 
@@ -199,7 +203,7 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
-      URL url =  toUrl(objects.get(0));
+      URI url =  toUri(objects.get(0));
       return url == null?null:url.getHost();
     }
   }
@@ -215,9 +219,46 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
-      URL url =  toUrl(objects.get(0));
-      return url == null?null:url.getProtocol();
+      URI url =  toUri(objects.get(0));
+      return url == null?null:url.getScheme();
     }
+  }
+
+  /**
+   * Extract the TLD.  If the domain is a normal domain, then we can handle the TLD via the InternetDomainName object.
+   * If it is not, then we default to returning the last segment after the final '.'
+   * @param idn
+   * @param dn
+   * @return The TLD of the domain
+   */
+  private static String extractTld(InternetDomainName idn, String dn) {
+
+    if(idn != null && idn.hasPublicSuffix()) {
+      return idn.publicSuffix().toString();
+    }
+    else if(dn != null) {
+      StringBuffer tld = new StringBuffer("");
+      for(int idx = dn.length() -1;idx >= 0;idx--) {
+        char c = dn.charAt(idx);
+        if(c == '.') {
+          break;
+        }
+        else {
+          tld.append(dn.charAt(idx));
+        }
+      }
+      return tld.reverse().toString();
+    }
+    else {
+      return null;
+    }
+  }
+
+  private static String safeSubstring(String val, int start, int end) {
+    if(!StringUtils.isEmpty(val)) {
+      return val.substring(start, end);
+    }
+    return null;
   }
 
   private static InternetDomainName toDomainName(Object dnObj) {
@@ -238,19 +279,19 @@ public class NetworkFunctions {
     return null;
   }
 
-  private static URL toUrl(Object urlObj) {
-    if(urlObj == null) {
+  private static URI toUri(Object uriObj) {
+    if(uriObj == null) {
       return null;
     }
-    if(urlObj instanceof String) {
+    if(uriObj instanceof String) {
       try {
-        return new URL(urlObj.toString());
-      } catch (MalformedURLException e) {
+        return new URI(uriObj.toString());
+      } catch (URISyntaxException e) {
         return null;
       }
     }
     else {
-      throw new IllegalArgumentException(urlObj + " is not a string and therefore also not a URL.");
+      throw new IllegalArgumentException(uriObj + " is not a string and therefore also not a URL.");
     }
   }
 }
