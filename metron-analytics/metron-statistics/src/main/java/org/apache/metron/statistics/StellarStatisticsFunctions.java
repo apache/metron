@@ -433,7 +433,7 @@ public class StellarStatisticsFunctions {
    * Calculates the statistical bin that a value falls in.
    */
   @Stellar(namespace = "STATS", name = "BIN"
-          , description = "Computes the bin that the value is in."
+          , description = "Computes the bin that the value is in based on the statistical distribution."
           , params = {
           "stats - The Stellar statistics object"
           , "value - The value to bin"

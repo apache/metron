@@ -112,6 +112,13 @@ functions can be used from everywhere where Stellar is used.
   * Input:
     * stats - The Stellar statistics object
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
+* `STATS_BIN`
+  * Description: Computes the bin that the value is in based on the statistical distribution. 
+  * Input:
+    * stats - The Stellar statistics object
+    * value - The value to bin
+    * range? - A list of percentile bin ranges (excluding min and max) or a string representing a known and common set of bins.  For convenience, we have provided QUARTILE, QUINTILE, and DECILE which you can pass in as a string arg. If this argument is omitted, then we assume a Quartile bin split.
+  * Returns: Which bin the value falls in such that bin < value < bin + 1
 
 ### Statistical Outlier Detection
 
