@@ -62,3 +62,15 @@ mvn --version
 # operating system
 echo "--"
 uname -a
+
+# system resources
+echo "--"
+uname -a | grep -i "linux" > /dev/null
+if [ $? -eq 0 ]
+then
+  # Linux
+  top -b -n 1 | head -10 2>/dev/null
+else
+  # Mac
+  top -l 1 | head -10 2>/dev/null
+fi
