@@ -21,7 +21,8 @@ ARG METRON_VERSION
 ENV METRON_VERSION $METRON_VERSION
 ENV METRON_HOME /usr/metron/$METRON_VERSION/
 
-ADD ./bin /usr/local/bin
+ADD ./bin $METRON_HOME/bin
+ADD ./conf $METRON_HOME/config/zookeeper
 ADD ./parser /parser
 ADD ./enrichment /enrichment
 ADD ./indexing /indexing
@@ -54,5 +55,4 @@ RUN sed -i -e "s/bolt.hdfs.file.system.url=.*:8020/bolt.hdfs.file.system.url=fil
 EXPOSE 8080 8000
 EXPOSE 8081 8081
 
-WORKDIR /usr/local
-ENTRYPOINT ["/bin/bash", "./bin/start.sh"]
+WORKDIR $METRON_HOME

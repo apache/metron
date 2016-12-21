@@ -15,7 +15,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-export HBASE_CLASSPATH=`${HBASE_HOME}/bin/hbase classpath`
 ./bin/hbase shell ./bin/init-commands.txt
-java -cp $HBASE_CLASSPATH:/usr/metron/$METRON_VERSION/lib/metron-data-management-$METRON_VERSION.jar org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader -e /conf/enrichment-extractor.json -t enrichment -c cf -i /data/enrichments.csv
-java -cp $HBASE_CLASSPATH:/usr/metron/$METRON_VERSION/lib/metron-data-management-$METRON_VERSION.jar org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader -e /conf/threatintel-extractor.json -t threatintel -c cf -i /data/threatintel.csv
+/usr/metron/$METRON_VERSION/bin/flatfile_loader.sh -e /conf/enrichment-extractor.json -t enrichment -c cf -i /data/enrichments.csv
+/usr/metron/$METRON_VERSION/bin/flatfile_loader.sh -e /conf/threatintel-extractor.json -t threatintel -c cf -i /data/threatintel.csv

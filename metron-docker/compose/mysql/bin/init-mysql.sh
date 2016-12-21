@@ -15,5 +15,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-METRON_VERSION=0.3.0
-cd /opt/hbase-1.1.6/conf && jar uf $METRON_HOME/lib/metron-enrichment-$METRON_VERSION-uber.jar hbase-site.xml
+mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS metronrest"
+mysql -uroot -proot < /usr/metron/$METRON_VERSION/ddl/geoip_ddl.sql

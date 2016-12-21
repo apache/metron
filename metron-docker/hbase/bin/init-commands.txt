@@ -1,5 +1,0 @@
-create 'access_tracker', 'cf'
-create 'ip', 'cf'
-create 'enrichment', 'cf'
-create 'threatintel', 'cf'
-exit

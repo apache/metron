@@ -15,5 +15,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-cd /opt/hbase-1.1.6/conf && jar uf $METRON_HOME/lib/metron-enrichment-$METRON_VERSION-uber.jar hbase-site.xml
-/home/storm/entrypoint.sh $@
+if [ $# -lt 2 ]
+  then
+    echo "Usage:  produce-data.sh data_path topic [message_delay_in_seconds]"
+    exit 0
+fi
+
+FILE_PATH=$1
+TOPIC=$2
+DELAY=${3:-1}
+echo "Emitting data in $FILE_PATH to Kafka topic $TOPIC every $DELAY second(s)"
+exec ./bin/output-data.sh $FILE_PATH $DELAY | ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic $TOPIC > /dev/null
