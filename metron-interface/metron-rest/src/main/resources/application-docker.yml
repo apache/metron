@@ -17,7 +17,7 @@ docker:
   host:
     address: 192.168.99.100
   compose:
-    path: ../../metron-docker/docker-compose.yml
+    path: ../../metron-docker/compose/docker-compose.yml
 
 spring:
   datasource:
