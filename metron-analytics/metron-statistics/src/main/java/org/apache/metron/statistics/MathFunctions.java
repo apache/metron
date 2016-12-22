@@ -77,11 +77,11 @@ public class MathFunctions {
   public static class Bin extends BaseStellarFunction {
 
     public static int getBin(double value, int numBins, Function<Integer, Double> boundFunc) {
-      double lastBound = Long.MIN_VALUE;
+      double lastBound = Double.NEGATIVE_INFINITY;
       for(int bin = 0; bin < numBins;++bin) {
         double bound = boundFunc.apply(bin);
-        if(bound < lastBound) {
-          throw new IllegalStateException("Your bins must be monotonically increasing");
+        if(bound <= lastBound) {
+          throw new IllegalStateException("Your bins must be strictly increasing");
         }
         if(value <= bound) {
           return bin;
