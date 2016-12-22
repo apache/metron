@@ -163,13 +163,13 @@ public class NetworkFunctions {
   public static class URLToPort extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
-      URI url =  toUri(objects.get(0));
-      if(url == null) {
+      URI uri =  toUri(objects.get(0));
+      if(uri == null) {
         return null;
       }
-      int port = url.getPort();
+      int port = uri.getPort();
       try {
-        return port >= 0?port:url.toURL().getDefaultPort();
+        return port >= 0?port:uri.toURL().getDefaultPort();
       } catch (MalformedURLException e) {
         return null;
       }
@@ -203,8 +203,8 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
-      URI url =  toUri(objects.get(0));
-      return url == null?null:url.getHost();
+      URI uri =  toUri(objects.get(0));
+      return uri == null?null:uri.getHost();
     }
   }
 
@@ -219,8 +219,8 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
-      URI url =  toUri(objects.get(0));
-      return url == null?null:url.getScheme();
+      URI uri =  toUri(objects.get(0));
+      return uri == null?null:uri.getScheme();
     }
   }
 
