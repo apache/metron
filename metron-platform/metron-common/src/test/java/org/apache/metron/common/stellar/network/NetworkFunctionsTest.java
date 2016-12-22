@@ -140,11 +140,6 @@ public class NetworkFunctionsTest {
   }
 
   @Test
-  public void urlToProtocolTest_unknownprotocol() {
-    runWithArguments("URL_TO_PROTOCOL", "casey://www.google.gmail/foo/bar", "casey");
-  }
-
-  @Test
   public void urlToPathTest() {
     runWithArguments("URL_TO_PATH", "http://www.google.com/foo/bar", "/foo/bar");
     runWithArguments("URL_TO_PATH", "https://www.google.com/foo/bar", "/foo/bar");
@@ -156,9 +151,5 @@ public class NetworkFunctionsTest {
     runWithArguments("URL_TO_PATH", "http://www.google.gmail/foo/bar", "/foo/bar");
   }
 
-  @Test
-  public void urlToPathTest_unknownprotocol() {
-    runWithArguments("URL_TO_PATH", "casey://www.google.gmail/foo/bar", "/foo/bar");
-  }
 
 }

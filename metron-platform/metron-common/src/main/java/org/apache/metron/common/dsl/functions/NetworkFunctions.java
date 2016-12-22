@@ -23,14 +23,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.field.validation.network.URLValidation;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 
 public class NetworkFunctions {
@@ -165,16 +162,12 @@ public class NetworkFunctions {
   public static class URLToPort extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
-      URI uri =  toUri(objects.get(0));
-      if(uri == null) {
+      URL url =  toUrl(objects.get(0));
+      if(url == null) {
         return null;
       }
-      int port = uri.getPort();
-      try {
-        return port >= 0?port:uri.toURL().getDefaultPort();
-      } catch (MalformedURLException e) {
-        return null;
-      }
+      int port = url.getPort();
+      return port >= 0?port:url.getDefaultPort();
     }
   }
 
@@ -188,8 +181,8 @@ public class NetworkFunctions {
   public static class URLToPath extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> objects) {
-      URI uri =  toUri(objects.get(0));
-      return uri == null?null:uri.getPath();
+      URL url =  toUrl(objects.get(0));
+      return url == null?null:url.getPath();
     }
   }
 
@@ -205,8 +198,8 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
-      URI uri =  toUri(objects.get(0));
-      return uri == null?null:uri.getHost();
+      URL url =  toUrl(objects.get(0));
+      return url == null?null:url.getHost();
     }
   }
 
@@ -221,8 +214,8 @@ public class NetworkFunctions {
 
     @Override
     public Object apply(List<Object> objects) {
-      URI uri =  toUri(objects.get(0));
-      return uri == null?null:uri.getScheme();
+      URL url =  toUrl(objects.get(0));
+      return url == null?null:url.getProtocol();
     }
   }
 
@@ -281,26 +274,20 @@ public class NetworkFunctions {
     return null;
   }
 
-  private static URI toUri(Object uriObj) {
-    if(uriObj == null) {
+  private static URL toUrl(Object urlObj) {
+    if(urlObj == null) {
       return null;
     }
-    if(uriObj instanceof String) {
-      String url = uriObj.toString();
+    if(urlObj instanceof String) {
+      String url = urlObj.toString();
       try {
-        UrlValidator validator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES + UrlValidator.ALLOW_LOCAL_URLS + UrlValidator.ALLOW_2_SLASHES);
-        if(validator.isValid(url)) {
-          return new URI(url);
-        }
-        else {
-          throw new IllegalArgumentException(url + " is not a valid URL");
-        }
-      } catch (URISyntaxException e) {
+        return new URL(url);
+      } catch (MalformedURLException e) {
         return null;
       }
     }
     else {
-      throw new IllegalArgumentException(uriObj + " is not a string and therefore also not a URL.");
+      throw new IllegalArgumentException(urlObj + " is not a string and therefore also not a URL.");
     }
   }
 }
