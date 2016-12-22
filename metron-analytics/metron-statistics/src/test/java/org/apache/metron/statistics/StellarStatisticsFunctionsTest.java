@@ -373,6 +373,7 @@ public class StellarStatisticsFunctionsTest {
     provider.addValue(10);
     variables.put("stats", provider);
     Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 9.0), variables));
+    Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 10.0), variables));
     Assert.assertEquals(3, run(format("STATS_BIN(stats, %f)", 11.0), variables));
   }
 
