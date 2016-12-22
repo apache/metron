@@ -80,8 +80,8 @@ public class MathFunctions {
       double lastBound = Double.NEGATIVE_INFINITY;
       for(int bin = 0; bin < numBins;++bin) {
         double bound = boundFunc.apply(bin);
-        if(bound <= lastBound) {
-          throw new IllegalStateException("Your bins must be strictly increasing");
+        if(lastBound > bound ) {
+          throw new IllegalStateException("Your bins must be non-decreasing");
         }
         if(value <= bound) {
           return bin;

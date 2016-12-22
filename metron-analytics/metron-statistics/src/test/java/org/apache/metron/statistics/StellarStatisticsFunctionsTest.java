@@ -367,6 +367,15 @@ public class StellarStatisticsFunctionsTest {
     statsBinRunner(ImmutableList.of(25.0, 50.0, 75.0), "[25.0, 50.0, 75.0]");
   }
 
+  @Test
+  public void testStatsBin_singleValue() throws Exception {
+    StatisticsProvider provider = (StatisticsProvider)run("STATS_INIT(" + windowSize + ")", variables);
+    provider.addValue(10);
+    variables.put("stats", provider);
+    Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 9.0), variables));
+    Assert.assertEquals(3, run(format("STATS_BIN(stats, %f)", 11.0), variables));
+  }
+
   public void statsBinRunner(List<Number> splits) throws Exception {
     statsBinRunner(splits, null);
   }
