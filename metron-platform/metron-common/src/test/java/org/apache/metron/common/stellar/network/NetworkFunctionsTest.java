@@ -118,6 +118,7 @@ public class NetworkFunctionsTest {
     runWithArguments("URL_TO_HOST", "http://www.google.com/foo/bar", "www.google.com");
     runWithArguments("URL_TO_HOST", "https://www.google.com/foo/bar", "www.google.com");
     runWithArguments("URL_TO_HOST", "http://www.google.com:7979/foo/bar", "www.google.com");
+    runWithArguments("URL_TO_HOST", "http://localhost:8080/a", "localhost");
   }
 
 
@@ -141,6 +142,23 @@ public class NetworkFunctionsTest {
   @Test
   public void urlToProtocolTest_unknownprotocol() {
     runWithArguments("URL_TO_PROTOCOL", "casey://www.google.gmail/foo/bar", "casey");
+  }
+
+  @Test
+  public void urlToPathTest() {
+    runWithArguments("URL_TO_PATH", "http://www.google.com/foo/bar", "/foo/bar");
+    runWithArguments("URL_TO_PATH", "https://www.google.com/foo/bar", "/foo/bar");
+  }
+
+
+  @Test
+  public void urlToPathTest_unknowntld() {
+    runWithArguments("URL_TO_PATH", "http://www.google.gmail/foo/bar", "/foo/bar");
+  }
+
+  @Test
+  public void urlToPathTest_unknownprotocol() {
+    runWithArguments("URL_TO_PATH", "casey://www.google.gmail/foo/bar", "/foo/bar");
   }
 
 }

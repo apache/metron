@@ -23,8 +23,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.field.validation.network.URLValidation;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -284,8 +286,15 @@ public class NetworkFunctions {
       return null;
     }
     if(uriObj instanceof String) {
+      String url = uriObj.toString();
       try {
-        return new URI(uriObj.toString());
+        UrlValidator validator = new UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES + UrlValidator.ALLOW_LOCAL_URLS + UrlValidator.ALLOW_2_SLASHES);
+        if(validator.isValid(url)) {
+          return new URI(url);
+        }
+        else {
+          throw new IllegalArgumentException(url + " is not a valid URL");
+        }
       } catch (URISyntaxException e) {
         return null;
       }
