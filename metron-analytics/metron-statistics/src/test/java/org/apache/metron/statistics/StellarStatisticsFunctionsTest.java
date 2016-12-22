@@ -367,25 +367,19 @@ public class StellarStatisticsFunctionsTest {
     statsBinRunner(ImmutableList.of(25.0, 50.0, 75.0), "[25.0, 50.0, 75.0]");
   }
 
-  public void statsBinRunner(List<Double> splits) throws Exception {
+  public void statsBinRunner(List<Number> splits) throws Exception {
     statsBinRunner(splits, null);
   }
 
-  public void statsBinRunner(List<Double> splits, String splitsName) throws Exception {
+  public void statsBinRunner(List<Number> splits, String splitsName) throws Exception {
     int bin = 0;
     StatisticsProvider provider = (StatisticsProvider)variables.get("stats");
     for(Double d : stats.getSortedValues()) {
-      if(bin < splits.size()) {
-        double percentileOfBin = provider.getPercentile(splits.get(bin));
-        if (d > percentileOfBin) {
-          //we aren't the right bin, so let's find the right one.
-          // Keep in mind that this value could be more than one bin away from the last good bin.
-          while ( bin < splits.size()  &&  d > provider.getPercentile(splits.get(bin)) ) {
-            //increment the bin number until it includes the target value, or we run out of bins
-            bin++;
-          }
-        }
+      while ( bin < splits.size()  &&  d > provider.getPercentile(splits.get(bin).doubleValue()) ) {
+        //increment the bin number until it includes the target value, or we run out of bins
+        bin++;
       }
+
       Object actual = null;
       if(splitsName != null) {
         actual = run(format("STATS_BIN(stats, %f, %s)", d, splitsName), variables);

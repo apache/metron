@@ -76,33 +76,29 @@ public class MathFunctions {
   )
   public static class Bin extends BaseStellarFunction {
 
-    public static int getBin(double value, List<Double> bins, Function<Integer, Double> boundFunc) {
-      for(int bin = 0; bin < bins.size();++bin) {
+    public static int getBin(double value, int numBins, Function<Integer, Double> boundFunc) {
+      double lastBound = Long.MIN_VALUE;
+      for(int bin = 0; bin < numBins;++bin) {
         double bound = boundFunc.apply(bin);
+        if(bound < lastBound) {
+          throw new IllegalStateException("Your bins must be monotonically increasing");
+        }
         if(value <= bound) {
           return bin;
         }
+        lastBound = bound;
       }
-      return bins.size();
+      return numBins;
     }
 
     @Override
     public Object apply(List<Object> args) {
       Double value = convert(args.get(0), Double.class);
-      List<Double> bins = new ArrayList<>();
-      if (args.size() > 1) {
-        List<Number> objList = convert(args.get(1), List.class);
-        if(objList == null) {
-          return null;
-        }
-        for(Number n : objList) {
-          bins.add(n.doubleValue());
-        }
-      }
+      final List<Number> bins = args.size() > 1?convert(args.get(1), List.class):null;
       if ( value == null || bins == null || bins.size() == 0) {
         return -1;
       }
-      return getBin(value, bins, bin -> bins.get(bin));
+      return getBin(value, bins.size(), bin -> bins.get(bin).doubleValue());
     }
   }
 }

@@ -451,21 +451,17 @@ public class StellarStatisticsFunctions {
       QUINTILE(ImmutableList.of(20.0, 40.0, 60.0, 80.0)),
       DECILE(ImmutableList.of(10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0))
       ;
-      public final List<Double> split;
-      BinSplits(List<Double> split) {
+      public final List<Number> split;
+      BinSplits(List<Number> split) {
         this.split = split;
       }
 
-      public static List<Double> getSplit(Object o) {
+      public static List<Number> getSplit(Object o) {
         if(o instanceof String) {
           return BinSplits.valueOf((String)o).split;
         }
         else if(o instanceof List) {
-          List<Double> ret = new ArrayList<>();
-          for(Object valO : (List<Object>)o) {
-            ret.add(ConversionUtils.convert(valO, Double.class));
-          }
-          return ret;
+          return ConversionUtils.convert(o, List.class);
         }
         throw new IllegalStateException("The split you tried to pass is not a valid split: " + o.toString());
       }
@@ -476,12 +472,12 @@ public class StellarStatisticsFunctions {
     public Object apply(List<Object> args) {
       StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
       Double value = convert(args.get(1), Double.class);
-      final List<Double> bins = args.size() > 2?BinSplits.getSplit(args.get(2)):BinSplits.QUARTILE.split;
+      final List<Number> bins = args.size() > 2?BinSplits.getSplit(args.get(2)):BinSplits.QUARTILE.split;
 
       if (stats == null || value == null || bins.size() == 0) {
         return -1;
       }
-      return MathFunctions.Bin.getBin(value, bins, bin -> stats.getPercentile(bins.get(bin)));
+      return MathFunctions.Bin.getBin(value, bins.size(), bin -> stats.getPercentile(bins.get(bin).doubleValue()));
     }
   }
 
