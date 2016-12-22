@@ -32,6 +32,10 @@ import java.util.Random;
  * This is a driver to drive evaluation of the performance characteristics of the STATS_BIN stellar function.
  * It gets the distribution of the time it takes to calculate the bin of a million random numbers against the quintile bins
  * of a statistical distribution of 10000 normally distributed reals between [-1000, 1000].
+ *
+ * On my 4 year old macbook pro, the values came out to be
+ *
+ * Min/25th/50th/75th/Max Milliseconds: 2687.0 / 2700.5 / 2716.0 / 2733.5 / 3730.0
  */
 public class StatisticalBinningPerformanceDriver {
   public static int NUM_DATA_POINTS = 10000;
