@@ -32,8 +32,6 @@ RUN tar -xzf /parser/metron-parsers-$METRON_VERSION-archive.tar.gz -C /usr/metro
 RUN tar -xzf /enrichment/metron-enrichment-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
 RUN sed -i -e "s/kafka.zk=.*:/kafka.zk=kafkazk:/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/kafka.broker=.*/kafka.broker=kafkazk:9092/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
-RUN sed -i -e "s/mysql.ip=.*/mysql.ip=mysql/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
-RUN sed -i -e "s/mysql.password=.*/mysql.password=root/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/threat.intel.tracker.table=.*/threat.intel.tracker.table=access_tracker/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/threat.intel.tracker.cf=.*/threat.intel.tracker.cf=cf/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/threat.intel.ip.table=.*/threat.intel.ip.table=ip/g" /usr/metron/$METRON_VERSION/config/enrichment.properties

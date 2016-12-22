@@ -20,24 +20,23 @@ package org.apache.metron.enrichment.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.enrichment.integration.mock.MockGeoAdapter;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -46,20 +45,17 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.mock.MockHTable;
+import org.json.simple.parser.ParseException;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final String SRC_IP = "ip_src_addr";
@@ -69,10 +65,23 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
+
+  public static final String DEFAULT_COUNTRY = "test country";
+  public static final String DEFAULT_CITY = "test city";
+  public static final String DEFAULT_POSTAL_CODE = "test postalCode";
+  public static final String DEFAULT_LATITUDE = "test latitude";
+  public static final String DEFAULT_LONGITUDE = "test longitude";
+  public static final String DEFAULT_DMACODE= "test dmaCode";
+  public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
+
   protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
+
+  private static File geoHdfsFile;
+  private static File geoTmpLocalDir;
+
   public static class Provider implements TableProvider, Serializable {
     MockHTable.Provider  provider = new MockHTable.Provider();
     @Override
@@ -88,6 +97,52 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       return null;
     }
   }
+
+  @BeforeClass
+  public static void setupOnce() throws ParseException {
+    // Don't want to actually create the file, so just use a UUID
+    String fileName = EnrichmentIntegrationTest.class.getSimpleName() + "-" + UUID.randomUUID();
+    geoHdfsFile = new File(fileName);
+    createGeoDb();
+
+    geoTmpLocalDir = Files.createTempDir();
+  }
+
+  @AfterClass
+  public static void tearDownOnce() throws IOException {
+    FileUtils.deleteDirectory(geoTmpLocalDir);
+    FileUtils.forceDelete(geoHdfsFile);
+  }
+
+  protected static void createGeoDb() {
+    /*
+    DB db = DBMaker.fileDB(geoHdfsFile)
+            .closeOnJvmShutdown()
+            .make();
+    @SuppressWarnings("unchecked")
+    DB.TreeMapSink<Long, GeoLocation> sink = db
+            .treeMap("geoDb", Serializer.LONG, Serializer.JAVA)
+            .createFromSink();
+
+    GeoLocation input = new GeoLocation(
+            Long.MAX_VALUE,
+            "1",
+            "test country",
+            "test city",
+            "test postalCode",
+            "test latitude",
+            "test longitude",
+            "test dmaCode"
+    );
+    // Use nonzero number as start IP, so that we can test if an IP has no floor
+    sink.put(100L, input);
+
+    sink.create();
+    db.commit();
+    db.close();
+    */
+  }
+
   @Test
   public void test() throws Exception {
     final String cf = "cf";
@@ -124,6 +179,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
+      config.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
       globalConfigStr = JSONUtils.INSTANCE.toJSON(config, true);
     }
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
@@ -366,21 +422,25 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   }
 
   private static void geoEnrichmentValidation(Map<String, Object> indexedDoc) {
-    //should have geo enrichment on every message due to mock geo adapter
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP +".location_point"), MockGeoAdapter.DEFAULT_LOCATION_POINT);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".longitude"), MockGeoAdapter.DEFAULT_LONGITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".city"), MockGeoAdapter.DEFAULT_CITY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".city"), MockGeoAdapter.DEFAULT_CITY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".latitude"), MockGeoAdapter.DEFAULT_LATITUDE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".country"), MockGeoAdapter.DEFAULT_COUNTRY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".country"), MockGeoAdapter.DEFAULT_COUNTRY);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".dmaCode"), MockGeoAdapter.DEFAULT_DMACODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + DST_IP + ".postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
-    Assert.assertEquals(indexedDoc.get("enrichments.geo." + SRC_IP + ".postalCode"), MockGeoAdapter.DEFAULT_POSTAL_CODE);
+    // Need to check both separately. Local IPs will have no Geo entries
+    if(indexedDoc.containsKey("enrichments.geo." + DST_IP + ".location_point")) {
+      Assert.assertEquals(DEFAULT_LOCATION_POINT, indexedDoc.get("enrichments.geo." + DST_IP + ".location_point"));
+      Assert.assertEquals(DEFAULT_LONGITUDE, indexedDoc.get("enrichments.geo." + DST_IP + ".longitude"));
+      Assert.assertEquals(DEFAULT_CITY, indexedDoc.get("enrichments.geo." + DST_IP + ".city"));
+      Assert.assertEquals(DEFAULT_LATITUDE, indexedDoc.get("enrichments.geo." + DST_IP + ".latitude"));
+      Assert.assertEquals(DEFAULT_COUNTRY, indexedDoc.get("enrichments.geo." + DST_IP + ".country"));
+      Assert.assertEquals(DEFAULT_DMACODE, indexedDoc.get("enrichments.geo." + DST_IP + ".dmaCode"));
+      Assert.assertEquals(DEFAULT_POSTAL_CODE, indexedDoc.get("enrichments.geo." + DST_IP + ".postalCode"));
+    }
+    if(indexedDoc.containsKey("enrichments.geo." + SRC_IP + ".location_point")) {
+      Assert.assertEquals(DEFAULT_LOCATION_POINT, indexedDoc.get("enrichments.geo." + SRC_IP + ".location_point"));
+      Assert.assertEquals(DEFAULT_LONGITUDE, indexedDoc.get("enrichments.geo." + SRC_IP + ".longitude"));
+      Assert.assertEquals(DEFAULT_CITY, indexedDoc.get("enrichments.geo." + SRC_IP + ".city"));
+      Assert.assertEquals(DEFAULT_LATITUDE, indexedDoc.get("enrichments.geo." + SRC_IP + ".latitude"));
+      Assert.assertEquals(DEFAULT_COUNTRY, indexedDoc.get("enrichments.geo." + SRC_IP + ".country"));
+      Assert.assertEquals(DEFAULT_DMACODE, indexedDoc.get("enrichments.geo." + SRC_IP + ".dmaCode"));
+      Assert.assertEquals(DEFAULT_POSTAL_CODE, indexedDoc.get("enrichments.geo." + SRC_IP + ".postalCode"));
+    }
   }
 
   private static void hostEnrichmentValidation(Map<String, Object> indexedDoc) {

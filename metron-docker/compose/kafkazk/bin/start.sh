@@ -18,6 +18,7 @@
 ./bin/zookeeper-server-start.sh config/zookeeper.properties &
 ./bin/wait-for-it.sh localhost:2181
 ./bin/init-zk.sh
+./bin/init-geo.sh
 ./bin/kafka-server-start.sh config/server.properties &
 ./bin/wait-for-it.sh localhost:9092
 ./bin/init-kafka.sh

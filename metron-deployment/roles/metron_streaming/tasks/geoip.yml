@@ -15,5 +15,15 @@
 #  limitations under the License.
 #
 ---
-- name: restart elasticsearch
-  service: name=elasticsearch state=restarted
+- name: Create temporary directories
+  file:
+    path: "/tmp/geoip"
+    state: directory
+    owner: hdfs
+    group: hdfs
+    mode: 0755
+
+- name: Load Geo DB
+  shell: "{{ metron_directory }}/bin/geo_enrichment_load.sh -z {{ zookeeper_url }}"
+  become: yes
+  become_user: hdfs

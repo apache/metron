@@ -60,23 +60,6 @@
     - solr
 
 #
-# mysql
-#
-- hosts: mysql
-  become: true
-  roles:
-    - role: mysql_server
-  tags:
-    - mysql-server
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: mysql_client
-  tags:
-    - mysql-client
-
-#
 # parsers, enrichment, and indexing topologies
 #
 - hosts: metron_hbase_tables

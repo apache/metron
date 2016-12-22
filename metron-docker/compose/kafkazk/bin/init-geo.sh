@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,8 +15,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-mysql_rpm_version: mysql57-community-release-el6-7.noarch
-mysql_yum_repo_url: https://dev.mysql.com/get/{{ mysql_rpm_version }}.rpm
-mysql_root_password: P@ssw0rd
-geodata_file: http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
+/usr/metron/0.3.0/bin/geo_enrichment_load.sh -g http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz -r /apps/metron/geo -z amb1.service.consul:2181

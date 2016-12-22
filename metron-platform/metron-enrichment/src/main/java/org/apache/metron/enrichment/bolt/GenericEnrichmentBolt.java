@@ -18,6 +18,7 @@
 
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -120,12 +121,16 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
+
   @Override
   public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();
       }
+    }
+    if(type == ConfigurationType.GLOBAL) {
+      GeoLiteDatabase.INSTANCE.updateIfNecessary(getConfigurations().getGlobalConfig());
     }
   }
 
@@ -149,9 +154,10 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
+    GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
     boolean success = adapter.initializeAdapter();
     if (!success) {
-      LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
+      LOG.error("[Metron] GenericEnrichmentBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
     initializeStellar();
@@ -161,6 +167,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     stellarContext = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+                         .with(Context.Capabilities.GEO_IP, () -> GeoLiteDatabase.INSTANCE)
                          .build();
     StellarFunctions.initialize(stellarContext);
   }
@@ -259,10 +266,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
     }
     collector.emit(ERROR_STREAM, new Values(error));
-  }
-
-  protected void handleError() {
-
   }
 
   @Override

@@ -18,52 +18,64 @@
 package org.apache.metron.enrichment.integration.mock;
 
 import com.google.common.base.Joiner;
+import org.apache.metron.enrichment.adapters.geo.GeoAdapter;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetAddress;
 
-public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
-        Serializable {
+//public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
+//        Serializable {
+public class MockGeoAdapter extends GeoAdapter {
+  public static final long START_IP = 0L;
+  public static final long END_IP = Long.MAX_VALUE;
+
 
   public static final String DEFAULT_LOC_ID = "1";
-  public static final String DEFAULT_COUNTRY = "test country";
-  public static final String DEFAULT_CITY = "test city";
-  public static final String DEFAULT_POSTAL_CODE = "test postalCode";
-  public static final String DEFAULT_LATITUDE = "test latitude";
-  public static final String DEFAULT_LONGITUDE = "test longitude";
-  public static final String DEFAULT_DMACODE= "test dmaCode";
-  public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
 
+
+  /*
   @Override
-  public void logAccess(CacheKey value) {
-
+  protected boolean isLocalAddress(String ipStr, InetAddress addr) {
+    return false;
   }
 
   @Override
-  public JSONObject enrich(CacheKey cache ) {
-    JSONObject enriched = new JSONObject();
-    enriched.put("locID", DEFAULT_LOC_ID);
-    enriched.put("country", DEFAULT_COUNTRY);
-    enriched.put("city", DEFAULT_CITY);
-    enriched.put("postalCode", DEFAULT_POSTAL_CODE);
-    enriched.put("latitude", DEFAULT_LATITUDE);
-    enriched.put("longitude", DEFAULT_LONGITUDE);
-    enriched.put("dmaCode", DEFAULT_DMACODE);
-    enriched.put("location_point", DEFAULT_LOCATION_POINT);
-    return enriched;
-  }
+  protected void refreshGeoData() throws IOException {
+    if (map != null && db != null) {
+      map.close();
+      db.close();
+    }
 
-  @Override
-  public boolean initializeAdapter() {
-    return true;
-  }
+    db = DBMaker.memoryDB()
+            .closeOnJvmShutdown()
+            .fileDeleteAfterClose()
+            .make();
 
-  @Override
-  public void cleanup() {
+    map = db.treeMap("dbName")
+            .keySerializer(Serializer.LONG)
+            .valueSerializer(Serializer.JAVA)
+            .createOrOpen();
 
+    map.put(START_IP,
+            new GeoLocation(
+                    END_IP, // endIp
+                    DEFAULT_LOC_ID, // locId
+                    DEFAULT_COUNTRY,
+                    DEFAULT_CITY,
+                    DEFAULT_POSTAL_CODE,
+                    DEFAULT_LATITUDE,
+                    DEFAULT_LONGITUDE,
+                    DEFAULT_DMACODE
+            )
+    );
+//    System.out.println("*****" + map.keySet());
+//    super.refreshGeoData();
   }
+  */
 
   @Override
   public String getOutputPrefix(CacheKey value) {

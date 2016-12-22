@@ -19,6 +19,8 @@ package org.apache.metron.parsers.bolt;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
 
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
@@ -45,6 +47,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -131,6 +134,9 @@ public class ParserBoltTest extends BaseBoltTest {
       }
 
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -168,6 +174,9 @@ public class ParserBoltTest extends BaseBoltTest {
       }
 
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -224,6 +233,9 @@ public void testImplicitBatchOfOne() throws Exception {
       };
     }
   };
+
+  buildGlobalConfig(parserBolt);
+
   parserBolt.setCuratorFramework(client);
   parserBolt.setTreeCache(cache);
   parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -269,6 +281,9 @@ public void testImplicitBatchOfOne() throws Exception {
         }
       }
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -305,6 +320,9 @@ public void testImplicitBatchOfOne() throws Exception {
         }
       }
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -373,6 +391,9 @@ public void testImplicitBatchOfOne() throws Exception {
         }
       }
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -382,8 +403,6 @@ public void testImplicitBatchOfOne() throws Exception {
     long expected = 1452013350000L;
     Assert.assertEquals(expected, recordingWriter.getRecords().get(0).get("timestamp"));
   }
-
-
 
   @Test
   public void testBatchOfOne() throws Exception {
@@ -408,6 +427,9 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -446,6 +468,9 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -494,6 +519,9 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
+
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -518,6 +546,13 @@ public void testImplicitBatchOfOne() throws Exception {
 
   }
 
+  protected void buildGlobalConfig(ParserBolt parserBolt) {
+    HashMap<String, Object> globalConfig = new HashMap<>();
+    String baseDir = UnitTestHelper.findDir("GeoLite");
+    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    parserBolt.getConfigurations().updateGlobalConfig(globalConfig);
+  }
 
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {
     bolt.execute(t);

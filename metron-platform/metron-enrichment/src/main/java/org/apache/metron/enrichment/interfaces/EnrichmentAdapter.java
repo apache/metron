@@ -18,7 +18,6 @@
 
 package org.apache.metron.enrichment.interfaces;
 
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.json.simple.JSONObject;
 
 public interface EnrichmentAdapter<T>

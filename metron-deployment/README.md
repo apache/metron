@@ -100,7 +100,7 @@ This will set up
 - Metron Parsers
 - Enrichment
 - Indexing
-- GeoIP database on MySQL
+- GeoIP data
 - Optional Elasticsearch
 - Optional Kibana
 
@@ -134,15 +134,13 @@ Notably, the URL for the GeoIP database that is preloaded (and is prefilled by d
 After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
 
 #### Offline installation
-Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information that is preloaded into MySQL.
+Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information.
 
 The RPMs DO NOT reach out to the internet (because there is currently no hosting for them).  They look on the local filesystem in `/localrepo`.
 
 ### Current Limitations
 There are a set of limitations that should be addressed based to improve the current state of the mpacks.
 
-- MySQL install should be optional (and allow for using an existing instance).
-- MySQL should not be installed on a node already running a MySQL instance (e.g. an Ambari Server using MySQL as its database).
 - There is currently no hosting for RPMs remotely.  They will have to be built locally.
 - Colocation of appropriate services should be enforced by Ambari.  See [#Installing Management Pack] for more details.
 - Storm's topology.classpath is not updated with the Metron service install and needs to be updated separately.
@@ -177,6 +175,5 @@ rpm -i <package>
 ```
 
 ## TODO
-- migrate existing MySQL/GeoLite playbook
 - Support Ubuntu deployments
 

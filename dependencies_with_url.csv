@@ -32,7 +32,6 @@ javax.xml.stream:stax-api:jar:1.0-2:compile,COMMON DEVELOPMENT AND DISTRIBUTION 
 jline:jline:jar:0.9.94:compile,BSD,http://jline.sourceforge.net
 junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
 junit:junit:jar:4.4:compile,Common Public License Version 1.0,http://junit.org
-mysql:mysql-connector-java:jar:5.1.31:compile,ACCEPTABLE,http://dev.mysql.com/usingmysql/java/
 net.sf.jopt-simple:jopt-simple:jar:3.2:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.jopt-simple:jopt-simple:jar:4.9:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.saxon:Saxon-HE:jar:9.5.1-5:compile,Mozilla Public License Version 2.0,http://www.saxonica.com/

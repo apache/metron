@@ -36,10 +36,6 @@
   template: src=monit/kibana.monit dest={{ monit_config_home }}/kibana.monit
   when: ("web" in group_names) and (install_elasticsearch | default(True))
 
-- name: Create monit definition for mysql
-  template: src=monit/mysql.monit dest={{ monit_config_home }}/mysql.monit
-  when: ("mysql" in group_names)
-
 - name: Create monit definition for parsers
   template: src=monit/parsers.monit dest={{ monit_config_home }}/parsers.monit
   when: ("enrichment" in group_names)

@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.bolt;
 
 import org.apache.log4j.Level;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.tuple.Values;
 import com.google.common.collect.ImmutableMap;
@@ -38,6 +39,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -137,12 +139,18 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
   @Test
   public void test() throws IOException {
+    when(tuple.getSourceComponent()).thenReturn("unit test component");
+    when(tuple.getSourceStreamId()).thenReturn("unit test stream");
     String key = "someKey";
     String enrichmentType = "enrichmentType";
     Enrichment<EnrichmentAdapter<CacheKey>> testEnrichment = new Enrichment<>();
     testEnrichment.setType(enrichmentType);
     testEnrichment.setAdapter(enrichmentAdapter);
     GenericEnrichmentBolt genericEnrichmentBolt = new GenericEnrichmentBolt("zookeeperUrl") {
+//      @Override
+//      protected void prepareGeo() {
+//        do not prepare Geo information here.
+//      }
       @Override
       protected void initializeStellar() {
         //do not initialize stellar here.
@@ -151,6 +159,13 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     genericEnrichmentBolt.setCuratorFramework(client);
     genericEnrichmentBolt.setTreeCache(cache);
     genericEnrichmentBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
+
+    HashMap<String, Object> globalConfig = new HashMap<>();
+    String baseDir = UnitTestHelper.findDir("GeoLite");
+    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    genericEnrichmentBolt.getConfigurations().updateGlobalConfig(globalConfig);
+
     try {
       genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
       fail("Should fail if a maxCacheSize property is not set");

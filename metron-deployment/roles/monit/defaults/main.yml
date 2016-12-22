@@ -24,5 +24,4 @@ topology_stop_timeout: 60
 
 bro_pid_file: /usr/local/bro/spool/bro/.pid
 elasticsearch_pid_file: /var/run/elasticsearch/elasticsearch.pid
-mysql_pid_file: /var/run/mysqld/mysqld.pid
 snort_alert_csv_path: /var/log/snort/alert.csv

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,31 +6,40 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.adapters.geo;
 
+package org.apache.metron.enrichment.stellar;
+
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
-public class GeoAdapterTest {
-  private static final String IP = "216.160.83.56";
+public class GeoEnrichmentFunctionsTest {
+  private static Context context;
+  private static File geoHdfsFile;
 
   /**
    * {
@@ -49,9 +58,6 @@ public class GeoAdapterTest {
 
   private static JSONObject expectedMessage;
 
-  private static GeoAdapter geo;
-  private static File geoHdfsFile;
-
   @BeforeClass
   public static void setupOnce() throws ParseException {
     JSONParser jsonParser = new JSONParser();
@@ -59,28 +65,36 @@ public class GeoAdapterTest {
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+  }
 
-    geo = new GeoAdapter() {
-      @Override
-      public boolean initializeAdapter() {
-        GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
-        return true;
-      }
-    };
-    geo.initializeAdapter();
+  @Before
+  public void setup() throws Exception {
+    context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG
+            , () -> ImmutableMap.of(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath())
+    )
+            .build();
+  }
+
+  public Object run(String rule, Map<String, Object> variables) throws Exception {
+    StellarProcessor processor = new StellarProcessor();
+    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
-  public void testEnrich() throws Exception {
-    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", IP, null));
-
-    Assert.assertNotNull(actualMessage.get("locID"));
-    Assert.assertEquals(expectedMessage, actualMessage);
+  public void testGetLocal() throws Exception {
+    String stellar = "GEO_GET('192.168.0.1')";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertEquals("Local IP should return empty map", new HashMap<String, String>(), result);
   }
 
   @Test
-  public void testEnrichNonString() throws Exception {
-    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", 10L, null));
-    Assert.assertEquals(new JSONObject(), actualMessage);
+  @SuppressWarnings("unchecked")
+  public void testGetRemote() throws Exception {
+    String stellar = "GEO_GET('216.160.83.56')";
+    Object result = run(stellar, ImmutableMap.of());
+
+
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result);
   }
 }
