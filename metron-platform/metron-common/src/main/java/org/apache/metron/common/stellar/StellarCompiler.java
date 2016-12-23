@@ -29,6 +29,7 @@ import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
+import org.apache.metron.common.stellar.evaluators.ComparisonExpressionWithOperatorEvaluator;
 import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarParser;
@@ -54,19 +55,22 @@ public class StellarCompiler extends StellarBaseListener {
   private Throwable actualException;
   private final ArithmeticEvaluator arithmeticEvaluator;
   private final NumberLiteralEvaluator numberLiteralEvaluator;
+  private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
   public StellarCompiler(VariableResolver variableResolver,
                          FunctionResolver functionResolver,
                          Context context,
                          Stack<Token<?>> tokenStack,
                          ArithmeticEvaluator arithmeticEvaluator,
-                         NumberLiteralEvaluator numberLiteralEvaluator) {
+                         NumberLiteralEvaluator numberLiteralEvaluator,
+                         ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;
     this.tokenStack = tokenStack;
     this.arithmeticEvaluator = arithmeticEvaluator;
     this.numberLiteralEvaluator = numberLiteralEvaluator;
+    this. comparisonExpressionWithOperatorEvaluator = comparisonExpressionWithOperatorEvaluator;
   }
 
   @Override
@@ -370,54 +374,13 @@ public class StellarCompiler extends StellarBaseListener {
     tokenStack.push(new Token<>(args, List.class));
   }
 
-  private <T extends Comparable<T>> boolean compare(T l, T r, String op) {
-    if (op.equals("==")) {
-      return l.compareTo(r) == 0;
-    } else if (op.equals("!=")) {
-      return l.compareTo(r) != 0;
-    } else if (op.equals("<")) {
-      return l.compareTo(r) < 0;
-    } else if (op.equals(">")) {
-      return l.compareTo(r) > 0;
-    } else if (op.equals(">=")) {
-      return l.compareTo(r) >= 0;
-    } else {
-      return l.compareTo(r) <= 0;
-    }
-  }
-
-  private boolean compareDouble(Double l, Double r, String op) {
-    if (op.equals("==")) {
-      return Math.abs(l - r) < 1e-6;
-    } else if (op.equals("!=")) {
-      return Math.abs(l - r) >= 1e-6;
-    } else if (op.equals("<")) {
-      return l.compareTo(r) < 0;
-    } else if (op.equals(">")) {
-      return l.compareTo(r) > 0;
-    } else if (op.equals(">=")) {
-      return l.compareTo(r) >= 0;
-    } else {
-      return l.compareTo(r) <= 0;
-    }
-  }
-
   @Override
   public void exitComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx) {
-    String op = ctx.getChild(1).getText();
+    StellarParser.Comp_operatorContext op = ctx.comp_operator();
     Token<?> right = popStack();
     Token<?> left = popStack();
-    if (left.getValue() instanceof Number
-            && right.getValue() instanceof Number) {
-      Double l = ((Number) left.getValue()).doubleValue();
-      Double r = ((Number) right.getValue()).doubleValue();
-      tokenStack.push(new Token<>(compareDouble(l, r, op), Boolean.class));
 
-    } else {
-      String l = left.getValue() == null ? "" : left.getValue().toString();
-      String r = right.getValue() == null ? "" : right.getValue().toString();
-      tokenStack.push(new Token<>(compare(l, r, op), Boolean.class));
-    }
+    tokenStack.push(comparisonExpressionWithOperatorEvaluator.evaluate(left, right, (StellarParser.ComparisonOpContext) op));
   }
 
   @Override
@@ -425,7 +388,7 @@ public class StellarCompiler extends StellarBaseListener {
     tokenStack.push(new Token<>(new FunctionMarker(), FunctionMarker.class));
   }
 
-  public Token<?> popStack() {
+  private Token<?> popStack() {
     if (tokenStack.empty()) {
       throw new ParseException("Unable to pop an empty stack");
     }
