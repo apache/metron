@@ -49,6 +49,8 @@ public class StellarComparisonExpressionWithOperatorTest {
     assertEquals(1L < 3.0f, run("1L < 3.0f", ImmutableMap.of()));
     assertEquals(1 < 3.0f, run("1 < 3.0f", ImmutableMap.of()));
     assertEquals(1.0 < 3.0f, run("1.0 < 3.0f", ImmutableMap.of()));
+    assertEquals(false, run("foo < 3.0f", ImmutableMap.of()));
+    assertEquals(false, run("foo < foo", ImmutableMap.of()));
     assertEquals(1L < 3.0f ? true : false, run("if 1L < 3.0f then true else false", ImmutableMap.of()));
   }
 
@@ -252,14 +254,8 @@ public class StellarComparisonExpressionWithOperatorTest {
     final Integer[] result = {0};
 
     Stream.of("<", "<=", ">", ">=").forEach(op -> {
-      try {
-        runPredicate("'1' " + op + " null", variableMap::get);
-      } catch (ParseException e) {
-        result[0] += 1;
-      }
+      assertFalse(runPredicate("'1' " + op + " null", variableMap::get));
     });
-
-    assertEquals(Integer.valueOf(4), result[0]);
   }
 
   @Test

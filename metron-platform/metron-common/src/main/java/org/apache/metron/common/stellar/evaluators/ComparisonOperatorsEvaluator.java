@@ -26,20 +26,20 @@ import org.apache.metron.common.stellar.generated.StellarParser;
  * {@link ComparisonOperatorsEvaluator} is used to evaluate comparison expressions using the following operator '<', '<=', '>',
  * or '>='. There are four major cases when evaluating a comparison expression.
  *
- * 1. If either the left or right's value is null then a {@link ParseException} is thrown.
- * 2. If both sides are of the same type and implement the {@link Comparable} interface then use {@code compareTo} method.
- * 3. If both sides of the expression are instances of {@link Number} then:
+ * 1. If either the left or right's value is null then return false.
+ * 2. If both sides of the expression are instances of {@link Number} then:
  *    1. If either side is a {@link Double} then get {@link Number#doubleValue()} from both sides and compare using given operator.
  *    2. Else if either side is a {@link Float} then get {@link Number#floatValue()} from both sides and compare using given operator.
- *    3. Else if either side is a {@link Long} then get {@link Number#longValue()} ()} from both sides and compare using given operator.
+ *    3. Else if either side is a {@link Long} then get {@link Number#longValue()} from both sides and compare using given operator.
  *    4. Otherwise get {@link Number#intValue()} from both sides and compare using given operator.
+ * 3. If both sides are of the same type and implement the {@link Comparable} interface then use {@code compareTo} method.
  * 4. If none of the above are met then a {@link ParseException} is thrown.
  */
 public class ComparisonOperatorsEvaluator implements ComparisonExpressionEvaluator {
   @Override
   public boolean evaluate(Token<?> left, Token<?> right, StellarParser.ComparisonOpContext op) {
     if (left.getValue() == null || right.getValue() == null) {
-      throw new ParseException("Unsupported operations. Null cannot be compared with the following operator: " + op);
+      return false;
     } else if (left.getValue() instanceof Number && right.getValue() instanceof Number) {
       return compareNumbers((Number) left.getValue(), (Number) right.getValue(), op);
     } else if (left.getValue().getClass() == right.getValue().getClass()

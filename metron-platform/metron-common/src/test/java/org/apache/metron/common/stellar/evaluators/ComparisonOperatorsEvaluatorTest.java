@@ -79,9 +79,6 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   public void leftIsNullThenThrowException() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. Null cannot be compared with the following operator: ");
-
     Token<Long> left = mock(Token.class);
     Token<Long> right = mock(Token.class);
     when(right.getValue()).thenReturn(1L);
@@ -89,14 +86,11 @@ public class ComparisonOperatorsEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LT()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op);
+    assertFalse(evaluator.evaluate(left, right, op));
   }
 
   @Test
-  public void rightIsNullThenThrowException() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. Null cannot be compared with the following operator: ");
-
+  public void rightIsNullThenReturnFalse() throws Exception {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
     Token<Long> right = mock(Token.class);
@@ -104,21 +98,18 @@ public class ComparisonOperatorsEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LT()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op);
+    assertFalse(evaluator.evaluate(left, right, op));
   }
 
   @Test
-  public void rightAndLeftIsNullThenThrowException() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. Null cannot be compared with the following operator: ");
-
+  public void rightAndLeftIsNullThenReturnFalse() throws Exception {
     Token<Long> left = mock(Token.class);
     Token<Long> right = mock(Token.class);
 
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LT()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op);
+    assertFalse(evaluator.evaluate(left, right, op));
   }
 
   @Test
