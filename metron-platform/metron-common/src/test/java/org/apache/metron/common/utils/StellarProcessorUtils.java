@@ -52,8 +52,7 @@ public class StellarProcessorUtils {
      */
     public static Object run(String rule, Map<String, Object> variables, Context context) {
         StellarProcessor processor = new StellarProcessor();
-      // TODO: why validate without giving variables? This will cause issues with variables.
-//        Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+        Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
         Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
         byte[] raw = SerDeUtils.toBytes(ret);
         Object actual = SerDeUtils.fromBytes(raw, Object.class);
@@ -79,8 +78,7 @@ public class StellarProcessorUtils {
 
   public static boolean runPredicate(String rule, VariableResolver resolver, Context context) {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    // TODO: why validate without giving variables? This will cause issues with variables.
-    //Assert.assertTrue(rule + " not valid.", processor.validate(rule));
+    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
     return processor.parse(rule, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 

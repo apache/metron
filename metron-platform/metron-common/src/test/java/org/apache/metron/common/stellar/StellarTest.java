@@ -21,7 +21,6 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.junit.Assert;
@@ -198,19 +197,17 @@ public class StellarTest {
       String query = "if not(1 < 2) then 'one' else 'two'";
       Assert.assertEquals("two", run(query, new HashMap<>()));
     }
-    // TODO: Why did this expect to be 'one'? Updated to expect two.
     {
-      String query = "if 1 == 1.000001 then 'one' else 'two'";
+      String query = "if 1 == 1.0000001 then 'one' else 'two'";
       Assert.assertEquals("two", run(query, new HashMap<>()));
     }
     {
       String query = "if one < two then 'one' else 'two'";
       Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "two", 2)));
     }
-    // TODO: Why did this expect to be 'one'? Updated to expect two.
     {
       String query = "if one == very_nearly_one then 'one' else 'two'";
-      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)));
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
     }
     {
       String query = "1 < 2 ? 'one' : 'two'";
@@ -385,25 +382,6 @@ public class StellarTest {
     Assert.assertEquals("www", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 0)", variables));
     Assert.assertEquals("google", run("GET_LAST(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'))", variables));
     Assert.assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
-  }
-
-  @Test
-  public void testValidation() throws Exception {
-    StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    try {
-      processor.validate("'foo'");
-      Assert.fail("Invalid rule found to be valid - lone value.");
-    }
-    catch(ParseException e) {
-
-    }
-    try {
-      processor.validate("enrichedField1 == 'enrichedValue1");
-      Assert.fail("Invalid rule found to be valid - unclosed single quotes.");
-    }
-    catch(ParseException e) {
-
-    }
   }
 
   @Test

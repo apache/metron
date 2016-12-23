@@ -216,6 +216,12 @@ public class StellarComparisonExpressionWithOperatorTest {
     assertTrue(runPredicate("NULL == null", variableMap::get));
   }
 
+  @Test
+  public void precisionEqualityTests() throws Exception {
+    final Map<String, Object> variableMap = new HashMap<>();
+    assertEquals(0.1 + 0.2 == 0.3, runPredicate("0.1 + 0.2 == 0.3", variableMap::get));
+  }
+
   @Test(expected = ParseException.class)
   public void differentTypesShouldThrowErrorWhenUsingLT() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
