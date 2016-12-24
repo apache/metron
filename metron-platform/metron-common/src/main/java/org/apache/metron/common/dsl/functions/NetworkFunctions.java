@@ -18,10 +18,10 @@
 
 package org.apache.metron.common.dsl.functions;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
@@ -29,7 +29,6 @@ import org.apache.metron.common.dsl.Stellar;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.function.Function;
 
 public class NetworkFunctions {
   @Stellar(name="IN_SUBNET"
@@ -55,7 +54,7 @@ public class NetworkFunctions {
       }
       boolean inSubnet = false;
       for(int i = 1;i < list.size() && !inSubnet;++i) {
-        String cidr = (String) list.get(1);
+        String cidr = (String) list.get(i);
         if(cidr == null) {
           continue;
         }
@@ -86,15 +85,19 @@ public class NetworkFunctions {
       InternetDomainName idn = toDomainName(dnObj);
       if(idn != null) {
         String dn = dnObj.toString();
-        String tld = Joiner.on(".").join(idn.publicSuffix().parts());
-        String suffix = dn.substring(0, dn.length() - tld.length());
-        String hostnameWithoutTLD = suffix.substring(0, suffix.length() - 1);
-        String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
-        if(hostnameWithoutSubsAndTLD == null) {
-          return null;
+        String tld = extractTld(idn, dn);
+        if(!StringUtils.isEmpty(dn)) {
+          String suffix = safeSubstring(dn, 0, dn.length() - tld.length());
+          String hostnameWithoutTLD = safeSubstring(suffix, 0, suffix.length() - 1);
+          if(hostnameWithoutTLD == null) {
+            return dn;
+          }
+          String hostnameWithoutSubsAndTLD = Iterables.getLast(Splitter.on(".").split(hostnameWithoutTLD), null);
+          if(hostnameWithoutSubsAndTLD == null) {
+            return null;
+          }
+          return hostnameWithoutSubsAndTLD + "." + tld;
         }
-        return hostnameWithoutSubsAndTLD + "." + tld;
-
       }
       return null;
     }
@@ -116,14 +119,13 @@ public class NetworkFunctions {
       InternetDomainName idn = toDomainName(dnObj);
       if(idn != null) {
         String dn = dnObj.toString();
-        String tld = idn.publicSuffix().toString();
-        String suffix = Iterables.getFirst(Splitter.on(tld).split(dn), null);
-        if(suffix != null)
-        {
-          return suffix.substring(0, suffix.length() - 1);
+        String tld = extractTld(idn, dn);
+        String suffix = safeSubstring(dn, 0, dn.length() - tld.length());
+        if(StringUtils.isEmpty(suffix)) {
+          return suffix;
         }
         else {
-          return null;
+          return suffix.substring(0, suffix.length() - 1);
         }
       }
       return null;
@@ -144,10 +146,7 @@ public class NetworkFunctions {
     public Object apply(List<Object> objects) {
       Object dnObj = objects.get(0);
       InternetDomainName idn = toDomainName(dnObj);
-      if(idn != null) {
-        return idn.publicSuffix().toString();
-      }
-      return null;
+      return extractTld(idn, dnObj + "");
     }
   }
 
@@ -220,6 +219,43 @@ public class NetworkFunctions {
     }
   }
 
+  /**
+   * Extract the TLD.  If the domain is a normal domain, then we can handle the TLD via the InternetDomainName object.
+   * If it is not, then we default to returning the last segment after the final '.'
+   * @param idn
+   * @param dn
+   * @return The TLD of the domain
+   */
+  private static String extractTld(InternetDomainName idn, String dn) {
+
+    if(idn != null && idn.hasPublicSuffix()) {
+      return idn.publicSuffix().toString();
+    }
+    else if(dn != null) {
+      StringBuffer tld = new StringBuffer("");
+      for(int idx = dn.length() -1;idx >= 0;idx--) {
+        char c = dn.charAt(idx);
+        if(c == '.') {
+          break;
+        }
+        else {
+          tld.append(dn.charAt(idx));
+        }
+      }
+      return tld.reverse().toString();
+    }
+    else {
+      return null;
+    }
+  }
+
+  private static String safeSubstring(String val, int start, int end) {
+    if(!StringUtils.isEmpty(val)) {
+      return val.substring(start, end);
+    }
+    return null;
+  }
+
   private static InternetDomainName toDomainName(Object dnObj) {
     if(dnObj != null) {
       if(dnObj instanceof String) {
@@ -243,8 +279,9 @@ public class NetworkFunctions {
       return null;
     }
     if(urlObj instanceof String) {
+      String url = urlObj.toString();
       try {
-        return new URL(urlObj.toString());
+        return new URL(url);
       } catch (MalformedURLException e) {
         return null;
       }
