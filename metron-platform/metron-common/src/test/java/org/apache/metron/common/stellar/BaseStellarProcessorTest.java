@@ -54,9 +54,8 @@ public class BaseStellarProcessorTest {
       assertTrue(processor.validate("(1 < foo)"));
       assertTrue(processor.validate("foo < bar"));
       assertTrue(processor.validate("foo < TO_FLOAT(bar)", false, Context.EMPTY_CONTEXT()));
-      assertTrue(processor.validate("foo < TO_FLOATS(bar)", Context.EMPTY_CONTEXT()));
-      assertTrue(processor.validate("if a then b else c"));
-      assertTrue(processor.validate("IF a THEN b ELSE c"));
+      assertTrue(processor.validate("if true then b else c"));
+      assertTrue(processor.validate("IF false THEN b ELSE c"));
     }
 
     {
@@ -96,9 +95,11 @@ public class BaseStellarProcessorTest {
   }
 
   @Test
-  public void validateMethodShouldNotFailOnUnknownFunctions() throws Exception {
+  public void validateMethodShouldFailOnUnknownFunctions() throws Exception {
+    exception.expect(ParseException.class);
+    exception.expectMessage(" Unable to resolve function named 'UNKNOWN_FUNCTION'.");
+
     assertTrue(processor.validate("1 < UNKNOWN_FUNCTION(3)", Context.EMPTY_CONTEXT()));
-    assertTrue(processor.validate("UNKNOWN_FUNCTION()"));
   }
 
   @Test

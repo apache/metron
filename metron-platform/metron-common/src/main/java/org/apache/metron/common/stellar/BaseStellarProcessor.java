@@ -96,12 +96,13 @@ public class BaseStellarProcessor<T> {
   }
 
   /**
-   * This method determines if a given rule is syntactically valid or not. If the given rule is valid then true
+   * This method determines if a given rule is valid or not. If the given rule is valid then true
    * will be returned otherwise a {@link ParseException} is thrown. If it is desired that to return a boolean
-   * whether the rule is valid or not see {@link this#validate(String, boolean, Context)}.
+   * whether the rule is valid or not see {@link this#validate(String, boolean, Context)}. It is important
+   * to note that all variables will resolve to 'null.'
    *
    * @param rule The rule to validate.
-   * @return If the given rule is syntactically valid then true otherwise an exception is thrown.
+   * @return If the given rule is valid then true otherwise an exception is thrown.
    * @throws ParseException If the rule is invalid an exception of this type is thrown.
    */
   public boolean validate(String rule) throws ParseException {
@@ -115,8 +116,9 @@ public class BaseStellarProcessor<T> {
   /**
    * Here it is not desirable to add our custom listener. It is not the intent to evaluate the rule.
    * The rule is only meant to be validated. Validate in this instance means check whether or not the
-   * rule is syntactically valid. For example, it will not check for incorrect variable or function uses.
-   * It will check for rules that do not conform to the grammar.
+   * rule is syntactically valid and whether the functions used exist. For example, it will not check
+   * for variables that are not defined. Currently all variables resolve to 'null.' This is mainly to
+   * make sure things function as expected when values are null.
    *
    * @param rule The Stellar transformation to validate.
    * @param throwException If true an invalid Stellar transformation will throw a {@link ParseException} otherwise a boolean will be returned.
@@ -131,20 +133,8 @@ public class BaseStellarProcessor<T> {
       return true;
     }
 
-    ANTLRInputStream input = new ANTLRInputStream(rule);
-    StellarLexer lexer = new StellarLexer(input);
-    lexer.removeErrorListeners();
-    lexer.addErrorListener(new ErrorListener());
-
-    TokenStream tokens = new CommonTokenStream(lexer);
-    StellarParser parser = new StellarParser(tokens);
-
-    parser.removeErrorListeners();
-    parser.setBuildParseTree(false);
-    parser.addErrorListener(new ErrorListener());
-
     try {
-      parser.transformation();
+      parse(rule, x -> null, StellarFunctions.FUNCTION_RESOLVER(), context);
     } catch(Throwable t) {
       if(throwException) {
         throw new ParseException("Unable to parse " + rule + ": " + t.getMessage(), t);
