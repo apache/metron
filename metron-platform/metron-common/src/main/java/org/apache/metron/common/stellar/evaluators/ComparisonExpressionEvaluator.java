@@ -21,6 +21,21 @@ package org.apache.metron.common.stellar.evaluators;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
+/**
+ * This is used to determine what is needed to evaluate a Stellar comparison expression. A Stellar comparison
+ * expression is an expression that uses operators such as '<', '<=', '>', '>=', '==', '!=' to compare
+ * values in Stellar. There are two main types of comparisons in Stellar equality ('==', '!=') and comparison ('<', '<=', '>', '>=').
+ */
 public interface ComparisonExpressionEvaluator {
+
+  /**
+   * This will compare the values of {@code left} and {@code right} using the {@code op} input to determine a value
+   * to return.
+   * @param left  The token representing the left side of a comparison expression.
+   * @param right The token representing the right side of a comparison expression.
+   * @param op    This is a representation of a comparison operator (eg. <, <=, >, >=, ==, !=)
+   * @return True if the the if the expressions is evaluated to be true, otherwise false. An example of expressions that
+   * should be true are {@code 1 == 1}, {@code 1f > 0}, etc.
+   */
   boolean evaluate(Token<?> left, Token<?> right, StellarParser.ComparisonOpContext op);
 }

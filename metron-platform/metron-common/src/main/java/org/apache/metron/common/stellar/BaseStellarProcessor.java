@@ -26,7 +26,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.ErrorListener;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
 import org.apache.metron.common.stellar.evaluators.ComparisonExpressionWithOperatorEvaluator;
@@ -37,13 +41,33 @@ import org.apache.metron.common.stellar.generated.StellarParser;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+/**
+ * The base implementation of a Stellar processor. This is used to evaluate Stellar expressions.
+ *
+ * @param <T> The type that the processor expects to return after processing a Stellar expression.
+ * @see StellarProcessor
+ * @see StellarPredicateProcessor
+ */
 public class BaseStellarProcessor<T> {
-  Class<T> clazz;
-  public BaseStellarProcessor(Class<T> clazz) {
+  /**
+   * The class containing the type that the Stellar expression being processed will evaluate to.
+   */
+  private Class<T> clazz;
+
+  /**
+   * @param clazz The class containing the type that the Stellar expression being processed will evaluate to.
+   */
+  BaseStellarProcessor(final Class<T> clazz) {
     this.clazz = clazz;
   }
 
-  public Set<String> variablesUsed(String rule) {
+  /**
+   * Parses the given rule and returns a set of variables that are used in the given Stellar expression, {@code rule}.
+   *
+   * @param rule The Stellar expression to find out what variables are used.
+   * @return A set of variables used in the given Stellar expression.
+   */
+  public Set<String> variablesUsed(final String rule) {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
@@ -56,11 +80,11 @@ public class BaseStellarProcessor<T> {
     final Set<String> ret = new HashSet<>();
     parser.addParseListener(new StellarBaseListener() {
       @Override
-      public void exitVariable(StellarParser.VariableContext ctx) {
+      public void exitVariable(final StellarParser.VariableContext ctx) {
         ret.add(ctx.getText());
       }
       @Override
-      public void exitExistsFunc(StellarParser.ExistsFuncContext ctx) {
+      public void exitExistsFunc(final StellarParser.ExistsFuncContext ctx) {
         String variable = ctx.getChild(2).getText();
         ret.add(variable);
       }
@@ -71,7 +95,15 @@ public class BaseStellarProcessor<T> {
     return ret;
   }
 
-  public T parse(String rule, VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
+  /**
+   * Parses and evaluates the given Stellar expression, {@code rule}.
+   * @param rule The Stellar expression to parse and evaluate.
+   * @param variableResolver The {@link VariableResolver} to determine values of variables used in the Stellar expression, {@code rule}.
+   * @param functionResolver The {@link FunctionResolver} to determine values of functions used in the Stellar expression, {@code rule}.
+   * @param context The context used during validation.
+   * @return The value of the evaluated Stellar expression, {@code rule}.
+   */
+  public T parse(final String rule, final VariableResolver variableResolver, final FunctionResolver functionResolver, final Context context) {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
@@ -105,11 +137,18 @@ public class BaseStellarProcessor<T> {
    * @return If the given rule is valid then true otherwise an exception is thrown.
    * @throws ParseException If the rule is invalid an exception of this type is thrown.
    */
-  public boolean validate(String rule) throws ParseException {
+  public boolean validate(final String rule) throws ParseException {
     return validate(rule, true, Context.EMPTY_CONTEXT());
   }
 
-  public boolean validate(String rule, Context context) throws ParseException {
+  /**
+   * Validates a given Stellar expression based on given context.
+   * @param rule The Stellar expression to validate.
+   * @param context The context used to validate the Stellar expression.
+   * @return If valid Stellar expression true, otherwise an exception will be thrown.
+   * @throws ParseException The exception containing the information as to why the expression is not valid.
+   */
+  public boolean validate(final String rule, final Context context) throws ParseException {
     return validate(rule, true, context);
   }
 
@@ -128,15 +167,15 @@ public class BaseStellarProcessor<T> {
    *  false if {@code rule} is invalid.
    * @throws ParseException Thrown if {@code rule} is invalid and {@code throwException} is true.
    */
-  public boolean validate(String rule, boolean throwException, Context context) throws ParseException {
+  public boolean validate(final String rule, final boolean throwException, final Context context) throws ParseException {
     if (rule == null || isEmpty(rule.trim())) {
       return true;
     }
 
     try {
       parse(rule, x -> null, StellarFunctions.FUNCTION_RESOLVER(), context);
-    } catch(Throwable t) {
-      if(throwException) {
+    } catch (Throwable t) {
+      if (throwException) {
         throw new ParseException("Unable to parse " + rule + ": " + t.getMessage(), t);
       } else {
         return false;
