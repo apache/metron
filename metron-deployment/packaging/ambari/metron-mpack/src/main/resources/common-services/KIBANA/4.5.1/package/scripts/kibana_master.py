@@ -81,7 +81,7 @@ class Kibana(Script):
                   group=params.kibana_user
                   )
 
-        File("{}/kibana.yml".format(params.conf_dir),
+        File("{0}/kibana.yml".format(params.conf_dir),
              owner=params.kibana_user,
              content=InlineTemplate(params.kibana_yml_template)
              )
