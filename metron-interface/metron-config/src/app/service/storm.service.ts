@@ -17,12 +17,14 @@
  */
 import {Injectable, Inject} from '@angular/core';
 import {Http, Headers, RequestOptions} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
 import {HttpUtil} from '../util/httpUtil';
 import {TopologyStatus} from '../model/topology-status';
 import {TopologyResponse} from '../model/topology-response';
 import {APP_CONFIG} from '../app.config';
 import {IAppConfig} from '../app.config.interface';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/interval';
+import 'rxjs/add/operator/switchMap';
 
 @Injectable()
 export class StormService {
@@ -31,6 +33,14 @@ export class StormService {
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
 
+  }
+
+  public pollGetAll(): Observable<TopologyStatus[]> {
+    return Observable.interval(8000).switchMap(() => {
+      return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+          .map(HttpUtil.extractData)
+          .catch(HttpUtil.handleError);
+    });
   }
 
   public getAll(): Observable<TopologyStatus[]> {
