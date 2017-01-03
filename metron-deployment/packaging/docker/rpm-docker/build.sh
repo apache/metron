@@ -28,7 +28,7 @@ PRERELEASE=$(echo ${FULL_VERSION} | tr -d '"'"'[:digit:]\.'"'"')
 echo "PRERELEASE: ${PRERELEASE}"
 
 # Account for non-existent file owner in container
-# Ignore UID=0, Docker for Mac returns non-zero
+# Ignore UID=0, root exists in all containers
 OWNER_UID=`ls -n SPECS/metron.spec | awk -F' ' '{ print $3 }'`
 id $OWNER_UID >/dev/null 2>&1
 if [ $? -ne 0 ] && [ $OWNER_UID -ne 0 ]; then
