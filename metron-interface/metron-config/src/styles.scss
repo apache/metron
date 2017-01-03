@@ -186,16 +186,23 @@ label
   }
 }
 
-.dialog1x
-{
-  width: $dialog-1x-width;
+@media only screen and (min-width: 500px) {
+  .dialog1x {
+    width: $dialog-1x-width;
+  }
+  .dialog2x {
+    width: $dialog-2x-width;
+  }
 }
 
-.dialog2x
-{
-  width :640px
+@media only screen and (min-width: 2020px) {
+  .dialog1x {
+    width: $dialog-2x-width;
+  }
+  .dialog2x {
+    width: $dialog-4x-width;
+  }
 }
-
 .metron-slider-pane-edit
 {
   @extend .metron-slider-pane;
@@ -677,7 +684,7 @@ button
   width: 100%;
   bottom: 0;
   position: absolute;
-  z-index: 3;
+  z-index: 10;
   padding-left: 25px;
   margin-left: ($slider-left-padding)* -1;
   background: $edit-background;

@@ -44,3 +44,34 @@
 .sample-unavailable {
   color: #404040;
 }
+
+
+textarea::-webkit-input-placeholder {
+    color:#bdbdbd;
+    font-size: 10px;
+    font-style: italic;
+    font-weight: 300;
+}
+
+textarea:-moz-placeholder {
+  color:#bdbdbd;
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+textarea::-moz-placeholder {
+  color:#bdbdbd;
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+textarea :-ms-input-placeholder {
+  color:#bdbdbd;
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+

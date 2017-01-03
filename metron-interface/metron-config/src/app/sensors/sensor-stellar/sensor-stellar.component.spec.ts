@@ -95,8 +95,8 @@ describe('Component: SensorStellarComponent', () => {
 
         component.init();
 
-        expect(component.newSensorParserConfig).toEqual(JSON.stringify(this.sensorParserConfig, null, '\t'));
-        expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(this.sensorEnrichmentConfig, null, '\t'));
+        expect(component.newSensorParserConfig).toEqual('');
+        expect(component.newSensorEnrichmentConfig).toEqual('');
 
         fixture.destroy();
     });

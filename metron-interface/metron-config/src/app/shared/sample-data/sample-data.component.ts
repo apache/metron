@@ -34,6 +34,8 @@ export class SampleDataComponent {
 
   sampleData: string[] = [];
   sampleDataIndex: number = -1;
+  placeHolderText = 'Sample log message is populated here automatically if Kafka is ' +
+                    'emitting messages or you can paste a sample message of your choice for configuration.';
 
 
   constructor(private kafkaService: KafkaService) {
@@ -71,6 +73,10 @@ export class SampleDataComponent {
       this.sampleDataIndex = this.sampleDataIndex + 1;
       this.sampleData[this.sampleDataIndex] = currentValue;
       this.onSampleDataChanged.emit(this.sampleData[this.sampleDataIndex]);
+    }
+
+    if (currentValue.trim() === '') {
+      this.sampleDataElement.nativeElement.placeholder = this.placeHolderText;
     }
   }
 

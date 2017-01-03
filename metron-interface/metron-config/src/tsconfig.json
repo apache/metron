@@ -16,7 +16,8 @@
     "types": [
       "jasmine",
       "jquery",
-      "bootstrap"
+      "bootstrap",
+      "ace"
     ]
   }
 

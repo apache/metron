@@ -15,9 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges,
+        AfterViewInit, ViewChild, ElementRef} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+
+declare var ace: any;
 
 @Component({
   selector: 'metron-config-sensor-stellar',
@@ -25,7 +28,7 @@ import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../..
   styleUrls: ['./sensor-stellar.component.scss']
 })
 
-export class SensorStellarComponent implements OnInit, OnChanges {
+export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit {
 
   @Input() showStellar: boolean;
   @Input() sensorParserConfig: SensorParserConfig;
@@ -34,12 +37,43 @@ export class SensorStellarComponent implements OnInit, OnChanges {
   @Output() hideStellar: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onStellarChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  newSensorParserConfig: string;
-  newSensorEnrichmentConfig: string;
+  @ViewChild('parserConfig') parserConfig: ElementRef;
+  @ViewChild('enrichmentConfig') enrichmentConfig: ElementRef;
+
+  newSensorParserConfig: string = '';
+  newSensorEnrichmentConfig: string = '';
+
+  parserConfigEditor: any;
+  enrichmentConfigEditor: any;
 
   constructor() { }
 
   ngOnInit() {
+  }
+
+  ngAfterViewInit() {
+    ace.config.set('basePath', '/assets/Ace');
+    this.parserConfigEditor = this.getEditor(this.parserConfig.nativeElement);
+    this.enrichmentConfigEditor = this.getEditor(this.enrichmentConfig.nativeElement);
+  }
+
+  private getEditor(element: ElementRef) {
+    let parserConfigEditor = ace.edit(element);
+    parserConfigEditor.setTheme('ace/theme/monokai');
+    parserConfigEditor.getSession().setMode('ace/mode/json');
+    parserConfigEditor.getSession().setTabSize(2);
+    parserConfigEditor.getSession().setUseWrapMode(true);
+    parserConfigEditor.getSession().setWrapLimitRange(72, 72);
+    parserConfigEditor.setOptions({
+            minLines: 25
+        });
+    parserConfigEditor.$blockScrolling = Infinity;
+    parserConfigEditor.setOptions({
+      maxLines: Infinity
+    });
+    parserConfigEditor.setOptions({enableBasicAutocompletion: true});
+
+    return parserConfigEditor;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -51,15 +85,17 @@ export class SensorStellarComponent implements OnInit, OnChanges {
   init(): void {
     if (this.sensorParserConfig) {
       this.newSensorParserConfig = JSON.stringify(this.sensorParserConfig, null, '\t');
+      this.parserConfigEditor.getSession().setValue(this.newSensorParserConfig);
     }
 
     if (this.sensorEnrichmentConfig) {
       this.newSensorEnrichmentConfig = JSON.stringify(this.sensorEnrichmentConfig, null, '\t');
+      this.enrichmentConfigEditor.getSession().setValue(this.newSensorEnrichmentConfig);
     }
   }
 
   onSave() {
-    let newParsedSensorParserConfig = JSON.parse(this.newSensorParserConfig);
+    let newParsedSensorParserConfig = JSON.parse(this.parserConfigEditor.getSession().getValue());
     this.sensorParserConfig.sensorTopic = newParsedSensorParserConfig.sensorTopic;
     this.sensorParserConfig.parserClassName = newParsedSensorParserConfig.parserClassName;
     if (newParsedSensorParserConfig.writerClassName != null) {
@@ -76,7 +112,7 @@ export class SensorStellarComponent implements OnInit, OnChanges {
     }
     this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
     this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
-    let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
+    let newParsedSensorEnrichmentConfig = JSON.parse(this.enrichmentConfigEditor.getSession().getValue());
     this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
     if (newParsedSensorEnrichmentConfig.configuration != null) {
       this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;

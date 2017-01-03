@@ -23,14 +23,13 @@
   </div>
   <div class="col-md-2 px-0">
     <i class="fa fa-minus fa-border icon-button" aria-hidden="true" style="margin-left: 0.3rem;" (click)="onRemove(configuredItem)"></i>
-    <i class="fa fa-plus fa-border icon-button pull-right" aria-hidden="true" [ngClass]="{'hidden-xs-up': (i !== configuredItems.length-1 || configuredItems.length === availableItems.length || showAddNew)}" (click)="showAddNew=true"></i>
   </div>
 </div>
 
 <!--new-->
 <div class="row mx-0" *ngIf="(this.configuredItems.length !== this.availableItems.length) || configuredItems.length === 0 ">
   <div class="col-md-10 px-0">
-      <select #select class="form-control" (change)="onAdd(select)">
+    <select #select class="form-control" (change)="onAdd(select)">
       <option [disabled]="true" [selected]="true"></option>
       <option *ngFor="let availableFunction of getAvailableFunctions()"> {{ availableFunction.name }} </option>
     </select>

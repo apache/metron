@@ -20,20 +20,17 @@
 
 
   <form role="form" class="enrichments-form">
-    <fieldset class="form-group">
-      <div class="form-group">
+      <div>
         <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
-        <textarea rows="20" class="form-control" name="newSensorParserConfig" (blur)="onSensorParserConfigBlur()" [(ngModel)]="newSensorParserConfig"></textarea>
+        <div #parserConfig class="editor"> </div>
       </div>
-      <div class="form-group">
+      <div>
         <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
-        <textarea rows="20" class="form-control" name="newSensorEnrichmentConfig" (blur)="onSensorEnrichmentConfigBlur()" [(ngModel)]="newSensorEnrichmentConfig"></textarea>
+        <div  #enrichmentConfig class="editor" ></div>
       </div>
-
-    </fieldset>
-
   </form>
 
+  <br> <br> <br> <br>
   <div class="metron-button-bar" >
     <div class="row mx-0 py-1">
       <button type="submit" class="btn form-enable-disable-button pull-left"  (click)="onSave()">SAVE</button>

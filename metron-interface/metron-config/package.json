@@ -20,6 +20,7 @@
     "@angular/platform-browser": "2.0.0",
     "@angular/platform-browser-dynamic": "2.0.0",
     "@angular/router": "3.0.0",
+    "ace-builds": "^1.2.5",
     "bootstrap": "4.0.0-alpha.5",
     "core-js": "^2.4.1",
     "font-awesome": "^4.6.3",
@@ -30,10 +31,11 @@
     "zone.js": "^0.6.23"
   },
   "devDependencies": {
-    "@types/tether": "^1.1.27",
+    "@types/ace": "0.0.32",
     "@types/bootstrap": "^3.3.32",
     "@types/jasmine": "^2.2.30",
     "@types/jquery": "^2.0.32",
+    "@types/tether": "^1.1.27",
     "angular-cli": "1.0.0-beta.15",
     "codelyzer": "~0.0.26",
     "jasmine-core": "2.4.1",
