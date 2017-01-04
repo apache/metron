@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -67,6 +68,16 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
  *
  *   <code>PROFILE_GET('profile1', 'entity1', 1, 'MONTHS', 'weekdays')</code>
  *
+ * Retrieve all values for 'entity1' from 'profile1' over the past 2 days,
+ * overriding the usual global client configuration parameters for window duration.
+ *
+ *   <code>PROFILE_GET('profile1', 'entity1', 2, 'DAYS', {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'})</code>
+ *
+ * Retrieve all values for 'entity1' from 'profile1' that occurred on 'weekdays' over the past month,
+ * overriding the usual global client configuration parameters for window duration.
+ *
+ *   <code>PROFILE_GET('profile1', 'entity1', 1, 'MONTHS', {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'}, 'weekdays')</code>
+ *
  */
 @Stellar(
         namespace="PROFILE",
@@ -77,6 +88,7 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
           "entity - The name of the entity.",
           "durationAgo - How long ago should values be retrieved from?",
           "units - The units of 'durationAgo'.",
+          "config_override - Optional - Map of key-value pairs, each overriding the global config parameter of the same name.",
           "groups - Optional - The groups used to sort the profile."
         },
         returns="The profile measurements."
@@ -116,6 +128,16 @@ public class GetProfile implements StellarFunction {
   public static final String PROFILER_SALT_DIVISOR = "profiler.client.salt.divisor";
 
   /**
+   * The default Profile HBase table name should none be defined in the global properties.
+   */
+  public static final String PROFILER_HBASE_TABLE_DEFAULT = "profiler";
+
+  /**
+   * The default Profile column family name should none be defined in the global properties.
+   */
+  public static final String PROFILER_COLUMN_FAMILY_DEFAULT = "P";
+
+  /**
    * The default Profile period duration should none be defined in the global properties.
    */
   public static final String PROFILER_PERIOD_DEFAULT = "15";
@@ -132,28 +154,18 @@ public class GetProfile implements StellarFunction {
 
   private static final Logger LOG = LoggerFactory.getLogger(GetProfile.class);
 
-  /**
-   * A client that can retrieve profile values.
-   */
+  // Cached client that can retrieve profile values.
   private ProfilerClient client;
 
+  // Cached value of config map actually used to construct the previously cached client.
+  private Map<String, Object> cachedConfigMap = new HashMap<String, Object>(6);
+
   /**
-   * Initialization.
+   * Initialization.  No longer need to do anything in initialization,
+   * as all setup is done lazily and cached.
    */
   @Override
   public void initialize(Context context) {
-
-    // ensure the required capabilities are defined
-    Context.Capabilities[] required = { GLOBAL_CONFIG };
-    validateCapabilities(context, required);
-    @SuppressWarnings("unchecked")
-    Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
-
-    // create the profiler client
-    RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(global);
-    ColumnBuilder columnBuilder = getColumnBuilder(global);
-    HTableInterface table = getTable(global);
-    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
   }
 
   /**
@@ -161,7 +173,7 @@ public class GetProfile implements StellarFunction {
    */
   @Override
   public boolean isInitialized() {
-    return client != null;
+    return true;
   }
 
   /**
@@ -177,9 +189,106 @@ public class GetProfile implements StellarFunction {
     long durationAgo = getArg(2, Long.class, args);
     String unitsName = getArg(3, String.class, args);
     TimeUnit units = TimeUnit.valueOf(unitsName);
-    List<Object> groups = getGroupsArg(4, args);
+    //Polymorphic optional arguments
+    Map configOverrideMap;
+    List<Object> groups;
+    if (args.size() >= 5 && args.get(4) instanceof Map) {
+      configOverrideMap = getArg(4, Map.class, args);
+      if (configOverrideMap.isEmpty()) configOverrideMap = null;
+      groups = getGroupsArg(5, args);
+    }
+    else {
+      configOverrideMap = null;
+      groups = getGroupsArg(4, args);
+    }
+
+    Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverrideMap);
+
+    //lazily create new profiler client if needed
+    if (client == null || !cachedConfigMap.equals(effectiveConfig)) {
+      RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(effectiveConfig);
+      ColumnBuilder columnBuilder = getColumnBuilder(effectiveConfig);
+      HTableInterface table = getTable(effectiveConfig);
+      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
+      cachedConfigMap = effectiveConfig;
+    }
 
     return client.fetch(Object.class, profile, entity, groups, durationAgo, units);
+  }
+
+  /**
+   * Merge the configuration parameter override Map into the config from global context,
+   * and return the result.  This has to be done on each call, because either may have changed.
+   *
+   * Only the six recognized profiler client config parameters may be set,
+   * all other key-value pairs in either Map will be ignored.
+   *
+   * Type violations cause a Stellar ParseException.
+   *
+   * @param context - from which we get the global config Map.
+   * @param configOverrideMap - Map of overrides as described above.
+   * @return effective config Map with overrides applied.
+   * @throws ParseException - if any override values are of wrong type.
+   */
+  private Map<String, Object> getEffectiveConfig(
+              Context context
+              , Map configOverrideMap
+  ) throws ParseException {
+
+    final String[] KEYLIST = {
+            PROFILER_HBASE_TABLE, PROFILER_COLUMN_FAMILY,
+            PROFILER_HBASE_TABLE_PROVIDER, PROFILER_PERIOD,
+            PROFILER_PERIOD_UNITS, PROFILER_SALT_DIVISOR};
+
+    // ensure the required capabilities are defined
+    final Context.Capabilities[] required = { GLOBAL_CONFIG };
+    validateCapabilities(context, required);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
+
+    Map<String, Object> result = new HashMap<String, Object>(6);
+    Object v;
+
+    // extract the relevant parameters from global
+    for (String k : KEYLIST) {
+      v = global.get(k);
+      if (v != null) result.put(k, v);
+    }
+    if (configOverrideMap == null) return result;
+
+    // extract override values, typechecking as we go
+    try {
+      for (Object key : configOverrideMap.keySet()) {
+        if (!(key instanceof String)) {
+          // Probably unintended user error, so throw an exception rather than ignore
+          throw new ParseException("Non-string key in config_override map is not allowed: " + key.toString());
+        }
+        switch ((String) key) {
+          case PROFILER_HBASE_TABLE:
+          case PROFILER_COLUMN_FAMILY:
+          case PROFILER_HBASE_TABLE_PROVIDER:
+          case PROFILER_PERIOD_UNITS:
+            v = configOverrideMap.get(key);
+            v = ConversionUtils.convert(v, String.class);
+            result.put((String) key, v);
+            break;
+          case PROFILER_PERIOD:
+          case PROFILER_SALT_DIVISOR:
+            // be tolerant if the user put a number instead of a string
+            // regardless, validate that it is an integer value
+            v = configOverrideMap.get(key);
+            long vlong = ConversionUtils.convert(v, Long.class);
+            result.put((String) key, String.valueOf(vlong));
+            break;
+          default:
+            LOG.warn("Ignoring unallowed key {} in config_override map.", key);
+            break;
+        }
+      }
+    } catch (ClassCastException | NumberFormatException cce) {
+      throw new ParseException("Type violation in config_override map values: ", cce);
+    }
+    return result;
   }
 
   /**
@@ -244,16 +353,10 @@ public class GetProfile implements StellarFunction {
    * @param global The global configuration.
    */
   private ColumnBuilder getColumnBuilder(Map<String, Object> global) {
-    // the builder is not currently configurable - but should be made so
     ColumnBuilder columnBuilder;
 
-    if(global.containsKey(PROFILER_COLUMN_FAMILY)) {
-      String columnFamily = (String) global.get(PROFILER_COLUMN_FAMILY);
-      columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-
-    } else {
-      columnBuilder = new ValueOnlyColumnBuilder();
-    }
+    String columnFamily = (String) global.getOrDefault(PROFILER_COLUMN_FAMILY, PROFILER_COLUMN_FAMILY_DEFAULT);
+    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
     return columnBuilder;
   }
@@ -289,7 +392,7 @@ public class GetProfile implements StellarFunction {
    */
   private HTableInterface getTable(Map<String, Object> global) {
 
-    String tableName = (String) global.getOrDefault(PROFILER_HBASE_TABLE, "profiler");
+    String tableName = (String) global.getOrDefault(PROFILER_HBASE_TABLE, PROFILER_HBASE_TABLE_DEFAULT);
     TableProvider provider = getTableProvider(global);
 
     try {
