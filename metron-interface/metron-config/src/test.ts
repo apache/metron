@@ -33,6 +33,7 @@ window['$'] = window['jQuery'] = $;
 import  * as Tether from 'tether';
 window['Tether'] = Tether;
 
+import 'ace-builds/src-noconflict/ace.js';
 import 'bootstrap/dist/js/bootstrap';
 import 'bootstrap';
 

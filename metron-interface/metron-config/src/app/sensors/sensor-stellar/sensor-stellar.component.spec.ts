@@ -105,12 +105,14 @@ describe('Component: SensorStellarComponent', () => {
         spyOn(component.hideStellar, 'emit');
         spyOn(component.onStellarChanged, 'emit');
 
-        component.sensorParserConfig = new SensorParserConfig();
-        component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
+        component.sensorParserConfig = sensorParserConfig;
+        component.sensorEnrichmentConfig = sensorEnrichmentConfig;
 
         component.newSensorParserConfig = sensorParserConfigString;
         component.newSensorEnrichmentConfig = sensorEnrichmentConfigString;
 
+        component.ngAfterViewInit();
+        component.init();
         component.onSave();
 
         expect(component.sensorParserConfig).toEqual(sensorParserConfig);
