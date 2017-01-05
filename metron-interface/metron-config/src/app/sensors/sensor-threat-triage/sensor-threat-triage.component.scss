@@ -15,8 +15,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class ThreatTriageConfig {
-  riskLevelRules = {};
-  aggregator: string = 'MAX';
-  aggregationConfig = {};
+@import "../../_variables.scss";
+
+textarea
+{
+  height: auto;
+}
+
+.rule-count
+{
+  width: 32%;
+  background: $field-background;
+  border: 1px solid $form-button-border;
+  border-radius: .25em;
+  cursor: default;
+  color: $nav-active-color;
+  i {
+    font-size: smaller;
+  }
+}
+
+.rule-row
+{
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+
+  .fa {
+    color: $nav-active-color;
+    font-size: large;
+  }
+}
+
+.add-rule
+{
+  background: $field-background;
+  border: 1px solid $form-button-border;
+  border-radius: .25em;
+  color: $nav-active-color;
+  width: 100%;
+  display: table;
+}
+
+.new-row-button
+{
+  font-size: 20px;
+  width: 100%;
+  padding: 2px;
+
+  i {
+    color: $field-button-color;
+  }
 }

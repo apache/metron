@@ -15,8 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class ThreatTriageConfig {
-  riskLevelRules = {};
-  aggregator: string = 'MAX';
-  aggregationConfig = {};
-}
+import { NgModule } from '@angular/core';
+import {SharedModule} from '../../shared/shared.module';
+import {SensorThreatTriageComponent} from "./sensor-threat-triage.component";
+
+
+@NgModule ({
+  imports: [ SharedModule ],
+  declarations: [ SensorThreatTriageComponent ]
+})
+export class SensorThreatTriageModule {}

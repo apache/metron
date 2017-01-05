@@ -30,7 +30,7 @@ import {HttpUtil} from '../../util/httpUtil';
 import {KafkaService} from '../../service/kafka.service';
 
 export enum Pane {
-  GROK, STELLAR, FIELDSCHEMA
+  GROK, STELLAR, FIELDSCHEMA, THREATTRIAGE
 }
 
 export enum KafkaStatus {
@@ -56,6 +56,7 @@ export class SensorParserConfigComponent implements OnInit {
   showAdvancedParserConfiguration: boolean = false;
   showStellar: boolean = false;
   showFieldSchema: boolean = false;
+  showThreatTriage: boolean = false;
 
   availableParsers = {};
   availableParserNames = [];
@@ -125,6 +126,7 @@ export class SensorParserConfigComponent implements OnInit {
     group['grokStatement'] = new FormControl(this.sensorParserConfig.parserConfig['grokStatement']);
     group['transforms'] = new FormControl(this.sensorParserConfig['transforms']);
     group['stellar'] = new FormControl(this.sensorParserConfig);
+    group['threatTriage'] = new FormControl(this.sensorEnrichmentConfig);
     group['index'] = new FormControl(this.sensorEnrichmentConfig.index, Validators.required);
     group['batchSize'] = new FormControl(this.sensorEnrichmentConfig.batchSize, Validators.required);
 
@@ -281,6 +283,14 @@ export class SensorParserConfigComponent implements OnInit {
     return count;
   }
 
+  getRuleCount(): number {
+    let count = 0;
+    if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules) {
+      count = Object.keys(this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules).length;
+    }
+    return count;
+  }
+
   showPane(pane: Pane) {
     this.setPaneVisibility(pane, true);
   }
@@ -290,9 +300,10 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   setPaneVisibility(pane: Pane, visibilty: boolean) {
-      this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
-      this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
-      this.showStellar = (pane ===  Pane.STELLAR) ? visibilty : false;
+    this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
+    this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
+    this.showStellar = (pane ===  Pane.STELLAR) ? visibilty : false;
+    this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
   }
 
   onFieldSchemaChanged(): void {

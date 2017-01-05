@@ -28,6 +28,10 @@
                                        (hideFieldSchema)="hidePane(pane.FIELDSCHEMA)"
                                        (onFieldSchemaChanged)="onFieldSchemaChanged()"></metron-config-sensor-field-schema>
 
+    <metron-config-sensor-threat-triage [hidden]="!showThreatTriage" [showThreatTriage]="showThreatTriage"
+                                  [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                                  (hideThreatTriage)="hidePane(pane.THREATTRIAGE)"></metron-config-sensor-threat-triage>
+
 
     <div class="metron-slider-pane-edit fill load-right-to-left dialog1x" style="overflow: auto" >
         <div style="height:100%">
@@ -88,6 +92,23 @@
                         <input type="text" class="form-control" formControlName="stellar"  [ngModel]="''" readonly>
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="button" (click)="showPane(pane.STELLAR)" readonly>
+                                <i class="fa fa-columns" aria-hidden="true"></i>
+                                <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label attr.for="stellar">THREAT TRIAGE</label>
+                    <div  class="input-group">
+                        <div  class="form-control" style="resize: none;" readonly>
+                            <table style="margin: 0">
+                                <tr> <td class="p-l-1">RULES </td> <td class="p-l-1">&nbsp;&nbsp;</td><td class="p-1-1">{{getRuleCount()}}</td> </tr>
+                            </table>
+                        </div>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" (click)="showPane(pane.THREATTRIAGE)" readonly>
                                 <i class="fa fa-columns" aria-hidden="true"></i>
                                 <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
                             </button>

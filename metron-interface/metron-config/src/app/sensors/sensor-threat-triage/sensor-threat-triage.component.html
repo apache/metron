@@ -1,0 +1,71 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<metron-config-sensor-rule-editor *ngIf="showTextEditor" [value]="textEditorValue" [score]="textEditorScore"
+                                  (onCancelTextEditor)="onCancelTextEditor()"
+                                  (onSubmitTextEditor)="onSubmitTextEditor($event)"></metron-config-sensor-rule-editor>
+
+<div class="metron-slider-pane-edit fill load-left-to-right dialog1x">
+
+    <div class="form-title">Threat Triage Rules</div>
+    <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onClose()"></i>
+
+
+    <form role="form" class="threat-intel-form">
+        <fieldset class="form-group">
+            <div class="form-group">
+                <label attr.for="aggregator">AGGREGATOR</label>
+                <select class="form-control" name="aggregator"
+                        [(ngModel)]="sensorEnrichmentConfig.threatIntel.triageConfig.aggregator">
+                    <option *ngFor="let aggregator of availableAggregators" [value]="aggregator">{{aggregator}}</option>
+                </select>
+            </div>
+
+            <div class="row mx-0 py-1">
+                <div class="btn rule-count"><i aria-hidden="true" class="fa fa-circle" style="color: red"></i> 0</div>
+                <div class="btn rule-count"><i aria-hidden="true" class="fa fa-circle" style="color: orange"></i> 1
+                </div>
+                <div class="btn rule-count"><i aria-hidden="true" class="fa fa-circle" style="color: khaki"></i> 2</div>
+            </div>
+            <div *ngFor="let rule of rules">
+                <div class="row mx-0 py-0">
+                    <div class="rule-row" style="color: khaki; font-size: 30px; margin-top: -7px">
+                        <b>I</b>
+                    </div>
+                    <div class="rule-row" style="font-size: small; width: 8%">
+                        {{ sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] }}
+                    </div>
+                    <div class="rule-row" style="width: 64%; padding-right: 10px; font-size: small">
+                        {{ rule }}
+                    </div>
+                    <div class="rule-row" style=""><i class="fa fa-i-cursor" aria-hidden="true"
+                                                                        style="cursor: pointer;" (click)="onEditRule(rule)"></i></div>
+                    <div class="rule-row" style=""><i class="fa fa-puzzle-piece" aria-hidden="true"
+                                                                        style="cursor: pointer;"></i></div>
+
+                    <div class="rule-row" style=""><i  class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteRule(rule)" style="cursor: pointer"></i></div>
+                </div>
+                <div class="form-seperator-edit"></div>
+            </div>
+            <div class="row mx-0 py-0">
+                <button class="btn form-enable-disable-button new-row-button" (click)="onNewRule()"><i
+                        aria-hidden="true" class="fa fa-plus fa-4"></i></button>
+            </div>
+
+        </fieldset>
+
+    </form>
+
+</div>
