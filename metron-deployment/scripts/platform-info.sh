@@ -69,8 +69,16 @@ uname -a | grep -i "linux" > /dev/null
 if [ $? -eq 0 ]
 then
   # Linux
-  top -b -n 1 | head -10 2>/dev/null
+  cat /proc/meminfo  | grep -i MemTotal | awk '{print "Total System Memory = " $2/1024 " MB"}'
+  cat /proc/cpuinfo | egrep 'model\ name' | uniq | cut -d: -f2 | awk '{print "Processor Model:" $0}'
+  cat /proc/cpuinfo | egrep 'cpu\ MHz' | uniq | cut -d: -f2 | awk '{print "Processor Speed:" $0 " MHz"}'
+  cat /proc/cpuinfo | grep -i '^processor' | wc -l | awk '{print "Total Physical Processors: " $0}'
+  cat /proc/cpuinfo | grep -i cores | cut -d: -f2 | awk '{corecount+=$1} END {print "Total cores: " corecount}'
 else
   # Mac
-  top -l 1 | head -10 2>/dev/null
+  sysctl hw.memsize | awk '{print "Total System Memory = " $2/1048576 " MB"}'
+  sysctl machdep.cpu | grep 'machdep.cpu.brand_string' | cut -d: -f2 | cut -d\@ -f1 | awk '{print "Processor Model:" $0}'
+  sysctl machdep.cpu | grep 'machdep.cpu.brand_string' | cut -d: -f2 | cut -d\@ -f2 | awk '{print "Processor Speed:" $0}'
+  sysctl hw.physicalcpu | cut -d: -f2 | awk '{print "Total Physical Processors:" $0}'
+  sysctl machdep.cpu | grep 'machdep.cpu.core_count' | cut -d: -f2 | cut -d\@ -f2 | awk '{print "Total cores:" $0}'
 fi
