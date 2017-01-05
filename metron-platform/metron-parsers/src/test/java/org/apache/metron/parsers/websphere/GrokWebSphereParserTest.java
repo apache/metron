@@ -20,6 +20,7 @@ package org.apache.metron.parsers.websphere;
 
 import static org.junit.Assert.assertEquals;
 
+import java.time.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import org.junit.Test;
 
 public class GrokWebSphereParserTest {
 
+	private static final ZoneId UTC = ZoneId.of("UTC");
 	private Map<String, Object> parserConfig;
 
 	@Before
@@ -54,18 +56,20 @@ public class GrokWebSphereParserTest {
 				+ "[120.43.200.6]: User logged into 'cohlOut'.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
-		
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 47, 28, 0, UTC).toInstant().toEpochMilli();
+
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "133");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460742448000");
-		assertEquals(parsedJSON.get("hostname"), "ABCXML1413");
-		assertEquals(parsedJSON.get("security_domain"), "rojOut");
-		assertEquals(parsedJSON.get("event_code"), "0x81000033");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "notice");
-		assertEquals(parsedJSON.get("event_subtype"), "login");
-		assertEquals(parsedJSON.get("username"), "rick007");
-		assertEquals(parsedJSON.get("ip_src_addr"), "120.43.200.6");
+		assertEquals(133, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("ABCXML1413", parsedJSON.get("hostname"));
+		assertEquals("rojOut", parsedJSON.get("security_domain"));
+		assertEquals("0x81000033", parsedJSON.get("event_code"));
+		assertEquals("auth", parsedJSON.get("event_type"));
+		assertEquals("notice", parsedJSON.get("severity"));
+		assertEquals("login", parsedJSON.get("event_subtype"));
+		assertEquals("rick007", parsedJSON.get("username"));
+		assertEquals("120.43.200.6", parsedJSON.get("ip_src_addr"));
 	}
 	
 	@Test
@@ -78,17 +82,19 @@ public class GrokWebSphereParserTest {
 				+ "User 'hjpotter' logged out from 'default'.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 18, 2, 27, 0, UTC).toInstant().toEpochMilli();
 		
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460743347000");
-		assertEquals(parsedJSON.get("hostname"), "PHIXML3RWD");
-		assertEquals(parsedJSON.get("event_code"), "0x81000019");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("ip_src_addr"), "14.122.2.201");
-		assertEquals(parsedJSON.get("username"), "hjpotter");
-		assertEquals(parsedJSON.get("security_domain"), "default");
+		assertEquals(134, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("PHIXML3RWD", parsedJSON.get("hostname"));
+		assertEquals("0x81000019", parsedJSON.get("event_code"));
+		assertEquals("auth", parsedJSON.get("event_type"));
+		assertEquals("info", parsedJSON.get("severity"));
+		assertEquals("14.122.2.201", parsedJSON.get("ip_src_addr"));
+		assertEquals("hjpotter", parsedJSON.get("username"));
+		assertEquals("default", parsedJSON.get("security_domain"));
 	}
 	
 	@Test
@@ -101,16 +107,18 @@ public class GrokWebSphereParserTest {
 				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 36, 35, 0, UTC).toInstant().toEpochMilli();
 		
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "131");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460741795000");
-		assertEquals(parsedJSON.get("hostname"), "ROBXML3QRS");
-		assertEquals(parsedJSON.get("event_code"), "0x80800018");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "error");
-		assertEquals(parsedJSON.get("process"), "rbm");
-		assertEquals(parsedJSON.get("message"), "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.");
+		assertEquals(131, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("ROBXML3QRS", parsedJSON.get("hostname"));
+		assertEquals("0x80800018", parsedJSON.get("event_code"));
+		assertEquals("auth", parsedJSON.get("event_type"));
+		assertEquals("error", parsedJSON.get("severity"));
+		assertEquals("rbm", parsedJSON.get("process"));
+		assertEquals("trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.", parsedJSON.get("message"));
 	}
 	
 	@Test
@@ -123,16 +131,18 @@ public class GrokWebSphereParserTest {
 				+ "ntp-service 'NTP Service' - Operational state down";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 17, 34, 0, UTC).toInstant().toEpochMilli();
 		
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460740654000");
-		assertEquals(parsedJSON.get("hostname"), "SAGPXMLQA333");
-		assertEquals(parsedJSON.get("event_code"), "0x8240001c");
-		assertEquals(parsedJSON.get("event_type"), "audit");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("process"), "trans");
-		assertEquals(parsedJSON.get("message"), "(admin:default:system:*): ntp-service 'NTP Service' - Operational state down");
+		assertEquals(134, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("SAGPXMLQA333", parsedJSON.get("hostname"));
+		assertEquals("0x8240001c", parsedJSON.get("event_code"));
+		assertEquals("audit", parsedJSON.get("event_type"));
+		assertEquals("info", parsedJSON.get("severity"));
+		assertEquals("trans", parsedJSON.get("process"));
+		assertEquals("(admin:default:system:*): ntp-service 'NTP Service' - Operational state down", parsedJSON.get("message"));
 	}
 	
 	@Test
@@ -143,20 +153,22 @@ public class GrokWebSphereParserTest {
 		parser.configure(parserConfig);
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
 				+ "[120.43.200. User logged into 'cohlOut'.";
-		List<JSONObject> result = parser.parse(testString.getBytes());		
+		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
 
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 47, 28, 0, UTC).toInstant().toEpochMilli();
+
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "133");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460742448000");
-		assertEquals(parsedJSON.get("hostname"), "ABCXML1413");
-		assertEquals(parsedJSON.get("security_domain"), "rojOut");
-		assertEquals(parsedJSON.get("event_code"), "0x81000033");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "notice");
-		assertEquals(parsedJSON.get("event_subtype"), "login");
-		assertEquals(parsedJSON.get("username"), null);
-		assertEquals(parsedJSON.get("ip_src_addr"), null);
+		assertEquals(133, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("ABCXML1413", parsedJSON.get("hostname"));
+		assertEquals("rojOut", parsedJSON.get("security_domain"));
+		assertEquals("0x81000033", parsedJSON.get("event_code"));
+		assertEquals("auth", parsedJSON.get("event_type"));
+		assertEquals("notice", parsedJSON.get("severity"));
+		assertEquals("login", parsedJSON.get("event_subtype"));
+		assertEquals(null, parsedJSON.get("username"));
+		assertEquals(null, parsedJSON.get("ip_src_addr"));
 	}
 	
 	@Test
@@ -169,17 +181,19 @@ public class GrokWebSphereParserTest {
 				+ "User 'hjpotter' logged out from 'default.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 18, 2, 27, 0, UTC).toInstant().toEpochMilli();
 		
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460743347000");
-		assertEquals(parsedJSON.get("hostname"), "PHIXML3RWD");
-		assertEquals(parsedJSON.get("event_code"), "0x81000019");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("ip_src_addr"), null);
-		assertEquals(parsedJSON.get("username"), null);
-		assertEquals(parsedJSON.get("security_domain"), null);
+		assertEquals(134, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("PHIXML3RWD", parsedJSON.get("hostname"));
+		assertEquals("0x81000019", parsedJSON.get("event_code"));
+		assertEquals("auth", parsedJSON.get("event_type"));
+		assertEquals("info", parsedJSON.get("severity"));
+		assertEquals(null, parsedJSON.get("ip_src_addr"));
+		assertEquals(null, parsedJSON.get("username"));
+		assertEquals(null, parsedJSON.get("security_domain"));
 	}
 	
 	@Test
@@ -192,16 +206,18 @@ public class GrokWebSphereParserTest {
 				+ "trans3502888135)[request] gtid3502888135) RBM: Resource access denied.";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 36, 35, 0, UTC).toInstant().toEpochMilli();
 		
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "131");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460741795000");
-		assertEquals(parsedJSON.get("hostname"), "ROBXML3QRS");
-		assertEquals(parsedJSON.get("event_code"), "0x80800018");
-		assertEquals(parsedJSON.get("event_type"), "auth");
-		assertEquals(parsedJSON.get("severity"), "error");
-		assertEquals(parsedJSON.get("process"), null);
-		assertEquals(parsedJSON.get("message"), "rbmRBM-Settings): trans3502888135)[request] gtid3502888135) RBM: Resource access denied.");
+		assertEquals(131, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("ROBXML3QRS", parsedJSON.get("hostname"));
+		assertEquals("0x80800018", parsedJSON.get("event_code"));
+		assertEquals("auth", parsedJSON.get("event_type"));
+		assertEquals("error", parsedJSON.get("severity"));
+		assertEquals(null, parsedJSON.get("process"));
+		assertEquals("rbmRBM-Settings): trans3502888135)[request] gtid3502888135) RBM: Resource access denied.", parsedJSON.get("message"));
 	}
 	
 	@Test
@@ -214,17 +230,18 @@ public class GrokWebSphereParserTest {
 				+ "ntp-service 'NTP Service' - Operational state down:";
 		List<JSONObject> result = parser.parse(testString.getBytes());
 		JSONObject parsedJSON = result.get(0);
+
+		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 17, 34, 0, UTC).toInstant().toEpochMilli();
 		
 		//Compare fields
-		assertEquals(parsedJSON.get("priority") + "", "134");
-		assertEquals(parsedJSON.get("timestamp") + "", "1460740654000");
-		assertEquals(parsedJSON.get("hostname"), "SAGPXMLQA333");
-		assertEquals(parsedJSON.get("event_code"), "0x8240001c");
-		assertEquals(parsedJSON.get("event_type"), "audit");
-		assertEquals(parsedJSON.get("severity"), "info");
-		assertEquals(parsedJSON.get("process"), null);
-		assertEquals(parsedJSON.get("message"), "trans 191)  admindefaultsystem*): "
-				+ "ntp-service 'NTP Service' - Operational state down:");
+		assertEquals(134, parsedJSON.get("priority"));
+		assertEquals(expectedTimestamp, parsedJSON.get("timestamp"));
+		assertEquals("SAGPXMLQA333", parsedJSON.get("hostname"));
+		assertEquals("0x8240001c", parsedJSON.get("event_code"));
+		assertEquals("audit", parsedJSON.get("event_type"));
+		assertEquals("info", parsedJSON.get("severity"));
+		assertEquals(null, parsedJSON.get("process"));
+		assertEquals("trans 191)  admindefaultsystem*): ntp-service 'NTP Service' - Operational state down:", parsedJSON.get("message"));
 	}
 	
 	
