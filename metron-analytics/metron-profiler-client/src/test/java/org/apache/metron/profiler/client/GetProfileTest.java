@@ -198,9 +198,16 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'])";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
+
+    // validate - expect to read all values from the past 4 hours
+    Assert.assertEquals(count, result.size());
+
+    // test the deprecated but allowed "varargs" form of groups specification
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
@@ -229,9 +236,16 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekdays', 'tuesday')";
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekdays', 'tuesday'])";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
+
+    // validate - expect to read all values from the past 4 hours
+    Assert.assertEquals(count, result.size());
+
+    // test the deprecated but allowed "varargs" form of groups specification
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekdays', 'tuesday')";
+    result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
@@ -307,6 +321,7 @@ public class GetProfileTest {
     // now change the executor configuration
     Context context2 = setup2();
     // prove it
+    @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
     Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
     Assert.assertNotEquals(periodDuration, periodDuration2);
@@ -315,6 +330,7 @@ public class GetProfileTest {
     // No error message at this time, but returns empty results list, because
     // row keys are not correctly calculated.
     String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS')";
+    @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to fail to read any values
@@ -322,7 +338,7 @@ public class GetProfileTest {
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
-    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', {"
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', [], {"
             + "'profiler.client.period.duration' : '" + periodDuration + "', "
             + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
             + "'profiler.client.salt.divisor' : " + saltDivisor + " })";
@@ -359,17 +375,18 @@ public class GetProfileTest {
     // now change the executor configuration
     Context context2 = setup2();
     // prove it
+    @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
     Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
     Assert.assertNotEquals(periodDuration, periodDuration2);
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', {"
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'], {"
             + "'profiler.client.period.duration' : '" + periodDuration + "', "
             + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
-            + "'profiler.client.salt.divisor' : " + saltDivisor + " }, "
-            + "'weekends')";
+            + "'profiler.client.salt.divisor' : " + saltDivisor + " })";
+    @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -378,7 +395,7 @@ public class GetProfileTest {
     // execute - read the profile values - with (wrong) default global config values.
     // No error message at this time, but returns empty results list, because
     // row keys are not correctly calculated.
-    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'])";
     result = run(expr, List.class);
 
     // validate - expect to fail to read any values

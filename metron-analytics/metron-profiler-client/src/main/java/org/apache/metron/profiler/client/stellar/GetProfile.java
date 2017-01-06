@@ -192,6 +192,7 @@ public class GetProfile implements StellarFunction {
     String unitsName = getArg(3, String.class, args);
     TimeUnit units = TimeUnit.valueOf(unitsName);
     //Optional arguments
+    @SuppressWarnings("unchecked")
     List<Object> groups = null;
     Map configOverridesMap = null;
     if (args.size() < 5) {
@@ -199,7 +200,7 @@ public class GetProfile implements StellarFunction {
       groups = new ArrayList<>(0);
     }
     else if (args.get(4) instanceof List) {
-      // extensible correct usage
+      // correct extensible usage
       groups = getArg(4, List.class, args);
       if (args.size() >= 6) {
         configOverridesMap = getArg(5, Map.class, args);
