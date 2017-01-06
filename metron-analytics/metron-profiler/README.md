@@ -143,7 +143,7 @@ One or more expressions executed when a message is applied to the profile.  A ma
 
 *Required*
 
-A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	   
+A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period, using the state accumulated by the updates.  The result will typically be a single numeric value, but it may be any serializable object, as shown in Example 4 below.  	   
 
 ### `expires`
 
@@ -300,7 +300,7 @@ This creates a profile...
 
 It is important to note that the Profiler can persist any serializable Object, not just numeric values.  An alternative to the previous example could take advantage of this.  
 
-Instead of storing the mean of the length, the profile could store a more generic summary of the length.  This summary can then be used at a later time to calculate the mean, min, max, percentiles, or any other sensible metric.  This provides a much greater degree of flexibility.
+Instead of storing the mean of the lengths, the profile could store a statistical summarization of the lengths.  This summary can then be used at a later time to calculate the mean, min, max, percentiles, or any other sensible metric.  This provides a much greater degree of flexibility.
  
 ```
 {

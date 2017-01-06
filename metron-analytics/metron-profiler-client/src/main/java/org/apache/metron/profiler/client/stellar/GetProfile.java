@@ -66,17 +66,17 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
  *
  * Retrieve all values for 'entity1' from 'profile1' that occurred on 'weekdays' over the past month.
  *
- *   <code>PROFILE_GET('profile1', 'entity1', 1, 'MONTHS', 'weekdays')</code>
+ *   <code>PROFILE_GET('profile1', 'entity1', 1, 'MONTHS', ['weekdays'])</code>
  *
- * Retrieve all values for 'entity1' from 'profile1' over the past 2 days,
- * overriding the usual global client configuration parameters for window duration.
+ * Retrieve all values for 'entity1' from 'profile1' over the past 2 days, with no 'groupBy',
+ * and overriding the usual global client configuration parameters for window duration.
  *
- *   <code>PROFILE_GET('profile1', 'entity1', 2, 'DAYS', {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'})</code>
+ *   <code>PROFILE_GET('profile1', 'entity1', 2, 'DAYS', [], {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'})</code>
  *
  * Retrieve all values for 'entity1' from 'profile1' that occurred on 'weekdays' over the past month,
  * overriding the usual global client configuration parameters for window duration.
  *
- *   <code>PROFILE_GET('profile1', 'entity1', 1, 'MONTHS', {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'}, 'weekdays')</code>
+ *   <code>PROFILE_GET('profile1', 'entity1', 1, 'MONTHS', ['weekdays'], {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'})</code>
  *
  */
 @Stellar(
@@ -88,8 +88,10 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
           "entity - The name of the entity.",
           "durationAgo - How long ago should values be retrieved from?",
           "units - The units of 'durationAgo'.",
-          "config_override - Optional - Map of key-value pairs, each overriding the global config parameter of the same name.",
-          "groups - Optional - The groups used to sort the profile."
+          "groups_list - Optional - List (in square brackets) of groupBy values used to filter the profile. Default is the " +
+                  "empty list, meaning groupBy was not used when creating the profile.",
+          "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
+                  "of the same name. Default is the empty Map, meaning no overrides."
         },
         returns="The profile measurements."
 )
@@ -189,20 +191,28 @@ public class GetProfile implements StellarFunction {
     long durationAgo = getArg(2, Long.class, args);
     String unitsName = getArg(3, String.class, args);
     TimeUnit units = TimeUnit.valueOf(unitsName);
-    //Polymorphic optional arguments
-    Map configOverrideMap;
-    List<Object> groups;
-    if (args.size() >= 5 && args.get(4) instanceof Map) {
-      configOverrideMap = getArg(4, Map.class, args);
-      if (configOverrideMap.isEmpty()) configOverrideMap = null;
-      groups = getGroupsArg(5, args);
+    //Optional arguments
+    List<Object> groups = null;
+    Map configOverridesMap = null;
+    if (args.size() < 5) {
+      // no optional args, so default 'groups' and configOverridesMap remains null.
+      groups = new ArrayList<>(0);
+    }
+    else if (args.get(4) instanceof List) {
+      // extensible correct usage
+      groups = getArg(4, List.class, args);
+      if (args.size() >= 6) {
+        configOverridesMap = getArg(5, Map.class, args);
+        if (configOverridesMap.isEmpty()) configOverridesMap = null;
+      }
     }
     else {
-      configOverrideMap = null;
+      // Deprecated "varargs" style usage for groups_list
+      // configOverridesMap cannot be specified so it remains null.
       groups = getGroupsArg(4, args);
     }
 
-    Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverrideMap);
+    Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverridesMap);
 
     //lazily create new profiler client if needed
     if (client == null || !cachedConfigMap.equals(effectiveConfig)) {
@@ -226,13 +236,13 @@ public class GetProfile implements StellarFunction {
    * Type violations cause a Stellar ParseException.
    *
    * @param context - from which we get the global config Map.
-   * @param configOverrideMap - Map of overrides as described above.
+   * @param configOverridesMap - Map of overrides as described above.
    * @return effective config Map with overrides applied.
    * @throws ParseException - if any override values are of wrong type.
    */
   private Map<String, Object> getEffectiveConfig(
               Context context
-              , Map configOverrideMap
+              , Map configOverridesMap
   ) throws ParseException {
 
     final String[] KEYLIST = {
@@ -254,21 +264,21 @@ public class GetProfile implements StellarFunction {
       v = global.get(k);
       if (v != null) result.put(k, v);
     }
-    if (configOverrideMap == null) return result;
+    if (configOverridesMap == null) return result;
 
     // extract override values, typechecking as we go
     try {
-      for (Object key : configOverrideMap.keySet()) {
+      for (Object key : configOverridesMap.keySet()) {
         if (!(key instanceof String)) {
           // Probably unintended user error, so throw an exception rather than ignore
-          throw new ParseException("Non-string key in config_override map is not allowed: " + key.toString());
+          throw new ParseException("Non-string key in config_overrides map is not allowed: " + key.toString());
         }
         switch ((String) key) {
           case PROFILER_HBASE_TABLE:
           case PROFILER_COLUMN_FAMILY:
           case PROFILER_HBASE_TABLE_PROVIDER:
           case PROFILER_PERIOD_UNITS:
-            v = configOverrideMap.get(key);
+            v = configOverridesMap.get(key);
             v = ConversionUtils.convert(v, String.class);
             result.put((String) key, v);
             break;
@@ -276,17 +286,17 @@ public class GetProfile implements StellarFunction {
           case PROFILER_SALT_DIVISOR:
             // be tolerant if the user put a number instead of a string
             // regardless, validate that it is an integer value
-            v = configOverrideMap.get(key);
+            v = configOverridesMap.get(key);
             long vlong = ConversionUtils.convert(v, Long.class);
             result.put((String) key, String.valueOf(vlong));
             break;
           default:
-            LOG.warn("Ignoring unallowed key {} in config_override map.", key);
+            LOG.warn("Ignoring unallowed key {} in config_overrides map.", key);
             break;
         }
       }
     } catch (ClassCastException | NumberFormatException cce) {
-      throw new ParseException("Type violation in config_override map values: ", cce);
+      throw new ParseException("Type violation in config_overrides map values: ", cce);
     }
     return result;
   }
