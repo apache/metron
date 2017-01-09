@@ -88,12 +88,13 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
           "entity - The name of the entity.",
           "durationAgo - How long ago should values be retrieved from?",
           "units - The units of 'durationAgo'.",
-          "groups_list - Optional - List (in square brackets) of groupBy values used to filter the profile. Default is the " +
+          "groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of "+
+                  "groupBy values used to filter the profile. Default is the " +
                   "empty list, meaning groupBy was not used when creating the profile.",
           "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
                   "of the same name. Default is the empty Map, meaning no overrides."
         },
-        returns="The profile measurements."
+        returns="The selected profile measurements."
 )
 public class GetProfile implements StellarFunction {
 

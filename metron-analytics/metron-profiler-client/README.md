@@ -32,8 +32,9 @@ REQUIRED:
     durationAgo - How long ago should values be retrieved from?
     units - The units of 'durationAgo'
 OPTIONAL:
-    groups_list - Optional - List (in square brackets) of groupBy values used to filter the profile. Default is the 
-            empty list, meaning groupBy was not used when creating the profile.
+	groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of 
+            groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when 
+            creating the profile.
     config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter
             of the same name. Default is the empty Map, meaning no overrides.
 ```
@@ -120,12 +121,13 @@ Arguments:
 	entity - The name of the entity.
 	durationAgo - How long ago should values be retrieved from?
 	units - The units of 'durationAgo'.
-	groups_list - Optional - List (in square brackets) of groupBy values used to filter the profile. Default is the 
-            empty list, meaning groupBy was not used when creating the profile.
+	groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of 
+            groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when 
+            creating the profile.
 	config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter
             of the same name. Default is the empty Map, meaning no overrides.
 
-Returns: The profile measurements.
+Returns: The selected profile measurements.
 
 [Stellar]>>> PROFILE_GET('test','192.168.138.158', 1, 'HOURS')
 [12078.0, 8921.0, 12131.0]
