@@ -1,0 +1,100 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../_variables.scss";
+
+.title
+{
+  font-size: 12px;
+}
+
+.field-schema-row
+{
+  display: table;
+  width: 100%;
+  min-height: 35px;
+  background: $gray-light;
+}
+
+.field-schema-edit-title
+{
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.field-schema-cell
+{
+  float: none;
+  font-size: 13px;
+  height: 35px;
+  line-height: 20px;
+  display: table-cell;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.small-close-button {
+  font-size:20px;
+  color:#bdbdbd;
+  cursor: pointer;
+}
+
+.config
+{
+  background: $edit-background;
+  border: 1px solid $edit-background-border;
+}
+
+.enrichment-cell
+{
+  display: table-cell;
+  vertical-align: middle;
+  float: none;
+  min-height: 35px;
+  line-height: 20px;
+}
+
+.enrichments-edit-title
+{
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.transform-info-row
+{
+  display: table;
+  width: 100%;
+  min-height: 35px;
+}
+
+.edit-pane-readonly
+{
+  background: #083B44;
+  font-size: 12px;
+  margin-bottom: 0.5em;
+  font-style: italic;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  line-height: 1.5em;
+  height: 35px;
+}
+
+.field-suppressed
+{
+  background-color: #2e2e2e;
+  color: #737373;
+}
