@@ -118,6 +118,13 @@ class MockStormService extends StormService {
     this.topologyStatuses = topologyStatuses;
   }
 
+  public pollGetAll(): Observable<TopologyStatus[]> {
+    return Observable.create(observer => {
+      observer.next(this.topologyStatuses);
+      observer.complete();
+    });
+  }
+
   public getAll(): Observable<TopologyStatus[]> {
     return Observable.create(observer => {
       observer.next(this.topologyStatuses);
@@ -199,7 +206,7 @@ describe('Component: SensorParserList', () => {
 
   }));
 
-  it('getSensors should call getStatus and all variables should be initialised', async(() => {
+  it('getSensors should call getStatus and poll status and all variables should be initialised', async(() => {
     let sensorParserConfigHistory1 = new SensorParserConfigHistory();
     let sensorParserConfigHistory2 = new SensorParserConfigHistory();
     let sensorParserConfig1 = new SensorParserConfig();
