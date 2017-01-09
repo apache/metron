@@ -72,6 +72,8 @@ case "${OSTYPE}" in
     cat /proc/cpuinfo | egrep 'cpu\ MHz' | uniq | cut -d: -f2 | awk '{print "Processor Speed:" $0 " MHz"}'
     cat /proc/cpuinfo | grep -i '^processor' | wc -l | awk '{print "Total Physical Processors: " $0}'
     cat /proc/cpuinfo | grep -i cores | cut -d: -f2 | awk '{corecount+=$1} END {print "Total cores: " corecount}'
+    echo "Disk information:"
+    df -h | grep "^/" 
     ;;
   darwin*)
     sysctl hw.memsize | awk '{print "Total System Memory = " $2/1048576 " MB"}'
@@ -79,6 +81,8 @@ case "${OSTYPE}" in
     sysctl machdep.cpu | grep 'machdep.cpu.brand_string' | cut -d: -f2 | cut -d\@ -f2 | awk '{print "Processor Speed:" $0}'
     sysctl hw.physicalcpu | cut -d: -f2 | awk '{print "Total Physical Processors:" $0}'
     sysctl machdep.cpu | grep 'machdep.cpu.core_count' | cut -d: -f2 | cut -d\@ -f2 | awk '{print "Total cores:" $0}'
+    echo "Disk information:"
+    df -h | grep "^/" 
     ;;
   bsd*)
     echo "BSD is not currently supported, unable to detect system resources"
