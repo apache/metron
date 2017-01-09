@@ -39,7 +39,8 @@ public class HyperLogLogPlus implements Serializable {
   }
 
   /**
-   * Construct HLLP with precision for both normal and sparse sets
+   * Construct HLLP with precision for both normal and sparse sets.
+   * p must be a value between 4 and sp (inclusive) and sp must be less than 32 and greater than or equal to 4.
    *
    * @param p Normal set precision
    * @param sp Sparse set precision
@@ -55,12 +56,26 @@ public class HyperLogLogPlus implements Serializable {
   }
 
   /**
+   * Adds items to the estimator set
+   *
+   * @param objects Items to add
+   * @return True if the internal set is updated when the items are added
+   */
+  public boolean addAll(List<Object> objects) {
+    boolean updated = false;
+    for (Object o : objects) {
+      updated |= add(o);
+    }
+    return updated;
+  }
+
+  /**
    * Adds item to the estimator set
    *
    * @param o Item to add
    * @return True if the internal set is updated when this item is added
    */
-  public boolean offer(Object o) {
+  public boolean add(Object o) {
     return hllp.offer(o);
   }
 

@@ -52,7 +52,7 @@ public class ConversionUtils {
    * @return New List with the elements cast to the desired type
    */
   public static <T, U> List<U> convertList(List<T> from, Class<U> clazz) {
-    return Lists.transform(from, s -> clazz.cast(s));
+    return Lists.transform(from, s -> convert(s, clazz));
   }
 
 }

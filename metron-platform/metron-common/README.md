@@ -249,33 +249,31 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
     * input - List
   * Returns: Last element of the list
 
+### `HLLP_ADD`
+  * Description: Add value to the set. See [HLLP README](HLLP.md)
+  * Input:
+    * hyperLogLogPlus - the hllp estimator to add a value to
+    * value* - value to add to the set. Takes a single item or a list.
+  * Returns: The HyperLogLogPlus set with a new value added
+
 ### `HLLP_CARDINALITY`
-  * Description: Returns HyperLogLogPlus-estimated cardinality for this set
+  * Description: Returns HyperLogLogPlus-estimated cardinality for this set. See [HLLP README](HLLP.md)
   * Input:
     * hyperLogLogPlus - the hllp set
   * Returns: Long value representing the cardinality for this set
 
 ### `HLLP_INIT`
-  * Description: Initializes the set
+  * Description: Initializes the set. p must be a value between 4 and sp (inclusive) and sp must be less than 32 and greater than or equal to 4. See [HLLP README](HLLP.md)
   * Input:
     * p (required) - the precision value for the normal set
-    * sp - the precision value for the sparse set. If sp is not specified the sparse set will be disabled.
+    * sp - the precision value for the sparse set. If sp is 0 or not specified, the sparse set will be disabled.
   * Returns: A new HyperLogLogPlus set
 
 ### `HLLP_MERGE`
-  * Description: Merge hllp sets together
+  * Description: Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)
   * Input:
-    * hllp1 - first hllp set
-    * hllp2 - second hllp set
-    * hllpn - additional sets to merge
+    * hllp* - List of hllp estimators to merge
   * Returns: A new merged HyperLogLogPlus estimator set
-
-### `HLLP_OFFER`
-  * Description: Add value to the set
-  * Input:
-    * hyperLogLogPlus - the hllp set
-    * o - Object to add to the set
-  * Returns: The HyperLogLogPlus set with a new object added
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.

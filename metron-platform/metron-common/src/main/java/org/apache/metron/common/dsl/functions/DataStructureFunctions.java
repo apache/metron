@@ -24,6 +24,7 @@ import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.HyperLogLogPlus;
 import org.apache.metron.common.utils.SerDeUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -139,6 +140,34 @@ public class DataStructureFunctions {
   }
 
   @Stellar( namespace="HLLP"
+          , name="ADD"
+          , description="Add value to the set"
+          , params = {
+          "hyperLogLogPlus - the hllp estimator to add a value to"
+          ,"value* - value to add to the set. Takes a single item or a list."
+  }
+          , returns = "The HyperLogLogPlus set with a new value added"
+  )
+  public static class HLLPAdd extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      if (args.size() < 2) {
+        throw new IllegalArgumentException("Must pass an hllp estimator set and at least one value to add to the set");
+      } else {
+        HyperLogLogPlus hllp = ConversionUtils.convert(args.get(0), HyperLogLogPlus.class);
+        Object secondArg = args.get(1);
+        if (secondArg instanceof List) {
+          hllp.addAll((List) secondArg);
+        } else {
+          hllp.add(secondArg);
+        }
+        return hllp;
+      }
+    }
+  }
+
+  @Stellar( namespace="HLLP"
           , name="CARDINALITY"
           , description="Returns HyperLogLogPlus-estimated cardinality for this set"
           , params = { "hyperLogLogPlus - the hllp set" }
@@ -157,10 +186,10 @@ public class DataStructureFunctions {
 
   @Stellar( namespace="HLLP"
           , name="INIT"
-          , description="Initializes the set"
+          , description="Initializes the set. p must be a value between 4 and sp and sp must be less than 32 and greater than 4."
           , params = {
                       "p (required) - the precision value for the normal set"
-                     ,"sp - the precision value for the sparse set. If sp is not specified the sparse set will be disabled."
+                     ,"sp - the precision value for the sparse set. If sp is 0 or not specified, the sparse set will be disabled."
                      }
           , returns = "A new HyperLogLogPlus set"
   )
@@ -183,12 +212,8 @@ public class DataStructureFunctions {
 
   @Stellar( namespace="HLLP"
           , name="MERGE"
-          , description="Merge hllp sets together"
-          , params = {
-                      "hllp1 - first hllp set"
-                     ,"hllp2 - second hllp set"
-                     ,"hllpn - additional sets to merge"
-          }
+          , description="Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set."
+          , params = { "hllp* - List of hllp estimators to merge" }
           , returns = "A new merged HyperLogLogPlus estimator set"
   )
   public static class HLLPMerge extends BaseStellarFunction {
@@ -198,9 +223,18 @@ public class DataStructureFunctions {
       if (args.size() < 1) {
         throw new IllegalArgumentException("Must pass 1..n hllp sets to merge");
       } else {
-        HyperLogLogPlus hllp = ConversionUtils.convert(args.get(0), HyperLogLogPlus.class);
-        if (args.size() > 1) {
-          hllp = hllp.merge(getEstimatorsFromIndex(args, 1));
+        List<Object> estimators = new ArrayList();
+        if (args.get(0) instanceof List) {
+          estimators = (List) args.get(0);
+        } else {
+          estimators.add(args.get(0));
+        }
+        if (estimators.size() < 1) {
+          throw new IllegalArgumentException("Must pass 1..n hllp sets to merge");
+        }
+        HyperLogLogPlus hllp = ConversionUtils.convert(estimators.get(0), HyperLogLogPlus.class);
+        if (estimators.size() > 1) {
+          hllp = hllp.merge(getEstimatorsFromIndex(estimators, 1));
         }
         return hllp;
       }
@@ -211,29 +245,6 @@ public class DataStructureFunctions {
      */
     private List<HyperLogLogPlus> getEstimatorsFromIndex(List<Object> args, int index) {
       return ConversionUtils.convertList(args.subList(index, args.size()), HyperLogLogPlus.class);
-    }
-  }
-
-  @Stellar( namespace="HLLP"
-          , name="OFFER"
-          , description="Add value to the set"
-          , params = {
-                      "hyperLogLogPlus - the hllp set"
-                     ,"o - Object to add to the set"
-                     }
-          , returns = "The HyperLogLogPlus set with a new object added"
-  )
-  public static class HLLPOffer extends BaseStellarFunction {
-
-    @Override
-    public Object apply(List<Object> args) {
-      if (args.size() < 2) {
-        throw new IllegalArgumentException("Must pass an hllp set and a value to add to the set");
-      } else {
-        HyperLogLogPlus hllp = ConversionUtils.convert(args.get(0), HyperLogLogPlus.class);
-        hllp.offer(args.get(1));
-        return hllp;
-      }
     }
   }
 

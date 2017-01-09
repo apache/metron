@@ -21,7 +21,6 @@ com.jcraft:jsch:jar:0.1.42:compile,BSD,http://www.jcraft.com/jsch/
 com.sun.xml.bind:jaxb-impl:jar:2.2.3-1:compile,CDDL,http://jaxb.java.net/
 com.sun.xml.bind:jaxb-impl:jar:2.2.5-2:compile,CDDL,http://jaxb.java.net/
 com.twitter:jsr166e:jar:1.1.0:compile,CC0 1.0 Universal,http://github.com/twitter/jsr166e
-it.unimi.dsi:fastutil:jar:6.5.11:compile,ASLv2,https://github.com/vigna/fastutil
 it.unimi.dsi:fastutil:jar:7.0.6:compile,ASLv2,https://github.com/vigna/fastutil
 javassist:javassist:jar:3.12.1.GA:compile,Apache v2,http://www.javassist.org/
 javax.activation:activation:jar:1.1:compile,Common Development and Distribution License (CDDL) v1.0,http://java.sun.com/products/javabeans/jaf/index.jsp
