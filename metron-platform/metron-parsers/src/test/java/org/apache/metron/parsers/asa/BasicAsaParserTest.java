@@ -141,14 +141,14 @@ public class BasicAsaParserTest {
 
     @Test
     public void testIp6Addr() {
-        String rawMessage = "<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:2001:db8:85a3::8a2e:370:7334/49886 (10.22.8.110/49886) to inside:2001:0db8:85a3:0000:0000:8a2e:0370:7334/8612 (192.111.72.8/8612) (user.name)";
+        String rawMessage = "<174>Jan 05 2016 14:52:35 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:2001:db8:85a3::8a2e:370:7334/49886 (10.22.8.110/49886) to inside:2001:0db8:85a3:0000:0000:8a2e:0370:7334/8612 (192.111.72.8/8612) (user.name)";
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
-        assertEquals(asaJson.get("original_string"), rawMessage);
-        assertTrue(asaJson.get("ip_src_addr").equals("2001:db8:85a3::8a2e:370:7334"));
-        assertTrue(asaJson.get("ip_dst_addr").equals("2001:0db8:85a3:0000:0000:8a2e:0370:7334"));
-        assertTrue(asaJson.get("ip_src_port").equals(49886));
-        assertTrue(asaJson.get("ip_dst_port").equals(8612));
-        assertTrue((long) asaJson.get("timestamp") == 1452005555000L);
+        assertEquals(rawMessage, asaJson.get("original_string"));
+        assertEquals("2001:db8:85a3::8a2e:370:7334", asaJson.get("ip_src_addr"));
+        assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", asaJson.get("ip_dst_addr"));
+        assertEquals(49886, asaJson.get("ip_src_port"));
+        assertEquals(8612, asaJson.get("ip_dst_port"));
+        assertEquals(1452005555000L, asaJson.get("timestamp"));
     }
 
     @Rule
