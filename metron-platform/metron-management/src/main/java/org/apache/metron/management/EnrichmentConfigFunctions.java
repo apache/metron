@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jakewharton.fliptables.FlipTable;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.dsl.Context;
@@ -33,10 +34,11 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.util.*;
 
 import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
+import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
 
 public class EnrichmentConfigFunctions {
 
-  private static final Logger LOG = Logger.getLogger(ConfigurationFunctions.class);
+  private static final Logger LOG = Logger.getLogger(EnrichmentConfigFunctions.class);
   public enum Type {
     ENRICHMENT, THREAT_INTEL, THREATINTEL;
   }
@@ -251,95 +253,5 @@ public class EnrichmentConfigFunctions {
     }
   }
 
-  @Stellar(
-           namespace = "ENRICHMENT"
-          ,name = "SET_BATCH"
-          ,description = "Set batch size"
-          ,params = {"sensorConfig - Sensor config to add transformation to."
-                    ,"size - batch size (integer)"
-                    }
-          ,returns = "The String representation of the config in zookeeper"
-          )
-  public static class SetBatchSize implements StellarFunction{
 
-    @Override
-    public Object apply(List<Object> args, Context context) throws ParseException {
-      int i = 0;
-      String config = (String) args.get(i++);
-      SensorEnrichmentConfig configObj;
-      if(config == null || config.isEmpty()) {
-        throw new IllegalStateException("Invalid config: " + config);
-      }
-      else {
-        configObj = (SensorEnrichmentConfig) ENRICHMENT.deserialize(config);
-      }
-      int batchSize = 5;
-      if(args.size() > 1) {
-        batchSize = ConversionUtils.convert(args.get(i++), Integer.class);
-      }
-      configObj.setBatchSize(batchSize);
-      try {
-        return JSONUtils.INSTANCE.toJSON(configObj, true);
-      } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
-        return config;
-      }
-    }
-
-    @Override
-    public void initialize(Context context) {
-
-    }
-
-    @Override
-    public boolean isInitialized() {
-      return true;
-    }
-  }
-
-  @Stellar(
-           namespace = "ENRICHMENT"
-          ,name = "SET_INDEX"
-          ,description = "Set the index for the enrichment"
-          ,params = {"sensorConfig - Sensor config to add transformation to."
-                    ,"sensor - sensor name"
-                    }
-          ,returns = "The String representation of the config in zookeeper"
-          )
-  public static class SetIndex implements StellarFunction{
-
-    @Override
-    public Object apply(List<Object> args, Context context) throws ParseException {
-      int i = 0;
-      String config = (String) args.get(i++);
-      SensorEnrichmentConfig configObj;
-      if(config == null || config.isEmpty()) {
-        throw new IllegalStateException("Invalid config: " + config);
-      }
-      else {
-        configObj = (SensorEnrichmentConfig) ENRICHMENT.deserialize(config);
-      }
-      String sensorName = ConversionUtils.convert(args.get(i++), String.class);
-      if(sensorName == null) {
-        throw new IllegalStateException("Invalid sensor name: " + config);
-      }
-      configObj.setIndex(sensorName);
-      try {
-        return JSONUtils.INSTANCE.toJSON(configObj, true);
-      } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
-        return config;
-      }
-    }
-
-    @Override
-    public void initialize(Context context) {
-
-    }
-
-    @Override
-    public boolean isInitialized() {
-      return true;
-    }
-  }
 }

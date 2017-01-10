@@ -27,33 +27,22 @@ import java.util.Optional;
 
 public class IndexingWriterConfiguration implements WriterConfiguration{
   private Optional<IndexingConfigurations> config;
-  public static final String BATCH_SIZE_CONF = "batchSize";
-  public static final String INDEX_CONF = "index";
+
 
   public IndexingWriterConfiguration(IndexingConfigurations config) {
     this.config = Optional.ofNullable(config);
   }
 
-  private <T> T getAs(String key, Map<String, Object> map, T defaultValue, Class<T> clazz) {
-    return map == null?defaultValue:ConversionUtils.convert(map.getOrDefault(key, defaultValue), clazz);
-  }
+
 
   @Override
   public int getBatchSize(String sensorName) {
-    return getAs( BATCH_SIZE_CONF
-                , config.orElse(new IndexingConfigurations()).getSensorIndexingConfig(sensorName)
-                , 1
-                , Integer.class
-                );
+    return config.orElse(new IndexingConfigurations()).getBatchSize(sensorName);
   }
 
   @Override
   public String getIndex(String sensorName) {
-    return getAs( INDEX_CONF
-                , config.orElse(new IndexingConfigurations()).getSensorIndexingConfig(sensorName)
-                , sensorName
-                , String.class
-                );
+    return config.orElse(new IndexingConfigurations()).getIndex(sensorName);
   }
 
   @Override

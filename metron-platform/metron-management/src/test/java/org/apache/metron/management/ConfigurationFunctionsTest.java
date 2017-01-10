@@ -121,8 +121,6 @@ public class ConfigurationFunctionsTest {
 
   /**
     {
-      "index" : "brop",
-      "batchSize" : 0,
       "enrichment" : {
         "fieldMap" : { },
         "fieldToTypeMap" : { },
@@ -202,6 +200,37 @@ public class ConfigurationFunctionsTest {
       } catch(ParseException e) {
         UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
         throw e;
+      }
+    }
+  }
+
+  @Test
+  public void testIndexingPut() throws InterruptedException {
+    String brop= (String) run("CONFIG_GET('INDEXING', 'testIndexingPut')", new HashMap<>(), context);
+    run("CONFIG_PUT('INDEXING', config, 'testIndexingPut')", ImmutableMap.of("config", brop), context);
+    boolean foundMatch = false;
+    for(int i = 0;i < 10 && !foundMatch;++i) {
+      String bropNew = (String) run("CONFIG_GET('INDEXING', 'testIndexingPut', false)", new HashMap<>(), context);
+      foundMatch =  brop.equals(bropNew);
+      if(foundMatch) {
+        break;
+      }
+      Thread.sleep(2000);
+    }
+    Assert.assertTrue(foundMatch);
+  }
+
+  @Test(expected= ParseException.class)
+  public void testIndexingPutBad() throws InterruptedException {
+    {
+      {
+        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
+        try {
+          run("CONFIG_PUT('INDEXING', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
+        } catch(ParseException e) {
+          UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
+          throw e;
+        }
       }
     }
   }

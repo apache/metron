@@ -101,7 +101,8 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
-    writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
+    INDEXING.deserialize(new String(configData));
+    writeToZookeeper(INDEXING.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig, String zookeeperUrl) throws Exception {
@@ -116,6 +117,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    ENRICHMENT.deserialize(new String(configData));
     writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
@@ -324,6 +326,7 @@ public class ConfigurationsUtils {
   public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback) throws Exception {
     visitConfigs(client, callback, GLOBAL);
     visitConfigs(client, callback, PARSER);
+    visitConfigs(client, callback, INDEXING);
     visitConfigs(client, callback, ENRICHMENT);
     visitConfigs(client, callback, PROFILER);
   }
@@ -336,7 +339,7 @@ public class ConfigurationsUtils {
         byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
         callback.visit(configType, "global", new String(globalConfigData));
 
-      } else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(PROFILER)) {
+      } else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(PROFILER) || configType.equals(INDEXING)) {
         List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
         for (String child : children) {
 
