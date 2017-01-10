@@ -302,7 +302,10 @@ public class StringFunctions {
       \Eta(X) = - \sum(p(x_i)*log_2(p(x_i)), i=0, n-1) where x_i are distinct characters in the string.
        */
       Map<Character, Integer> frequency = new HashMap<>();
-      String input = (String)strings.get(0);
+      if(strings.size() != 1) {
+        throw new IllegalArgumentException("STRING_ENTROPY expects exactly one argument which is a string.");
+      }
+      String input = ConversionUtils.convert(strings.get(0), String.class);
       if(StringUtils.isEmpty(input)) {
         return 0.0;
       }
