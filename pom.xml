@@ -28,6 +28,7 @@
             <module>metron-analytics</module>
             <module>metron-platform</module>
             <module>metron-deployment</module>
+            <module>metron-docker</module>
     </modules>
 
     <repositories>
@@ -264,6 +265,9 @@
                         <exclude>**/packer-build/bin/**</exclude>
                         <!-- Packer/Bento non-source directory -->
                         <exclude>**/packer_cache/**</exclude>
+                        <exclude>**/hbase/data/**</exclude>
+                        <exclude>**/kafkazk/data/**</exclude>
+                        <exclude>**/wait-for-it.sh</exclude>
                     </excludes>
                 </configuration>
             </plugin>
