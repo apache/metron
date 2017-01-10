@@ -292,7 +292,7 @@ public class StringFunctions {
           , name="ENTROPY"
           , description = "Computes the base-2 shannon entropy of a string"
           , params = { "input - String" }
-          , returns = "The base-2 shannon entropy of the string.  The unit of this is bits."
+          , returns = "The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits."
   )
   public static class Entropy extends BaseStellarFunction {
     @Override
