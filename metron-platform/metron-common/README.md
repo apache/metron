@@ -403,7 +403,7 @@ MAP_GET`
   * Description: Computes the base-2 shannon entropy of a string.
   * Input:
     * input - String 
-  * Returns: The base-2 shannon entropy of the string.  The unit of this is bits.
+  * Returns: The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits.
 
 ### `SPLIT`
   * Description: Splits the string by the delimiter.
