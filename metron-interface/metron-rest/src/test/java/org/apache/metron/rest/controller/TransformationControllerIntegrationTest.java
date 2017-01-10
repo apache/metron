@@ -65,6 +65,7 @@ public class TransformationControllerIntegrationTest {
 
     private MockMvc mockMvc;
 
+    private String transformationUrl = "/api/v1/transformation";
     private String user = "user";
     private String password = "password";
 
@@ -75,44 +76,44 @@ public class TransformationControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post("/api/v1/transformation/validate/rules").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
+        this.mockMvc.perform(post(transformationUrl + "/validate/rules").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(post("/api/v1/transformation/validate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseConfigJson))
+        this.mockMvc.perform(post(transformationUrl + "/validate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseConfigJson))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/api/v1/transformation/list"))
+        this.mockMvc.perform(get(transformationUrl + "/list"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/api/v1/transformation/list/functions"))
+        this.mockMvc.perform(get(transformationUrl + "/list/functions"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void test() throws Exception {
-        this.mockMvc.perform(post("/api/v1/transformation/validate/rules").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
+        this.mockMvc.perform(post(transformationUrl + "/validate/rules").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.['" + valid + "']").value(Boolean.TRUE))
                 .andExpect(jsonPath("$.['" + invalid + "']").value(Boolean.FALSE));
 
-        this.mockMvc.perform(post("/api/v1/transformation/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseConfigJson))
+        this.mockMvc.perform(post(transformationUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseConfigJson))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.url").value("https://caseystella.com/blog"))
                 .andExpect(jsonPath("$.url_host").value("caseystella.com"));
 
-        this.mockMvc.perform(get("/api/v1/transformation/list").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(transformationUrl + "/list").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))));
 
-        this.mockMvc.perform(get("/api/v1/transformation/list/functions").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(transformationUrl + "/list/functions").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))));
 
-        this.mockMvc.perform(get("/api/v1/transformation/list/simple/functions").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(transformationUrl + "/list/simple/functions").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))));
