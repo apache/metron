@@ -20,6 +20,7 @@ package org.apache.metron.rest.utils;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -67,9 +68,17 @@ public class ReadMeUtils {
         if (apiOperation == null) {
           throw new Exception(String.format("@ApiOperation annotation missing from method %s.%s. Every controller method must have an @ApiOperation annotation.", controller.getSimpleName(), method.getName()));
         }
-        ApiResponse apiResponse = method.getAnnotation(ApiResponse.class);
-        if (apiResponse == null) {
-          throw new Exception(String.format("@ApiResponse annotation missing from method %s.%s. Every controller method must have an @ApiResponse annotation.", controller.getSimpleName(), method.getName()));
+        ApiResponse[] apiResponseArray;
+        ApiResponses apiResponses = method.getAnnotation(ApiResponses.class);
+        if (apiResponses == null) {
+          ApiResponse apiResponse = method.getAnnotation(ApiResponse.class);
+          if (apiResponse == null) {
+            throw new Exception(String.format("@ApiResponses or @ApiResponse annotation missing from method %s.%s. Every controller method must have an @ApiResponses or @ApiResponse annotation.", controller.getSimpleName(), method.getName()));
+          } else {
+            apiResponseArray = new ApiResponse[]{ apiResponse };
+          }
+        } else {
+          apiResponseArray = apiResponses.value();
         }
         String[] requestMappingValue = requestMapping.value();
         if (requestMappingValue.length == 0) {
@@ -85,7 +94,9 @@ public class ReadMeUtils {
           requestMethod = requestMapping.method()[0];
         }
         restControllerInfo.setMethod(requestMethod);
-        restControllerInfo.setResponseDescription(apiResponse.message());
+        for (ApiResponse apiResponse: apiResponseArray) {
+          restControllerInfo.addResponse(apiResponse.message(), apiResponse.code());
+        }
         for(Parameter parameter: method.getParameters()) {
           if (!parameter.getType().equals(Principal.class)) {
             ApiParam apiParam = parameter.getAnnotation(ApiParam.class);

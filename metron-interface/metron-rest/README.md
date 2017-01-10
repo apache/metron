@@ -118,245 +118,306 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 ### `GET /api/v1/globalConfig`
   * Description: Retrieves the current Global Config from Zookeeper
-  * Returns: Current Global Config JSON in Zookeeper
+  * Returns:
+    * 200 - Returns current Global Config JSON in Zookeeper
+    * 404 - Global Config JSON was not found in Zookeeper
 
 ### `DELETE /api/v1/globalConfig`
   * Description: Deletes the current Global Config from Zookeeper
-  * Returns: No return value
+  * Returns:
+    * 200 - Global Config JSON was deleted
+    * 404 - Global Config JSON was not found in Zookeeper
 
 ### `POST /api/v1/globalConfig`
   * Description: Creates or updates the Global Config in Zookeeper
   * Input:
     * globalConfig - The Global Config JSON to be saved
-  * Returns: Saved Global Config JSON
+  * Returns:
+    * 200 - Returns saved Global Config JSON
 
 ### `GET /api/v1/grok/list`
   * Description: Lists the common Grok statements available in Metron
-  * Returns: JSON object containing pattern label/Grok statements key value pairs
+  * Returns:
+    * 200 - JSON object containing pattern label/Grok statements key value pairs
 
 ### `POST /api/v1/grok/validate`
   * Description: Applies a Grok statement to a sample message
   * Input:
     * grokValidation - Object containing Grok statment and sample message
-  * Returns: JSON results
+  * Returns:
+    * 200 - JSON results
 
 ### `GET /api/v1/kafka/topic`
   * Description: Retrieves all Kafka topics
-  * Returns: A list of all Kafka topics
+  * Returns:
+    * 200 - Returns a list of all Kafka topics
 
 ### `POST /api/v1/kafka/topic`
   * Description: Creates a new Kafka topic
   * Input:
     * topic - Kafka topic
-  * Returns: Saved Kafka topic
+  * Returns:
+    * 200 - Returns saved Kafka topic
 
 ### `GET /api/v1/kafka/topic/{name}`
   * Description: Retrieves a Kafka topic
   * Input:
     * name - Kafka topic name
-  * Returns: Kafka topic
+  * Returns:
+    * 200 - Returns Kafka topic
+    * 404 - Kafka topic is missing
 
 ### `DELETE /api/v1/kafka/topic/{name}`
   * Description: Delets a Kafka topic
   * Input:
     * name - Kafka topic name
-  * Returns: No return value
+  * Returns:
+    * 200 - Kafka topic was deleted
+    * 404 - Kafka topic is missing
 
 ### `GET /api/v1/kafka/topic/{name}/sample`
   * Description: Retrieves a sample message from a Kafka topic using the most recent offset
   * Input:
     * name - Kafka topic name
-  * Returns: Sample message
+  * Returns:
+    * 200 - Returns sample message
+    * 404 - Either Kafka topic is missing or contains no messages
 
 ### `GET /api/v1/sensorEnrichmentConfig`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
-  * Returns: All SensorEnrichmentConfigs
+  * Returns:
+    * 200 - Returns all SensorEnrichmentConfigs
 
 ### `GET /api/v1/sensorEnrichmentConfig/list/available`
   * Description: Lists the available enrichments
-  * Returns: List of available enrichments
+  * Returns:
+    * 200 - Returns a list of available enrichments
 
 ### `DELETE /api/v1/sensorEnrichmentConfig/{name}`
   * Description: Deletes a SensorEnrichmentConfig from Zookeeper
   * Input:
     * name - SensorEnrichmentConfig name
-  * Returns: No return value
+  * Returns:
+    * 200 - SensorEnrichmentConfig was deleted
+    * 404 - SensorEnrichmentConfig is missing
 
 ### `POST /api/v1/sensorEnrichmentConfig/{name}`
   * Description: Updates or creates a SensorEnrichmentConfig in Zookeeper
   * Input:
     * sensorEnrichmentConfig - SensorEnrichmentConfig
     * name - SensorEnrichmentConfig name
-  * Returns: Saved SensorEnrichmentConfig
+  * Returns:
+    * 200 - Returns saved SensorEnrichmentConfig
 
 ### `GET /api/v1/sensorEnrichmentConfig/{name}`
   * Description: Retrieves a SensorEnrichmentConfig from Zookeeper
   * Input:
     * name - SensorEnrichmentConfig name
-  * Returns: SensorEnrichmentConfig
+  * Returns:
+    * 200 - Returns SensorEnrichmentConfig
+    * 404 - SensorEnrichmentConfig is missing
 
 ### `POST /api/v1/sensorParserConfig`
   * Description: Updates or creates a SensorParserConfig in Zookeeper
   * Input:
     * sensorParserConfig - SensorParserConfig
-  * Returns: Saved SensorParserConfig
+  * Returns:
+    * 200 - Returns saved SensorParserConfig
 
 ### `GET /api/v1/sensorParserConfig`
   * Description: Retrieves all SensorParserConfigs from Zookeeper
-  * Returns: All SensorParserConfigs
+  * Returns:
+    * 200 - Returns all SensorParserConfigs
 
 ### `GET /api/v1/sensorParserConfig/list/available`
   * Description: Lists the available parser classes that can be found on the classpath
-  * Returns: List of available parser classes
+  * Returns:
+    * 200 - Returns a list of available parser classes
 
 ### `POST /api/v1/sensorParserConfig/parseMessage`
   * Description: Parses a sample message given a SensorParserConfig
   * Input:
     * parseMessageRequest - Object containing a sample message and SensorParserConfig
-  * Returns: Parsed message
+  * Returns:
+    * 200 - Returns parsed message
 
 ### `GET /api/v1/sensorParserConfig/reload/available`
   * Description: Scans the classpath for available parser classes and reloads the cached parser class list
-  * Returns: List of available parser classes
+  * Returns:
+    * 200 - Returns a list of available parser classes
 
 ### `DELETE /api/v1/sensorParserConfig/{name}`
   * Description: Deletes a SensorParserConfig from Zookeeper
   * Input:
     * name - SensorParserConfig name
-  * Returns: No return value
+  * Returns:
+    * 200 - SensorParserConfig was deleted
+    * 404 - SensorParserConfig is missing
 
 ### `GET /api/v1/sensorParserConfig/{name}`
   * Description: Retrieves a SensorParserConfig from Zookeeper
   * Input:
     * name - SensorParserConfig name
-  * Returns: SensorParserConfig
+  * Returns:
+    * 200 - Returns SensorParserConfig
+    * 404 - SensorParserConfig is missing
 
 ### `GET /api/v1/sensorParserConfigHistory`
   * Description: Retrieves all current versions of SensorParserConfigs including audit information
-  * Returns: SensorParserConfigs with audit information
+  * Returns:
+    * 200 - Returns all SensorParserConfigs with audit information
 
 ### `GET /api/v1/sensorParserConfigHistory/history/{name}`
   * Description: Retrieves the history of all changes made to a SensorParserConfig
   * Input:
     * name - SensorParserConfig name
-  * Returns: SensorParserConfig history
+  * Returns:
+    * 200 - Returns SensorParserConfig history
 
 ### `GET /api/v1/sensorParserConfigHistory/{name}`
   * Description: Retrieves the current version of a SensorParserConfig including audit information
   * Input:
     * name - SensorParserConfig name
-  * Returns: SensorParserConfig with audit information
+  * Returns:
+    * 200 - Returns SensorParserConfig with audit information
+    * 404 - SensorParserConfig is missing
 
 ### `GET /api/v1/storm`
   * Description: Retrieves the status of all Storm topologies
-  * Returns: List of topologies with status information
+  * Returns:
+    * 200 - Returns a list of topologies with status information
 
 ### `GET /api/v1/storm/client/status`
   * Description: Retrieves information about the Storm command line client
-  * Returns: Storm command line client information
+  * Returns:
+    * 200 - Returns storm command line client information
 
 ### `GET /api/v1/storm/enrichment`
   * Description: Retrieves the status of the Storm enrichment topology
-  * Returns: Topology status information
+  * Returns:
+    * 200 - Returns topology status information
+    * 404 - Topology is missing
 
 ### `GET /api/v1/storm/enrichment/activate`
   * Description: Activates a Storm enrichment topology
-  * Returns: Activate response message
+  * Returns:
+    * 200 - Returns activate response message
 
 ### `GET /api/v1/storm/enrichment/deactivate`
   * Description: Deactivates a Storm enrichment topology
-  * Returns: Deactivate response message
+  * Returns:
+    * 200 - Returns deactivate response message
 
 ### `GET /api/v1/storm/enrichment/start`
   * Description: Starts a Storm enrichment topology
-  * Returns: Start response message
+  * Returns:
+    * 200 - Returns start response message
 
 ### `GET /api/v1/storm/enrichment/stop`
   * Description: Stops a Storm enrichment topology
   * Input:
     * stopNow - Stop the topology immediately
-  * Returns: Stop response message
+  * Returns:
+    * 200 - Returns stop response message
 
 ### `GET /api/v1/storm/indexing`
   * Description: Retrieves the status of the Storm indexing topology
-  * Returns: Topology status information
+  * Returns:
+    * 200 - Returns topology status information
+    * 404 - Topology is missing
 
 ### `GET /api/v1/storm/indexing/activate`
   * Description: Activates a Storm indexing topology
-  * Returns: Activate response message
+  * Returns:
+    * 200 - Returns activate response message
 
 ### `GET /api/v1/storm/indexing/deactivate`
   * Description: Deactivates a Storm indexing topology
-  * Returns: Deactivate response message
+  * Returns:
+    * 200 - Returns deactivate response message
 
 ### `GET /api/v1/storm/indexing/start`
   * Description: Starts a Storm indexing topology
-  * Returns: Start response message
+  * Returns:
+    * 200 - Returns start response message
 
 ### `GET /api/v1/storm/indexing/stop`
   * Description: Stops a Storm enrichment topology
   * Input:
     * stopNow - Stop the topology immediately
-  * Returns: Stop response message
+  * Returns:
+    * 200 - Returns stop response message
 
 ### `GET /api/v1/storm/parser/activate/{name}`
   * Description: Activates a Storm parser topology
   * Input:
     * name - Parser name
-  * Returns: Activate response message
+  * Returns:
+    * 200 - Returns activate response message
 
 ### `GET /api/v1/storm/parser/deactivate/{name}`
   * Description: Deactivates a Storm parser topology
   * Input:
     * name - Parser name
-  * Returns: Deactivate response message
+  * Returns:
+    * 200 - Returns deactivate response message
 
 ### `GET /api/v1/storm/parser/start/{name}`
   * Description: Starts a Storm parser topology
   * Input:
     * name - Parser name
-  * Returns: Start response message
+  * Returns:
+    * 200 - Returns start response message
 
 ### `GET /api/v1/storm/parser/stop/{name}`
   * Description: Stops a Storm parser topology
   * Input:
     * name - Parser name
     * stopNow - Stop the topology immediately
-  * Returns: Stop response message
+  * Returns:
+    * 200 - Returns stop response message
 
 ### `GET /api/v1/storm/{name}`
   * Description: Retrieves the status of a Storm topology
   * Input:
     * name - Topology name
-  * Returns: Topology status information
+  * Returns:
+    * 200 - Returns topology status information
+    * 404 - Topology is missing
 
 ### `GET /api/v1/transformation/list`
   * Description: Retrieves field transformations
-  * Returns: List field transformations
+  * Returns:
+    * 200 - Returns a list field transformations
 
 ### `GET /api/v1/transformation/list/functions`
   * Description: Lists the Stellar functions that can be found on the classpath
-  * Returns: List of Stellar functions
+  * Returns:
+    * 200 - Returns a list of Stellar functions
 
 ### `GET /api/v1/transformation/list/simple/functions`
   * Description: Lists the simple Stellar functions (functions with only 1 input) that can be found on the classpath
-  * Returns: List of simple Stellar functions
+  * Returns:
+    * 200 - Returns a list of simple Stellar functions
 
 ### `POST /api/v1/transformation/validate`
   * Description: Executes transformations against a sample message
   * Input:
     * transformationValidation - Object containing SensorParserConfig and sample message
-  * Returns: Transformation results
+  * Returns:
+    * 200 - Returns transformation results
 
 ### `POST /api/v1/transformation/validate/rules`
   * Description: Tests Stellar statements to ensure they are well-formed
   * Input:
     * statements - List of statements to validate
-  * Returns: Validation results
+  * Returns:
+    * 200 - Returns validation results
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user
-  * Returns: Current user
+  * Returns:
+    * 200 - Current user
 
 
 ## License
