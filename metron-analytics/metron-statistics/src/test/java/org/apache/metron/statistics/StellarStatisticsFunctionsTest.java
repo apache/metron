@@ -357,6 +357,13 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
+  /**
+   * This test is testing that the STATS_BIN function operates correctly by taking a sorted list of 
+   * numbers, walking down it and ensuring that the STATS_BIN for each number yields the correct bin. 
+   * This is a reasonable test because we are not actually computing the bin so much as recognizing 
+   * since the numbers are sorted, the bin will increase at the percentile boundaries, thus we have 
+   * the expected bin without recreating the computation in the STATS_BIN function.
+   **/
   @Test
   public void testStatsBin() throws Exception {
     statsInit(windowSize);
