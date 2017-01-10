@@ -19,14 +19,19 @@ package org.apache.metron.enrichment.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
-
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
+import org.apache.metron.enrichment.converter.EnrichmentHelper;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.enrichment.integration.mock.MockGeoAdapter;
+import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
@@ -34,17 +39,13 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.integration.*;
-import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.enrichment.integration.mock.MockGeoAdapter;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.processors.KafkaMessageSet;
+import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaProcessor;
+import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.mock.MockHTable;
-import org.apache.metron.enrichment.lookup.LookupKV;
-
-import org.apache.metron.enrichment.integration.utils.SampleUtil;
-import org.apache.metron.common.utils.JSONUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -68,12 +69,10 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
     put("orientation", "north");
   }};
-  protected String testSensorType = "test";
-  protected String hdfsDir = "target/enrichmentIntegrationTest/hdfs";
   protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
-
+  private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
   public static class Provider implements TableProvider, Serializable {
     MockHTable.Provider  provider = new MockHTable.Provider();
     @Override
@@ -82,11 +81,15 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  private static List<byte[]> getInputMessages(String path){
+    try{
+      return TestUtils.readSampleData(path);
+    }catch(IOException ioe){
+      return null;
+    }
+  }
   @Test
   public void test() throws Exception {
-    final EnrichmentConfigurations configurations = SampleUtil.getSampleEnrichmentConfigs();
-    final String dateFormat = "yyyy.MM.dd.HH";
-    final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final String cf = "cf";
     final String trackerHBaseTableName = "tracker";
     final String threatIntelTableName = "threat_intel";
@@ -165,7 +168,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor(inputMessages));
+      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor());
       // We expect failures, so we don't care if result returned failure or not
       List<Map<String, Object>> docs = result.getResult();
       Assert.assertEquals(inputMessages.size(), docs.size());
@@ -281,6 +284,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       this._predicate = predicate;
     }
 
+    @Override
     public boolean apply(EvaluationPayload payload) {
       return _predicate.apply(payload);
     }
@@ -445,37 +449,39 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
-  public Processor<List<Map<String, Object>>> getProcessor(List<byte[]> inputMessages) {
-    return new Processor<List<Map<String, Object>>>() {
-      List<Map<String, Object>> docs = null;
-      List<byte[]> errors = null;
-      List<byte[]> invalids = null;
+  @SuppressWarnings("unchecked")
+  private Processor<List<Map<String, Object>>> getProcessor() {
 
-      public ReadinessState process(ComponentRunner runner) {
-        KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
-        List<byte[]> messages = kafkaComponent.readMessages(Constants.INDEXING_TOPIC);
-        errors = kafkaComponent.readMessages(Constants.ENRICHMENT_ERROR_TOPIC);
-        if (messages.size() == inputMessages.size()) {
-          docs = new ArrayList<>();
-          for(byte[] message : messages) {
-            try {
-              docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {}));
-            } catch (IOException e) {
-              throw new IllegalStateException(e.getMessage(), e);
-            }
-          }
-          return ReadinessState.READY;
-        } else {
-          return ReadinessState.NOT_READY;
-        }
-      }
-
-      public ProcessorResult<List<Map<String, Object>>> getResult()
-      {
-        ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
-        return builder.withResult(docs).withProcessErrors(errors).withProcessInvalids(invalids).build();
-      }
-    };
+    KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
+            .withReadTopic(Constants.INDEXING_TOPIC)
+            .withErrorTopic(Constants.ENRICHMENT_ERROR_TOPIC)
+            .withInvalidTopic(Constants.INVALID_STREAM)
+            .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
+              @Nullable
+              @Override
+              public Boolean apply(@Nullable KafkaMessageSet messageSet) {
+                // this test is written to return 10 errors and 10 messages
+                // we can just check when the messages match here
+                // if they do then we are good
+                return messageSet.getMessages().size() == inputMessages.size();
+              }
+            })
+            .withProvideResult(new Function<KafkaMessageSet , List<Map<String, Object>>>() {
+              @Nullable
+              @Override
+              public List<Map<String, Object>> apply(@Nullable KafkaMessageSet messageSet) {
+                List<Map<String,Object>> docs = new ArrayList<>();
+                for (byte[] message : messageSet.getMessages()) {
+                  try {
+                    docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {
+                    }));
+                  } catch (IOException e) {
+                    throw new IllegalStateException(e.getMessage(), e);
+                  }
+                }
+                return docs;
+              }
+            });
+    return kafkaProcessor;
   }
-
 }

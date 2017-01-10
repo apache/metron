@@ -36,7 +36,7 @@ public class QueryPcapFilterTest {
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       PcapFilter filter = new QueryPcapFilter() {
-
+        @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
             put(Constants.Fields.SRC_ADDR, "src_ip");
@@ -58,7 +58,7 @@ public class QueryPcapFilterTest {
     new QueryPcapFilter.Configurator().addToConfig(query, config);
     {
       PcapFilter filter = new QueryPcapFilter() {
-
+        @Override
         protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
           return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
             put(Constants.Fields.SRC_ADDR, "src_ip");

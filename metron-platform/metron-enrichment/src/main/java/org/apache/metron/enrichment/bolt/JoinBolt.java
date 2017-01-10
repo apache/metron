@@ -76,6 +76,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
       throw new IllegalStateException("maxTimeRetain must be specified");
     }
     loader = new CacheLoader<String, Map<String, V>>() {
+      @Override
       public Map<String, V> load(String key) throws Exception {
         return new HashMap<>();
       }

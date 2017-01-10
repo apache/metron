@@ -17,6 +17,8 @@
  */
 package org.apache.metron.maas.queue;
 
+import org.apache.metron.maas.config.ModelRequest;
+
 import java.util.Map;
 import java.util.function.Function;
 
@@ -28,12 +30,12 @@ public enum QueueHandler {
    * A distributed queue using zookeeper.
    */
   ZOOKEEPER(config -> {
-    Queue ret = new ZKQueue();
+    Queue<ModelRequest> ret = new ZKQueue();
     ret.configure(config);
     return ret;
   });
-  Function<Map<String, Object>, Queue> queueCreator;
-  QueueHandler(Function<Map<String, Object>, Queue> creator) {
+  Function<Map<String, Object>, Queue<ModelRequest>> queueCreator;
+  QueueHandler(Function<Map<String, Object>, Queue<ModelRequest>> creator) {
     this.queueCreator = creator;
   }
 
@@ -42,7 +44,7 @@ public enum QueueHandler {
    * @param config
    * @return
    */
-  public Queue create(Map<String, Object> config) {
+  public Queue<ModelRequest> create(Map<String, Object> config) {
     return queueCreator.apply(config);
   }
 }

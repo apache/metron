@@ -30,6 +30,7 @@ services:
       context: ./kafkazk
       args:
         DOCKER_HOST: $DOCKER_HOST
+        BROKER_IP_ADDR: $BROKER_IP_ADDR
         METRON_VERSION: $METRON_VERSION
     ports:
       - "9092:9092"

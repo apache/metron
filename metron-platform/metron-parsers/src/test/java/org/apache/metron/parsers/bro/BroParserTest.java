@@ -86,6 +86,7 @@ public class BroParserTest extends AbstractConfigTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
+	@Override
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.bro.BroParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));

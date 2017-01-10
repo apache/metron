@@ -19,28 +19,20 @@
 package org.apache.metron.filters;
 
 import com.google.common.collect.ImmutableMap;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.logging.log4j.core.filter.AbstractFilter;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.parsers.filters.AbstractMessageFilter;
 import org.apache.metron.parsers.filters.Filters;
-import org.apache.metron.parsers.filters.GenericMessageFilter;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class FiltersTest {
   @Test
   public void testDefault() {
-    Assert.assertTrue(Filters.get("DEFAULT", null).emitTuple(null, null));
-    Assert.assertTrue(Filters.get(GenericMessageFilter.class.getName(), null).emitTuple(null, null));
+    Assert.assertNull(Filters.get("DEFAULT", null));
   }
 
   @Test
@@ -49,10 +41,10 @@ public class FiltersTest {
       Map<String, Object> config = new HashMap<String, Object>() {{
         put("filter.query", "exists(foo)");
       }};
-      MessageFilter<JSONObject> filter = Filters.get("QUERY", config);
+      MessageFilter<JSONObject> filter = Filters.get(Filters.STELLAR.name(), config);
       Assert.assertTrue(filter.emitTuple(new JSONObject(ImmutableMap.of("foo", 1)), Context.EMPTY_CONTEXT()));
       Assert.assertFalse(filter.emitTuple(new JSONObject(ImmutableMap.of("bar", 1)), Context.EMPTY_CONTEXT()));
     }
-
   }
+
 }

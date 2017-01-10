@@ -26,8 +26,9 @@ import org.krakenapps.pcap.packet.PcapPacket;
 public class PcapPacketComparator implements Comparator<PcapPacket> {
 
   /** The Constant LOG. */
-  private static final Logger LOG = Logger.getLogger(PcapMerger.class);
+  private static final Logger LOG = Logger.getLogger(PcapPacketComparator.class);
 
+  @Override
   public int compare(PcapPacket p1, PcapPacket p2) {
     long p1time = p1.getPacketHeader().getTsSec() * 1000000L + p1.getPacketHeader().getTsUsec();
     long p2time = p2.getPacketHeader().getTsSec() * 1000000L + p2.getPacketHeader().getTsUsec();

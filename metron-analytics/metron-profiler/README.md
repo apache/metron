@@ -41,7 +41,7 @@ This section will describe the steps required to get your first profile running.
 
 1. Upload the profile definition to Zookeeper.
     ```
-    $ cd /usr/metron/0.3.0/
+    $ cd $METRON_HOME
     $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
     ```
 
@@ -174,7 +174,7 @@ The Profiler runs as an independent Storm topology.  The configuration for the P
 After altering the configuration, start the Profiler.
 
 ```
-$ /usr/metron/0.3.0/start_profiler_topology.sh
+$ $METRON_HOME/start_profiler_topology.sh
 ```
 
 ## Examples

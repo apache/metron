@@ -20,6 +20,7 @@
 #
 - name: Stop running instances of yaf
   service: name=yaf state=stopped
+  ignore_errors: yes
 
 - name: Configure yaf to generate a flow record for every network packet
   lineinfile:

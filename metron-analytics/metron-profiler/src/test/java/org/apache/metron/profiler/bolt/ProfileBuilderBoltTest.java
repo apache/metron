@@ -21,17 +21,18 @@
 package org.apache.metron.profiler.bolt;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.log4j.Level;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.test.bolt.BaseBoltTest;
-import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.Constants;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -39,13 +40,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.apache.metron.common.utils.ConversionUtils.convert;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.refEq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,40 +59,57 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   /**
    * {
    *   "ip_src_addr": "10.0.0.1",
-   *   "ip_dst_addr": "10.0.0.20"
+   *   "value": "22"
    * }
    */
   @Multiline
-  private String input;
+  private String inputOne;
+  private JSONObject messageOne;
 
-  private JSONObject message;
+  /**
+   * {
+   *   "ip_src_addr": "10.0.0.2",
+   *   "value": "22"
+   * }
+   */
+  @Multiline
+  private String inputTwo;
+  private JSONObject messageTwo;
 
   public static Tuple mockTickTuple() {
-    return mockTuple(Constants.SYSTEM_COMPONENT_ID, Constants.SYSTEM_TICK_STREAM_ID);
-  }
-
-  public static Tuple mockTuple(String componentId, String streamId) {
     Tuple tuple = mock(Tuple.class);
-    when(tuple.getSourceComponent()).thenReturn(componentId);
-    when(tuple.getSourceStreamId()).thenReturn(streamId);
+    when(tuple.getSourceComponent()).thenReturn(Constants.SYSTEM_COMPONENT_ID);
+    when(tuple.getSourceStreamId()).thenReturn(Constants.SYSTEM_TICK_STREAM_ID);
     return tuple;
   }
 
-  public void setup(String profile) throws Exception {
-
-    // parse the input message
+  @Before
+  public void setup() throws Exception {
     JSONParser parser = new JSONParser();
-    message = (JSONObject) parser.parse(input);
+    messageOne = (JSONObject) parser.parse(inputOne);
+    messageTwo = (JSONObject) parser.parse(inputTwo);
+  }
 
-    // the tuple will contain the original message
+  /**
+   * Creates a profile definition based on a string of JSON.
+   * @param json The string of JSON.
+   */
+  private ProfileConfig createDefinition(String json) throws IOException {
+    return JSONUtils.INSTANCE.load(json, ProfileConfig.class);
+  }
+
+  /**
+   * Create a tuple that will contain the message, the entity name, and profile definition.
+   * @param entity The entity name
+   * @param message The telemetry message.
+   * @param profile The profile definition.
+   */
+  private Tuple createTuple(String entity, JSONObject message, ProfileConfig profile) {
+    Tuple tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("message"))).thenReturn(message);
-
-    // the tuple will contain the 'fully resolved' name of the entity
-    when(tuple.getStringByField(eq("entity"))).thenReturn("10.0.0.1");
-
-    // the tuple will contain the profile definition
-    ProfileConfig profileConfig = JSONUtils.INSTANCE.load(profile, ProfileConfig.class);
-    when(tuple.getValueByField(eq("profile"))).thenReturn(profileConfig);
+    when(tuple.getValueByField(eq("entity"))).thenReturn(entity);
+    when(tuple.getValueByField(eq("profile"))).thenReturn(profile);
+    return tuple;
   }
 
   /**
@@ -111,270 +129,171 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
   /**
    * {
-   *   "profile": "test",
+   *   "profile": "profileOne",
    *   "foreach": "ip_src_addr",
-   *   "onlyif": "true",
-   *   "init": {
-   *     "x": "10",
-   *     "y": "20"
-   *   },
-   *   "update": {
-   *     "x": "x + 10",
-   *     "y": "y + 20"
-   *   },
-   *   "result": "x + y"
-   * }
-   */
-  @Multiline
-  private String basicProfile;
-
-  /**
-   * Ensure that the bolt can update a profile based on new messages that it receives.
-   */
-  @Test
-  public void testProfileUpdate() throws Exception {
-
-    setup(basicProfile);
-    ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    bolt.execute(tuple);
-
-    // validate that x=10+10+10 y=20+20+20
-    ProfileState state = bolt.getProfileState(tuple);
-    assertEquals(10+10+10.0, state.getExecutor().getState().get("x"));
-    assertEquals(20+20+20.0, state.getExecutor().getState().get("y"));
-  }
-
-  /**
-   * {
-   *   "profile": "test",
-   *   "foreach": "ip_src_addr",
-   *   "update": { "x": "2" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileWithNoInit;
-
-  /**
-   * If the 'init' field is not defined, then the profile should
-   * behave as normal, but with no variable initialization.
-   */
-  @Test
-  public void testProfileWithNoInit() throws Exception {
-
-    setup(profileWithNoInit);
-    ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    bolt.execute(tuple);
-
-    // validate
-    ProfileState state = bolt.getProfileState(tuple);
-    assertEquals(2, state.getExecutor().getState().get("x"));
-  }
-
-  /**
-   * {
-   *   "profile": "test",
-   *   "foreach": "ip_src_addr",
-   *   "init": { "x": "2" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileWithNoUpdate;
-
-  /**
-   * If the 'update' field is not defined, then no updates should occur as messages
-   * are received.
-   */
-  @Test
-  public void testProfileWithNoUpdate() throws Exception {
-
-    setup(profileWithNoUpdate);
-    ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    bolt.execute(tuple);
-    bolt.execute(tuple);
-
-    // validate
-    ProfileState state = bolt.getProfileState(tuple);
-    assertEquals(2, state.getExecutor().getState().get("x"));
-  }
-
-  /**
-   * Ensure that the bolt can flush the profile when a tick tuple is received.
-   */
-  @Test
-  public void testProfileFlush() throws Exception {
-
-    // setup
-    setup(basicProfile);
-    ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    bolt.execute(tuple);
-
-    // execute - the tick tuple triggers a flush of the profile
-    bolt.execute(mockTickTuple());
-
-    // capture the ProfileMeasurement that should be emitted
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(outputCollector, times(1)).emit(arg.capture());
-
-    Values actual = arg.getValue();
-    ProfileMeasurement measurement = (ProfileMeasurement) actual.get(0);
-
-    // verify
-    assertThat(measurement.getValue(), equalTo(90.0));
-    assertThat(measurement.getEntity(), equalTo("10.0.0.1"));
-    assertThat(measurement.getProfileName(), equalTo("test"));
-  }
-
-  /**
-   * What happens if we try to flush, but have yet to receive any messages to
-   * apply to the profile?
-   *
-   * The ProfileBuilderBolt will not have received the data necessary from the
-   * ProfileSplitterBolt, like the entity and profile name, that is required
-   * to perform the flush.  The flush has to be skipped until this information
-   * is received from the Splitter.
-   */
-  @Test
-  public void testProfileFlushWithNoMessages() throws Exception {
-
-    setup(basicProfile);
-    ProfileBuilderBolt bolt = createBolt();
-
-    // no messages have been received before a flush occurs
-    bolt.execute(mockTickTuple());
-    bolt.execute(mockTickTuple());
-    bolt.execute(mockTickTuple());
-
-    // no ProfileMeasurement should be written to the ProfileStore
-    verify(outputCollector, times(0)).emit(any(Values.class));
-  }
-
-  /**
-   * The executor's state should be cleared after a flush.
-   */
-  @Test
-  public void testStateClearedAfterFlush() throws Exception {
-
-    setup(basicProfile);
-    ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    bolt.execute(tuple);
-
-    // execute - should clear state from previous tuples
-    bolt.execute(mockTickTuple());
-
-    ProfileState state = bolt.getProfileState(tuple);
-    assertThat(state.getExecutor().getState().size(), equalTo(0));
-  }
-
-  /**
-   * {
-   *   "profile": "test",
-   *   "foreach": "ip_src_addr",
-   *   "onlyif": "true",
-   *   "init":   { "x": 10 },
-   *   "update": { "x": "x + 'string'" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileWithBadUpdate;
-
-  /**
-   * What happens when the profile contains a bad Stellar expression?
-   */
-  @Test
-  public void testProfileWithBadUpdate() throws Exception {
-
-    // setup - ensure the bad profile is used
-    setup(profileWithBadUpdate);
-    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.FATAL);
-    // execute
-    ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.ERROR);
-
-    // verify - expect the tuple to be acked and an error reported
-    verify(outputCollector, times(1)).ack(eq(tuple));
-    verify(outputCollector, times(1)).reportError(any());
-  }
-
-  /**
-   * {
-   *   "profile": "test",
-   *   "foreach": "ip_src_addr",
-   *   "onlyif": "true",
-   *   "init":   { "x": "10 + 'string'" },
-   *   "update": { "x": "x + 2" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileWithBadInit;
-
-  /**
-   * What happens when the profile contains a bad Stellar expression?
-   */
-  @Test
-  public void testProfileWithBadInit() throws Exception {
-
-    // setup - ensure the bad profile is used
-    setup(profileWithBadInit);
-
-    // execute
-    ProfileBuilderBolt bolt = createBolt();
-    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.FATAL);
-    bolt.execute(tuple);
-    UnitTestHelper.setLog4jLevel(ProfileBuilderBolt.class, Level.ERROR);
-    // verify - expect the tuple to be acked and an error reported
-    verify(outputCollector, times(1)).ack(eq(tuple));
-    verify(outputCollector, times(1)).reportError(any());
-  }
-
-  /**
-   * {
-   *   "profile": "test",
-   *   "foreach": "ip_src_addr",
-   *   "onlyif": "true",
-   *   "groupBy": ["2 + 2", "4 + 4"],
    *   "init":   { "x": "0" },
    *   "update": { "x": "x + 1" },
    *   "result": "x"
    * }
    */
   @Multiline
-  private String profileWithGroupBy;
+  private String profileOne;
+
 
   /**
-   * Ensure that the Profile's 'groupBy' are handled correctly.
+   * {
+   *   "profile": "profileTwo",
+   *   "foreach": "ip_src_addr",
+   *   "init":   { "x": "0" },
+   *   "update": { "x": "x + 1" },
+   *   "result": "x"
+   * }
+   */
+  @Multiline
+  private String profileTwo;
+
+  /**
+   * The bolt should create a ProfileBuilder to manage a profile.
    */
   @Test
-  public void testProfileWithGroupBy() throws Exception {
+  public void testCreateProfileBuilder() throws Exception {
+
+    ProfileBuilderBolt bolt = createBolt();
+    ProfileConfig definition = createDefinition(profileOne);
+    String entity = (String) messageOne.get("ip_src_addr");
+    Tuple tupleOne = createTuple(entity, messageOne, definition);
+
+    // execute - send two tuples with different entities
+    bolt.execute(tupleOne);
+
+    // validate - 1 messages applied
+    ProfileBuilder builderOne = bolt.getBuilder(tupleOne);
+    assertEquals(1, (int) convert(builderOne.valueOf("x"), Integer.class));
+  }
+
+  /**
+   * This test creates two different messages, with different entities that are applied to
+   * the same profile.  The bolt should create separate ProfileBuilder objects to handle each
+   * profile/entity pair.
+   */
+  @Test
+  public void testCreateProfileBuilderForEachEntity() throws Exception {
 
     // setup
-    setup(profileWithGroupBy);
     ProfileBuilderBolt bolt = createBolt();
-    bolt.execute(tuple);
-    bolt.execute(tuple);
+    ProfileConfig definition = createDefinition(profileOne);
+
+    // apply a message to the profile
+    String entityOne = (String) messageOne.get("ip_src_addr");
+    Tuple tupleOne = createTuple(entityOne, messageOne, definition);
+    bolt.execute(tupleOne);
+    bolt.execute(tupleOne);
+
+    // apply a different message (with different entity) to the same profile
+    String entityTwo = (String) messageTwo.get("ip_src_addr");
+    Tuple tupleTwo = createTuple(entityTwo, messageTwo, definition);
+    bolt.execute(tupleTwo);
+
+    // validate - 2 messages applied
+    ProfileBuilder builderOne = bolt.getBuilder(tupleOne);
+    assertTrue(builderOne.isInitialized());
+    assertEquals(2, (int) convert(builderOne.valueOf("x"), Integer.class));
+
+    // validate - 1 message applied
+    ProfileBuilder builderTwo = bolt.getBuilder(tupleTwo);
+    assertTrue(builderTwo.isInitialized());
+    assertEquals(1, (int) convert(builderTwo.valueOf("x"), Integer.class));
+
+    assertNotSame(builderOne, builderTwo);
+  }
+
+  /**
+   * The bolt should create separate ProfileBuilder objects to handle each
+   * profile/entity pair.
+   */
+  @Test
+  public void testCreateProfileBuilderForEachProfile() throws Exception {
+
+    // setup - apply one message to different profile definitions
+    ProfileBuilderBolt bolt = createBolt();
+    String entity = (String) messageOne.get("ip_src_addr");
+
+    // apply a message to the first profile
+    ProfileConfig definitionOne = createDefinition(profileOne);
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // apply the same message to the second profile
+    ProfileConfig definitionTwo = createDefinition(profileTwo);
+    Tuple tupleTwo = createTuple(entity, messageOne, definitionTwo);
+    bolt.execute(tupleTwo);
+
+    // validate - 1 message applied
+    ProfileBuilder builderOne = bolt.getBuilder(tupleOne);
+    assertTrue(builderOne.isInitialized());
+    assertEquals(1, (int) convert(builderOne.valueOf("x"), Integer.class));
+
+    // validate - 1 message applied
+    ProfileBuilder builderTwo = bolt.getBuilder(tupleTwo);
+    assertTrue(builderTwo.isInitialized());
+    assertEquals(1, (int) convert(builderTwo.valueOf("x"), Integer.class));
+
+    assertNotSame(builderOne, builderTwo);
+  }
+
+  /**
+   * A ProfileMeasurement should be emitted for each profile/entity currently being tracked
+   * by the bolt.
+   */
+  @Test
+  public void testEmitMeasurementsOnFlush() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    final String entity = (String) messageOne.get("ip_src_addr");
+
+    // apply the message to the first profile
+    ProfileConfig definitionOne = createDefinition(profileOne);
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // apply the same message to the second profile
+    ProfileConfig definitionTwo = createDefinition(profileTwo);
+    Tuple tupleTwo = createTuple(entity, messageOne, definitionTwo);
+    bolt.execute(tupleTwo);
 
     // execute - the tick tuple triggers a flush of the profile
     bolt.execute(mockTickTuple());
 
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(outputCollector, times(1)).emit(arg.capture());
+    verify(outputCollector, times(2)).emit(arg.capture());
 
-    Values actual = arg.getValue();
-    ProfileMeasurement measurement = (ProfileMeasurement) actual.get(0);
+    // validate
+    for(Values value : arg.getAllValues()) {
 
-    // verify the groups
-    assertThat(measurement.getGroups().size(), equalTo(2));
-    assertThat(measurement.getGroups().get(0), equalTo(4.0));
-    assertThat(measurement.getGroups().get(1), equalTo(8.0));
+      ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
+      ProfileConfig definition = (ProfileConfig) value.get(1);
+
+      if(StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
+
+        // validate measurement emitted for profile two
+        assertEquals(definitionTwo, definition);
+        assertEquals(entity, measurement.getEntity());
+        assertEquals(definitionTwo.getProfile(), measurement.getProfileName());
+        assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
+
+      } else if(StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
+
+        // validate measurement emitted for profile one
+        assertEquals(definitionOne, definition);
+        assertEquals(entity, measurement.getEntity());
+        assertEquals(definitionOne.getProfile(), measurement.getProfileName());
+        assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
+
+      } else {
+        fail();
+      }
+    }
   }
 }

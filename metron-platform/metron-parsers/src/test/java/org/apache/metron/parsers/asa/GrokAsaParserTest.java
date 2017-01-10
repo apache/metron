@@ -76,6 +76,7 @@ public class GrokAsaParserTest extends AbstractConfigTest{
      * (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
+	@Override
 	public void setUp() throws Exception {
           super.setUp("org.apache.metron.parsers.asa.GrokAsaParserTest");
           setGrokAsaStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
@@ -87,6 +88,7 @@ public class GrokAsaParserTest extends AbstractConfigTest{
 		 * 	
 		 * @throws java.lang.Exception
 		 */
+		@Override
 		public void tearDown() throws Exception {
 			grokAsaParser = null;
 		}

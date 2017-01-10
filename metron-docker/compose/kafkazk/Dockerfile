@@ -16,7 +16,8 @@
 #
 FROM centos
 
-ARG DOCKER_HOST="localhost"
+ARG DOCKER_HOST
+ARG BROKER_IP_ADDR
 ARG METRON_VERSION
 
 ENV METRON_VERSION $METRON_VERSION
@@ -26,7 +27,7 @@ ENV ZK_CLIENT_JARS /opt/kafka_2.11-0.10.0.0/libs
 ADD https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz /opt/kafka_2.11-0.10.0.0.tgz
 RUN tar -xzf /opt/kafka_2.11-0.10.0.0.tgz -C /opt
 RUN echo -n 'advertised.listeners=PLAINTEXT://' >> /opt/kafka_2.11-0.10.0.0/config/server.properties
-RUN echo $DOCKER_HOST | sed "s/tcp:\\/\\///g" | sed "s/:.*/:9092/g" >> /opt/kafka_2.11-0.10.0.0/config/server.properties
+RUN echo $DOCKER_HOST | sed "s/^$/"$BROKER_IP_ADDR":/g" | sed "s/tcp:\\/\\///g" | sed "s/:.*/:9092/g" >> /opt/kafka_2.11-0.10.0.0/config/server.properties
 RUN echo 'delete.topic.enable=true' >> /opt/kafka_2.11-0.10.0.0/config/server.properties
 RUN yum install -y java-1.8.0-openjdk lsof
 

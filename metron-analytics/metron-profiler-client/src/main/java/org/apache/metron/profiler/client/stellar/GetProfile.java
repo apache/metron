@@ -146,6 +146,7 @@ public class GetProfile implements StellarFunction {
     // ensure the required capabilities are defined
     Context.Capabilities[] required = { GLOBAL_CONFIG };
     validateCapabilities(context, required);
+    @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
 
     // create the profiler client
@@ -308,8 +309,9 @@ public class GetProfile implements StellarFunction {
 
     TableProvider provider;
     try {
+      @SuppressWarnings("unchecked")
       Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(clazzName);
-      provider = clazz.newInstance();
+      provider = clazz.getConstructor().newInstance();
 
     } catch (Exception e) {
       provider = new HTableProvider();

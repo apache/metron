@@ -18,11 +18,8 @@
 package org.apache.metron.test.converters;
 
 public enum BinaryConverters implements IConverter {
-    DEFAULT(new IConverter() {
-
-        public byte[] convert(String s) {
-            return s.getBytes();
-        }
+    DEFAULT(s -> {
+        return s.getBytes();
     })
     , FROM_HEX_STRING(new HexStringConverter());
     IConverter _underlying;
@@ -30,6 +27,7 @@ public enum BinaryConverters implements IConverter {
         _underlying = i;
     }
 
+    @Override
     public byte[] convert(String s) {
         return _underlying.convert(s);
     }

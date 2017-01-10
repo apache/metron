@@ -20,13 +20,16 @@ package org.apache.metron.management;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.stellar.StellarTest;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class ShellFunctionsTest {
 
@@ -57,7 +60,7 @@ public class ShellFunctionsTest {
     Context context = new Context.Builder()
             .with(StellarExecutor.SHELL_VARIABLES , () -> variables)
             .build();
-    Object out = StellarTest.run("SHELL_LIST_VARS()", new HashMap<>(), context);
+    Object out = run("SHELL_LIST_VARS()", new HashMap<>(), context);
     Assert.assertEquals(expectedListWithFoo, out);
   }
 
@@ -76,7 +79,7 @@ public class ShellFunctionsTest {
     Context context = new Context.Builder()
             .with(StellarExecutor.SHELL_VARIABLES , () -> new HashMap<>())
             .build();
-    Object out = StellarTest.run("SHELL_LIST_VARS()", new HashMap<>(), context);
+    Object out = run("SHELL_LIST_VARS()", new HashMap<>(), context);
     Assert.assertEquals(expectedEmptyList, out);
   }
 /**
@@ -95,7 +98,7 @@ public class ShellFunctionsTest {
   public void testMap2Table() {
     Map<String, Object> variables = ImmutableMap.of("map_field", ImmutableMap.of("field1", "val1", "field2", "val2"));
     Context context = Context.EMPTY_CONTEXT();
-    Object out = StellarTest.run("SHELL_MAP2TABLE(map_field)", variables, context);
+    Object out = run("SHELL_MAP2TABLE(map_field)", variables, context);
     Assert.assertEquals(expectedMap2Table, out);
   }
  /**
@@ -112,7 +115,7 @@ public class ShellFunctionsTest {
   public void testMap2TableNullInput() {
     Map<String, Object> variables = new HashMap<>();
     Context context = Context.EMPTY_CONTEXT();
-    Object out = StellarTest.run("SHELL_MAP2TABLE(map_field)", variables, context);
+    Object out = run("SHELL_MAP2TABLE(map_field)", variables, context);
     Assert.assertEquals(expectedMap2TableNullInput, out);
   }
 
@@ -120,13 +123,13 @@ public class ShellFunctionsTest {
   public void testMap2TableInsufficientArgs() {
     Map<String, Object> variables = new HashMap<>();
     Context context = Context.EMPTY_CONTEXT();
-    Object out = StellarTest.run("SHELL_MAP2TABLE()", variables, context);
+    Object out = run("SHELL_MAP2TABLE()", variables, context);
     Assert.assertNull(out);
   }
 
   @Test
   public void testVars2Map() {
-    Object out = StellarTest.run("SHELL_VARS2MAP('var1', 'var2')", new HashMap<>(), context);
+    Object out = run("SHELL_VARS2MAP('var1', 'var2')", new HashMap<>(), context);
     Assert.assertTrue(out instanceof Map);
     Map<String, String> mapOut = (Map<String, String>)out;
     //second one is null, so we don't want it there.
@@ -136,14 +139,14 @@ public class ShellFunctionsTest {
 
   @Test
   public void testVars2MapEmpty() {
-    Object out = StellarTest.run("SHELL_VARS2MAP()", new HashMap<>(), context);
+    Object out = run("SHELL_VARS2MAP()", new HashMap<>(), context);
     Map<String, String> mapOut = (Map<String, String>)out;
     Assert.assertEquals(0, mapOut.size());
   }
 
   @Test
   public void testGetExpression() {
-    Object out = StellarTest.run("SHELL_GET_EXPRESSION('var1')", new HashMap<>(), context);
+    Object out = run("SHELL_GET_EXPRESSION('var1')", new HashMap<>(), context);
     Assert.assertTrue(out instanceof String);
     String expression = (String)out;
     //second one is null, so we don't want it there.
@@ -152,14 +155,14 @@ public class ShellFunctionsTest {
 
   @Test
   public void testGetExpressionEmpty() {
-    Object out = StellarTest.run("SHELL_GET_EXPRESSION()", new HashMap<>(), context);
+    Object out = run("SHELL_GET_EXPRESSION()", new HashMap<>(), context);
     Assert.assertNull(out );
   }
 
   @Test
   public void testEdit() throws Exception {
     System.getProperties().put("EDITOR", "/bin/cat");
-    Object out = StellarTest.run("TO_UPPER(SHELL_EDIT(foo))", ImmutableMap.of("foo", "foo"), context);
+    Object out = run("TO_UPPER(SHELL_EDIT(foo))", ImmutableMap.of("foo", "foo"), context);
     Assert.assertEquals("FOO", out);
   }
 

@@ -59,8 +59,11 @@ public class ProfileHBaseMapperTest {
     mapper = new ProfileHBaseMapper();
     mapper.setRowKeyBuilder(rowKeyBuilder);
 
-    measurement = new ProfileMeasurement("profile", "entity", 20000, 15, TimeUnit.MINUTES);
-    measurement.setValue(22);
+    measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withValue(22);
 
     profile = new ProfileConfig();
 

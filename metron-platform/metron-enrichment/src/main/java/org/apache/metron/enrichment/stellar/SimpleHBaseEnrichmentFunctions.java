@@ -103,7 +103,7 @@ public class SimpleHBaseEnrichmentFunctions {
   private static TableProvider createProvider(String tableProviderClass) {
     try {
       Class<? extends TableProvider> providerClazz = (Class<? extends TableProvider>) Class.forName(tableProviderClass);
-      return providerClazz.newInstance();
+      return providerClazz.getConstructor().newInstance();
     } catch (Exception e) {
       return new HTableProvider();
     }

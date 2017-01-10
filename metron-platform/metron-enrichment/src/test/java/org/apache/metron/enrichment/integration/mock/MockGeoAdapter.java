@@ -41,6 +41,7 @@ public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
 
   }
 
+  @Override
   public JSONObject enrich(CacheKey cache ) {
     JSONObject enriched = new JSONObject();
     enriched.put("locID", DEFAULT_LOC_ID);
@@ -54,10 +55,12 @@ public class MockGeoAdapter implements EnrichmentAdapter<CacheKey>,
     return enriched;
   }
 
+  @Override
   public boolean initializeAdapter() {
     return true;
   }
 
+  @Override
   public void cleanup() {
 
   }

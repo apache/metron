@@ -52,6 +52,7 @@ public class BasicSourcefireParser extends BasicParser {
 
 	}
 
+	@Override
 	@SuppressWarnings({ "unchecked", "unused" })
 	public List<JSONObject> parse(byte[] msg) {
 

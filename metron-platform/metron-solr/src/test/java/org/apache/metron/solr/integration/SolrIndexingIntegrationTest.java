@@ -79,6 +79,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
     return new Processor<List<Map<String, Object>>>() {
       List<Map<String, Object>> docs = null;
       List<byte[]> errors = null;
+      @Override
       public ReadinessState process(ComponentRunner runner) {
         SolrComponent solrComponent = runner.getComponent("search", SolrComponent.class);
         KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
@@ -105,6 +106,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
         }
       }
 
+      @Override
       public ProcessorResult<List<Map<String, Object>>> getResult() {
         ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
         return builder.withResult(docs).withProcessErrors(errors).build();

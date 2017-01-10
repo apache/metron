@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,18 +18,12 @@
 
 package org.apache.metron.common.stellar;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +39,8 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.effectiveClassPathUrls;
+import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
 public class StellarTest {
 
@@ -83,24 +79,24 @@ public class StellarTest {
   @Test
   public void testIfThenElseBug1() {
     String query = "50 + (true == true ? 10 : 20)";
-    Assert.assertEquals(60.0, run(query, new HashMap<>()));
+    Assert.assertEquals(60, run(query, new HashMap<>()));
   }
 
   @Test
   public void testIfThenElseBug2() {
     String query = "50 + (true == false ? 10 : 20)";
-    Assert.assertEquals(70.0, run(query, new HashMap<>()));
+    Assert.assertEquals(70, run(query, new HashMap<>()));
   }
 
   @Test
   public void testIfThenElseBug3() {
     String query = "50 * (true == false ? 2 : 10) + 20";
-    Assert.assertEquals(520.0, run(query, new HashMap<>()));
+    Assert.assertEquals(520, run(query, new HashMap<>()));
   }
 
   @Test
   public void testIfThenElseBug4() {
-    String query = "TO_INTEGER(true == true ? 10 : 20 )";
+    String query = "TO_INTEGER(true == true ? 10.0 : 20.0 )";
     Assert.assertEquals(10, run(query, new HashMap<>()));
   }
 
@@ -184,22 +180,6 @@ public class StellarTest {
   }
 
   @Test
-  public void testArithmetic() {
-    {
-      String query = "1 + 2";
-      Assert.assertEquals(3, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
-    }
-    {
-      String query = "1.2 + 2";
-      Assert.assertEquals(3.2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
-    }
-    {
-      String query = "1.2e-3 + 2";
-      Assert.assertEquals(1.2e-3 + 2, ((Number)run(query, new HashMap<>())).doubleValue(), 1e-3);
-    }
-  }
-
-  @Test
   public void testIfThenElse() {
     {
       String query = "if STARTS_WITH(casey, 'case') then 'one' else 'two'";
@@ -244,61 +224,10 @@ public class StellarTest {
     }
     {
       String query = "1 < 2 ? one*3 : 'two'";
-      Assert.assertTrue(Math.abs(3.0 - (double)run(query, ImmutableMap.of("one", 1))) < 1e-6);
+      Assert.assertTrue(Math.abs(3 - (int) run(query, ImmutableMap.of("one", 1))) < 1e-6);
     }
   }
 
-  @Test
-  public void testNumericOperations() {
-    {
-      String query = "TO_INTEGER(1 + 2*2 + 3 - 4 - 0.5)";
-      Assert.assertEquals(3, (Integer)run(query, new HashMap<>()), 1e-6);
-    }
-    {
-      String query = "1 + 2*2 + 3 - 4 - 0.5";
-      Assert.assertEquals(3.5, (Double)run(query, new HashMap<>()), 1e-6);
-    }
-    {
-      String query = "2*one*(1 + 2*2 + 3 - 4)";
-      Assert.assertEquals(8, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "2*(1 + 2 + 3 - 4)";
-      Assert.assertEquals(4, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "1 + 2 + 3 - 4 - 2";
-      Assert.assertEquals(0, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "1 + 2 + 3 + 4";
-      Assert.assertEquals(10, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "(one + 2)*3";
-      Assert.assertEquals(9, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "TO_INTEGER((one + 2)*3.5)";
-      Assert.assertEquals(10, (Integer)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "1 + 2*3";
-      Assert.assertEquals(7, (Double)run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)), 1e-6);
-    }
-    {
-      String query = "TO_LONG(foo)";
-      Assert.assertNull(run(query,ImmutableMap.of("foo","not a number")));
-    }
-    {
-      String query = "TO_LONG(foo)";
-      Assert.assertEquals(new Long(232321L),run(query,ImmutableMap.of("foo","00232321")));
-    }
-    {
-      String query = "TO_LONG(foo)";
-      Assert.assertEquals(Long.MAX_VALUE,run(query,ImmutableMap.of("foo",new Long(Long.MAX_VALUE).toString())));
-    }
-  }
   @Test
   public void testHappyPath() {
     String query = "TO_UPPER(TRIM(foo))";
@@ -443,8 +372,8 @@ public class StellarTest {
 
   @Test
   public void testToDouble() {
-    Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
-    Assert.assertEquals(new Double(5.1), run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
+    Assert.assertEquals(5.1d, run("TO_DOUBLE(foo)", ImmutableMap.of("foo", 5.1d)));
+    Assert.assertEquals(5.1d, run("TO_DOUBLE(foo)", ImmutableMap.of("foo", "5.1")));
   }
 
   @Test
@@ -456,32 +385,6 @@ public class StellarTest {
     Assert.assertEquals("google", run("GET(SPLIT(DOMAIN_REMOVE_TLD(foo), '.'), 1)", variables));
   }
 
-  
-
-  public static Object run(String rule, Map<String, Object> variables) {
-    return run(rule, variables, Context.EMPTY_CONTEXT());
-  }
-
-  /**
-   * This ensures the basic contract of a stellar expression is adhered to:
-   * 1. Validate works on the expression
-   * 2. The output can be serialized and deserialized properly
-   *
-   * @param rule
-   * @param variables
-   * @param context
-   * @return
-   */
-  public static Object run(String rule, Map<String, Object> variables, Context context) {
-    StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
-    byte[] raw = SerDeUtils.toBytes(ret);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(ret, actual);
-    return ret;
-  }
-  
   @Test
   public void testValidation() throws Exception {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
@@ -499,45 +402,6 @@ public class StellarTest {
     catch(ParseException e) {
 
     }
-  }
-
-  public static boolean runPredicate(String rule, Map resolver) {
-    return runPredicate(rule, resolver, Context.EMPTY_CONTEXT());
-  }
-
-  public static boolean runPredicate(String rule, Map resolver, Context context) {
-    return runPredicate(rule, new MapVariableResolver(resolver), context);
-  }
-
-  public static boolean runPredicate(String rule, VariableResolver resolver) {
-    return runPredicate(rule, resolver, Context.EMPTY_CONTEXT());
-  }
-
-  public static boolean runPredicate(String rule, VariableResolver resolver, Context context) {
-    StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
-    return processor.parse(rule, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
-  }
-
-  @Test
-  public void testSimpleOps() throws Exception {
-    final Map<String, String> variableMap = new HashMap<String, String>() {{
-      put("foo", "casey");
-      put("empty", "");
-      put("spaced", "metron is great");
-      put("foo.bar", "casey");
-    }};
-    Assert.assertTrue(runPredicate("'casey' == foo.bar", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'casey' == foo", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'casey' != foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'stella' == 'stella'", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'stella' == foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo== foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("empty== ''", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("spaced == 'metron is great'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate(null, v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate(" ", v -> variableMap.get(v)));
   }
 
   @Test
@@ -583,36 +447,6 @@ public class StellarTest {
     Assert.assertTrue(runPredicate("exists(foo)", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("exists(bar)", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("exists(bar) or true", v -> variableMap.get(v)));
-  }
-
-  @Test
-  public void testStringFunctions() throws Exception {
-    final Map<String, String> variableMap = new HashMap<String, String>() {{
-      put("foo", "casey");
-      put("ip", "192.168.0.1");
-      put("empty", "");
-      put("spaced", "metron is great");
-    }};
-    Assert.assertTrue(runPredicate("true and TO_UPPER(foo) == 'CASEY'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ TO_LOWER('CASEY'), 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
-  }
-
-  @Test
-  public void testStringFunctions_advanced() throws Exception {
-    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
-      put("foo", "casey");
-      put("bar", "bar.casey.grok");
-      put("ip", "192.168.0.1");
-      put("empty", "");
-      put("spaced", "metron is great");
-      put("myList", ImmutableList.of("casey", "apple", "orange"));
-    }};
-    Assert.assertTrue(runPredicate("foo in SPLIT(bar, '.')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in myList", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in myList", v -> variableMap.get(v)));
   }
 
   @Test
@@ -692,5 +526,4 @@ public class StellarTest {
     thrown.expectMessage("The rule 'TO_UPPER(protocol)' does not return a boolean value.");
     runPredicate("TO_UPPER(protocol)", v -> variableMap.get(v));
   }
-
 }

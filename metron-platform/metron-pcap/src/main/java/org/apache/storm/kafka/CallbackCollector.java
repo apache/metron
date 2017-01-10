@@ -121,7 +121,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     public void emitDirect(int taskId, String streamId, List<Object> tuple, Object messageId) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
                                                                        .with(EmitContext.Type.PARTITION, getPartition(messageId))
-                                                                       .with(EmitContext.Type.TASK_ID, new Integer(taskId))
+                                                                       .with(EmitContext.Type.TASK_ID, taskId)
                                         );
         _delegate.emitDirect(taskId, streamId, t, messageId);
     }
@@ -139,7 +139,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public void emitDirect(int taskId, List<Object> tuple, Object messageId) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId))
-                                                                       .with(EmitContext.Type.TASK_ID, new Integer(taskId))
+                                                                       .with(EmitContext.Type.TASK_ID, taskId)
                        );
         _delegate.emitDirect(taskId, t, messageId);
     }
@@ -160,7 +160,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public void emitDirect(int taskId, String streamId, List<Object> tuple) {
         List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
-                                                                       .with(EmitContext.Type.TASK_ID, new Integer(taskId))
+                                                                       .with(EmitContext.Type.TASK_ID, taskId)
                        );
         _delegate.emitDirect(taskId, streamId, t);
     }
@@ -180,7 +180,7 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
     @Override
     public void emitDirect(int taskId, List<Object> tuple) {
 
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.TASK_ID, new Integer(taskId)));
+        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.TASK_ID, taskId));
         _delegate.emitDirect(taskId, t);
     }
 }
