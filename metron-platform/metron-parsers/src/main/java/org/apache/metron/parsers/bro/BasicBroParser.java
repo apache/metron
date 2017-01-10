@@ -53,6 +53,7 @@ public class BasicBroParser extends BasicParser {
 
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public List<JSONObject> parse(byte[] msg) {
 

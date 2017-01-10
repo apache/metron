@@ -146,7 +146,7 @@ public class SimpleHBaseAdapterTest {
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
     Assert.assertEquals(actualMessage, new JSONObject());
-    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", new Long(10L), broSc));
+    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
     Assert.assertEquals(actualMessage,new JSONObject());
   }
 

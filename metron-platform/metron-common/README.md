@@ -58,6 +58,8 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `ENDS_WITH`](#ends_with)|
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)|
 | [ `ENRICHMENT_GET`](#enrichment_get)|
+| [ `FILL_LEFT`](#fill_left)|
+| [ `FILL_RIGHT`](#fill_right)|
 | [ `GET`](#get)|
 | [ `GET_FIRST`](#get_first)|
 | [ `GET_LAST`](#get_last)|
@@ -84,28 +86,29 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `REGEXP_MATCH`](#regexp_match)|
 | [ `SPLIT`](#split)|
 | [ `STARTS_WITH`](#starts_with)|
-| [ `STATS_ADD`](#stats_add)|
-| [ `STATS_COUNT`](#stats_count)|
-| [ `STATS_GEOMETRIC_MEAN`](#stats_geometric_mean)|
-| [ `STATS_INIT`](#stats_init)|
-| [ `STATS_KURTOSIS`](#stats_kurtosis)|
-| [ `STATS_MAX`](#stats_max)|
-| [ `STATS_MEAN`](#stats_mean)|
-| [ `STATS_MERGE`](#stats_merge)|
-| [ `STATS_MIN`](#stats_min)|
-| [ `STATS_PERCENTILE`](#stats_percentile)|
-| [ `STATS_POPULATION_VARIANCE`](#stats_population_variance)|
-| [ `STATS_QUADRATIC_MEAN`](#stats_quadriatic_mean)|
-| [ `STATS_SD`](#stats_sd)|
-| [ `STATS_SKEWNESS`](#stats_skewness)|
-| [ `STATS_SUM`](#stats_sum)|
-| [ `STATS_SUM_LOGS`](#stats_sum_logs)|
-| [ `STATS_SUM_SQUARES`](#stats_sum_squares)|
-| [ `STATS_VARIANCE`](#stats_variance)|
-| [ `SYSTEM_ENV_GET`](#stats_env_get)|
+| [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)|
+| [ `STATS_COUNT`](../../metron-analytics/metron-statistics#stats_count)|
+| [ `STATS_GEOMETRIC_MEAN`](../../metron-analytics/metron-statistics#stats_geometric_mean)|
+| [ `STATS_INIT`](../../metron-analytics/metron-statistics#stats_init)|
+| [ `STATS_KURTOSIS`](../../metron-analytics/metron-statistics#stats_kurtosis)|
+| [ `STATS_MAX`](../../metron-analytics/metron-statistics#stats_max)|
+| [ `STATS_MEAN`](../../metron-analytics/metron-statistics#stats_mean)|
+| [ `STATS_MERGE`](../../metron-analytics/metron-statistics#stats_merge)|
+| [ `STATS_MIN`](../../metron-analytics/metron-statistics#stats_min)|
+| [ `STATS_PERCENTILE`](../../metron-analytics/metron-statistics#stats_percentile)|
+| [ `STATS_POPULATION_VARIANCE`](../../metron-analytics/metron-statistics#stats_population_variance)|
+| [ `STATS_QUADRATIC_MEAN`](../../metron-analytics/metron-statistics#stats_quadratic_mean)|
+| [ `STATS_SD`](../../metron-analytics/metron-statistics#stats_sd)|
+| [ `STATS_SKEWNESS`](../../metron-analytics/metron-statistics#stats_skewness)|
+| [ `STATS_SUM`](../../metron-analytics/metron-statistics#stats_sum)|
+| [ `STATS_SUM_LOGS`](../../metron-analytics/metron-statistics#stats_sum_logs)|
+| [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)|
+| [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)|
+| [ `SYSTEM_ENV_GET`](#system_env_get)|
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)|
 | [ `TO_DOUBLE`](#to_double)|
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)|
+| [ `TO_FLOAT`](#to_float)|
 | [ `TO_INTEGER`](#to_integer)|
 | [ `TO_LONG`](#to_long)|
 | [ `TO_LOWER`](#to_lower)|
@@ -225,6 +228,22 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
   * Description: Returns the last element of the list
   * Input:
     * input - List
+  * Returns: Last element of the list
+
+### `FILL_LEFT`
+  * Description: Fills or pads a given string with a given character, to a given length on the left
+  * Input:
+    * input - string
+    * fill - the fill character
+    * len - the required length
+  * Returns: the filled string
+
+### `FILL_RIGHT`
+  * Description: Fills or pads a given string with a given character, to a given length on the right
+  * Input:
+    * input - string
+    * fill - the fill character string
+    * len - the required length
   * Returns: Last element of the list
 
 ### `IN_SUBNET`
@@ -418,6 +437,12 @@ MAP_GET`
     * format - DateTime format as a String
     * timezone - Optional timezone in String format
   * Returns: Epoch timestamp
+  
+### `TO_FOAT`
+  * Description: Transforms the first argument to a float
+  * Input:
+    * input - Object of string or numeric type
+  * Returns: Float version of the first argument
 
 ### `TO_INTEGER`
   * Description: Transforms the first argument to an integer
@@ -625,7 +650,7 @@ JOIN, LENGTH, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP_EXISTS, MAP_GET, MONTH, P
 REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, 
 STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, 
 STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, 
-STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, 
+STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, 
 TO_INTEGER, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, 
 URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
 [Stellar]>>> 

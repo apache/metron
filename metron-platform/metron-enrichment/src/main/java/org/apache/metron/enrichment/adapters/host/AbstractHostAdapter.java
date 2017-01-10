@@ -37,7 +37,9 @@ public abstract class AbstractHostAdapter implements EnrichmentAdapter<CacheKey>
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(AbstractHostAdapter.class);
 	
+	@Override
 	abstract public boolean initializeAdapter();
+	@Override
 	abstract public JSONObject enrich(CacheKey metadata);
 
 	@Override

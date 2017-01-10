@@ -258,7 +258,7 @@ public class PcapJob {
     conf.set(END_TS_CONF, Long.toUnsignedString(endNS));
     conf.set(WIDTH_CONF, "" + findWidth(beginNS, endNS, numReducers));
     filterImpl.addToConfig(fields, conf);
-    Job job = new Job(conf);
+    Job job = Job.getInstance(conf);
     job.setJarByClass(PcapJob.class);
     job.setMapperClass(PcapJob.PcapMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);

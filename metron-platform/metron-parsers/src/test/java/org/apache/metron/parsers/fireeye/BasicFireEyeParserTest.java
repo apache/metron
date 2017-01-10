@@ -74,6 +74,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	/**
 	 * @throws java.lang.Exception
 	 */
+	@Override
 	public void setUp() throws Exception {
         super.setUp("org.apache.metron.parsers.fireeye.BasicFireEyeParserTest");
         setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
@@ -85,6 +86,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	 * 	
 	 * @throws java.lang.Exception
 	 */
+	@Override
 	public void tearDown() throws Exception {
 		parser = null;
         setInputStrings(null);		

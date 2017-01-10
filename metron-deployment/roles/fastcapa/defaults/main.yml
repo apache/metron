@@ -17,8 +17,9 @@
 ---
 # dpdk
 dpdk_home: "/usr/local/dpdk"
-dpdk_version: "2.2.0"
+dpdk_version: "16.11"
 dpdk_sdk: "/root/dpdk-{{ dpdk_version }}"
+dpdk_src_url: "http://fast.dpdk.org/rel/dpdk-{{ dpdk_version }}.tar.xz"
 dpdk_target: "x86_64-native-linuxapp-gcc"
 num_huge_pages: 512
 extra_cflags: -g

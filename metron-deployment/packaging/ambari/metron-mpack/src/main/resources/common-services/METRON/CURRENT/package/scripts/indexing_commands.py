@@ -52,8 +52,8 @@ class IndexingCommands:
             Execute("yum -y install createrepo")
             Execute("createrepo /localrepo")
             Execute("chmod -R o-w+r /localrepo")
-            Execute("echo \"[METRON-0.3.0]\n"
-                    "name=Metron 0.3.0 packages\n"
+            Execute("echo \"[METRON-${metron.version}]\n"
+                    "name=Metron ${metron.version} packages\n"
                     "baseurl=file:///localrepo\n"
                     "gpgcheck=0\n"
                     "enabled=1\" > /etc/yum.repos.d/local.repo")

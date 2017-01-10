@@ -36,12 +36,12 @@ import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.ModelEndpoint;
-import org.apache.metron.maas.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -110,9 +110,10 @@ public class Runner {
       return new AbstractMap.SimpleEntry<>(this, null);
     }
 
+    @SafeVarargs
     public static String toArgs(Map.Entry<RunnerOptions, String> ... arg) {
       return
-      Joiner.on(" ").join(Iterables.transform(Utils.INSTANCE.toList(arg)
+      Joiner.on(" ").join(Iterables.transform(Arrays.asList(arg)
                                              , a -> "-" + a.getKey().shortCode
                                                   + (a.getValue() == null?"":(" " + a.getValue()))
                                              )

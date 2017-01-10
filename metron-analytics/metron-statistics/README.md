@@ -8,126 +8,145 @@ aimed at capturing a robust set of statistical functions and
 statistical-based algorithms in the form of Stellar functions.  These
 functions can be used from everywhere where Stellar is used.
 
-##Stellar Functions
+## Stellar Functions
 
 ### Mathematical Functions
-* `ABS`
-  * Description: Returns the absolute value of a number.
-  * Input:
-    * number - The number to take the absolute value of
-  * Returns: The absolute value of the number passed in.
+#### `ABS`
+* Description: Returns the absolute value of a number.
+* Input:
+  * number - The number to take the absolute value of
+* Returns: The absolute value of the number passed in.
 
 
 ### Distributional Statistics
 
-* `STATS_ADD`
+#### `STATS_ADD`
   * Description: Adds one or more input values to those that are used to calculate the summary statistics.
   * Input:
     * stats - The Stellar statistics object.  If null, then a new one is initialized.
     * value+ - One or more numbers to add
   * Returns: A Stellar statistics object
-* `STATS_COUNT`
+
+#### `STATS_COUNT`
   * Description: Calculates the count of the values accumulated (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
   * Returns: The count of the values in the window or NaN if the statistics object is null.
-* `STATS_GEOMETRIC_MEAN`
+
+#### `STATS_GEOMETRIC_MEAN`
   * Description: Calculates the geometric mean of the accumulated values (or in the window if a window is used). See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The geometric mean of the values in the window or NaN if the statistics object is null.
-* `STATS_INIT`
+
+#### `STATS_INIT`
   * Description: Initializes a statistics object
   * Input:
     * window_size - The number of input data values to maintain in a rolling window in memory.  If window_size is equal to 0, then no rolling window is maintained. Using no rolling window is less memory intensive, but cannot calculate certain statistics like percentiles and kurtosis.
   * Returns: A Stellar statistics object
-* `STATS_KURTOSIS`
+
+#### `STATS_KURTOSIS`
   * Description: Calculates the kurtosis of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The kurtosis of the values in the window or NaN if the statistics object is null.
-* `STATS_MAX`
+
+#### `STATS_MAX`
   * Description: Calculates the maximum of the accumulated values (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
   * Returns: The maximum of the accumulated values in the window or NaN if the statistics object is null.
-* `STATS_MEAN`
+
+#### `STATS_MEAN`
   * Description: Calculates the mean of the accumulated values (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
   * Returns: The mean of the values in the window or NaN if the statistics object is null.
-* `STATS_MERGE`
+
+#### `STATS_MERGE`
   * Description: Merges statistics objects.
   * Input:
     * statistics - A list of statistics objects
   * Returns: A Stellar statistics object
-* `STATS_MIN`
+
+#### `STATS_MIN`
   * Description: Calculates the minimum of the accumulated values (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
   * Returns: The minimum of the accumulated values in the window or NaN if the statistics object is null.
-* `STATS_PERCENTILE`
+
+#### `STATS_PERCENTILE`
   * Description: Computes the p'th percentile of the accumulated values (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
     * p - a double where 0 <= p < 1 representing the percentile
   * Returns: The p'th percentile of the data or NaN if the statistics object is null
-* `STATS_POPULATION_VARIANCE`
+
+#### `STATS_POPULATION_VARIANCE`
   * Description: Calculates the population variance of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The population variance of the values in the window or NaN if the statistics object is null.
-* `STATS_QUADRATIC_MEAN`
+
+#### `STATS_QUADRATIC_MEAN`
   * Description: Calculates the quadratic mean of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The quadratic mean of the values in the window or NaN if the statistics object is null.
-* `STATS_SD`
+
+#### `STATS_SD`
   * Description: Calculates the standard deviation of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The standard deviation of the values in the window or NaN if the statistics object is null.
-* `STATS_SKEWNESS`
+
+#### `STATS_SKEWNESS`
   * Description: Calculates the skewness of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The skewness of the values in the window or NaN if the statistics object is null.
-* `STATS_SUM`
+
+#### `STATS_SUM`
   * Description: Calculates the sum of the accumulated values (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
   * Returns: The sum of the values in the window or NaN if the statistics object is null.
-* `STATS_SUM_LOGS`
+
+#### `STATS_SUM_LOGS`
   * Description: Calculates the sum of the (natural) log of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The sum of the (natural) log of the values in the window or NaN if the statistics object is null.
-* `STATS_SUM_SQUARES`
+
+#### `STATS_SUM_SQUARES`
   * Description: Calculates the sum of the squares of the accumulated values (or in the window if a window is used).
   * Input:
     * stats - The Stellar statistics object
   * Returns: The sum of the squares of the values in the window or NaN if the statistics object is null.
-* `STATS_VARIANCE`
+
+#### `STATS_VARIANCE`
   * Description: Calculates the variance of the accumulated values (or in the window if a window is used).  See http://commons.apache.org/proper/commons-math/userguide/stat.html#a1.2_Descriptive_statistics 
   * Input:
     * stats - The Stellar statistics object
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
-
-### Statistical Outlier Detection
-
-* `OUTLIER_MAD_STATE_MERGE`
+  
+  ### Statistical Outlier Detection
+  
+#### `OUTLIER_MAD_STATE_MERGE`
   * Description: Update the statistical state required to compute the Median Absolute Deviation.
   * Input:
     * [state] - A list of Median Absolute Deviation States to merge.  Generally these are states across time.
     * currentState? - The current state (optional)
   * Returns: The Median Absolute Deviation state
-* `OUTLIER_MAD_ADD`
+
+#### `OUTLIER_MAD_ADD`
   * Description: Add a piece of data to the state.
   * Input:
     * state - The MAD state
     * value - The numeric value to add
   * Returns: The MAD state
-* `OUTLIER_MAD_SCORE`
+
+#### `OUTLIER_MAD_SCORE`
   * Description: Get the modified z-score normalized by the MAD: scale * | x_i - median(X) | / MAD.  See the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
   * Input:
     * state - The MAD state

@@ -29,6 +29,7 @@ import org.apache.storm.tuple.Tuple;
 @SuppressWarnings("serial")
 public class PrintingBolt extends BaseRichBolt {
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
@@ -36,11 +37,13 @@ public class PrintingBolt extends BaseRichBolt {
 		
 	}
 
+	@Override
 	public void execute(Tuple input) {
 		System.out.println("---------[RECEIVED] " + input);
 		
 	}
 
+	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
 		

@@ -18,6 +18,7 @@
 
 package org.apache.metron.writers.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -29,7 +30,9 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -37,6 +40,7 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 
@@ -125,31 +129,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
-      ProcessorResult<Map<String, List<JSONObject>>> result =
-              runner.process(new Processor<Map<String, List<JSONObject>>>() {
-                Map<String, List<JSONObject>> messages = null;
-
-                public ReadinessState process(ComponentRunner runner) {
-                  KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
-                  List<byte[]> outputMessages = kafkaComponent.readMessages(Constants.ENRICHMENT_TOPIC);
-                  List<byte[]> invalid = kafkaComponent.readMessages(Constants.DEFAULT_PARSER_INVALID_TOPIC);
-                  List<byte[]> error = kafkaComponent.readMessages(Constants.DEFAULT_PARSER_ERROR_TOPIC);
-                  if(outputMessages.size() == 1 && invalid.size() == 1 && error.size() == 1) {
-                    messages = new HashMap<String, List<JSONObject>>() {{
-                      put(Constants.ENRICHMENT_TOPIC, loadMessages(outputMessages));
-                      put(Constants.DEFAULT_PARSER_ERROR_TOPIC, loadMessages(error));
-                      put(Constants.DEFAULT_PARSER_INVALID_TOPIC, loadMessages(invalid));
-                    }};
-                    return ReadinessState.READY;
-                  }
-                  return ReadinessState.NOT_READY;
-                }
-
-                public ProcessorResult<Map<String, List<JSONObject>>> getResult() {
-                  ProcessorResult.Builder<Map<String,List<JSONObject>>> builder = new ProcessorResult.Builder();
-                  return builder.withResult(messages).build();
-                }
-              });
+      ProcessorResult<Map<String, List<JSONObject>>> result = runner.process(getProcessor());
       Map<String,List<JSONObject>> outputMessages = result.getResult();
       Assert.assertEquals(3, outputMessages.size());
       Assert.assertEquals(1, outputMessages.get(Constants.ENRICHMENT_TOPIC).size());
@@ -196,4 +176,31 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     );
     return tmp;
   }
+  @SuppressWarnings("unchecked")
+  private KafkaProcessor<Map<String,List<JSONObject>>> getProcessor(){
+
+    return new KafkaProcessor<>()
+            .withKafkaComponentName("kafka")
+            .withReadTopic(Constants.ENRICHMENT_TOPIC)
+            .withErrorTopic(Constants.DEFAULT_PARSER_ERROR_TOPIC)
+            .withInvalidTopic(Constants.DEFAULT_PARSER_INVALID_TOPIC)
+            .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
+              @Nullable
+              @Override
+              public Boolean apply(@Nullable KafkaMessageSet messageSet) {
+                return (messageSet.getMessages().size() == 1) && (messageSet.getErrors().size() == 1) && (messageSet.getInvalids().size() ==1);
+              }
+            })
+            .withProvideResult(new Function<KafkaMessageSet,Map<String,List<JSONObject>>>(){
+              @Nullable
+              @Override
+              public Map<String,List<JSONObject>> apply(@Nullable KafkaMessageSet messageSet) {
+                return new HashMap<String, List<JSONObject>>() {{
+                  put(Constants.ENRICHMENT_TOPIC, loadMessages(messageSet.getMessages()));
+                  put(Constants.DEFAULT_PARSER_ERROR_TOPIC, loadMessages(messageSet.getErrors()));
+                  put(Constants.DEFAULT_PARSER_INVALID_TOPIC, loadMessages(messageSet.getInvalids()));
+                }};
+              }
+            });
+    }
 }

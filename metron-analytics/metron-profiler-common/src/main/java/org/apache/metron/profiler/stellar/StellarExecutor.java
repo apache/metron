@@ -30,6 +30,13 @@ import java.util.Map;
 public interface StellarExecutor {
 
   /**
+   * Assign a variable a specific value.
+   * @param variable The variable name.
+   * @param value The value to assign to the variable.
+   */
+  void assign(String variable, Object value);
+
+  /**
    * Execute an expression and assign the result to a variable.  The variable is maintained
    * in the context of this executor and is available to all subsequent expressions.
    *

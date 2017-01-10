@@ -108,7 +108,7 @@ public class GeoAdapterTest {
     Assert.assertNotNull(actualMessage.get("locID"));
     Assert.assertEquals(expectedMessage, actualMessage);
 
-    actualMessage = geo.enrich(new CacheKey("dummy", new Long(10L), null));
+    actualMessage = geo.enrich(new CacheKey("dummy", 10L, null));
     Assert.assertEquals(actualMessage,new JSONObject());
   }
 

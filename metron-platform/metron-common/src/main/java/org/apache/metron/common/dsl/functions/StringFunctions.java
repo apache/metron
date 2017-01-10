@@ -22,11 +22,12 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public class StringFunctions {
 
@@ -221,5 +222,66 @@ public class StringFunctions {
       }
       return null;
     }
+  }
+
+  private enum FillDirection{
+    LEFT,
+    RIGHT
+  }
+
+  @Stellar(name="FILL_LEFT"
+          , description="Fills or pads a given string with a given character, to a given length on the left"
+          , params = { "input - string", "fill - the fill character", "len - the required length"}
+          , returns = "Filled String"
+  )
+  public static class FillLeft extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() < 3) {
+        throw new IllegalStateException("FILL_LEFT expects three args: [string,char,length] where char is the fill character string and length is the required length of the result");
+      }
+      return fill(FillDirection.LEFT,args.get(0),args.get(1),args.get(2));
+    }
+  }
+
+  @Stellar(name="FILL_RIGHT"
+          , description="Fills or pads a given string with a given character, to a given length on the right"
+          , params = { "input - string", "fill - the fill character", "len - the required length"}
+          , returns = "Filled String"
+  )
+  public static class FillRight extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() < 3) {
+        throw new IllegalStateException("FILL_RIGHT expects three args: [string,char,length] where char is the fill character string and length is the required length of the result");
+      }
+      return fill(FillDirection.RIGHT,args.get(0),args.get(1),args.get(2));
+    }
+  }
+
+  private static Object fill(FillDirection direction, Object inputObject, Object fillObject, Object requiredLengthObject)throws ParseException{
+    if(inputObject == null) {
+      return null;
+    }
+    String input = inputObject.toString();
+
+    if(requiredLengthObject == null || fillObject == null) {
+       throw new IllegalStateException("Required Length and Fill String are both required");
+    }
+
+    String fill = fillObject.toString();
+    if(org.apache.commons.lang.StringUtils.isEmpty(fill)){
+      throw new IllegalStateException("The fill cannot be an empty string");
+    }
+    fill = fill.substring(0,1);
+    Integer requiredLength = ConversionUtils.convert(requiredLengthObject,Integer.class);
+    if(requiredLength == null){
+      throw new IllegalStateException("Required Length  not a valid Integer: " + requiredLengthObject.toString());
+    }
+
+    if(direction == FillDirection.LEFT) {
+      return org.apache.commons.lang.StringUtils.leftPad(input,requiredLength,fill);
+    }
+    return org.apache.commons.lang.StringUtils.rightPad(input,requiredLength,fill);
   }
 }
