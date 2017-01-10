@@ -157,8 +157,8 @@ public class StringFunctionsTest {
   @Test
   public void shannonEntropyTest() throws Exception {
     //test empty string
-    Assert.assertEquals(0.0, (Double)run("STRING_ENTROPY('')", new HashMap<>()), Double.MIN_VALUE);
-    Assert.assertEquals(0.0, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "")), Double.MIN_VALUE);
+    Assert.assertEquals(0.0, (Double)run("STRING_ENTROPY('')", new HashMap<>()), 0.0);
+    Assert.assertEquals(0.0, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "")), 0.0);
 
     /*
     Now consider the string aaaaaaaaaabbbbbccccc or 10 a's followed by 5 b's and 5 c's.
@@ -170,6 +170,6 @@ public class StringFunctionsTest {
       -p(a)*log_2(p(a)) - p(b)*log_2(p(b)) - p(c)*log_2(p(c)) =
       -0.5*-1 - 0.25*-2 - 0.25*-2 = 1.5
      */
-    Assert.assertEquals(1.5, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "aaaaaaaaaabbbbbccccc")), Double.MIN_VALUE);
+    Assert.assertEquals(1.5, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "aaaaaaaaaabbbbbccccc")), 0.0);
   }
 }
