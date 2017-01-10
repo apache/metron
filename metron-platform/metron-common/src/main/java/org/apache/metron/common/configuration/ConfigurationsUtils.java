@@ -89,6 +89,21 @@ public class ConfigurationsUtils {
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
+  public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
+    writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);
+  }
+
+  public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
+    }
+  }
+
+  public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
+  }
+
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig, String zookeeperUrl) throws Exception {
     writeSensorEnrichmentConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorEnrichmentConfig), zookeeperUrl);
   }
