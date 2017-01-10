@@ -62,6 +62,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
     return new Processor<List<Map<String, Object>>>() {
       List<Map<String, Object>> docs = null;
       List<byte[]> errors = null;
+      @Override
       public ReadinessState process(ComponentRunner runner) {
         ElasticSearchComponent elasticSearchComponent = runner.getComponent("search", ElasticSearchComponent.class);
         KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
@@ -88,6 +89,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
         }
       }
 
+      @Override
       public ProcessorResult<List<Map<String, Object>>> getResult()  {
         ProcessorResult.Builder<List<Map<String,Object>>> builder = new ProcessorResult.Builder();
         return builder.withResult(docs).withProcessErrors(errors).build();

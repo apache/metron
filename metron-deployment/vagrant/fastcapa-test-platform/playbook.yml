@@ -26,9 +26,9 @@
     - role: kafka-broker
     - role: pcap_replay
     - { role: pycapa, install_pycapa_service: False }
-    - { role: sensor-test-mode, pcap_replay: True, install_yaf: False, install_snort: False }
+    - { role: sensor-test-mode, pcap_replay: True, install_yaf: False, install_snort: False, install_pcap_replay: True }
+  tasks:
     - service: name=pcap-replay state=started
-    - service: name=pycapa state=started
 
 #
 # the 'sink' consumes network traffic
@@ -40,6 +40,7 @@
   roles:
     - role: librdkafka
     - role: fastcapa
+  tasks:
     - service: name=fastcapa state=started
 
 #

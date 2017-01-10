@@ -193,7 +193,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    */
   public static StellarFunction createFunction(Class<? extends StellarFunction> clazz) {
     try {
-      return clazz.newInstance();
+      return clazz.getConstructor().newInstance();
 
     } catch (Exception e) {
       LOG.error("Unable to load " + clazz.getName() + " because " + e.getMessage(), e);

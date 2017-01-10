@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +35,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/sensorEnrichmentConfig")
+@RequestMapping("/api/v1/sensor/enrichment/config")
 public class SensorEnrichmentConfigController {
 
   @Autowired
   private SensorEnrichmentConfigService sensorEnrichmentConfigService;
 
   @ApiOperation(value = "Updates or creates a SensorEnrichmentConfig in Zookeeper")
-  @ApiResponse(message = "Saved SensorEnrichmentConfig", code = 200)
+  @ApiResponse(message = "Returns saved SensorEnrichmentConfig", code = 200)
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   ResponseEntity<SensorEnrichmentConfig> save(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name,
                                               @ApiParam(name="sensorEnrichmentConfig", value="SensorEnrichmentConfig", required=true)@RequestBody SensorEnrichmentConfig sensorEnrichmentConfig) throws Exception {
@@ -49,7 +50,8 @@ public class SensorEnrichmentConfigController {
   }
 
   @ApiOperation(value = "Retrieves a SensorEnrichmentConfig from Zookeeper")
-  @ApiResponse(message = "SensorEnrichmentConfig", code = 200)
+  @ApiResponses(value = { @ApiResponse(message = "Returns SensorEnrichmentConfig", code = 200),
+          @ApiResponse(message = "SensorEnrichmentConfig is missing", code = 404) })
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   ResponseEntity<SensorEnrichmentConfig> findOne(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws Exception {
     SensorEnrichmentConfig sensorEnrichmentConfig = sensorEnrichmentConfigService.findOne(name);
@@ -61,14 +63,15 @@ public class SensorEnrichmentConfigController {
   }
 
   @ApiOperation(value = "Retrieves all SensorEnrichmentConfigs from Zookeeper")
-  @ApiResponse(message = "All SensorEnrichmentConfigs", code = 200)
+  @ApiResponse(message = "Returns all SensorEnrichmentConfigs", code = 200)
   @RequestMapping(method = RequestMethod.GET)
   ResponseEntity<List<SensorEnrichmentConfig>> getAll() throws Exception {
     return new ResponseEntity<>(sensorEnrichmentConfigService.getAll(), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Deletes a SensorEnrichmentConfig from Zookeeper")
-  @ApiResponse(message = "No return value", code = 200)
+  @ApiResponses(value = { @ApiResponse(message = "SensorEnrichmentConfig was deleted", code = 200),
+          @ApiResponse(message = "SensorEnrichmentConfig is missing", code = 404) })
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   ResponseEntity<Void> delete(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws Exception {
     if (sensorEnrichmentConfigService.delete(name)) {
@@ -79,7 +82,7 @@ public class SensorEnrichmentConfigController {
   }
 
   @ApiOperation(value = "Lists the available enrichments")
-  @ApiResponse(message = "List of available enrichments", code = 200)
+  @ApiResponse(message = "Returns a list of available enrichments", code = 200)
   @RequestMapping(value = "/list/available", method = RequestMethod.GET)
   ResponseEntity<List<String>> getAvailable() throws Exception {
     return new ResponseEntity<>(sensorEnrichmentConfigService.getAvailableEnrichments(), HttpStatus.OK);

@@ -96,6 +96,7 @@
         <global_shade_version>2.4.3</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
+        <global_jar_version>3.0.2</global_jar_version>
     </properties>
 
     <profiles>

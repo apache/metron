@@ -155,6 +155,7 @@ public class MaasIntegrationTest {
     LOG.info("Running DS Client");
     final AtomicBoolean result = new AtomicBoolean(false);
     Thread t = new Thread() {
+      @Override
       public void run() {
         try {
           result.set(client.run());

@@ -184,6 +184,7 @@ public class AbstractConfigTest  extends AbstractTestContext {
        /**
         * Skip Tests
         */
+       @Override
        public boolean skipTests(Object mode){
            if(mode.toString().equals("local")){
                return true;
@@ -197,6 +198,7 @@ public class AbstractConfigTest  extends AbstractTestContext {
         * @return the mode.
         */
        
+       @Override
        public Object getMode() {
            return mode;
        }
@@ -206,6 +208,7 @@ public class AbstractConfigTest  extends AbstractTestContext {
         * @param mode the mode.
         */
        
+       @Override
        public void setMode(Object mode) {
        
            this.mode = mode;
@@ -213,7 +216,7 @@ public class AbstractConfigTest  extends AbstractTestContext {
 
     
          /**
-         * @param readSchemaFromFile
+         * @param schemaJsonString
          */
         public void setSchemaJsonString(String schemaJsonString) {
             this.schemaJsonString=schemaJsonString;

@@ -25,12 +25,28 @@
     <includeBaseDirectory>true</includeBaseDirectory>
     <fileSets>
         <fileSet>
+            <directory>src/main/resources/common-services/METRON/CURRENT</directory>
+            <outputDirectory>common-services/METRON/${metron.version}</outputDirectory>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
             <directory>src/main/resources/common-services</directory>
             <outputDirectory>common-services</outputDirectory>
+            <excludes>
+                <exclude>**/CURRENT/**</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/resources/addon-services/METRON/CURRENT</directory>
+            <outputDirectory>addon-services/METRON/${metron.version}</outputDirectory>
+            <filtered>true</filtered>
         </fileSet>
         <fileSet>
             <directory>src/main/resources/addon-services</directory>
             <outputDirectory>addon-services</outputDirectory>
+            <excludes>
+                <exclude>**/CURRENT/**</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
     <files>

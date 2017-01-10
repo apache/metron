@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.hbase;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
@@ -64,8 +65,10 @@ public class SaltyRowKeyBuilderTest {
   public void setup() throws Exception {
 
     // a profile measurement
-    measurement = new ProfileMeasurement("profile", "entity", AUG2016, periodDuration, periodUnits);
-    measurement.setValue(22);
+    measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(AUG2016, periodDuration, periodUnits);
 
     // the tuple will contain the original message
     tuple = mock(Tuple.class);
@@ -80,8 +83,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithOneGroup() throws Exception {
     // setup
-    List<Object> groups = Arrays.asList("group1");
-    measurement.setGroups(groups);
+    measurement.withGroups(Arrays.asList("group1"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -107,8 +109,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithTwoGroups() throws Exception {
     // setup
-    List<Object> groups = Arrays.asList("group1","group2");
-    measurement.setGroups(groups);
+    measurement.withGroups(Arrays.asList("group1","group2"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -135,8 +136,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithOneIntegerGroup() throws Exception {
     // setup
-    List<Object> groups = Arrays.asList(200);
-    measurement.setGroups(groups);
+    measurement.withGroups(Arrays.asList(200));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -162,8 +162,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithMixedGroups() throws Exception {
     // setup
-    List<Object> groups = Arrays.asList(200, "group1");
-    measurement.setGroups(groups);
+    measurement.withGroups(Arrays.asList(200, "group1"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -190,8 +189,7 @@ public class SaltyRowKeyBuilderTest {
   @Test
   public void testRowKeyWithNoGroup() throws Exception {
     // setup
-    List<Object> groups = Collections.emptyList();
-    measurement.setGroups(groups);
+    measurement.withGroups(Collections.emptyList());
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -224,8 +222,11 @@ public class SaltyRowKeyBuilderTest {
     // a dummy profile measurement
     long now = System.currentTimeMillis();
     long oldest = now - TimeUnit.HOURS.toMillis(hoursAgo);
-    ProfileMeasurement m = new ProfileMeasurement("profile", "entity", oldest, periodDuration, periodUnits);
-    m.setValue(22);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(oldest, periodDuration, periodUnits)
+            .withValue(22);
 
     // generate a list of expected keys
     List<byte[]> expectedKeys = new ArrayList<>();
@@ -237,7 +238,10 @@ public class SaltyRowKeyBuilderTest {
 
       // advance to the next period
       ProfilePeriod next = m.getPeriod().next();
-      m = new ProfileMeasurement("profile", "entity", next.getStartTimeMillis(), periodDuration, periodUnits);
+      m = new ProfileMeasurement()
+              .withProfileName("profile")
+              .withEntity("entity")
+              .withPeriod(next.getStartTimeMillis(), periodDuration, periodUnits);
     }
 
     // execute

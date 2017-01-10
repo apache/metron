@@ -19,15 +19,39 @@ package org.apache.metron.rest.utils;
 
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RestControllerInfo {
 
+  public class Response {
+
+    private String message;
+    private int code;
+
+    public String getMessage() {
+      return message;
+    }
+
+    public void setMessage(String message) {
+      this.message = message;
+    }
+
+    public int getCode() {
+      return code;
+    }
+
+    public void setCode(int code) {
+      this.code = code;
+    }
+  }
+
   private String path;
   private String description;
   private RequestMethod method;
-  private String responseDescription;
+  private List<Response> responses = new ArrayList<>();
   private Map<String, String> parameterDescriptions = new HashMap<>();
 
   public RestControllerInfo() {}
@@ -56,12 +80,15 @@ public class RestControllerInfo {
     this.method = method;
   }
 
-  public String getResponseDescription() {
-    return responseDescription;
+  public List<Response> getResponses() {
+    return responses;
   }
 
-  public void setResponseDescription(String responseDescription) {
-    this.responseDescription = responseDescription;
+  public void addResponse(String message, int code) {
+    Response response = new Response();
+    response.setMessage(message);
+    response.setCode(code);
+    this.responses.add(response);
   }
 
   public Map<String, String> getParameterDescriptions() {
@@ -72,3 +99,5 @@ public class RestControllerInfo {
     parameterDescriptions.put(name, description);
   }
 }
+
+

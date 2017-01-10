@@ -113,7 +113,7 @@ public class HDFSDataPrunerTest {
 
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
         pruner.fileSystem = testFS;
-        HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
+        HDFSDataPruner.DateFileFilter filter = new HDFSDataPruner.DateFileFilter(pruner, true);
         UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.FATAL);
         try {
             filter.accept(new Path("foo"));
@@ -133,7 +133,7 @@ public class HDFSDataPrunerTest {
 
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
         pruner.fileSystem = testFS;
-        HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, false);
+        HDFSDataPruner.DateFileFilter filter = new HDFSDataPruner.DateFileFilter(pruner, false);
         assertFalse("Should ignore directories",filter.accept(new Path("/tmp")));
 
     }
@@ -148,7 +148,7 @@ public class HDFSDataPrunerTest {
         HDFSDataPruner pruner = new HDFSDataPruner(yesterday, 30, "file:///", dataPath.getAbsolutePath() + "/file-*");
 
         pruner.fileSystem = testFS;
-        HDFSDataPruner.DateFileFilter filter = pruner.new DateFileFilter(pruner, true);
+        HDFSDataPruner.DateFileFilter filter = new HDFSDataPruner.DateFileFilter(pruner, true);
         UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.FATAL);
         try {
             filter.accept(new Path("foo"));

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,18 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.maas.util;
 
-import java.util.ArrayList;
-import java.util.List;
+package org.apache.metron.common.stellar.evaluators;
 
-public enum Utils {
-  INSTANCE;
-  public <T> List<T> toList(T[] arr) {
-    List<T> ret = new ArrayList<T>(arr.length);
-    for(T o : arr) {
-      ret.add(o);
+import org.apache.metron.common.dsl.Token;
+import org.apache.metron.common.stellar.generated.StellarParser;
+
+public class DoubleLiteralEvaluator implements NumberEvaluator<StellarParser.DoubleLiteralContext> {
+  @Override
+  public Token<Double> evaluate(StellarParser.DoubleLiteralContext context) {
+    if (context == null) {
+      throw new IllegalArgumentException("Cannot evaluate a context that is null.");
     }
-    return ret;
+
+    return new Token<>(Double.parseDouble(context.getText()), Double.class);
   }
 }

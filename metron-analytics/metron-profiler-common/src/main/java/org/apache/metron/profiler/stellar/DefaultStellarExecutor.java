@@ -20,6 +20,8 @@
 
 package org.apache.metron.profiler.stellar;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang.ClassUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.MapVariableResolver;
@@ -76,7 +78,7 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
    */
   @Override
   public Map<String, Object> getState() {
-    return new HashMap<>(state);
+    return ImmutableMap.copyOf(state);
   }
 
   /**
@@ -93,6 +95,11 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
   public void assign(String variable, String expression, Map<String, Object> transientState) {
     Object result = execute(expression, transientState);
     state.put(variable, result);
+  }
+
+  @Override
+  public void assign(String variable, Object value) {
+    state.put(variable, value);
   }
 
   /**
@@ -114,7 +121,7 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
     T result = ConversionUtils.convert(resultObject, clazz);
     if (result == null) {
       throw new IllegalArgumentException(String.format("Unexpected type: expected=%s, actual=%s, expression=%s",
-              clazz.getSimpleName(), resultObject.getClass().getSimpleName(), expression));
+              clazz.getSimpleName(), ClassUtils.getShortClassName(resultObject,"null"), expression));
     }
 
     return result;

@@ -351,6 +351,7 @@ public class ServiceDiscoverer implements Closeable{
   /**
    * Close the discoverer service
    */
+  @Override
   public void close() {
     if(cache != null) {
       CloseableUtils.closeQuietly(cache);

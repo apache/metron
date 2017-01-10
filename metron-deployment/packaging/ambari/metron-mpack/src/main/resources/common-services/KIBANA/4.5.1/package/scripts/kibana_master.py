@@ -22,13 +22,14 @@ kibana_master
 import errno
 import os
 
+from ambari_commons.os_check import OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
 from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.format import format as ambari_format
 from resource_management.libraries.script import Script
 
 
@@ -41,12 +42,28 @@ class Kibana(Script):
 
         # TODO: Figure this out for all supported OSes
         Execute('rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch')
+        Logger.info("Installing Kibana CentOS/RHEL repo")
         Execute("echo \"[kibana-4.x]\n"
                 "name=Kibana repository for 4.5.x packages\n"
                 "baseurl=http://packages.elastic.co/kibana/4.5/centos\n"
                 "gpgcheck=1\n"
                 "gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch\n"
                 "enabled=1\" > /etc/yum.repos.d/kibana.repo")
+
+        majorVersion = OSCheck.get_os_major_version()
+        Logger.info("CentOS/RHEL major version reported by Ambari: " + majorVersion)
+        if majorVersion == "6" or majorVersion == "7":
+            repoName = "name=CentOS/RHEL {} repository for Elasticsearch Curator 4.x packages\n".format(majorVersion)
+            baseUrl = "baseurl=http://packages.elastic.co/curator/4/centos/{}\n".format(majorVersion)
+            Logger.info("Installing Elasticsearch Curator CentOS/RHEL {} repo".format(majorVersion))
+            Execute("echo \"[curator-4]\n" +
+                    repoName +
+                    baseUrl +
+                    "gpgcheck=1\n"
+                    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n"
+                    "enabled=1\" > /etc/yum.repos.d/curator.repo")
+        else:
+            raise Exception("Unsupported CentOS/RHEL version: " + majorVersion)
 
         self.install_packages(env)
 
@@ -85,6 +102,7 @@ class Kibana(Script):
 
         Logger.info("Start the Master")
 
+
         Execute("service kibana start")
 
     def restart(self, env):
@@ -112,8 +130,8 @@ class Kibana(Script):
         import params
         env.set_params(params)
 
-        hostname = format("{es_host}")
-        port = int(format("{es_port}"))
+        hostname = ambari_format("{es_host}")
+        port = int(ambari_format("{es_port}"))
 
         Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname, port))
         di = DashboardIndex(host=hostname, port=port)

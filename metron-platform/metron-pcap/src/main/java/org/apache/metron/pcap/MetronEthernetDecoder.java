@@ -41,10 +41,12 @@ public class MetronEthernetDecoder extends EthernetDecoder {
     typeCallbacks = new ConcurrentHashMap<Integer, Set<EthernetProcessor>>();
   }
 
+  @Override
   public void register(EthernetProcessor processor) {
     this.callbacks.add(processor);
   }
 
+  @Override
   public void register(int type, EthernetProcessor processor) {
     Set<EthernetProcessor> processors = typeCallbacks.get(type);
     if (processors == null) {
@@ -55,10 +57,12 @@ public class MetronEthernetDecoder extends EthernetDecoder {
     processors.add(processor);
   }
 
+  @Override
   public void unregister(EthernetProcessor processor) {
     this.callbacks.remove(processor);
   }
 
+  @Override
   public void unregister(int type, EthernetProcessor processor) {
     Set<EthernetProcessor> processors = typeCallbacks.get(type);
     if (processors == null)
@@ -67,6 +71,7 @@ public class MetronEthernetDecoder extends EthernetDecoder {
     processors.remove(processor);
   }
 
+  @Override
   public void decode(PcapPacket packet) {
     // do not reorder following codes (parse sequence)
     MacAddress destination = getMacAddress(packet.getPacketData());

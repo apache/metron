@@ -80,7 +80,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 #foreach( $parameterDescription in $restControllerInfo.getParameterDescriptions().entrySet())
     * $parameterDescription.getKey() - $parameterDescription.getValue()
 #end
-  * Returns: $restControllerInfo.getResponseDescription()
+  * Returns:
+#foreach( $response in $restControllerInfo.getResponses())
+    * $response.getCode() - $response.getMessage()
+#end
 
 #end
 

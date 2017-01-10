@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,21 +33,22 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/globalConfig")
+@RequestMapping("/api/v1/global/config")
 public class GlobalConfigController {
 
     @Autowired
     private GlobalConfigService globalConfigService;
 
     @ApiOperation(value = "Creates or updates the Global Config in Zookeeper")
-    @ApiResponse(message = "Saved Global Config JSON", code = 200)
+    @ApiResponse(message = "Returns saved Global Config JSON", code = 200)
     @RequestMapping(method = RequestMethod.POST)
     ResponseEntity<Map<String, Object>> save(@ApiParam(name="globalConfig", value="The Global Config JSON to be saved", required=true)@RequestBody Map<String, Object> globalConfig) throws Exception {
         return new ResponseEntity<>(globalConfigService.save(globalConfig), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Retrieves the current Global Config from Zookeeper")
-    @ApiResponse(message = "Current Global Config JSON in Zookeeper", code = 200)
+    @ApiResponses(value = { @ApiResponse(message = "Returns current Global Config JSON in Zookeeper", code = 200),
+            @ApiResponse(message = "Global Config JSON was not found in Zookeeper", code = 404) })
     @RequestMapping(method = RequestMethod.GET)
     ResponseEntity<Map<String, Object>> get() throws Exception {
         Map<String, Object> globalConfig = globalConfigService.get();
@@ -58,7 +60,8 @@ public class GlobalConfigController {
     }
 
     @ApiOperation(value = "Deletes the current Global Config from Zookeeper")
-    @ApiResponse(message = "No return value", code = 200)
+    @ApiResponses(value = { @ApiResponse(message = "Global Config JSON was deleted", code = 200),
+            @ApiResponse(message = "Global Config JSON was not found in Zookeeper", code = 404) })
     @RequestMapping(method = RequestMethod.DELETE)
     ResponseEntity<Void> delete() throws Exception {
         if (globalConfigService.delete()) {

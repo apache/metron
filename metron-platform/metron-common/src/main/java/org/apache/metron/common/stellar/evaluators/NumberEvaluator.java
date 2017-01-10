@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,28 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.parsers.filters;
 
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.json.simple.JSONObject;
+package org.apache.metron.common.stellar.evaluators;
 
-import java.io.Serializable;
-import java.util.Map;
+import org.apache.metron.common.dsl.Token;
+import org.apache.metron.common.stellar.generated.StellarParser;
 
-public class GenericMessageFilter implements MessageFilter<JSONObject>{
-
-	private static final long serialVersionUID = 3626397212398318852L;
-
-	public GenericMessageFilter() {
-	}
-
-	public boolean emitTuple(JSONObject message, Context context) {
-		return true;
-	}
-
-	@Override
-	public void configure(Map<String, Object> config) {
-
-	}
+public interface NumberEvaluator<T extends StellarParser.Arithmetic_operandsContext> {
+  Token<? extends Number> evaluate(T context);
 }

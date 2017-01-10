@@ -73,7 +73,6 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
-import org.apache.metron.maas.util.Utils;
 
 import static org.apache.metron.maas.service.Client.ClientOptions.*;
 
@@ -318,9 +317,10 @@ public class Client {
       return new AbstractMap.SimpleEntry<>(this, null);
     }
 
+    @SafeVarargs
     public static String toArgs(Map.Entry<ClientOptions, String> ... arg) {
       return
-      Joiner.on(" ").join(Iterables.transform(Utils.INSTANCE.toList(arg)
+      Joiner.on(" ").join(Iterables.transform(Arrays.asList(arg)
                                              , a -> "-" + a.getKey().shortCode
                                                   + (a.getValue() == null?"":(" " + a.getValue()))
                                              )

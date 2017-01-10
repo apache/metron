@@ -58,18 +58,33 @@ public class ProfileMeasurement {
    */
   private ProfilePeriod period;
 
-  /**
-   * @param profileName The name of the profile.
-   * @param entity The name of the entity being profiled.
-   * @param whenMillis When the measurement was taken in epoch milliseconds.
-   * @param periodDuration The duration of each profile period.
-   * @param periodUnits The units of the duration of each profile period.
-   */
-  public ProfileMeasurement(String profileName, String entity, long whenMillis, long periodDuration, TimeUnit periodUnits) {
-    this.profileName = profileName;
-    this.entity = entity;
-    this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
+  public ProfileMeasurement() {
     this.groups = Collections.emptyList();
+  }
+
+  public ProfileMeasurement withProfileName(String profileName) {
+    this.profileName = profileName;
+    return this;
+  }
+
+  public ProfileMeasurement withEntity(String entity) {
+    this.entity = entity;
+    return this;
+  }
+
+  public ProfileMeasurement withValue(Object value) {
+    this.value = value;
+    return this;
+  }
+
+  public ProfileMeasurement withGroups(List<Object> groups) {
+    this.groups = groups;
+    return this;
+  }
+
+  public ProfileMeasurement withPeriod(long whenMillis, long periodDuration, TimeUnit periodUnits) {
+    this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
+    return this;
   }
 
   public String getProfileName() {
@@ -88,16 +103,8 @@ public class ProfileMeasurement {
     return period;
   }
 
-  public void setValue(Object value) {
-    this.value = value;
-  }
-
   public List<Object> getGroups() {
     return groups;
-  }
-
-  public void setGroups(List<Object> groups) {
-    this.groups = groups;
   }
 
   @Override

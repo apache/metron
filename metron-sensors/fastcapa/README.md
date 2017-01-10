@@ -10,7 +10,7 @@ Fastcapa leverages the Data Plane Development Kit ([DPDK](http://dpdk.org/)).  D
 Getting Started
 ---------------
 
-The quickest way to get up and running is to use a Virtualbox environment on your local machine.  The necessary files and instructions to do this are located at [`metron-deployment/vagrant/fastcapa-vagrant`](../../metron-deployment/vagrant/fastcapa-vagrant).  
+The quickest way to get up and running is to use a Virtualbox environment on your local machine.  The necessary files and instructions to do this are located at [`metron-deployment/vagrant/fastcapa-vagrant`](../../metron-deployment/vagrant/fastcapa-test-platform).  
 
 Installation
 ------------

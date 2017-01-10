@@ -41,6 +41,8 @@ This will create a host called "metron-machine".  Anytime you want to run Docker
 $ eval "$(docker-machine env metron-machine)"
 ```
 
+If you wish to use a local docker-engine install, please set an environment variable BROKER_IP_ADDR to the IP address of your host machine. This cannot be the loopback address.
+
 Usage
 -----
 
@@ -49,8 +51,9 @@ Navigate to the compose application root:
 $ cd $METRON_DOCKER_HOME/compose/
 ```
 
-The Metron Docker environment lifecycle is controlled by the [docker-compose](https://docs.docker.com/compose/reference/overview/) command.  These service names can be found in the docker-compose.yml file.  For example, to build the environment run this command:
+The Metron Docker environment lifecycle is controlled by the [docker-compose](https://docs.docker.com/compose/reference/overview/) command.  The service names can be found in the docker-compose.yml file.  For example, to build and start the environment run this command:
 ```
+$ eval "$(docker-machine env metron-machine)"
 $ docker-compose up -d
 ```
 
@@ -79,6 +82,13 @@ Then, assuming a host ip of `192.168.99.100`, the UIs and APIs are available at:
 * HBase - http://192.168.99.100:16010/
 * Elasticsearch - http://192.168.99.100:9200/
 * Kibana - http://192.168.99.100:5601/
+
+The Storm logs can be useful when troubleshooting topologies.  They can be found on the Storm container in `/usr/share/apache-storm/logs`.
+
+When done using the machine, shut it down with:
+```
+$ docker-compose down
+```
 
 Examples
 -----
@@ -176,7 +186,7 @@ The indexing topology can be started with:
 docker-compose exec storm ./bin/start_elasticsearch_topology.sh
 ```
 
-Topologies can be stoped using the Storm CLI.  For example, stop the enrichment topology with:
+Topologies can be stopped using the Storm CLI.  For example, stop the enrichment topology with:
 ```
 docker-compose exec storm storm kill enrichments -w 0
 ```

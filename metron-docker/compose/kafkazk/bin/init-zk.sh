@@ -19,3 +19,4 @@ echo "create /metron metron" | ./bin/zookeeper-shell.sh localhost:2181
 echo "create /metron/topology topology" | ./bin/zookeeper-shell.sh localhost:2181
 echo "create /metron/topology/parsers parsers" | ./bin/zookeeper-shell.sh localhost:2181
 echo "create /metron/topology/enrichments enrichments" | ./bin/zookeeper-shell.sh localhost:2181
+$METRON_HOME/bin/zk_load_configs.sh -z localhost:2181 -m PUSH -i $METRON_HOME/config/zookeeper

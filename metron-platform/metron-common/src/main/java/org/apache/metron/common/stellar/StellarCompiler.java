@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.metron.common.stellar;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionMarker;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
@@ -27,6 +28,8 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
+import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -44,16 +47,26 @@ import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
 
-  private Context context = null;
-  private Stack<Token> tokenStack = new Stack<>();
-  private FunctionResolver functionResolver;
-  private VariableResolver variableResolver;
-  private Throwable actualException = null;
+  private final Context context;
+  private final Stack<Token<?>> tokenStack;
+  private final FunctionResolver functionResolver;
+  private final VariableResolver variableResolver;
+  private Throwable actualException;
+  private final ArithmeticEvaluator arithmeticEvaluator;
+  private final NumberLiteralEvaluator numberLiteralEvaluator;
 
-  public StellarCompiler(VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
+  public StellarCompiler(VariableResolver variableResolver,
+                         FunctionResolver functionResolver,
+                         Context context,
+                         Stack<Token<?>> tokenStack,
+                         ArithmeticEvaluator arithmeticEvaluator,
+                         NumberLiteralEvaluator numberLiteralEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;
+    this.tokenStack = tokenStack;
+    this.arithmeticEvaluator = arithmeticEvaluator;
+    this.numberLiteralEvaluator = numberLiteralEvaluator;
   }
 
   @Override
@@ -80,15 +93,6 @@ public class StellarCompiler extends StellarBaseListener {
     return set.contains(key);
   }
 
-  private Double getDouble(Token<?> token) {
-    Number n = (Number) token.getValue();
-    if (n == null) {
-      return 0d;
-    } else {
-      return n.doubleValue();
-    }
-  }
-
   @Override
   public void exitNullConst(StellarParser.NullConstContext ctx) {
     tokenStack.push(new Token<>(null, Object.class));
@@ -96,38 +100,33 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l + r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(), p));
   }
 
   @Override
   public void exitArithExpr_minus(StellarParser.ArithExpr_minusContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l - r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(), p));
   }
 
   @Override
   public void exitArithExpr_div(StellarParser.ArithExpr_divContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l / r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(), p));
   }
 
   @Override
   public void exitArithExpr_mul(StellarParser.ArithExpr_mulContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l * r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.multiplication(), p));
+  }
+
+  @SuppressWarnings("unchecked")
+  private Pair<Token<? extends Number>, Token<? extends Number>> getArithExpressionPair() {
+    Token<? extends Number> right = (Token<? extends Number>) popStack();
+    Token<? extends Number> left = (Token<? extends Number>) popStack();
+    return Pair.of(left, right);
   }
 
   private void handleConditional() {
@@ -184,12 +183,22 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitIntLiteral(StellarParser.IntLiteralContext ctx) {
-    tokenStack.push(new Token<>(Integer.parseInt(ctx.getText()), Integer.class));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
   public void exitDoubleLiteral(StellarParser.DoubleLiteralContext ctx) {
-    tokenStack.push(new Token<>(Double.parseDouble(ctx.getText()), Double.class));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
+  }
+
+  @Override
+  public void exitFloatLiteral(StellarParser.FloatLiteralContext ctx) {
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
+  }
+
+  @Override
+  public void exitLongLiteral(StellarParser.LongLiteralContext ctx) {
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override

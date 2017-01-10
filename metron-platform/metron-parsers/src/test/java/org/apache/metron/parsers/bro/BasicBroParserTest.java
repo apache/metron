@@ -53,14 +53,14 @@ public class BasicBroParserTest extends TestCase {
 	 */
 	public void testDecimalFormatAssumptions() {
 		Pair[] pairs = {
-						Pair.of(new Double(12345678), "12345678.0"),
-						Pair.of(new Double(12345678.0), "12345678.0"),
-						Pair.of(new Double(12345678.1), "12345678.1"),
-						Pair.of(new Double(12345678.11), "12345678.11"),
-						Pair.of(new Double(12345678.111), "12345678.111"),
-						Pair.of(new Double(12345678.1111), "12345678.1111"),
-						Pair.of(new Double(12345678.11111), "12345678.11111"),
-						Pair.of(new Double(12345678.111111), "12345678.111111")
+						Pair.of(12345678d, "12345678.0"),
+						Pair.of(12345678.0d, "12345678.0"),
+						Pair.of(12345678.1d, "12345678.1"),
+						Pair.of(12345678.11d, "12345678.11"),
+						Pair.of(12345678.111d, "12345678.111"),
+						Pair.of(12345678.1111d, "12345678.1111"),
+						Pair.of(12345678.11111d, "12345678.11111"),
+						Pair.of(12345678.111111d, "12345678.111111")
 		};
 		for (Pair pair : pairs) {
 			assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));

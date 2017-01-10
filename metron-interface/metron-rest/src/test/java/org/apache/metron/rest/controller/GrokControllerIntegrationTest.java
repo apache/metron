@@ -62,11 +62,12 @@ public class GrokControllerIntegrationTest {
     @Multiline
     public static String badGrokValidationJson;
 
-  @Autowired
+    @Autowired
     private WebApplicationContext wac;
 
     private MockMvc mockMvc;
 
+    private String grokUrl = "/api/v1/grok";
     private String user = "user";
     private String password = "password";
 
@@ -77,16 +78,16 @@ public class GrokControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post("/api/v1/grok/validate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(grokValidationJson))
+        this.mockMvc.perform(post(grokUrl + "/validate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(grokValidationJson))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/api/v1/grok/list"))
+        this.mockMvc.perform(get(grokUrl + "/list"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void test() throws Exception {
-        this.mockMvc.perform(post("/api/v1/grok/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(grokValidationJson))
+        this.mockMvc.perform(post(grokUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(grokValidationJson))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.results.action").value("TCP_MISS"))
@@ -99,12 +100,12 @@ public class GrokControllerIntegrationTest {
                 .andExpect(jsonPath("$.results.timestamp").value("1467011157.401"))
                 .andExpect(jsonPath("$.results.url").value("http://www.aliexpress.com/af/shoes.html?"));
 
-        this.mockMvc.perform(post("/api/v1/grok/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(badGrokValidationJson))
+        this.mockMvc.perform(post(grokUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(badGrokValidationJson))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.results.error").exists());
 
-        this.mockMvc.perform(get("/api/v1/grok/list").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(grokUrl + "/list").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$").isNotEmpty());

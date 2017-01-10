@@ -73,12 +73,12 @@ class EnrichmentCommands:
         if repo_type in yum_repo_types:
             yum_repo_types[repo_type]()
             Logger.info("Writing out repo file")
-            repo_template = ("echo \"[METRON-0.3.0]\n"
-                             "name=Metron 0.3.0 packages\n"
-                             "baseurl={0}\n"
-                             "gpgcheck=0\n"
-                             "enabled=1\n\""
-                             "   > /etc/yum.repos.d/metron.repo")
+            repo_template = ("echo \"[METRON-${metron.version}]\n"
+                            "name=Metron ${metron.version} packages\n"
+                            "baseurl={0}\n"
+                            "gpgcheck=0\n"
+                            "enabled=1\n\""
+                         "   > /etc/yum.repos.d/metron.repo")
             Execute(repo_template.format(self.__params.repo_url))
         else:
             raise ValueError("Unsupported repo type '{0}'".format(repo_type))

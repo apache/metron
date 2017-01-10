@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
 
 public class MetronSolrClientTest {
 
-  class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
+  static class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
 
     private String name;
 

@@ -70,9 +70,9 @@ public class JSONCleaner implements Serializable {
 			//cleaner.clean(jsonText);
 			Map obj=new HashMap();
 			  obj.put("name","foo");
-			  obj.put("num",new Integer(100));
-			  obj.put("balance",new Double(1000.21));
-			  obj.put("is_vip",new Boolean(true));
+			  obj.put("num", 100);
+			  obj.put("balance", 1000.21);
+			  obj.put("is_vip", true);
 			  obj.put("nickname",null);
 			Map obj1 = new HashMap();
 			obj1.put("sourcefile", obj);

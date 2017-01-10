@@ -18,6 +18,7 @@
 package org.apache.metron.test.converters;
 
 public class HexStringConverter implements IConverter {
+    @Override
     public byte[] convert(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
