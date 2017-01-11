@@ -15,16 +15,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
-import {SensorGrokComponent} from './sensor-grok.component';
-import {AutocompleteComponent} from '../../shared/autocomplete/autocomplete.component';
-import {AceEditorComponent} from '../../shared/ace-editor/ace-editor.component';
-
-@NgModule ({
-    imports: [ SharedModule ],
-    declarations: [ AceEditorComponent, AutocompleteComponent, SensorGrokComponent, SampleDataComponent ]
-})
-
-export class SensorGrokModule { }
+export * from './ace-editor.component'

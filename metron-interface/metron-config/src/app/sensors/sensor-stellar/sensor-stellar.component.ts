@@ -52,7 +52,7 @@ export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   ngAfterViewInit() {
-    ace.config.set('basePath', '/assets/Ace');
+    ace.config.set('basePath', '/assets/ace');
     this.parserConfigEditor = this.getEditor(this.parserConfig.nativeElement);
     this.enrichmentConfigEditor = this.getEditor(this.enrichmentConfig.nativeElement);
   }
