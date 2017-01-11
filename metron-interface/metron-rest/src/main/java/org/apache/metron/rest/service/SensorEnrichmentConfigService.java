@@ -22,6 +22,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.rest.RestException;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,21 +39,28 @@ public class SensorEnrichmentConfigService {
     @Autowired
     private CuratorFramework client;
 
-    public SensorEnrichmentConfig save(String name, SensorEnrichmentConfig sensorEnrichmentConfig) throws Exception {
+    public SensorEnrichmentConfig save(String name, SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
+      try {
         ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(name, objectMapper.writeValueAsString(sensorEnrichmentConfig).getBytes(), client);
-        return sensorEnrichmentConfig;
+      } catch (Exception e) {
+        throw new RestException(e);
+      }
+      return sensorEnrichmentConfig;
     }
 
-    public SensorEnrichmentConfig findOne(String name) throws Exception {
-        SensorEnrichmentConfig sensorEnrichmentConfig = null;
+    public SensorEnrichmentConfig findOne(String name) throws RestException {
+        SensorEnrichmentConfig sensorEnrichmentConfig;
         try {
             sensorEnrichmentConfig = ConfigurationsUtils.readSensorEnrichmentConfigFromZookeeper(name, client);
         } catch (KeeperException.NoNodeException e) {
+          return null;
+        } catch (Exception e) {
+          throw new RestException(e);
         }
-        return sensorEnrichmentConfig;
+      return sensorEnrichmentConfig;
     }
 
-    public List<SensorEnrichmentConfig> getAll() throws Exception {
+    public List<SensorEnrichmentConfig> getAll() throws RestException {
         List<SensorEnrichmentConfig> sensorEnrichmentConfigs = new ArrayList<>();
         List<String> sensorNames = getAllTypes();
         for (String name : sensorNames) {
@@ -61,23 +69,27 @@ public class SensorEnrichmentConfigService {
         return sensorEnrichmentConfigs;
     }
 
-    public List<String> getAllTypes() throws Exception {
+    public List<String> getAllTypes() throws RestException {
         List<String> types;
         try {
             types = client.getChildren().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot());
         } catch (KeeperException.NoNodeException e) {
             types = new ArrayList<>();
+        } catch (Exception e) {
+          throw new RestException(e);
         }
-        return types;
+      return types;
     }
 
-    public boolean delete(String name) throws Exception {
+    public boolean delete(String name) throws RestException {
         try {
             client.delete().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/" + name);
         } catch (KeeperException.NoNodeException e) {
             return false;
+        } catch (Exception e) {
+          throw new RestException(e);
         }
-        return true;
+      return true;
     }
 
     public List<String> getAvailableEnrichments() {

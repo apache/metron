@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,7 +46,7 @@ public class SensorEnrichmentConfigController {
   @ApiResponse(message = "Returns saved SensorEnrichmentConfig", code = 200)
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   ResponseEntity<SensorEnrichmentConfig> save(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name,
-                                              @ApiParam(name="sensorEnrichmentConfig", value="SensorEnrichmentConfig", required=true)@RequestBody SensorEnrichmentConfig sensorEnrichmentConfig) throws Exception {
+                                              @ApiParam(name="sensorEnrichmentConfig", value="SensorEnrichmentConfig", required=true)@RequestBody SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
     return new ResponseEntity<>(sensorEnrichmentConfigService.save(name, sensorEnrichmentConfig), HttpStatus.CREATED);
   }
 
@@ -53,7 +54,7 @@ public class SensorEnrichmentConfigController {
   @ApiResponses(value = { @ApiResponse(message = "Returns SensorEnrichmentConfig", code = 200),
           @ApiResponse(message = "SensorEnrichmentConfig is missing", code = 404) })
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-  ResponseEntity<SensorEnrichmentConfig> findOne(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws Exception {
+  ResponseEntity<SensorEnrichmentConfig> findOne(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws RestException {
     SensorEnrichmentConfig sensorEnrichmentConfig = sensorEnrichmentConfigService.findOne(name);
     if (sensorEnrichmentConfig != null) {
       return new ResponseEntity<>(sensorEnrichmentConfig, HttpStatus.OK);
@@ -73,7 +74,7 @@ public class SensorEnrichmentConfigController {
   @ApiResponses(value = { @ApiResponse(message = "SensorEnrichmentConfig was deleted", code = 200),
           @ApiResponse(message = "SensorEnrichmentConfig is missing", code = 404) })
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-  ResponseEntity<Void> delete(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws Exception {
+  ResponseEntity<Void> delete(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws RestException {
     if (sensorEnrichmentConfigService.delete(name)) {
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
@@ -84,7 +85,7 @@ public class SensorEnrichmentConfigController {
   @ApiOperation(value = "Lists the available enrichments")
   @ApiResponse(message = "Returns a list of available enrichments", code = 200)
   @RequestMapping(value = "/list/available", method = RequestMethod.GET)
-  ResponseEntity<List<String>> getAvailable() throws Exception {
+  ResponseEntity<List<String>> getAvailable() throws RestException {
     return new ResponseEntity<>(sensorEnrichmentConfigService.getAvailableEnrichments(), HttpStatus.OK);
   }
 }

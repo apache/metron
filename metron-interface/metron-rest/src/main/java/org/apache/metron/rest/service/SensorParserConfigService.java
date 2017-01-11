@@ -17,12 +17,14 @@
  */
 package org.apache.metron.rest.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.model.SensorParserConfigVersion;
 import org.apache.metron.rest.repository.SensorParserConfigVersionRepository;
@@ -61,22 +63,35 @@ public class SensorParserConfigService {
 
   private Map<String, String> availableParsers;
 
-  public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws Exception {
+  public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
     String serializedConfig;
     if (grokService.isGrokConfig(sensorParserConfig)) {
       grokService.addGrokPathToConfig(sensorParserConfig);
       sensorParserConfig.getParserConfig().putIfAbsent(GrokService.GROK_PATTERN_LABEL_KEY, sensorParserConfig.getSensorTopic().toUpperCase());
       String statement = (String) sensorParserConfig.getParserConfig().remove(GrokService.GROK_STATEMENT_KEY);
-      serializedConfig = objectMapper.writeValueAsString(sensorParserConfig);
-      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(), serializedConfig.getBytes(), client);
+      serializedConfig = serialize(sensorParserConfig);
       sensorParserConfig.getParserConfig().put(GrokService.GROK_STATEMENT_KEY, statement);
       grokService.saveGrokStatement(sensorParserConfig);
     } else {
-      serializedConfig = objectMapper.writeValueAsString(sensorParserConfig);
+      serializedConfig = serialize(sensorParserConfig);
+    }
+    try {
       ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(), serializedConfig.getBytes(), client);
+    } catch (Exception e) {
+      throw new RestException(e);
     }
     saveVersion(sensorParserConfig.getSensorTopic(), serializedConfig);
     return sensorParserConfig;
+  }
+
+  private String serialize(SensorParserConfig sensorParserConfig) throws RestException {
+    String serializedConfig;
+    try {
+      serializedConfig = objectMapper.writeValueAsString(sensorParserConfig);
+    } catch (JsonProcessingException e) {
+      throw new RestException("Could not serialize SensorParserConfig", "Could not serialize " + sensorParserConfig.toString(), e.getCause());
+    }
+    return serializedConfig;
   }
 
   private void saveVersion(String name, String config) {
@@ -86,19 +101,22 @@ public class SensorParserConfigService {
     sensorParserRepository.save(sensorParser);
   }
 
-  public SensorParserConfig findOne(String name) throws Exception{
-    SensorParserConfig sensorParserConfig = null;
+  public SensorParserConfig findOne(String name) throws RestException {
+    SensorParserConfig sensorParserConfig;
     try {
       sensorParserConfig = ConfigurationsUtils.readSensorParserConfigFromZookeeper(name, client);
       if (grokService.isGrokConfig(sensorParserConfig)) {
         grokService.addGrokStatementToConfig(sensorParserConfig);
       }
     } catch (KeeperException.NoNodeException e) {
+      return null;
+    } catch (Exception e) {
+      throw new RestException(e);
     }
     return sensorParserConfig;
   }
 
-  public Iterable<SensorParserConfig> getAll() throws Exception {
+  public Iterable<SensorParserConfig> getAll() throws RestException {
     List<SensorParserConfig> sensorParserConfigs = new ArrayList<>();
     List<String> sensorNames = getAllTypes();
     for (String name : sensorNames) {
@@ -107,7 +125,7 @@ public class SensorParserConfigService {
     return sensorParserConfigs;
   }
 
-  public boolean delete(String name) throws Exception {
+  public boolean delete(String name) throws RestException {
     try {
       client.delete().forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/" + name);
       sensorParserRepository.delete(name);
@@ -115,16 +133,20 @@ public class SensorParserConfigService {
       return false;
     } catch (EmptyResultDataAccessException e) {
       return true;
+    } catch (Exception e) {
+      throw new RestException(e);
     }
     return true;
   }
 
-  public List<String> getAllTypes() throws Exception {
+  public List<String> getAllTypes() throws RestException {
     List<String> types;
     try {
       types = client.getChildren().forPath(ConfigurationType.PARSER.getZookeeperRoot());
     } catch (KeeperException.NoNodeException e) {
       types = new ArrayList<>();
+    } catch (Exception e) {
+      throw new RestException(e);
     }
     return types;
   }
@@ -152,14 +174,19 @@ public class SensorParserConfigService {
     return reflections.getSubTypesOf(MessageParser.class);
   }
 
-  public JSONObject parseMessage(ParseMessageRequest parseMessageRequest) throws Exception {
+  public JSONObject parseMessage(ParseMessageRequest parseMessageRequest) throws RestException {
     SensorParserConfig sensorParserConfig = parseMessageRequest.getSensorParserConfig();
     if (sensorParserConfig == null) {
-      throw new Exception("Could not find parser config");
+      throw new RestException("SensorParserConfig is missing from ParseMessageRequest");
     } else if (sensorParserConfig.getParserClassName() == null) {
-      throw new Exception("Could not find parser class name");
+      throw new RestException("SensorParserConfig must have a parserClassName");
     } else {
-      MessageParser<JSONObject> parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName()).newInstance();
+      MessageParser<JSONObject> parser = null;
+      try {
+        parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName()).newInstance();
+      } catch (Exception e) {
+        throw new RestException(e.toString(), e.getCause());
+      }
       if (grokService.isGrokConfig(sensorParserConfig)) {
         grokService.saveTemporaryGrokStatement(sensorParserConfig);
         sensorParserConfig.getParserConfig().put(GrokService.GROK_PATH_KEY, new File(grokService.getTemporaryGrokRootPath(), sensorParserConfig.getSensorTopic()).toString());

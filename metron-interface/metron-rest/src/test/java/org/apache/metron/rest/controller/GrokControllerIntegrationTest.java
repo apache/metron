@@ -101,9 +101,10 @@ public class GrokControllerIntegrationTest {
                 .andExpect(jsonPath("$.results.url").value("http://www.aliexpress.com/af/shoes.html?"));
 
         this.mockMvc.perform(post(grokUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(badGrokValidationJson))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-                .andExpect(jsonPath("$.results.error").exists());
+                .andExpect(jsonPath("$.responseCode").value(500))
+                .andExpect(jsonPath("$.message").value("A pattern label must be included (ex. PATTERN_LABEL ${PATTERN:field} ...)"));
 
         this.mockMvc.perform(get(grokUrl + "/list").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
