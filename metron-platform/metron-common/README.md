@@ -107,6 +107,7 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `STATS_SUM_LOGS`](../../metron-analytics/metron-statistics#stats_sum_logs)                       |
 | [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)                 |
 | [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)                       |
+| [ `STRING_ENTROPY`](#string_entropy)                                                               |
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
@@ -400,6 +401,12 @@ MAP_GET`
     * string - The string to test
     * pattern - The proposed regex pattern
   * Returns: True if the regex pattern matches the string and false if otherwise.
+
+### `STRING_ENTROPY`
+  * Description: Computes the base-2 shannon entropy of a string.
+  * Input:
+    * input - String 
+  * Returns: The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits.
 
 ### `SPLIT`
   * Description: Splits the string by the delimiter.
