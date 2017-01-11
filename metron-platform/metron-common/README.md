@@ -45,6 +45,8 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
 |                                                                                                    |
 | ----------                                                                                         |
+| [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
+| [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
 | [ `BLOOM_ADD`](#bloom_add)                                                                         |
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
@@ -87,6 +89,7 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `SPLIT`](#split)                                                                                 |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
+| [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
 | [ `STATS_COUNT`](../../metron-analytics/metron-statistics#stats_count)                             |
 | [ `STATS_GEOMETRIC_MEAN`](../../metron-analytics/metron-statistics#stats_geometric_mean)           |
 | [ `STATS_INIT`](../../metron-analytics/metron-statistics#stats_init)                               |
