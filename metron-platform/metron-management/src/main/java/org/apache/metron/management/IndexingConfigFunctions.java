@@ -84,7 +84,7 @@ public class IndexingConfigFunctions {
   @Stellar(
            namespace = "INDEXING"
           ,name = "SET_INDEX"
-          ,description = "Set the index for the enrichment"
+          ,description = "Set the index for the sensor"
           ,params = {"sensorConfig - Sensor config to add transformation to."
                     ,"sensor - sensor name"
                     }

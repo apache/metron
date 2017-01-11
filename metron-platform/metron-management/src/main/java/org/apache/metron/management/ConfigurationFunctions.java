@@ -152,7 +152,7 @@ public class ConfigurationFunctions {
            namespace = "CONFIG"
           ,name = "GET"
           ,description = "Retrieve a Metron configuration from zookeeper."
-          ,params = {"type - One of ENRICHMENT, PARSER, GLOBAL, PROFILER"
+          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
                     , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
                     , "emptyIfNotPresent - If true, then return an empty, minimally viable config"
                     }
@@ -251,7 +251,7 @@ public class ConfigurationFunctions {
            namespace = "CONFIG"
           ,name = "PUT"
           ,description = "Updates a Metron config to Zookeeper."
-          ,params = {"type - One of ENRICHMENT, PARSER, GLOBAL, PROFILER"
+          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
                     ,"config - The config (a string in JSON form) to update"
                     , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
                     }

@@ -12,7 +12,7 @@ By default, this topology writes out to both HDFS and one of
 Elasticsearch and Solr.
 
 Indices are written in batch and the batch size is specified in the
-[Enrichment Config](../metron-enrichment) via the `batchSize` parameter.
+[Indexing Config](../metron-enrichment) via the `batchSize` parameter.
 This config is variable by sensor type.
 
 ## Indexing Architecture

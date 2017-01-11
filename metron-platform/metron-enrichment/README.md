@@ -29,6 +29,16 @@ There are two types of configurations at the moment, `global` and
 
 See the "[Global Configuration](../metron-common)" section.
 
+##Sensor Indexing Configuration
+The sensor specific configuration is intended to configure the
+indexing used for a given sensor type (e.g. `snort`).
+
+Just like the global config, the format is a JSON stored in zookeeper.
+The configuration is a JSON map with the following fields:
+* `index` : The name of the index to write to (defaulted to the name of the sensor).
+* `batchSize` : The size of the batch that is written to the indices at once (defaulted to 1.
+
+
 ##Sensor Enrichment Configuration
 
 The sensor specific configuration is intended to configure the
@@ -38,8 +48,6 @@ sensor type (e.g. `snort`).
 Just like the global config, the format is a JSON stored in zookeeper.
 The configuration is a complex JSON object with the following top level fields:
 
-* `index` : The name of the sensor
-* `batchSize` : The size of the batch that is written to the indices at once.
 * `enrichment` : A complex JSON object representing the configuration of the enrichments
 * `threatIntel` : A complex JSON object representing the configuration of the threat intelligence enrichments
 
@@ -139,8 +147,6 @@ The supported aggregation functions are:
 An example configuration for the YAF sensor is as follows:
 ```json
 {
-  "index": "yaf",
-  "batchSize": 5,
   "enrichment": {
     "fieldMap": {
       "geo": [
@@ -210,8 +216,6 @@ Let's adjust the configurations for the Squid topology to annotate the messages 
 
  ```
 {
-  "index": "squid",
-  "batchSize": 1,
   "enrichment" : {
     "fieldMap": {
       "stellar" : {
