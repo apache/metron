@@ -43,85 +43,88 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
 ## Stellar Core Functions
 
-|            |
-| ---------- |
-| [ `BLOOM_ADD`](#bloom_add)|
-| [ `BLOOM_EXISTS`](#bloom_exists)|
-| [ `BLOOM_INIT`](#bloom_init)|
-| [ `BLOOM_MERGE`](#bloom_merge)|
-| [ `DAY_OF_MONTH`](#day_of_month)|
-| [ `DAY_OF_WEEK`](#day_of_week)|
-| [ `DAY_OF_YEAR`](#day_of_year)|
-| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)|
-| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)|
-| [ `DOMAIN_TO_TLD`](#domain_to_tld)|
-| [ `ENDS_WITH`](#ends_with)|
-| [ `ENRICHMENT_EXISTS`](#enrichment_exists)|
-| [ `ENRICHMENT_GET`](#enrichment_get)|
-| [ `FILL_LEFT`](#fill_left)|
-| [ `FILL_RIGHT`](#fill_right)|
-| [ `GET`](#get)|
-| [ `GET_FIRST`](#get_first)|
-| [ `GET_LAST`](#get_last)|
-| [ `IN_SUBNET`](#in_subnet)|
-| [ `IS_DATE`](#is_date)|
-| [ `IS_DOMAIN`](#is_domain)|
-| [ `IS_EMAIL`](#is_email)|
-| [ `IS_EMPTY`](#is_empty)|
-| [ `IS_INTEGER`](#is_integer)|
-| [ `IS_IP`](#is_ip)|
-| [ `IS_URL`](#is_url)|
-| [ `JOIN`](#join)|
-| [ `KAFKA_GET`](#kafka_get)|
-| [ `KAFKA_PROPS`](#kafka_props)|
-| [ `KAFKA_PUT`](#kafka_put)|
-| [ `KAFKA_TAIL`](#kafka_tail)|
-| [ `LENGTH`](#length)|
-| [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)|
-| [ `MAAS_MODEL_APPLY`](#maas_model_apply)|
-| [ `MAP_EXISTS`](#map_exists)|
-| [ `MONTH`](#month)|
-| [ `PROFILE_GET`](#profile_get)|
-| [ `PROTOCOL_TO_NAME`](#protocol_to_name)|
-| [ `REGEXP_MATCH`](#regexp_match)|
-| [ `SPLIT`](#split)|
-| [ `STARTS_WITH`](#starts_with)|
-| [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)|
-| [ `STATS_COUNT`](../../metron-analytics/metron-statistics#stats_count)|
-| [ `STATS_GEOMETRIC_MEAN`](../../metron-analytics/metron-statistics#stats_geometric_mean)|
-| [ `STATS_INIT`](../../metron-analytics/metron-statistics#stats_init)|
-| [ `STATS_KURTOSIS`](../../metron-analytics/metron-statistics#stats_kurtosis)|
-| [ `STATS_MAX`](../../metron-analytics/metron-statistics#stats_max)|
-| [ `STATS_MEAN`](../../metron-analytics/metron-statistics#stats_mean)|
-| [ `STATS_MERGE`](../../metron-analytics/metron-statistics#stats_merge)|
-| [ `STATS_MIN`](../../metron-analytics/metron-statistics#stats_min)|
-| [ `STATS_PERCENTILE`](../../metron-analytics/metron-statistics#stats_percentile)|
-| [ `STATS_POPULATION_VARIANCE`](../../metron-analytics/metron-statistics#stats_population_variance)|
-| [ `STATS_QUADRATIC_MEAN`](../../metron-analytics/metron-statistics#stats_quadratic_mean)|
-| [ `STATS_SD`](../../metron-analytics/metron-statistics#stats_sd)|
-| [ `STATS_SKEWNESS`](../../metron-analytics/metron-statistics#stats_skewness)|
-| [ `STATS_SUM`](../../metron-analytics/metron-statistics#stats_sum)|
-| [ `STATS_SUM_LOGS`](../../metron-analytics/metron-statistics#stats_sum_logs)|
-| [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)|
-| [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)|
-| [ `SYSTEM_ENV_GET`](#system_env_get)|
-| [ `SYSTEM_PROPERTY_GET`](#system_property_get)|
-| [ `TO_DOUBLE`](#to_double)|
-| [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)|
-| [ `TO_FLOAT`](#to_float)|
-| [ `TO_INTEGER`](#to_integer)|
-| [ `TO_LONG`](#to_long)|
-| [ `TO_LOWER`](#to_lower)|
-| [ `TO_STRING`](#to_string)|
-| [ `TO_UPPER`](#to_upper)|
-| [ `TRIM`](#trim)|
-| [ `URL_TO_HOST`](#url_to_host)|
-| [ `URL_TO_PATH`](#url_to_path)|
-| [ `URL_TO_PORT`](#url_to_port)|
-| [ `URL_TO_PROTOCOL`](#url_to_protocol)|
-| [ `WEEK_OF_MONTH`](#week_of_month)|
-| [ `WEEK_OF_YEAR`](#week_of_year)|
-| [ `YEAR`](#year)|
+|                                                                                                    |
+| ----------                                                                                         |
+| [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
+| [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
+| [ `BLOOM_ADD`](#bloom_add)                                                                         |
+| [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
+| [ `BLOOM_INIT`](#bloom_init)                                                                       |
+| [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
+| [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
+| [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
+| [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
+| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                                           |
+| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                                         |
+| [ `DOMAIN_TO_TLD`](#domain_to_tld)                                                                 |
+| [ `ENDS_WITH`](#ends_with)                                                                         |
+| [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
+| [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
+| [ `FILL_LEFT`](#fill_left)                                                                         |
+| [ `FILL_RIGHT`](#fill_right)                                                                       |
+| [ `GET`](#get)                                                                                     |
+| [ `GET_FIRST`](#get_first)                                                                         |
+| [ `GET_LAST`](#get_last)                                                                           |
+| [ `IN_SUBNET`](#in_subnet)                                                                         |
+| [ `IS_DATE`](#is_date)                                                                             |
+| [ `IS_DOMAIN`](#is_domain)                                                                         |
+| [ `IS_EMAIL`](#is_email)                                                                           |
+| [ `IS_EMPTY`](#is_empty)                                                                           |
+| [ `IS_INTEGER`](#is_integer)                                                                       |
+| [ `IS_IP`](#is_ip)                                                                                 |
+| [ `IS_URL`](#is_url)                                                                               |
+| [ `JOIN`](#join)                                                                                   |
+| [ `KAFKA_GET`](#kafka_get)                                                                         |
+| [ `KAFKA_PROPS`](#kafka_props)                                                                     |
+| [ `KAFKA_PUT`](#kafka_put)                                                                         |
+| [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
+| [ `LENGTH`](#length)                                                                               |
+| [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
+| [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
+| [ `MAP_EXISTS`](#map_exists)                                                                       |
+| [ `MONTH`](#month)                                                                                 |
+| [ `PROFILE_GET`](#profile_get)                                                                     |
+| [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
+| [ `REGEXP_MATCH`](#regexp_match)                                                                   |
+| [ `SPLIT`](#split)                                                                                 |
+| [ `STARTS_WITH`](#starts_with)                                                                     |
+| [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
+| [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
+| [ `STATS_COUNT`](../../metron-analytics/metron-statistics#stats_count)                             |
+| [ `STATS_GEOMETRIC_MEAN`](../../metron-analytics/metron-statistics#stats_geometric_mean)           |
+| [ `STATS_INIT`](../../metron-analytics/metron-statistics#stats_init)                               |
+| [ `STATS_KURTOSIS`](../../metron-analytics/metron-statistics#stats_kurtosis)                       |
+| [ `STATS_MAX`](../../metron-analytics/metron-statistics#stats_max)                                 |
+| [ `STATS_MEAN`](../../metron-analytics/metron-statistics#stats_mean)                               |
+| [ `STATS_MERGE`](../../metron-analytics/metron-statistics#stats_merge)                             |
+| [ `STATS_MIN`](../../metron-analytics/metron-statistics#stats_min)                                 |
+| [ `STATS_PERCENTILE`](../../metron-analytics/metron-statistics#stats_percentile)                   |
+| [ `STATS_POPULATION_VARIANCE`](../../metron-analytics/metron-statistics#stats_population_variance) |
+| [ `STATS_QUADRATIC_MEAN`](../../metron-analytics/metron-statistics#stats_quadratic_mean)           |
+| [ `STATS_SD`](../../metron-analytics/metron-statistics#stats_sd)                                   |
+| [ `STATS_SKEWNESS`](../../metron-analytics/metron-statistics#stats_skewness)                       |
+| [ `STATS_SUM`](../../metron-analytics/metron-statistics#stats_sum)                                 |
+| [ `STATS_SUM_LOGS`](../../metron-analytics/metron-statistics#stats_sum_logs)                       |
+| [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)                 |
+| [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)                       |
+| [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
+| [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
+| [ `TO_DOUBLE`](#to_double)                                                                         |
+| [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
+| [ `TO_FLOAT`](#to_float)                                                                           |
+| [ `TO_INTEGER`](#to_integer)                                                                       |
+| [ `TO_LONG`](#to_long)                                                                             |
+| [ `TO_LOWER`](#to_lower)                                                                           |
+| [ `TO_STRING`](#to_string)                                                                         |
+| [ `TO_UPPER`](#to_upper)                                                                           |
+| [ `TRIM`](#trim)                                                                                   |
+| [ `URL_TO_HOST`](#url_to_host)                                                                     |
+| [ `URL_TO_PATH`](#url_to_path)                                                                     |
+| [ `URL_TO_PORT`](#url_to_port)                                                                     |
+| [ `URL_TO_PROTOCOL`](#url_to_protocol)                                                             |
+| [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
+| [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
+| [ `YEAR`](#year)                                                                                   |
 
 ### `BLOOM_ADD`
   * Description: Adds an element to the bloom filter passed in
