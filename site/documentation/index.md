@@ -26,7 +26,7 @@ title: Apache Metron (Incubating) Documentation
                 <li class=""><a href="#releases">Releases</a></li>
             </ul>
         </div>
-    </div>  
+    </div>
 </section>
 
 <section class="intro-block" id="quickstart">
@@ -48,11 +48,11 @@ title: Apache Metron (Incubating) Documentation
                 <h2>Installation</h2>
             </div>
             <div class="col-two text-center">
-                <h5 class="bold blue-text">Ansible-based Vagrant single node VM install</h5> <br>      
+                <h5 class="bold blue-text">Ansible-based Vagrant single node VM install</h5> <br>
                 <p>This is the best place to play with Metron first. This approach uses the Quick Start installation which automates the provisioning and deployment of Apache Metron on a single, virtualized host running on VirtualBox.</p>
             </div>
             <div class="col-two text-center">
-                <h5 class="bold blue-text">Fully automated 10 Node Ansible-based install on AWS using Ambari blueprints and AWS APIs</h5> <br>                
+                <h5 class="bold blue-text">Fully automated 10 Node Ansible-based install on AWS using Ambari blueprints and AWS APIs</h5> <br>
                 <p>If you want a more realistic setup of the Metron application, use this approach. This install creates a full-functioning, end-to-end, multi-node cluster running Apache Metron. Keep in mind that this install will spin up 10 m4.xlarge EC2 instances by default.</p>
             </div>
             </div>
@@ -82,13 +82,13 @@ title: Apache Metron (Incubating) Documentation
                 <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz" target="new">
                     apache-metron-0.3.0-incubating.tar.gz
                 </a>
-                 [ <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.asc" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.asc" target="new">
                     PGP
                  </a>]
-                 [ <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.sha" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.sha" target="new">
                     SHA512
                  </a>]
-                 [ <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.md5" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.md5" target="new">
                     MD5
                   </a>]
                 </li>
