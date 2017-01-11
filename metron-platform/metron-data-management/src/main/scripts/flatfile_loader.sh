@@ -32,11 +32,4 @@ export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
 CP=$METRON_HOME/lib/$DM_JAR:/usr/metron/${METRON_VERSION}/lib/taxii-1.1.0.1.jar:`${HBASE_HOME}/bin/hbase classpath`
-HADOOP_CLASSPATH=$(echo $CP )
-for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do
-  if [ -f $jar ];then
-    LIBJARS="$jar,$LIBJARS"
-  fi
-done
-export HADOOP_CLASSPATH
-hadoop jar $METRON_HOME/lib/$DM_JAR org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader "$@"
+java -cp $CP org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader "$@"

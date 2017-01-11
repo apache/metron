@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<!-- Generator: Adobe Illustrator 19.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1"
+	 id="Layer_1" inkscape:version="0.91 r13725" sodipodi:docname="kibana.svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 138.7 45"
+	 style="enable-background:new 0 0 138.7 45;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#222222;}
+	.st1{fill:none;}
+	.st2{fill:#32ABE2;}
+	.st3{opacity:0.7;fill:#32ABE2;}
+	.st4{opacity:0.4;fill:#32ABE2;}
+	.st5{fill:#82D3F1;}
+</style>
+<sodipodi:namedview  bordercolor="#666666" borderopacity="1" gridtolerance="10" guidetolerance="10" id="namedview4266" inkscape:current-layer="Layer_1" inkscape:cx="126" inkscape:cy="22.5" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="1132" inkscape:window-maximized="0" inkscape:window-width="2046" inkscape:window-x="0" inkscape:window-y="0" inkscape:zoom="1.0416667" objecttolerance="10" pagecolor="#ffffff" showgrid="false">
+	</sodipodi:namedview>
+<rect id="rect4248" x="-0.7" y="-0.8" class="st0" width="140.2" height="46.8"/>
+<g>
+	<g>
+		<path class="st1" d="M14.9,22.5C14.9,15,21,8.8,28.6,8.8S42.3,15,42.3,22.5c0,5.7-3.5,10.6-8.4,12.6v2.2c6.1-2.2,10.5-8,10.5-14.9
+			c0-8.7-7.1-15.8-15.8-15.8s-15.8,7.1-15.8,15.8c0,6.9,4.4,12.7,10.5,14.9v-2.2C18.4,33.1,14.9,28.2,14.9,22.5z"/>
+		<path class="st1" d="M19.1,22.5c0-5.2,4.3-9.5,9.5-9.5s9.5,4.3,9.5,9.5c0,3.3-1.7,6.2-4.2,7.9v2.4c3.7-1.9,6.3-5.8,6.3-10.3
+			c0-6.4-5.2-11.6-11.6-11.6S17,16.1,17,22.5c0,4.5,2.6,8.4,6.3,10.3v-2.4C20.8,28.7,19.1,25.8,19.1,22.5z"/>
+		<path class="st2" d="M21.2,22.5c0-4.1,3.3-7.4,7.4-7.4s7.4,3.3,7.4,7.4c0,2-0.8,3.8-2.1,5.1v2.7c2.5-1.7,4.2-4.6,4.2-7.9
+			c0-5.2-4.3-9.5-9.5-9.5s-9.5,4.3-9.5,9.5c0,3.3,1.7,6.2,4.2,7.9v-2.7C22,26.3,21.2,24.5,21.2,22.5z"/>
+		<path class="st3" d="M17,22.5c0-6.4,5.2-11.6,11.6-11.6s11.6,5.2,11.6,11.6c0,4.5-2.6,8.4-6.3,10.3v2.3c4.9-2.1,8.4-6.9,8.4-12.6
+			c0-7.5-6.1-13.7-13.7-13.7S14.9,15,14.9,22.5c0,5.7,3.5,10.6,8.4,12.6v-2.3C19.6,30.9,17,27,17,22.5z"/>
+		<path class="st4" d="M46.5,22.5c0-9.9-8-17.9-17.9-17.9s-17.9,8-17.9,17.9c0,8,5.3,14.9,12.6,17.1v-2.2c-6.1-2.2-10.5-8-10.5-14.9
+			c0-8.7,7.1-15.8,15.8-15.8s15.8,7.1,15.8,15.8c0,6.9-4.4,12.7-10.5,14.9v2.2C41.2,37.4,46.5,30.6,46.5,22.5z"/>
+		<polygon class="st5" points="28.7,25.5 28.6,25.8 28.4,25.5 25.4,18 25.4,27.1 25.4,29.2 25.4,31.4 25.4,33.6 25.4,35.8 25.4,38 
+			25.4,40.1 25.4,40.4 27.5,40.4 27.5,40.4 27.5,38.3 27.5,36.1 27.5,34 27.5,31.9 27.5,29.8 27.5,28.8 27.9,29.9 28.6,31.4 
+			29.2,29.9 29.6,28.8 29.6,29.8 29.6,31.9 29.6,34 29.6,36.1 29.6,38.3 29.6,40.4 29.6,40.4 31.7,40.4 31.7,40.1 31.7,38 
+			31.7,35.8 31.7,33.6 31.7,31.4 31.7,29.2 31.7,27.1 31.7,18 		"/>
+	</g>
+	<g>
+		<g>
+			<path class="st5" d="M62.7,32.1l-2.1-7.6l-3,7c-0.1,0.2-0.2,0.4-0.4,0.5s-0.3,0.2-0.6,0.2c-0.4,0-0.8-0.2-1-0.7l-3-7l-2.1,7.6
+				h-1.8L51.5,22c0.1-0.5,0.4-0.8,0.9-0.8c0.2,0,0.4,0.1,0.6,0.2c0.2,0.1,0.3,0.3,0.4,0.5l3.3,7.6l3.3-7.6c0.2-0.4,0.5-0.6,0.9-0.6
+				c0.5,0,0.8,0.3,0.9,0.8l2.8,10.1H62.7z"/>
+			<path class="st5" d="M65.8,32.1V21.3h9.6v1.9h-7.7v7h7.7v1.9H65.8z M69,27.4v-1.6h6v1.6H69z"/>
+			<path class="st5" d="M80.5,32.1v-8.9h-4.1v-1.9h10v1.9h-4.1v8.9H80.5z"/>
+			<path class="st5" d="M97.6,32.1l-2.7-3h-4v-1.7h4.5c0.7,0,1.2-0.2,1.5-0.6c0.3-0.4,0.5-0.9,0.5-1.6s-0.2-1.2-0.5-1.6
+				c-0.4-0.3-0.9-0.5-1.5-0.5h-5.9v8.9h-1.9V21.3h7.7c0.6,0,1.2,0.1,1.6,0.3c0.5,0.2,0.9,0.4,1.2,0.8c0.3,0.3,0.6,0.8,0.8,1.2
+				c0.2,0.5,0.3,1,0.3,1.6c0,0.9-0.2,1.6-0.6,2.3c-0.4,0.6-0.9,1-1.6,1.3l3.2,3.3H97.6z"/>
+			<path class="st5" d="M105.9,32.1c-0.7,0-1.4-0.1-2.1-0.4c-0.6-0.3-1.2-0.7-1.7-1.2c-0.5-0.5-0.8-1.1-1.1-1.7s-0.4-1.4-0.4-2.2
+				c0-0.8,0.1-1.5,0.4-2.2s0.6-1.2,1.1-1.7c0.5-0.5,1-0.8,1.7-1.1c0.6-0.3,1.3-0.4,2.1-0.4h2.6c0.8,0,1.5,0.1,2.1,0.4
+				c0.6,0.3,1.2,0.6,1.7,1.1s0.8,1,1.1,1.7s0.4,1.4,0.4,2.1c0,0.8-0.1,1.5-0.4,2.2s-0.6,1.2-1.1,1.7c-0.5,0.5-1,0.9-1.7,1.2
+				c-0.6,0.3-1.3,0.4-2.1,0.4H105.9z M108.5,30.2c0.5,0,0.9-0.1,1.4-0.3c0.4-0.2,0.8-0.4,1.1-0.7s0.5-0.7,0.7-1.1
+				c0.2-0.4,0.3-0.9,0.3-1.4s-0.1-1-0.3-1.4c-0.2-0.4-0.4-0.8-0.7-1.1s-0.7-0.5-1.1-0.7c-0.4-0.2-0.9-0.3-1.4-0.3h-2.6
+				c-0.5,0-0.9,0.1-1.3,0.3c-0.4,0.2-0.8,0.4-1.1,0.7c-0.3,0.3-0.5,0.7-0.7,1.1c-0.2,0.4-0.3,0.9-0.3,1.4c0,0.5,0.1,1,0.3,1.4
+				c0.2,0.4,0.4,0.8,0.7,1.1c0.3,0.3,0.6,0.6,1.1,0.7c0.4,0.2,0.9,0.3,1.3,0.3H108.5z"/>
+			<path class="st5" d="M117.1,24.2v7.9h-1.8v-9.8c0-0.3,0.1-0.6,0.3-0.8c0.2-0.2,0.4-0.3,0.7-0.3c0.1,0,0.3,0,0.4,0.1
+				s0.3,0.2,0.4,0.3l7.6,7.5v-7.9h1.8v9.8c0,0.4-0.1,0.6-0.3,0.8c-0.2,0.2-0.4,0.3-0.7,0.3c-0.3,0-0.6-0.1-0.9-0.4L117.1,24.2z"/>
+		</g>
+		<g>
+			<path class="st2" d="M60.3,19.7l-1.1-1.9h-3.6l0.6-1.1h2.3l-1.7-2.8l-3.4,5.8h-1.5l4.3-7.2c0.1-0.1,0.2-0.2,0.3-0.3
+				c0.1-0.1,0.2-0.1,0.4-0.1s0.3,0,0.4,0.1c0.1,0.1,0.2,0.2,0.3,0.3l4.3,7.2H60.3z"/>
+			<path class="st2" d="M64.9,17.6v-1.3h3c0.5,0,0.8-0.1,1.1-0.4c0.3-0.3,0.4-0.6,0.4-1c0-0.4-0.1-0.8-0.4-1
+				c-0.3-0.3-0.6-0.4-1.1-0.4h-4v6.2h-1.3v-7.5H68c0.4,0,0.8,0.1,1.2,0.2c0.3,0.1,0.6,0.3,0.9,0.5s0.4,0.5,0.5,0.8
+				c0.1,0.3,0.2,0.7,0.2,1.1c0,0.4-0.1,0.8-0.2,1.1c-0.1,0.3-0.3,0.6-0.5,0.9c-0.2,0.2-0.5,0.4-0.9,0.6c-0.3,0.1-0.7,0.2-1.2,0.2
+				H64.9z"/>
+			<path class="st2" d="M78.4,19.7l-1.1-1.9h-3.6l0.6-1.1h2.3L75,13.9l-3.4,5.8h-1.5l4.3-7.2c0.1-0.1,0.2-0.2,0.3-0.3
+				c0.1-0.1,0.2-0.1,0.4-0.1s0.3,0,0.4,0.1c0.1,0.1,0.2,0.2,0.3,0.3l4.3,7.2H78.4z"/>
+			<path class="st2" d="M83.3,19.7c-0.5,0-1-0.1-1.5-0.3c-0.4-0.2-0.8-0.5-1.2-0.8c-0.3-0.3-0.6-0.7-0.8-1.2s-0.3-1-0.3-1.5
+				c0-0.6,0.1-1.1,0.3-1.5s0.4-0.8,0.8-1.2s0.7-0.6,1.2-0.7c0.4-0.2,0.9-0.3,1.5-0.3h4.1v1.3h-4.1c-0.3,0-0.7,0.1-0.9,0.2
+				c-0.3,0.1-0.5,0.3-0.7,0.5c-0.2,0.2-0.4,0.5-0.5,0.8c-0.1,0.3-0.2,0.6-0.2,1c0,0.4,0.1,0.7,0.2,1c0.1,0.3,0.3,0.6,0.5,0.8
+				c0.2,0.2,0.5,0.4,0.7,0.5s0.6,0.2,0.9,0.2h4.1v1.3H83.3z"/>
+			<path class="st2" d="M88.4,19.7v-7.6h1.3v7.6H88.4z M94.5,19.7v-3.3h-3.8v-1.2h3.8v-3.1h1.3v7.6H94.5z"/>
+			<path class="st2" d="M97.1,19.7v-7.5h6.7v1.3h-5.4v4.9h5.4v1.3H97.1z M99.4,16.4v-1.1h4.2v1.1H99.4z"/>
+		</g>
+	</g>
+</g>
+</svg>
