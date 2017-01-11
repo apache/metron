@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,6 +29,7 @@ import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
+import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -46,18 +47,26 @@ import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
 
-  private Context context = null;
-  private Stack<Token> tokenStack = new Stack<>();
-  private FunctionResolver functionResolver;
-  private VariableResolver variableResolver;
-  private Throwable actualException = null;
+  private final Context context;
+  private final Stack<Token<?>> tokenStack;
+  private final FunctionResolver functionResolver;
+  private final VariableResolver variableResolver;
+  private Throwable actualException;
   private final ArithmeticEvaluator arithmeticEvaluator;
+  private final NumberLiteralEvaluator numberLiteralEvaluator;
 
-  public StellarCompiler(VariableResolver variableResolver, FunctionResolver functionResolver, Context context, ArithmeticEvaluator arithmeticEvaluator) {
+  public StellarCompiler(VariableResolver variableResolver,
+                         FunctionResolver functionResolver,
+                         Context context,
+                         Stack<Token<?>> tokenStack,
+                         ArithmeticEvaluator arithmeticEvaluator,
+                         NumberLiteralEvaluator numberLiteralEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;
+    this.tokenStack = tokenStack;
     this.arithmeticEvaluator = arithmeticEvaluator;
+    this.numberLiteralEvaluator = numberLiteralEvaluator;
   }
 
   @Override
@@ -174,12 +183,22 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitIntLiteral(StellarParser.IntLiteralContext ctx) {
-    tokenStack.push(new Token<>(Integer.parseInt(ctx.getText()), Integer.class));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
   public void exitDoubleLiteral(StellarParser.DoubleLiteralContext ctx) {
-    tokenStack.push(new Token<>(Double.parseDouble(ctx.getText()), Double.class));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
+  }
+
+  @Override
+  public void exitFloatLiteral(StellarParser.FloatLiteralContext ctx) {
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
+  }
+
+  @Override
+  public void exitLongLiteral(StellarParser.LongLiteralContext ctx) {
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override

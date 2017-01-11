@@ -17,7 +17,7 @@
 ---
   - name: "Download DPDK version {{ dpdk_version }}"
     unarchive:
-      src: "http://dpdk.org/browse/dpdk/snapshot/dpdk-{{ dpdk_version }}.tar.gz"
+      src: "{{ dpdk_src_url }}"
       dest: "/root"
       creates: "{{ dpdk_sdk }}"
       copy: no
@@ -49,7 +49,7 @@
       - modprobe vfio-pci
 
   - name: Bind the device to the loaded kernel module(s)
-    shell: "{{ dpdk_home }}/sbin/dpdk_nic_bind --force --bind=uio_pci_generic {{ item }}"
+    shell: "{{ dpdk_home }}/sbin/dpdk-devbind --force --bind=uio_pci_generic {{ item }}"
     with_items: "{{ dpdk_device }}"
 
   - name: Set useful environment variables
