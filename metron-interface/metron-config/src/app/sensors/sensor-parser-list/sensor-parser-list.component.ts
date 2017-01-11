@@ -64,6 +64,7 @@ export class SensorParserListComponent implements OnInit {
         this.selectedSensors = [];
         this.count = this.sensors.length;
         if (!justOnce) {
+          this.getStatus();
           this.pollStatus();
         } else {
           this.getStatus();

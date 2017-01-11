@@ -25,7 +25,7 @@ import {APP_CONFIG} from '../app.config';
 
 @Injectable()
 export class SensorParserConfigHistoryService {
-  url =  this.config.apiEndpoint + '/sensorParserConfigHistory';
+  url =  this.config.apiEndpoint + '/sensor/parser/config/history';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {

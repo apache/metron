@@ -25,7 +25,7 @@ import {APP_CONFIG} from '../app.config';
 
 @Injectable()
 export class SensorEnrichmentConfigService {
-  url = this.config.apiEndpoint + '/sensorEnrichmentConfig';
+  url = this.config.apiEndpoint + '/sensor/enrichment/config';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
