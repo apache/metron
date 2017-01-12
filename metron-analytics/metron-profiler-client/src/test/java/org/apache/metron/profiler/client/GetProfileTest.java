@@ -69,6 +69,7 @@ public class GetProfileTest {
   private StellarExecutor executor;
   private Map<String, Object> state;
   private ProfileWriter profileWriter;
+  // different values of period and salt divisor, used to test config_overrides feature
   private static final long periodDuration2 = 1;
   private static final TimeUnit periodUnits2 = TimeUnit.HOURS;
   private static final int saltDivisor2 = 2050;
@@ -90,6 +91,17 @@ public class GetProfileTest {
     return executor.execute(expression, state, clazz);
   }
 
+  /**
+   * This method sets up the configuration context for both writing profile data
+   * (using profileWriter to mock the complex process of what the Profiler topology
+   * actually does), and then reading that profile data (thereby testing the PROFILE_GET
+   * Stellar client implemented in GetProfile).
+   *
+   * It runs at @Before time, and sets testclass global variables used by the writers and readers.
+   * The various writers and readers are in each test case, not here.
+   *
+   * @return void
+   */
   @Before
   public void setup() {
     state = new HashMap<>();
@@ -119,6 +131,24 @@ public class GetProfileTest {
                     .build());
   }
 
+  /**
+   * This method is similar to setup(), in that it sets up profiler configuration context,
+   * but only for the client.  Additionally, it uses periodDuration2, periodUnits2
+   * and saltDivisor2, instead of periodDuration, periodUnits and saltDivisor respectively.
+   *
+   * This is used in the unit tests that test the config_overrides feature of PROFILE_GET.
+   * In these tests, the context from @Before setup() is used to write the data, then the global
+   * context is changed to context2 (from this method).  Each test validates that a default read
+   * using global context2 then gets no valid results (as expected), and that a read using
+   * original context values in the PROFILE_GET config_overrides argument gets all expected results.
+   *
+   * @return context2 - The profiler client configuration context created by this method.
+   *    The context2 values are also set in the configuration of the StellarExecutor
+   *    stored in the global variable 'executor'.  However, there is no API for querying the
+   *    context values from a StellarExecutor, so we output the context2 Context object itself,
+   *    for validation purposes (so that its values can be validated as being significantly
+   *    different from the setup() settings).
+   */
   private Context setup2() {
     state = new HashMap<>();
 
@@ -320,7 +350,7 @@ public class GetProfileTest {
 
     // now change the executor configuration
     Context context2 = setup2();
-    // prove it
+    // validate it is changed in significant way
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
     Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
@@ -374,7 +404,7 @@ public class GetProfileTest {
 
     // now change the executor configuration
     Context context2 = setup2();
-    // prove it
+    // validate it is changed in significant way
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
     Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));

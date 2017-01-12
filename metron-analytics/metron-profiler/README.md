@@ -31,7 +31,7 @@ This section will describe the steps required to get your first profile running.
         {
           "profile": "test",
           "foreach": "ip_src_addr",
-          "init":    { "count": 0 },
+          "init":    { "count": "0" },
           "update":  { "count": "count + 1" },
           "result":  "count"
         }
@@ -117,7 +117,7 @@ The 'groupBy' expressions can refer to any field within a `org.apache.metron.pro
 
 *Optional*
 
-One or more expressions executed at the start of a window period.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can contain 0 or more variables/expressions. At the start of each window period the expression is executed once and stored in a variable with the given name. 
+One or more expressions executed at the start of a window period.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can contain zero or more variable:expression pairs. At the start of each window period, each expression is executed once and stored in the given variable. Note that constant init values such as "0" must be in quotes regardless of their type, as the init value must be a string to be executed by Stellar.
 
 ```
 "init": {

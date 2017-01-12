@@ -155,13 +155,17 @@ public class GetProfile implements StellarFunction {
    */
   public static final String PROFILER_SALT_DIVISOR_DEFAULT = "1000";
 
-  private static final Logger LOG = LoggerFactory.getLogger(GetProfile.class);
-
-  // Cached client that can retrieve profile values.
+  /**
+   * Cached client that can retrieve profile values.
+   */
   private ProfilerClient client;
 
-  // Cached value of config map actually used to construct the previously cached client.
+  /**
+   * Cached value of config map actually used to construct the previously cached client.
+   */
   private Map<String, Object> cachedConfigMap = new HashMap<String, Object>(6);
+
+  private static final Logger LOG = LoggerFactory.getLogger(GetProfile.class);
 
   /**
    * Initialization.  No longer need to do anything in initialization,
