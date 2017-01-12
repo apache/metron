@@ -22,10 +22,7 @@
         <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
                                    (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
         <label attr.for="grokStatement">STATEMENT</label>
-        <!--<metron-config-autocomplete [id]="grokValidator" [statement]="grokStatement" [options]="grokFunctionList"-->
-                                    <!--(result)="onGrokStatementChange($event)" [height]="200"-->
-                                    <!--[autocompleteStatementGenerator]="autocompleteStatementGenerator"></metron-config-autocomplete>-->
-        <metron-config-ace-editor [(ngModel)]="grokStatement" [ngModelOptions]="{standalone: true}"> </metron-config-ace-editor>
+        <metron-config-ace-editor [(ngModel)]="grokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'"> </metron-config-ace-editor>
 
         <br/>
         <button type="submit" class="btn form-enable-disable-button" (click)="onTestGrokStatement()">TEST</button>

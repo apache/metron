@@ -97,10 +97,6 @@ export class SensorGrokComponent implements OnInit, OnChanges {
     return [];
   }
 
-  onGrokStatementChange(statement: string) {
-    this.grokStatement = statement;
-  }
-
   prepareGrokStatement(): void {
     this.grokStatement = '';
     if (this.sensorParserConfig.parserConfig['grokStatement']) {

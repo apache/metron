@@ -34,8 +34,8 @@ export class SampleDataComponent {
 
   sampleData: string[] = [];
   sampleDataIndex: number = -1;
-  placeHolderText = 'Sample log message is populated here automatically if Kafka is ' +
-                    'emitting messages or you can paste a sample message of your choice for configuration.';
+  placeHolderText = 'Paste Sample Message' + '\n' +
+                    'A data sample cannot automatically be loaded. Connect to a Kafka Topic or paste a message here.';
 
 
   constructor(private kafkaService: KafkaService) {

@@ -296,7 +296,7 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onFieldSchemaChanged(): void {
-    this.sensorStellar.init();
+    // this.sensorStellar.init();
   }
 
   onStellarChanged(): void {

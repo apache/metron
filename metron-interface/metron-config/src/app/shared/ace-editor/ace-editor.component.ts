@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input, Output, EventEmitter } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import Editor = AceAjax.Editor;
 
@@ -20,8 +20,8 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor{
 
   inputJson: any;
   aceConfigEditor: Editor;
+  @Input() type: string = 'JSON';
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
-  @Output() result: EventEmitter<string> = new EventEmitter<string>();
 
   private onTouchedCallback;
   private onChangeCallback;
@@ -56,11 +56,9 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor{
   }
 
   private initializeEditor(element: ElementRef) {
-    ace.config.load
-
     let parserConfigEditor = ace.edit(element);
     parserConfigEditor.setTheme('ace/theme/monokai');
-    parserConfigEditor.getSession().setMode('ace/mode/grok');
+    parserConfigEditor.getSession().setMode(this.getEditorType());
     parserConfigEditor.getSession().setTabSize(2);
     parserConfigEditor.getSession().setUseWrapMode(true);
     parserConfigEditor.getSession().setWrapLimitRange(72, 72);
@@ -71,25 +69,32 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor{
     parserConfigEditor.setOptions({
       maxLines: Infinity
     });
-    // parserConfigEditor.setOptions(
-    //     {
-    //       enableBasicAutocompletion: true,
-    //       enableSnippets: true,
-    //       enableLiveAutocompletion: false
-    //     }
-    // );
+    parserConfigEditor.setOptions(
+        {
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: false
+        }
+    );
     parserConfigEditor.on('change', (e:any) => {
-      console.log(e);
-      // this.inputJson = editor.getValue();
-      this.result.emit(this.aceConfigEditor.getValue());
+      this.onChangeCallback(this.aceConfigEditor.getValue());
     });
 
     return parserConfigEditor;
   }
 
-  private setInput(){
+  private getEditorType() {
+      if (this.type === 'GROK') {
+        return 'ace/mode/grok';
+      }
+
+      return 'ace/mode/json';
+  }
+
+  private setInput() {
       if (this.aceConfigEditor && this.inputJson) {
         this.aceConfigEditor.getSession().setValue(this.inputJson);
+        this.aceConfigEditor.resize(true);
       }
   }
 

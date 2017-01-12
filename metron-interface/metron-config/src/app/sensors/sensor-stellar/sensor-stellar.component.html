@@ -15,27 +15,31 @@
   -->
 <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
-  <div class="form-title">Configure Raw JSON</div>
-  <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
+    <div class="form-title">Configure Raw JSON</div>
+    <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
 
 
-  <form role="form" class="enrichments-form">
-      <div>
-        <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
-        <div #parserConfig class="editor"> </div>
-      </div>
-      <div>
-        <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
-        <div  #enrichmentConfig class="editor" ></div>
-      </div>
-  </form>
+    <form role="form" class="enrichments-form">
+        <fieldset class="form-group">
+            <div class="form-group">
+                <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
+                <metron-config-ace-editor [(ngModel)]="newSensorParserConfig" [ngModelOptions]="{standalone: true}"> </metron-config-ace-editor>
+            </div>
+            <div class="form-group">
+                <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
+                <metron-config-ace-editor [(ngModel)]="newSensorEnrichmentConfig" [ngModelOptions]="{standalone: true}"> </metron-config-ace-editor>
+            </div>
 
-  <br> <br> <br> <br>
-  <div class="metron-button-bar" >
-    <div class="row mx-0 py-1">
-      <button type="submit" class="btn form-enable-disable-button pull-left"  (click)="onSave()">SAVE</button>
-      <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
+        </fieldset>
+
+    </form>
+
+    <br> <br> <br> <br>
+    <div class="metron-button-bar" >
+        <div class="row mx-0 py-1">
+            <button type="submit" class="btn form-enable-disable-button pull-left"  (click)="onSave()">SAVE</button>
+            <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
+        </div>
     </div>
-  </div>
 
 </div>

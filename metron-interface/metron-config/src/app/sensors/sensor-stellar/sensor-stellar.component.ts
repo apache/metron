@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges,
-        AfterViewInit, ViewChild, ElementRef} from '@angular/core';
+    AfterViewInit, ViewChild, ElementRef} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 
@@ -28,7 +28,7 @@ declare var ace: any;
   styleUrls: ['./sensor-stellar.component.scss']
 })
 
-export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit {
+export class SensorStellarComponent implements OnInit, OnChanges {
 
   @Input() showStellar: boolean;
   @Input() sensorParserConfig: SensorParserConfig;
@@ -37,43 +37,12 @@ export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit 
   @Output() hideStellar: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onStellarChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  @ViewChild('parserConfig') parserConfig: ElementRef;
-  @ViewChild('enrichmentConfig') enrichmentConfig: ElementRef;
-
-  newSensorParserConfig: string = '';
-  newSensorEnrichmentConfig: string = '';
-
-  parserConfigEditor: any;
-  enrichmentConfigEditor: any;
+  newSensorParserConfig: string;
+  newSensorEnrichmentConfig: string;
 
   constructor() { }
 
   ngOnInit() {
-  }
-
-  ngAfterViewInit() {
-    ace.config.set('basePath', '/assets/ace');
-    this.parserConfigEditor = this.getEditor(this.parserConfig.nativeElement);
-    this.enrichmentConfigEditor = this.getEditor(this.enrichmentConfig.nativeElement);
-  }
-
-  private getEditor(element: ElementRef) {
-    let parserConfigEditor = ace.edit(element);
-    parserConfigEditor.setTheme('ace/theme/monokai');
-    parserConfigEditor.getSession().setMode('ace/mode/json');
-    parserConfigEditor.getSession().setTabSize(2);
-    parserConfigEditor.getSession().setUseWrapMode(true);
-    parserConfigEditor.getSession().setWrapLimitRange(72, 72);
-    parserConfigEditor.setOptions({
-            minLines: 25
-        });
-    parserConfigEditor.$blockScrolling = Infinity;
-    parserConfigEditor.setOptions({
-      maxLines: Infinity
-    });
-    parserConfigEditor.setOptions({enableBasicAutocompletion: true});
-
-    return parserConfigEditor;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -85,17 +54,15 @@ export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit 
   init(): void {
     if (this.sensorParserConfig) {
       this.newSensorParserConfig = JSON.stringify(this.sensorParserConfig, null, '\t');
-      this.parserConfigEditor.getSession().setValue(this.newSensorParserConfig);
     }
 
     if (this.sensorEnrichmentConfig) {
       this.newSensorEnrichmentConfig = JSON.stringify(this.sensorEnrichmentConfig, null, '\t');
-      this.enrichmentConfigEditor.getSession().setValue(this.newSensorEnrichmentConfig);
     }
   }
 
   onSave() {
-    let newParsedSensorParserConfig = JSON.parse(this.parserConfigEditor.getSession().getValue());
+    let newParsedSensorParserConfig = JSON.parse(this.newSensorParserConfig);
     this.sensorParserConfig.sensorTopic = newParsedSensorParserConfig.sensorTopic;
     this.sensorParserConfig.parserClassName = newParsedSensorParserConfig.parserClassName;
     if (newParsedSensorParserConfig.writerClassName != null) {
@@ -112,7 +79,7 @@ export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit 
     }
     this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
     this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
-    let newParsedSensorEnrichmentConfig = JSON.parse(this.enrichmentConfigEditor.getSession().getValue());
+    let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
     this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
     if (newParsedSensorEnrichmentConfig.configuration != null) {
       this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;
@@ -125,22 +92,7 @@ export class SensorStellarComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   onCancel(): void {
-    this.init();
+    // this.init();
     this.hideStellar.emit(true);
   }
-
-  onSensorParserConfigBlur(): void {
-    try {
-      this.newSensorParserConfig = JSON.stringify(JSON.parse(this.newSensorParserConfig), null, '\t');
-    } catch (e) {
-    }
-  }
-
-  onSensorEnrichmentConfigBlur(): void {
-    try {
-      this.newSensorEnrichmentConfig = JSON.stringify(JSON.parse(this.newSensorEnrichmentConfig), null, '\t');
-    } catch (e) {
-    }
-  }
-
 }
