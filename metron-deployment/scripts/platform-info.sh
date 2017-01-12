@@ -84,17 +84,8 @@ case "${OSTYPE}" in
     echo "Disk information:"
     df -h | grep "^/" 
     ;;
-  bsd*)
-    echo "BSD is not currently supported, unable to detect system resources"
-    ;;
-  msys*)
-    echo "Windows is not currently supported, unable to detect system resources"
-    ;;
-  solaris*)
-    echo "Solaris is not currently supported, unable to detect system resources"
-    ;;
   *)
-    echo "Unknown system - Unable to detect system resources"
+    echo "Unable to detect system resources for ${OSTYPE}"
     ;;
 esac
 
