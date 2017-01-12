@@ -15,23 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.utils;
+package org.apache.metron.statistics.approximation;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.metron.common.utils.SerDeUtils;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * Measure HLLP performance given variable cardinality and precision values
+ */
 public class HLLPMeasurement {
   public static final double NANO_TO_MILLIS = 1e6;
   public static final NumberFormat ERR_FORMAT = new DecimalFormat("#0.000");
   public static final NumberFormat TIME_FORMAT = new DecimalFormat("#0.000");
   public static final NumberFormat SIZE_FORMAT = new DecimalFormat("#0");
-  public static final NumberFormat STD_FORMAT = new DecimalFormat("#0.0");
   public static final String CHART_SPACER = "-";
 
   public static void main(String[] args) {
@@ -56,9 +59,9 @@ public class HLLPMeasurement {
       final String chartDelim = ParserOptions.CHART_DELIM.get(cmd, "|");
 
       final int numTrials = Integer.parseInt(ParserOptions.NUM_TRIALS.get(cmd, "5000"));
-      final int cardMin = Integer.parseInt(ParserOptions.CARD_MIN.get(cmd, "100"));
+      final int cardMin = Integer.parseInt(ParserOptions.CARD_MIN.get(cmd, "200"));
       final int cardMax = Integer.parseInt(ParserOptions.CARD_MAX.get(cmd, "1000"));
-      final int cardStep = Integer.parseInt(ParserOptions.CARD_STEP.get(cmd, "100"));
+      final int cardStep = Integer.parseInt(ParserOptions.CARD_STEP.get(cmd, "200"));
       final int cardStart = (((cardMin - 1) / cardStep) * cardStep) + cardStep;
       final int spMin = Integer.parseInt(ParserOptions.SP_MIN.get(cmd, "4"));
       final int spMax = Integer.parseInt(ParserOptions.SP_MAX.get(cmd, "32"));
@@ -232,7 +235,7 @@ public class HLLPMeasurement {
     }
 
     public String getStd() {
-      return STD_FORMAT.format(stats.getStandardDeviation());
+      return formatter.apply(stats.getStandardDeviation());
     }
   }
 

@@ -62,10 +62,10 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
-| [ `HLLP_CARDINALITY`](#hllp_cardinality)                                                           |
-| [ `HLLP_INIT`](#hllp_init)                                                                         |
-| [ `HLLP_MERGE`](#hllp_merge)                                                                       |
-| [ `HLLP_OFFER`](#hllp_offer)                                                                       |
+| [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
+| [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
+| [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
+| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
@@ -254,31 +254,7 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
     * input - List
   * Returns: Last element of the list
 
-### `HLLP_ADD`
-  * Description: Add value to the set. See [HLLP README](HLLP.md)
-  * Input:
-    * hyperLogLogPlus - the hllp estimator to add a value to
-    * value* - value to add to the set. Takes a single item or a list.
-  * Returns: The HyperLogLogPlus set with a new value added
 
-### `HLLP_CARDINALITY`
-  * Description: Returns HyperLogLogPlus-estimated cardinality for this set. See [HLLP README](HLLP.md)
-  * Input:
-    * hyperLogLogPlus - the hllp set
-  * Returns: Long value representing the cardinality for this set
-
-### `HLLP_INIT`
-  * Description: Initializes the set. p must be a value between 4 and sp (inclusive) and sp must be less than 32 and greater than or equal to 4. See [HLLP README](HLLP.md)
-  * Input:
-    * p (required) - the precision value for the normal set
-    * sp - the precision value for the sparse set. If sp is 0 or not specified, the sparse set will be disabled.
-  * Returns: A new HyperLogLogPlus set
-
-### `HLLP_MERGE`
-  * Description: Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)
-  * Input:
-    * hllp* - List of hllp estimators to merge
-  * Returns: A new merged HyperLogLogPlus estimator set
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.
