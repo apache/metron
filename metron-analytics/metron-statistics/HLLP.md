@@ -30,7 +30,8 @@ manipulated during the test: cardinality, sparse set precision, and normal set p
 ### Choosing p, sp
 There is a tradeoff when choosing values for p and sp. A higher value for sp means a lower error rate for instances when the sparse set is being used. However, a higher value for sp also requires
 more memory, which means the algorithm will cut over to the dense representation more quickly. The Google paper (listed above) recommends settings of p=25, sp=14 for optimal memory use and
-algorithm accuracy, and these are the defaults provided by the Apache Metron (Incubating) implementation in Stellar.
+algorithm accuracy, and these are the defaults provided by the Apache Metron (Incubating) implementation in Stellar. You'll notice in the tests below, memory consumption tops out around 12KB
+for this setting, regardless of cardinality size.
 
 ### Key
 ---
@@ -64,8 +65,6 @@ format err as %: true
 ```
 
 
-Metrics Table
--------------
 |card      |sp        |p         |err l/m/h/std (% of actual)             |time l/m/h/std (ms)                     |size l/m/h/std (b)            |
 |----------|----------|----------|----------------------------------------|----------------------------------------|------------------------------|
 |200       |4         |4         |0.000 / 17.000 / 180.000 / 17.470       |0.070 / 0.118 / 10.092 / 0.204          |218 / 220 / 220 / 1           |
@@ -269,8 +268,6 @@ size percentile: 50.0
 format err as %: true
 ```
 
-Metrics Table
--------------
 |card      |sp        |p         |err l/m/h/std (% of actual)             |time l/m/h/std (ms)                     |size l/m/h/std (b)            |
 |----------|----------|----------|----------------------------------------|----------------------------------------|------------------------------|
 |1500      |4         |4         |0.000 / 17.600 / 254.400 / 17.627       |0.501 / 0.612 / 19.629 / 0.593          |220 / 220 / 220 / 0           |
@@ -562,15 +559,32 @@ Metrics Table
 |5000      |32        |28        |0.000 / 0.000 / 0.100 / 0.012           |2.125 / 2.435 / 20.889 / 0.961          |22274 / 23099 / 23169 / 23    |
 |5000      |32        |32        |0.000 / 0.000 / 0.060 / 0.012           |2.088 / 2.280 / 16.157 / 0.705          |27494 / 27565 / 27640 / 19    |
 
+Higher Cardinalities - sp=25, p=12,14,16
+----------------------------------------
+
+|card      |sp        |p         |err l/m/h/std (% of actual)             |time l/m/h/std (ms)                     |size l/m/h/std (b)            |
+|----------|----------|----------|----------------------------------------|----------------------------------------|------------------------------|
+|55000     |25        |12        |0.000 / 1.031 / 5.431 / 0.928           |19.336 / 22.410 / 83.150 / 3.282        |3467 / 3501 / 3538 / 10       |
+|55000     |25        |14        |0.000 / 0.470 / 2.525 / 0.428           |21.031 / 24.079 / 58.355 / 3.192        |11981 / 12073 / 12166 / 25    |
+|55000     |25        |16        |0.000 / 0.140 / 0.751 / 0.124           |25.372 / 29.282 / 99.309 / 3.888        |41546 / 41834 / 42083 / 74    |
+|60000     |25        |12        |0.002 / 1.080 / 5.500 / 0.936           |21.866 / 25.060 / 83.602 / 3.563        |3486 / 3519 / 3552 / 9        |
+|60000     |25        |14        |0.002 / 0.483 / 2.762 / 0.432           |23.089 / 26.556 / 56.951 / 3.455        |12056 / 12141 / 12233 / 25    |
+|60000     |25        |16        |0.000 / 0.145 / 1.552 / 0.135           |27.680 / 31.433 / 99.324 / 3.967        |42217 / 42469 / 42714 / 70    |
+|65000     |25        |12        |0.000 / 1.053 / 5.968 / 0.927           |23.661 / 26.901 / 59.004 / 3.475        |3499 / 3534 / 3565 / 9        |
+|65000     |25        |14        |0.000 / 0.483 / 2.517 / 0.431           |24.753 / 28.293 / 60.108 / 3.483        |12120 / 12206 / 12299 / 25    |
+|65000     |25        |16        |0.000 / 0.158 / 1.455 / 0.158           |29.270 / 33.727 / 75.299 / 4.108        |42757 / 43002 / 43219 / 66    |
+|100000    |25        |14        |0.001 / 0.520 / 2.814 / 0.451           |35.787 / 41.099 / 197.958 / 7.919       |12510 / 12598 / 12685 / 26    |
+
 **HLLPMeasurement tool usage**
 
-```usage: HLLPMeasurement
+```
+usage: HLLPMeasurement
  -cd,--chart_delim <CHART_DELIM>                    Column delimiter for
                                                     the chart. Default is
                                                     pipe '|'
  -cmn,--card_min <CARD_MIN>                         Lowest cardinality to
                                                     start running trials
-                                                    from. Default 200
+                                                    from. Default 100
  -cmx,--card_max <CARD_MAX>                         Max cardinality to run
                                                     trials up to. Default
                                                     1000
@@ -582,7 +596,7 @@ Metrics Table
                                                     each successive
                                                     measurement up until
                                                     the cardinality high
-                                                    value. Default 200
+                                                    value. Default 100
  -efp,--error_format_percent <ERR_FORMAT_PERCENT>   Format error in
                                                     percent instead of
                                                     absolute terms.
@@ -594,24 +608,36 @@ Metrics Table
                                                     (50th percentile)
  -h,--help                                          This screen
  -nt,--num_trials <NUM_TRIALS>                      Number of trials to
-                                                    run. Default 5000
- -smn,--sp_min <SP_MIN>                             Minimum sparse
+                                                    run. Default 1000
+ -pmn,--p_min <P_MIN>                               Minimum sparse
                                                     precision to get
                                                     measurements for.
                                                     Default 4
- -smx,--sp_max <SP_MAX>                             Maximum sparse
+ -pmx,--p_max <P_MAX>                               Maximum sparse
                                                     precision to get
                                                     measurements for.
                                                     Default 32
- -sp,--size_percentile <SIZE_PERCENTILE>            What percentile to
+ -ps,--p_step <P_STEP>                              Increment precision
+                                                    values by this step
+                                                    amount when running
+                                                    trials. Default 4
+ -spmn,--sp_min <SP_MIN>                            Minimum sparse
+                                                    precision to get
+                                                    measurements for.
+                                                    Default 4
+ -spmx,--sp_max <SP_MAX>                            Maximum sparse
+                                                    precision to get
+                                                    measurements for.
+                                                    Default 32
+ -sps,--sp_step <SP_STEP>                           Increment precision
+                                                    values by this step
+                                                    amount when running
+                                                    trials. Default 4
+ -spt,--size_percentile <SIZE_PERCENTILE>           What percentile to
                                                     calculate between
                                                     min/max for size.
                                                     Default is the median
                                                     (50th percentile)
- -ss,--sp_step <SP_STEP>                            Increment precision
-                                                    values by this step
-                                                    amount when running
-                                                    trials. Default 4
  -tp,--time_percentile <ERR_PERCENTILE>             What percentile to
                                                     calculate between
                                                     min/max for time.

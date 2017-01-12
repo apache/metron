@@ -30,6 +30,10 @@ public class HyperLogLogPlusFunctionsTest {
 
   @Test
   public void hllp_init_creates_HyperLogLogPlus_set() {
+    HyperLogLogPlus hllp = (HyperLogLogPlus) new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of());
+    Assert.assertThat(hllp.getSp(), equalTo(25));
+    Assert.assertThat(hllp.getP(), equalTo(14));
+    Assert.assertThat("instance types should match for constructor with default precision values", new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of(5)), instanceOf(HyperLogLogPlus.class));
     Assert.assertThat("instance types should match for constructor with sparse set disabled", new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of(5)), instanceOf(HyperLogLogPlus.class));
     Assert.assertThat("instance types should match for full constructor", new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of(5, 6)), instanceOf(HyperLogLogPlus.class));
   }
@@ -40,8 +44,8 @@ public class HyperLogLogPlusFunctionsTest {
   @Test
   public void hllp_init_with_incorrect_args_throws_exception() {
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Normal set precision is required");
-    new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of());
+    thrown.expectMessage("Unable to get p value from 'turkey'");
+    new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of("turkey"));
   }
 
   @Test

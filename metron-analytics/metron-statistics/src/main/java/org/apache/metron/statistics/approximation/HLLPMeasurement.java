@@ -66,6 +66,9 @@ public class HLLPMeasurement {
       final int spMin = Integer.parseInt(ParserOptions.SP_MIN.get(cmd, "4"));
       final int spMax = Integer.parseInt(ParserOptions.SP_MAX.get(cmd, "32"));
       final int spStep = Integer.parseInt(ParserOptions.SP_STEP.get(cmd, "4"));
+      final int pMin = Integer.parseInt(ParserOptions.P_MIN.get(cmd, "4"));
+      final int pMax = Integer.parseInt(ParserOptions.P_MAX.get(cmd, "32"));
+      final int pStep = Integer.parseInt(ParserOptions.P_STEP.get(cmd, "4"));
       final double errorPercentile = Double.parseDouble(ParserOptions.ERR_PERCENTILE.get(cmd, "50"));
       final double timePercentile = Double.parseDouble(ParserOptions.TIME_PERCENTILE.get(cmd, "50"));
       final double sizePercentile = Double.parseDouble(ParserOptions.SIZE_PERCENTILE.get(cmd, "50"));
@@ -84,7 +87,12 @@ public class HLLPMeasurement {
               "l=low, m=mid(based on percentile chosen), h=high, std=standard deviation"};
       final String[] chartHeader = new String[]{"card", "sp", "p", "err l/m/h/std (% of actual)", "time l/m/h/std (ms)", "size l/m/h/std (b)"};
       final int[] chartPadding = new int[]{10, 10, 10, 40, 40, 30};
-
+      if (spMin < pMin) {
+        throw new IllegalArgumentException("p must be <= sp");
+      }
+      if (spMax < pMax) {
+        throw new IllegalArgumentException("p must be <= sp");
+      }
       println("Options Used");
       println("------------");
       println("num trials: " + numTrials);
@@ -95,6 +103,9 @@ public class HLLPMeasurement {
       println("sp min: " + spMin);
       println("sp max: " + spMax);
       println("sp step: " + spStep);
+      println("p min: " + pMin);
+      println("p max: " + pMax);
+      println("p step: " + pStep);
       println("error percentile: " + errorPercentile);
       println("time percentile: " + timePercentile);
       println("size percentile: " + sizePercentile);
@@ -104,7 +115,7 @@ public class HLLPMeasurement {
 
       for (int c = cardStart; c <= cardMax; c += cardStep) {
         for (int sp = spMin; sp <= spMax; sp += spStep) {
-          for (int p = spMin; p <= sp; p += spStep) { // use same step increment as the sparse set
+          for (int p = pMin; p <= pMax; p += pStep) {
             DescriptiveStatistics errorStats = new DescriptiveStatistics();
             DescriptiveStatistics timeStats = new DescriptiveStatistics();
             DescriptiveStatistics sizeStats = new DescriptiveStatistics();
@@ -277,21 +288,39 @@ public class HLLPMeasurement {
       o.setRequired(false);
       return o;
     }),
-    SP_MIN("smn", code -> {
+    SP_MIN("spmn", code -> {
       Option o = new Option(code, "sp_min", true, "Minimum sparse precision to get measurements for. Default 4");
       o.setArgName("SP_MIN");
       o.setRequired(false);
       return o;
     }),
-    SP_MAX("smx", code -> {
+    SP_MAX("spmx", code -> {
       Option o = new Option(code, "sp_max", true, "Maximum sparse precision to get measurements for. Default 32");
       o.setArgName("SP_MAX");
       o.setRequired(false);
       return o;
     }),
-    SP_STEP("ss", code -> {
+    SP_STEP("sps", code -> {
       Option o = new Option(code, "sp_step", true, "Increment precision values by this step amount when running trials. Default 4");
       o.setArgName("SP_STEP");
+      o.setRequired(false);
+      return o;
+    }),
+    P_MIN("pmn", code -> {
+      Option o = new Option(code, "p_min", true, "Minimum sparse precision to get measurements for. Default 4");
+      o.setArgName("P_MIN");
+      o.setRequired(false);
+      return o;
+    }),
+    P_MAX("pmx", code -> {
+      Option o = new Option(code, "p_max", true, "Maximum sparse precision to get measurements for. Default 32");
+      o.setArgName("P_MAX");
+      o.setRequired(false);
+      return o;
+    }),
+    P_STEP("ps", code -> {
+      Option o = new Option(code, "p_step", true, "Increment precision values by this step amount when running trials. Default 4");
+      o.setArgName("P_STEP");
       o.setRequired(false);
       return o;
     }),
@@ -319,7 +348,7 @@ public class HLLPMeasurement {
       o.setRequired(false);
       return o;
     }),
-    SIZE_PERCENTILE("sp", code -> {
+    SIZE_PERCENTILE("spt", code -> {
       Option o = new Option(code, "size_percentile", true, "What percentile to calculate between min/max for size. Default is the median (50th percentile)");
       o.setArgName("SIZE_PERCENTILE");
       o.setRequired(false);

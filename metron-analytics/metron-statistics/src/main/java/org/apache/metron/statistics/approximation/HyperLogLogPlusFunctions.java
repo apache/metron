@@ -85,13 +85,22 @@ public class HyperLogLogPlusFunctions {
     @Override
     public Object apply(List<Object> args) {
       if (args.size() == 0) {
-        throw new IllegalArgumentException("Normal set precision is required");
+        return new HyperLogLogPlus();
       } else if (args.size() == 1) {
-        int p = ConversionUtils.convert(args.get(0), Integer.class);
+        Integer p = ConversionUtils.convert(args.get(0), Integer.class);
+        if (p == null) {
+          throw new IllegalArgumentException(String.format("Unable to get p value from '%s'", args.get(0)));
+        }
         return new HyperLogLogPlus(p);
       } else {
-        int p = ConversionUtils.convert(args.get(0), Integer.class);
-        int sp = ConversionUtils.convert(args.get(1), Integer.class);
+        Integer p = ConversionUtils.convert(args.get(0), Integer.class);
+        Integer sp = ConversionUtils.convert(args.get(1), Integer.class);
+        if (p == null) {
+          throw new IllegalArgumentException(String.format("Unable to get p value from '%s'", args.get(0)));
+        }
+        if (sp == null) {
+          throw new IllegalArgumentException(String.format("Unable to get sp value from '%s'", args.get(1)));
+        }
         return new HyperLogLogPlus(p, sp);
       }
     }

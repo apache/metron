@@ -30,6 +30,14 @@ public class HyperLogLogPlus implements Serializable {
   private final int sp;
 
   /**
+   * Construct HLLP with default precisions for normal and sparse sets. Defaults are
+   * p=14, sp=25
+   */
+  public HyperLogLogPlus() {
+    this(14, 25);
+  }
+
+  /**
    * Construct HLLP with precision for normal sets. This constructor disables the sparse set.
    *
    * @param p Normal set precision
@@ -53,6 +61,14 @@ public class HyperLogLogPlus implements Serializable {
     this.p = p;
     this.sp = sp;
     this.hllp = hllp;
+  }
+
+  public int getSp() {
+    return sp;
+  }
+
+  public int getP() {
+    return p;
   }
 
   /**
