@@ -422,11 +422,10 @@ public class StellarTest {
   }
 
   @Test
-  public void testList() throws Exception {
+  public void testInCollection() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
       put("foo", "casey");
       put("empty", "");
-      put("spaced", "metron is great");
     }};
     Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ]", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("foo in [ foo, 'david' ]", v -> variableMap.get(v)));
@@ -435,6 +434,28 @@ public class StellarTest {
     Assert.assertTrue(runPredicate("foo in [ 'casey' ]", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ]", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
+  }
+
+  @Test
+  public void testInMap() throws Exception {
+    final Map<String, String> variableMap = new HashMap<String, String>() {{
+      put("foo", "casey");
+      put("empty", "");
+    }};
+    Assert.assertTrue(runPredicate("foo in { foo : 5 }", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("foo in { 'casey' : 5 }", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("empty in { foo : 5 }", v -> variableMap.get(v)));
+  }
+
+  @Test
+  public void testInString() throws Exception {
+    final Map<String, String> variableMap = new HashMap<String, String>() {{
+      put("foo", "casey");
+      put("empty", "");
+    }};
+    Assert.assertTrue(runPredicate("'case' in foo", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("'case' in empty", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("'case' in [ foo ]", v -> variableMap.get(v)));
   }
 
   @Test

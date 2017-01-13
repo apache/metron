@@ -77,20 +77,27 @@ public class StellarCompiler extends StellarBaseListener {
   private boolean handleIn(Token<?> left, Token<?> right) {
     Object key = null;
 
-    Set<Object> set = null;
-    if (left.getValue() instanceof Collection) {
-      set = new HashSet<>((List<Object>) left.getValue());
-    } else if (left.getValue() != null) {
-      set = ImmutableSet.of(left.getValue());
-    } else {
-      set = new HashSet<>();
-    }
-
     key = right.getValue();
-    if (key == null || set.isEmpty()) {
+    if(key == null) {
       return false;
     }
-    return set.contains(key);
+
+    if (left.getValue() != null) {
+      if(left.getValue() instanceof String && key instanceof String) {
+        return ((String)left.getValue()).contains(key.toString());
+      }
+      else if(left.getValue() instanceof Collection) {
+        return ((Collection)left.getValue()).contains(key);
+      }
+      else if(left.getValue() instanceof Map) {
+        return ((Map)left.getValue()).containsKey(key);
+      }
+      else {
+        return key.equals(left.getValue());
+      }
+    } else {
+      return false;
+    }
   }
 
   @Override
