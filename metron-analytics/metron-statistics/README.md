@@ -16,7 +16,7 @@ functions can be used from everywhere where Stellar is used.
   * Description: Add value to the HyperLogLogPlus estimator set. See [HLLP README](HLLP.md)
   * Input:
     * hyperLogLogPlus - the hllp estimator to add a value to
-    * value* - value to add to the set. Takes a single item or a list.
+    * value+ - value to add to the set. Takes a single item or a list.
   * Returns: The HyperLogLogPlus set with a new value added
 
 ### `HLLP_CARDINALITY`
@@ -28,14 +28,14 @@ functions can be used from everywhere where Stellar is used.
 ### `HLLP_INIT`
   * Description: Initializes the HyperLogLogPlus estimator set. p must be a value between 4 and sp and sp must be less than 32 and greater than 4. See [HLLP README](HLLP.md)
   * Input:
-    * p (required) - the precision value for the normal set
-    * sp - the precision value for the sparse set. If sp is 0 or not specified, the sparse set will be disabled.
+    * p - the precision value for the normal set
+    * sp - the precision value for the sparse set. If p is set, but sp is 0 or not specified, the sparse set will be disabled.
   * Returns: A new HyperLogLogPlus set
 
 ### `HLLP_MERGE`
   * Description: Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)
   * Input:
-    * hllp* - List of hllp estimators to merge
+    * hllp - List of hllp estimators to merge. Takes a single hllp set or a list.
   * Returns: A new merged HyperLogLogPlus estimator set
 
 ### Mathematical Functions

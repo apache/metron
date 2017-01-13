@@ -35,7 +35,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
     put("val3", "metron");
     put("val4", "batman");
   }};
-  
+
   /**
    *HLLP_CARDINALITY(
    *  HLLP_ADD(
@@ -71,7 +71,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   private static String hllpBasicRule;
 
   @Test
-  public void cardinality_gives_distinct_value_estimate() {
+  public void cardinality_gives_distinct_value_estimate_with_precisions_set() {
     Long estimate = (Long) StellarProcessorUtils.run(hllpBasicRule, values);
     Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(2L));
   }

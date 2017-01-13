@@ -23,8 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
+import java.util.Arrays;
+
+import static org.hamcrest.CoreMatchers.*;
 
 public class HyperLogLogPlusFunctionsTest {
 
@@ -58,6 +59,12 @@ public class HyperLogLogPlusFunctionsTest {
     expected.add("item-2");
     Assert.assertThat("hllp set should have cardinality based on added values", actual.cardinality(), equalTo(2L));
     Assert.assertThat("estimators should be equal", actual, equalTo(expected));
+  }
+
+  @Test
+  public void hllp_add_with_null_set_inits_and_returns_new_hllp_with_item_added_to_set() {
+    HyperLogLogPlus actual = (HyperLogLogPlus) new HyperLogLogPlusFunctions.HLLPAdd().apply(Arrays.asList(null, "item-1"));
+    Assert.assertThat(actual, notNullValue());
   }
 
   @Test
@@ -117,10 +124,19 @@ public class HyperLogLogPlusFunctionsTest {
   }
 
   @Test
+  public void hllp_merge_throws_exception_with_no_arguments() {
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Must pass single list of hllp sets to merge");
+    new HyperLogLogPlusFunctions.HLLPMerge().apply(ImmutableList.of());
+  }
+
+  @Test
   public void hllp_merge_throws_exception_on_invalid_arguments() {
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Must pass 1..n hllp sets to merge");
-    new HyperLogLogPlusFunctions.HLLPMerge().apply(ImmutableList.of());
+    thrown.expectMessage("Must pass single list of hllp sets to merge");
+    HyperLogLogPlus hllp1 = (HyperLogLogPlus) new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of());
+    HyperLogLogPlus hllp2 = (HyperLogLogPlus) new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of());
+    new HyperLogLogPlusFunctions.HLLPMerge().apply(ImmutableList.of(hllp1, hllp2));
   }
 
 }

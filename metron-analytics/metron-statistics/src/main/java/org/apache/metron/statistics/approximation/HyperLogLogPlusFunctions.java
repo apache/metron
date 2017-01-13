@@ -30,9 +30,9 @@ public class HyperLogLogPlusFunctions {
           , name = "ADD"
           , description = "Add value to the HyperLogLogPlus estimator set. See [HLLP README](HLLP.md)"
           , params = {
-              "hyperLogLogPlus - the hllp estimator to add a value to"
-            , "value* - value to add to the set. Takes a single item or a list."
-            }
+            "hyperLogLogPlus - the hllp estimator to add a value to"
+          , "value+ - value to add to the set. Takes a single item or a list."
+  }
           , returns = "The HyperLogLogPlus set with a new value added"
   )
   public static class HLLPAdd extends BaseStellarFunction {
@@ -43,6 +43,9 @@ public class HyperLogLogPlusFunctions {
         throw new IllegalArgumentException("Must pass an hllp estimator set and at least one value to add to the set");
       } else {
         HyperLogLogPlus hllp = ConversionUtils.convert(args.get(0), HyperLogLogPlus.class);
+        if (hllp == null) {
+          hllp = new HyperLogLogPlus();
+        }
         Object secondArg = args.get(1);
         if (secondArg instanceof List) {
           hllp.addAll((List) secondArg);
@@ -73,11 +76,11 @@ public class HyperLogLogPlusFunctions {
 
   @Stellar(namespace = "HLLP"
           , name = "INIT"
-          , description = "Initializes the HyperLogLogPlus estimator set. p must be a value between 4 and sp and sp must be less than 32 and greater than 4. See [HLLP README](HLLP.md)"
+          , description = "Initializes the HyperLogLogPlus estimator set. p must be a value between 4 and sp and sp must be less than 32 and greater than 4. The no-arg constructor defaults to sp=25, p=14. See [HLLP README](HLLP.md)"
           , params = {
-              "p (required) - the precision value for the normal set"
-            , "sp - the precision value for the sparse set. If sp is 0 or not specified, the sparse set will be disabled."
-            }
+            "p  - the precision value for the normal set"
+          , "sp - the precision value for the sparse set. If p is set, but sp is 0 or not specified, the sparse set will be disabled."
+  }
           , returns = "A new HyperLogLogPlus set"
   )
   public static class HLLPInit extends BaseStellarFunction {
@@ -109,15 +112,15 @@ public class HyperLogLogPlusFunctions {
   @Stellar(namespace = "HLLP"
           , name = "MERGE"
           , description = "Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)"
-          , params = {"hllp* - List of hllp estimators to merge"}
+          , params = {"hllp - List of hllp estimators to merge. Takes a single hllp set or a list."}
           , returns = "A new merged HyperLogLogPlus estimator set"
   )
   public static class HLLPMerge extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> args) {
-      if (args.size() < 1) {
-        throw new IllegalArgumentException("Must pass 1..n hllp sets to merge");
+      if (args.size() != 1) {
+        throw new IllegalArgumentException("Must pass single list of hllp sets to merge");
       } else {
         List<Object> estimators = new ArrayList();
         if (args.get(0) instanceof List) {
