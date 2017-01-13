@@ -151,6 +151,27 @@ public class StringFunctions {
     }
   }
 
+  @Stellar(name="CONTAINS"
+          , description = "Returns true if the string contains a specified substring"
+          , params = { "input - String"
+                     , "substring - String"
+                     }
+          , returns = "True if input contains substring, false otherwise."
+          )
+  public static class Contains extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() < 2) {
+        throw new IllegalStateException("STARTS_WITH expects two args: [string, prefix] where prefix is the string fragment that the string should start with");
+      }
+      String str = (String) args.get(0);
+      String substr = (String) args.get(1);
+      if(str == null || substr == null) {
+        return false;
+      }
+      return str.contains(substr);
+    }
+  }
   @Stellar( name="JOIN"
           , description="Joins the components in the list of strings with the specified delimiter."
           , params = { "list - List of strings", "delim - String delimiter"}

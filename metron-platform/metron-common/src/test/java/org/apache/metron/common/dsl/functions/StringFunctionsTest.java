@@ -34,6 +34,14 @@ import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 public class StringFunctionsTest {
 
   @Test
+  public void testStringContains_() throws Exception {
+    Assert.assertTrue((Boolean) run("CONTAINS(foo, bar)", ImmutableMap.of("foo", "casey", "bar", "case")));
+    Assert.assertFalse((Boolean) run("CONTAINS(foo, bar)", ImmutableMap.of("foo", "casey", "bar", "mike")));
+    Assert.assertFalse((Boolean) run("CONTAINS(foo, bar)", ImmutableMap.of("foo", "casey")));
+    Assert.assertFalse((Boolean) run("CONTAINS(foo, bar)", new HashMap<>()));
+  }
+
+  @Test
   public void testStringFunctions() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
       put("foo", "casey");
