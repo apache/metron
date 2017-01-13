@@ -424,7 +424,9 @@ public class StellarTest {
     }};
     Assert.assertTrue(runPredicate("foo in { foo : 5 }", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("foo in { 'casey' : 5 }", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("foo not in { 'casey' : 5 }", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("empty in { foo : 5 }", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("empty not in { foo : 5 }", v -> variableMap.get(v)));
   }
 
   @Test
@@ -434,8 +436,11 @@ public class StellarTest {
       put("empty", "");
     }};
     Assert.assertTrue(runPredicate("'case' in foo", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("'case' not in foo", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("'case' in empty", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("'case' not in empty", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("'case' in [ foo ]", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("'case' not in [ foo ]", v -> variableMap.get(v)));
   }
 
   @Test
