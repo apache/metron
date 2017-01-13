@@ -24,6 +24,12 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> create 'profiler', 'P'
     ```
     
+1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  Change the kafka.zk and kafka.broker values from "node1" to the appropriate host name.  Keep the same port numbers:
+    ```
+    kafka.zk=node1:2181
+    kafka.broker=node1:6667
+    ```
+
 1. Define the profile in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  The following example JSON will create a profile that simply counts the number of messages per `ip_src_addr`, during each sampling interval.
     ```
     {
@@ -39,7 +45,7 @@ This section will describe the steps required to get your first profile running.
     }
     ```
 
-1. Upload the profile definition to Zookeeper.
+1. Upload the profile definition to Zookeeper.  (As always, change "node1" to the actual hostname.)
     ```
     $ cd $METRON_HOME
     $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
@@ -58,7 +64,9 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> count 'profiler'
     ``` 
 
-1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.  More information on using the client can be found [here](../metron-profiler-client).
+1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.
+More information on configuring and using the client can be found [here](../metron-profiler-client).
+It is assumed that the PROFILE_GET client is correctly configured before using it.
     ```
     $ bin/stellar -z node1:2181
     
@@ -68,7 +76,9 @@ This section will describe the steps required to get your first profile running.
 
 ## Creating Profiles
 
-The Profiler configuration requires a JSON-formatted set of elements, many of which can contain Stellar code.  The configuration contains the following elements.  For the impatient, skip ahead to the [Examples](#examples).
+The Profiler specification requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
+The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`. 
+The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
 
 | Name 	                |               | Description 	
 |---	                |---	        |---
@@ -153,7 +163,8 @@ A numeric value that defines how many days the profile data is retained.  After 
 
 ## Configuring the Profiler
 
-The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the the default installation of Metron at `$METRON_HOME/config/zookeeper/profiler.json`. The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
+The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`. 
+The values can be changed on disk and then the Profiler topology must be restarted.
 
 | Setting   | Description   |
 |---        |---            |
@@ -316,7 +327,8 @@ Instead of storing the mean of the lengths, the profile could store a statistica
 }
 ``` 
 
-The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.  
+The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.
+It is assumed that the PROFILE_GET client is configured as described [here](../metron-profiler-client).
 
 Retrieve the last 30 minutes of profile measurements for a specific host.
 ```
