@@ -151,7 +151,6 @@ public class StringFunctions {
     }
   }
 
-
   @Stellar( name="JOIN"
           , description="Joins the components in the list of strings with the specified delimiter."
           , params = { "list - List of strings", "delim - String delimiter"}
