@@ -79,12 +79,8 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   private boolean handleIn(Token<?> left, Token<?> right) {
-    Object key = null;
+    Object key = right.getValue();
 
-    key = right.getValue();
-    if(key == null) {
-      return false;
-    }
 
     if (left.getValue() != null) {
       if(left.getValue() instanceof String && key instanceof String) {
@@ -97,7 +93,12 @@ public class StellarCompiler extends StellarBaseListener {
         return ((Map)left.getValue()).containsKey(key);
       }
       else {
-        return key.equals(left.getValue());
+        if(key == null) {
+          return key == left.getValue();
+        }
+        else {
+          return key.equals(left.getValue());
+        }
       }
     } else {
       return false;

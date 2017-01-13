@@ -415,6 +415,8 @@ public class StellarTest {
     Assert.assertTrue(runPredicate("foo in [ 'casey' ]", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ]", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("null in [ null, 'something' ]", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("null not in [ null, 'something' ]", v -> variableMap.get(v)));
   }
 
   @Test
@@ -434,6 +436,8 @@ public class StellarTest {
     Assert.assertFalse(runPredicate("empty in { foo : 5 }", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("empty not in { foo : 5 }", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("'foo' in { }", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("null in { 'foo' : 5 }", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("null not in { 'foo' : 5 }", v -> variableMap.get(v)));
   }
 
   @Test
@@ -448,6 +452,8 @@ public class StellarTest {
     Assert.assertTrue(runPredicate("'case' not in empty", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("'case' in [ foo ]", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("'case' not in [ foo ]", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("null in foo", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("null not in foo", v -> variableMap.get(v)));
   }
 
   @Test
