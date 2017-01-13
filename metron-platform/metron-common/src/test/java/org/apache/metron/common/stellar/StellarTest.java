@@ -408,6 +408,7 @@ public class StellarTest {
       put("empty", "");
     }};
     Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ]", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("foo in [ ]", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("foo in [ foo, 'david' ]", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and foo == 'casey'", v -> variableMap.get(v)));
@@ -432,6 +433,7 @@ public class StellarTest {
     Assert.assertFalse(runPredicate("foo not in { 'casey' : 5 }", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("empty in { foo : 5 }", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("empty not in { foo : 5 }", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("'foo' in { }", v -> variableMap.get(v)));
   }
 
   @Test
