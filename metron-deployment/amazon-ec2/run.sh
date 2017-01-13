@@ -67,6 +67,6 @@ RC=$?; if [[ $RC != 0 ]]; then exit $RC; fi
 cd $DEPLOYDIR
 export EC2_INI_PATH=conf/ec2.ini
 ansible-playbook -i ec2.py playbook.yml \
-  --skip-tags="solr" \
+  --skip-tags="solr, sensor-stubs" \
   --extra-vars="env=$ENV" \
   $EXTRA_ARGS
