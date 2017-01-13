@@ -18,16 +18,19 @@
 
 package org.apache.metron.common.utils;
 
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.MapVariableResolver;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.VariableResolver;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.junit.Assert;
-import org.junit.Test;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
@@ -37,25 +40,25 @@ import java.util.stream.StreamSupport;
 
 public class StellarProcessorUtils {
 
-  /**
-   * This ensures the basic contract of a stellar expression is adhered to:
-   * 1. Validate works on the expression
-   * 2. The output can be serialized and deserialized properly
-   *
-   * @param rule
-   * @param variables
-   * @param context
-   * @return
-   */
-  public static Object run(String rule, Map<String, Object> variables, Context context) {
-    StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
-    byte[] raw = SerDeUtils.toBytes(ret);
-    Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(ret, actual);
-    return ret;
-  }
+    /**
+     * This ensures the basic contract of a stellar expression is adhered to:
+     * 1. Validate works on the expression
+     * 2. The output can be serialized and deserialized properly
+     *
+     * @param rule
+     * @param variables
+     * @param context
+     * @return
+     */
+    public static Object run(String rule, Map<String, Object> variables, Context context) {
+        StellarProcessor processor = new StellarProcessor();
+        Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+        Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+        byte[] raw = SerDeUtils.toBytes(ret);
+        Object actual = SerDeUtils.fromBytes(raw, Object.class);
+        Assert.assertEquals(ret, actual);
+        return ret;
+    }
 
   public static Object run(String rule, Map<String, Object> variables) {
     return run(rule, variables, Context.EMPTY_CONTEXT());
