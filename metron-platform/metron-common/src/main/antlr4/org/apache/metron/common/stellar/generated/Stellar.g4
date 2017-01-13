@@ -41,23 +41,17 @@ grammar Stellar;
 
 /* Lexical rules */
 
+DOUBLE_QUOTE : '"';
+SINGLE_QUOTE : '\'';
 COMMA : ',';
-AND : 'and'
-    | '&&'
-    | 'AND'
-    ;
-OR  : 'or'
-    | '||'
-    | 'OR';
+PERIOD : '.';
+EOL : '\n';
 
-NOT : 'not'
-    | 'NOT';
-
-TRUE  : 'true'
-      | 'TRUE' ;
-
-FALSE : 'false'
-      | 'FALSE';
+AND : 'and' | '&&' | 'AND';
+OR : 'or' | '||' | 'OR';
+NOT : 'not' | 'NOT';
+TRUE : 'true' | 'TRUE';
+FALSE : 'false' | 'FALSE';
 
 EQ : '==' ;
 NEQ : '!=' ;
@@ -82,40 +76,48 @@ LBRACKET : '[';
 RBRACKET : ']';
 LPAREN : '(' ;
 RPAREN : ')' ;
-IN : 'in'
-   ;
-NIN : 'not in'
-   ;
+IN : 'in' | 'IN';
+NIN : 'not in' | 'NOT IN';
 EXISTS : 'exists' | 'EXISTS';
-EXPONENT : ('e' | 'E') ( PLUS|MINUS )? ('0'..'9')+;
-INT_LITERAL     :
-  MINUS? '0'
-  | MINUS? '1'..'9''0'..'9'*
+EXPONENT : E ( PLUS|MINUS )? DIGIT+;
+INT_LITERAL :
+  MINUS? ZERO
+  | MINUS? FIRST_DIGIT DIGIT*
   ;
-DOUBLE_LITERAL  :
-  INT_LITERAL '.' '0'..'9'* EXPONENT? ('d'|'D')?
-  | '.' '0'..'9'+ EXPONENT? ('d'|'D')?
-  | INT_LITERAL EXPONENT ('d'|'D')?
-  | INT_LITERAL EXPONENT? ('d'|'D')
+DOUBLE_LITERAL :
+  INT_LITERAL PERIOD DIGIT* EXPONENT? D?
+  | PERIOD DIGIT+ EXPONENT? D?
+  | INT_LITERAL EXPONENT D?
+  | INT_LITERAL EXPONENT? D
   ;
 FLOAT_LITERAL  :
-  INT_LITERAL'.''0'..'9'* EXPONENT? ('f'|'F')
-  | MINUS? '.''0'..'9'+ EXPONENT? ('f'|'F')
-  | INT_LITERAL EXPONENT? ('f'|'F')
+  INT_LITERAL PERIOD DIGIT* EXPONENT? F
+  | MINUS? PERIOD DIGIT+ EXPONENT? F
+  | INT_LITERAL EXPONENT? F
   ;
-LONG_LITERAL  : INT_LITERAL ('l'|'L') ;
+LONG_LITERAL  : INT_LITERAL L ;
 IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]* ;
-fragment SCHAR:  ~['"\\\r\n];
-STRING_LITERAL : '"' SCHAR* '"'
-               | '\'' SCHAR* '\'' ;
 
+STRING_LITERAL :
+  DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
+  | SINGLE_QUOTE SCHAR* SINGLE_QUOTE
+  ;
 
 // COMMENT and WS are stripped from the output token stream by sending
 // to a different channel 'skip'
 
-COMMENT : '//' .+? ('\n'|EOF) -> skip ;
+COMMENT : '//' .+? (EOL|EOF) -> skip ;
 
 WS : [ \r\t\u000C\n]+ -> skip ;
+
+fragment ZERO: '0';
+fragment FIRST_DIGIT: '1'..'9';
+fragment DIGIT: '0'..'9';
+fragment SCHAR:  ~['"\\\r\n];
+fragment D: ('d'|'D');
+fragment E: ('e'|'E');
+fragment F: ('f'|'F');
+fragment L: ('l'|'L');
 
 
 /* Parser rules */
@@ -162,7 +164,7 @@ list_entity : LBRACKET op_list RBRACKET
             | LBRACKET RBRACKET;
 
 kv_list : identifier_operand COLON transformation_expr
-        | kv_list COMMA identifier_operand ':' transformation_expr
+        | kv_list COMMA identifier_operand COLON transformation_expr
         ;
 
 map_entity : LBRACE kv_list RBRACE

@@ -22,6 +22,7 @@ The query language supports the following:
 * Simple boolean operations: `and`, `not`, `or`
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
 * Simple comparison operations `<`, `>`, `<=`, `>=`
+* Simple equality comparison operations `==`, `!=`
 * if/then/else comparisons (i.e. `if var1 < 10 then 'less than 10' else '10 or more'`)
 * Determining whether a field exists (via `exists`)
 * The ability to have parenthesis to make order of operations explicit
@@ -40,6 +41,32 @@ The following keywords need to be single quote escaped in order to be used in St
 | , | \* | / |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
+
+
+## Stellar Language Comparisons ('<', '<=', '>', '>=')
+
+1. If either side of the comparison is null then return false.
+2. If both values being compared implement number then the following:
+    * If either side is a double then get double value from both sides and compare using given operator.
+    * Else if either side is a float then get float value from both sides and compare using given operator.
+    * Else if either side is a long then get long value from both sides and compare using given operator.
+    * Otherwise get the int value from both sides and compare using given operator.
+3. If both sides are of the same type and are comparable then use the compareTo method to compare values.
+4. If none of the above are met then an exception is thrown.
+
+## Stellar Language Equality Check ('==', '!=')
+
+Below is how the '==' operator is expected to work:
+
+1. If either side of the expression is null then check equality using Java's '==' expression.
+2. Else if both sides of the expression are of Java's type Number then:
+   * If either side of the expression is a double then use the double value of both sides to test equality.
+   * Else if either side of the expression is a float then use the float value of both sides to test equality.
+   * Else if either side of the expression is a long then use long value of both sides to test equality.
+   * Otherwise use int value of both sides to test equality
+3. Otherwise use equals method compare the left side with the right side.
+
+The '!=' operator is the negation of the above.
 
 ## Stellar Core Functions
 

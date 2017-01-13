@@ -21,7 +21,6 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.junit.Assert;
@@ -199,8 +198,8 @@ public class StellarTest {
       Assert.assertEquals("two", run(query, new HashMap<>()));
     }
     {
-      String query = "if 1 == 1.000001 then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, new HashMap<>()));
+      String query = "if 1 == 1.0000001 then 'one' else 'two'";
+      Assert.assertEquals("two", run(query, new HashMap<>()));
     }
     {
       String query = "if one < two then 'one' else 'two'";
@@ -208,7 +207,7 @@ public class StellarTest {
     }
     {
       String query = "if one == very_nearly_one then 'one' else 'two'";
-      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.000001)));
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
     }
     {
       String query = "1 < 2 ? 'one' : 'two'";
@@ -386,25 +385,6 @@ public class StellarTest {
   }
 
   @Test
-  public void testValidation() throws Exception {
-    StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    try {
-      processor.validate("'foo'");
-      Assert.fail("Invalid rule found to be valid - lone value.");
-    }
-    catch(ParseException e) {
-
-    }
-    try {
-      processor.validate("enrichedField1 == 'enrichedValue1");
-      Assert.fail("Invalid rule found to be valid - unclosed single quotes.");
-    }
-    catch(ParseException e) {
-
-    }
-  }
-
-  @Test
   public void testBooleanOps() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
       put("foo", "casey");
@@ -460,31 +440,6 @@ public class StellarTest {
       put("myMap", ImmutableMap.of("casey", "apple"));
     }};
     Assert.assertTrue(runPredicate("MAP_EXISTS(foo, myMap)", v -> variableMap.get(v)));
-  }
-
-  @Test
-  public void testNumericComparisonFunctions() throws Exception {
-    final Map<String, Object> variableMap = new HashMap<String, Object>() {{
-      put("foo", "casey");
-      put("bar", "bar.casey.grok");
-      put("ip", "192.168.0.1");
-      put("num", 7);
-      put("num2", 8.5);
-      put("num3", 7);
-      put("num4", "8.5");
-      put("empty", "");
-      put("spaced", "metron is great");
-    }};
-    Assert.assertTrue(runPredicate("num == 7", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < num2", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < TO_DOUBLE(num2)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < TO_DOUBLE(num4)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num < 100", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num == num3", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("num == num2", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num == num2 || true", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("num > num2", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("num == 7 && num > 2", v -> variableMap.get(v)));
   }
 
   @Test
