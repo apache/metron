@@ -30,15 +30,15 @@
 #
 
 #
-# how long to delay between each 'batch' in seconds. defaults to 2 seconds.
+# how long to delay between each 'batch' in seconds.
 #
-DELAY=${1:-2}
+DELAY=${1:-{{ sensor_stubs_delay }}}
 
 #
 # how many messages to send in each 'batch'.  the messages are drawn randomly
-# from the entire set of canned data. defaults to 1000.
+# from the entire set of canned data. 
 #
-COUNT=${2:-100}
+COUNT=${2:-{{ sensor_stubs_count }}}
 
 INPUT="{{ sensor_stubs_data }}/bro.out"
 PRODUCER="{{ kafka_home }}/bin/kafka-console-producer.sh"
