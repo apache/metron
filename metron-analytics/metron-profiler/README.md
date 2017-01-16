@@ -24,6 +24,12 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> create 'profiler', 'P'
     ```
     
+1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  Change the kafka.zk and kafka.broker values from "node1" to the appropriate host name.  Keep the same port numbers:
+    ```
+    kafka.zk=node1:2181
+    kafka.broker=node1:6667
+    ```
+
 1. Define the profile in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  The following example JSON will create a profile that simply counts the number of messages per `ip_src_addr`, during each sampling interval.
     ```
     {
@@ -31,7 +37,7 @@ This section will describe the steps required to get your first profile running.
         {
           "profile": "test",
           "foreach": "ip_src_addr",
-          "init":    { "count": 0 },
+          "init":    { "count": "0" },
           "update":  { "count": "count + 1" },
           "result":  "count"
         }
@@ -39,7 +45,7 @@ This section will describe the steps required to get your first profile running.
     }
     ```
 
-1. Upload the profile definition to Zookeeper.
+1. Upload the profile definition to Zookeeper.  (As always, change "node1" to the actual hostname.)
     ```
     $ cd $METRON_HOME
     $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
@@ -58,7 +64,9 @@ This section will describe the steps required to get your first profile running.
     hbase(main):001:0> count 'profiler'
     ``` 
 
-1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.  More information on using the client can be found [here](../metron-profiler-client).
+1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.
+More information on configuring and using the client can be found [here](../metron-profiler-client).
+It is assumed that the PROFILE_GET client is correctly configured before using it.
     ```
     $ bin/stellar -z node1:2181
     
@@ -68,7 +76,9 @@ This section will describe the steps required to get your first profile running.
 
 ## Creating Profiles
 
-The Profiler configuration requires a JSON-formatted set of elements, many of which can contain Stellar code.  The configuration contains the following elements.  For the impatient, skip ahead to the [Examples](#examples).
+The Profiler specification requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
+The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`. 
+The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
 
 | Name 	                |               | Description 	
 |---	                |---	        |---
@@ -117,7 +127,7 @@ The 'groupBy' expressions can refer to any field within a `org.apache.metron.pro
 
 *Optional*
 
-One or more expressions executed at the start of a window period.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can contain 0 or more variables/expressions. At the start of each window period the expression is executed once and stored in a variable with the given name. 
+One or more expressions executed at the start of a window period.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can contain zero or more variable:expression pairs. At the start of each window period, each expression is executed once and stored in the given variable. Note that constant init values such as "0" must be in quotes regardless of their type, as the init value must be a string to be executed by Stellar.
 
 ```
 "init": {
@@ -143,7 +153,7 @@ One or more expressions executed when a message is applied to the profile.  A ma
 
 *Required*
 
-A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period.  The expression must result in a numeric value such as a Double, Long, Float, Short, or Integer.  	   
+A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period, using the state accumulated by the updates.  The result will typically be a single numeric value, but it may be any serializable object, as shown in Example 4 below.  	   
 
 ### `expires`
 
@@ -153,7 +163,8 @@ A numeric value that defines how many days the profile data is retained.  After 
 
 ## Configuring the Profiler
 
-The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the the default installation of Metron at `$METRON_HOME/config/zookeeper/profiler.json`. The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
+The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`. 
+The values can be changed on disk and then the Profiler topology must be restarted.
 
 | Setting   | Description   |
 |---        |---            |
@@ -300,7 +311,7 @@ This creates a profile...
 
 It is important to note that the Profiler can persist any serializable Object, not just numeric values.  An alternative to the previous example could take advantage of this.  
 
-Instead of storing the mean of the length, the profile could store a more generic summary of the length.  This summary can then be used at a later time to calculate the mean, min, max, percentiles, or any other sensible metric.  This provides a much greater degree of flexibility.
+Instead of storing the mean of the lengths, the profile could store a statistical summarization of the lengths.  This summary can then be used at a later time to calculate the mean, min, max, percentiles, or any other sensible metric.  This provides a much greater degree of flexibility.
  
 ```
 {
@@ -316,7 +327,8 @@ Instead of storing the mean of the length, the profile could store a more generi
 }
 ``` 
 
-The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.  
+The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.
+It is assumed that the PROFILE_GET client is configured as described [here](../metron-profiler-client).
 
 Retrieve the last 30 minutes of profile measurements for a specific host.
 ```
