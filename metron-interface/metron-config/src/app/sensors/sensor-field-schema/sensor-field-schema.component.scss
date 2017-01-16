@@ -98,3 +98,36 @@
   background-color: #2e2e2e;
   color: #737373;
 }
+
+.metron-bg-inverse
+{
+  margin-bottom: 70px;
+}
+
+select
+{
+  width: 100%;
+  display: block;
+}
+
+.placeholder
+{
+  text-align: center;
+  font-size: 13px;
+  color: $text-color-white;
+}
+
+.add-button
+{
+  button
+  {
+    width: 100%;
+    height: 35px;
+    padding: 0px;
+  }
+  i
+  {
+    font-size: 1.5em;
+    color: $field-button-color;
+  }
+}

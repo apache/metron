@@ -36,6 +36,8 @@ export class FieldSchemaRow {
   showConfig: boolean;
   isRemoved: boolean;
   isSimple: boolean;
+  isNew: boolean;
+  isParserGenerated: boolean;
   conditionalRemove: boolean;
   transformConfigured: AutocompleteOption[] = [];
   enrichmentConfigured: AutocompleteOption[] = [];
@@ -45,6 +47,7 @@ export class FieldSchemaRow {
     this.inputFieldName = fieldName;
     this.outputFieldName = fieldName;
     this.conditionalRemove = false;
+    this.isParserGenerated = false;
     this.showConfig = false;
     this.isSimple = true;
     this.isRemoved = false;
@@ -142,7 +145,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
     return true;
   }
-
+  
   createFieldSchemaRows() {
     this.fieldSchemaRows = [];
     this.savedFieldSchemaRows = [];
@@ -241,7 +244,9 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     // Adds rows from parseResult with no transformations/enrichments/threatIntels
     let fieldSchemaRowsCreatedKeys = Object.keys(fieldSchemaRowsCreated);
     for (let fieldName of Object.keys(this.parserResult).filter(fieldName => fieldSchemaRowsCreatedKeys.indexOf(fieldName) === -1)) {
-      this.fieldSchemaRows.push(new FieldSchemaRow(fieldName));
+        let field = new FieldSchemaRow(fieldName);
+        field.isParserGenerated = true;
+        this.fieldSchemaRows.push(field);
     }
 
     // save the initial fieldSchemaRows
@@ -289,6 +294,11 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     this.createFieldSchemaRows();
   }
 
+  onDelete(fieldSchemaRow: FieldSchemaRow) {
+    this.fieldSchemaRows.splice(this.fieldSchemaRows.indexOf(fieldSchemaRow), 1);
+    this.savedFieldSchemaRows.splice(this.fieldSchemaRows.indexOf(fieldSchemaRow), 1);
+  }
+
   onRemove(fieldSchemaRow: FieldSchemaRow) {
     fieldSchemaRow.isRemoved = true;
     this.onSaveChange(fieldSchemaRow);
@@ -305,6 +315,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
   onSaveChange(savedFieldSchemaRow: FieldSchemaRow) {
     savedFieldSchemaRow.showConfig = false;
+    savedFieldSchemaRow.isNew = false;
     let initialSchemaRow = this.savedFieldSchemaRows.filter(fieldSchemaRow => fieldSchemaRow.inputFieldName === savedFieldSchemaRow.inputFieldName)[0];
     Object.assign(initialSchemaRow, JSON.parse(JSON.stringify(savedFieldSchemaRow)));
   }
@@ -331,6 +342,14 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
   onTransformsChange(fieldSchemaRow: FieldSchemaRow): void {
     fieldSchemaRow.preview = fieldSchemaRow.transformConfigured.length === 0 ? '' : this.createTransformFunction(fieldSchemaRow);
+  }
+
+  addNewRule() {
+    let fieldSchemaRow = new FieldSchemaRow('new');
+    fieldSchemaRow.isNew = true;
+    fieldSchemaRow.showConfig = true;
+    fieldSchemaRow.inputFieldName = '';
+    this.fieldSchemaRows.push(fieldSchemaRow);
   }
 
   onSave() {
