@@ -54,7 +54,13 @@ public enum ConfigurationType implements Function<String, Object> {
       throw new RuntimeException("Unable to load " + s, e);
     }
   }),
-
+  INDEXING("indexing","indexing", s -> {
+    try {
+      return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() { });
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to load " + s, e);
+    }
+  }),
   PROFILER("profiler","profiler", s -> {
     try {
       return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);

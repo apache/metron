@@ -55,8 +55,6 @@ public class EnrichmentConfigFunctionsTest {
 
   public static String emptyTransformationsConfig() {
     SensorEnrichmentConfig config = new SensorEnrichmentConfig();
-    config.setIndex("dummy");
-    config.setBatchSize(5);
     try {
       return JSONUtils.INSTANCE.toJSON(config, true);
     } catch (JsonProcessingException e) {
@@ -346,39 +344,5 @@ public class EnrichmentConfigFunctionsTest {
     Assert.assertEquals(testPrintEmptyExpected, out);
   }
 
-  @Test
-  public void testSetBatch() {
-    String out = (String) run("ENRICHMENT_SET_BATCH(config, 10)"
-                             , toMap("config", configStr)
-    );
-    SensorEnrichmentConfig config = (SensorEnrichmentConfig)ENRICHMENT.deserialize(out);
-    Assert.assertEquals(config.getBatchSize(), 10);
-  }
 
-  @Test(expected=ParseException.class)
-  public void testSetBatchBad() {
-    String out = (String) run("ENRICHMENT_SET_BATCH(config, 10)"
-                             , new HashMap<>()
-    );
-    SensorEnrichmentConfig config = (SensorEnrichmentConfig)ENRICHMENT.deserialize(out);
-    Assert.assertEquals(config.getBatchSize(), 10);
-  }
-
-  @Test
-  public void testSetIndex() {
-    String out = (String) run("ENRICHMENT_SET_INDEX(config, 'foo')"
-            , toMap("config", configStr)
-    );
-    SensorEnrichmentConfig config = (SensorEnrichmentConfig)ENRICHMENT.deserialize(out);
-    Assert.assertEquals("foo", config.getIndex());
-  }
-
-  @Test(expected= ParseException.class)
-  public void testSetIndexBad() {
-    String out = (String) run("ENRICHMENT_SET_INDEX(config, NULL)"
-            , new HashMap<>()
-    );
-    SensorEnrichmentConfig config = (SensorEnrichmentConfig)ENRICHMENT.deserialize(out);
-    Assert.assertNotNull(config.getIndex());
-  }
 }

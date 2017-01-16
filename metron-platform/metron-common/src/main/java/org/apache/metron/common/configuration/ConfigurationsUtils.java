@@ -36,10 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
-import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
-import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
-import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
+import static org.apache.metron.common.configuration.ConfigurationType.*;
 
 public class ConfigurationsUtils {
 
@@ -92,6 +89,22 @@ public class ConfigurationsUtils {
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
+  public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
+    writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);
+  }
+
+  public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
+    }
+  }
+
+  public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    INDEXING.deserialize(new String(configData));
+    writeToZookeeper(INDEXING.getZookeeperRoot() + "/" + sensorType, configData, client);
+  }
+
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig, String zookeeperUrl) throws Exception {
     writeSensorEnrichmentConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorEnrichmentConfig), zookeeperUrl);
   }
@@ -104,10 +117,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
-    SensorEnrichmentConfig c = (SensorEnrichmentConfig) ENRICHMENT.deserialize(new String(configData));
-    if(c.getIndex() == null ) {
-      throw new IllegalStateException("Attempting to write a malformed sensor config: missing index.\n" + new String(configData));
-    }
+    ENRICHMENT.deserialize(new String(configData));
     writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
@@ -142,6 +152,14 @@ public class ConfigurationsUtils {
     }
   }
 
+  public static void updateSensorIndexingConfigsFromZookeeper(IndexingConfigurations configurations, CuratorFramework client) throws Exception {
+    updateConfigsFromZookeeper(configurations, client);
+    List<String> sensorTypes = client.getChildren().forPath(INDEXING.getZookeeperRoot());
+    for(String sensorType: sensorTypes) {
+      configurations.updateSensorIndexingConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client));
+    }
+  }
+
   public static void updateEnrichmentConfigsFromZookeeper(EnrichmentConfigurations configurations, CuratorFramework client) throws Exception {
     updateConfigsFromZookeeper(configurations, client);
     List<String> sensorTypes = client.getChildren().forPath(ENRICHMENT.getZookeeperRoot());
@@ -166,6 +184,10 @@ public class ConfigurationsUtils {
     return readFromZookeeper(PROFILER.getZookeeperRoot(), client);
   }
 
+  public static byte[] readSensorIndexingConfigBytesFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
+    return readFromZookeeper(INDEXING.getZookeeperRoot() + "/" + sensorType, client);
+  }
+
   public static byte[] readSensorParserConfigBytesFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     return readFromZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, client);
   }
@@ -185,21 +207,23 @@ public class ConfigurationsUtils {
   public static void uploadConfigsToZookeeper(String globalConfigPath,
                                               String parsersConfigPath,
                                               String enrichmentsConfigPath,
+                                              String indexingConfigPath,
                                               String profilerConfigPath,
                                               String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
-      uploadConfigsToZookeeper(globalConfigPath, parsersConfigPath, enrichmentsConfigPath, profilerConfigPath, client);
+      uploadConfigsToZookeeper(globalConfigPath, parsersConfigPath, enrichmentsConfigPath, indexingConfigPath, profilerConfigPath, client);
     }
   }
 
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
-    uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
+    uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
   }
 
   public static void uploadConfigsToZookeeper(String globalConfigPath,
                                               String parsersConfigPath,
                                               String enrichmentsConfigPath,
+                                              String indexingConfigPath,
                                               String profilerConfigPath,
                                               CuratorFramework client) throws Exception {
 
@@ -216,6 +240,14 @@ public class ConfigurationsUtils {
       Map<String, byte[]> sensorParserConfigs = readSensorParserConfigsFromFile(parsersConfigPath);
       for (String sensorType : sensorParserConfigs.keySet()) {
         ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, sensorParserConfigs.get(sensorType), client);
+      }
+    }
+
+    // indexing
+    if (indexingConfigPath != null) {
+      Map<String, byte[]> sensorIndexingConfigs = readSensorIndexingConfigsFromFile(indexingConfigPath);
+      for (String sensorType : sensorIndexingConfigs.keySet()) {
+        ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(sensorType, sensorIndexingConfigs.get(sensorType), client);
       }
     }
 
@@ -253,6 +285,9 @@ public class ConfigurationsUtils {
     return readSensorConfigsFromFile(rootPath, ENRICHMENT);
   }
 
+  public static Map<String, byte[]> readSensorIndexingConfigsFromFile(String rootPath) throws IOException {
+    return readSensorConfigsFromFile(rootPath, INDEXING);
+  }
 
   /**
    * Read the Profiler configuration from a file.  There is only a single profiler configuration.
@@ -291,6 +326,7 @@ public class ConfigurationsUtils {
   public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback) throws Exception {
     visitConfigs(client, callback, GLOBAL);
     visitConfigs(client, callback, PARSER);
+    visitConfigs(client, callback, INDEXING);
     visitConfigs(client, callback, ENRICHMENT);
     visitConfigs(client, callback, PROFILER);
   }
@@ -303,7 +339,7 @@ public class ConfigurationsUtils {
         byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
         callback.visit(configType, "global", new String(globalConfigData));
 
-      } else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(PROFILER)) {
+      } else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(PROFILER) || configType.equals(INDEXING)) {
         List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
         for (String child : children) {
 
