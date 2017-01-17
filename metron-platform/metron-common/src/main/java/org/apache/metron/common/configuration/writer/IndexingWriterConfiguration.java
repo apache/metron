@@ -19,44 +19,39 @@
 package org.apache.metron.common.configuration.writer;
 
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.Map;
+import java.util.Optional;
 
-public class EnrichmentWriterConfiguration implements WriterConfiguration{
-  private EnrichmentConfigurations config;
+public class IndexingWriterConfiguration implements WriterConfiguration{
+  private Optional<IndexingConfigurations> config;
 
-  public EnrichmentWriterConfiguration(EnrichmentConfigurations config) {
-    this.config = config;
+
+  public IndexingWriterConfiguration(IndexingConfigurations config) {
+    this.config = Optional.ofNullable(config);
   }
+
+
 
   @Override
   public int getBatchSize(String sensorName) {
-    if(config != null && config.getSensorEnrichmentConfig(sensorName) != null) {
-      return config.getSensorEnrichmentConfig(sensorName).getBatchSize();
-    }
-    return 1;
+    return config.orElse(new IndexingConfigurations()).getBatchSize(sensorName);
   }
 
   @Override
   public String getIndex(String sensorName) {
-    if(config != null && config.getSensorEnrichmentConfig(sensorName) != null) {
-      return config.getSensorEnrichmentConfig(sensorName).getIndex();
-    }
-    return sensorName;
+    return config.orElse(new IndexingConfigurations()).getIndex(sensorName);
   }
 
   @Override
   public Map<String, Object> getSensorConfig(String sensorName) {
-    if(config != null && config.getSensorEnrichmentConfig(sensorName) != null) {
-      return config.getSensorEnrichmentConfig(sensorName).getConfiguration();
-    }
-    return null;
+    return config.orElse(new IndexingConfigurations()).getSensorIndexingConfig(sensorName);
   }
+
   @Override
   public Map<String, Object> getGlobalConfig() {
-    if(config != null) {
-      return config.getGlobalConfig();
-    }
-    return null;
+    return config.orElse(new IndexingConfigurations()).getGlobalConfig();
   }
 }

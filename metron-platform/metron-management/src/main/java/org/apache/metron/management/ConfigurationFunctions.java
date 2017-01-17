@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.dsl.Context;
@@ -84,6 +85,9 @@ public class ConfigurationFunctions {
           } else if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
             Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.ENRICHMENT);
             sensorMap.put(sensor, new String(data));
+          } else if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
+            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.INDEXING);
+            sensorMap.put(sensor, new String(data));
           }
         }
         else if(event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED)) {
@@ -95,6 +99,10 @@ public class ConfigurationFunctions {
           }
           else if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
             Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.ENRICHMENT);
+            sensorMap.remove(sensor);
+          }
+          else if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
+            Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.INDEXING);
             sensorMap.remove(sensor);
           }
           else if (ConfigurationType.PROFILER.getZookeeperRoot().equals(path)) {
@@ -124,6 +132,7 @@ public class ConfigurationFunctions {
             configMap.put(ct, data);
           }
           break;
+        case INDEXING:
         case ENRICHMENT:
         case PARSER:
           {
@@ -143,7 +152,7 @@ public class ConfigurationFunctions {
            namespace = "CONFIG"
           ,name = "GET"
           ,description = "Retrieve a Metron configuration from zookeeper."
-          ,params = {"type - One of ENRICHMENT, PARSER, GLOBAL, PROFILER"
+          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
                     , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
                     , "emptyIfNotPresent - If true, then return an empty, minimally viable config"
                     }
@@ -179,6 +188,25 @@ public class ConfigurationFunctions {
           }
           return ret;
         }
+        case INDEXING: {
+          String sensor = (String) args.get(1);
+          if(args.size() > 2) {
+            emptyIfNotPresent = ConversionUtils.convert(args.get(2), Boolean.class);
+          }
+          Map<String, String> sensorMap = (Map<String, String>) configMap.get(type);
+          String ret = sensorMap.get(sensor);
+          if (ret == null && emptyIfNotPresent ) {
+            Map<String, Object> config = new HashMap<>();
+            try {
+              ret = JSONUtils.INSTANCE.toJSON(config, true);
+              IndexingConfigurations.setIndex(config, sensor);
+            } catch (JsonProcessingException e) {
+              LOG.error("Unable to serialize default object: " + e.getMessage(), e);
+              throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
+            }
+          }
+          return ret;
+        }
         case ENRICHMENT: {
           String sensor = (String) args.get(1);
           if(args.size() > 2) {
@@ -188,7 +216,6 @@ public class ConfigurationFunctions {
           String ret = sensorMap.get(sensor);
           if (ret == null && emptyIfNotPresent ) {
             SensorEnrichmentConfig config = new SensorEnrichmentConfig();
-            config.setIndex(sensor);
             try {
               ret = JSONUtils.INSTANCE.toJSON(config, true);
             } catch (JsonProcessingException e) {
@@ -224,7 +251,7 @@ public class ConfigurationFunctions {
            namespace = "CONFIG"
           ,name = "PUT"
           ,description = "Updates a Metron config to Zookeeper."
-          ,params = {"type - One of ENRICHMENT, PARSER, GLOBAL, PROFILER"
+          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
                     ,"config - The config (a string in JSON form) to update"
                     , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
                     }
@@ -256,6 +283,15 @@ public class ConfigurationFunctions {
               return null;
             }
             ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensor, config.getBytes(), client);
+          }
+          break;
+          case INDEXING:
+          {
+            String sensor = (String) args.get(2);
+            if(sensor == null) {
+              return null;
+            }
+            ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(sensor, config.getBytes(), client);
           }
           break;
           case PARSER:

@@ -67,8 +67,6 @@ public class SimpleHBaseAdapterTest {
 
   /**
     {
-      "index": "bro",
-      "batchSize": 5,
       "enrichment": {
         "fieldMap": {
            "hbaseEnrichment" : [ "ip_dst_addr" ]
@@ -83,8 +81,6 @@ public class SimpleHBaseAdapterTest {
   private String sourceConfigStr;
   /**
     {
-      "index": "bro",
-      "batchSize": 5,
       "enrichment": {
         "fieldMap": {
            "hbaseEnrichment" : [ "ip_dst_addr" ]

@@ -142,7 +142,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
+            .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            .withIndexingConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+            ;
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
@@ -158,6 +160,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withComponent("search", getSearchComponent(topologyProperties))
             .withMillisecondsBetweenAttempts(15000)
             .withNumRetries(10)
+            .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
     runner.start();

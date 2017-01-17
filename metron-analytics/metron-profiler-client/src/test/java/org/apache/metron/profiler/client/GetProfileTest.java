@@ -69,6 +69,10 @@ public class GetProfileTest {
   private StellarExecutor executor;
   private Map<String, Object> state;
   private ProfileWriter profileWriter;
+  // different values of period and salt divisor, used to test config_overrides feature
+  private static final long periodDuration2 = 1;
+  private static final TimeUnit periodUnits2 = TimeUnit.HOURS;
+  private static final int saltDivisor2 = 2050;
 
   /**
    * A TableProvider that allows us to mock HBase.
@@ -87,6 +91,17 @@ public class GetProfileTest {
     return executor.execute(expression, state, clazz);
   }
 
+  /**
+   * This method sets up the configuration context for both writing profile data
+   * (using profileWriter to mock the complex process of what the Profiler topology
+   * actually does), and then reading that profile data (thereby testing the PROFILE_GET
+   * Stellar client implemented in GetProfile).
+   *
+   * It runs at @Before time, and sets testclass global variables used by the writers and readers.
+   * The various writers and readers are in each test case, not here.
+   *
+   * @return void
+   */
   @Before
   public void setup() {
     state = new HashMap<>();
@@ -114,6 +129,51 @@ public class GetProfileTest {
             new Context.Builder()
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
                     .build());
+  }
+
+  /**
+   * This method is similar to setup(), in that it sets up profiler configuration context,
+   * but only for the client.  Additionally, it uses periodDuration2, periodUnits2
+   * and saltDivisor2, instead of periodDuration, periodUnits and saltDivisor respectively.
+   *
+   * This is used in the unit tests that test the config_overrides feature of PROFILE_GET.
+   * In these tests, the context from @Before setup() is used to write the data, then the global
+   * context is changed to context2 (from this method).  Each test validates that a default read
+   * using global context2 then gets no valid results (as expected), and that a read using
+   * original context values in the PROFILE_GET config_overrides argument gets all expected results.
+   *
+   * @return context2 - The profiler client configuration context created by this method.
+   *    The context2 values are also set in the configuration of the StellarExecutor
+   *    stored in the global variable 'executor'.  However, there is no API for querying the
+   *    context values from a StellarExecutor, so we output the context2 Context object itself,
+   *    for validation purposes (so that its values can be validated as being significantly
+   *    different from the setup() settings).
+   */
+  private Context setup2() {
+    state = new HashMap<>();
+
+    // global properties
+    Map<String, Object> global = new HashMap<String, Object>() {{
+      put(PROFILER_HBASE_TABLE, tableName);
+      put(PROFILER_COLUMN_FAMILY, columnFamily);
+      put(PROFILER_HBASE_TABLE_PROVIDER, MockTableProvider.class.getName());
+      put(PROFILER_PERIOD, Long.toString(periodDuration2));
+      put(PROFILER_PERIOD_UNITS, periodUnits2.toString());
+      put(PROFILER_SALT_DIVISOR, Integer.toString(saltDivisor2));
+    }};
+
+    // create the modified context
+    Context context2 = new Context.Builder()
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+            .build();
+
+    // create the stellar execution environment
+    executor = new DefaultStellarExecutor(
+            new SimpleFunctionResolver()
+                    .withClass(GetProfile.class),
+            context2);
+
+    return context2; //because there is no executor.getContext() method
   }
 
   /**
@@ -168,9 +228,16 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'])";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
+
+    // validate - expect to read all values from the past 4 hours
+    Assert.assertEquals(count, result.size());
+
+    // test the deprecated but allowed "varargs" form of groups specification
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
@@ -199,9 +266,16 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekdays', 'tuesday')";
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekdays', 'tuesday'])";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
+
+    // validate - expect to read all values from the past 4 hours
+    Assert.assertEquals(count, result.size());
+
+    // test the deprecated but allowed "varargs" form of groups specification
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekdays', 'tuesday')";
+    result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
     Assert.assertEquals(count, result.size());
@@ -254,4 +328,108 @@ public class GetProfileTest {
     // validate - there should be no values from only 4 seconds ago
     Assert.assertEquals(0, result.size());
   }
+
+  /**
+   * Values should be retrievable that were written with configuration different than current global config.
+   */
+  @Test
+  public void testWithConfigOverride() {
+    final int periodsPerHour = 4;
+    final int expectedValue = 2302;
+    final int hours = 2;
+    final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
+    final List<Object> group = Collections.emptyList();
+
+    // setup - write some measurements to be read later
+    final int count = hours * periodsPerHour;
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
+    profileWriter.write(m, count, group, val -> expectedValue);
+
+    // now change the executor configuration
+    Context context2 = setup2();
+    // validate it is changed in significant way
+    @SuppressWarnings("unchecked")
+    Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
+    Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
+    Assert.assertNotEquals(periodDuration, periodDuration2);
+
+    // execute - read the profile values - with (wrong) default global config values.
+    // No error message at this time, but returns empty results list, because
+    // row keys are not correctly calculated.
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS')";
+    @SuppressWarnings("unchecked")
+    List<Integer> result = run(expr, List.class);
+
+    // validate - expect to fail to read any values
+    Assert.assertEquals(0, result.size());
+
+    // execute - read the profile values - with config_override.
+    // first two override values are strings, third is deliberately a number.
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', [], {"
+            + "'profiler.client.period.duration' : '" + periodDuration + "', "
+            + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
+            + "'profiler.client.salt.divisor' : " + saltDivisor + " })";
+    result = run(expr, List.class);
+
+    // validate - expect to read all values from the past 4 hours
+    Assert.assertEquals(count, result.size());
+  }
+
+  /**
+   * Values should be retrievable that have been stored within a 'group', with
+   * configuration different than current global config.
+   * This time put the config_override case before the non-override case.
+   */
+  @Test
+  public void testWithConfigAndOneGroup() {
+    final int periodsPerHour = 4;
+    final int expectedValue = 2302;
+    final int hours = 2;
+    final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
+    final List<Object> group = Arrays.asList("weekends");
+
+    // setup - write some measurements to be read later
+    final int count = hours * periodsPerHour;
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
+    profileWriter.write(m, count, group, val -> expectedValue);
+
+    // create a variable that contains the groups to use
+    state.put("groups", group);
+
+    // now change the executor configuration
+    Context context2 = setup2();
+    // validate it is changed in significant way
+    @SuppressWarnings("unchecked")
+    Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
+    Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
+    Assert.assertNotEquals(periodDuration, periodDuration2);
+
+    // execute - read the profile values - with config_override.
+    // first two override values are strings, third is deliberately a number.
+    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'], {"
+            + "'profiler.client.period.duration' : '" + periodDuration + "', "
+            + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
+            + "'profiler.client.salt.divisor' : " + saltDivisor + " })";
+    @SuppressWarnings("unchecked")
+    List<Integer> result = run(expr, List.class);
+
+    // validate - expect to read all values from the past 4 hours
+    Assert.assertEquals(count, result.size());
+
+    // execute - read the profile values - with (wrong) default global config values.
+    // No error message at this time, but returns empty results list, because
+    // row keys are not correctly calculated.
+    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'])";
+    result = run(expr, List.class);
+
+    // validate - expect to fail to read any values
+    Assert.assertEquals(0, result.size());
+  }
+
 }

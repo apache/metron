@@ -97,8 +97,6 @@ public class SensorEnrichmentUpdateConfig {
       try {
         sensorEnrichmentConfig = SensorEnrichmentConfig.fromBytes(ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(sensor, client));
       }catch (KeeperException.NoNodeException e) {
-        sensorEnrichmentConfig.setIndex(sensor);
-        sensorEnrichmentConfig.setBatchSize(1);
       }
       return sensorEnrichmentConfig;
     }
