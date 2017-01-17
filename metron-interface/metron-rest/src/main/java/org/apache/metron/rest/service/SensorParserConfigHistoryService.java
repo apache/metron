@@ -20,6 +20,7 @@ package org.apache.metron.rest.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.audit.UserRevEntity;
 import org.apache.metron.rest.model.SensorParserConfigVersion;
 import org.apache.metron.rest.model.SensorParserConfigHistory;
@@ -52,7 +53,7 @@ public class SensorParserConfigHistoryService {
     @Autowired
     private SensorParserConfigService sensorParserConfigService;
 
-    public SensorParserConfigHistory findOne(String name) throws Exception {
+    public SensorParserConfigHistory findOne(String name) throws RestException {
         SensorParserConfigHistory sensorParserConfigHistory = null;
         AuditReader reader = AuditReaderFactory.get(entityManager);
         try{
@@ -65,7 +66,7 @@ public class SensorParserConfigHistoryService {
             sensorParserConfigHistory = new SensorParserConfigHistory();
             String config = sensorParserConfigVersion.getConfig();
             if (config != null) {
-              sensorParserConfigHistory.setConfig(deserializeSensorParserConfig(config));
+              sensorParserConfigHistory.setConfig(deserialize(config));
               if (grokService.isGrokConfig(sensorParserConfigHistory.getConfig())) {
                 grokService.addGrokStatementToConfig(sensorParserConfigHistory.getConfig());
               }
@@ -94,7 +95,7 @@ public class SensorParserConfigHistoryService {
         return sensorParserConfigHistory;
     }
 
-    public List<SensorParserConfigHistory> getAll() throws Exception {
+    public List<SensorParserConfigHistory> getAll() throws RestException {
         List<SensorParserConfigHistory> historyList = new ArrayList<>();
         for(String sensorType: sensorParserConfigService.getAllTypes()) {
             historyList.add(findOne(sensorType));
@@ -102,7 +103,7 @@ public class SensorParserConfigHistoryService {
         return historyList;
     }
 
-    public List<SensorParserConfigHistory> history(String name) throws Exception {
+    public List<SensorParserConfigHistory> history(String name) throws RestException {
         List<SensorParserConfigHistory> historyList = new ArrayList<>();
         AuditReader reader = AuditReaderFactory.get(entityManager);
         List results = reader.createQuery().forRevisionsOfEntity(SensorParserConfigVersion.class, false, true)
@@ -124,7 +125,7 @@ public class SensorParserConfigHistoryService {
             SensorParserConfigHistory sensorParserInfo = new SensorParserConfigHistory();
             String config = sensorParserConfigVersion.getConfig();
             if (config != null) {
-                sensorParserInfo.setConfig(deserializeSensorParserConfig(config));
+                sensorParserInfo.setConfig(deserialize(config));
             } else {
                 sensorParserInfo.setConfig(null);
             }
@@ -137,7 +138,11 @@ public class SensorParserConfigHistoryService {
         return historyList;
     }
 
-    private SensorParserConfig deserializeSensorParserConfig(String config) throws IOException {
+    private SensorParserConfig deserialize(String config) throws RestException {
+      try {
         return objectMapper.readValue(config, new TypeReference<SensorParserConfig>() {});
+      } catch (IOException e) {
+        throw new RestException(e);
+      }
     }
 }

@@ -67,9 +67,9 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
-| [ `GET /api/v1/globalConfig`](#get-apiv1globalconfig)|
-| [ `DELETE /api/v1/globalConfig`](#delete-apiv1globalconfig)|
-| [ `POST /api/v1/globalConfig`](#post-apiv1globalconfig)|
+| [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
+| [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
+| [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
 | [ `GET /api/v1/grok/list`](#get-apiv1groklist)|
 | [ `POST /api/v1/grok/validate`](#post-apiv1grokvalidate)|
 | [ `GET /api/v1/kafka/topic`](#get-apiv1kafkatopic)|
@@ -77,21 +77,25 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopic{name})|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopic{name})|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopic{name}sample)|
-| [ `GET /api/v1/sensorEnrichmentConfig`](#get-apiv1sensorenrichmentconfig)|
-| [ `GET /api/v1/sensorEnrichmentConfig/list/available`](#get-apiv1sensorenrichmentconfiglistavailable)|
-| [ `DELETE /api/v1/sensorEnrichmentConfig/{name}`](#delete-apiv1sensorenrichmentconfig{name})|
-| [ `POST /api/v1/sensorEnrichmentConfig/{name}`](#post-apiv1sensorenrichmentconfig{name})|
-| [ `GET /api/v1/sensorEnrichmentConfig/{name}`](#get-apiv1sensorenrichmentconfig{name})|
-| [ `POST /api/v1/sensorParserConfig`](#post-apiv1sensorparserconfig)|
-| [ `GET /api/v1/sensorParserConfig`](#get-apiv1sensorparserconfig)|
-| [ `GET /api/v1/sensorParserConfig/list/available`](#get-apiv1sensorparserconfiglistavailable)|
-| [ `POST /api/v1/sensorParserConfig/parseMessage`](#post-apiv1sensorparserconfigparsemessage)|
-| [ `GET /api/v1/sensorParserConfig/reload/available`](#get-apiv1sensorparserconfigreloadavailable)|
-| [ `DELETE /api/v1/sensorParserConfig/{name}`](#delete-apiv1sensorparserconfig{name})|
-| [ `GET /api/v1/sensorParserConfig/{name}`](#get-apiv1sensorparserconfig{name})|
-| [ `GET /api/v1/sensorParserConfigHistory`](#get-apiv1sensorparserconfighistory)|
-| [ `GET /api/v1/sensorParserConfigHistory/history/{name}`](#get-apiv1sensorparserconfighistoryhistory{name})|
-| [ `GET /api/v1/sensorParserConfigHistory/{name}`](#get-apiv1sensorparserconfighistory{name})|
+| [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
+| [ `GET /api/v1/sensor/enrichment/config/list/available`](#get-apiv1sensorenrichmentconfiglistavailable)|
+| [ `DELETE /api/v1/sensor/enrichment/config/{name}`](#delete-apiv1sensorenrichmentconfig{name})|
+| [ `POST /api/v1/sensor/enrichment/config/{name}`](#post-apiv1sensorenrichmentconfig{name})|
+| [ `GET /api/v1/sensor/enrichment/config/{name}`](#get-apiv1sensorenrichmentconfig{name})|
+| [ `GET /api/v1/sensor/indexing/config`](#get-apiv1sensorindexingconfig)|
+| [ `DELETE /api/v1/sensor/indexing/config/{name}`](#delete-apiv1sensorindexingconfig{name})|
+| [ `POST /api/v1/sensor/indexing/config/{name}`](#post-apiv1sensorindexingconfig{name})|
+| [ `GET /api/v1/sensor/indexing/config/{name}`](#get-apiv1sensorindexingconfig{name})|
+| [ `POST /api/v1/sensor/parser/config`](#post-apiv1sensorparserconfig)|
+| [ `GET /api/v1/sensor/parser/config`](#get-apiv1sensorparserconfig)|
+| [ `GET /api/v1/sensor/parser/config/history`](#get-apiv1sensorparserconfighistory)|
+| [ `GET /api/v1/sensor/parser/config/history/history/{name}`](#get-apiv1sensorparserconfighistoryhistory{name})|
+| [ `GET /api/v1/sensor/parser/config/history/{name}`](#get-apiv1sensorparserconfighistory{name})|
+| [ `GET /api/v1/sensor/parser/config/list/available`](#get-apiv1sensorparserconfiglistavailable)|
+| [ `POST /api/v1/sensor/parser/config/parseMessage`](#post-apiv1sensorparserconfigparsemessage)|
+| [ `GET /api/v1/sensor/parser/config/reload/available`](#get-apiv1sensorparserconfigreloadavailable)|
+| [ `DELETE /api/v1/sensor/parser/config/{name}`](#delete-apiv1sensorparserconfig{name})|
+| [ `GET /api/v1/sensor/parser/config/{name}`](#get-apiv1sensorparserconfig{name})|
 | [ `GET /api/v1/storm`](#get-apiv1storm)|
 | [ `GET /api/v1/storm/client/status`](#get-apiv1stormclientstatus)|
 | [ `GET /api/v1/storm/enrichment`](#get-apiv1stormenrichment)|
@@ -116,19 +120,19 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `POST /api/v1/transformation/validate/rules`](#post-apiv1transformationvalidaterules)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
-### `GET /api/v1/globalConfig`
+### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
   * Returns:
     * 200 - Returns current Global Config JSON in Zookeeper
     * 404 - Global Config JSON was not found in Zookeeper
 
-### `DELETE /api/v1/globalConfig`
+### `DELETE /api/v1/global/config`
   * Description: Deletes the current Global Config from Zookeeper
   * Returns:
     * 200 - Global Config JSON was deleted
     * 404 - Global Config JSON was not found in Zookeeper
 
-### `POST /api/v1/globalConfig`
+### `POST /api/v1/global/config`
   * Description: Creates or updates the Global Config in Zookeeper
   * Input:
     * globalConfig - The Global Config JSON to be saved
@@ -183,17 +187,17 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
 
-### `GET /api/v1/sensorEnrichmentConfig`
+### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
   * Returns:
     * 200 - Returns all SensorEnrichmentConfigs
 
-### `GET /api/v1/sensorEnrichmentConfig/list/available`
+### `GET /api/v1/sensor/enrichment/config/list/available`
   * Description: Lists the available enrichments
   * Returns:
     * 200 - Returns a list of available enrichments
 
-### `DELETE /api/v1/sensorEnrichmentConfig/{name}`
+### `DELETE /api/v1/sensor/enrichment/config/{name}`
   * Description: Deletes a SensorEnrichmentConfig from Zookeeper
   * Input:
     * name - SensorEnrichmentConfig name
@@ -201,7 +205,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - SensorEnrichmentConfig was deleted
     * 404 - SensorEnrichmentConfig is missing
 
-### `POST /api/v1/sensorEnrichmentConfig/{name}`
+### `POST /api/v1/sensor/enrichment/config/{name}`
   * Description: Updates or creates a SensorEnrichmentConfig in Zookeeper
   * Input:
     * sensorEnrichmentConfig - SensorEnrichmentConfig
@@ -209,7 +213,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns saved SensorEnrichmentConfig
 
-### `GET /api/v1/sensorEnrichmentConfig/{name}`
+### `GET /api/v1/sensor/enrichment/config/{name}`
   * Description: Retrieves a SensorEnrichmentConfig from Zookeeper
   * Input:
     * name - SensorEnrichmentConfig name
@@ -217,36 +221,85 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns SensorEnrichmentConfig
     * 404 - SensorEnrichmentConfig is missing
 
-### `POST /api/v1/sensorParserConfig`
+### `GET /api/v1/sensor/indexing/config`
+  * Description: Retrieves all SensorIndexingConfigs from Zookeeper
+  * Returns:
+    * 200 - Returns all SensorIndexingConfigs
+
+### `DELETE /api/v1/sensor/indexing/config/{name}`
+  * Description: Deletes a SensorIndexingConfig from Zookeeper
+  * Input:
+    * name - SensorIndexingConfig name
+  * Returns:
+    * 200 - SensorIndexingConfig was deleted
+    * 404 - SensorIndexingConfig is missing
+
+### `POST /api/v1/sensor/indexing/config/{name}`
+  * Description: Updates or creates a SensorIndexingConfig in Zookeeper
+  * Input:
+    * sensorIndexingConfig - SensorIndexingConfig
+    * name - SensorIndexingConfig name
+  * Returns:
+    * 200 - Returns saved SensorIndexingConfig
+
+### `GET /api/v1/sensor/indexing/config/{name}`
+  * Description: Retrieves a SensorIndexingConfig from Zookeeper
+  * Input:
+    * name - SensorIndexingConfig name
+  * Returns:
+    * 200 - Returns SensorIndexingConfig
+    * 404 - SensorIndexingConfig is missing
+
+### `POST /api/v1/sensor/parser/config`
   * Description: Updates or creates a SensorParserConfig in Zookeeper
   * Input:
     * sensorParserConfig - SensorParserConfig
   * Returns:
     * 200 - Returns saved SensorParserConfig
 
-### `GET /api/v1/sensorParserConfig`
+### `GET /api/v1/sensor/parser/config`
   * Description: Retrieves all SensorParserConfigs from Zookeeper
   * Returns:
     * 200 - Returns all SensorParserConfigs
 
-### `GET /api/v1/sensorParserConfig/list/available`
+### `GET /api/v1/sensor/parser/config/history`
+  * Description: Retrieves all current versions of SensorParserConfigs including audit information
+  * Returns:
+    * 200 - Returns all SensorParserConfigs with audit information
+
+### `GET /api/v1/sensor/parser/config/history/history/{name}`
+  * Description: Retrieves the history of all changes made to a SensorParserConfig
+  * Input:
+    * name - SensorParserConfig name
+  * Returns:
+    * 200 - Returns SensorParserConfig history
+
+### `GET /api/v1/sensor/parser/config/history/{name}`
+  * Description: Retrieves the current version of a SensorParserConfig including audit information
+  * Input:
+    * name - SensorParserConfig name
+  * Returns:
+    * 200 - Returns SensorParserConfig with audit information
+    * 404 - SensorParserConfig is missing
+
+### `GET /api/v1/sensor/parser/config/list/available`
   * Description: Lists the available parser classes that can be found on the classpath
   * Returns:
     * 200 - Returns a list of available parser classes
 
-### `POST /api/v1/sensorParserConfig/parseMessage`
+### `POST /api/v1/sensor/parser/config/parseMessage`
   * Description: Parses a sample message given a SensorParserConfig
   * Input:
     * parseMessageRequest - Object containing a sample message and SensorParserConfig
   * Returns:
     * 200 - Returns parsed message
 
-### `GET /api/v1/sensorParserConfig/reload/available`
+### `GET /api/v1/sensor/parser/config/reload/available`
   * Description: Scans the classpath for available parser classes and reloads the cached parser class list
   * Returns:
     * 200 - Returns a list of available parser classes
 
-### `DELETE /api/v1/sensorParserConfig/{name}`
+### `DELETE /api/v1/sensor/parser/config/{name}`
   * Description: Deletes a SensorParserConfig from Zookeeper
   * Input:
     * name - SensorParserConfig name
@@ -254,32 +307,12 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - SensorParserConfig was deleted
     * 404 - SensorParserConfig is missing
 
-### `GET /api/v1/sensorParserConfig/{name}`
+### `GET /api/v1/sensor/parser/config/{name}`
   * Description: Retrieves a SensorParserConfig from Zookeeper
   * Input:
     * name - SensorParserConfig name
   * Returns:
     * 200 - Returns SensorParserConfig
-    * 404 - SensorParserConfig is missing
-
-### `GET /api/v1/sensorParserConfigHistory`
-  * Description: Retrieves all current versions of SensorParserConfigs including audit information
-  * Returns:
-    * 200 - Returns all SensorParserConfigs with audit information
-
-### `GET /api/v1/sensorParserConfigHistory/history/{name}`
-  * Description: Retrieves the history of all changes made to a SensorParserConfig
-  * Input:
-    * name - SensorParserConfig name
-  * Returns:
-    * 200 - Returns SensorParserConfig history
-
-### `GET /api/v1/sensorParserConfigHistory/{name}`
-  * Description: Retrieves the current version of a SensorParserConfig including audit information
-  * Input:
-    * name - SensorParserConfig name
-  * Returns:
-    * 200 - Returns SensorParserConfig with audit information
     * 404 - SensorParserConfig is missing
 
 ### `GET /api/v1/storm`

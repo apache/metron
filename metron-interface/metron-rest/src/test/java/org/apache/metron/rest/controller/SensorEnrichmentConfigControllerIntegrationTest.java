@@ -48,8 +48,6 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
 
   /**
    {
-   "index": "broTest",
-   "batchSize": 1,
    "enrichment": {
    "fieldMap": {
    "geo": [
@@ -145,8 +143,6 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
     this.mockMvc.perform(post(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.index").value("broTest"))
-            .andExpect(jsonPath("$.batchSize").value(1))
             .andExpect(jsonPath("$.enrichment.fieldMap.geo[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.host[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.hbaseEnrichment[0]").value("ip_src_addr"))
@@ -164,8 +160,6 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.index").value("broTest"))
-            .andExpect(jsonPath("$.batchSize").value(1))
             .andExpect(jsonPath("$.enrichment.fieldMap.geo[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.host[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.hbaseEnrichment[0]").value("ip_src_addr"))
@@ -183,21 +177,19 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorEnrichmentConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.index == 'broTest' &&" +
-                    "@.batchSize == 1 &&" +
-                    "@.enrichment.fieldMap.geo[0] == 'ip_dst_addr' &&" +
-                    "@.enrichment.fieldMap.host[0] == 'ip_dst_addr' &&" +
-                    "@.enrichment.fieldMap.hbaseEnrichment[0] == 'ip_src_addr' &&" +
-                    "@.enrichment.fieldToTypeMap.ip_src_addr[0] == 'sample' &&" +
-                    "@.enrichment.fieldMap.stellar.config.group1.foo == '1 + 1' &&" +
-                    "@.enrichment.fieldMap.stellar.config.group1.bar == 'foo' &&" +
-                    "@.enrichment.fieldMap.stellar.config.group2.ALL_CAPS == 'TO_UPPER(source.type)' &&" +
-                    "@.threatIntel.fieldMap.hbaseThreatIntel[0] == 'ip_src_addr' &&" +
-                    "@.threatIntel.fieldMap.hbaseThreatIntel[1] == 'ip_dst_addr' &&" +
-                    "@.threatIntel.fieldToTypeMap.ip_src_addr[0] == 'malicious_ip' &&" +
-                    "@.threatIntel.fieldToTypeMap.ip_dst_addr[0] == 'malicious_ip' &&" +
-                    "@.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"] == 10 &&" +
-                    "@.threatIntel.triageConfig.aggregator == 'MAX'" +
+            .andExpect(jsonPath("$[?(@.broTest.enrichment.fieldMap.geo[0] == 'ip_dst_addr' &&" +
+                    "@.broTest.enrichment.fieldMap.host[0] == 'ip_dst_addr' &&" +
+                    "@.broTest.enrichment.fieldMap.hbaseEnrichment[0] == 'ip_src_addr' &&" +
+                    "@.broTest.enrichment.fieldToTypeMap.ip_src_addr[0] == 'sample' &&" +
+                    "@.broTest.enrichment.fieldMap.stellar.config.group1.foo == '1 + 1' &&" +
+                    "@.broTest.enrichment.fieldMap.stellar.config.group1.bar == 'foo' &&" +
+                    "@.broTest.enrichment.fieldMap.stellar.config.group2.ALL_CAPS == 'TO_UPPER(source.type)' &&" +
+                    "@.broTest.threatIntel.fieldMap.hbaseThreatIntel[0] == 'ip_src_addr' &&" +
+                    "@.broTest.threatIntel.fieldMap.hbaseThreatIntel[1] == 'ip_dst_addr' &&" +
+                    "@.broTest.threatIntel.fieldToTypeMap.ip_src_addr[0] == 'malicious_ip' &&" +
+                    "@.broTest.threatIntel.fieldToTypeMap.ip_dst_addr[0] == 'malicious_ip' &&" +
+                    "@.broTest.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"] == 10 &&" +
+                    "@.broTest.threatIntel.triageConfig.aggregator == 'MAX'" +
                     ")]").exists());
 
     this.mockMvc.perform(delete(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)).with(csrf()))

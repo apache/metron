@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.SensorParserConfigHistory;
 import org.apache.metron.rest.service.SensorParserConfigHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class SensorParserConfigHistoryController {
     @ApiResponses(value = { @ApiResponse(message = "Returns SensorParserConfig with audit information", code = 200),
             @ApiResponse(message = "SensorParserConfig is missing", code = 404) })
     @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-    ResponseEntity<SensorParserConfigHistory> findOne(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name) throws Exception {
+    ResponseEntity<SensorParserConfigHistory> findOne(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name) throws RestException {
         SensorParserConfigHistory sensorParserConfigHistory = sensorParserHistoryService.findOne(name);
         if (sensorParserConfigHistory != null) {
             return new ResponseEntity<>(sensorParserHistoryService.findOne(name), HttpStatus.OK);
@@ -55,14 +56,14 @@ public class SensorParserConfigHistoryController {
     @ApiOperation(value = "Retrieves all current versions of SensorParserConfigs including audit information")
     @ApiResponse(message = "Returns all SensorParserConfigs with audit information", code = 200)
     @RequestMapping(method = RequestMethod.GET)
-    ResponseEntity<List<SensorParserConfigHistory>> getall() throws Exception {
+    ResponseEntity<List<SensorParserConfigHistory>> getall() throws RestException {
         return new ResponseEntity<>(sensorParserHistoryService.getAll(), HttpStatus.OK);
     }
 
     @ApiOperation(value = "Retrieves the history of all changes made to a SensorParserConfig")
     @ApiResponse(message = "Returns SensorParserConfig history", code = 200)
     @RequestMapping(value = "/history/{name}", method = RequestMethod.GET)
-    ResponseEntity<List<SensorParserConfigHistory>> history(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name) throws Exception {
+    ResponseEntity<List<SensorParserConfigHistory>> history(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name) throws RestException {
         return new ResponseEntity<>(sensorParserHistoryService.history(name), HttpStatus.OK);
     }
 }

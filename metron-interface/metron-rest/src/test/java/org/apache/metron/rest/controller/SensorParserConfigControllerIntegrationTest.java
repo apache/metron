@@ -20,13 +20,11 @@ package org.apache.metron.rest.controller;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.rest.service.GrokService;
-import org.apache.metron.rest.service.SensorParserConfigService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -79,6 +77,19 @@ public class SensorParserConfigControllerIntegrationTest {
 
   /**
    {
+   "parserClassName": "org.apache.metron.parsers.GrokParser",
+   "sensorTopic": "squidTest",
+   "parserConfig": {
+   "patternLabel": "SQUIDTEST",
+   "timestampField": "timestamp"
+   }
+   }
+   */
+  @Multiline
+  public static String missingGrokJson;
+
+  /**
+   {
    "parserClassName":"org.apache.metron.parsers.bro.BasicBroParser",
    "sensorTopic":"broTest",
    "parserConfig": {}
@@ -105,6 +116,52 @@ public class SensorParserConfigControllerIntegrationTest {
    */
   @Multiline
   public static String parseRequest;
+
+  /**
+   {
+   "sensorParserConfig": null,
+   "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html"
+   }
+   */
+  @Multiline
+  public static String missingConfigParseRequest;
+
+  /**
+   {
+   "sensorParserConfig":
+   {
+   "sensorTopic": "squidTest",
+   "parserConfig": {
+   "grokStatement": "%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}",
+   "patternLabel": "SQUIDTEST",
+   "grokPath":"./squidTest",
+   "timestampField": "timestamp"
+   }
+   },
+   "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html"
+   }
+   */
+  @Multiline
+  public static String missingClassParseRequest;
+
+  /**
+   {
+   "sensorParserConfig":
+   {
+   "parserClassName": "badClass",
+   "sensorTopic": "squidTest",
+   "parserConfig": {
+   "grokStatement": "%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}",
+   "patternLabel": "SQUIDTEST",
+   "grokPath":"./squidTest",
+   "timestampField": "timestamp"
+   }
+   },
+   "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html"
+   }
+   */
+  @Multiline
+  public static String badClassParseRequest;
 
   @Autowired
   private Environment environment;
@@ -156,6 +213,12 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.fieldTransformations[0].output[1]").value("domain_without_subdomains"))
             .andExpect(jsonPath("$.fieldTransformations[0].config.full_hostname").value("URL_TO_HOST(url)"))
             .andExpect(jsonPath("$.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"));
+
+    this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(missingGrokJson))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.responseCode").value(500))
+            .andExpect(jsonPath("$.message").value("A grokStatement must be provided"));
 
     this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -260,6 +323,25 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.ip_src_addr").value("127.0.0.1"))
             .andExpect(jsonPath("$.url").value("http://www.aliexpress.com/af/shoes.html?"))
             .andExpect(jsonPath("$.timestamp").value(1467011157401L));
+
+    this.mockMvc.perform(post(sensorParserConfigUrl + "/parseMessage").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(missingConfigParseRequest))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.responseCode").value(500))
+            .andExpect(jsonPath("$.message").value("SensorParserConfig is missing from ParseMessageRequest"));
+
+    this.mockMvc.perform(post(sensorParserConfigUrl + "/parseMessage").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(missingClassParseRequest))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.responseCode").value(500))
+            .andExpect(jsonPath("$.message").value("SensorParserConfig must have a parserClassName"));
+
+    this.mockMvc.perform(post(sensorParserConfigUrl + "/parseMessage").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(badClassParseRequest))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.responseCode").value(500))
+            .andExpect(jsonPath("$.message").value("java.lang.ClassNotFoundException: badClass"));
+
   }
 
   private void cleanFileSystem() throws IOException {

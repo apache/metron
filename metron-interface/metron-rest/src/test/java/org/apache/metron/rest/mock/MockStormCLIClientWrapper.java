@@ -17,10 +17,10 @@
  */
 package org.apache.metron.rest.mock;
 
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.StormCLIWrapper;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +45,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int startParserTopology(String name) throws IOException, InterruptedException {
+  public int startParserTopology(String name) throws RestException {
     TopologyStatusCode parserStatus = parsersStatus.get(name);
     if (parserStatus == null || parserStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
       parsersStatus.put(name, TopologyStatusCode.ACTIVE);
@@ -56,7 +56,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int stopParserTopology(String name, boolean stopNow) throws IOException, InterruptedException {
+  public int stopParserTopology(String name, boolean stopNow) throws RestException {
     TopologyStatusCode parserStatus = parsersStatus.get(name);
     if (parserStatus == TopologyStatusCode.ACTIVE) {
       parsersStatus.put(name, TopologyStatusCode.TOPOLOGY_NOT_FOUND);
@@ -91,7 +91,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int startEnrichmentTopology() throws IOException, InterruptedException {
+  public int startEnrichmentTopology() throws RestException {
     if (enrichmentStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
       enrichmentStatus = TopologyStatusCode.ACTIVE;
       return 0;
@@ -101,7 +101,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int stopEnrichmentTopology(boolean stopNow) throws IOException, InterruptedException {
+  public int stopEnrichmentTopology(boolean stopNow) throws RestException {
     if (enrichmentStatus == TopologyStatusCode.ACTIVE) {
       enrichmentStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
       return 0;
@@ -133,7 +133,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int startIndexingTopology() throws IOException, InterruptedException {
+  public int startIndexingTopology() throws RestException {
     if (indexingStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
       indexingStatus = TopologyStatusCode.ACTIVE;
       return 0;
@@ -143,7 +143,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int stopIndexingTopology(boolean stopNow) throws IOException, InterruptedException {
+  public int stopIndexingTopology(boolean stopNow) throws RestException {
     if (indexingStatus == TopologyStatusCode.ACTIVE) {
       indexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
       return 0;
@@ -171,7 +171,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  protected String stormClientVersionInstalled() throws IOException {
+  protected String stormClientVersionInstalled() throws RestException {
     return "1.0.1";
   }
 }

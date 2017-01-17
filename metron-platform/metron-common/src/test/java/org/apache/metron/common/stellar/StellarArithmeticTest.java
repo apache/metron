@@ -307,4 +307,26 @@ public class StellarArithmeticTest {
     exception.expect(ParseException.class);
     run("--000000L", ImmutableMap.of());
   }
+
+  @Test(expected = ParseException.class)
+  public void unableToDivideByZeroWithIntegers() throws Exception {
+    run("0/0", ImmutableMap.of());
+  }
+
+  @Test(expected = ParseException.class)
+  public void unableToDivideByZeroWithLongs() throws Exception {
+    run("0L/0L", ImmutableMap.of());
+  }
+
+  @Test
+  public void ableToDivideByZero() throws Exception {
+    assertEquals(0F/0F, run("0F/0F", ImmutableMap.of()));
+    assertEquals(0D/0D, run("0D/0D", ImmutableMap.of()));
+    assertEquals(0D/0F, run("0D/0F", ImmutableMap.of()));
+    assertEquals(0F/0D, run("0F/0D", ImmutableMap.of()));
+    assertEquals(0F/0, run("0F/0", ImmutableMap.of()));
+    assertEquals(0D/0, run("0D/0", ImmutableMap.of()));
+    assertEquals(0/0D, run("0/0D", ImmutableMap.of()));
+    assertEquals(0/0F, run("0/0F", ImmutableMap.of()));
+  }
 }

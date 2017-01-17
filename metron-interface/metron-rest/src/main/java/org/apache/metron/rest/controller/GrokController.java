@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,14 +43,14 @@ public class GrokController {
     @ApiOperation(value = "Applies a Grok statement to a sample message")
     @ApiResponse(message = "JSON results", code = 200)
     @RequestMapping(value = "/validate", method = RequestMethod.POST)
-    ResponseEntity<GrokValidation> post(@ApiParam(name="grokValidation", value="Object containing Grok statment and sample message", required=true)@RequestBody GrokValidation grokValidation) throws Exception {
+    ResponseEntity<GrokValidation> post(@ApiParam(name="grokValidation", value="Object containing Grok statment and sample message", required=true)@RequestBody GrokValidation grokValidation) throws RestException {
         return new ResponseEntity<>(grokService.validateGrokStatement(grokValidation), HttpStatus.OK);
     }
 
     @ApiOperation(value = "Lists the common Grok statements available in Metron")
     @ApiResponse(message = "JSON object containing pattern label/Grok statements key value pairs", code = 200)
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    ResponseEntity<Map<String, String>> list() throws Exception {
+    ResponseEntity<Map<String, String>> list() throws RestException {
         return new ResponseEntity<>(grokService.getCommonGrokPatterns(), HttpStatus.OK);
     }
 }

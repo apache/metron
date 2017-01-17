@@ -11,11 +11,19 @@ functions can be used from everywhere where Stellar is used.
 ## Stellar Functions
 
 ### Mathematical Functions
+
 #### `ABS`
 * Description: Returns the absolute value of a number.
 * Input:
   * number - The number to take the absolute value of
 * Returns: The absolute value of the number passed in.
+*
+#### `BIN`
+* Description: Computes the bin that the value is in given a set of bounds.
+* Input:
+  * value - The value to bin
+  * bounds - A list of value bounds (excluding min and max) in sorted order.
+* Returns: Which bin N the value falls in such that bound(N-1) < value <= bound(N).  No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, and values greater than the last bound go in the M'th bin.
 
 
 ### Distributional Statistics
@@ -27,6 +35,14 @@ functions can be used from everywhere where Stellar is used.
     * value+ - One or more numbers to add
   * Returns: A Stellar statistics object
 
+#### `STATS_BIN`
+  * Description: Computes the bin that the value is in based on the statistical distribution. 
+  * Input:
+    * stats - The Stellar statistics object
+    * value - The value to bin
+    * bounds? - A list of percentile bin bounds (excluding min and max) or a string representing a known and common set of bins.  For convenience, we have provided QUARTILE, QUINTILE, and DECILE which you can pass in as a string arg. If this argument is omitted, then we assume a Quartile bin split. 
+  * Returns: "Which bin N the value falls in such that bound(N-1) < value <= bound(N). No min and max bounds are provided, so values smaller than the 0'th bound go in the 0'th bin, and values greater than the last bound go in the M'th bin.
+ 
 #### `STATS_COUNT`
   * Description: Calculates the count of the values accumulated (or in the window if a window is used).
   * Input:
@@ -129,8 +145,9 @@ functions can be used from everywhere where Stellar is used.
   * Input:
     * stats - The Stellar statistics object
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
-  
-  ### Statistical Outlier Detection
+
+
+### Statistical Outlier Detection
   
 #### `OUTLIER_MAD_STATE_MERGE`
   * Description: Update the statistical state required to compute the Median Absolute Deviation.

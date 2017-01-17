@@ -163,7 +163,6 @@ Components in the RPMs:
 
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
-- On Mac, Docker Toolbox's handling of ownership causes permissions issues in the Docker container.  Please use Docker for Mac instead.
 - Artifacts for metron-platform have been produced.  E.g. `mvn clean package -DskipTests` in `metron-platform`
 
 ### Building RPMs

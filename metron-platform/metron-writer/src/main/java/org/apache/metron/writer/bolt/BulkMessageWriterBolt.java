@@ -17,14 +17,14 @@
  */
 package org.apache.metron.writer.bolt;
 
+import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
-import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
+import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.MessageWriter;
 import org.apache.metron.common.utils.MessageUtils;
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.Function;
 
-public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
+public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
 
   private static final Logger LOG = LoggerFactory
           .getLogger(BulkMessageWriterBolt.class);
@@ -81,7 +81,7 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
     }
     try {
       bulkMessageWriter.init(stormConf
-                            , configurationTransformation.apply(new EnrichmentWriterConfiguration(getConfigurations()))
+                            , configurationTransformation.apply(new IndexingWriterConfiguration(getConfigurations()))
                             );
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -99,7 +99,7 @@ public class BulkMessageWriterBolt extends ConfiguredEnrichmentBolt {
                            , tuple
                            , message
                            , bulkMessageWriter
-                           , configurationTransformation.apply(new EnrichmentWriterConfiguration(getConfigurations()))
+                           , configurationTransformation.apply(new IndexingWriterConfiguration(getConfigurations()))
                            );
       LOG.trace("Writing enrichment message: {}", message);
     }

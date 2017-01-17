@@ -15,27 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.rest;
 
-package org.apache.metron.common.writer;
+public class RestException extends Exception {
 
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.writer.EnrichmentWriterConfiguration;
-import org.junit.Assert;
-import org.junit.Test;
+  private String fullMessage;
 
-public class EnrichmentWriterConfigurationTest {
-  @Test
-  public void testDefaultBatchSize() {
-    EnrichmentWriterConfiguration config = new EnrichmentWriterConfiguration(
-           new EnrichmentConfigurations()
-    );
-    Assert.assertEquals(1, config.getBatchSize("foo"));
+  public RestException(Exception e) { super( e.getMessage(), e.getCause()); }
+
+  public RestException(String message) {
+    super(message);
   }
-  @Test
-  public void testDefaultIndex() {
-    EnrichmentWriterConfiguration config = new EnrichmentWriterConfiguration(
-           new EnrichmentConfigurations()
-    );
-    Assert.assertEquals("foo", config.getIndex("foo"));
+
+  public RestException(String message, Throwable cause) {
+    super(message, cause);
   }
+
+  public RestException(String message, String fullMessage, Throwable cause) {
+    super(message, cause);
+    this.fullMessage = fullMessage;
+  }
+
+  public String getFullMessage() {
+    return this.fullMessage;
+  }
+
 }
