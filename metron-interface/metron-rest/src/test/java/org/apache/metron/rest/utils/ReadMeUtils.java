@@ -43,8 +43,12 @@ import java.util.Set;
 public class ReadMeUtils {
 
   public static void main(String[] args) throws Exception {
+    String path;
     if (args.length == 0) {
-      System.out.println("README output path must be passed in as first argument");
+      System.out.println("README output path was not set. Defaulting to 'metron-interface/metron-rest/README.md'");
+      path = "metron-interface/metron-rest/README.md";
+    } else {
+      path = args[0];
     }
 
     Reflections reflections = new Reflections("org.apache.metron.rest.controller");
@@ -119,7 +123,7 @@ public class ReadMeUtils {
     context.put( "endpoints", endpoints );
 
     Template template = Velocity.getTemplate("README.vm");
-    FileWriter fileWriter = new FileWriter(args[0]);
+    FileWriter fileWriter = new FileWriter(path);
     template.merge( context, fileWriter );
     fileWriter.close();
   }

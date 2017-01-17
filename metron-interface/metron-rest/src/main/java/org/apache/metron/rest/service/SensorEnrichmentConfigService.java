@@ -28,7 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class SensorEnrichmentConfigService {
@@ -60,11 +62,11 @@ public class SensorEnrichmentConfigService {
       return sensorEnrichmentConfig;
     }
 
-    public List<SensorEnrichmentConfig> getAll() throws RestException {
-        List<SensorEnrichmentConfig> sensorEnrichmentConfigs = new ArrayList<>();
+    public Map<String, SensorEnrichmentConfig> getAll() throws RestException {
+        Map<String, SensorEnrichmentConfig> sensorEnrichmentConfigs = new HashMap<>();
         List<String> sensorNames = getAllTypes();
         for (String name : sensorNames) {
-            sensorEnrichmentConfigs.add(findOne(name));
+            sensorEnrichmentConfigs.put(name, findOne(name));
         }
         return sensorEnrichmentConfigs;
     }

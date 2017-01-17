@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/sensor/enrichment/config")
@@ -66,7 +67,7 @@ public class SensorEnrichmentConfigController {
   @ApiOperation(value = "Retrieves all SensorEnrichmentConfigs from Zookeeper")
   @ApiResponse(message = "Returns all SensorEnrichmentConfigs", code = 200)
   @RequestMapping(method = RequestMethod.GET)
-  ResponseEntity<List<SensorEnrichmentConfig>> getAll() throws Exception {
+  ResponseEntity<Map<String, SensorEnrichmentConfig>> getAll() throws Exception {
     return new ResponseEntity<>(sensorEnrichmentConfigService.getAll(), HttpStatus.OK);
   }
 
