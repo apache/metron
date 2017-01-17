@@ -23,13 +23,18 @@
         <fieldset class="form-group">
             <div class="form-group">
                 <label attr.for="statement">TEXT</label>
-                <textarea #textEditor rows="30" class="form-control" name="ruleValue" [(ngModel)]="value"></textarea>
-            </div>
-            <div class="form-group">
-                <label attr.for="statement">SCORE</label>
-                <metron-config-number-spinner name="score" [(ngModel)]="score" > </metron-config-number-spinner>
+                <textarea #textEditor rows="30" class="form-control" name="ruleValue" [(ngModel)]="value" style="height: inherit"></textarea>
             </div>
         </fieldset>
+    </form>
+    <form class="form-inline">
+        <div class="form-group">
+            <label attr.for="statement" style="width: 100%">SCORE ADJUSTMENT</label>
+            <input class="score-slider" name="scoreSlider" type="range" min="0" max="100" [(ngModel)]="score" style="width: 72%; margin-right: 4px">
+            <div style="width: 25%; display: inline-block">
+                <metron-config-number-spinner name="scoreText" [(ngModel)]="score" [min]="0" [max]="100"> </metron-config-number-spinner>
+            </div>
+        </div>
     </form>
 
     <div class="metron-button-bar" >

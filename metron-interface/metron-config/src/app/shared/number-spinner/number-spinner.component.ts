@@ -53,6 +53,9 @@ export class NumberSpinnerComponent implements ControlValueAccessor {
   }
 
   get value(): any {
+    if (typeof this.innerValue === "string") {
+      this.innerValue = parseInt(this.innerValue);
+    }
     return this.innerValue;
   };
 

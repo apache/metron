@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@import "../../global.scss";
 @import "../../_variables.scss";
 
 textarea
@@ -22,7 +23,35 @@ textarea
   height: auto;
 }
 
-.rule-count
+.metron-threat-triage-edit
+{
+  @extend .metron-slider-pane;
+  background: $sub-edit-background;
+  border: 1px solid $edit-background-border;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.threat-triage-title
+{
+  @extend .form-title;
+  padding-left: 25px;
+}
+
+.threat-triage-close
+{
+  @extend .close-button;
+  padding-right: 20px;
+}
+
+.rules-summary-background
+{
+  background-color: $sub-edit-highlight;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.rule-summary-button
 {
   width: 32%;
   background: $field-background;
@@ -33,6 +62,38 @@ textarea
   i {
     font-size: smaller;
   }
+}
+
+.rules-summary-button-selected
+{
+  @extend .rule-summary-button;
+  background-color: #006ea0;
+  color: #bdbdbd;
+}
+
+.rules-content
+{
+  padding-left: 25px;
+  padding-right: 20px;
+}
+
+.rules-aggregator
+{
+  @extend .rules-content;
+  padding-bottom: 10px;
+}
+
+.rules-sort
+{
+  display: inline-block;
+  padding-top: 5px;
+}
+
+.rules-list
+{
+  padding-top: 10px;
+  padding-left: 25px;
+  padding-right: 20px;
 }
 
 .rule-row
