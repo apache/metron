@@ -108,6 +108,11 @@ public class IndexingConfigurations extends Configurations {
                 );
   }
 
+  public static Map<String, Object> setEnabled(Map<String, Object> conf, boolean enabled) {
+    Map<String, Object> ret = conf == null?new HashMap<>():conf;
+    ret.put(ENABLED_CONF, enabled);
+    return ret;
+  }
   public static Map<String, Object> setBatchSize(Map<String, Object> conf, int batchSize) {
     Map<String, Object> ret = conf == null?new HashMap<>():conf;
     ret.put(BATCH_SIZE_CONF, batchSize);
