@@ -177,6 +177,11 @@ public class SimpleHBaseEnrichmentWriterTest {
       public Map<String, Object> getGlobalConfig() {
         return null;
       }
+
+      @Override
+      public boolean isDefault(String sensorName) {
+        return false;
+      }
     };
   }
 }

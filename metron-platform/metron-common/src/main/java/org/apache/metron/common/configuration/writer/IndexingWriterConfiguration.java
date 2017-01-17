@@ -58,4 +58,9 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   public Map<String, Object> getGlobalConfig() {
     return config.orElse(new IndexingConfigurations()).getGlobalConfig();
   }
+
+  @Override
+  public boolean isDefault(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).isDefault(sensorName, writerName);
+  }
 }

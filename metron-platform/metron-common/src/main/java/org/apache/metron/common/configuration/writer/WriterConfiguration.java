@@ -27,4 +27,5 @@ public interface WriterConfiguration extends Serializable {
   boolean isEnabled(String sensorName);
   Map<String, Object> getSensorConfig(String sensorName);
   Map<String, Object> getGlobalConfig();
+  boolean isDefault(String sensorName);
 }

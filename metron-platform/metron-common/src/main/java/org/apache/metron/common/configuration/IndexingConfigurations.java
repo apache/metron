@@ -61,6 +61,16 @@ public class IndexingConfigurations extends Configurations {
     return ConfigurationType.INDEXING.getName() + "." + sensorType;
   }
 
+  public boolean isDefault(String sensorName, String writerName) {
+    Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorName));
+    if(ret == null) {
+      return true;
+    }
+    else {
+      Map<String, Object> writerConfig = (Map<String, Object>)ret.get(writerName);
+      return writerConfig != null?false:true;
+    }
+  }
 
   public int getBatchSize(String sensorName, String writerName ) {
      return getBatchSize(getSensorIndexingConfig(sensorName, writerName));

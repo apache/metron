@@ -76,4 +76,9 @@ public class ParserWriterConfiguration implements WriterConfiguration {
   public Map<String, Object> getGlobalConfig() {
     return config.getGlobalConfig();
   }
+
+  @Override
+  public boolean isDefault(String sensorName) {
+    return false;
+  }
 }
