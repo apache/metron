@@ -68,12 +68,12 @@ Build the full project and run tests:
 $ mvn clean install
 ```
 
-Build without tests:<br>
+Build without tests:
 ```
 $ mvn clean install -DskipTests
 ```
 
-Build with the HDP profile:<br>
+Build with the HDP profile:
 ```
 $ mvn clean install -PHDP-2.5.0.0
 ```
