@@ -1,6 +1,4 @@
 {
-  "index": "yaf",
-  "batchSize": 5,
   "enrichment" : {
     "fieldMap":
       {

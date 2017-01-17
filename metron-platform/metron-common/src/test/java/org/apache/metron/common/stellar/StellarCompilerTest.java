@@ -23,6 +23,7 @@ import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
+import org.apache.metron.common.stellar.evaluators.ComparisonExpressionWithOperatorEvaluator;
 import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.junit.Before;
@@ -34,12 +35,14 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Stack;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ArithmeticEvaluator.class, NumberLiteralEvaluator.class})
+@PrepareForTest({ArithmeticEvaluator.class, NumberLiteralEvaluator.class, ComparisonExpressionWithOperatorEvaluator.class})
 public class StellarCompilerTest {
   VariableResolver variableResolver;
   FunctionResolver functionResolver;
@@ -47,6 +50,7 @@ public class StellarCompilerTest {
   Stack<Token<?>> tokenStack;
   ArithmeticEvaluator arithmeticEvaluator;
   NumberLiteralEvaluator numberLiteralEvaluator;
+  ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
   StellarCompiler compiler;
 
   @SuppressWarnings("unchecked")
@@ -58,8 +62,9 @@ public class StellarCompilerTest {
     tokenStack = mock(Stack.class);
     arithmeticEvaluator = mock(ArithmeticEvaluator.class);
     numberLiteralEvaluator = mock(NumberLiteralEvaluator.class);
+    comparisonExpressionWithOperatorEvaluator = mock(ComparisonExpressionWithOperatorEvaluator.class);
 
-    compiler = new StellarCompiler(variableResolver, functionResolver, context, tokenStack, arithmeticEvaluator, numberLiteralEvaluator);
+    compiler = new StellarCompiler(variableResolver, functionResolver, context, tokenStack, arithmeticEvaluator, numberLiteralEvaluator, comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -76,6 +81,7 @@ public class StellarCompilerTest {
     verifyZeroInteractions(functionResolver);
     verifyZeroInteractions(context);
     verifyZeroInteractions(arithmeticEvaluator);
+    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -92,6 +98,7 @@ public class StellarCompilerTest {
     verifyZeroInteractions(functionResolver);
     verifyZeroInteractions(context);
     verifyZeroInteractions(arithmeticEvaluator);
+    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -108,6 +115,7 @@ public class StellarCompilerTest {
     verifyZeroInteractions(functionResolver);
     verifyZeroInteractions(context);
     verifyZeroInteractions(arithmeticEvaluator);
+    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -120,6 +128,27 @@ public class StellarCompilerTest {
     verify(numberLiteralEvaluator).evaluate(ctx);
     verify(tokenStack).push(any(Token.class));
     verifyNoMoreInteractions(tokenStack);
+    verifyZeroInteractions(variableResolver);
+    verifyZeroInteractions(functionResolver);
+    verifyZeroInteractions(context);
+    verifyZeroInteractions(arithmeticEvaluator);
+    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+  }
+
+  @Test
+  public void properlyCompareTwoNumbers() throws Exception {
+    StellarParser.ComparisonExpressionWithOperatorContext ctx = mock(StellarParser.ComparisonExpressionWithOperatorContext.class);
+    StellarParser.ComparisonOpContext mockOp = mock(StellarParser.ComparisonOpContext.class);
+    when(ctx.comp_operator()).thenReturn(mockOp);
+
+    compiler.exitComparisonExpressionWithOperator(ctx);
+
+    verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp));
+    verify(tokenStack, times(2)).pop();
+    verify(tokenStack).push(any());
+    verify(tokenStack, times(2)).empty();
+    verifyNoMoreInteractions(tokenStack);
+    verifyZeroInteractions(numberLiteralEvaluator);
     verifyZeroInteractions(variableResolver);
     verifyZeroInteractions(functionResolver);
     verifyZeroInteractions(context);

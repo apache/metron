@@ -22,8 +22,10 @@ The query language supports the following:
 * Simple boolean operations: `and`, `not`, `or`
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
 * Simple comparison operations `<`, `>`, `<=`, `>=`
+* Simple equality comparison operations `==`, `!=`
 * if/then/else comparisons (i.e. `if var1 < 10 then 'less than 10' else '10 or more'`)
 * Determining whether a field exists (via `exists`)
+* An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions
 
@@ -38,90 +40,126 @@ The following keywords need to be single quote escaped in order to be used in St
 | <= | \> | \>= |
 | ? | \+ | \- |
 | , | \* | / |
+|  | \* | / |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
+## Stellar Language Inclusion Checks (`in` and `not in`)
+1. `in` supports string contains. e.g. `'foo' in 'foobar' == true`
+2. `in` supports collection contains. e.g. `'foo' in [ 'foo', 'bar' ] == true`
+3. `in` supports map key contains. e.g. `'foo' in { 'foo' : 5} == true`
+4. `not in` is the negation of the in expression. e.g. `'grok' not in 'foobar' == true`
+
+## Stellar Language Comparisons (`<`, `<=`, `>`, `>=`)
+
+1. If either side of the comparison is null then return false.
+2. If both values being compared implement number then the following:
+    * If either side is a double then get double value from both sides and compare using given operator.
+    * Else if either side is a float then get float value from both sides and compare using given operator.
+    * Else if either side is a long then get long value from both sides and compare using given operator.
+    * Otherwise get the int value from both sides and compare using given operator.
+3. If both sides are of the same type and are comparable then use the compareTo method to compare values.
+4. If none of the above are met then an exception is thrown.
+
+## Stellar Language Equality Check (`==`, `!=`)
+
+Below is how the `==` operator is expected to work:
+
+1. If either side of the expression is null then check equality using Java's `==` expression.
+2. Else if both sides of the expression are of Java's type Number then:
+   * If either side of the expression is a double then use the double value of both sides to test equality.
+   * Else if either side of the expression is a float then use the float value of both sides to test equality.
+   * Else if either side of the expression is a long then use long value of both sides to test equality.
+   * Otherwise use int value of both sides to test equality
+3. Otherwise use equals method compare the left side with the right side.
+
+The `!=` operator is the negation of the above.
+
 ## Stellar Core Functions
 
-|            |
-| ---------- |
-| [ `BLOOM_ADD`](#bloom_add)|
-| [ `BLOOM_EXISTS`](#bloom_exists)|
-| [ `BLOOM_INIT`](#bloom_init)|
-| [ `BLOOM_MERGE`](#bloom_merge)|
-| [ `DAY_OF_MONTH`](#day_of_month)|
-| [ `DAY_OF_WEEK`](#day_of_week)|
-| [ `DAY_OF_YEAR`](#day_of_year)|
-| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)|
-| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)|
-| [ `DOMAIN_TO_TLD`](#domain_to_tld)|
-| [ `ENDS_WITH`](#ends_with)|
-| [ `ENRICHMENT_EXISTS`](#enrichment_exists)|
-| [ `ENRICHMENT_GET`](#enrichment_get)|
-| [ `FILL_LEFT`](#fill_left)|
-| [ `FILL_RIGHT`](#fill_right)|
-| [ `GET`](#get)|
-| [ `GET_FIRST`](#get_first)|
-| [ `GET_LAST`](#get_last)|
-| [ `IN_SUBNET`](#in_subnet)|
-| [ `IS_DATE`](#is_date)|
-| [ `IS_DOMAIN`](#is_domain)|
-| [ `IS_EMAIL`](#is_email)|
-| [ `IS_EMPTY`](#is_empty)|
-| [ `IS_INTEGER`](#is_integer)|
-| [ `IS_IP`](#is_ip)|
-| [ `IS_URL`](#is_url)|
-| [ `JOIN`](#join)|
-| [ `KAFKA_GET`](#kafka_get)|
-| [ `KAFKA_PROPS`](#kafka_props)|
-| [ `KAFKA_PUT`](#kafka_put)|
-| [ `KAFKA_TAIL`](#kafka_tail)|
-| [ `LENGTH`](#length)|
-| [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)|
-| [ `MAAS_MODEL_APPLY`](#maas_model_apply)|
-| [ `MAP_EXISTS`](#map_exists)|
-| [ `MONTH`](#month)|
-| [ `PROFILE_GET`](#profile_get)|
-| [ `PROTOCOL_TO_NAME`](#protocol_to_name)|
-| [ `REGEXP_MATCH`](#regexp_match)|
-| [ `SPLIT`](#split)|
-| [ `STARTS_WITH`](#starts_with)|
-| [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)|
-| [ `STATS_COUNT`](../../metron-analytics/metron-statistics#stats_count)|
-| [ `STATS_GEOMETRIC_MEAN`](../../metron-analytics/metron-statistics#stats_geometric_mean)|
-| [ `STATS_INIT`](../../metron-analytics/metron-statistics#stats_init)|
-| [ `STATS_KURTOSIS`](../../metron-analytics/metron-statistics#stats_kurtosis)|
-| [ `STATS_MAX`](../../metron-analytics/metron-statistics#stats_max)|
-| [ `STATS_MEAN`](../../metron-analytics/metron-statistics#stats_mean)|
-| [ `STATS_MERGE`](../../metron-analytics/metron-statistics#stats_merge)|
-| [ `STATS_MIN`](../../metron-analytics/metron-statistics#stats_min)|
-| [ `STATS_PERCENTILE`](../../metron-analytics/metron-statistics#stats_percentile)|
-| [ `STATS_POPULATION_VARIANCE`](../../metron-analytics/metron-statistics#stats_population_variance)|
-| [ `STATS_QUADRATIC_MEAN`](../../metron-analytics/metron-statistics#stats_quadratic_mean)|
-| [ `STATS_SD`](../../metron-analytics/metron-statistics#stats_sd)|
-| [ `STATS_SKEWNESS`](../../metron-analytics/metron-statistics#stats_skewness)|
-| [ `STATS_SUM`](../../metron-analytics/metron-statistics#stats_sum)|
-| [ `STATS_SUM_LOGS`](../../metron-analytics/metron-statistics#stats_sum_logs)|
-| [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)|
-| [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)|
-| [ `SYSTEM_ENV_GET`](#system_env_get)|
-| [ `SYSTEM_PROPERTY_GET`](#system_property_get)|
-| [ `TO_DOUBLE`](#to_double)|
-| [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)|
-| [ `TO_FLOAT`](#to_float)|
-| [ `TO_INTEGER`](#to_integer)|
-| [ `TO_LONG`](#to_long)|
-| [ `TO_LOWER`](#to_lower)|
-| [ `TO_STRING`](#to_string)|
-| [ `TO_UPPER`](#to_upper)|
-| [ `TRIM`](#trim)|
-| [ `URL_TO_HOST`](#url_to_host)|
-| [ `URL_TO_PATH`](#url_to_path)|
-| [ `URL_TO_PORT`](#url_to_port)|
-| [ `URL_TO_PROTOCOL`](#url_to_protocol)|
-| [ `WEEK_OF_MONTH`](#week_of_month)|
-| [ `WEEK_OF_YEAR`](#week_of_year)|
-| [ `YEAR`](#year)|
+|                                                                                                    |
+| ----------                                                                                         |
+| [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
+| [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
+| [ `BLOOM_ADD`](#bloom_add)                                                                         |
+| [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
+| [ `BLOOM_INIT`](#bloom_init)                                                                       |
+| [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
+| [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
+| [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
+| [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
+| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                                           |
+| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                                         |
+| [ `DOMAIN_TO_TLD`](#domain_to_tld)                                                                 |
+| [ `ENDS_WITH`](#ends_with)                                                                         |
+| [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
+| [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
+| [ `FILL_LEFT`](#fill_left)                                                                         |
+| [ `FILL_RIGHT`](#fill_right)                                                                       |
+| [ `GET`](#get)                                                                                     |
+| [ `GET_FIRST`](#get_first)                                                                         |
+| [ `GET_LAST`](#get_last)                                                                           |
+| [ `IN_SUBNET`](#in_subnet)                                                                         |
+| [ `IS_DATE`](#is_date)                                                                             |
+| [ `IS_DOMAIN`](#is_domain)                                                                         |
+| [ `IS_EMAIL`](#is_email)                                                                           |
+| [ `IS_EMPTY`](#is_empty)                                                                           |
+| [ `IS_INTEGER`](#is_integer)                                                                       |
+| [ `IS_IP`](#is_ip)                                                                                 |
+| [ `IS_URL`](#is_url)                                                                               |
+| [ `JOIN`](#join)                                                                                   |
+| [ `KAFKA_GET`](#kafka_get)                                                                         |
+| [ `KAFKA_PROPS`](#kafka_props)                                                                     |
+| [ `KAFKA_PUT`](#kafka_put)                                                                         |
+| [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
+| [ `LENGTH`](#length)                                                                               |
+| [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
+| [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
+| [ `MAP_EXISTS`](#map_exists)                                                                       |
+| [ `MONTH`](#month)                                                                                 |
+| [ `PROFILE_GET`](#profile_get)                                                                     |
+| [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
+| [ `REGEXP_MATCH`](#regexp_match)                                                                   |
+| [ `SPLIT`](#split)                                                                                 |
+| [ `STARTS_WITH`](#starts_with)                                                                     |
+| [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
+| [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
+| [ `STATS_COUNT`](../../metron-analytics/metron-statistics#stats_count)                             |
+| [ `STATS_GEOMETRIC_MEAN`](../../metron-analytics/metron-statistics#stats_geometric_mean)           |
+| [ `STATS_INIT`](../../metron-analytics/metron-statistics#stats_init)                               |
+| [ `STATS_KURTOSIS`](../../metron-analytics/metron-statistics#stats_kurtosis)                       |
+| [ `STATS_MAX`](../../metron-analytics/metron-statistics#stats_max)                                 |
+| [ `STATS_MEAN`](../../metron-analytics/metron-statistics#stats_mean)                               |
+| [ `STATS_MERGE`](../../metron-analytics/metron-statistics#stats_merge)                             |
+| [ `STATS_MIN`](../../metron-analytics/metron-statistics#stats_min)                                 |
+| [ `STATS_PERCENTILE`](../../metron-analytics/metron-statistics#stats_percentile)                   |
+| [ `STATS_POPULATION_VARIANCE`](../../metron-analytics/metron-statistics#stats_population_variance) |
+| [ `STATS_QUADRATIC_MEAN`](../../metron-analytics/metron-statistics#stats_quadratic_mean)           |
+| [ `STATS_SD`](../../metron-analytics/metron-statistics#stats_sd)                                   |
+| [ `STATS_SKEWNESS`](../../metron-analytics/metron-statistics#stats_skewness)                       |
+| [ `STATS_SUM`](../../metron-analytics/metron-statistics#stats_sum)                                 |
+| [ `STATS_SUM_LOGS`](../../metron-analytics/metron-statistics#stats_sum_logs)                       |
+| [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)                 |
+| [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)                       |
+| [ `STRING_ENTROPY`](#string_entropy)                                                               |
+| [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
+| [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
+| [ `TO_DOUBLE`](#to_double)                                                                         |
+| [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
+| [ `TO_FLOAT`](#to_float)                                                                           |
+| [ `TO_INTEGER`](#to_integer)                                                                       |
+| [ `TO_LONG`](#to_long)                                                                             |
+| [ `TO_LOWER`](#to_lower)                                                                           |
+| [ `TO_STRING`](#to_string)                                                                         |
+| [ `TO_UPPER`](#to_upper)                                                                           |
+| [ `TRIM`](#trim)                                                                                   |
+| [ `URL_TO_HOST`](#url_to_host)                                                                     |
+| [ `URL_TO_PATH`](#url_to_path)                                                                     |
+| [ `URL_TO_PORT`](#url_to_port)                                                                     |
+| [ `URL_TO_PROTOCOL`](#url_to_protocol)                                                             |
+| [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
+| [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
+| [ `YEAR`](#year)                                                                                   |
 
 ### `BLOOM_ADD`
   * Description: Adds an element to the bloom filter passed in
@@ -382,8 +420,9 @@ MAP_GET`
     * entity - The name of the entity.
     * durationAgo - How long ago should values be retrieved from?
     * units - The units of 'durationAgo'.
-    * groups - Optional - The groups used to sort the profile.
-  * Returns: The profile measurements.
+    * groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when creating the profile.
+    * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+  * Returns: The selected profile measurements.
 
 ### `PROTOCOL_TO_NAME`
   * Description: Converts the IANA protocol number to the protocol name
@@ -397,6 +436,12 @@ MAP_GET`
     * string - The string to test
     * pattern - The proposed regex pattern
   * Returns: True if the regex pattern matches the string and false if otherwise.
+
+### `STRING_ENTROPY`
+  * Description: Computes the base-2 shannon entropy of a string.
+  * Input:
+    * input - String 
+  * Returns: The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits.
 
 ### `SPLIT`
   * Description: Splits the string by the delimiter.

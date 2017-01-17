@@ -117,8 +117,6 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     configsUpdated = new HashSet<>();
     String sensorType = "testSensorConfig";
     SensorEnrichmentConfig testSensorConfig = new SensorEnrichmentConfig();
-    testSensorConfig.setBatchSize(50);
-    testSensorConfig.setIndex("test");
     Map<String, Object> enrichmentFieldMap = new HashMap<>();
     enrichmentFieldMap.put("enrichmentTest", new ArrayList<String>() {{
       add("enrichmentField");

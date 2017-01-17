@@ -1,6 +1,4 @@
 {
-  "index": "snort",
-  "batchSize": 1,
   "enrichment" : {
     "fieldMap":
       {
