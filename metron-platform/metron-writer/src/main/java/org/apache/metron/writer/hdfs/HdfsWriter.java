@@ -86,6 +86,11 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
+  public String getName() {
+    return "hdfs";
+  }
+
+  @Override
   public void close() {
     for(SourceHandler handler : sourceHandlerMap.values()) {
       handler.close();

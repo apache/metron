@@ -37,6 +37,11 @@ public class SingleBatchConfigurationFacade implements WriterConfiguration {
   }
 
   @Override
+  public boolean isEnabled(String sensorName) {
+    return true;
+  }
+
+  @Override
   public Map<String, Object> getSensorConfig(String sensorName) {
     return config.getSensorConfig(sensorName);
   }

@@ -81,7 +81,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     }
     try {
       bulkMessageWriter.init(stormConf
-                            , configurationTransformation.apply(new IndexingWriterConfiguration(getConfigurations()))
+                            , configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
                             );
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -99,7 +99,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
                            , tuple
                            , message
                            , bulkMessageWriter
-                           , configurationTransformation.apply(new IndexingWriterConfiguration(getConfigurations()))
+                           , configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
                            );
       LOG.trace("Writing enrichment message: {}", message);
     }
