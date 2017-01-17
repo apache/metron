@@ -45,7 +45,7 @@ DOUBLE_QUOTE : '"';
 SINGLE_QUOTE : '\'';
 COMMA : ',';
 PERIOD : '.';
-EOL : '\n';
+fragment EOL : '\n';
 
 AND : 'and' | '&&' | 'AND';
 OR : 'or' | '||' | 'OR';
