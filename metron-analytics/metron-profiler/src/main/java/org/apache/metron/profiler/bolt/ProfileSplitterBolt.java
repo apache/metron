@@ -147,11 +147,13 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
   /**
    * Each emitted tuple contains the following fields.
-   * <p><ol>
+   * <p>
+   * <ol>
    * <li> entity - The name of the entity.  The actual result of executing the Stellar expression.
    * <li> profile - The profile definition that the message needs applied to.
    * <li> message - The message containing JSON-formatted data that needs applied to a profile.
-   * </ol></p>
+   * </ol>
+   * <p>
    */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {

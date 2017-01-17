@@ -47,19 +47,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
  * entries. For a list of available enrichment adapters see
- * org.apache.metron.enrichment.adapters.
- * <p/>
+ * {@link org.apache.metron.enrichment.adapters}.
+ * <p>
  * At the moment of release the following enrichment adapters are available:
- * <p/>
+ * <p>
  * <ul>
- * <p/>
  * <li>geo = attaches geo coordinates to IPs
  * <li>whois = attaches whois information to domains
  * <li>host = attaches reputation information to known hosts
  * <li>CIF = attaches information from threat intelligence feeds
- * <ul>
- * <p/>
- * <p/>
+ * </ul>
+ * <p>
  * Enrichments are optional
  **/
 
