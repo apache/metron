@@ -15,30 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ThreatTriageConfig} from './threat-triage-config';
-export class SensorEnrichmentConfig {
-  enrichment: EnrichmentConfig;
-  threatIntel: ThreatIntelConfig;
-  configuration: {};
-
-  constructor() {
-    this.enrichment = new EnrichmentConfig();
-    this.threatIntel = new ThreatIntelConfig();
-  }
-}
-
-export class EnrichmentConfig {
-  fieldMap = {};
-  fieldToTypeMap = {};
-  config = {};
-}
-
-export class ThreatIntelConfig {
-  fieldMap = {};
-  fieldToTypeMap = {};
-  config = {};
-  triageConfig: ThreatTriageConfig;
-  constructor() {
-    this.triageConfig = new ThreatTriageConfig();
-  }
+export class SensorIndexingConfig {
+  index: string;
+  batchSize: number = 1;
 }

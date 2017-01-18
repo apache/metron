@@ -123,12 +123,12 @@
 
                     <div class="form-group">
                         <label attr.for="index">INDEX NAME</label>
-                        <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorEnrichmentConfig.index" >
+                        <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorIndexingConfig.index" >
                     </div>
 
                     <div class="form-group">
                         <label attr.for="batchSize">BATCH SIZE</label>
-                        <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorEnrichmentConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
+                        <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorIndexingConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
                     </div>
 
                     <metron-config-advanced-form [(config)]="sensorParserConfig.parserConfig"></metron-config-advanced-form>

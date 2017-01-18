@@ -22,6 +22,7 @@ import {SharedModule} from '../../shared/shared.module';
 import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
 describe('Component: SensorStellarComponent', () => {
 
@@ -34,8 +35,6 @@ describe('Component: SensorStellarComponent', () => {
     let sensorParserConfigString = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
         '"parserConfig": {},"fieldTransformations":[]}';
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.index = 'bro';
-    sensorEnrichmentConfig.batchSize = 5;
     sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), {
       'fieldMap': {
         'geo': ['ip_dst_addr', 'ip_src_addr'],
@@ -55,6 +54,10 @@ describe('Component: SensorStellarComponent', () => {
     let sensorEnrichmentConfigString = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
         '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
         ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
+
+    let sensorIndexingConfig = new SensorIndexingConfig();
+    sensorIndexingConfig.index = 'bro';
+    sensorIndexingConfig.batchSize = 5;
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
