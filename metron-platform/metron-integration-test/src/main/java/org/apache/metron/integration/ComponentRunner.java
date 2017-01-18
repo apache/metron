@@ -28,7 +28,7 @@ public class ComponentRunner {
         String[] shutdownOrder;
         long timeBetweenAttempts = 1000;
         int numRetries = 5;
-        long maxTimeMS = 120000;
+        long maxTimeMS = 200000;
         public Builder() {
             components = new LinkedHashMap<String, InMemoryComponent>();
         }

@@ -247,7 +247,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
       enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
       if(error) {
-        throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
+        throw new Exception("Unable to enrich " + rawMessage + " check logs for specifics.");
       }
       if (!enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));

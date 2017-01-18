@@ -18,7 +18,6 @@
 package org.apache.metron.enrichment.adapters.geo;
 
 import com.maxmind.db.CHMCache;
-import com.maxmind.db.Reader;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
@@ -40,7 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.GZIPInputStream;
 
@@ -49,7 +47,7 @@ public enum GeoLiteDatabase {
 
   protected static final Logger LOG = LoggerFactory.getLogger(GeoLiteDatabase.class);
   public static final String GEO_HDFS_FILE = "geo.hdfs.file";
-  public static final String GEO_HDFS_FILE_DEFAULT = "/apps/metron/geo/GeoLiteCity-Default";
+  public static final String GEO_HDFS_FILE_DEFAULT = "/apps/metron/geo/default/GeoLite2-City.mmdb.gz";
 
   private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private static final Lock readLock = lock.readLock();
@@ -78,8 +76,6 @@ public enum GeoLiteDatabase {
 
   @SuppressWarnings("unchecked")
   public void update(String hdfsFile) {
-    LOG.info("[Metron] Update to GeoIP data started with {}", hdfsFile);
-
     // If nothing is set (or it's been unset, use the defaults)
     if (hdfsFile == null || hdfsFile.isEmpty()) {
       LOG.debug("[Metron] Using default for {}: {}", GEO_HDFS_FILE, GEO_HDFS_FILE_DEFAULT);
@@ -96,25 +92,25 @@ public enum GeoLiteDatabase {
 
     try (GZIPInputStream gis = new GZIPInputStream(fs.open(new Path(hdfsFile)))) {
       writeLock.lock();
+      LOG.info("[Metron] Update to GeoIP data started with {}", hdfsFile);
       // InputStream based DatabaseReaders are always in memory.
       DatabaseReader newReader = new DatabaseReader.Builder(gis).withCache(new CHMCache()).build();
       DatabaseReader oldReader = reader;
       reader = newReader;
       // If we've never set a reader, don't close the old one
-      if(oldReader != null) {
+      if (oldReader != null) {
         oldReader.close();
       }
+      LOG.info("[Metron] Finished update to GeoIP data started with {}", hdfsFile);
     } catch (IOException e) {
       LOG.error("[Metron] Unable to open new database file {}", hdfsFile, e);
       throw new IllegalStateException("[Metron] Unable to update MaxMind database");
     } finally {
       // Don't unlock if the try failed
-      if(lock.isWriteLocked()) {
+      if (lock.isWriteLocked()) {
         writeLock.unlock();
       }
     }
-
-    LOG.info("[Metron] Finished update to GeoIP data started with {}", hdfsFile);
   }
 
   // Optional.empty means that we don't have any geo location in database.
@@ -127,6 +123,7 @@ public enum GeoLiteDatabase {
     try {
       addr = InetAddress.getByName(ip);
     } catch (UnknownHostException e) {
+      LOG.warn("[Metron] No result found for IP {}", ip, e);
       return Optional.empty();
     }
     if (isLocalAddress(ip, addr)) {
@@ -135,8 +132,8 @@ public enum GeoLiteDatabase {
 
     try {
       readLock.lock();
-      InetAddress ipAddress = InetAddress.getByName(ip);
-      CityResponse cityResponse = reader.city(ipAddress);
+      addr = InetAddress.getByName(ip);
+      CityResponse cityResponse = reader.city(addr);
       HashMap<String, String> geoInfo = new HashMap<>();
 
       Country country = cityResponse.getCountry();
@@ -144,17 +141,25 @@ public enum GeoLiteDatabase {
       Postal postal = cityResponse.getPostal();
       Location location = cityResponse.getLocation();
 
-      geoInfo.put("locID", Integer.toString(country.getGeoNameId()));
-      geoInfo.put("country", country.getIsoCode());
-      geoInfo.put("city", city.getName());
-      geoInfo.put("postalCode", postal.getCode());
+      geoInfo.put("locID", convertNullToEmptyString(country.getGeoNameId()));
+      geoInfo.put("country", convertNullToEmptyString(country.getIsoCode()));
+      geoInfo.put("city", convertNullToEmptyString(city.getName()));
+      geoInfo.put("postalCode", convertNullToEmptyString(postal.getCode()));
+      geoInfo.put("dmaCode", convertNullToEmptyString(location.getMetroCode()));
 
-      Double latitude = location.getLatitude();
-      Double longitude = location.getLongitude();
-      geoInfo.put("latitude", Double.toString(latitude));
-      geoInfo.put("longitude", Double.toString(longitude));
-      geoInfo.put("dmaCode", Integer.toString(location.getMetroCode()));
-      geoInfo.put("location_point", latitude + "," + longitude);
+      Double latitudeRaw = location.getLatitude();
+      String latitude = convertNullToEmptyString(latitudeRaw);
+      geoInfo.put("latitude", latitude);
+
+      Double longitudeRaw = location.getLongitude();
+      String longitude = convertNullToEmptyString(longitudeRaw);
+      geoInfo.put("longitude", longitude);
+
+      if (latitudeRaw == null || longitudeRaw == null) {
+        geoInfo.put("location_point", "");
+      } else {
+        geoInfo.put("location_point", latitude + "," + longitude);
+      }
 
       return Optional.of(geoInfo);
     } catch (UnknownHostException e) {
@@ -167,7 +172,10 @@ public enum GeoLiteDatabase {
     return Optional.empty();
   }
 
-  // Most of the impl details go in here.
+  protected String convertNullToEmptyString(Object raw) {
+    return raw == null ? "" : String.valueOf(raw);
+  }
+
   private boolean isLocalAddress(String ipStr, InetAddress addr) {
     return addr.isAnyLocalAddress() || addr.isLoopbackAddress()
             || addr.isSiteLocalAddress() || addr.isMulticastAddress()

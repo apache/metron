@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,7 +37,9 @@ import java.util.Optional;
 public class GeoLiteDatabaseTest {
   private static Context context;
   private static File geoHdfsFile;
-  private static final String IP = "216.160.83.56";
+  private static File geoHdfsFile_update;
+  private static final String IP_WITH_DMA = "81.2.69.192";
+  private static final String IP_NO_DMA = "216.160.83.56";
 
   /**
    * {
@@ -52,9 +54,26 @@ public class GeoLiteDatabaseTest {
    * }
    */
   @Multiline
-  private static String expectedMessageString;
+  private static String expectedNoDmaMessageString;
 
-  private static JSONObject expectedMessage;
+  private static JSONObject expectedNoDmaMessage;
+
+  /**
+   * {
+   * "locID":"2635167",
+   * "country":"GB",
+   * "city":"London",
+   * "postalCode":"",
+   * "latitude":"51.5142",
+   * "longitude":"-0.0931",
+   * "dmaCode":"",
+   * "location_point":"51.5142,-0.0931"
+   * }
+   */
+  @Multiline
+  private static String expectedDmaMessageString;
+
+  private static JSONObject expectedDmaMessage;
 
   private static FileSystem fs;
 
@@ -64,10 +83,12 @@ public class GeoLiteDatabaseTest {
   @BeforeClass
   public static void setupOnce() throws ParseException, IOException {
     JSONParser jsonParser = new JSONParser();
-    expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
+    expectedNoDmaMessage = (JSONObject) jsonParser.parse(expectedNoDmaMessageString);
+    expectedDmaMessage = (JSONObject) jsonParser.parse(expectedDmaMessageString);
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    geoHdfsFile_update = new File(new File(baseDir), "GeoIP2-City-Test-2.mmdb.gz");
 
     Configuration config = new Configuration();
     fs = FileSystem.get(config);
@@ -92,11 +113,20 @@ public class GeoLiteDatabaseTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetRemote() throws Exception {
+  public void testGetRemoteWithDma() throws Exception {
     GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
-    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result.get());
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP_WITH_DMA);
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedDmaMessage, result.get());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetRemoteNoDma() throws Exception {
+    GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
+
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP_NO_DMA);
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
   }
 
   @Test
@@ -105,8 +135,8 @@ public class GeoLiteDatabaseTest {
     GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
     GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
-    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result.get());
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP_NO_DMA);
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
   }
 
   @Test
@@ -116,8 +146,8 @@ public class GeoLiteDatabaseTest {
     globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     GeoLiteDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
-    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result.get());
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP_NO_DMA);
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
   }
 
 
@@ -129,7 +159,23 @@ public class GeoLiteDatabaseTest {
     GeoLiteDatabase.INSTANCE.updateIfNecessary(globalConfig);
     GeoLiteDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
-    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result.get());
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP_NO_DMA);
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testDifferingUpdateIfNecessary() throws Exception {
+    HashMap<String, Object> globalConfig = new HashMap<>();
+    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    GeoLiteDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(IP_NO_DMA);
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+
+    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile_update.getAbsolutePath());
+    GeoLiteDatabase.INSTANCE.updateIfNecessary(globalConfig);
+    result = GeoLiteDatabase.INSTANCE.get(IP_NO_DMA);
+
+    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
   }
 }

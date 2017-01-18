@@ -45,6 +45,7 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.mock.MockHTable;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.ParseException;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -100,10 +101,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void setupOnce() throws ParseException {
-    // Don't want to actually create the file, so just use a UUID
-    String fileName = EnrichmentIntegrationTest.class.getSimpleName() + "-" + UUID.randomUUID();
-    geoHdfsFile = new File(fileName);
-    createGeoDb();
+    String baseDir = UnitTestHelper.findDir("GeoLite");
+    geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
 
     geoTmpLocalDir = Files.createTempDir();
   }
@@ -112,35 +111,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static void tearDownOnce() throws IOException {
     FileUtils.deleteDirectory(geoTmpLocalDir);
     FileUtils.forceDelete(geoHdfsFile);
-  }
-
-  protected static void createGeoDb() {
-    /*
-    DB db = DBMaker.fileDB(geoHdfsFile)
-            .closeOnJvmShutdown()
-            .make();
-    @SuppressWarnings("unchecked")
-    DB.TreeMapSink<Long, GeoLocation> sink = db
-            .treeMap("geoDb", Serializer.LONG, Serializer.JAVA)
-            .createFromSink();
-
-    GeoLocation input = new GeoLocation(
-            Long.MAX_VALUE,
-            "1",
-            "test country",
-            "test city",
-            "test postalCode",
-            "test latitude",
-            "test longitude",
-            "test dmaCode"
-    );
-    // Use nonzero number as start IP, so that we can test if an IP has no floor
-    sink.put(100L, input);
-
-    sink.create();
-    db.commit();
-    db.close();
-    */
   }
 
   @Test

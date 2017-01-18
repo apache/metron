@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 public class GeoEnrichmentLoader {
@@ -59,14 +59,14 @@ public class GeoEnrichmentLoader {
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "geo_url", true, "GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz");
         o.setArgName("GEO_URL");
-        o.setRequired(true);
+        o.setRequired(false);
         return o;
       }
     }), REMOTE_DIR("r", new GeoEnrichmentLoader.OptionHandler() {
       @Nullable
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "remote_dir", true, "HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo");
+        Option o = new Option(s, "remote_dir", true, "HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/<epoch millis>/");
         o.setArgName("REMOTE_DIR");
         o.setRequired(false);
         return o;
@@ -154,8 +154,8 @@ public class GeoEnrichmentLoader {
 
     // Push the file to HDFS and update Configs to ensure clients get new view
     String zookeeper = GeoEnrichmentOptions.ZK_QUORUM.get(cli);
-    String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmSS_SSS"));
-    String hdfsLoc = GeoEnrichmentOptions.REMOTE_DIR.get(cli, "/apps/metron/geo/" + date);
+    long millis = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+    String hdfsLoc = GeoEnrichmentOptions.REMOTE_DIR.get(cli, "/apps/metron/geo/" + millis);
     System.out.println("Putting GeoLite2 file into HDFS at: " + hdfsLoc);
 
     // Put into HDFS
