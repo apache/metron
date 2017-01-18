@@ -42,7 +42,7 @@ elasticsearch or solr and hdfs writers running.
 
 The configuration for an individual writer-specific configuration is a JSON map with the following fields:
 * `index` : The name of the index to write to (defaulted to the name of the sensor).
-* `batchSize` : The size of the batch that is written to the indices at once (defaulted to 1.
+* `batchSize` : The size of the batch that is written to the indices at once (defaulted to `1`).
 * `enabled` : Whether the writer is enabled (default `true`)
 
 ### Indexing Configuration Examples
@@ -53,6 +53,8 @@ the following cases:
 {
 }
 ```
+or no file at all.
+
 * elasticsearch writer
   * enabled
   * batch size of 1
@@ -61,6 +63,10 @@ the following cases:
   * enabled
   * batch size of 1
   * index name the same as the sensor
+
+If a writer config is unspecified, then a warning is indicated in the
+Storm console.  e.g.:
+`WARNING: Default and (likely) unoptimized writer config used for hdfs writer and sensor squid`
 
 #### Fully specified
 ```
