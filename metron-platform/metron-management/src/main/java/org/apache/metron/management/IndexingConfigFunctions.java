@@ -96,10 +96,10 @@ public class IndexingConfigFunctions {
   @Stellar(
            namespace = "INDEXING"
           ,name = "SET_ENABLED"
-          ,description = "Set batch size"
+          ,description = "Enable or disable an indexing writer for a sensor."
           ,params = {"sensorConfig - Sensor config to add transformation to."
                     ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
-                    ,"enabled? - boolean indicating whether the writer is enabled"
+                    ,"enabled? - boolean indicating whether the writer is enabled.  If omitted, then it will set enabled."
                     }
           ,returns = "The String representation of the config in zookeeper"
           )
