@@ -19,48 +19,18 @@
 import {async, TestBed, ComponentFixture} from '@angular/core/testing';
 import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
 import {SharedModule} from '../../../shared/shared.module';
-import {SimpleChanges, SimpleChange} from '@angular/core';
-import {SensorParserConfig} from '../../../model/sensor-parser-config';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../../model/sensor-enrichment-config';
+import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
 
-describe('Component: SensorStellarComponent', () => {
+describe('Component: SensorRuleEditorComponent', () => {
 
     let fixture: ComponentFixture<SensorRuleEditorComponent>;
     let component: SensorRuleEditorComponent;
-    let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
-    sensorParserConfig.sensorTopic = 'bro';
-    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
-    sensorParserConfig.parserConfig = {};
-    let sensorParserConfigString = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
-        '"parserConfig": {},"fieldTransformations":[]}';
-    let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.index = 'bro';
-    sensorEnrichmentConfig.batchSize = 5;
-    sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), {
-      'fieldMap': {
-        'geo': ['ip_dst_addr', 'ip_src_addr'],
-        'host': ['host']
-      }
-    });
-    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
-          'fieldMap': {
-            'hbaseThreatIntel': ['ip_src_addr', 'ip_dst_addr']
-          },
-          'fieldToTypeMap': {
-            'ip_src_addr' : ['malicious_ip'],
-            'ip_dst_addr' : ['malicious_ip']
-          }
-        });
-
-    let sensorEnrichmentConfigString = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
-        '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
-        ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
             imports: [SharedModule
             ],
-            declarations: [ SensorRuleEditorComponent ],
+            declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
             providers: [
               SensorRuleEditorComponent
             ]
@@ -73,4 +43,29 @@ describe('Component: SensorStellarComponent', () => {
     it('should create an instance', () => {
         expect(component).toBeDefined();
     });
+
+    it('should edit rules', async(() => {
+        component.value =  'initial rule';
+        component.score = 1;
+        let numCancelled = 0;
+        let savedRule = {};
+        component.onCancelTextEditor.subscribe((cancelled: boolean) => {
+          numCancelled++;
+        });
+        component.onSubmitTextEditor.subscribe((rule: {string: number}) => {
+          savedRule = rule;
+        });
+
+        component.onSave();
+        expect(savedRule).toEqual({'initial rule': 1});
+
+        component.value =  'new rule';
+        component.score = 2;
+        component.onSave();
+        expect(savedRule).toEqual({'new rule': 2});
+
+        expect(numCancelled).toEqual(0);
+        component.onCancel();
+        expect(numCancelled).toEqual(1);
+    }));
 });

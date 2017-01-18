@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, Input, EventEmitter, Output, ViewChild} from '@angular/core';
+import {Component, Input, EventEmitter, Output} from '@angular/core';
 
 @Component({
   selector: 'metron-config-sensor-rule-editor',
@@ -30,15 +30,6 @@ export class SensorRuleEditorComponent {
 
   @Output() onCancelTextEditor: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onSubmitTextEditor: EventEmitter<{}> = new EventEmitter<{}>();
-  
-  
-
-  @ViewChild('textEditor') vc;
-
-  ngAfterViewChecked() {
-    //console.log(this.vc.nativeElement);
-    //setTimeout(() => { this.vc.nativeElement.focus() }, 500);
-  }
 
   constructor() { }
 

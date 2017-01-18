@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+/* tslint:disable:triple-equals */
+import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
+import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
 
 export enum SortOrderOption {
   LOWEST_SCORE, HIGHEST_SCORE, LOWEST_NAME, HIGHEST_NAME
@@ -32,14 +33,13 @@ export enum ThreatTriageFilter {
   styleUrls: ['./sensor-threat-triage.component.scss']
 })
 
-export class SensorThreatTriageComponent implements OnInit, OnChanges {
+export class SensorThreatTriageComponent implements OnChanges {
 
   @Input() showThreatTriage: boolean;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
 
   @Output() hideThreatTriage: EventEmitter<boolean> = new EventEmitter<boolean>();
-  
-  availableAggregators = ['MAX', 'SUM'];
+  availableAggregators = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
 
   showTextEditor = false;
   currentValue: string;
@@ -58,10 +58,6 @@ export class SensorThreatTriageComponent implements OnInit, OnChanges {
   filter: ThreatTriageFilter = ThreatTriageFilter.NONE;
 
   constructor() { }
-
-  ngOnInit() {
-
-  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showThreatTriage'] && changes['showThreatTriage'].currentValue) {
@@ -87,11 +83,11 @@ export class SensorThreatTriageComponent implements OnInit, OnChanges {
     this.showTextEditor = false;
     this.init();
   }
-  
+
   onCancelTextEditor(): void {
     this.showTextEditor = false;
   }
-  
+
   onEditRule(rule: string) {
     this.textEditorValue = rule;
     this.textEditorScore = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule];
@@ -102,7 +98,7 @@ export class SensorThreatTriageComponent implements OnInit, OnChanges {
     delete this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule];
     this.init();
   }
-  
+
   onNewRule(): void {
     this.textEditorValue = '';
     this.textEditorScore = 0;
@@ -113,7 +109,7 @@ export class SensorThreatTriageComponent implements OnInit, OnChanges {
     this.lowAlerts = 0;
     this.mediumAlerts = 0;
     this.highAlerts = 0;
-    for(let rule of this.rules) {
+    for (let rule of this.rules) {
       if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] <= 20) {
         this.lowAlerts++;
       } else if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] >= 80) {
@@ -123,7 +119,7 @@ export class SensorThreatTriageComponent implements OnInit, OnChanges {
       }
     }
   }
-  
+
   getRuleColor(rule: string): string {
     let color: string;
     if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] <= 20) {
@@ -137,43 +133,40 @@ export class SensorThreatTriageComponent implements OnInit, OnChanges {
   }
 
   onSortOrderChange() {
-    if (this.sortOrder == SortOrderOption.HIGHEST_SCORE) {
+    // all comparisons with enums must be == and not ===
+    if (this.sortOrder == this.sortOrderOption.HIGHEST_SCORE) {
       this.rules.sort((a, b) => {
         let scoreA = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[a];
         let scoreB = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[b];
         return scoreB - scoreA;
-      })
+      });
     } else if (this.sortOrder == SortOrderOption.LOWEST_SCORE) {
       this.rules.sort((a, b) => {
         let scoreA = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[a];
         let scoreB = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[b];
         return scoreA - scoreB;
-      })
+      });
     } else if (this.sortOrder == SortOrderOption.LOWEST_NAME) {
       this.rules.sort((a, b) => {
-        if (a.toLowerCase() > b.toLowerCase()) {
+        if (a.toLowerCase() >= b.toLowerCase()) {
           return 1;
         } else if (a.toLowerCase() < b.toLowerCase()) {
           return -1;
-        } else {
-          return 0;
         }
-      })
+      });
     } else {
       this.rules.sort((a, b) => {
-        if (a.toLowerCase() > b.toLowerCase()) {
+        if (a.toLowerCase() >= b.toLowerCase()) {
           return -1;
         } else if (a.toLowerCase() < b.toLowerCase()) {
           return 1;
-        } else {
-          return 0;
         }
-      })
+      });
     }
   }
 
   onFilterChange(filter: ThreatTriageFilter) {
-    if (filter == this.filter) {
+    if (filter === this.filter) {
       this.filter = ThreatTriageFilter.NONE;
     } else {
       this.filter = filter;
