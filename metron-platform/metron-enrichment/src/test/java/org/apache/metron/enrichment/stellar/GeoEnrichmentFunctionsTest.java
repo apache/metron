@@ -82,6 +82,20 @@ public class GeoEnrichmentFunctionsTest {
   }
 
   @Test
+  public void testGetNull() throws Exception {
+    String stellar = "GEO_GET()";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertEquals("Null IP should return null", null, result);
+  }
+
+  @Test
+  public void testGetEmptyString() throws Exception {
+    String stellar = "GEO_GET('  ')";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertEquals("Empty IP should return null", null, result);
+  }
+
+  @Test
   public void testGetLocal() throws Exception {
     String stellar = "GEO_GET('192.168.0.1')";
     Object result = run(stellar, ImmutableMap.of());

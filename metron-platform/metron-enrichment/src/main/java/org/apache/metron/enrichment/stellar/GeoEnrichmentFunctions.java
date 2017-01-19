@@ -49,11 +49,11 @@ public class GeoEnrichmentFunctions {
         return null;
       }
       if(args.size() < 1) {
-        throw new IllegalStateException("Requires an IPV4 address");
+        return null;
       }
       int i = 0;
       String ip = (String) args.get(i++);
-      if(ip == null) {
+      if(ip == null || ip.trim().isEmpty()) {
         return null;
       }
 
