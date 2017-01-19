@@ -106,7 +106,7 @@ This will set up
 
 ### Prerequisites
 - A cluster managed by Ambari 2.4
-- Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#RPM) for further information.
+- Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
 
 ### Building Management Pack
 From `metron-deployment` run
@@ -129,7 +129,7 @@ The Indexing / Parsers/ Enrichment masters should be colocated with a Kafka Brok
 This colocation is currently not enforced by Ambari, and should be managed by either a Service or Stack advisor as an enhancement.
 
 Several configuration parameters will need to be filled in, and should be pretty self explanatory (primarily a couple of Elasticsearch configs, and the Storm REST URL).  Examples are provided in the descriptions on Ambari.
-Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file://` location
+Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file:///` location
 
 After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
 

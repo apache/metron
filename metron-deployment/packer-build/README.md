@@ -25,9 +25,13 @@ Build Single Images
 ---------------------- 
  Navigate to *your-project-directory*/metron-deployment/packer-build
  * HDP Centos 
- ```bin/bento build hdp-centos-6.7.json```
+ ```
+bin/bento build hdp-centos-6.7.json
+```
  * Full Metron
- ```bin/bento build metron-centos-6.7.json```
+ ```
+bin/bento build metron-centos-6.7.json
+```
 
 Using Your New Box File
 ---------------------- 
