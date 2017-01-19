@@ -1,4 +1,5 @@
-site/markdown/
+src/site/markdown/
+src/site/resources/images/
 *~
 target/
 *dependency-reduced-pom.xml
