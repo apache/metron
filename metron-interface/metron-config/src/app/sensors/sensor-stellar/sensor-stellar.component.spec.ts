@@ -22,17 +22,33 @@ import {SharedModule} from '../../shared/shared.module';
 import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+import {SensorStellarModule} from './sensor-stellar.module';
+import '../../rxjs-operators';
 
 describe('Component: SensorStellarComponent', () => {
 
     let fixture: ComponentFixture<SensorStellarComponent>;
     let component: SensorStellarComponent;
+    let sensorParserConfigString = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
+        '"parserConfig": {},"fieldTransformations":[]}';
     let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
     sensorParserConfig.parserConfig = {};
-    let sensorParserConfigString = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
-        '"parserConfig": {},"fieldTransformations":[]}';
+
+    let sensorParserConfigWithClassNameString = `{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro", 
+        "parserConfig": {},"fieldTransformations":[], "writerClassName": "org.example.writerClassName", 
+        "errorWriterClassName": "org.example.errorWriterClassName", 
+        "filterClassName": "org.example.filterClassName", "invalidWriterClassName": "org.example.invalidWriterClassName"}`;
+    let sensorParserConfigWithClassName = Object.assign(new SensorParserConfig(), sensorParserConfig);
+    sensorParserConfigWithClassName.writerClassName = 'org.example.writerClassName';
+    sensorParserConfigWithClassName.errorWriterClassName = 'org.example.errorWriterClassName';
+    sensorParserConfigWithClassName.filterClassName = 'org.example.filterClassName';
+    sensorParserConfigWithClassName.invalidWriterClassName = 'org.example.invalidWriterClassName';
+
+    let sensorEnrichmentConfigString = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
+        '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
+        ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
     sensorEnrichmentConfig.index = 'bro';
     sensorEnrichmentConfig.batchSize = 5;
@@ -52,18 +68,16 @@ describe('Component: SensorStellarComponent', () => {
           }
         });
 
-    let sensorEnrichmentConfigString = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
-        '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
-        ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
+    let sensorEnrichmentConfigWithConfigString = `{"index": "bro","batchSize": 5, "configuration": "some-configuration", 
+         "enrichment" : {"fieldMap": {"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},
+         "threatIntel": {"fieldMap": {"hbaseThreatIntel":["ip_src_addr", "ip_dst_addr"]},
+         "fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}`;
+    let sensorEnrichmentConfigWithConfig = Object.assign(new SensorEnrichmentConfig(), sensorEnrichmentConfig);
+    sensorEnrichmentConfigWithConfig.configuration = 'some-configuration';
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            imports: [SharedModule
-            ],
-            declarations: [ SensorStellarComponent ],
-            providers: [
-                SensorStellarComponent
-            ]
+            imports: [SharedModule, SensorStellarModule],
         });
 
         fixture = TestBed.createComponent(SensorStellarComponent);
@@ -90,13 +104,15 @@ describe('Component: SensorStellarComponent', () => {
 
     it('should initialise the fields', () => {
 
-        component.sensorParserConfig = this.sensorParserConfig;
-        component.sensorEnrichmentConfig = this.sensorEnrichmentConfig;
-
         component.init();
+        expect(component.newSensorParserConfig).toEqual(undefined);
+        expect(component.newSensorEnrichmentConfig).toEqual(undefined);
 
-        expect(component.newSensorParserConfig).toEqual('');
-        expect(component.newSensorEnrichmentConfig).toEqual('');
+        component.sensorParserConfig = sensorParserConfig;
+        component.sensorEnrichmentConfig = sensorEnrichmentConfig;
+        component.init();
+        expect(component.newSensorParserConfig).toEqual(JSON.stringify(sensorParserConfig, null, '\t'));
+        expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(sensorEnrichmentConfig, null, '\t'));
 
         fixture.destroy();
     });
@@ -105,56 +121,35 @@ describe('Component: SensorStellarComponent', () => {
         spyOn(component.hideStellar, 'emit');
         spyOn(component.onStellarChanged, 'emit');
 
-        component.sensorParserConfig = sensorParserConfig;
-        component.sensorEnrichmentConfig = sensorEnrichmentConfig;
+        component.sensorParserConfig = new SensorParserConfig();
+        component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
 
         component.newSensorParserConfig = sensorParserConfigString;
         component.newSensorEnrichmentConfig = sensorEnrichmentConfigString;
-
-        component.ngAfterViewInit();
-        component.init();
         component.onSave();
-
         expect(component.sensorParserConfig).toEqual(sensorParserConfig);
         expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
-
         expect(component.hideStellar.emit).toHaveBeenCalled();
         expect(component.onStellarChanged.emit).toHaveBeenCalled();
+
+
+        component.newSensorParserConfig = sensorParserConfigWithClassNameString;
+        component.newSensorEnrichmentConfig = sensorEnrichmentConfigWithConfigString;
+        component.onSave();
+        expect(component.sensorParserConfig).toEqual(sensorParserConfigWithClassName);
+        expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfigWithConfig);
+        expect(component.hideStellar.emit['calls'].count()).toEqual(2);
+        expect(component.onStellarChanged.emit['calls'].count()).toEqual(2);
 
         fixture.destroy();
     });
 
     it('should hide panel', () => {
-        spyOn(component, 'init');
         spyOn(component.hideStellar, 'emit');
 
         component.onCancel();
 
-        expect(component.init).toHaveBeenCalled();
         expect(component.hideStellar.emit).toHaveBeenCalled();
-
-        fixture.destroy();
-    });
-
-    it('should format transformationConfig', () => {
-        component.newSensorParserConfig = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser",' +
-            '"sensorTopic":"bro","parserConfig": {}}';
-
-        component.onSensorParserConfigBlur();
-
-        expect(component.newSensorParserConfig).toEqual(JSON.stringify(JSON.parse(component.newSensorParserConfig), null, '\t'));
-
-        fixture.destroy();
-    });
-
-    it('should format enrichmentConfig', () => {
-        component.newSensorEnrichmentConfig = '{"index": "bro","batchSize": 5,"enrichment" : {"fieldMap": ' +
-            '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
-            ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
-
-        component.onSensorEnrichmentConfigBlur();
-
-        expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(JSON.parse(component.newSensorEnrichmentConfig), null, '\t'));
 
         fixture.destroy();
     });

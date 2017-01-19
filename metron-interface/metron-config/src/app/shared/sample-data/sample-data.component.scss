@@ -46,32 +46,21 @@
 }
 
 
-textarea::-webkit-input-placeholder {
-  color:#bdbdbd;
-  font-weight: 300;
-  text-align: center;
-  font-style: italic;
-}
+textarea {
+  &::-webkit-input-placeholder {
+    @include place-holder-text;
+  }
+  &:-moz-placeholder {
+    @include place-holder-text;
+  }
 
-textarea:-moz-placeholder {
-  color:#bdbdbd;
-  font-weight: 300;
-  text-align: center;
-  font-style: italic;
-}
+  &::-moz-placeholder {
+    @include place-holder-text;
+  }
 
-textarea::-moz-placeholder {
-  color:#bdbdbd;
-  font-weight: 300;
-  text-align: center;
-  font-style: italic;
-}
-
-textarea :-ms-input-placeholder {
-  color:#bdbdbd;
-  font-weight: 300;
-  text-align: center;
-  font-style: italic;
+  &:-ms-input-placeholder {
+    @include place-holder-text;
+  }
 }
 
 

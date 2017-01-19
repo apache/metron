@@ -77,6 +77,7 @@ export class SampleDataComponent {
 
     if (currentValue.trim() === '') {
       this.sampleDataElement.nativeElement.placeholder = this.placeHolderText;
+      this.onSampleDataChanged.emit('');
     }
   }
 

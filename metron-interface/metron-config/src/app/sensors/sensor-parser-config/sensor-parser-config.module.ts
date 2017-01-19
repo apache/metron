@@ -29,12 +29,12 @@ import {NumberSpinnerComponent} from '../../shared/number-spinner/number-spinner
 import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
 import {MultipleInputComponent} from '../../shared/multiple-input/multiple-input.component';
 import {SensorGrokComponent} from '../sensor-grok/sensor-grok.component';
-import {AceEditorComponent} from '../../shared/ace-editor/ace-editor.component';
+import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
 
 @NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, SharedModule ],
+  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, SharedModule, AceEditorModule ],
   declarations: [ SensorParserConfigComponent, SensorGrokComponent, SensorFieldSchemaComponent, AdvancedConfigFormComponent,
     SampleDataComponent, AutocompleteComponent, SensorStellarComponent, MultipleInputComponent,
-    NumberSpinnerComponent,  AceEditorComponent ]
+    NumberSpinnerComponent ]
 })
 export class SensorParserConfigModule { }

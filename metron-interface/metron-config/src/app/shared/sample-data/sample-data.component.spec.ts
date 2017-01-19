@@ -20,6 +20,7 @@ import {KafkaService} from '../../service/kafka.service';
 import {Observable} from  'rxjs/Observable';
 import {SampleDataComponent} from './sample-data.component';
 import {SharedModule} from '../shared.module';
+import '../../rxjs-operators';
 
 class MockKafkaService {
   _sample: string[];
@@ -169,7 +170,7 @@ describe('SampleDataComponent', () => {
     fixture.debugElement.nativeElement.querySelector('textarea').value = expectedMessage;
     sampleDataComponent.onBlur();
 
-    expect(successCount).toEqual(1);
+    expect(successCount).toEqual(2);
     expect(sampleDataComponent.sampleDataIndex).toEqual(0);
     expect(sampleDataComponent.sampleData.length).toEqual(1);
 
@@ -177,7 +178,7 @@ describe('SampleDataComponent', () => {
     expectedMessage = sampleMessages[0];
     sampleDataComponent.getNextSample();
 
-    expect(successCount).toEqual(2);
+    expect(successCount).toEqual(3);
     expect(sampleDataComponent.sampleDataIndex).toEqual(1);
     expect(sampleDataComponent.sampleData.length).toEqual(2);
     expect(sampleDataComponent.sampleData[1]).toEqual(sampleMessages[0]);

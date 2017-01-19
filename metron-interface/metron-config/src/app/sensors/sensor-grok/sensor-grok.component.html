@@ -22,31 +22,21 @@
         <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
                                    (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
         <label attr.for="grokStatement">STATEMENT</label>
-        <metron-config-ace-editor [(ngModel)]="grokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'"> </metron-config-ace-editor>
+        <metron-config-ace-editor [(ngModel)]="grokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'"> </metron-config-ace-editor>
 
-        <br/>
-        <button type="submit" class="btn form-enable-disable-button" (click)="onTestGrokStatement()">TEST</button>
-        <br/><br/>
+        <div class="buttons-bar">
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="parseMessageRequest.sampleData.length===0 || grokStatement.length===0" (click)="onTestGrokStatement()">TEST</button>
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="grokStatement.length===0" (click)="onSaveGrok()">SAVE</button>
+        </div>
 
-        <label *ngIf="grokValidationResultKeys().length > 0"> PREVIEW </label>
-
+        <label> PREVIEW </label>
         <table class="table form-table" #table>
             <tbody>
-            <tr *ngFor="let key of grokValidationResultKeys();">
+            <tr *ngFor="let key of parsedMessageKeys">
                 <td>{{ key }}</td>
                 <td>{{ parsedMessage[key] }}</td>
             </tr>
             </tbody>
         </table>
     </form>
-
-    <br/><br/><br/><br/>
-
-    <div class="metron-button-bar">
-        <div class="row mx-0 py-1">
-            <button type="submit" class="btn form-enable-disable-button" (click)="onSaveGrok()">SAVE</button>
-            <button class="btn form-enable-disable-button" (click)="onCancelGrok()">CANCEL</button>
-        </div>
-    </div>
-
 </div>

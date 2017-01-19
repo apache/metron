@@ -12,9 +12,9 @@ ace.define('ace/mode/grok_highlight_rules', function(require, exports, module) {
         this.$rules = {
             "start" : [
                 {
-                    token : "entity.name.function",
+                    token : "paren.lparen",
                     regex: "\\%{",
-                    next  : "value"
+                    next  : "key"
                 },{
                     token : "comment",
                     regex: "\\s*[-/]\\s*"
@@ -25,22 +25,35 @@ ace.define('ace/mode/grok_highlight_rules', function(require, exports, module) {
                     defaultToken: "invalid"
                 }
             ],
-            "value" : [
-                // {
-                //     token : "comment",
-                //     regex : ":"
-                // },
+            "key" : [
                 {
-                    token : "entity.name.function",
+                    token: "variable",
+                    regex: "[a-zA-Z0-9]*",
+                    next  : "seperator"
+                },{
+                    defaultToken: "invalid"
+                }
+            ],"seperator" : [
+                {
+                    token: "seperator",
+                    regex: "\\s*:{1}",
+                    next  : "value"
+                },{
+                    defaultToken: "invalid"
+                }
+            ],"value" : [
+                {
+                    token: "string",
+                    regex: "\\s*[a-zA-Z0-9-_]*",
+                    next  : "end"
+                },{
+                    defaultToken: "invalid"
+                }
+            ],"end" : [
+                {
+                    token : "paren.rparen",
                     regex : "\\}\\s*",
                     next:   "start"
-                },
-                {
-                    token: "support.function",
-                    regex: "[a-zA-Z0-9]+:"
-                },{
-                    token: "variable.parameter",
-                    regex: "\\s*[a-zA-Z0-9-_]+"
                 },{
                     defaultToken: "invalid"
                 }
@@ -64,12 +77,13 @@ ace.define('ace/mode/grok', function(require, exports, module) {
     var Mode = function() {
         this.HighlightRules = GrokHighlightRules;
     };
+
     oop.inherits(Mode, TextMode);
 
     (function() {
-        // Extra logic goes here. (see below)
     }).call(Mode.prototype);
 
     exports.Mode = Mode;
 });
+
 

@@ -17,18 +17,18 @@
  */
 
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
+import {SimpleChange, SimpleChanges} from '@angular/core';
 import {Http} from '@angular/http';
-import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {MetronAlerts} from '../../shared/metron-alerts';
 import {KafkaService} from '../../service/kafka.service';
 import {Observable} from 'rxjs/Observable';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {ParseMessageRequest} from '../../model/parse-message-request';
-import {FieldTransformer} from '../../model/field-transformer';
 import {SensorGrokComponent} from './sensor-grok.component';
 import {GrokValidationService} from '../../service/grok-validation.service';
 import {SensorGrokModule} from './sensor-grok.module';
+import {SensorParserConfig} from '../../model/sensor-parser-config';
+import '../../rxjs-operators';
 
 class MockSensorParserConfigService {
 
@@ -128,7 +128,6 @@ describe('Component: SensorFieldSchema', () => {
       '- DIRECT/207.109.73.154 text/html';
     let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} ' +
       '%{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
-    let grokValidationResultKeys = ['action', 'bytes', 'code', 'elapsed', 'ip_dst_addr', 'ip_src_addr', 'method', 'timestamp', 'url'];
 
     component.sensorParserConfig = new SensorParserConfig();
     component.sensorParserConfig.sensorTopic = 'squid';
@@ -139,9 +138,6 @@ describe('Component: SensorFieldSchema', () => {
 
     expect(component.parseMessageRequest.sensorParserConfig.parserConfig['grokStatement']).toEqual(grokStatement);
     expect(component.parsedMessage).toEqual(parsedMessage);
-    expect(component.transformsValidation.sampleData).toEqual(JSON.stringify(parsedMessage));
-
-    expect(component.grokValidationResultKeys()).toEqual(grokValidationResultKeys);
 
     sensorParserConfigService.setParsedMessage('ERROR');
     component.onTestGrokStatement();
@@ -159,8 +155,11 @@ describe('Component: SensorFieldSchema', () => {
 
     component.sensorParserConfig = new SensorParserConfig();
     component.sensorParserConfig.parserConfig = {};
-    component.sensorParserConfig.parserConfig['grokStatement'] = '%{key:value} %{key:value} %{key:value}';
 
+    component.prepareGrokStatement();
+    expect(component.grokStatement).toEqual('');
+
+    component.sensorParserConfig.parserConfig['grokStatement'] = 'REMOVETHIS %{key:value} %{key:value} %{key:value}';
     component.prepareGrokStatement();
     expect(component.grokStatement).toEqual('%{key:value} %{key:value} %{key:value}');
 
@@ -172,7 +171,6 @@ describe('Component: SensorFieldSchema', () => {
 
   it('should call getSampleData if showGrok', () => {
     spyOn(component.sampleData, 'getNextSample');
-    spyOn(component, 'onSensorPareseConfigChange');
     spyOn(component, 'prepareGrokStatement');
 
     let changes: SimpleChanges = {
@@ -182,7 +180,6 @@ describe('Component: SensorFieldSchema', () => {
     component.ngOnChanges(changes);
     expect(component.sampleData.getNextSample['calls'].count()).toEqual(1);
     expect(component.prepareGrokStatement['calls'].count()).toEqual(1);
-    expect(component.onSensorPareseConfigChange['calls'].count()).toEqual(0);
 
     changes = {
       'showGrok': new SimpleChange(true, false),
@@ -190,29 +187,7 @@ describe('Component: SensorFieldSchema', () => {
     };
     component.ngOnChanges(changes);
     expect(component.sampleData.getNextSample['calls'].count()).toEqual(1);
-    expect(component.prepareGrokStatement['calls'].count()).toEqual(1);
-    expect(component.onSensorPareseConfigChange['calls'].count()).toEqual(1);
-
-    fixture.destroy();
-  });
-
-  it('should call onSensorPareseConfigChange and set data on onSensorPareseConfigChange', () => {
-    spyOn(component, 'prepareGrokStatement');
-    let fieldTransformer = new FieldTransformer();
-    fieldTransformer.input = ['abc'];
-    fieldTransformer.output = ['def'];
-    fieldTransformer.transformation = 'STELLAR';
-    fieldTransformer.config = {'test': 'abc'};
-
-    component.sensorParserConfig = new SensorParserConfig();
-    component.sensorParserConfig.fieldTransformations = [fieldTransformer];
-
-    component.onSensorPareseConfigChange();
-
-    let expected = JSON.stringify(component.sensorParserConfig.fieldTransformations);
-
-    expect(component.transformsValidation.sensorParserConfig).toEqual(expected);
-    expect(component.prepareGrokStatement['calls'].count()).toEqual(1);
+    expect(component.prepareGrokStatement['calls'].count()).toEqual(2);
 
     fixture.destroy();
   });
@@ -229,30 +204,31 @@ describe('Component: SensorFieldSchema', () => {
   });
 
   it('should return keys of parsed message  ', () => {
-    component.parsedMessage = {'abc': 'test', 'def': 'test-agin'};
+    component.grokStatement = 'sample statement';
+    component.sensorParserConfig = new SensorParserConfig();
+    component.sensorParserConfig.sensorTopic = 'abc';
+    sensorParserConfigService.setParsedMessage({'def': 'test-agin', 'abc': 'test'});
 
-    expect(component.grokValidationResultKeys()).toEqual(['abc', 'def']);
+    component.onTestGrokStatement();
+    expect(component.parsedMessageKeys).toEqual(['abc', 'def']);
+    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('ABC');
 
-    component.parsedMessage = null;
-    expect(component.grokValidationResultKeys()).toEqual([]);
+    sensorParserConfigService.setParsedMessage({});
+    component.onTestGrokStatement();
+    expect(component.parsedMessageKeys).toEqual([]);
+    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('ABC');
 
-    fixture.destroy();
-  });
+    sensorParserConfigService.setParsedMessage(null);
+    component.onTestGrokStatement();
+    expect(component.parsedMessageKeys).toEqual([]);
+    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('ABC');
 
-  it('should return keys of parsed message  ', () => {
-    component.parsedMessage = {'abc': 'test', 'def': 'test-agin'};
+    component.sensorParserConfig.parserConfig['patternLabel'] = 'def';
+    sensorParserConfigService.setParsedMessage('ERROR');
+    component.onTestGrokStatement();
+    expect(component.parsedMessageKeys).toEqual(['abc']);
+    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('def');
 
-    expect(component.grokValidationResultKeys()).toEqual(['abc', 'def']);
-
-    component.parsedMessage = null;
-    expect(component.grokValidationResultKeys()).toEqual([]);
-
-    fixture.destroy();
-  });
-
-  it('should set grokStatement on GrokStatementChange ', () => {
-    component.onGrokStatementChange('some sample message from auto complete component');
-    expect(component.grokStatement).toEqual('some sample message from auto complete component');
     fixture.destroy();
   });
 

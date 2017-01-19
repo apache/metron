@@ -56,6 +56,7 @@ html,body
 .btn
 {
   font-size: 0.9em;
+  min-width: 90px;
 }
 
 .metron-title
@@ -92,7 +93,7 @@ table, .table
     td
     {
       border-top: none;
-      border-bottom: 1px solid #404040 !important;
+      border-bottom: 1px solid #404040;
     }
   }
   .active
@@ -222,7 +223,6 @@ form
   {
     font-family: Roboto-Medium;
     font-size: 12px;
-    letter-spacing: -0.8px;
     color: $form-label;
   }
 
@@ -706,4 +706,12 @@ button
 .form-control:focus
 {
   color: #bdbdbd;
+}
+
+.ace_autocomplete.ace-monokai
+{
+  .ace_content {
+    background: #444;
+    color: #999;
+  }
 }

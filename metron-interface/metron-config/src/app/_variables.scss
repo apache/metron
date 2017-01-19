@@ -52,3 +52,12 @@ $slider-left-padding: 25px;
   transform: $transforms;
 }
 
+@mixin place-holder-text
+{
+  font-family: Roboto;
+  font-size: 12px;
+  color:#bdbdbd !important;
+  font-weight: 300 !important;
+  text-align: center !important;
+  font-style: italic !important;
+}

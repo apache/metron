@@ -29,6 +29,8 @@ testem.log
 /e2e/*.map
 
 #assets
+/src/assets/ace/snippets/json.js
+/src/assets/ace/snippets/text.js
 /src/assets/ace/ext-language_tools.js
 /src/assets/ace/mode-json.js
 /src/assets/ace/theme-monokai.js

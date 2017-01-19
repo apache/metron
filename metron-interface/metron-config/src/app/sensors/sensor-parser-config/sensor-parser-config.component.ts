@@ -86,21 +86,16 @@ export class SensorParserConfigComponent implements OnInit {
   init(id: string): void {
     if (id !== 'new') {
       this.editMode = true;
-
+      this.sensorEnrichmentConfig.index = id;
       this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
         this.sensorParserConfig = results;
         this.getKafkaStatus();
         if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
           this.showAdvancedParserConfiguration = true;
         }
-        });
-
+      });
       this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
         this.sensorEnrichmentConfig = result;
-      },
-      error => {
-        this.sensorEnrichmentConfig = new SensorEnrichmentConfig();
-        this.sensorEnrichmentConfig.index = id;
       });
 
     } else {
@@ -169,7 +164,7 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onParserTypeChange(parserClassName: string): void {
-    if (parserClassName === 'org.apache.metron.parsers.GrokParser' && this.sensorParserConfig.parserConfig['patternLabel'] === null) {
+    if (parserClassName === 'org.apache.metron.parsers.GrokParser' && !this.sensorParserConfig.parserConfig['patternLabel']) {
       this.sensorParserConfig.parserConfig['patternLabel'] = this.sensorParserConfig.sensorTopic.toUpperCase();
     }
   }
@@ -182,14 +177,15 @@ export class SensorParserConfigComponent implements OnInit {
 
     this.kafkaService.get(this.sensorParserConfig.sensorTopic).subscribe(kafkaTopic => {
       this.kafkaService.sample(this.sensorParserConfig.sensorTopic).subscribe((sampleData: string) => {
-          this.currentKafkaStatus = (sampleData && sampleData.length > 0) ? KafkaStatus.EMITTING : KafkaStatus.NOT_EMITTING;
-        }, error => {
-            this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
-          });
-        },
-        error => {
-          this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
-        });
+        this.currentKafkaStatus = (sampleData && sampleData.length > 0) ? KafkaStatus.EMITTING : KafkaStatus.NOT_EMITTING;
+      },
+      error => {
+        this.currentKafkaStatus = KafkaStatus.NOT_EMITTING;
+      });
+    },
+    error => {
+      this.currentKafkaStatus = KafkaStatus.NO_TOPIC;
+    });
 
   }
 
@@ -232,7 +228,7 @@ export class SensorParserConfigComponent implements OnInit {
         });
       },
       error => {
-        this.metronAlerts.showErrorMessage(this.getMessagePrefix() + ' Sensor parser config: ' + HttpUtil.getErrorMessageFromBody(error));
+        this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + HttpUtil.getErrorMessageFromBody(error));
       });
   }
 
@@ -295,28 +291,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.showStellar = (pane ===  Pane.STELLAR) ? visibilty : false;
   }
 
-  onFieldSchemaChanged(): void {
-    // this.sensorStellar.init();
-  }
-
   onStellarChanged(): void {
     this.sensorFieldSchema.createFieldSchemaRows();
-  }
-
-  onAdvancedConfigFormClose(): void {
-    this.showAdvancedParserConfiguration = false;
-  }
-
-  disableSchemaConfig(): boolean {
-    if ( this.sensorParserConfig.sensorTopic === undefined || this.sensorParserConfig.sensorTopic.length === 0 ) {
-      return true;
-    }
-
-    if (this.isGrokParser() && (!this.sensorParserConfig.parserConfig['grokStatement'] ||
-        this.sensorParserConfig.parserConfig['grokStatement'].length === 0)) {
-      return true;
-    }
-
-    return !(this.sensorParserConfig.parserClassName && this.sensorParserConfig.parserClassName.length > 0);
   }
 }

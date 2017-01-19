@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { TestBed, async } from '@angular/core/testing';
 import { AceEditorComponent } from './ace-editor.component';
 
 describe('Component: AceEditor', () => {
