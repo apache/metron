@@ -82,7 +82,7 @@
     </property>
     <property>
         <name>geoip_url</name>
-        <value>http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz</value>
+        <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</value>
         <description>Location of the GeoIP data to load.</description>
         <display-name>GEOIP Load Datafile URL</display-name>
     </property>
