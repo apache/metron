@@ -254,7 +254,7 @@ The parameters for the utility are as follows:
 
 The shell script `$METRON_HOME/bin/geo_enrichment_load.sh` will retrieve MaxMind GeoLite2 data and load data into HDFS, and update the configuration.
 
-
+THIS SCRIPT WILL NOT UPDATE AMBARI'S GLOBAL.JSON, JUST THE ZK CONFIGS.  CHANGES WILL GO INTO EFFECT, BUT WILL NOT PERSIST PAST AN AMBARI RESTART UNTIL UPDATED THERE.
 
 The parameters for the utility are as follows:
 

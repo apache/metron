@@ -147,10 +147,6 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     testEnrichment.setType(enrichmentType);
     testEnrichment.setAdapter(enrichmentAdapter);
     GenericEnrichmentBolt genericEnrichmentBolt = new GenericEnrichmentBolt("zookeeperUrl") {
-//      @Override
-//      protected void prepareGeo() {
-//        do not prepare Geo information here.
-//      }
       @Override
       protected void initializeStellar() {
         //do not initialize stellar here.
