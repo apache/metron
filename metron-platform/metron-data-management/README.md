@@ -254,6 +254,8 @@ The parameters for the utility are as follows:
 
 The shell script `$METRON_HOME/bin/geo_enrichment_load.sh` will retrieve MaxMind GeoLite2 data and load data into HDFS, and update the configuration.
 
+
+
 The parameters for the utility are as follows:
 
 | Short Code | Long Code           | Is Required? | Description                                                                                                                                                                          |

@@ -46,7 +46,7 @@ public class GeoEnrichmentFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
       if(!initialized) {
-        return false;
+        return null;
       }
       if(args.size() < 1) {
         throw new IllegalStateException("Requires an IPV4 address");
@@ -54,14 +54,14 @@ public class GeoEnrichmentFunctions {
       int i = 0;
       String ip = (String) args.get(i++);
       if(ip == null) {
-        return false;
+        return null;
       }
 
       Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
       if(result.isPresent()) {
         return result.get();
       }
-      return false;
+      return null;
     }
 
     @Override
