@@ -20,6 +20,7 @@ ARG METRON_VERSION
 
 ENV METRON_VERSION $METRON_VERSION
 ENV METRON_HOME /usr/metron/$METRON_VERSION/
+ENV GEO_DIR /apps/metron/geo/default/
 
 ADD ./bin $METRON_HOME/bin
 ADD ./parser /parser
@@ -27,6 +28,7 @@ ADD ./enrichment /enrichment
 ADD ./indexing /indexing
 ADD ./elasticsearch /elasticsearch
 RUN mkdir -p $METRON_HOME
+RUN mkdir -p $GEO_DIR
 RUN tar -xzf /parser/metron-parsers-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
 
 RUN tar -xzf /enrichment/metron-enrichment-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
@@ -53,3 +55,4 @@ EXPOSE 8080 8000
 EXPOSE 8081 8081
 
 WORKDIR $METRON_HOME
+RUN cd $GEO_DIR && wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz

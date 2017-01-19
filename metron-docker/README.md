@@ -11,7 +11,6 @@ Metron Docker includes these images that have been customized for Metron:
   - Kafka (with Zookeeper)
   - HBase
   - Storm (with all topologies deployed)
-  - MySQL
   - Elasticsearch
   - Kibana
 
@@ -65,7 +64,6 @@ metron_storm_1           Up 5 minutes
 metron_hbase_1           Up 5 minutes
 metron_kibana_1          Up 5 minutes
 metron_kafkazk_1         Up 5 minutes
-metron_mysql_1           Up 5 minutes
 metron_elasticsearch_1   Up 5 minutes
 ```
 
