@@ -96,6 +96,7 @@ The `!=` operator is the negation of the above.
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
+| [ `GEO_GET`](#geo_get)                                                                          |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
@@ -248,6 +249,12 @@ The `!=` operator is the negation of the above.
     * nosql_table - The NoSQL Table to use
     * column_family - The Column Family to use
   * Returns: A Map associated with the indicator and enrichment type.  Empty otherwise.
+
+### `GEO_GET`
+  * Description: Look up an IPV4 address and returns geographic information about it
+  * Input:
+    * ip - The IPV4 address to lookup
+  * Returns: Map containing GeoIP information if an entry exists and null otherwise
 
 ### `GET`
   * Description: Returns the i'th element of the list 

@@ -38,7 +38,7 @@ public class GeoEnrichmentFunctions {
           ,params = {
                       "ip - The IPV4 address to lookup"
                     }
-          ,returns = "Map containing GeoIP information if an entry exists and false otherwise"
+          ,returns = "Map containing GeoIP information if an entry exists and null otherwise"
   )
   public static class GeoGet implements StellarFunction {
     boolean initialized = false;
