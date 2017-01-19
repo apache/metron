@@ -15,4 +15,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-/usr/metron/0.3.0/bin/geo_enrichment_load.sh -g http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz -r /apps/metron/geo -z amb1.service.consul:2181
+$METRON_HOME/bin/geo_enrichment_load.sh -g http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz -z localhost:2181
