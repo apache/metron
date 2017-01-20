@@ -25,14 +25,14 @@ import {TransformationValidation} from '../../model/transformation-validation';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
-import {SensorStellarComponent} from '../sensor-stellar/sensor-stellar.component';
+import {SensorRawJsonComponent} from '../sensor-raw-json/sensor-raw-json.component';
 import {HttpUtil} from '../../util/httpUtil';
 import {KafkaService} from '../../service/kafka.service';
 import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
 import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
 export enum Pane {
-  GROK, STELLAR, FIELDSCHEMA, THREATTRIAGE
+  GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE
 }
 
 export enum KafkaStatus {
@@ -57,7 +57,7 @@ export class SensorParserConfigComponent implements OnInit {
   showGrokValidator: boolean = false;
   showTransformsValidator: boolean = false;
   showAdvancedParserConfiguration: boolean = false;
-  showStellar: boolean = false;
+  showRawJson: boolean = false;
   showFieldSchema: boolean = false;
   showThreatTriage: boolean = false;
 
@@ -82,7 +82,7 @@ export class SensorParserConfigComponent implements OnInit {
   currentKafkaStatus = null;
 
   @ViewChild(SensorFieldSchemaComponent) sensorFieldSchema: SensorFieldSchemaComponent;
-  @ViewChild(SensorStellarComponent) sensorStellar: SensorStellarComponent;
+  @ViewChild(SensorRawJsonComponent) sensorRawJson: SensorRawJsonComponent;
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private metronAlerts: MetronAlerts,
               private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
@@ -199,7 +199,7 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onGrokStatementChange(): void {
-    this.grokStatementValid = this.sensorParserConfig.parserConfig['grokStatement'] !== undefined && 
+    this.grokStatementValid = this.sensorParserConfig.parserConfig['grokStatement'] !== undefined &&
         this.sensorParserConfig.parserConfig['grokStatement'].length > 0;
     this.isConfigValid();
   }
@@ -336,11 +336,11 @@ export class SensorParserConfigComponent implements OnInit {
   setPaneVisibility(pane: Pane, visibilty: boolean) {
     this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
     this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
-    this.showStellar = (pane ===  Pane.STELLAR) ? visibilty : false;
+    this.showRawJson = (pane ===  Pane.RAWJSON) ? visibilty : false;
     this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
   }
 
-  onStellarChanged(): void {
+  onRawJsonChanged(): void {
     this.sensorFieldSchema.createFieldSchemaRows();
   }
 

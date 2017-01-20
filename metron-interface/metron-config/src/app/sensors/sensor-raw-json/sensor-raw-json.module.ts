@@ -17,11 +17,11 @@
  */
 import { NgModule } from '@angular/core';
 import {SharedModule} from '../../shared/shared.module';
-import {SensorStellarComponent} from './sensor-stellar.component';
+import {SensorRawJsonComponent} from './sensor-raw-json.component';
 import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
 
 @NgModule ({
   imports: [ SharedModule, AceEditorModule ],
-  declarations: [SensorStellarComponent]
+  declarations: [SensorRawJsonComponent]
 })
-export class SensorStellarModule {}
+export class SensorRawJsonModule {}

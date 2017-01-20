@@ -17,11 +17,11 @@
                                [(sensorParserConfig)]="sensorParserConfig"
                                (hideGrok)="hidePane(pane.GROK)"></metron-config-sensor-grok>
 
-    <metron-config-sensor-stellar [hidden]="!showStellar" [showStellar]="showStellar" (hideStellar)="hidePane(pane.STELLAR)"
+    <metron-config-sensor-raw-json [hidden]="!showRawJson" [showRawJson]="showRawJson" (hideRawJson)="hidePane(pane.RAWJSON)"
                                   [(sensorParserConfig)]="sensorParserConfig"
                                   [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
                                   [(sensorIndexingConfig)]="sensorIndexingConfig"
-                                  (onStellarChanged)="onStellarChanged()"></metron-config-sensor-stellar>
+                                  (onRawJsonChanged)="onRawJsonChanged()"></metron-config-sensor-raw-json>
 
     <metron-config-sensor-field-schema [hidden]="!showFieldSchema" [showFieldSchema]="showFieldSchema"
                                        [(sensorParserConfig)]="sensorParserConfig"
@@ -109,12 +109,12 @@
                         <div class="advanced-title">Advanced</div>
                         <i class="fa fa-times pull-right small-close-button" aria-hidden="true" (click)="onAdvancedConfigFormClose()"></i>
                     </div>
-                    <div class="form-group" [ngClass]="{'panel-selected': showStellar }">
+                    <div class="form-group" [ngClass]="{'panel-selected': showRawJson }">
                         <label attr.for="stellar">RAW JSON</label>
                         <div class="input-group">
                         <div  class="form-control" style="resize: none;" readonly>Select</div>
                             <span class="input-group-btn">
-                                <button class="btn btn-default" type="button" (click)="showPane(pane.STELLAR)" readonly>
+                                <button class="btn btn-default" type="button" (click)="showPane(pane.RAWJSON)" readonly>
                                     <i class="fa fa-columns" aria-hidden="true"></i>
                                     <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
                                 </button>

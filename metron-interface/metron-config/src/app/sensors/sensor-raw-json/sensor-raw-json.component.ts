@@ -18,32 +18,32 @@
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {SensorIndexingConfig} from "../../model/sensor-indexing-config";
+import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
 declare var ace: any;
 
 @Component({
-  selector: 'metron-config-sensor-stellar',
-  templateUrl: './sensor-stellar.component.html',
-  styleUrls: ['./sensor-stellar.component.scss']
+  selector: 'metron-config-sensor-raw-json',
+  templateUrl: './sensor-raw-json.component.html',
+  styleUrls: ['./sensor-raw-json.component.scss']
 })
 
-export class SensorStellarComponent implements OnChanges {
+export class SensorRawJsonComponent implements OnChanges {
 
-  @Input() showStellar: boolean;
+  @Input() showRawJson: boolean;
   @Input() sensorParserConfig: SensorParserConfig;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
   @Input() sensorIndexingConfig: SensorIndexingConfig;
 
-  @Output() hideStellar: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() onStellarChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() hideRawJson: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() onRawJsonChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   newSensorParserConfig: string;
   newSensorEnrichmentConfig: string;
   newSensorIndexingConfig: string;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['showStellar'] && changes['showStellar'].currentValue) {
+    if (changes['showRawJson'] && changes['showRawJson'].currentValue) {
       this.init();
     }
   }
@@ -93,11 +93,11 @@ export class SensorStellarComponent implements OnChanges {
     this.sensorIndexingConfig.batchSize = newParsedSensorIndexingConfig.batchSize;
     this.sensorIndexingConfig.index = newParsedSensorIndexingConfig.index;
 
-    this.hideStellar.emit(true);
-    this.onStellarChanged.emit(true);
+    this.hideRawJson.emit(true);
+    this.onRawJsonChanged.emit(true);
   }
 
   onCancel(): void {
-    this.hideStellar.emit(true);
+    this.hideRawJson.emit(true);
   }
 }

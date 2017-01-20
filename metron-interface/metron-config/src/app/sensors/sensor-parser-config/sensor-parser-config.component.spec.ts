@@ -618,17 +618,17 @@ describe('Component: SensorParserConfig', () => {
     component.showPane(Pane.GROK);
     expect(component.showGrokValidator).toEqual(true);
     expect(component.showFieldSchema).toEqual(false);
-    expect(component.showStellar).toEqual(false);
+    expect(component.showRawJson).toEqual(false);
 
     component.showPane(Pane.FIELDSCHEMA);
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(true);
-    expect(component.showStellar).toEqual(false);
+    expect(component.showRawJson).toEqual(false);
 
-    component.showPane(Pane.STELLAR);
+    component.showPane(Pane.RAWJSON);
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(false);
-    expect(component.showStellar).toEqual(true);
+    expect(component.showRawJson).toEqual(true);
 
     fixture.destroy();
   }));
@@ -639,17 +639,17 @@ describe('Component: SensorParserConfig', () => {
     component.hidePane(Pane.GROK);
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(false);
-    expect(component.showStellar).toEqual(false);
+    expect(component.showRawJson).toEqual(false);
 
     component.hidePane(Pane.FIELDSCHEMA);
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(false);
-    expect(component.showStellar).toEqual(false);
+    expect(component.showRawJson).toEqual(false);
 
-    component.hidePane(Pane.STELLAR);
+    component.hidePane(Pane.RAWJSON);
     expect(component.showGrokValidator).toEqual(false);
     expect(component.showFieldSchema).toEqual(false);
-    expect(component.showStellar).toEqual(false);
+    expect(component.showRawJson).toEqual(false);
 
     fixture.destroy();
   }));
@@ -658,7 +658,7 @@ describe('Component: SensorParserConfig', () => {
     let component: SensorParserConfigComponent = fixture.componentInstance;
     spyOn(component.sensorFieldSchema, 'createFieldSchemaRows');
 
-    component.onStellarChanged();
+    component.onRawJsonChanged();
 
     expect(component.sensorFieldSchema.createFieldSchemaRows).toHaveBeenCalled();
 
@@ -669,15 +669,15 @@ describe('Component: SensorParserConfig', () => {
     let component: SensorParserConfigComponent = fixture.componentInstance;
     component.sensorParserConfig = new SensorParserConfig();
     component.sensorParserConfig.sensorTopic = 'Topic1';
-
-    component.onParserTypeChange('org.apache.metron.parsers.GrokParser');
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    component.onParserTypeChange();
     expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
 
     component.sensorParserConfig.parserConfig['patternLabel'] = null;
-    component.onParserTypeChange('org.apache.metron.parsers.GrokParser');
+    component.onParserTypeChange();
     expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
 
-    component.onParserTypeChange('org.apache.metron.parsers.SomeOtherParser');
+    component.onParserTypeChange();
     expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
 
     fixture.destroy();
