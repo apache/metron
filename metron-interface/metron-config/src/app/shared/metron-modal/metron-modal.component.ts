@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Output, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'metron-config-metron-modal',
@@ -23,15 +23,5 @@ import { Component, EventEmitter, Output, Input } from '@angular/core';
   styleUrls: ['metron-modal.component.scss']
 })
 export class MetronModalComponent {
-
-  @Input() backgroundMasked: any = true;
-
-  @Output() onClose: EventEmitter<any> = new EventEmitter(false);
-
-  onModalClick($event): void {
-    if ($event.target.classList.contains('dialog-pane')) {
-      window.history.back();
-      this.onClose.emit(null);
-    }
-  }
+  @Input() backgroundMasked = true;
 }
