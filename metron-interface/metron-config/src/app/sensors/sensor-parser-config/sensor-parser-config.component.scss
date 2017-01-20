@@ -17,15 +17,29 @@
  */
 @import "../../_variables.scss";
 
-.advanced {
-  padding-left: 10px;
-  cursor: pointer;
+.form-title
+{
+  padding-left: 25px;
+}
 
+.form-group
+{
+  padding-left: 25px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+}
+
+.close-button
+{
+  padding-right: 20px;
 }
 
 .advanced-link {
+  padding-left: 10px;
+  cursor: pointer;
   color: $field-button-color;
   font-size: 14px;
+
 }
 
 .advanced-title {
@@ -58,4 +72,38 @@
   table tr td {
     border: none !important;
   }
+}
+
+.button-container {
+  padding-top: 5px;
+}
+
+.button-row {
+  padding-top: 10px;
+}
+
+.form-enable-disable-button {
+  width: 32%;
+}
+
+.save-button {
+  background-color: $form-button-border;
+  border-color: $form-button-border;
+  color: white;
+  font-size: 14px;
+  width: 32%;
+
+  &:hover
+  {
+
+  }
+
+  &:focus
+  {
+    outline: none;
+  }
+}
+
+.panel-selected {
+  background-color: $edit-background-border;
 }

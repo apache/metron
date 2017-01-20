@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../global.scss";
 @import "../../_variables.scss";
 
 textarea
@@ -23,35 +22,30 @@ textarea
   height: auto;
 }
 
-.metron-threat-triage-edit
+.form-title
 {
-  @extend .metron-slider-pane;
-  background: $sub-edit-background;
-  border: 1px solid $edit-background-border;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.threat-triage-title
-{
-  @extend .form-title;
   padding-left: 25px;
 }
 
-.threat-triage-close
+.form-group
 {
-  @extend .close-button;
+  padding-left: 25px;
   padding-right: 20px;
 }
 
-.rules-summary-background
+.close-button
 {
-  background-color: $sub-edit-highlight;
+  padding-right: 20px;
+}
+
+.threat-triage-summary
+{
+  background-color: $edit-child-highlight;
   padding-top: 5px;
   padding-bottom: 5px;
 }
 
-.rule-summary-button
+.filter-button
 {
   width: 32%;
   background: $field-background;
@@ -64,39 +58,30 @@ textarea
   }
 }
 
-.rules-summary-button-selected
+.filter-button-selected
 {
-  @extend .rule-summary-button;
+  @extend .filter-button;
   background-color: #006ea0;
   color: #bdbdbd;
 }
 
-.rules-content
+.threat-triage-aggregator
 {
-  padding-left: 25px;
-  padding-right: 20px;
-}
-
-.rules-aggregator
-{
-  @extend .rules-content;
   padding-bottom: 10px;
 }
 
-.rules-sort
+.threat-triage-rules-sort
 {
   display: inline-block;
   padding-top: 5px;
 }
 
-.rules-list
+.threat-triage-rules-list
 {
   padding-top: 10px;
-  padding-left: 25px;
-  padding-right: 20px;
 }
 
-.rule-row
+.threat-triage-rule-row
 {
   display: inline-block;
   position: relative;
@@ -108,17 +93,7 @@ textarea
   }
 }
 
-.add-rule
-{
-  background: $field-background;
-  border: 1px solid $form-button-border;
-  border-radius: .25em;
-  color: $nav-active-color;
-  width: 100%;
-  display: table;
-}
-
-.new-row-button
+.add-button
 {
   font-size: 20px;
   width: 100%;

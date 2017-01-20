@@ -20,12 +20,10 @@
 
 
     <form role="form" class="threat-intel-form">
-        <fieldset class="form-group">
-            <div class="form-group">
-                <label attr.for="statement">TEXT</label>
-                <textarea rows="30" class="form-control" name="ruleValue" [(ngModel)]="value" style="height: inherit"></textarea>
-            </div>
-        </fieldset>
+        <div class="form-group">
+            <label attr.for="statement">TEXT</label>
+            <textarea rows="30" class="form-control" name="ruleValue" [(ngModel)]="value" style="height: inherit"></textarea>
+        </div>
     </form>
     <form class="form-inline">
         <div class="form-group">
@@ -37,10 +35,18 @@
         </div>
     </form>
 
-    <div class="metron-button-bar" >
+    <div class="form-group">
+        <div class="form-seperator-edit"></div>
+        <div class="button-row">
+            <button type="submit" class="btn form-enable-disable-button" (click)="onSave()">SAVE</button>
+            <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
+        </div>
+    </div>
+
+    <!--div class="metron-button-bar" >
         <div class="row mx-0 py-1">
             <button type="submit" class="btn form-enable-disable-button"  (click)="onSave()">SAVE</button>
             <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
         </div>
-    </div>
+    </div-->
 </div>

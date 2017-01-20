@@ -201,12 +201,14 @@ label
   @extend .metron-slider-pane;
   background: $edit-background;
   border: 1px solid $edit-background-border;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .metron-slider-pane-edit-child
 {
   @extend .metron-slider-pane-edit;
-  background-color: #083b44;
+  background-color: $edit-child-background;
 }
 
 form

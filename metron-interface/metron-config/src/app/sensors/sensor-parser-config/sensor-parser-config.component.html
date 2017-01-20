@@ -54,9 +54,9 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label attr.for="grokStatement" *ngIf="isGrokParser()">GROK STATEMENT</label>
-                    <div  class="input-group" *ngIf="isGrokParser()">
+                <div class="form-group" [ngClass]="{'panel-selected': showGrokValidator }" *ngIf="isGrokParser()" >
+                    <label attr.for="grokStatement">GROK STATEMENT</label>
+                    <div  class="input-group" >
                         <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="sensorParserConfig.parserConfig['grokStatement']" readonly>
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="button" (click)="showPane(pane.GROK)" readonly>
@@ -67,7 +67,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" [ngClass]="{'panel-selected': showFieldSchema }">
                     <label attr.for="fieldSchema">SCHEMA</label>
                     <div  class="input-group">
                         <div  class="form-control" style="height: 80px; resize: none;" readonly>
@@ -86,22 +86,9 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label attr.for="stellar">JSON</label>
-                    <div  class="input-group">
-                        <input type="text" class="form-control" formControlName="stellar"  [ngModel]="''" readonly>
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" (click)="showPane(pane.STELLAR)" readonly>
-                                <i class="fa fa-columns" aria-hidden="true"></i>
-                                <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
-                            </button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="form-group">
+                <div class="form-group" [ngClass]="{'panel-selected': showThreatTriage }">
                     <label attr.for="stellar">THREAT TRIAGE</label>
-                    <div  class="input-group">
+                    <div class="input-group">
                         <div  class="form-control" style="resize: none;" readonly>
                             <table style="margin: 0">
                                 <tr> <td class="p-l-1">RULES </td> <td class="p-l-1">&nbsp;&nbsp;</td><td class="p-1-1">{{getRuleCount()}}</td> </tr>
@@ -117,33 +104,50 @@
                 </div>
 
                 <div [hidden]="!showAdvancedParserConfiguration">
+                    <div class="form-group">
+                        <div class="form-seperator-edit"></div>
+                        <div class="advanced-title">Advanced</div>
+                        <i class="fa fa-times pull-right small-close-button" aria-hidden="true" (click)="onAdvancedConfigFormClose()"></i>
+                    </div>
+                    <div class="form-group" [ngClass]="{'panel-selected': showStellar }">
+                        <label attr.for="stellar">RAW JSON</label>
+                        <div class="input-group">
+                        <div  class="form-control" style="resize: none;" readonly>Select</div>
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="button" (click)="showPane(pane.STELLAR)" readonly>
+                                    <i class="fa fa-columns" aria-hidden="true"></i>
+                                    <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+
+                        <div class="form-group">
+                            <label attr.for="index">INDEX NAME</label>
+                            <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorIndexingConfig.index" >
+                        </div>
+                        <div  class="form-group">
+                            <label attr.for="batchSize">BATCH SIZE</label>
+                            <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorIndexingConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
+                        </div>
+                        <div class="form-group">
+                            <label attr.for="parserConfig">PARSER CONFIG</label>
+                            <metron-config-advanced-form name="parserConfig" [(config)]="sensorParserConfig.parserConfig"></metron-config-advanced-form>
+                        </div>
+
+                </div>
+
+                <div class="form-group">
                     <div class="form-seperator-edit"></div>
-                    <div class="advanced-title">Advanced</div>
-                    <i class="fa fa-times pull-right small-close-button" aria-hidden="true" (click)="onAdvancedConfigFormClose()"></i>
-
-                    <div class="form-group">
-                        <label attr.for="index">INDEX NAME</label>
-                        <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorIndexingConfig.index" >
+                    <div class="button-row">
+                        <button type="submit" class="btn save-button"  [disabled]="!sensorConfigForm.valid" (click)="onSave()">SAVE</button>
+                        <button class="btn form-enable-disable-button" (click)="goBack()" >CANCEL</button>
+                        <span class="advanced-link" [hidden]="showAdvancedParserConfiguration" (click)="showAdvancedParserConfiguration = true">Advanced</span>
                     </div>
-
-                    <div class="form-group">
-                        <label attr.for="batchSize">BATCH SIZE</label>
-                        <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorIndexingConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
-                    </div>
-
-                    <metron-config-advanced-form [(config)]="sensorParserConfig.parserConfig"></metron-config-advanced-form>
                 </div>
+
+
             </form>
-
-            <br> <br> <br> <br>
-
-            <div class="metron-button-bar">
-                <div class="row mx-0 py-1">
-                    <button type="submit" class="btn form-enable-disable-button"  [disabled]="!sensorConfigForm.valid" (click)="onSave()">SAVE</button>
-                    <button class="btn form-enable-disable-button" (click)="goBack()" >CANCEL</button>
-                    <span class="advanced" [hidden]="showAdvancedParserConfiguration"><a class="advanced-link" (click)="showAdvancedParserConfiguration = true">Advanced</a></span>
-                </div>
-            </div>
         </div>
     </div>
 </metron-config-metron-modal>

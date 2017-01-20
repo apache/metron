@@ -15,8 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.form-title
+{
+  padding-left: 25px;
+}
+
+.form-group
+{
+  padding-left: 25px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+}
+
+.close-button
+{
+  padding-right: 20px;
+}
 
 .score-adjustment
 {
   display: inline-block;
+}
+
+.button-row {
+  padding-top: 10px;
+}
+
+.form-enable-disable-button {
+  width: 32%;
 }
