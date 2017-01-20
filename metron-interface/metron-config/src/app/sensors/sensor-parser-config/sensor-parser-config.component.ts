@@ -343,4 +343,8 @@ export class SensorParserConfigComponent implements OnInit {
   onStellarChanged(): void {
     this.sensorFieldSchema.createFieldSchemaRows();
   }
+
+  onAdvancedConfigFormClose(): void {
+    this.showAdvancedParserConfiguration = false;
+  }
 }

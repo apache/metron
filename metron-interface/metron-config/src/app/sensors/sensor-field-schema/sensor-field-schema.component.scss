@@ -17,16 +17,26 @@
  */
 @import "../../_variables.scss";
 
+.form-title
+{
+  padding-left: 25px;
+}
+
 .title
 {
   font-size: 12px;
+}
+
+.close-button
+{
+  padding-right: 20px;
 }
 
 .field-schema-row
 {
   display: table;
   width: 100%;
-  padding: 15px 0px 10px 0px;
+  padding: 10px 0px 10px 0px;
   background: #383838;
 }
 
@@ -52,7 +62,7 @@
 {
   @extend .field-schema-cell;
   color: $silver-color;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .field-schema-cell-value
@@ -149,4 +159,10 @@ select
     font-size: 1.5em;
     color: $field-button-color;
   }
+}
+
+.fieldschema-form
+{
+  padding-left: 25px;
+  padding-right: 20px;
 }

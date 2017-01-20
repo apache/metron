@@ -35,7 +35,7 @@ export class SensorRuleEditorComponent {
 
   onSave(): void {
     let rule = {};
-    rule[this.value] = this.score;
+    rule[this.value] = +this.score;
     this.onSubmitTextEditor.emit(rule);
   }
 
