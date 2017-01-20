@@ -130,13 +130,15 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
    * @param message The message that may be needed by the profile.
    */
   private void applyProfile(ProfileConfig profile, Tuple input, JSONObject message) throws ParseException, UnsupportedEncodingException {
+    @SuppressWarnings("unchecked")
+    Map<String, Object> state = (Map<String, Object>)message;
 
     // is this message needed by this profile?
     String onlyIf = profile.getOnlyif();
-    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, message, Boolean.class)) {
+    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, state, Boolean.class)) {
 
       // what is the name of the entity in this message?
-      String entity = executor.execute(profile.getForeach(), message, String.class);
+      String entity = executor.execute(profile.getForeach(), state, String.class);
 
       // emit a message for the bolt responsible for building this profile
       collector.emit(input, new Values(entity, profile, message));

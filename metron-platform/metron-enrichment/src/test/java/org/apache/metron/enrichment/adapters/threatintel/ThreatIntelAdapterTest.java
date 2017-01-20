@@ -73,8 +73,6 @@ public class ThreatIntelAdapterTest {
 
   /**
     {
-      "index": "bro",
-      "batchSize": 5,
       "enrichment": {
         "fieldMap": {
           "geo": ["ip_dst_addr", "ip_src_addr"],
@@ -133,7 +131,7 @@ public class ThreatIntelAdapterTest {
     Assert.assertNotNull(actualMessage);
     Assert.assertEquals(expectedMessage, actualMessage);
 
-    actualMessage = tia.enrich(new CacheKey("ip_dst_addr", new Long(10L), broSc));
+    actualMessage = tia.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
     Assert.assertEquals(actualMessage,new JSONObject());
   }
 

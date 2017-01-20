@@ -18,8 +18,6 @@
 
 package org.apache.metron.test.spouts;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -88,7 +86,8 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 	}
 
 
-	@SuppressWarnings("rawtypes") 
+	@Override
+	@SuppressWarnings("rawtypes")
 	public void open(Map conf, TopologyContext context,
 			SpoutOutputCollector collector) {
 		
@@ -105,6 +104,7 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 		
 	}
 
+	@Override
 	public void nextTuple() {
 		Utils.sleep(_delay);
 		
@@ -132,6 +132,7 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 	public void fail(Object id) {
 	}
 
+	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("message"));
 	}

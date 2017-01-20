@@ -28,6 +28,7 @@
             <module>metron-analytics</module>
             <module>metron-platform</module>
             <module>metron-deployment</module>
+            <module>metron-docker</module>
             <module>metron-interface</module>
     </modules>
 
@@ -95,6 +96,7 @@
         <global_shade_version>2.4.3</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
+        <global_jar_version>3.0.2</global_jar_version>
     </properties>
 
     <profiles>
@@ -265,7 +267,6 @@
                         <!-- Packer/Bento non-source directory -->
                         <exclude>**/packer_cache/**</exclude>
                         <exclude>**/hbase/data/**</exclude>
-                        <exclude>**/hbase/bin/init-commands.txt</exclude>
                         <exclude>**/kafkazk/data/**</exclude>
                         <exclude>**/wait-for-it.sh</exclude>
                         <exclude>metron-docker/kibana/styles/commons.style.css</exclude>

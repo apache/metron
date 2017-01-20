@@ -27,8 +27,6 @@ import java.util.Map;
 
 public class SensorEnrichmentConfig {
 
-  private String index;
-  private int batchSize;
   private EnrichmentConfig enrichment = new EnrichmentConfig();
   private ThreatIntelConfig threatIntel = new ThreatIntelConfig();
   private Map<String, Object> configuration = new HashMap<>();
@@ -57,28 +55,11 @@ public class SensorEnrichmentConfig {
     this.threatIntel = threatIntel;
   }
 
-  public String getIndex() {
-    return index;
-  }
 
-  public void setIndex(String index) {
-    this.index = index;
-  }
-
-
-  public int getBatchSize() {
-    return batchSize;
-  }
-
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
-  }
 
   @Override
   public String toString() {
     return "SensorEnrichmentConfig{" +
-            "index='" + index + '\'' +
-            ", batchSize=" + batchSize +
             ", enrichment=" + enrichment +
             ", threatIntel=" + threatIntel +
             ", configuration=" + configuration +
@@ -92,8 +73,6 @@ public class SensorEnrichmentConfig {
 
     SensorEnrichmentConfig that = (SensorEnrichmentConfig) o;
 
-    if (getBatchSize() != that.getBatchSize()) return false;
-    if (getIndex() != null ? !getIndex().equals(that.getIndex()) : that.getIndex() != null) return false;
     if (getEnrichment() != null ? !getEnrichment().equals(that.getEnrichment()) : that.getEnrichment() != null)
       return false;
     if (getThreatIntel() != null ? !getThreatIntel().equals(that.getThreatIntel()) : that.getThreatIntel() != null)
@@ -104,8 +83,7 @@ public class SensorEnrichmentConfig {
 
   @Override
   public int hashCode() {
-    int result = getIndex() != null ? getIndex().hashCode() : 0;
-    result = 31 * result + getBatchSize();
+    int result = getEnrichment() != null ? getEnrichment().hashCode() : 0;
     result = 31 * result + (getEnrichment() != null ? getEnrichment().hashCode() : 0);
     result = 31 * result + (getThreatIntel() != null ? getThreatIntel().hashCode() : 0);
     result = 31 * result + (getConfiguration() != null ? getConfiguration().hashCode() : 0);

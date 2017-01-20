@@ -42,6 +42,7 @@ import {GlobalConfigService} from './service/global-config.service';
 import {APP_CONFIG, METRON_REST_CONFIG} from './app.config';
 import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
+import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 
 
 @NgModule({
@@ -49,7 +50,7 @@ import {SensorParserConfigHistoryService} from './service/sensor-parser-config-h
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule ],
   declarations: [ AppComponent, LoginComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
-    SensorParserConfigHistoryService, SensorEnrichmentConfigService,
+    SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, TransformationValidationService,
     GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
   bootstrap:    [ AppComponent ]

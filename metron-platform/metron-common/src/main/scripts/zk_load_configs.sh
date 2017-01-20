@@ -30,4 +30,5 @@ export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export PARSERS_JAR=${project.artifactId}-$METRON_VERSION.jar
 export ZK_HOME=${ZK_HOME:-/usr/hdp/current/zookeeper-client}
-java -cp $METRON_HOME/lib/$PARSERS_JAR:$ZK_HOME/lib/* org.apache.metron.common.cli.ConfigurationManager "$@"
+export ZK_CLIENT_JARS=${ZK_CLIENT_JARS:-$ZK_HOME/lib}
+java -cp $METRON_HOME/lib/$PARSERS_JAR:$ZK_CLIENT_JARS/* org.apache.metron.common.cli.ConfigurationManager "$@"

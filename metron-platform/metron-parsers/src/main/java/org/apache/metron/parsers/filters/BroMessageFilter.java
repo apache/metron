@@ -42,6 +42,7 @@ public class BroMessageFilter implements MessageFilter<JSONObject>{
     _known_protocols = new HashSet<>();
   }
 
+  @Override
   public void configure(Map<String, Object> config) {
     Object protocolsObj = config.get("bro.filter.source.known.protocols");
     Object keyObj = config.get("bro.filter.source.key");
@@ -67,6 +68,7 @@ public class BroMessageFilter implements MessageFilter<JSONObject>{
    * @return      False if message if filtered and True if message is not filtered
    */
 
+  @Override
   public boolean emitTuple(JSONObject message, Context context) {
     String protocol = (String) message.get(_key);
     return _known_protocols.contains(protocol);

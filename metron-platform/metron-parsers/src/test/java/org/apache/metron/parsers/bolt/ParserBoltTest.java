@@ -52,10 +52,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ParserBoltTest extends BaseBoltTest {
 
@@ -245,7 +242,7 @@ public void testImplicitBatchOfOne() throws Exception {
 
   /**
    {
-    "filterClassName" : "QUERY"
+    "filterClassName" : "STELLAR"
    ,"parserConfig" : {
     "filter.query" : "exists(field1)"
     }
@@ -253,8 +250,49 @@ public void testImplicitBatchOfOne() throws Exception {
    */
   @Multiline
   public static String sensorParserConfig;
+
+  /**
+   * Tests to ensure that a message that is unfiltered results in one write and an ack.
+   * @throws Exception
+   */
   @Test
-  public void testFilter() throws Exception {
+  public void testFilterSuccess() throws Exception {
+    String sensorType = "yaf";
+
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
+      @Override
+      protected SensorParserConfig getSensorParserConfig() {
+        try {
+          return SensorParserConfig.fromBytes(Bytes.toBytes(sensorParserConfig));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    };
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    verify(parser, times(1)).init();
+    verify(batchWriter, times(1)).init(any(), any());
+    BulkWriterResponse successResponse = mock(BulkWriterResponse.class);
+    when(successResponse.getSuccesses()).thenReturn(ImmutableList.of(t1));
+    when(batchWriter.write(any(), any(), any(), any())).thenReturn(successResponse);
+    when(parser.validate(any())).thenReturn(true);
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
+      put("field1", "blah");
+    }}))));
+    parserBolt.execute(t1);
+    verify(batchWriter, times(1)).write(any(), any(), any(), any());
+    verify(outputCollector, times(1)).ack(t1);
+  }
+
+
+  /**
+   * Tests to ensure that a message filtered out results in no writes, but an ack.
+   * @throws Exception
+   */
+  @Test
+  public void testFilterFailure() throws Exception {
     String sensorType = "yaf";
 
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
@@ -273,12 +311,13 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any());
     when(parser.validate(any())).thenReturn(true);
-    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
-    parserBolt.withMessageFilter(filter);
+    when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
+      put("field2", "blah");
+    }}))));
     parserBolt.execute(t1);
+    verify(batchWriter, times(0)).write(any(), any(), any(), any());
     verify(outputCollector, times(1)).ack(t1);
   }
-
   /**
   {
      "sensorTopic":"dummy"
@@ -478,6 +517,8 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(outputCollector, times(1)).ack(t5);
 
   }
+
+
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {
     bolt.execute(t);
   }

@@ -84,6 +84,7 @@ public class PcapByteInputStream implements PcapInputStream {
    *           Signals that an I/O exception has occurred.
    */
 
+  @Override
   public PcapPacket getPacket() throws IOException {
     return readPacket(globalHeader.getMagicNumber());
   }
@@ -193,6 +194,7 @@ public class PcapByteInputStream implements PcapInputStream {
    *           org.krakenapps.pcap.PcapInputStream#close()
    */
 
+  @Override
   public void close() throws IOException {
     is.close(); // $codepro.audit.disable closeInFinally
   }

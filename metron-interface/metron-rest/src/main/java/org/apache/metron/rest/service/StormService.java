@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
@@ -26,7 +27,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +134,7 @@ public class StormService {
         return topologyResponse;
     }
 
-    public TopologyResponse startParserTopology(String name) throws Exception {
+    public TopologyResponse startParserTopology(String name) throws RestException {
         TopologyResponse topologyResponse = new TopologyResponse();
         if (globalConfigService.get() == null) {
             topologyResponse.setErrorMessage(TopologyStatusCode.GLOBAL_CONFIG_MISSING.toString());
@@ -146,23 +146,23 @@ public class StormService {
         return topologyResponse;
     }
 
-    public TopologyResponse stopParserTopology(String name, boolean stopNow) throws IOException, InterruptedException {
+    public TopologyResponse stopParserTopology(String name, boolean stopNow) throws RestException {
         return createResponse(stormCLIClientWrapper.stopParserTopology(name, stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
-    public TopologyResponse startEnrichmentTopology() throws IOException, InterruptedException {
+    public TopologyResponse startEnrichmentTopology() throws RestException {
         return createResponse(stormCLIClientWrapper.startEnrichmentTopology(), TopologyStatusCode.STARTED, TopologyStatusCode.START_ERROR);
     }
 
-    public TopologyResponse stopEnrichmentTopology(boolean stopNow) throws IOException, InterruptedException {
+    public TopologyResponse stopEnrichmentTopology(boolean stopNow) throws RestException {
         return createResponse(stormCLIClientWrapper.stopEnrichmentTopology(stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
-    public TopologyResponse startIndexingTopology() throws IOException, InterruptedException {
+    public TopologyResponse startIndexingTopology() throws RestException {
         return createResponse(stormCLIClientWrapper.startIndexingTopology(), TopologyStatusCode.STARTED, TopologyStatusCode.START_ERROR);
     }
 
-    public TopologyResponse stopIndexingTopology(boolean stopNow) throws IOException, InterruptedException {
+    public TopologyResponse stopIndexingTopology(boolean stopNow) throws RestException {
         return createResponse(stormCLIClientWrapper.stopIndexingTopology(stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
@@ -176,7 +176,7 @@ public class StormService {
         return topologyResponse;
     }
 
-    public Map<String, String> getStormClientStatus() throws IOException {
+    public Map<String, String> getStormClientStatus() throws RestException {
         return stormCLIClientWrapper.getStormClientStatus();
     }
 

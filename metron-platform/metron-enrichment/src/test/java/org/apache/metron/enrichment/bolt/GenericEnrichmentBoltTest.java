@@ -129,6 +129,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
   @Mock
   public EnrichmentAdapter<CacheKey> enrichmentAdapter;
 
+  @Override
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);

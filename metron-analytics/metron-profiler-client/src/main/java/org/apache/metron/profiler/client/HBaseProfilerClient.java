@@ -92,6 +92,7 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param <T>     The type of values stored by the profile.
    * @return A list of values.
    */
+  @Override
   public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");

@@ -27,7 +27,7 @@ import {APP_CONFIG} from '../app.config';
 
 @Injectable()
 export class SensorParserConfigService {
-  url = this.config.apiEndpoint + '/sensorParserConfig';
+  url = this.config.apiEndpoint + '/sensor/parser/config';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   selectedSensorParserConfig: SensorParserConfig;
 

@@ -28,9 +28,11 @@ import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-sc
 import {SensorStellarComponent} from '../sensor-stellar/sensor-stellar.component';
 import {HttpUtil} from '../../util/httpUtil';
 import {KafkaService} from '../../service/kafka.service';
+import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
+import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
 export enum Pane {
-  GROK, STELLAR, FIELDSCHEMA
+  GROK, STELLAR, FIELDSCHEMA, THREATTRIAGE
 }
 
 export enum KafkaStatus {
@@ -50,12 +52,14 @@ export class SensorParserConfigComponent implements OnInit {
 
   sensorParserConfig: SensorParserConfig = new SensorParserConfig();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
+  sensorIndexingConfig: SensorIndexingConfig = new SensorIndexingConfig();
 
   showGrokValidator: boolean = false;
   showTransformsValidator: boolean = false;
   showAdvancedParserConfiguration: boolean = false;
   showStellar: boolean = false;
   showFieldSchema: boolean = false;
+  showThreatTriage: boolean = false;
 
   availableParsers = {};
   availableParserNames = [];
@@ -78,6 +82,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private metronAlerts: MetronAlerts,
               private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
+              private sensorIndexingConfigService: SensorIndexingConfigService,
               private router: Router, private kafkaService: KafkaService) {
     this.sensorParserConfig.parserConfig = {};
   }
@@ -97,11 +102,15 @@ export class SensorParserConfigComponent implements OnInit {
 
       this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
         this.sensorEnrichmentConfig = result;
+      });
+
+      this.sensorIndexingConfigService.get(id).subscribe((result: SensorIndexingConfig) => {
+        this.sensorIndexingConfig = result;
       },
       error => {
-        this.sensorEnrichmentConfig = new SensorEnrichmentConfig();
-        this.sensorEnrichmentConfig.index = id;
+        this.sensorIndexingConfig.index = id;
       });
+
 
     } else {
       this.sensorParserConfig = new SensorParserConfig();
@@ -125,8 +134,9 @@ export class SensorParserConfigComponent implements OnInit {
     group['grokStatement'] = new FormControl(this.sensorParserConfig.parserConfig['grokStatement']);
     group['transforms'] = new FormControl(this.sensorParserConfig['transforms']);
     group['stellar'] = new FormControl(this.sensorParserConfig);
-    group['index'] = new FormControl(this.sensorEnrichmentConfig.index, Validators.required);
-    group['batchSize'] = new FormControl(this.sensorEnrichmentConfig.batchSize, Validators.required);
+    group['threatTriage'] = new FormControl(this.sensorEnrichmentConfig);
+    group['index'] = new FormControl(this.sensorIndexingConfig.index, Validators.required);
+    group['batchSize'] = new FormControl(this.sensorIndexingConfig.batchSize, Validators.required);
 
     return new FormGroup(group);
   }
@@ -162,8 +172,8 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSetSensorName(): void {
-    if (!this.sensorEnrichmentConfig.index) {
-      this.sensorEnrichmentConfig.index = this.sensorParserConfig.sensorTopic;
+    if (!this.sensorIndexingConfig.index) {
+      this.sensorIndexingConfig.index = this.sensorParserConfig.sensorTopic;
     }
     this.getKafkaStatus();
   }
@@ -281,6 +291,14 @@ export class SensorParserConfigComponent implements OnInit {
     return count;
   }
 
+  getRuleCount(): number {
+    let count = 0;
+    if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules) {
+      count = Object.keys(this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules).length;
+    }
+    return count;
+  }
+
   showPane(pane: Pane) {
     this.setPaneVisibility(pane, true);
   }
@@ -290,9 +308,10 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   setPaneVisibility(pane: Pane, visibilty: boolean) {
-      this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
-      this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
-      this.showStellar = (pane ===  Pane.STELLAR) ? visibilty : false;
+    this.showGrokValidator = (pane === Pane.GROK) ? visibilty : false;
+    this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
+    this.showStellar = (pane ===  Pane.STELLAR) ? visibilty : false;
+    this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
   }
 
   onFieldSchemaChanged(): void {

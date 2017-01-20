@@ -435,6 +435,30 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitIntLiteral(StellarParser.IntLiteralContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code LongLiteral}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void enterLongLiteral(StellarParser.LongLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LongLiteral}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void exitLongLiteral(StellarParser.LongLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code FloatLiteral}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void enterFloatLiteral(StellarParser.FloatLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FloatLiteral}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void exitFloatLiteral(StellarParser.FloatLiteralContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Variable}
 	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
 	 * @param ctx the parse tree

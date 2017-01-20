@@ -32,8 +32,6 @@ import java.util.Map;
 public class SensorEnrichmentUpdateConfigTest {
   /**
    {
-      "index": "bro",
-      "batchSize": 5,
       "enrichment" : {
         "fieldMap": {
           "geo": ["ip_dst_addr", "ip_src_addr"],

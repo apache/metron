@@ -82,6 +82,17 @@ documents stored in zookeeper.
 The document is structured in the following way
 
 * `parserClassName` : The fully qualified classname for the parser to be used.
+* `filterClassName` : The filter to use.  This may be a fully qualified classname of a Class that implements the `org.apache.metron.parsers.interfaces.MessageFilter<JSONObject>` interface.  Message Filters are intended to allow the user to ignore a set of messages via custom logic.  The existing implementations are:
+  * `STELLAR` : Allows you to apply a stellar statement which returns a boolean, which will pass every message for which the statement returns `true`.  The Stellar statement that is to be applied is specified by the `filter.query` property in the `parserConfig`.
+Example Stellar Filter which includes messages which contain a the `field1` field:
+```
+   {
+    "filterClassName" : "STELLAR"
+   ,"parserConfig" : {
+    "filter.query" : "exists(field1)"
+    }
+   }
+```
 * `sensorTopic` : The kafka topic to send the parsed messages to.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
@@ -214,27 +225,10 @@ Consider the following example configuration for the `yaf` sensor:
 }
 ```
 
-##Parser Bolt
-
-The Metron parser bolt is a standard bolt, which can be extended with multiple Java and Grok parser adapter for parsing different topology messages.  The bolt signature for declaration in a storm topology is as follows:
-
-```
-AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-.withMessageParser(parser)
-.withMessageFilter(new GenericMessageFilter())
-.withMetricConfig(config);
-
-```
-
-Metric Config - optional argument for exporting custom metrics to graphite.  If set to null no metrics will be exported.  If set, then a list of metrics defined in the metrics.conf file of each topology will define will metrics are exported and how often.
-
-Message Filter - a filter defining which messages can be dropped.  This feature is only present in the Java paerer adapters
-
-Message Parser - defines the parser adapter to be used for a topology
-
 ##Parser Adapters
 
-Parser adapters are loaded dynamically in each Metron topology.  They are defined in topology.conf in the configuration item bolt.parser.adapter
+Parser adapters are loaded dynamically in each Metron topology.  They
+are defined in the Parser Config (defined above) JSON file in Zookeeper.
 
 ###Java Parser Adapters
 Java parser adapters are indended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:

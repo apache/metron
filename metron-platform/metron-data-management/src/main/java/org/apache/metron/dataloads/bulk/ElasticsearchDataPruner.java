@@ -110,14 +110,14 @@ public class ElasticsearchDataPruner extends DataPruner {
             deleteIndex(indexClient.admin(), indexStringArray);
         }
 
-        return new Long(indexArray.length);
+        return (long) indexArray.length;
 
     }
 
-    public Boolean deleteIndex(AdminClient adminClient, String... index) {
+    public boolean deleteIndex(AdminClient adminClient, String... index) {
 
         boolean isAcknowledged = adminClient.indices().delete(adminClient.indices().prepareDelete(index).request()).actionGet().isAcknowledged();
-        return new Boolean(isAcknowledged);
+        return isAcknowledged;
 
     }
 

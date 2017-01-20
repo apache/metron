@@ -21,25 +21,28 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.parsers.GrokParser;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class GrokService {
 
-    public static final String GROK_PATH_SPRING_PROPERTY = "grok.path";
-    public static final String GROK_CLASS_NAME = "org.apache.metron.parsers.GrokParser";
+    public static final String GROK_DEFAULT_PATH_SPRING_PROPERTY = "grok.path.default";
+    public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
+    public static final String GROK_CLASS_NAME = GrokParser.class.getName();
     public static final String GROK_PATH_KEY = "grokPath";
     public static final String GROK_STATEMENT_KEY = "grokStatement";
     public static final String GROK_PATTERN_LABEL_KEY = "patternLabel";
@@ -57,8 +60,8 @@ public class GrokService {
         return commonGrok.getPatterns();
     }
 
-    public GrokValidation validateGrokStatement(GrokValidation grokValidation) {
-        Map<String, Object> results = new HashMap<>();
+    public GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException {
+        Map<String, Object> results;
         try {
             Grok grok = new Grok();
             grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
@@ -71,9 +74,9 @@ public class GrokService {
             results = gm.toMap();
             results.remove(patternLabel);
         } catch (StringIndexOutOfBoundsException e) {
-            results.put("error", "A pattern label must be included (ex. PATTERN_LABEL ${PATTERN:field} ...)");
+            throw new RestException("A pattern label must be included (ex. PATTERN_LABEL ${PATTERN:field} ...)", e.getCause());
         } catch (Exception e) {
-            results.put("error", e.getMessage());
+            throw new RestException(e);
         }
         grokValidation.setResults(results);
         return grokValidation;
@@ -83,15 +86,13 @@ public class GrokService {
         return GROK_CLASS_NAME.equals(sensorParserConfig.getParserClassName());
     }
 
-    public void addGrokStatementToConfig(SensorParserConfig sensorParserConfig) throws IOException {
+    public void addGrokStatementToConfig(SensorParserConfig sensorParserConfig) throws RestException {
         String grokStatement = "";
         String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
         if (grokPath != null) {
-            try {
-                String fullGrokStatement = getGrokStatement(grokPath);
-                String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
-                grokStatement = fullGrokStatement.replaceFirst(patternLabel + " ", "");
-            } catch(FileNotFoundException e) {}
+            String fullGrokStatement = getGrokStatement(grokPath);
+            String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
+            grokStatement = fullGrokStatement.replaceFirst(patternLabel + " ", "");
         }
         sensorParserConfig.getParserConfig().put(GROK_STATEMENT_KEY, grokStatement);
     }
@@ -100,44 +101,63 @@ public class GrokService {
         if (sensorParserConfig.getParserConfig().get(GROK_PATH_KEY) == null) {
             String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
             if (grokStatement != null) {
-              sensorParserConfig.getParserConfig().put(GROK_PATH_KEY,
-                      new Path(environment.getProperty(GROK_PATH_SPRING_PROPERTY), sensorParserConfig.getSensorTopic()).toString());
+                sensorParserConfig.getParserConfig().put(GROK_PATH_KEY,
+                      new Path(environment.getProperty(GROK_DEFAULT_PATH_SPRING_PROPERTY), sensorParserConfig.getSensorTopic()).toString());
             }
         }
     }
 
-    public String getGrokStatement(String path) throws IOException {
-        return new String(hdfsService.read(new Path(path)));
+    public String getGrokStatement(String path) throws RestException {
+        try {
+            return new String(hdfsService.read(new Path(path)));
+        } catch (IOException e) {
+            throw new RestException(e);
+        }
     }
 
-    public void saveGrokStatement(SensorParserConfig sensorParserConfig) throws IOException {
+    public void saveGrokStatement(SensorParserConfig sensorParserConfig) throws RestException {
         saveGrokStatement(sensorParserConfig, false);
     }
 
-    public void saveTemporaryGrokStatement(SensorParserConfig sensorParserConfig) throws IOException {
+    public void saveTemporaryGrokStatement(SensorParserConfig sensorParserConfig) throws RestException {
         saveGrokStatement(sensorParserConfig, true);
     }
 
-    private void saveGrokStatement(SensorParserConfig sensorParserConfig, boolean isTemporary) throws IOException {
+    private void saveGrokStatement(SensorParserConfig sensorParserConfig, boolean isTemporary) throws RestException {
         String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
         String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
         String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
-        String fullGrokStatement = patternLabel + " " + grokStatement;
         if (grokStatement != null) {
-            if (!isTemporary) {
-                hdfsService.write(new Path(grokPath), fullGrokStatement.getBytes());
-            } else {
-                FileWriter fileWriter = new FileWriter(new File(grokPath));
-                fileWriter.write(fullGrokStatement);
-                fileWriter.close();
+            String fullGrokStatement = patternLabel + " " + grokStatement;
+            try {
+                if (!isTemporary) {
+                    hdfsService.write(new Path(grokPath), fullGrokStatement.getBytes());
+                } else {
+                    File grokDirectory = new File(getTemporaryGrokRootPath());
+                    if (!grokDirectory.exists()) {
+                        grokDirectory.mkdirs();
+                    }
+                    FileWriter fileWriter = new FileWriter(new File(grokDirectory, sensorParserConfig.getSensorTopic()));
+                    fileWriter.write(fullGrokStatement);
+                    fileWriter.close();
+                }
+            } catch (IOException e) {
+                throw new RestException(e);
             }
+        } else {
+          throw new RestException("A grokStatement must be provided");
         }
     }
 
-    public void deleteTemporaryGrokStatement(SensorParserConfig sensorParserConfig) throws IOException {
-        String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
-        File file = new File(grokPath);
+    public void deleteTemporaryGrokStatement(SensorParserConfig sensorParserConfig) {
+        File file = new File(getTemporaryGrokRootPath(), sensorParserConfig.getSensorTopic());
         file.delete();
+    }
+
+    public String getTemporaryGrokRootPath() {
+        String grokTempPath = environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return new Path(grokTempPath, authentication.getName()).toString();
     }
 
 

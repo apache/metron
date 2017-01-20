@@ -18,10 +18,7 @@
 package org.apache.metron.enrichment.integration.utils;
 
 import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -54,4 +51,13 @@ public class SampleUtil {
     return configurations;
   }
 
+  public static IndexingConfigurations getSampleIndexingConfigs() throws IOException {
+    IndexingConfigurations configurations = new IndexingConfigurations();
+    configurations.updateGlobalConfig(ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH));
+    Map<String, byte[]> sensorIndexingConfigs = ConfigurationsUtils.readSensorIndexingConfigsFromFile(TestConstants.SAMPLE_CONFIG_PATH);
+    for(String sensorType: sensorIndexingConfigs.keySet()) {
+      configurations.updateSensorIndexingConfig(sensorType, sensorIndexingConfigs.get(sensorType));
+    }
+    return configurations;
+  }
 }

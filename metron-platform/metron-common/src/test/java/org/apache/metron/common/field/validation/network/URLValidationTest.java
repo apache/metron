@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.apache.metron.common.stellar.StellarTest.runPredicate;
+import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
 public class URLValidationTest  extends BaseValidationTest {
   /**

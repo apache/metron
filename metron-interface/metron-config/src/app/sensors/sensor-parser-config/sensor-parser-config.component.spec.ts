@@ -39,6 +39,8 @@ import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-con
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {IAppConfig} from '../../app.config.interface';
+import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
+import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -109,6 +111,39 @@ class MockSensorParserConfigService extends SensorParserConfigService {
 
   public setParsedMessage(parsedMessage: any) {
     this.parsedMessage = parsedMessage;
+  }
+}
+
+class MockSensorIndexingConfigService extends SensorIndexingConfigService {
+  private sensorIndexingConfigPost: SensorIndexingConfig;
+  private sensorIndexingConfig: SensorIndexingConfig;
+
+  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
+    super(http2, config2);
+  }
+
+  public post(name: string, sensorIndexingConfig: SensorIndexingConfig): Observable<SensorIndexingConfig> {
+    this.sensorIndexingConfigPost = sensorIndexingConfig;
+    return Observable.create(observer => {
+      observer.next({});
+      observer.complete();
+    });
+  }
+
+  public get(name: string): Observable<SensorIndexingConfig> {
+    return Observable.create(observer => {
+      observer.next(this.sensorIndexingConfig);
+      observer.complete();
+    });
+  }
+
+  public setSensorIndexingConfig(result: any) {
+    this.sensorIndexingConfig = result;
+  }
+
+
+  public getSensorIndexingConfigPost(): SensorIndexingConfig {
+    return this.sensorIndexingConfigPost;
   }
 }
 
@@ -248,11 +283,9 @@ export class MockSensorEnrichmentConfigService {
                             };
 
     this.broEnrichments = new SensorEnrichmentConfig();
-    this.broEnrichments.index = 'bro';
     this.broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
     this.broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
     this.squidEnrichments = new SensorEnrichmentConfig();
-    this.squidEnrichments.index = 'squid';
     this.squidEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  squidEnrichments);
     this.squidEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), squidThreatIntel);
   }
@@ -284,6 +317,7 @@ describe('Component: SensorParserConfig', () => {
   let comp: SensorParserConfigComponent;
   let fixture: ComponentFixture<SensorParserConfigComponent>;
   let sensorParserConfigService: MockSensorParserConfigService;
+  let sensorIndexingConfigService: MockSensorIndexingConfigService;
   let transformationValidationService: MockTransformationValidationService;
   let kafkaService: MockKafkaService;
   let grokValidationService: MockGrokValidationService;
@@ -313,6 +347,11 @@ describe('Component: SensorParserConfig', () => {
     ],
   };
 
+  let squidIndexingConfig = {
+    'index': 'squid',
+    'batchSize': 5
+  };
+
   let squidKafkaData: any = {
     'name': 'squid',
     'numPartitions': 1,
@@ -333,6 +372,7 @@ describe('Component: SensorParserConfig', () => {
         MetronAlerts,
         {provide: Http},
         {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
+        {provide: SensorIndexingConfigService, useClass: MockSensorIndexingConfigService},
         {provide: KafkaService, useClass: MockKafkaService},
         {provide: GrokValidationService, useClass: MockGrokValidationService},
         {provide: TransformationValidationService, useClass: MockTransformationValidationService},
@@ -347,6 +387,7 @@ describe('Component: SensorParserConfig', () => {
         fixture = TestBed.createComponent(SensorParserConfigComponent);
         comp = fixture.componentInstance;
         sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
+        sensorIndexingConfigService = fixture.debugElement.injector.get(SensorIndexingConfigService);
         transformationValidationService = fixture.debugElement.injector.get(TransformationValidationService);
         kafkaService = fixture.debugElement.injector.get(KafkaService);
         grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
@@ -369,13 +410,14 @@ describe('Component: SensorParserConfig', () => {
   it('should create edit forms for SensorParserConfigComponent', async(() => {
     activatedRoute.setNameForTest('squid');
     sensorParserConfigService.setSensorParserConfig(Object.assign(new SensorParserConfig(), squidSensorData));
+    sensorIndexingConfigService.setSensorIndexingConfig(Object.assign(new SensorIndexingConfig(), squidIndexingConfig));
     let kafkaTopic = Object.assign(new KafkaTopic(), squidKafkaData);
     kafkaService.setForTest(kafkaTopic);
 
     let component: SensorParserConfigComponent = fixture.componentInstance;
     component.ngOnInit();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(7);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(8);
     expect(Object.keys(component.transformsValidationForm.controls).length).toEqual(2);
     expect(component.availableParsers).toEqual({
       'Bro': 'org.apache.metron.parsers.bro.BasicBroParser',
@@ -394,7 +436,7 @@ describe('Component: SensorParserConfig', () => {
     let component: SensorParserConfigComponent = fixture.componentInstance;
     component.ngOnInit();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(7);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(8);
     expect(Object.keys(component.transformsValidationForm.controls).length).toEqual(2);
     component.sensorParserConfig.sensorTopic = 'squid';
     component.onSetSensorName();
@@ -406,6 +448,7 @@ describe('Component: SensorParserConfig', () => {
     activatedRoute.setNameForTest('squid');
     kafkaService.setForTest(Object.assign(new KafkaTopic(), broKafkaData));
     sensorParserConfigService.setSensorParserConfig(Object.assign(new SensorParserConfig(), squidSensorData));
+    sensorIndexingConfigService.setSensorIndexingConfig(Object.assign(new SensorIndexingConfig(), squidIndexingConfig));
 
     let component: SensorParserConfigComponent = fixture.componentInstance;
     component.ngOnInit();

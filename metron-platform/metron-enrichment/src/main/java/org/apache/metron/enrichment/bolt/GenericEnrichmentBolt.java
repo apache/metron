@@ -141,6 +141,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     if (this.adapter == null)
       throw new IllegalStateException("Adapter must be specified");
     loader = new CacheLoader<CacheKey, JSONObject>() {
+      @Override
       public JSONObject load(CacheKey key) throws Exception {
         return adapter.enrich(key);
       }

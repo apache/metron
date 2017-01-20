@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.KafkaConfig;
 import org.apache.metron.rest.config.ZookeeperConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,35 +43,40 @@ public class StormCLIWrapper {
   @Autowired
   private Environment environment;
 
-  public int startParserTopology(String name) throws IOException, InterruptedException {
+  public int startParserTopology(String name) throws RestException {
     return runCommand(getParserStartCommand(name));
   }
 
-  public int stopParserTopology(String name, boolean stopNow) throws IOException, InterruptedException {
+  public int stopParserTopology(String name, boolean stopNow) throws RestException {
     return runCommand(getStopCommand(name, stopNow));
   }
 
-  public int startEnrichmentTopology() throws IOException, InterruptedException {
+  public int startEnrichmentTopology() throws RestException {
     return runCommand(getEnrichmentStartCommand());
   }
 
-  public int stopEnrichmentTopology(boolean stopNow) throws IOException, InterruptedException {
+  public int stopEnrichmentTopology(boolean stopNow) throws RestException {
     return runCommand(getStopCommand(ENRICHMENT_TOPOLOGY_NAME, stopNow));
   }
 
-  public int startIndexingTopology() throws IOException, InterruptedException {
+  public int startIndexingTopology() throws RestException {
     return runCommand(getIndexingStartCommand());
   }
 
-  public int stopIndexingTopology(boolean stopNow) throws IOException, InterruptedException {
+  public int stopIndexingTopology(boolean stopNow) throws RestException {
     return runCommand(getStopCommand(INDEXING_TOPOLOGY_NAME, stopNow));
   }
 
-  protected int runCommand(String[] command) throws IOException, InterruptedException {
+  protected int runCommand(String[] command) throws RestException {
     ProcessBuilder pb = getProcessBuilder(command);
     pb.inheritIO();
-    Process process = pb.start();
-    process.waitFor();
+    Process process = null;
+    try {
+      process = pb.start();
+      process.waitFor();
+    } catch (Exception e) {
+      throw new RestException(e);
+    }
     return process.exitValue();
   }
 
@@ -117,7 +123,7 @@ public class StormCLIWrapper {
     return new ProcessBuilder(command);
   }
 
-  public Map<String, String> getStormClientStatus() throws IOException {
+  public Map<String, String> getStormClientStatus() throws RestException {
     Map<String, String> status = new HashMap<>();
     status.put("parserScriptPath", environment.getProperty(PARSER_SCRIPT_PATH_SPRING_PROPERTY));
     status.put("enrichmentScriptPath", environment.getProperty(ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY));
@@ -126,15 +132,20 @@ public class StormCLIWrapper {
     return status;
   }
 
-  protected String stormClientVersionInstalled() throws IOException {
+  protected String stormClientVersionInstalled() throws RestException {
     String stormClientVersionInstalled = "Storm client is not installed";
     ProcessBuilder pb = getProcessBuilder("storm", "version");
     pb.redirectErrorStream(true);
-    Process p = pb.start();
+    Process p;
+    try {
+      p = pb.start();
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
     BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
     List<String> lines = reader.lines().collect(toList());
     lines.forEach(System.out::println);
-    if (lines.size() > 0) {
+    if (lines.size() > 1) {
       stormClientVersionInstalled = lines.get(1).replaceFirst("Storm ", "");
     }
     return stormClientVersionInstalled;

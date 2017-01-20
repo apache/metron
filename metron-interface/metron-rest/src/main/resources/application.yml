@@ -23,3 +23,8 @@ logging:
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
+
+grok:
+  path:
+    temp: ./
+    default: /apps/metron/patterns

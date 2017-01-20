@@ -21,12 +21,16 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
 
 public class StringFunctions {
 
@@ -220,6 +224,102 @@ public class StringFunctions {
         return Iterables.get(arg1, offset);
       }
       return null;
+    }
+  }
+
+  private enum FillDirection{
+    LEFT,
+    RIGHT
+  }
+
+  @Stellar(name="FILL_LEFT"
+          , description="Fills or pads a given string with a given character, to a given length on the left"
+          , params = { "input - string", "fill - the fill character", "len - the required length"}
+          , returns = "Filled String"
+  )
+  public static class FillLeft extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() < 3) {
+        throw new IllegalStateException("FILL_LEFT expects three args: [string,char,length] where char is the fill character string and length is the required length of the result");
+      }
+      return fill(FillDirection.LEFT,args.get(0),args.get(1),args.get(2));
+    }
+  }
+
+  @Stellar(name="FILL_RIGHT"
+          , description="Fills or pads a given string with a given character, to a given length on the right"
+          , params = { "input - string", "fill - the fill character", "len - the required length"}
+          , returns = "Filled String"
+  )
+  public static class FillRight extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if(args.size() < 3) {
+        throw new IllegalStateException("FILL_RIGHT expects three args: [string,char,length] where char is the fill character string and length is the required length of the result");
+      }
+      return fill(FillDirection.RIGHT,args.get(0),args.get(1),args.get(2));
+    }
+  }
+
+  private static Object fill(FillDirection direction, Object inputObject, Object fillObject, Object requiredLengthObject)throws ParseException{
+    if(inputObject == null) {
+      return null;
+    }
+    String input = inputObject.toString();
+
+    if(requiredLengthObject == null || fillObject == null) {
+       throw new IllegalStateException("Required Length and Fill String are both required");
+    }
+
+    String fill = fillObject.toString();
+    if(org.apache.commons.lang.StringUtils.isEmpty(fill)){
+      throw new IllegalStateException("The fill cannot be an empty string");
+    }
+    fill = fill.substring(0,1);
+    Integer requiredLength = ConversionUtils.convert(requiredLengthObject,Integer.class);
+    if(requiredLength == null){
+      throw new IllegalStateException("Required Length  not a valid Integer: " + requiredLengthObject.toString());
+    }
+
+    if(direction == FillDirection.LEFT) {
+      return org.apache.commons.lang.StringUtils.leftPad(input,requiredLength,fill);
+    }
+    return org.apache.commons.lang.StringUtils.rightPad(input,requiredLength,fill);
+  }
+
+  @Stellar( namespace="STRING"
+          , name="ENTROPY"
+          , description = "Computes the base-2 shannon entropy of a string"
+          , params = { "input - String" }
+          , returns = "The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits."
+  )
+  public static class Entropy extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> strings) {
+      /*
+      Shannon entropy is defined as follows:
+      \Eta(X) = - \sum(p(x_i)*log_2(p(x_i)), i=0, n-1) where x_i are distinct characters in the string.
+       */
+      Map<Character, Integer> frequency = new HashMap<>();
+      if(strings.size() != 1) {
+        throw new IllegalArgumentException("STRING_ENTROPY expects exactly one argument which is a string.");
+      }
+      String input = ConversionUtils.convert(strings.get(0), String.class);
+      if(StringUtils.isEmpty(input)) {
+        return 0.0;
+      }
+      for(int i = 0;i < input.length();++i) {
+        char c = input.charAt(i);
+        frequency.put(c, frequency.getOrDefault(c, 0) + 1);
+      }
+      double ret = 0.0;
+      double log2 = Math.log(2);
+      for(Integer f : frequency.values()) {
+        double p = f.doubleValue()/input.length();
+        ret -= p * Math.log(p) / log2;
+      }
+      return ret;
     }
   }
 }
