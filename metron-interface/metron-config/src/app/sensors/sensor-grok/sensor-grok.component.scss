@@ -15,3 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.form-table
+{
+  display: block;
+  min-height: 100px;
+  background: #033339;
+  margin-bottom: 100px;
+}
+.table, table
+{
+  margin-top: 0px;
+  tr td
+  {
+    border-bottom: 1px solid #3F4748;
+  }
+  tr:last-child td
+  {
+    border-bottom: none;
+  }
+
+}
+.buttons-bar
+{
+  margin-top: 10px;
+  margin-bottom: 15px;
+}

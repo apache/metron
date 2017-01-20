@@ -92,7 +92,7 @@ table, .table
     td
     {
       border-top: none;
-      border-bottom: 1px solid #404040 !important;
+      border-bottom: 1px solid #404040;
     }
   }
   .active
@@ -186,16 +186,23 @@ label
   }
 }
 
-.dialog1x
-{
-  width: $dialog-1x-width;
+@media only screen and (min-width: 500px) {
+  .dialog1x {
+    width: $dialog-1x-width;
+  }
+  .dialog2x {
+    width: $dialog-2x-width;
+  }
 }
 
-.dialog2x
-{
-  width :640px
+@media only screen and (min-width: 2020px) {
+  .dialog1x {
+    width: $dialog-2x-width;
+  }
+  .dialog2x {
+    width: $dialog-4x-width;
+  }
 }
-
 .metron-slider-pane-edit
 {
   @extend .metron-slider-pane;
@@ -217,7 +224,6 @@ form
   {
     font-family: Roboto-Medium;
     font-size: 12px;
-    letter-spacing: -0.8px;
     color: $form-label;
   }
 
@@ -282,6 +288,7 @@ form
   border-color: $form-button-border;
   color: $field-button-color;
   font-size: 14px;
+  min-width: 90px;
 
   &:hover
   {
@@ -679,7 +686,7 @@ button
   width: 100%;
   bottom: 0;
   position: absolute;
-  z-index: 3;
+  z-index: 10;
   padding-left: 25px;
   margin-left: ($slider-left-padding)* -1;
   background: $edit-background;
@@ -701,4 +708,12 @@ button
 .form-control:focus
 {
   color: #bdbdbd;
+}
+
+.ace_autocomplete.ace-monokai
+{
+  .ace_content {
+    background: #444;
+    color: #999;
+  }
 }

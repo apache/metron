@@ -34,6 +34,8 @@ export class SampleDataComponent {
 
   sampleData: string[] = [];
   sampleDataIndex: number = -1;
+  placeHolderText = 'Paste Sample Message' + '\n' +
+                    'A data sample cannot automatically be loaded. Connect to a Kafka Topic or paste a message here.';
 
 
   constructor(private kafkaService: KafkaService) {
@@ -71,6 +73,11 @@ export class SampleDataComponent {
       this.sampleDataIndex = this.sampleDataIndex + 1;
       this.sampleData[this.sampleDataIndex] = currentValue;
       this.onSampleDataChanged.emit(this.sampleData[this.sampleDataIndex]);
+    }
+
+    if (currentValue.trim() === '') {
+      this.sampleDataElement.nativeElement.placeholder = this.placeHolderText;
+      this.onSampleDataChanged.emit('');
     }
   }
 

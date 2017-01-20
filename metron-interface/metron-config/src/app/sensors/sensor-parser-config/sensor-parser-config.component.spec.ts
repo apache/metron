@@ -20,7 +20,7 @@ import {Inject} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Router, ActivatedRoute, Params} from '@angular/router';
 import {Http, RequestOptions, Response, ResponseOptions} from '@angular/http';
-import {SensorParserConfigComponent, Pane} from './sensor-parser-config.component';
+import {SensorParserConfigComponent, Pane, KafkaStatus} from './sensor-parser-config.component';
 import {TransformationValidationService} from '../../service/transformation-validation.service';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {KafkaService} from '../../service/kafka.service';
@@ -31,7 +31,6 @@ import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichments} from '../../model/sensor-enrichments';
 import {ParseMessageRequest} from '../../model/parse-message-request';
 import {TransformationValidation} from '../../model/transformation-validation';
-import 'rxjs/add/observable/of';
 import {AuthenticationService} from '../../service/authentication.service';
 import {FieldTransformer} from '../../model/field-transformer';
 import {SensorParserConfigModule} from './sensor-parser-config.module';
@@ -41,6 +40,9 @@ import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {IAppConfig} from '../../app.config.interface';
 import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
 import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
+import '../../rxjs-operators';
+import 'rxjs/add/observable/of';
+
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -150,6 +152,7 @@ class MockSensorIndexingConfigService extends SensorIndexingConfigService {
 class MockKafkaService extends KafkaService {
   private kafkaTopic: KafkaTopic;
   private kafkaTopicForPost: KafkaTopic;
+  private sampleData = {'key1': 'value1', 'key2': 'value2'};
 
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
@@ -159,14 +162,24 @@ class MockKafkaService extends KafkaService {
     this.kafkaTopic = kafkaTopic;
   }
 
+  public setForSample(sampleData?: any) {
+    this.sampleData = sampleData;
+  }
+
   public sample(name: string): Observable<string> {
+    if (this.sampleData === null) {
+      return Observable.throw('Error');
+    }
     return Observable.create(observer => {
-      observer.next(JSON.stringify({'key1': 'value1', 'key2': 'value2'}));
+      observer.next(JSON.stringify(this.sampleData));
       observer.complete();
     });
   }
 
   public get(name: string): Observable<KafkaTopic> {
+    if (this.kafkaTopic === null) {
+      return Observable.throw('Error');
+    }
     return Observable.create(observer => {
       observer.next(this.kafkaTopic);
       observer.complete();
@@ -482,13 +495,33 @@ describe('Component: SensorParserConfig', () => {
     sensorParserConfigSave.fieldTransformations = [fieldTransformer];
     activatedRoute.setNameForTest('new');
 
-    spyOn(sensorParserConfigService, 'post').and.returnValue(Observable.create(observer => {
-      observer.next(sensorParserConfigSave);
-      observer.complete();
-    }));
+    let sensorParserConfigServiceStatus = true;
+    spyOn(sensorParserConfigService, 'post').and.callFake(() => {
+      if (sensorParserConfigServiceStatus) {
+        return Observable.create(observer => {
+          observer.next(sensorParserConfigSave);
+          observer.complete();
+        });
+      } else {
+        return Observable.throw('Error');
+      }
+
+    });
+
+    let sensorEnrichmentsServiceStatus = true;
+    spyOn(sensorEnrichmentsService, 'post').and.callFake((sensorEnrichments: SensorEnrichments) => {
+      if (sensorEnrichmentsServiceStatus) {
+        return  Observable.create(observer => {
+          observer.next(sensorEnrichments);
+          observer.complete();
+        });
+      } else {
+        return Observable.throw('Error');
+      }
+    });
 
     spyOn(metronAlerts, 'showSuccessMessage');
-    spyOn(sensorEnrichmentsService, 'post').and.callThrough();
+    spyOn(metronAlerts, 'showErrorMessage');
 
     let component: SensorParserConfigComponent = fixture.componentInstance;
 
@@ -503,6 +536,16 @@ describe('Component: SensorParserConfig', () => {
     expect(sensorParserConfigService.post).toHaveBeenCalledWith(sensorParserConfigSave);
     expect(metronAlerts.showSuccessMessage).toHaveBeenCalledWith('Created Sensor squid');
     expect(sensorEnrichmentsService.post).toHaveBeenCalled();
+
+    sensorParserConfigServiceStatus = false;
+    component.onSave();
+    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0]).toEqual('Unable to save sensor config: Error');
+
+    sensorParserConfigServiceStatus = true;
+    sensorEnrichmentsServiceStatus = false;
+    component.onSave();
+    let expected = 'Created Sensor parser config but unable to save enrichment configuration: Error';
+    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0]).toEqual(expected);
 
     fixture.destroy();
   }));
@@ -613,17 +656,6 @@ describe('Component: SensorParserConfig', () => {
 
   it('should hidePane', async(() => {
     let component: SensorParserConfigComponent = fixture.componentInstance;
-    spyOn(component.sensorStellar, 'init');
-
-    component.onFieldSchemaChanged();
-
-    expect(component.sensorStellar.init).toHaveBeenCalled();
-
-    fixture.destroy();
-  }));
-
-  it('should hidePane', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
     spyOn(component.sensorFieldSchema, 'createFieldSchemaRows');
 
     component.onStellarChanged();
@@ -632,4 +664,74 @@ describe('Component: SensorParserConfig', () => {
 
     fixture.destroy();
   }));
+
+  it('should set patternLabel', async(() => {
+    let component: SensorParserConfigComponent = fixture.componentInstance;
+    component.sensorParserConfig = new SensorParserConfig();
+    component.sensorParserConfig.sensorTopic = 'Topic1';
+
+    component.onParserTypeChange('org.apache.metron.parsers.GrokParser');
+    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
+
+    component.sensorParserConfig.parserConfig['patternLabel'] = null;
+    component.onParserTypeChange('org.apache.metron.parsers.GrokParser');
+    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
+
+    component.onParserTypeChange('org.apache.metron.parsers.SomeOtherParser');
+    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
+
+    fixture.destroy();
+  }));
+
+  it('should check isGrokParser', async(() => {
+    let component: SensorParserConfigComponent = fixture.componentInstance;
+    component.sensorParserConfig = new SensorParserConfig();
+
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    expect(component.isGrokParser()).toEqual(true);
+
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParserTest';
+    expect(component.isGrokParser()).toEqual(false);
+
+    fixture.destroy();
+  }));
+
+  it('should return  getKafkaStatus', async(() => {
+    let component: SensorParserConfigComponent = fixture.componentInstance;
+    component.sensorParserConfig = new SensorParserConfig();
+
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(null);
+
+    component.sensorParserConfig.sensorTopic = '';
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(null);
+
+    let kafkaTopic = Object.assign(new KafkaTopic(), squidKafkaData);
+    kafkaService.setForTest(kafkaTopic);
+    component.sensorParserConfig.sensorTopic = 'SQUID';
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.EMITTING);
+
+    kafkaService.setForSample();
+    kafkaService.setForTest(kafkaTopic);
+    component.sensorParserConfig.sensorTopic = 'SQUID';
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NOT_EMITTING);
+
+    kafkaService.setForTest(null);
+    component.sensorParserConfig.sensorTopic = 'SQUID';
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NO_TOPIC);
+
+    kafkaService.setForSample(null);
+    kafkaService.setForTest(kafkaTopic);
+    component.sensorParserConfig.sensorTopic = 'SQUID';
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NOT_EMITTING);
+
+
+    fixture.destroy();
+  }));
+
 });

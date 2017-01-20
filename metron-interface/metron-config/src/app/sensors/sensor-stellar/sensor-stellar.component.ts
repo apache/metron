@@ -15,9 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+
+declare var ace: any;
 
 @Component({
   selector: 'metron-config-sensor-stellar',
@@ -25,7 +27,7 @@ import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../..
   styleUrls: ['./sensor-stellar.component.scss']
 })
 
-export class SensorStellarComponent implements OnInit, OnChanges {
+export class SensorStellarComponent implements OnChanges {
 
   @Input() showStellar: boolean;
   @Input() sensorParserConfig: SensorParserConfig;
@@ -36,11 +38,6 @@ export class SensorStellarComponent implements OnInit, OnChanges {
 
   newSensorParserConfig: string;
   newSensorEnrichmentConfig: string;
-
-  constructor() { }
-
-  ngOnInit() {
-  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showStellar'] && changes['showStellar'].currentValue) {
@@ -61,7 +58,10 @@ export class SensorStellarComponent implements OnInit, OnChanges {
   onSave() {
     let newParsedSensorParserConfig = JSON.parse(this.newSensorParserConfig);
     this.sensorParserConfig.sensorTopic = newParsedSensorParserConfig.sensorTopic;
+    this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
     this.sensorParserConfig.parserClassName = newParsedSensorParserConfig.parserClassName;
+    this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
+
     if (newParsedSensorParserConfig.writerClassName != null) {
       this.sensorParserConfig.writerClassName = newParsedSensorParserConfig.writerClassName;
     }
@@ -74,37 +74,21 @@ export class SensorStellarComponent implements OnInit, OnChanges {
     if (newParsedSensorParserConfig.invalidWriterClassName != null) {
       this.sensorParserConfig.invalidWriterClassName = newParsedSensorParserConfig.invalidWriterClassName;
     }
-    this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
-    this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
+
     let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
     // this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
-    if (newParsedSensorEnrichmentConfig.configuration != null) {
-      this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;
-    }
     this.sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), newParsedSensorEnrichmentConfig.enrichment);
     // this.sensorEnrichmentConfig.index = newParsedSensorEnrichmentConfig.index;
     this.sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), newParsedSensorEnrichmentConfig.threatIntel);
+    if (newParsedSensorEnrichmentConfig.configuration != null) {
+      this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;
+    }
+
     this.hideStellar.emit(true);
     this.onStellarChanged.emit(true);
   }
 
   onCancel(): void {
-    this.init();
     this.hideStellar.emit(true);
   }
-
-  onSensorParserConfigBlur(): void {
-    try {
-      this.newSensorParserConfig = JSON.stringify(JSON.parse(this.newSensorParserConfig), null, '\t');
-    } catch (e) {
-    }
-  }
-
-  onSensorEnrichmentConfigBlur(): void {
-    try {
-      this.newSensorEnrichmentConfig = JSON.stringify(JSON.parse(this.newSensorEnrichmentConfig), null, '\t');
-    } catch (e) {
-    }
-  }
-
 }

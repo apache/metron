@@ -25,8 +25,7 @@
     <metron-config-sensor-field-schema [hidden]="!showFieldSchema" [showFieldSchema]="showFieldSchema"
                                        [(sensorParserConfig)]="sensorParserConfig"
                                        [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
-                                       (hideFieldSchema)="hidePane(pane.FIELDSCHEMA)"
-                                       (onFieldSchemaChanged)="onFieldSchemaChanged()"></metron-config-sensor-field-schema>
+                                       (hideFieldSchema)="hidePane(pane.FIELDSCHEMA)"></metron-config-sensor-field-schema>
 
     <metron-config-sensor-threat-triage [hidden]="!showThreatTriage" [showThreatTriage]="showThreatTriage"
                                   [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"

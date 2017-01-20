@@ -15,13 +15,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {SensorStellarComponent} from './sensor-stellar.component';
-import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
-
-@NgModule ({
-  imports: [ SharedModule, AceEditorModule ],
-  declarations: [SensorStellarComponent]
-})
-export class SensorStellarModule {}
+export * from './ace-editor.component'

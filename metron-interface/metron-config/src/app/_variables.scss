@@ -42,7 +42,8 @@ $edit-child-background: #083b44;
 $edit-child-highlight: #07333a;
 
 $dialog-1x-width: 320px;
-$dialog-2x-width: 320px;
+$dialog-2x-width: 640px;
+$dialog-4x-width: 1380px;
 $slider-left-padding: 25px;
 
 @mixin transform($transforms) {
@@ -53,3 +54,12 @@ $slider-left-padding: 25px;
   transform: $transforms;
 }
 
+@mixin place-holder-text
+{
+  font-family: Roboto;
+  font-size: 12px;
+  color:#bdbdbd !important;
+  font-weight: 300 !important;
+  text-align: center !important;
+  font-style: italic !important;
+}
