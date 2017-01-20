@@ -26,8 +26,8 @@
 {
   display: table;
   width: 100%;
-  min-height: 35px;
-  background: $gray-light;
+  padding: 15px 0px 10px 0px;
+  background: #383838;
 }
 
 .field-schema-edit-title
@@ -40,11 +40,25 @@
 {
   float: none;
   font-size: 13px;
-  height: 35px;
-  line-height: 20px;
+  height: 15px;
+  line-height: 15px;
   display: table-cell;
   vertical-align: middle;
   word-break: break-all;
+  font-family: Roboto-Regular;
+}
+
+.field-schema-cell-title
+{
+  @extend .field-schema-cell;
+  color: $silver-color;
+  font-size: 15px;
+}
+
+.field-schema-cell-value
+{
+  @extend .field-schema-cell;
+  font-size: 13px;
 }
 
 .small-close-button {
@@ -95,12 +109,17 @@
 
 .field-suppressed
 {
-  background-color: #2e2e2e;
+  background-color: #262626;
   color: #737373;
+  .field-schema-cell-title
+  {
+    color: #737373;
+  }
 }
 
 .metron-bg-inverse
 {
+  background: #2e2e2e;
   margin-bottom: 70px;
 }
 

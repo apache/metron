@@ -31,16 +31,16 @@
             A data sample is need to view/configure the complete schema.
           </div>
 
-          <div class="row" *ngIf="fieldSchemaRows.length>0">
+          <div class="row mx-0" *ngIf="fieldSchemaRows.length>0">
             <div class="col-md-3 title text-grey"> Field </div>
             <div class="col-md-9 title text-grey"> Changes </div>
           </div>
 
-          <div *ngFor="let fieldSchemaRow of fieldSchemaRows" class="row pb-1">
+          <div *ngFor="let fieldSchemaRow of fieldSchemaRows" class="row pb-1 mx-0">
               <!-- Readonly Field Schema Row -->
               <div class="field-schema-row" *ngIf="!fieldSchemaRow.showConfig" [class.field-suppressed]="fieldSchemaRow.isRemoved">
-                <div class="col-md-3 field-schema-cell"> {{ fieldSchemaRow.outputFieldName }} </div>
-                <div class="col-md-7 field-schema-cell" [innerHtml]="getChanges(fieldSchemaRow)"> </div>
+                <div class="col-md-3 field-schema-cell-title"> {{ fieldSchemaRow.outputFieldName }} </div>
+                <div class="col-md-7 field-schema-cell-value" [innerHtml]="getChanges(fieldSchemaRow)"> </div>
                 <div class="col-md-2 field-schema-cell icon-blue" style="font-size: 16px">
                   <i *ngIf="!fieldSchemaRow.isParserGenerated" class="fa fa-trash pull-right" aria-hidden="true" (click)="onDelete(fieldSchemaRow)"></i>
                   <i class="fa fa-pencil pull-right" aria-hidden="true" (click)="fieldSchemaRow.showConfig=true"></i>
@@ -102,7 +102,7 @@
               </div>
           </div>
 
-          <div class="row add-button" *ngIf="fieldSchemaRows.length > 0">
+          <div class="row mx-0 add-button" *ngIf="fieldSchemaRows.length > 0">
             <button type="submit" class="btn form-enable-disable-button" (click)="addNewRule()"><i class="fa fa-plus" aria-hidden="true"></i></button>
           </div>
 
@@ -110,13 +110,4 @@
       </div>
 
   </form>
-  <br>
-  <br>
-  <div class="metron-button-bar" >
-    <div class="row mx-0 py-1">
-      <button type="submit" class="btn form-enable-disable-button" (click)="onSave()">SAVE</button>
-      <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
-    </div>
-  </div>
-
 </div>

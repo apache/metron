@@ -145,7 +145,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
     return true;
   }
-  
+
   createFieldSchemaRows() {
     this.fieldSchemaRows = [];
     this.savedFieldSchemaRows = [];
@@ -264,6 +264,9 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     let transformFunction = fieldSchemaRow.transformConfigured.length > 0 ? this.createTransformFunction(fieldSchemaRow) : '';
     let enrichments = fieldSchemaRow.enrichmentConfigured.map(autocomplete => autocomplete.name).join(', ');
     let threatIntel = fieldSchemaRow.threatIntelConfigured.map(autocomplete => autocomplete.name).join(', ');
+
+    transformFunction = transformFunction.length > 30 ? (transformFunction.substring(0, 25) + '...') : transformFunction;
+
     let displayString = transformFunction.length > 0 ? ('Transforms: ' + transformFunction) : '';
     displayString += (transformFunction.length > 0 ? ' <br> ' : '') + (enrichments.length > 0 ? ('Enrichments: ' + enrichments) : '');
     displayString += (enrichments.length > 0 ? ' <br> ' : '') + (threatIntel.length > 0 ? ('Threat Intel: ' + threatIntel) : '');
@@ -318,6 +321,8 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     savedFieldSchemaRow.isNew = false;
     let initialSchemaRow = this.savedFieldSchemaRows.filter(fieldSchemaRow => fieldSchemaRow.inputFieldName === savedFieldSchemaRow.inputFieldName)[0];
     Object.assign(initialSchemaRow, JSON.parse(JSON.stringify(savedFieldSchemaRow)));
+
+    this.onSave();
   }
 
   onCancelChange(cancelledFieldSchemaRow: FieldSchemaRow) {
@@ -428,8 +433,5 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
     this.sensorEnrichmentConfig.enrichment = enrichmentConfigObject;
     this.sensorEnrichmentConfig.threatIntel = threatIntelConfigObject;
-
-    this.hideFieldSchema.emit(true);
-    this.onFieldSchemaChanged.emit(true);
   }
 }
