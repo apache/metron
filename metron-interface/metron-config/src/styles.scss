@@ -56,7 +56,6 @@ html,body
 .btn
 {
   font-size: 0.9em;
-  min-width: 90px;
 }
 
 .metron-title
@@ -287,6 +286,7 @@ form
   border-color: $form-button-border;
   color: $field-button-color;
   font-size: 14px;
+  min-width: 90px;
 
   &:hover
   {

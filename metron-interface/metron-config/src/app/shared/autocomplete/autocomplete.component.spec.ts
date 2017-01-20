@@ -124,12 +124,12 @@ describe('Component: Autocomplete', () => {
     range.setEnd(autoCompleteElement.firstChild, 5);
     selection.removeAllRanges();
     selection.addRange(range);
-    expect(component.getCaretCoordinates()).toEqual({x: 45, y: 8});
+    expect(component.getCaretCoordinates()).toEqual({x: 39, y: 9});
 
     range.setStart(autoCompleteElement.firstChild, 0);
     selection.removeAllRanges();
     selection.addRange(range);
-    expect(component.getCaretCoordinates()).toEqual({x: 8, y: 8});
+    expect(component.getCaretCoordinates()).toEqual({x: 9, y: 9});
 
     selection.removeAllRanges();
     expect(component.getCaretCoordinates()).toEqual({x: 0, y: 0});
@@ -151,22 +151,22 @@ describe('Component: Autocomplete', () => {
 
     component.setAutocompleteDropdownPosition();
     let select = fixture.debugElement.nativeElement.getElementsByClassName('autocomplete-select')[0];
-    expect(select.style.left).toEqual('15px');
-    expect(select.style.top).toEqual('20px');
+    expect(select.style.left).toEqual('9px');
+    expect(select.style.top).toEqual('21px');
 
     range.setStart(autoCompleteElement.firstChild, 5);
     range.setEnd(autoCompleteElement.firstChild, 5);
     selection.removeAllRanges();
     selection.addRange(range);
     component.setAutocompleteDropdownPosition();
-    expect(select.style.left).toEqual('27px');
-    expect(select.style.top).toEqual('20px');
+    expect(select.style.left).toEqual('19px');
+    expect(select.style.top).toEqual('21px');
 
     component.showAutoComplete = true;
     selection.removeAllRanges();
     component.setAutocompleteDropdownPosition();
-    expect(select.style.left).toEqual('27px');
-    expect(select.style.top).toEqual('20px');
+    expect(select.style.left).toEqual('19px');
+    expect(select.style.top).toEqual('21px');
     expect(component.showAutoComplete).toEqual(false);
 
   }));

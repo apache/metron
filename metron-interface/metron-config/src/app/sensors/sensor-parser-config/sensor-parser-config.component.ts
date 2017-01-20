@@ -108,8 +108,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorIndexingConfigService.get(id).subscribe((result: SensorIndexingConfig) => {
             this.sensorIndexingConfig = result;
       });
-    }
-    else {
+    } else {
       this.sensorParserConfig = new SensorParserConfig();
     }
   }

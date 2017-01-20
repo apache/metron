@@ -34,8 +34,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   }
 
   ngAfterViewInit() {
-    let __this = this;
-    ace.config.loadModule('ace/ext/language_tools',  () => {this.initializeEditor();});
+    ace.config.loadModule('ace/ext/language_tools',  () => { this.initializeEditor(); });
   }
 
   writeValue(obj: any) {
@@ -76,8 +75,8 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   }
 
   addPlaceHolder() {
-    this.aceConfigEditor.on('input', () => {this.updatePlaceHolderText();});
-    setTimeout(() => {this.updatePlaceHolderText();}, 100);
+    this.aceConfigEditor.on('input', () => { this.updatePlaceHolderText(); });
+    setTimeout(() => { this.updatePlaceHolderText(); }, 100);
   }
 
   private createEditor(element: ElementRef) {
