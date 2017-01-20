@@ -15,30 +15,29 @@
   -->
 <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
-  <div class="form-title">Configure Raw JSON</div>
-  <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
+    <div class="form-title">Configure Raw JSON</div>
+    <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
 
+    <form role="form" class="enrichments-form">
+        <fieldset class="form-group">
+            <div class="form-group">
+                <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
+                <metron-config-ace-editor [(ngModel)]="newSensorParserConfig" [ngModelOptions]="{standalone: true}"> </metron-config-ace-editor>
+            </div>
+            <div class="form-group">
+                <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
+                <metron-config-ace-editor [(ngModel)]="newSensorEnrichmentConfig" [ngModelOptions]="{standalone: true}"> </metron-config-ace-editor>
+            </div>
+        </fieldset>
+    </form>
 
-  <form role="form" class="enrichments-form">
-    <fieldset class="form-group">
-      <div class="form-group">
-        <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
-        <textarea rows="20" class="form-control" name="newSensorParserConfig" (blur)="onSensorParserConfigBlur()" [(ngModel)]="newSensorParserConfig"></textarea>
-      </div>
-      <div class="form-group">
-        <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
-        <textarea rows="20" class="form-control" name="newSensorEnrichmentConfig" (blur)="onSensorEnrichmentConfigBlur()" [(ngModel)]="newSensorEnrichmentConfig"></textarea>
-      </div>
+    <br> <br> <br> <br>
 
-    </fieldset>
-
-  </form>
-
-  <div class="metron-button-bar" >
-    <div class="row mx-0 py-1">
-      <button type="submit" class="btn form-enable-disable-button"  (click)="onSave()">SAVE</button>
-      <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
+    <div class="metron-button-bar" >
+        <div class="row mx-0 py-1">
+            <button type="submit" class="btn form-enable-disable-button pull-left"  (click)="onSave()">SAVE</button>
+            <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
+        </div>
     </div>
-  </div>
 
 </div>

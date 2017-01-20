@@ -1,10 +1,8 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, ViewChild, EventEmitter, Output} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {FormGroup} from '@angular/forms';
 import {ParseMessageRequest} from '../../model/parse-message-request';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {AutocompleteOption} from '../../model/autocomplete-option';
-import {TransformationValidation} from '../../model/transformation-validation';
 import {GrokValidationService} from '../../service/grok-validation.service';
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
@@ -27,16 +25,13 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   parsedMessage: any = {};
   grokStatement: string = '';
-  grokValidationForm: FormGroup;
+  parsedMessageKeys: string[] = [];
   grokFunctionList: AutocompleteOption[] = [];
   autocompleteStatementGenerator = new AutocompleteGrokStatement();
   parseMessageRequest: ParseMessageRequest = new ParseMessageRequest();
-  transformsValidation: TransformationValidation = new TransformationValidation();
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService) {
-    this.transformsValidation.sampleData = '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET ' +
-        'http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html';
-
+    this.parseMessageRequest.sampleData = '';
   }
 
   ngOnInit() {
@@ -49,16 +44,8 @@ export class SensorGrokComponent implements OnInit, OnChanges {
       this.prepareGrokStatement();
     }
     if (changes['sensorParserConfig'] && changes['sensorParserConfig'].currentValue) {
-      this.onSensorPareseConfigChange();
+      this.prepareGrokStatement();
     }
-  }
-
-  onSensorPareseConfigChange() {
-    let data: any = this.sensorParserConfig.fieldTransformations;
-    data = JSON.stringify(data);
-    this.transformsValidation.sensorParserConfig = data;
-
-    this.prepareGrokStatement();
   }
 
   onSampleDataChanged(sampleData: string) {
@@ -84,21 +71,11 @@ export class SensorGrokComponent implements OnInit, OnChanges {
     this.sensorParserConfigService.parseMessage(this.parseMessageRequest).subscribe(
         result => {
           this.parsedMessage = result;
-          this.transformsValidation.sampleData = JSON.stringify(result);
+          this.setParsedMessageKeys();
         }, error => {
           this.parsedMessage = JSON.parse(error._body);
+          this.setParsedMessageKeys();
         });
-  }
-
-  grokValidationResultKeys(): Array<string> {
-    if (this.parsedMessage) {
-      return Object.keys(this.parsedMessage);
-    }
-    return [];
-  }
-
-  onGrokStatementChange(statement: string) {
-    this.grokStatement = statement;
   }
 
   prepareGrokStatement(): void {
@@ -120,6 +97,14 @@ export class SensorGrokComponent implements OnInit, OnChanges {
         this.grokFunctionList.push(autocompleteOption);
       });
     });
+  }
+
+  private setParsedMessageKeys() {
+    try {
+      this.parsedMessageKeys = Object.keys(this.parsedMessage).sort();
+    } catch (e) {
+      this.parsedMessageKeys = [];
+    }
   }
 
   onSaveGrok(): void {

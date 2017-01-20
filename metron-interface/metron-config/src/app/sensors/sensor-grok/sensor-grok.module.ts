@@ -20,9 +20,10 @@ import {SharedModule} from '../../shared/shared.module';
 import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
 import {SensorGrokComponent} from './sensor-grok.component';
 import {AutocompleteComponent} from '../../shared/autocomplete/autocomplete.component';
+import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
 
 @NgModule ({
-    imports: [ SharedModule ],
+    imports: [ SharedModule, AceEditorModule ],
     declarations: [ AutocompleteComponent, SensorGrokComponent, SampleDataComponent ]
 })
 

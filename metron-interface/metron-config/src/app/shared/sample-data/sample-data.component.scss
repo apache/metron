@@ -44,3 +44,23 @@
 .sample-unavailable {
   color: #404040;
 }
+
+
+textarea {
+  &::-webkit-input-placeholder {
+    @include place-holder-text;
+  }
+  &:-moz-placeholder {
+    @include place-holder-text;
+  }
+
+  &::-moz-placeholder {
+    @include place-holder-text;
+  }
+
+  &:-ms-input-placeholder {
+    @include place-holder-text;
+  }
+}
+
+
