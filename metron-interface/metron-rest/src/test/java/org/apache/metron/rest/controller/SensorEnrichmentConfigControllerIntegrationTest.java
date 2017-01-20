@@ -48,8 +48,6 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
 
   /**
    {
-   "index": "broTest",
-   "batchSize": 1,
    "enrichment": {
    "fieldMap": {
    "geo": [
@@ -114,6 +112,7 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
 
   private MockMvc mockMvc;
 
+  private String sensorEnrichmentConfigUrl = "/api/v1/sensor/enrichment/config";
   private String user = "user";
   private String password = "password";
 
@@ -124,16 +123,16 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
 
   @Test
   public void testSecurity() throws Exception {
-    this.mockMvc.perform(post("/api/v1/sensorEnrichmentConfig").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+    this.mockMvc.perform(post(sensorEnrichmentConfigUrl).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig/broTest"))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/broTest"))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig"))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(delete("/api/v1/sensorEnrichmentConfig/broTest").with(csrf()))
+    this.mockMvc.perform(delete(sensorEnrichmentConfigUrl + "/broTest").with(csrf()))
             .andExpect(status().isUnauthorized());
   }
 
@@ -141,11 +140,9 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
   public void test() throws Exception {
     sensorEnrichmentConfigService.delete("broTest");
 
-    this.mockMvc.perform(post("/api/v1/sensorEnrichmentConfig/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+    this.mockMvc.perform(post(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.index").value("broTest"))
-            .andExpect(jsonPath("$.batchSize").value(1))
             .andExpect(jsonPath("$.enrichment.fieldMap.geo[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.host[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.hbaseEnrichment[0]").value("ip_src_addr"))
@@ -160,11 +157,9 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"]").value(10))
             .andExpect(jsonPath("$.threatIntel.triageConfig.aggregator").value("MAX"));
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.index").value("broTest"))
-            .andExpect(jsonPath("$.batchSize").value(1))
             .andExpect(jsonPath("$.enrichment.fieldMap.geo[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.host[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.hbaseEnrichment[0]").value("ip_src_addr"))
@@ -179,47 +174,44 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"]").value(10))
             .andExpect(jsonPath("$.threatIntel.triageConfig.aggregator").value("MAX"));
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig").with(httpBasic(user,password)))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.index == 'broTest' &&" +
-                    "@.batchSize == 1 &&" +
-                    "@.enrichment.fieldMap.geo[0] == 'ip_dst_addr' &&" +
-                    "@.enrichment.fieldMap.host[0] == 'ip_dst_addr' &&" +
-                    "@.enrichment.fieldMap.hbaseEnrichment[0] == 'ip_src_addr' &&" +
-                    "@.enrichment.fieldToTypeMap.ip_src_addr[0] == 'sample' &&" +
-                    "@.enrichment.fieldMap.stellar.config.group1.foo == '1 + 1' &&" +
-                    "@.enrichment.fieldMap.stellar.config.group1.bar == 'foo' &&" +
-                    "@.enrichment.fieldMap.stellar.config.group2.ALL_CAPS == 'TO_UPPER(source.type)' &&" +
-                    "@.threatIntel.fieldMap.hbaseThreatIntel[0] == 'ip_src_addr' &&" +
-                    "@.threatIntel.fieldMap.hbaseThreatIntel[1] == 'ip_dst_addr' &&" +
-                    "@.threatIntel.fieldToTypeMap.ip_src_addr[0] == 'malicious_ip' &&" +
-                    "@.threatIntel.fieldToTypeMap.ip_dst_addr[0] == 'malicious_ip' &&" +
-                    "@.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"] == 10 &&" +
-                    "@.threatIntel.triageConfig.aggregator == 'MAX'" +
+            .andExpect(jsonPath("$[?(@.broTest.enrichment.fieldMap.geo[0] == 'ip_dst_addr' &&" +
+                    "@.broTest.enrichment.fieldMap.host[0] == 'ip_dst_addr' &&" +
+                    "@.broTest.enrichment.fieldMap.hbaseEnrichment[0] == 'ip_src_addr' &&" +
+                    "@.broTest.enrichment.fieldToTypeMap.ip_src_addr[0] == 'sample' &&" +
+                    "@.broTest.enrichment.fieldMap.stellar.config.group1.foo == '1 + 1' &&" +
+                    "@.broTest.enrichment.fieldMap.stellar.config.group1.bar == 'foo' &&" +
+                    "@.broTest.enrichment.fieldMap.stellar.config.group2.ALL_CAPS == 'TO_UPPER(source.type)' &&" +
+                    "@.broTest.threatIntel.fieldMap.hbaseThreatIntel[0] == 'ip_src_addr' &&" +
+                    "@.broTest.threatIntel.fieldMap.hbaseThreatIntel[1] == 'ip_dst_addr' &&" +
+                    "@.broTest.threatIntel.fieldToTypeMap.ip_src_addr[0] == 'malicious_ip' &&" +
+                    "@.broTest.threatIntel.fieldToTypeMap.ip_dst_addr[0] == 'malicious_ip' &&" +
+                    "@.broTest.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"] == 10 &&" +
+                    "@.broTest.threatIntel.triageConfig.aggregator == 'MAX'" +
                     ")]").exists());
 
-    this.mockMvc.perform(delete("/api/v1/sensorEnrichmentConfig/broTest").with(httpBasic(user,password)).with(csrf()))
+    this.mockMvc.perform(delete(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig/broTest").with(httpBasic(user,password)))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
 
-    this.mockMvc.perform(delete("/api/v1/sensorEnrichmentConfig/broTest").with(httpBasic(user,password)).with(csrf()))
+    this.mockMvc.perform(delete(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isNotFound());
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig").with(httpBasic(user,password)))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist());
 
-    this.mockMvc.perform(get("/api/v1/sensorEnrichmentConfig/list/available").with(httpBasic(user,password)))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/list/available").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[0]").value("geo"))
             .andExpect(jsonPath("$[1]").value("host"))
-            .andExpect(jsonPath("$[2]").value("whois"))
-            .andExpect(jsonPath("$[3]").value("sample"));
+            .andExpect(jsonPath("$[2]").value("whois"));
   }
 }
 

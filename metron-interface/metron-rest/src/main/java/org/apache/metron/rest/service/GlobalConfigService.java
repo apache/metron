@@ -22,6 +22,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.rest.RestException;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,27 +36,35 @@ public class GlobalConfigService {
     @Autowired
     private CuratorFramework client;
 
-    public Map<String, Object> save(Map<String, Object> globalConfig) throws Exception {
+    public Map<String, Object> save(Map<String, Object> globalConfig) throws RestException {
+      try {
         ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, client);
-        return globalConfig;
+      } catch (Exception e) {
+        throw new RestException(e);
+      }
+      return globalConfig;
     }
 
-    public Map<String, Object> get() throws Exception {
+    public Map<String, Object> get() throws RestException {
         Map<String, Object> globalConfig;
         try {
             byte[] globalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
             globalConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(globalConfigBytes), new TypeReference<Map<String, Object>>(){});
         } catch (KeeperException.NoNodeException e) {
             return null;
+        } catch (Exception e) {
+          throw new RestException(e);
         }
         return globalConfig;
     }
 
-    public boolean delete() throws Exception {
+    public boolean delete() throws RestException {
         try {
             client.delete().forPath(ConfigurationType.GLOBAL.getZookeeperRoot());
         } catch (KeeperException.NoNodeException e) {
             return false;
+        } catch (Exception e) {
+          throw new RestException(e);
         }
         return true;
     }

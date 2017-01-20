@@ -40,7 +40,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
 
   private static final Log LOG = LogFactory.getLog(ContainerRequestListener.class);
   private ContainerTracker state;
-  private AMRMClientAsync amRMClient;
+  private AMRMClientAsync<AMRMClient.ContainerRequest> amRMClient;
   @VisibleForTesting
   private UserGroupInformation appSubmitterUgi;
   private String domainId = null;
@@ -61,7 +61,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
     state = new ContainerTracker(minMemorySize);
   }
 
-  public void initialize(AMRMClientAsync amRMClient
+  public void initialize(AMRMClientAsync<AMRMClient.ContainerRequest> amRMClient
                         , NMClientAsync nmClient
                         , ServiceDiscoverer serviceDiscoverer
                         )

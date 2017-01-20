@@ -23,6 +23,7 @@ import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {SensorStellarModule} from './sensor-stellar.module';
+import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 import '../../rxjs-operators';
 
 describe('Component: SensorStellarComponent', () => {
@@ -50,8 +51,6 @@ describe('Component: SensorStellarComponent', () => {
         '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
         ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.index = 'bro';
-    sensorEnrichmentConfig.batchSize = 5;
     sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), {
       'fieldMap': {
         'geo': ['ip_dst_addr', 'ip_src_addr'],
@@ -74,6 +73,10 @@ describe('Component: SensorStellarComponent', () => {
          "fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}`;
     let sensorEnrichmentConfigWithConfig = Object.assign(new SensorEnrichmentConfig(), sensorEnrichmentConfig);
     sensorEnrichmentConfigWithConfig.configuration = 'some-configuration';
+
+    let sensorIndexingConfig = new SensorIndexingConfig();
+    sensorIndexingConfig.index = 'bro';
+    sensorIndexingConfig.batchSize = 5;
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({

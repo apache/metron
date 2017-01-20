@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 export class ThreatTriageConfig {
-  riskLevelRules: {};
+  riskLevelRules = {};
   aggregator: string = 'MAX';
-  aggregationConfig: {};
+  aggregationConfig = {};
 }

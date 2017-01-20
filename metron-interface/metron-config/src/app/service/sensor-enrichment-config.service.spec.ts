@@ -59,12 +59,10 @@ describe('SensorEnrichmentConfigService', () => {
     let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
     let mockBackend: MockBackend;
     let sensorEnrichmentConfig1 = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig1.index = 'bro';
     let enrichmentConfig1 = new EnrichmentConfig();
     enrichmentConfig1.fieldMap = {'geo': ['ip_dst_addr'], 'host': ['ip_dst_addr']};
     sensorEnrichmentConfig1.enrichment.fieldMap = enrichmentConfig1;
     let sensorEnrichmentConfig2 = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig2.index = 'squid';
     let enrichmentConfig2 = new EnrichmentConfig();
     enrichmentConfig1.fieldMap = {'whois': ['ip_dst_addr'], 'host': ['ip_src_addr']};
     sensorEnrichmentConfig2.enrichment = enrichmentConfig2;

@@ -36,6 +36,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private String globalConfigPath;
   private String parserConfigsPath;
   private String enrichmentConfigsPath;
+  private String indexingConfigsPath;
   private String profilerConfigPath;
   private Optional<String> globalConfig = Optional.empty();
   private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
@@ -58,6 +59,10 @@ public class ConfigUploadComponent implements InMemoryComponent {
     return this;
   }
 
+  public ConfigUploadComponent withIndexingConfigsPath(String indexingConfigsPath) {
+    this.indexingConfigsPath = indexingConfigsPath;
+    return this;
+  }
   public ConfigUploadComponent withProfilerConfigsPath(String profilerConfigsPath) {
     this.profilerConfigPath = profilerConfigsPath;
     return this;
@@ -81,9 +86,10 @@ public class ConfigUploadComponent implements InMemoryComponent {
       if(globalConfigPath != null
       || parserConfigsPath != null
       || enrichmentConfigsPath != null
+      || indexingConfigsPath != null
       || profilerConfigPath != null
         ) {
-        uploadConfigsToZookeeper(globalConfigPath, parserConfigsPath, enrichmentConfigsPath, profilerConfigPath, zookeeperUrl);
+        uploadConfigsToZookeeper(globalConfigPath, parserConfigsPath, enrichmentConfigsPath, indexingConfigsPath, profilerConfigPath, zookeeperUrl);
       }
 
       for(Map.Entry<String, SensorParserConfig> kv : parserSensorConfigs.entrySet()) {

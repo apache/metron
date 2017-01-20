@@ -52,8 +52,9 @@ public enum Resources {
     return ret;
   }
   public Map.Entry<Resources, Integer> of(int n) {
-    return new AbstractMap.SimpleEntry<Resources, Integer>(this, n);
+    return new AbstractMap.SimpleEntry<>(this, n);
   }
+  @SafeVarargs
   public static EnumMap<Resources, Integer> toResourceMap( Map.Entry<Resources, Integer>... entry ) {
     EnumMap<Resources, Integer> ret = new EnumMap<>(Resources.class);
     for(Map.Entry<Resources, Integer> kv : entry) {

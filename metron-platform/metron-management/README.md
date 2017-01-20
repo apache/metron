@@ -133,14 +133,14 @@ The functions are split roughly into a few sections:
 * `CONFIG_GET`
   * Description: Retrieve a Metron configuration from zookeeper.
   * Input:
-    * type - One of ENRICHMENT, PARSER, GLOBAL, PROFILER
+    * type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER
     * sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)
     * emptyIfNotPresent - If true, then return an empty, minimally viable config
   * Returns: The String representation of the config in zookeeper
 * `CONFIG_PUT`
   * Description: Updates a Metron config to Zookeeper.
   * Input:
-    * type - One of ENRICHMENT, PARSER, GLOBAL, PROFILER
+    * type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER
     * config - The config (a string in JSON form) to update
     * sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)
   * Returns: The String representation of the config in zookeeper
@@ -168,14 +168,14 @@ The functions are split roughly into a few sections:
 
 ### Enrichment Functions
 
-* `ENRICHMENT_SET_BATCH`
+* `INDEXING_SET_BATCH`
   * Description: Set batch size
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * size - batch size (integer)
   * Returns: The String representation of the config in zookeeper
-* `ENRICHMENT_SET_INDEX`
-  * Description: Set the index for the enrichment
+* `INDEXING_SET_INDEX`
+  * Description: Set the index for the sensor
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * sensor - sensor name
@@ -541,7 +541,7 @@ Functions loaded, you may refer to functions now...
 }
 [Stellar]>>> # Wait, that batch size looks terrible.  That is because it did not exist in zookeeper, so it is the default.
 [Stellar]>>> # We can correct it, thankfully. 
-[Stellar]>>> squid_enrichment_config := ENRICHMENT_SET_BATCH( squid_enrichment_config, 100)
+[Stellar]>>> squid_enrichment_config := INDEXING_SET_BATCH( squid_enrichment_config, 100)
 [Stellar]>>> # Now that we have a config, we can add an enrichment to the Stellar adapter
 [Stellar]>>> # We should make sure that the current enrichment does not have any already
 [Stellar]>>> ?ENRICHMENT_STELLAR_TRANSFORM_PRINT
@@ -757,7 +757,7 @@ Please note that functions are loading lazily in the background and will be unav
 26828 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 84 Stellar Functions...
 Functions loaded, you may refer to functions now...
 [Stellar]>>> # Just as in the previous example, we should adjust the batch size
-[Stellar]>>> squid_enrichment_config := ENRICHMENT_SET_BATCH( squid_enrichment_config, 100)
+[Stellar]>>> squid_enrichment_config := INDEXING_SET_BATCH( squid_enrichment_config, 100)
 [Stellar]>>> # We should not have any threat triage rules
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config)
 ╔═════════════╤═══════╗

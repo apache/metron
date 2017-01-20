@@ -22,14 +22,12 @@ import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.json.simple.JSONObject;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public enum Filters {
    BRO(BroMessageFilter.class)
-  ,QUERY(QueryFilter.class)
-  ,DEFAULT(GenericMessageFilter.class)
+  ,STELLAR(StellarFilter.class)
+  ,DEFAULT(null)
   ;
   Class<? extends MessageFilter> clazz;
   Filters(Class<? extends MessageFilter> clazz) {
@@ -37,7 +35,7 @@ public enum Filters {
   }
   public static MessageFilter<JSONObject> get(String filterName, Map<String, Object> config) {
     if(filterName == null || filterName.trim().isEmpty()) {
-      return new GenericMessageFilter();
+      return null;
     }
     Class<? extends MessageFilter> filterClass;
     try {
@@ -51,8 +49,11 @@ public enum Filters {
         throw new IllegalStateException("Unable to find class " + filterName, e);
       }
     }
-    MessageFilter<JSONObject> filter = ReflectionUtils.createInstance(filterClass);
-    filter.configure(config);
-    return filter;
+    if(filterClass != null) {
+      MessageFilter<JSONObject> filter = ReflectionUtils.createInstance(filterClass);
+      filter.configure(config);
+      return filter;
+    }
+    return null;
   }
 }

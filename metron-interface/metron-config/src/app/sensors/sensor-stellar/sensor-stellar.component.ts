@@ -76,9 +76,9 @@ export class SensorStellarComponent implements OnChanges {
     }
 
     let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
-    this.sensorEnrichmentConfig.index = newParsedSensorEnrichmentConfig.index;
-    this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
+    // this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
     this.sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), newParsedSensorEnrichmentConfig.enrichment);
+    // this.sensorEnrichmentConfig.index = newParsedSensorEnrichmentConfig.index;
     this.sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), newParsedSensorEnrichmentConfig.threatIntel);
     if (newParsedSensorEnrichmentConfig.configuration != null) {
       this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;

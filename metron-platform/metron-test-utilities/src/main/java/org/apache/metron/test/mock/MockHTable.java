@@ -93,7 +93,7 @@ public class MockHTable implements HTableInterface {
   private final String tableName;
   private final List<String> columnFamilies = new ArrayList<>();
   private HColumnDescriptor[] descriptors;
-  private List<Put> putLog;
+  private final List<Put> putLog;
   private NavigableMap<byte[], NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>> data
           = new TreeMap<>(Bytes.BYTES_COMPARATOR);
 
@@ -425,9 +425,11 @@ public class MockHTable implements HTableInterface {
 
     return new ResultScanner() {
       private final Iterator<Result> iterator = ret.iterator();
+      @Override
       public Iterator<Result> iterator() {
         return iterator;
       }
+      @Override
       public Result[] next(int nbRows) throws IOException {
         ArrayList<Result> resultSets = new ArrayList<Result>(nbRows);
         for(int i = 0; i < nbRows; i++) {
@@ -440,6 +442,7 @@ public class MockHTable implements HTableInterface {
         }
         return resultSets.toArray(new Result[resultSets.size()]);
       }
+      @Override
       public Result next() throws IOException {
         try {
           return iterator().next();
@@ -447,6 +450,7 @@ public class MockHTable implements HTableInterface {
           return null;
         }
       }
+      @Override
       public void close() {}
     };
   }

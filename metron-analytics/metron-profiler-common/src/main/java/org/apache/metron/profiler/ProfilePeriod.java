@@ -22,6 +22,8 @@ package org.apache.metron.profiler;
 
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 /**
  * The Profiler captures a ProfileMeasurement once every ProfilePeriod.  There can be
  * multiple ProfilePeriods every hour.
@@ -45,6 +47,11 @@ public class ProfilePeriod {
    * @param units The units of the duration; hours, minutes, etc.
    */
   public ProfilePeriod(long epochMillis, long duration, TimeUnit units) {
+    if(duration <= 0) {
+      throw new IllegalArgumentException(format(
+              "period duration must be greater than 0; got '%d %s'", duration, units));
+    }
+
     this.durationMillis = units.toMillis(duration);
     this.period = epochMillis / durationMillis;
   }

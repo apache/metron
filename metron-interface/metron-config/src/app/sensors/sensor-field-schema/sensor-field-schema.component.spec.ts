@@ -467,8 +467,6 @@ describe('Component: SensorFieldSchema', () => {
         component.sensorParserConfig.sensorTopic = 'squid';
 
         component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
-
-        component.sensorEnrichmentConfig.index = 'squid';
         component.sensorEnrichmentConfig.enrichment = new  EnrichmentConfig();
         component.sensorEnrichmentConfig.threatIntel = new ThreatIntelConfig();
         component.sensorEnrichmentConfig.configuration = {};

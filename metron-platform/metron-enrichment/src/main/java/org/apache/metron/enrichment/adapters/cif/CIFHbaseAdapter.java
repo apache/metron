@@ -60,6 +60,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 
 	}
 
+	@Override
 	public JSONObject enrich(CacheKey k) {
 		String metadata = k.coerceValue(String.class);
 		JSONObject output = new JSONObject();

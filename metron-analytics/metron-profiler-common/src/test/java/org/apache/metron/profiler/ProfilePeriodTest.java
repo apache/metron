@@ -118,4 +118,11 @@ public class ProfilePeriodTest {
       assertEquals(previous.getDurationMillis(), next.getDurationMillis());
     });
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testPeriodDurationOfZero() {
+    long duration = 0;
+    TimeUnit units = TimeUnit.HOURS;
+    new ProfilePeriod(0, duration, units);
+  }
 }

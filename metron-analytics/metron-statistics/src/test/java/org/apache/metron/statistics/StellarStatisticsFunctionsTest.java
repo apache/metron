@@ -21,6 +21,7 @@
 package org.apache.metron.statistics;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -356,6 +357,56 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
   }
 
+  /**
+   * This test is testing that the STATS_BIN function operates correctly by taking a sorted list of 
+   * numbers, walking down it and ensuring that the STATS_BIN for each number yields the correct bin. 
+   * This is a reasonable test because we are not actually computing the bin so much as recognizing 
+   * since the numbers are sorted, the bin will increase at the percentile boundaries, thus we have 
+   * the expected bin without recreating the computation in the STATS_BIN function.
+   **/
+  @Test
+  public void testStatsBin() throws Exception {
+    statsInit(windowSize);
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUARTILE.split);
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUARTILE.split, "'QUARTILE'");
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUINTILE.split, "'QUINTILE'");
+    statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.DECILE.split, "'DECILE'");
+    statsBinRunner(ImmutableList.of(25.0, 50.0, 75.0), "[25.0, 50.0, 75.0]");
+  }
+
+  @Test
+  public void testStatsBin_singleValue() throws Exception {
+    StatisticsProvider provider = (StatisticsProvider)run("STATS_INIT(" + windowSize + ")", variables);
+    provider.addValue(10);
+    variables.put("stats", provider);
+    Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 9.0), variables));
+    Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 10.0), variables));
+    Assert.assertEquals(3, run(format("STATS_BIN(stats, %f)", 11.0), variables));
+  }
+
+  public void statsBinRunner(List<Number> splits) throws Exception {
+    statsBinRunner(splits, null);
+  }
+
+  public void statsBinRunner(List<Number> splits, String splitsName) throws Exception {
+    int bin = 0;
+    StatisticsProvider provider = (StatisticsProvider)variables.get("stats");
+    for(Double d : stats.getSortedValues()) {
+      while ( bin < splits.size()  &&  d > provider.getPercentile(splits.get(bin).doubleValue()) ) {
+        //increment the bin number until it includes the target value, or we run out of bins
+        bin++;
+      }
+
+      Object actual = null;
+      if(splitsName != null) {
+        actual = run(format("STATS_BIN(stats, %f, %s)", d, splitsName), variables);
+      }
+      else {
+        actual = run(format("STATS_BIN(stats, %f)", d), variables);
+      }
+      assertEquals(bin, actual);
+    }
+  }
 
   @Test
   public void testPercentileNoWindow() throws Exception {

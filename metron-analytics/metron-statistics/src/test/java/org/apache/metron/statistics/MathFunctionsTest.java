@@ -19,6 +19,7 @@
  */
 package org.apache.metron.statistics;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.StellarFunctions;
@@ -42,5 +43,19 @@ public class MathFunctionsTest {
     Assert.assertTrue(Double.isNaN((Double)run("ABS(value)", ImmutableMap.of("value", Double.NaN))));
     Assert.assertEquals((Double)run("ABS(value)", ImmutableMap.of("value", 10.5)), 10.5, 1e-7);
     Assert.assertEquals((Double)run("ABS(value)", ImmutableMap.of("value", -10.5)), 10.5, 1e-7);
+  }
+
+  @Test
+  public void testBin() {
+    Assert.assertEquals(run("BIN(value, bounds)", ImmutableMap.of("value", 0, "bounds", ImmutableList.of(10, 20, 30))), 0);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 0)), 0);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 9)), 0);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 10)), 0);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 11)), 1);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 19)), 1);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 21)), 2);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 29)), 2);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 31)), 3);
+    Assert.assertEquals(run("BIN(value, [ 10, 20, 30 ])", ImmutableMap.of("value", 1000)), 3);
   }
 }

@@ -71,7 +71,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
   private double M4 = 0;
 
   public OnlineStatisticsProvider() {
-    digest = TDigest.createAvlTreeDigest(COMPRESSION);
+    digest = new AVLTreeDigest(COMPRESSION);
   }
 
   /**

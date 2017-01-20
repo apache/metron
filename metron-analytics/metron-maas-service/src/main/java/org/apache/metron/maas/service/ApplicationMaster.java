@@ -58,6 +58,7 @@ import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.TimelineClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.client.api.async.NMClientAsync;
@@ -77,7 +78,6 @@ import org.apache.metron.maas.queue.ZKQueue;
 import org.apache.metron.maas.service.runner.MaaSHandler;
 import org.apache.metron.maas.service.yarn.Resources;
 import org.apache.metron.maas.service.yarn.YarnUtils;
-import org.apache.metron.maas.util.Utils;
 
 /**
  * An ApplicationMaster for executing shell commands on a set of launched
@@ -156,8 +156,7 @@ public class ApplicationMaster {
   private Configuration conf;
 
   // Handle to communicate with the Resource Manager
-  @SuppressWarnings("rawtypes")
-  private AMRMClientAsync amRMClient;
+  private AMRMClientAsync<AMRMClient.ContainerRequest> amRMClient;
 
   // In both secure and non-secure modes, this points to the job-submitter.
   @VisibleForTesting
@@ -258,9 +257,10 @@ public class ApplicationMaster {
       return new AbstractMap.SimpleEntry<>(this, null);
     }
 
+    @SafeVarargs
     public static String toArgs(Map.Entry<AMOptions, String> ... arg) {
       return
-      Joiner.on(" ").join(Iterables.transform(Utils.INSTANCE.toList(arg)
+      Joiner.on(" ").join(Iterables.transform(Arrays.asList(arg)
                                              , a -> "-" + a.getKey().shortCode
                                                   + (a.getValue() == null?"":(" " + a.getValue()))
                                              )

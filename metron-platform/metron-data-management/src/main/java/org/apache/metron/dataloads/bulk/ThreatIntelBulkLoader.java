@@ -245,7 +245,7 @@ public class ThreatIntelBulkLoader  {
       );
     }
 
-    HbaseConverter converter = (HbaseConverter) Class.forName(converterClass).newInstance();
+    HbaseConverter converter = (HbaseConverter) Class.forName(converterClass).getConstructor().newInstance();
     Job job = createJob(conf, input, table, cf, extractorConfigContents, ts, converter);
     System.out.println(conf);
     boolean jobRet = job.waitForCompletion(true);

@@ -113,7 +113,11 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
+
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
@@ -137,7 +141,10 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
 
     // create two groups of measurements - one on weekdays and one on weekends
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, hours * periodsPerHour, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, hours * periodsPerHour, Arrays.asList("weekends"), val -> 0);
 
@@ -160,7 +167,10 @@ public class HBaseProfilerClientTest {
     final long startTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
 
     // setup - write some values to read later
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, hours * periodsPerHour, group, val -> 1000);
 
     // execute
@@ -183,7 +193,10 @@ public class HBaseProfilerClientTest {
     final long startTime = endTime - TimeUnit.HOURS.toMillis(hours);
 
     // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
@@ -210,7 +223,10 @@ public class HBaseProfilerClientTest {
     final long startTime = endTime - TimeUnit.HOURS.toMillis(hours);
 
     // create two groups of measurements - one on weekdays and one on weekends
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", startTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(startTime, periodDuration, periodUnits);
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
@@ -235,7 +251,10 @@ public class HBaseProfilerClientTest {
     final long measurementTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
 
     // setup - write some values to read later
-    ProfileMeasurement m = new ProfileMeasurement("profile1", "entity1", measurementTime, periodDuration, periodUnits);
+    ProfileMeasurement m = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(measurementTime, periodDuration, periodUnits);
     profileWriter.write(m, numberToWrite, group, val -> 1000);
 
     // execute

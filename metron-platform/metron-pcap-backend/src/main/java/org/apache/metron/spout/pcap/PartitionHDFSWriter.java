@@ -45,12 +45,14 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   public static enum SyncHandlers implements SyncHandler{
     DEFAULT(new SyncHandler() {
 
+      @Override
       public void sync(FSDataOutputStream outputStream) throws IOException {
         outputStream.hflush();
         outputStream.hsync();
       }
     })
     ,HDFS(new SyncHandler() {
+      @Override
       public void sync(FSDataOutputStream outputStream) throws IOException{
 
         outputStream.hflush();

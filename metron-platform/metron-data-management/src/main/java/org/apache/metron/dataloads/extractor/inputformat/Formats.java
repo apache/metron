@@ -22,6 +22,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public enum Formats implements InputFormatHandler{
@@ -42,13 +43,13 @@ public enum Formats implements InputFormatHandler{
         _handler.set(job, path, config);
     }
 
-    public static InputFormatHandler create(String handlerName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static InputFormatHandler create(String handlerName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         try {
             InputFormatHandler ec = Formats.valueOf(handlerName);
             return ec;
         }
         catch(IllegalArgumentException iae) {
-            InputFormatHandler ex = (InputFormatHandler) Class.forName(handlerName).newInstance();
+            InputFormatHandler ex = (InputFormatHandler) Class.forName(handlerName).getConstructor().newInstance();
             return ex;
         }
     }

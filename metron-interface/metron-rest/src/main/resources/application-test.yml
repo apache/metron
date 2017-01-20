@@ -27,7 +27,9 @@ spring:
     banner-mode: off
 
 grok:
-  path: target/patterns
+  path:
+    temp: target/patterns/temp
+    default: target/patterns
 
 storm:
   ui:

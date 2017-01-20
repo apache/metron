@@ -17,8 +17,6 @@
  */
 import {ThreatTriageConfig} from './threat-triage-config';
 export class SensorEnrichmentConfig {
-  index: string;
-  batchSize: number = 1;
   enrichment: EnrichmentConfig;
   threatIntel: ThreatIntelConfig;
   configuration: {};

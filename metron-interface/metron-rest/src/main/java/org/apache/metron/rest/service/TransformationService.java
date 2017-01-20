@@ -29,7 +29,6 @@ import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,34 +77,10 @@ public class TransformationService {
         return stellarFunctionDescriptions;
     }
 
-    private List<String> simpleFunctionNames = Arrays.asList(
-            "DOMAIN_REMOVE_SUBDOMAINS",
-            "DOMAIN_REMOVE_TLD",
-            "DOMAIN_TO_TLD",
-            "IS_DOMAIN",
-            "IS_EMAIL",
-            "IS_EMPTY",
-            "LENGTH",
-            "PROTOCOL_TO_NAME",
-            "TO_INTEGER",
-            "TO_LOWER",
-            "TO_STRING",
-            "TO_UPPER",
-            "TRIM",
-            "URL_TO_HOST",
-            "URL_TO_PATH",
-            "URL_TO_PORT",
-            "URL_TO_PROTOCOL",
-            "WEEK_OF_MONTH",
-            "WEEK_OF_YEAR",
-            "YEAR"
-    );
-
     public List<StellarFunctionDescription> getSimpleStellarFunctions() {
-        List<StellarFunctionDescription> stellarFunctionDescriptions = getStellarFunctions();
-        return stellarFunctionDescriptions.stream().filter(stellarFunctionDescription ->
-                simpleFunctionNames.contains(stellarFunctionDescription.getName())).collect(Collectors.toList());
+      List<StellarFunctionDescription> stellarFunctionDescriptions = getStellarFunctions();
+      return stellarFunctionDescriptions.stream().filter(stellarFunctionDescription ->
+              stellarFunctionDescription.getParams().length == 1).sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
     }
-
 
 }

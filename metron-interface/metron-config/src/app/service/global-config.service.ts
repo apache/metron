@@ -24,7 +24,7 @@ import {APP_CONFIG} from '../app.config';
 
 @Injectable()
 export class GlobalConfigService {
-  url = this.config.apiEndpoint + '/globalConfig';
+  url = this.config.apiEndpoint + '/global/config';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   private globalConfig = {

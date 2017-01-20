@@ -106,6 +106,7 @@ public class KafkaControllerIntegrationTest {
 
     private MockMvc mockMvc;
 
+    private String kafkaUrl = "/api/v1/kafka";
     private String user = "user";
     private String password = "password";
 
@@ -116,19 +117,19 @@ public class KafkaControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post("/api/v1/kafka/topic").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
+        this.mockMvc.perform(post(kafkaUrl + "/topic").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic/bro"))
+        this.mockMvc.perform(get(kafkaUrl + "/topic/bro"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic"))
+        this.mockMvc.perform(get(kafkaUrl + "/topic"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic/bro/sample"))
+        this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(delete("/api/v1/kafka/topic/bro").with(csrf()))
+        this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -138,10 +139,10 @@ public class KafkaControllerIntegrationTest {
         this.kafkaService.deleteTopic("someTopic");
         Thread.sleep(1000);
 
-        this.mockMvc.perform(delete("/api/v1/kafka/topic/bro").with(httpBasic(user,password)).with(csrf()))
+        this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isNotFound());
 
-        this.mockMvc.perform(post("/api/v1/kafka/topic").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
+        this.mockMvc.perform(post(kafkaUrl + "/topic").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.name").value("bro"))
@@ -151,31 +152,31 @@ public class KafkaControllerIntegrationTest {
         sampleDataThread.start();
         Thread.sleep(1000);
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic/bro").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(kafkaUrl + "/topic/bro").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.name").value("bro"))
                 .andExpect(jsonPath("$.numPartitions").value(1))
                 .andExpect(jsonPath("$.replicationFactor").value(1));
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic/someTopic").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic").with(httpBasic(user,password)))
                 .andExpect(status().isNotFound());
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(kafkaUrl + "/topic").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", Matchers.hasItem("bro")));
 
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic/bro/sample").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
                 .andExpect(jsonPath("$").isNotEmpty());
 
-        this.mockMvc.perform(get("/api/v1/kafka/topic/someTopic/sample").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic/sample").with(httpBasic(user,password)))
                 .andExpect(status().isNotFound());
 
-        this.mockMvc.perform(delete("/api/v1/kafka/topic/bro").with(httpBasic(user,password)).with(csrf()))
+        this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isOk());
     }
 

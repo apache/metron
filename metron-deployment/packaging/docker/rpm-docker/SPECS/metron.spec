@@ -49,6 +49,7 @@ Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
+Source8:        metron-profiler-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -78,6 +79,7 @@ tar -xzf %{SOURCE4} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -255,6 +257,11 @@ This package installs the Metron Indexing files
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
 %{metron_home}/flux/indexing/remote.yaml
+%{metron_home}/config/zookeeper/indexing/bro.json
+%{metron_home}/config/zookeeper/indexing/snort.json
+%{metron_home}/config/zookeeper/indexing/websphere.json
+%{metron_home}/config/zookeeper/indexing/yaf.json
+%{metron_home}/config/zookeeper/indexing/asa.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -281,6 +288,31 @@ This package installs the Metron PCAP files %{metron_home}
 %{metron_home}/bin/start_pcap_topology.sh
 %{metron_home}/flux/pcap/remote.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        profiler
+Summary:        Metron Profiler
+Group:          Applications/Internet
+Provides:       profiler = %{version}
+
+%description    profiler
+This package installs the Metron Profiler %{metron_home}
+
+%files          profiler
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/bin
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/profiler
+%dir %{metron_home}/lib
+%{metron_home}/config/profiler.properties
+%{metron_home}/bin/start_profiler_topology.sh
+%{metron_home}/flux/profiler/remote.yaml
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-%{full_version}-uber.jar
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

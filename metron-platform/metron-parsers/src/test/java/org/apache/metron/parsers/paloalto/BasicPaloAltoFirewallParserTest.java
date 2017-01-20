@@ -73,6 +73,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		/**
 		 * @throws java.lang.Exception
 		 */
+		@Override
 		public void setUp() throws Exception {
 	          super.setUp("org.apache.metron.parsers.paloalto.BasicPaloAltoFirewallParserTest");
 	          setPAStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
@@ -84,6 +85,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractConfigTest {
 		 * 	
 		 * @throws java.lang.Exception
 		 */
+		@Override
 		public void tearDown() throws Exception {
 			paParser = null;
 		}

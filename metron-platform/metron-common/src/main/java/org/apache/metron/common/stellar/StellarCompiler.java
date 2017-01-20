@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.metron.common.stellar;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.FunctionMarker;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
@@ -27,6 +28,9 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.common.stellar.evaluators.ArithmeticEvaluator;
+import org.apache.metron.common.stellar.evaluators.ComparisonExpressionWithOperatorEvaluator;
+import org.apache.metron.common.stellar.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.common.stellar.generated.StellarBaseListener;
 import org.apache.metron.common.stellar.generated.StellarParser;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -44,16 +48,29 @@ import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
 
-  private Context context = null;
-  private Stack<Token> tokenStack = new Stack<>();
-  private FunctionResolver functionResolver;
-  private VariableResolver variableResolver;
-  private Throwable actualException = null;
+  private final Context context;
+  private final Stack<Token<?>> tokenStack;
+  private final FunctionResolver functionResolver;
+  private final VariableResolver variableResolver;
+  private Throwable actualException;
+  private final ArithmeticEvaluator arithmeticEvaluator;
+  private final NumberLiteralEvaluator numberLiteralEvaluator;
+  private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
-  public StellarCompiler(VariableResolver variableResolver, FunctionResolver functionResolver, Context context) {
+  public StellarCompiler(VariableResolver variableResolver,
+                         FunctionResolver functionResolver,
+                         Context context,
+                         Stack<Token<?>> tokenStack,
+                         ArithmeticEvaluator arithmeticEvaluator,
+                         NumberLiteralEvaluator numberLiteralEvaluator,
+                         ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;
+    this.tokenStack = tokenStack;
+    this.arithmeticEvaluator = arithmeticEvaluator;
+    this.numberLiteralEvaluator = numberLiteralEvaluator;
+    this. comparisonExpressionWithOperatorEvaluator = comparisonExpressionWithOperatorEvaluator;
   }
 
   @Override
@@ -62,30 +79,29 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   private boolean handleIn(Token<?> left, Token<?> right) {
-    Object key = null;
+    Object key = right.getValue();
 
-    Set<Object> set = null;
-    if (left.getValue() instanceof Collection) {
-      set = new HashSet<>((List<Object>) left.getValue());
-    } else if (left.getValue() != null) {
-      set = ImmutableSet.of(left.getValue());
+
+    if (left.getValue() != null) {
+      if(left.getValue() instanceof String && key instanceof String) {
+        return ((String)left.getValue()).contains(key.toString());
+      }
+      else if(left.getValue() instanceof Collection) {
+        return ((Collection)left.getValue()).contains(key);
+      }
+      else if(left.getValue() instanceof Map) {
+        return ((Map)left.getValue()).containsKey(key);
+      }
+      else {
+        if(key == null) {
+          return key == left.getValue();
+        }
+        else {
+          return key.equals(left.getValue());
+        }
+      }
     } else {
-      set = new HashSet<>();
-    }
-
-    key = right.getValue();
-    if (key == null || set.isEmpty()) {
       return false;
-    }
-    return set.contains(key);
-  }
-
-  private Double getDouble(Token<?> token) {
-    Number n = (Number) token.getValue();
-    if (n == null) {
-      return 0d;
-    } else {
-      return n.doubleValue();
     }
   }
 
@@ -96,38 +112,33 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l + r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(), p));
   }
 
   @Override
   public void exitArithExpr_minus(StellarParser.ArithExpr_minusContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l - r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(), p));
   }
 
   @Override
   public void exitArithExpr_div(StellarParser.ArithExpr_divContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l / r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(), p));
   }
 
   @Override
   public void exitArithExpr_mul(StellarParser.ArithExpr_mulContext ctx) {
-    Token<?> right = popStack();
-    Token<?> left = popStack();
-    Double r = getDouble(right);
-    Double l = getDouble(left);
-    tokenStack.push(new Token<>(l * r, Double.class));
+    Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair();
+    tokenStack.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.multiplication(), p));
+  }
+
+  @SuppressWarnings("unchecked")
+  private Pair<Token<? extends Number>, Token<? extends Number>> getArithExpressionPair() {
+    Token<? extends Number> right = (Token<? extends Number>) popStack();
+    Token<? extends Number> left = (Token<? extends Number>) popStack();
+    return Pair.of(left, right);
   }
 
   private void handleConditional() {
@@ -184,12 +195,22 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitIntLiteral(StellarParser.IntLiteralContext ctx) {
-    tokenStack.push(new Token<>(Integer.parseInt(ctx.getText()), Integer.class));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
   public void exitDoubleLiteral(StellarParser.DoubleLiteralContext ctx) {
-    tokenStack.push(new Token<>(Double.parseDouble(ctx.getText()), Double.class));
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
+  }
+
+  @Override
+  public void exitFloatLiteral(StellarParser.FloatLiteralContext ctx) {
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
+  }
+
+  @Override
+  public void exitLongLiteral(StellarParser.LongLiteralContext ctx) {
+    tokenStack.push(numberLiteralEvaluator.evaluate(ctx));
   }
 
   @Override
@@ -361,54 +382,13 @@ public class StellarCompiler extends StellarBaseListener {
     tokenStack.push(new Token<>(args, List.class));
   }
 
-  private <T extends Comparable<T>> boolean compare(T l, T r, String op) {
-    if (op.equals("==")) {
-      return l.compareTo(r) == 0;
-    } else if (op.equals("!=")) {
-      return l.compareTo(r) != 0;
-    } else if (op.equals("<")) {
-      return l.compareTo(r) < 0;
-    } else if (op.equals(">")) {
-      return l.compareTo(r) > 0;
-    } else if (op.equals(">=")) {
-      return l.compareTo(r) >= 0;
-    } else {
-      return l.compareTo(r) <= 0;
-    }
-  }
-
-  private boolean compareDouble(Double l, Double r, String op) {
-    if (op.equals("==")) {
-      return Math.abs(l - r) < 1e-6;
-    } else if (op.equals("!=")) {
-      return Math.abs(l - r) >= 1e-6;
-    } else if (op.equals("<")) {
-      return l.compareTo(r) < 0;
-    } else if (op.equals(">")) {
-      return l.compareTo(r) > 0;
-    } else if (op.equals(">=")) {
-      return l.compareTo(r) >= 0;
-    } else {
-      return l.compareTo(r) <= 0;
-    }
-  }
-
   @Override
   public void exitComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx) {
-    String op = ctx.getChild(1).getText();
+    StellarParser.Comp_operatorContext op = ctx.comp_operator();
     Token<?> right = popStack();
     Token<?> left = popStack();
-    if (left.getValue() instanceof Number
-            && right.getValue() instanceof Number) {
-      Double l = ((Number) left.getValue()).doubleValue();
-      Double r = ((Number) right.getValue()).doubleValue();
-      tokenStack.push(new Token<>(compareDouble(l, r, op), Boolean.class));
 
-    } else {
-      String l = left.getValue() == null ? "" : left.getValue().toString();
-      String r = right.getValue() == null ? "" : right.getValue().toString();
-      tokenStack.push(new Token<>(compare(l, r, op), Boolean.class));
-    }
+    tokenStack.push(comparisonExpressionWithOperatorEvaluator.evaluate(left, right, (StellarParser.ComparisonOpContext) op));
   }
 
   @Override
@@ -416,7 +396,7 @@ public class StellarCompiler extends StellarBaseListener {
     tokenStack.push(new Token<>(new FunctionMarker(), FunctionMarker.class));
   }
 
-  public Token<?> popStack() {
+  private Token<?> popStack() {
     if (tokenStack.empty()) {
       throw new ParseException("Unable to pop an empty stack");
     }

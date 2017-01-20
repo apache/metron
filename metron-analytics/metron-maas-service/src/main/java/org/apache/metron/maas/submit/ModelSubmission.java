@@ -126,11 +126,12 @@ public class ModelSubmission {
       return new AbstractMap.SimpleEntry<>(this, null);
     }
 
+    @SafeVarargs
     public static String toArgs(Map.Entry<ModelSubmissionOptions, String> ... arg) {
       return
       Joiner.on(" ").join(Iterables.transform(Arrays.asList(arg)
                                              , a -> "-" + a.getKey().option.getOpt()
-                                                  + a.getValue() == null?"":(" " + a.getValue())
+                                                  + (a.getValue() == null?"":(" " + a.getValue()))
                                              )
                          );
 
@@ -214,7 +215,7 @@ public class ModelSubmission {
         Path hdfsPath = new Path(ModelSubmissionOptions.HDFS_MODEL_PATH.get(cli));
         updateHDFS(fs, localDir, hdfsPath);
       }
-      Queue queue = config.createQueue(ImmutableMap.of(ZKQueue.ZK_CLIENT, client));
+      Queue<ModelRequest> queue = config.createQueue(ImmutableMap.of(ZKQueue.ZK_CLIENT, client));
       queue.enqueue(request);
     } finally {
       if (client != null) {

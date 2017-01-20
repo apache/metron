@@ -57,13 +57,19 @@ export class SensorParserListComponent implements OnInit {
     });
   }
 
-  getSensors() {
+  getSensors(justOnce: boolean) {
     this.sensorParserConfigHistoryService.getAll().subscribe(
       (results: SensorParserConfigHistory[]) => {
         this.sensors = results;
         this.selectedSensors = [];
         this.count = this.sensors.length;
-        this.getStatus();
+        if (!justOnce) {
+          this.getStatus();
+          this.pollStatus();
+        } else {
+          this.getStatus();
+        }
+
       }
     );
   }
@@ -102,6 +108,18 @@ export class SensorParserListComponent implements OnInit {
     }
   }
 
+  private pollStatus() {
+    this.stormService.pollGetAll().subscribe(
+        (results: TopologyStatus[]) => {
+          this.sensorsStatus = results;
+          this.updateSensorStatus();
+        },
+        error => {
+          this.updateSensorStatus();
+        }
+    );
+  }
+
   private getStatus() {
     this.stormService.getAll().subscribe(
       (results: TopologyStatus[]) => {
@@ -112,12 +130,6 @@ export class SensorParserListComponent implements OnInit {
         this.updateSensorStatus();
       }
     );
-
-    if (this.enableAutoRefresh) {
-      setTimeout(() => {
-        this.getStatus();
-      }, 5000);
-    }
   }
 
   updateSensorStatus() {
@@ -151,10 +163,10 @@ export class SensorParserListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.getSensors();
+    this.getSensors(false);
     this.sensorParserConfigService.dataChanged$.subscribe(
       data => {
-        this.getSensors();
+        this.getSensors(true);
       }
     );
   }

@@ -67,7 +67,7 @@ public class MaaSConfig {
   public void setQueueConfig(Map<String, Object> queueConfig) {
     this.queueConfig = queueConfig;
   }
-  public Queue createQueue(Map<String, Object> additionalConfig) {
+  public Queue<ModelRequest> createQueue(Map<String, Object> additionalConfig) {
     Map<String, Object> configs = new HashMap<>(getQueueConfig());
     configs.putAll(additionalConfig);
     return getQueue().create(configs);

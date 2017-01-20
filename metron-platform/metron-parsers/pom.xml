@@ -250,6 +250,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>${global_jar_version}</version>
                 <executions>
                     <execution>
                         <goals>
