@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import kafka.admin.AdminOperationException;
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
@@ -25,6 +26,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,9 +47,13 @@ public class KafkaService {
 
     private String offsetTopic = "__consumer_offsets";
 
-    public KafkaTopic createTopic(KafkaTopic topic) {
+    public KafkaTopic createTopic(KafkaTopic topic) throws RestException {
         if (!listTopics().contains(topic.getName())) {
-            AdminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
+          try {
+              AdminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
+          } catch (AdminOperationException e) {
+              throw new RestException(e);
+          }
         }
         return topic;
     }

@@ -33,15 +33,23 @@ import org.springframework.core.env.Environment;
 public class ZookeeperConfig {
 
   public static final String ZK_URL_SPRING_PROPERTY = "zookeeper.url";
+  public static final String ZK_CLIENT_SESSION_TIMEOUT = "zookeeper.client.timeout.session";
+  public static final String ZK_CLIENT_CONNECTION_TIMEOUT = "zookeeper.client.timeout.connection";
+  public static final String CURATOR_SLEEP_TIME = "curator.sleep.time";
+  public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
 
   @Bean(initMethod = "start", destroyMethod="close")
   public CuratorFramework client(Environment environment) {
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+    int sleepTime = Integer.parseInt(environment.getProperty(CURATOR_SLEEP_TIME));
+    int maxRetries = Integer.parseInt(environment.getProperty(CURATOR_MAX_RETRIES));
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(sleepTime, maxRetries);
     return CuratorFrameworkFactory.newClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), retryPolicy);
   }
 
   @Bean(destroyMethod="close")
   public ZkClient zkClient(Environment environment) {
-    return new ZkClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), 10000, 10000, ZKStringSerializer$.MODULE$);
+    int sessionTimeout = Integer.parseInt(environment.getProperty(ZK_CLIENT_SESSION_TIMEOUT));
+    int connectionTimeout = Integer.parseInt(environment.getProperty(ZK_CLIENT_CONNECTION_TIMEOUT));
+    return new ZkClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), sessionTimeout, connectionTimeout, ZKStringSerializer$.MODULE$);
   }
 }

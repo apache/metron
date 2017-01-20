@@ -22,6 +22,9 @@ public class TopologySummary {
     private TopologyStatus[] topologies;
 
     public TopologyStatus[] getTopologies() {
+        if (topologies == null) {
+            return new TopologyStatus[0];
+        }
         return topologies;
     }
 

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.model;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class GrokValidation {
@@ -42,6 +43,9 @@ public class GrokValidation {
     }
 
     public Map<String, Object> getResults() {
+        if (results == null) {
+            return new HashMap<>();
+        }
         return results;
     }
 

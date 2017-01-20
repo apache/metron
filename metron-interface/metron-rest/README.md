@@ -88,9 +88,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/sensor/indexing/config/{name}`](#get-apiv1sensorindexingconfig{name})|
 | [ `POST /api/v1/sensor/parser/config`](#post-apiv1sensorparserconfig)|
 | [ `GET /api/v1/sensor/parser/config`](#get-apiv1sensorparserconfig)|
-| [ `GET /api/v1/sensor/parser/config/history`](#get-apiv1sensorparserconfighistory)|
-| [ `GET /api/v1/sensor/parser/config/history/history/{name}`](#get-apiv1sensorparserconfighistoryhistory{name})|
-| [ `GET /api/v1/sensor/parser/config/history/{name}`](#get-apiv1sensorparserconfighistory{name})|
 | [ `GET /api/v1/sensor/parser/config/list/available`](#get-apiv1sensorparserconfiglistavailable)|
 | [ `POST /api/v1/sensor/parser/config/parseMessage`](#post-apiv1sensorparserconfigparsemessage)|
 | [ `GET /api/v1/sensor/parser/config/reload/available`](#get-apiv1sensorparserconfigreloadavailable)|
@@ -137,7 +134,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Input:
     * globalConfig - The Global Config JSON to be saved
   * Returns:
-    * 200 - Returns saved Global Config JSON
+    * 200 - Global Config updated. Returns saved Global Config JSON
+    * 201 - Global Config created. Returns saved Global Config JSON
 
 ### `GET /api/v1/grok/list`
   * Description: Lists the common Grok statements available in Metron
@@ -211,7 +209,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * sensorEnrichmentConfig - SensorEnrichmentConfig
     * name - SensorEnrichmentConfig name
   * Returns:
-    * 200 - Returns saved SensorEnrichmentConfig
+    * 200 - SensorEnrichmentConfig updated. Returns saved SensorEnrichmentConfig
+    * 201 - SensorEnrichmentConfig created. Returns saved SensorEnrichmentConfig
 
 ### `GET /api/v1/sensor/enrichment/config/{name}`
   * Description: Retrieves a SensorEnrichmentConfig from Zookeeper
@@ -240,7 +239,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * sensorIndexingConfig - SensorIndexingConfig
     * name - SensorIndexingConfig name
   * Returns:
-    * 200 - Returns saved SensorIndexingConfig
+    * 200 - SensorIndexingConfig updated. Returns saved SensorIndexingConfig
+    * 201 - SensorIndexingConfig created. Returns saved SensorIndexingConfig
 
 ### `GET /api/v1/sensor/indexing/config/{name}`
   * Description: Retrieves a SensorIndexingConfig from Zookeeper
@@ -255,32 +255,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Input:
     * sensorParserConfig - SensorParserConfig
   * Returns:
-    * 200 - Returns saved SensorParserConfig
+    * 200 - SensorParserConfig updated. Returns saved SensorParserConfig
+    * 201 - SensorParserConfig created. Returns saved SensorParserConfig
 
 ### `GET /api/v1/sensor/parser/config`
   * Description: Retrieves all SensorParserConfigs from Zookeeper
   * Returns:
     * 200 - Returns all SensorParserConfigs
-
-### `GET /api/v1/sensor/parser/config/history`
-  * Description: Retrieves all current versions of SensorParserConfigs including audit information
-  * Returns:
-    * 200 - Returns all SensorParserConfigs with audit information
-
-### `GET /api/v1/sensor/parser/config/history/history/{name}`
-  * Description: Retrieves the history of all changes made to a SensorParserConfig
-  * Input:
-    * name - SensorParserConfig name
-  * Returns:
-    * 200 - Returns SensorParserConfig history
-
-### `GET /api/v1/sensor/parser/config/history/{name}`
-  * Description: Retrieves the current version of a SensorParserConfig including audit information
-  * Input:
-    * name - SensorParserConfig name
-  * Returns:
-    * 200 - Returns SensorParserConfig with audit information
-    * 404 - SensorParserConfig is missing
 
 ### `GET /api/v1/sensor/parser/config/list/available`
   * Description: Lists the available parser classes that can be found on the classpath

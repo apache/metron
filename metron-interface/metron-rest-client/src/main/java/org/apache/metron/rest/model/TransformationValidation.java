@@ -19,6 +19,7 @@ package org.apache.metron.rest.model;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TransformationValidation {
@@ -27,6 +28,9 @@ public class TransformationValidation {
     private SensorParserConfig sensorParserConfig;
 
     public Map<String, Object> getSampleData() {
+        if (sampleData == null) {
+            return new HashMap<>();
+        }
         return sampleData;
     }
 
@@ -35,6 +39,9 @@ public class TransformationValidation {
     }
 
     public SensorParserConfig getSensorParserConfig() {
+        if (sensorParserConfig == null) {
+            return new SensorParserConfig();
+        }
         return sensorParserConfig;
     }
 

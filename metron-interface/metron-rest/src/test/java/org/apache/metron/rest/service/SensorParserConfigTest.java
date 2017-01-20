@@ -25,7 +25,6 @@ import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.rest.repository.SensorParserConfigVersionRepository;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,9 +66,6 @@ public class SensorParserConfigTest {
 
   @Mock
   private GrokService grokService;
-
-  @Mock
-  private SensorParserConfigVersionRepository sensorParserRepository;
 
   @InjectMocks
   private SensorParserConfigService sensorParserConfigService;

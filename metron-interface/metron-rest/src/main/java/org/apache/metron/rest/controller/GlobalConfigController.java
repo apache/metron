@@ -41,10 +41,15 @@ public class GlobalConfigController {
     private GlobalConfigService globalConfigService;
 
     @ApiOperation(value = "Creates or updates the Global Config in Zookeeper")
-    @ApiResponse(message = "Returns saved Global Config JSON", code = 200)
+    @ApiResponses(value = { @ApiResponse(message = "Global Config updated. Returns saved Global Config JSON", code = 200),
+            @ApiResponse(message = "Global Config created. Returns saved Global Config JSON", code = 201) })
     @RequestMapping(method = RequestMethod.POST)
     ResponseEntity<Map<String, Object>> save(@ApiParam(name="globalConfig", value="The Global Config JSON to be saved", required=true)@RequestBody Map<String, Object> globalConfig) throws RestException {
-        return new ResponseEntity<>(globalConfigService.save(globalConfig), HttpStatus.CREATED);
+        if (globalConfigService.get() == null) {
+            return new ResponseEntity<>(globalConfigService.save(globalConfig), HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(globalConfigService.save(globalConfig), HttpStatus.OK);
+        }
     }
 
     @ApiOperation(value = "Retrieves the current Global Config from Zookeeper")

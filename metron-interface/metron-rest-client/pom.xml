@@ -21,10 +21,7 @@
         <version>0.3.0</version>
     </parent>
     <artifactId>metron-rest-client</artifactId>
-    <version>${project.parent.version}</version>
     <properties>
-        <joda.time.version>2.9.4</joda.time.version>
-        <hibernate.version>5.0.11.Final</hibernate.version>
     </properties>
     <dependencies>
         <dependency>
@@ -37,17 +34,6 @@
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>${joda.time.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-envers</artifactId>
-            <version>${hibernate.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

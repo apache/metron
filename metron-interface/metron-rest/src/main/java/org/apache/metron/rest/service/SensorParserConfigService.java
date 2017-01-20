@@ -26,13 +26,10 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
-import org.apache.metron.rest.model.SensorParserConfigVersion;
-import org.apache.metron.rest.repository.SensorParserConfigVersionRepository;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -58,9 +55,6 @@ public class SensorParserConfigService {
   @Autowired
   private GrokService grokService;
 
-  @Autowired
-  private SensorParserConfigVersionRepository sensorParserRepository;
-
   private Map<String, String> availableParsers;
 
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
@@ -80,7 +74,6 @@ public class SensorParserConfigService {
     } catch (Exception e) {
       throw new RestException(e);
     }
-    saveVersion(sensorParserConfig.getSensorTopic(), serializedConfig);
     return sensorParserConfig;
   }
 
@@ -92,13 +85,6 @@ public class SensorParserConfigService {
       throw new RestException("Could not serialize SensorParserConfig", "Could not serialize " + sensorParserConfig.toString(), e.getCause());
     }
     return serializedConfig;
-  }
-
-  private void saveVersion(String name, String config) {
-    SensorParserConfigVersion sensorParser = new SensorParserConfigVersion();
-    sensorParser.setName(name);
-    sensorParser.setConfig(config);
-    sensorParserRepository.save(sensorParser);
   }
 
   public SensorParserConfig findOne(String name) throws RestException {
@@ -128,11 +114,8 @@ public class SensorParserConfigService {
   public boolean delete(String name) throws RestException {
     try {
       client.delete().forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/" + name);
-      sensorParserRepository.delete(name);
     } catch (KeeperException.NoNodeException e) {
       return false;
-    } catch (EmptyResultDataAccessException e) {
-      return true;
     } catch (Exception e) {
       throw new RestException(e);
     }

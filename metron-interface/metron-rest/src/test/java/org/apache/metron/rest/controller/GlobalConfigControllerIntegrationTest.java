@@ -18,7 +18,6 @@
 package org.apache.metron.rest.controller;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.rest.service.GlobalConfigService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles(TEST_PROFILE)
 public class GlobalConfigControllerIntegrationTest {
 
     /**
@@ -58,9 +58,6 @@ public class GlobalConfigControllerIntegrationTest {
 
     @Autowired
     private WebApplicationContext wac;
-
-    @Autowired
-    private GlobalConfigService globalConfigService;
 
     private MockMvc mockMvc;
 
@@ -92,6 +89,10 @@ public class GlobalConfigControllerIntegrationTest {
 
         this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
                 .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+
+        this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
 
         this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))

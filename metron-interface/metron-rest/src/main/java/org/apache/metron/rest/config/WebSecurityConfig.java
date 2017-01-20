@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -31,13 +32,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @Controller
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    private static final String CSRF_ENABLE_PROFILE = "csrf-enable";
 
     @Autowired
     private Environment environment;
@@ -66,7 +66,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID");
-        if (Arrays.asList(environment.getActiveProfiles()).contains(CSRF_ENABLE_PROFILE)) {
+        if (Arrays.asList(environment.getActiveProfiles()).contains(MetronRestConstants.CSRF_ENABLE_PROFILE)) {
             http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
         } else {
             http.csrf().disable();
@@ -78,12 +78,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureJdbc(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .jdbcAuthentication()
-                .dataSource(dataSource)
-                .withUser("user").password("password").roles("USER").and()
-                .withUser("user1").password("password").roles("USER").and()
-                .withUser("user2").password("password").roles("USER").and()
-                .withUser("admin").password("password").roles("USER", "ADMIN");
+        List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
+        if (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
+                activeProfiles.contains(MetronRestConstants.TEST_PROFILE)) {
+            auth.jdbcAuthentication().dataSource(dataSource)
+                    .withUser("user").password("password").roles("USER").and()
+                    .withUser("user1").password("password").roles("USER").and()
+                    .withUser("user2").password("password").roles("USER").and()
+                    .withUser("admin").password("password").roles("USER", "ADMIN");
+        } else {
+            auth.jdbcAuthentication().dataSource(dataSource);
+        }
     }
 }

@@ -15,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.repository;
+package org.apache.metron.rest;
 
-import org.apache.metron.rest.model.SensorParserConfigVersion;
-import org.springframework.data.repository.CrudRepository;
+public class MetronRestConstants {
 
-public interface SensorParserConfigVersionRepository extends CrudRepository<SensorParserConfigVersion, String> {
+  public static final String DEV_PROFILE = "dev";
+  public static final String TEST_PROFILE = "test";
+  public static final String CSRF_ENABLE_PROFILE = "csrf-enable";
+
 }
