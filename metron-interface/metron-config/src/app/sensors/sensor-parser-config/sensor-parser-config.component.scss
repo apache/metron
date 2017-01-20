@@ -60,6 +60,10 @@
   color:#999999;
 }
 
+.metron-slider-pane-edit {
+  background: $edit-background;
+}
+
 .input-group[disabled='true'] {
   cursor: not-allowed;
   opacity: .65;

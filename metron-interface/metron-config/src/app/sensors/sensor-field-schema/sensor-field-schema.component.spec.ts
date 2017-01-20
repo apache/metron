@@ -342,6 +342,8 @@ describe('Component: SensorFieldSchema', () => {
     });
 
     it('should call onSaveChange on onRemove/onEnable ', () => {
+        spyOn(component, 'onSave');
+
         let fieldSchemaRow = new FieldSchemaRow('method');
         fieldSchemaRow.outputFieldName = 'copy-of-method';
         fieldSchemaRow.preview = 'TRIM(TO_LOWER(method))';
@@ -353,12 +355,14 @@ describe('Component: SensorFieldSchema', () => {
         component.onRemove(removeFieldSchemaRow);
         expect(removeFieldSchemaRow.isRemoved).toEqual(true);
         expect(component.savedFieldSchemaRows[0].isRemoved).toEqual(true);
+        expect(component.onSave['calls'].count()).toEqual(1);
 
         fieldSchemaRow.isRemoved = true;
         let enableFieldSchemaRow = JSON.parse(JSON.stringify(fieldSchemaRow));
         component.onEnable(enableFieldSchemaRow);
         expect(fieldSchemaRow.isRemoved).toEqual(false);
         expect(component.savedFieldSchemaRows[0].isRemoved).toEqual(false);
+        expect(component.onSave['calls'].count()).toEqual(2);
 
         fixture.destroy();
     });
