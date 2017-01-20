@@ -40,30 +40,4 @@ describe('MetronModalComponent', () => {
   it('can instantiate MetronModalComponent', async(() => {
     expect(component instanceof MetronModalComponent).toBe(true);
   }));
-
-  it('can instantiate SampleDataComponent', async(() => {
-    let tmpDiv = document.createElement('div');
-    let event = {
-      target: {
-        classList: tmpDiv.classList
-      }
-    };
-
-    window.history.back = jasmine.createSpy('back');
-    spyOn(component.onClose, 'emit');
-    component.onModalClick(event);
-
-    expect(window.history.back).not.toHaveBeenCalled();
-    expect(component.onClose.emit).not.toHaveBeenCalled();
-
-
-    tmpDiv.classList.add('dialog-pane');
-    event.target.classList = tmpDiv.classList;
-    component.onModalClick(event);
-
-    expect(window.history.back).toHaveBeenCalled();
-    expect(component.onClose.emit).toHaveBeenCalled();
-
-  }));
-
 });
