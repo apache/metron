@@ -17,26 +17,7 @@
  */
 package org.apache.metron.rest.model;
 
-public class TopologyResponse {
+public enum TopologyResponseCode {
 
-  private TopologyResponseCode status;
-  private String message;
-
-  public TopologyResponseCode getStatus() {
-    return status;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public void setSuccessMessage(String message) {
-    this.status = TopologyResponseCode.SUCCESS;
-    this.message = message;
-  }
-
-  public void setErrorMessage(String message) {
-    this.status = TopologyResponseCode.ERROR;
-    this.message = message;
-  }
+  SUCCESS,ERROR
 }

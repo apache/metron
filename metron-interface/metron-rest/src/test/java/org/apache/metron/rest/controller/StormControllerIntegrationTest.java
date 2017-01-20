@@ -147,29 +147,29 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/parser/stop/broTest?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
     this.mockMvc.perform(get(stormUrl + "/parser/activate/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
     this.mockMvc.perform(get(stormUrl + "/parser/deactivate/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.GLOBAL_CONFIG_MISSING.name()));
 
     globalConfigService.save(globalConfig);
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.SENSOR_PARSER_CONFIG_MISSING.name()));
 
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
@@ -179,7 +179,7 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.name()));
 
     this.mockMvc.perform(get(stormUrl + "/broTest").with(httpBasic(user,password)))
@@ -198,7 +198,7 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/parser/stop/broTest?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment").with(httpBasic(user,password)))
@@ -206,37 +206,37 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/stop?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/start").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.toString()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.ACTIVE.name()));
 
     this.mockMvc.perform(get(stormUrl + "/enrichment").with(httpBasic(user,password)))
@@ -255,7 +255,7 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/enrichment/stop").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing").with(httpBasic(user,password)))
@@ -263,32 +263,32 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/indexing/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing/stop?stopNow=true").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("error"))
+            .andExpect(jsonPath("$.status").value("ERROR"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing/start").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.toString()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing/deactivate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing/activate").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.ACTIVE.name()));
 
     this.mockMvc.perform(get(stormUrl + "/indexing").with(httpBasic(user,password)))
@@ -307,7 +307,7 @@ public class StormControllerIntegrationTest {
 
     this.mockMvc.perform(get(stormUrl + "/indexing/stop").with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("success"))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
     this.mockMvc.perform(get(stormUrl + "/client/status").with(httpBasic(user,password)))
