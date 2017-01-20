@@ -61,6 +61,10 @@ export class SensorParserConfigComponent implements OnInit {
   showFieldSchema: boolean = false;
   showThreatTriage: boolean = false;
 
+  configValid = false;
+  sensorNameValid = false;
+  parserClassValid = false;
+  grokStatementValid = false;
   availableParsers = {};
   availableParserNames = [];
 
@@ -168,16 +172,41 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSetSensorName(): void {
-    if (!this.sensorIndexingConfig.index) {
-      this.sensorIndexingConfig.index = this.sensorParserConfig.sensorTopic;
+    this.sensorNameValid = this.sensorParserConfig.sensorTopic !== undefined &&
+        this.sensorParserConfig.sensorTopic.length > 0;
+    if (this.sensorNameValid) {
+      if (!this.sensorIndexingConfig.index) {
+        this.sensorIndexingConfig.index = this.sensorParserConfig.sensorTopic;
+      }
+      this.getKafkaStatus();
     }
-    this.getKafkaStatus();
+    this.isConfigValid();
   }
 
-  onParserTypeChange(parserClassName: string): void {
-    if (parserClassName === 'org.apache.metron.parsers.GrokParser' && !this.sensorParserConfig.parserConfig['patternLabel']) {
-      this.sensorParserConfig.parserConfig['patternLabel'] = this.sensorParserConfig.sensorTopic.toUpperCase();
+  onParserTypeChange(): void {
+    this.parserClassValid = this.sensorParserConfig.parserClassName !== undefined &&
+        this.sensorParserConfig.parserClassName.length > 0;
+    if (this.parserClassValid) {
+      if (this.isGrokParser()) {
+        if (!this.sensorParserConfig.parserConfig['patternLabel']) {
+          this.sensorParserConfig.parserConfig['patternLabel'] = this.sensorParserConfig.sensorTopic.toUpperCase();
+        }
+      } else {
+        this.hidePane(Pane.GROK);
+      }
     }
+    this.isConfigValid();
+  }
+
+  onGrokStatementChange(): void {
+    this.grokStatementValid = this.sensorParserConfig.parserConfig['grokStatement'] !== undefined && 
+        this.sensorParserConfig.parserConfig['grokStatement'].length > 0;
+    this.isConfigValid();
+  }
+
+  isConfigValid() {
+    let isGrokParser = this.isGrokParser();
+    this.configValid = this.sensorNameValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
   }
 
   getKafkaStatus() {

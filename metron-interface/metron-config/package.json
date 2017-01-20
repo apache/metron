@@ -12,8 +12,8 @@
     "test": "ng test",
     "pree2e": "webdriver-manager update",
     "e2e": "protractor",
-    "copy-ace": "copyfiles  -f $npm_package_config_node_ace/ext-language_tools.js $npm_package_config_node_ace/mode-json.js $npm_package_config_node_ace/theme-monokai.js $npm_package_config_node_ace/worker-json.js src/assets/ace",
-    "copy-ace-snippets": "copyfiles  -f $npm_package_config_node_ace/snippets/text.js $npm_package_config_node_ace/snippets/json.js  src/assets/ace/snippets",
+    "copy-ace": "cp -f $npm_package_config_node_ace/ext-language_tools.js $npm_package_config_node_ace/mode-json.js $npm_package_config_node_ace/theme-monokai.js $npm_package_config_node_ace/worker-json.js src/assets/ace",
+    "copy-ace-snippets": "cp -f $npm_package_config_node_ace/snippets/text.js $npm_package_config_node_ace/snippets/json.js  src/assets/ace/snippets",
     "postinstall": "npm run copy-ace & npm run copy-ace-snippets"
   },
   "private": true,

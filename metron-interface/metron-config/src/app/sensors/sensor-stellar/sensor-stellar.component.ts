@@ -18,6 +18,7 @@
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+import {SensorIndexingConfig} from "../../model/sensor-indexing-config";
 
 declare var ace: any;
 
@@ -32,12 +33,14 @@ export class SensorStellarComponent implements OnChanges {
   @Input() showStellar: boolean;
   @Input() sensorParserConfig: SensorParserConfig;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
+  @Input() sensorIndexingConfig: SensorIndexingConfig;
 
   @Output() hideStellar: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onStellarChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   newSensorParserConfig: string;
   newSensorEnrichmentConfig: string;
+  newSensorIndexingConfig: string;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showStellar'] && changes['showStellar'].currentValue) {
@@ -52,6 +55,10 @@ export class SensorStellarComponent implements OnChanges {
 
     if (this.sensorEnrichmentConfig) {
       this.newSensorEnrichmentConfig = JSON.stringify(this.sensorEnrichmentConfig, null, '\t');
+    }
+
+    if (this.sensorIndexingConfig) {
+      this.newSensorIndexingConfig = JSON.stringify(this.sensorIndexingConfig, null, '\t');
     }
   }
 
@@ -76,13 +83,15 @@ export class SensorStellarComponent implements OnChanges {
     }
 
     let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
-    // this.sensorEnrichmentConfig.batchSize = newParsedSensorEnrichmentConfig.batchSize;
     this.sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), newParsedSensorEnrichmentConfig.enrichment);
-    // this.sensorEnrichmentConfig.index = newParsedSensorEnrichmentConfig.index;
     this.sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), newParsedSensorEnrichmentConfig.threatIntel);
     if (newParsedSensorEnrichmentConfig.configuration != null) {
       this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;
     }
+
+    let newParsedSensorIndexingConfig = JSON.parse(this.newSensorIndexingConfig);
+    this.sensorIndexingConfig.batchSize = newParsedSensorIndexingConfig.batchSize;
+    this.sensorIndexingConfig.index = newParsedSensorIndexingConfig.index;
 
     this.hideStellar.emit(true);
     this.onStellarChanged.emit(true);
