@@ -13,7 +13,7 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div [ngClass]="{'metron-modal': backgroundMasked, 'metron-modal-clickable': !backgroundMasked}"  data-backdrop="static" data-keyboard="false" (click)="onModalClick($event)">
+<div [ngClass]="{'metron-modal': backgroundMasked, 'metron-modal-clickable': !backgroundMasked}"  data-backdrop="static" data-keyboard="false">
   <div class="dialog-pane fill">
     <ng-content></ng-content>
   </div>
