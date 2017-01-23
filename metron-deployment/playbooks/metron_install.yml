@@ -137,6 +137,18 @@
     - sensors
 
 #
+# sensor stubs - rather than deploying the sensors, deploy ligher weight
+# stubs that mimic the behavior of the real sensors
+#
+- hosts: sensors
+  become: true
+  roles:
+    - { role: ambari_gather_facts }
+    - { role: sensor-stubs }
+  tags:
+    - sensor-stubs
+
+#
 # monitor and start metron services with monit
 #
 - hosts: metron
