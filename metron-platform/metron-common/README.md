@@ -254,7 +254,8 @@ The `!=` operator is the negation of the above.
   * Description: Look up an IPV4 address and returns geographic information about it
   * Input:
     * ip - The IPV4 address to lookup
-  * Returns: Map containing GeoIP information if an entry exists and null otherwise
+    * fields - Optional list of GeoIP fields to grab. Options are locID, country, city postalCode, dmaCode, latitude, longitude, location_point
+  * Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
 
 ### `GET`
   * Description: Returns the i'th element of the list 

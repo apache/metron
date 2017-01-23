@@ -58,10 +58,25 @@ public class GeoEnrichmentFunctionsTest {
 
   private static JSONObject expectedMessage;
 
+  /**
+   * {
+   * "country":"US",
+   * "city":"Milton",
+   * "dmaCode":"819",
+   * "location_point":"47.2513,-122.3149"
+   * }
+   */
+  @Multiline
+  private static String expectedSubsetString;
+
+  private static JSONObject expectedSubsetMessage;
+
   @BeforeClass
   public static void setupOnce() throws ParseException {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
+
+    expectedSubsetMessage = (JSONObject) jsonParser.parse(expectedSubsetString);
 
     String baseDir = UnitTestHelper.findDir("GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
@@ -107,8 +122,30 @@ public class GeoEnrichmentFunctionsTest {
   public void testGetRemote() throws Exception {
     String stellar = "GEO_GET('216.160.83.56')";
     Object result = run(stellar, ImmutableMap.of());
-
-
     Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetRemoteSingleField() throws Exception {
+    String stellar = "GEO_GET('216.160.83.56', ['country'])";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertEquals("Remote Local IP should return country result based on DB", "US", result);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetRemoteMultipleFields() throws Exception {
+    String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'])";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertEquals("Remote Local IP should return country result based on DB", expectedSubsetMessage, result);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetTooManyParams() throws Exception {
+    String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'], 'garbage')";
+    Object result = run(stellar, ImmutableMap.of());
+    Assert.assertEquals("Remote Local IP should return country result based on DB", null, result);
   }
 }

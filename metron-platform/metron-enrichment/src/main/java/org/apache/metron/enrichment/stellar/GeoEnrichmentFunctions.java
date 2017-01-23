@@ -36,9 +36,10 @@ public class GeoEnrichmentFunctions {
           ,namespace="GEO"
           ,description="Look up an IPV4 address and returns geographic information about it"
           ,params = {
-                      "ip - The IPV4 address to lookup"
+                      "ip - The IPV4 address to lookup" +
+                      "fields - Optional list of GeoIP fields to grab. Options are locID, country, city, postalCode, dmaCode, latitude, longitude, location_point"
                     }
-          ,returns = "Map containing GeoIP information if an entry exists and null otherwise"
+          ,returns = "If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise"
   )
   public static class GeoGet implements StellarFunction {
     boolean initialized = false;
@@ -48,19 +49,42 @@ public class GeoEnrichmentFunctions {
       if(!initialized) {
         return null;
       }
-      if(args.size() < 1) {
-        return null;
-      }
-      int i = 0;
-      String ip = (String) args.get(i++);
-      if(ip == null || ip.trim().isEmpty()) {
+      if(args.size() > 2) {
         return null;
       }
 
-      Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
-      if(result.isPresent()) {
-        return result.get();
+      if(args.size() == 1 && args.get(0) instanceof String) {
+        // If no fields are provided, return everything
+        String ip = (String) args.get(0);
+        if(ip == null || ip.trim().isEmpty()) {
+          return null;
+        }
+
+        Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
+        if(result.isPresent()) {
+          return result.get();
+        }
+      } else if (args.size() == 2 && args.get(1) instanceof List) {
+        // If fields are provided, return just those fields.
+        String ip = (String) args.get(0);
+        @SuppressWarnings("unchecked")
+        List<String> fields = (List) args.get(1);
+        Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
+
+        // If only one field is requested, just return it directly
+        if(fields.size() == 1 && result.isPresent()) {
+          return result.get().get(fields.get(0));
+        } else if (result.isPresent()) {
+          // If multiple fields are requested, return all of them
+          HashMap<String, String> filteredInfo = new HashMap<>();
+          for(String field : fields) {
+            HashMap<String, String> geoInfo = result.get();
+            filteredInfo.put(field, geoInfo.get(field));
+          }
+          return filteredInfo;
+        }
       }
+
       return null;
     }
 
