@@ -187,6 +187,14 @@
                   <timeout>600</timeout>
                 </commandScript>
               </customCommand>
+              <customCommand>
+                <name>ZEPPELIN_DASHBOARD_INSTALL</name>
+                <commandScript>
+                  <script>scripts/indexing_master.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </customCommand>
           </customCommands>
         </component>
       </components>
@@ -274,6 +282,7 @@
         <service>STORM</service>
         <service>ZOOKEEPER</service>
         <service>HBASE</service>
+        <service>ZEPPELIN</service>
       </requiredServices>
 
       <configuration-dependencies>
@@ -282,6 +291,7 @@
         <config-type>storm-site</config-type>
         <config-type>kafka-broker</config-type>
         <config-type>kafka-env</config-type>
+        <config-type>zeppelin-config</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
       <quickLinksConfigurations>

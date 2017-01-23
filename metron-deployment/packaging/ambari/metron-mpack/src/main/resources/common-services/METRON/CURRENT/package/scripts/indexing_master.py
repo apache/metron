@@ -115,6 +115,12 @@ class Indexing(Script):
         yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/yaf_index*"')
         Execute(yaf_cmd, logoutput=True)
 
+    def zeppelin_dashboard_install(self, env):
+        from params import params
+        env.set_params(params)
+
+        zeppelin_cmd = ambari_format('curl -s -XPOST http://{zeppelin_server_url}/api/notebook/import -d "@{zeppelin_welcome_path}"')
+        Execute(zeppelin_cmd, logoutput=True)
 
 if __name__ == "__main__":
     Indexing().execute()
