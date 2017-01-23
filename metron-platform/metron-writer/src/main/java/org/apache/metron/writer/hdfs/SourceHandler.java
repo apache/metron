@@ -70,6 +70,7 @@ public class SourceHandler {
     for(JSONObject message : messages) {
       byte[] bytes = (message.toJSONString() + "\n").getBytes();
       synchronized (this.writeLock) {
+        System.out.println("Write!");
         out.write(bytes);
         this.offset += bytes.length;
 
