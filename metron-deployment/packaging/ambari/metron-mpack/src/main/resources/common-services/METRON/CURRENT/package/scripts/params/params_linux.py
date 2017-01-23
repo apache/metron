@@ -39,7 +39,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
-user_group = config['configurations']['cluster-env']['user_group']
+metron_group = config['configurations']['cluster-env']['metron_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']

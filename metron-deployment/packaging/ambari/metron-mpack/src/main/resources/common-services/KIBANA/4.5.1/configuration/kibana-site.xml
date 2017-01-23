@@ -50,7 +50,7 @@ elasticsearch.url: {{ es_url }}
 # kibana.index: ".kibana"
 
 # The default application to load.
-# kibana.defaultAppId: "discover"
+kibana.defaultAppId: "{{ kibana_default_application }}"
 
 # If your Elasticsearch is protected with basic auth, these are the user credentials
 # used by the Kibana server to perform maintenance on the kibana_index at startup. Your Kibana

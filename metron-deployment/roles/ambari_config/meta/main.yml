@@ -19,3 +19,4 @@ dependencies:
   - epel
   - python-pip
   - httplib2
+  - java_jdk

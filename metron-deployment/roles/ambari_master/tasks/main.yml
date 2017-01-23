@@ -38,6 +38,20 @@
   register: ambari_server_setup
   failed_when: ambari_server_setup.stderr
 
+- name: Build MPack
+  local_action: shell cd {{ playbook_dir }}/.. && mvn clean package
+  become: false
+
+- name: Copy MPack to Ambari Host
+  copy:
+    src: "{{ playbook_dir }}/../packaging/ambari/metron-mpack/target/metron_mpack-1.0.0.0-SNAPSHOT.tar.gz"
+    dest: /tmp
+
+- name: Install MPack on Ambari Host
+  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-1.0.0.0-SNAPSHOT.tar.gz
+  args:
+    creates: /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-1.0.0.0/addon-services
+
 - name: start ambari server
   service:
     name: ambari-server

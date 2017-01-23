@@ -46,6 +46,7 @@ class EnrichmentCommands:
         return self.__configured
 
     def set_configured(self):
+        Logger.info("Setting Configured to True")
         File(self.__params.enrichment_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
@@ -88,7 +89,7 @@ class EnrichmentCommands:
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.user_group,
+                                   group=self.__params.metron_group,
                                    mode=0775,
                                    )
 
@@ -180,6 +181,7 @@ class EnrichmentCommands:
         return active
 
     def create_hbase_tables(self):
+        Logger.info("Creating HBase Tables")
         add_enrichment_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.enrichment_table, self.__params.enrichment_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
@@ -195,3 +197,4 @@ class EnrichmentCommands:
                 logoutput=False,
                 path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
                 )
+        Logger.info("Done creating HBase Tables")

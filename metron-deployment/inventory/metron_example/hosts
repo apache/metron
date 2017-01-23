@@ -28,18 +28,9 @@ node6
 node7
 node8
 
-[metron_hbase_tables]
-node9
-
-[metron_kafka_topics]
-node9
-
-[pcap_server]
-node9
-
 #3rd ambari_slave
-[enrichment]
-node1
+[metron]
+node4
 
 #1 or more
 [search]
@@ -47,17 +38,15 @@ node10
 node11
 node12
 
-#1 only
 [sensors]
 node1
+
+[pcap_server]
+node9
 
 [web]
 node12
 
-[metron:children]
-enrichment
-search
-web
+[monit:children]
 sensors
-metron_kafka_topics
-metron_hbase_tables
+pcap_server

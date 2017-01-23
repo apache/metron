@@ -15,8 +15,18 @@
 #  limitations under the License.
 #
 ---
-elasticsearch_data_dir: /var/lib/elasticsearch
-elasticsearch_network_interface: eth0
-elasticsearch_logrotate_frequency: daily
-elasticsearch_logrotate_retention: 30
 
+- name: Create localrepo directory
+  file:
+    path: /localrepo
+    state: directory
+    mode: 0755
+
+- name: Copy Metron RPMs
+  copy:
+    src: "{{ item }}"
+    dest: /localrepo
+    owner: root
+    mode: 0755
+  with_fileglob:
+    - "{{ playbook_dir }}/../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm"

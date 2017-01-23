@@ -46,5 +46,4 @@
     wait_for_complete: True
     blueprint_var: "{{ blueprint }}"
 
-- include: start_hdp.yml
 
