@@ -92,6 +92,11 @@ public class SensorIndexingConfigControllerIntegrationTest {
   public void test() throws Exception {
     sensorIndexingConfigService.delete("broTest");
 
+    this.mockMvc.perform(get(sensorIndexingConfigUrl).with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().bytes("{}".getBytes()));
+
     this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))

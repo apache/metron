@@ -19,7 +19,7 @@ package org.apache.metron.rest.mock;
 
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.TopologyStatusCode;
-import org.apache.metron.rest.service.StormCLIWrapper;
+import org.apache.metron.rest.service.impl.StormCLIWrapper;
 
 import java.util.HashMap;
 import java.util.Map;

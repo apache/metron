@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,16 +26,13 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class HadoopConfig {
 
-    public static final String HDFS_URL_SPRING_PROPERTY = "hdfs.namenode.url";
-    public static final String DEFAULT_HDFS_URL = "file:///";
-
     @Autowired
     private Environment environment;
 
     @Bean
     public org.apache.hadoop.conf.Configuration configuration() {
         org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
-        configuration.set("fs.defaultFS", environment.getProperty(HDFS_URL_SPRING_PROPERTY, DEFAULT_HDFS_URL));
+        configuration.set("fs.defaultFS", environment.getProperty(MetronRestConstants.HDFS_URL_SPRING_PROPERTY, MetronRestConstants.DEFAULT_HDFS_URL));
         return configuration;
     }
 }

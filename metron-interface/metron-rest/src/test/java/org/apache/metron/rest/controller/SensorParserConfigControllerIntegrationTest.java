@@ -19,7 +19,7 @@ package org.apache.metron.rest.controller;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
-import org.apache.metron.rest.service.GrokService;
+import org.apache.metron.rest.MetronRestConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -353,12 +353,12 @@ public class SensorParserConfigControllerIntegrationTest {
   }
 
   private void cleanFileSystem() throws IOException {
-    File grokTempPath = new File(environment.getProperty(GrokService.GROK_TEMP_PATH_SPRING_PROPERTY));
+    File grokTempPath = new File(environment.getProperty(MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY));
     if (grokTempPath.exists()) {
       FileUtils.cleanDirectory(grokTempPath);
       FileUtils.deleteDirectory(grokTempPath);
     }
-    File grokPath = new File(environment.getProperty(GrokService.GROK_DEFAULT_PATH_SPRING_PROPERTY));
+    File grokPath = new File(environment.getProperty(MetronRestConstants.GROK_DEFAULT_PATH_SPRING_PROPERTY));
     if (grokPath.exists()) {
       FileUtils.cleanDirectory(grokPath);
       FileUtils.deleteDirectory(grokPath);

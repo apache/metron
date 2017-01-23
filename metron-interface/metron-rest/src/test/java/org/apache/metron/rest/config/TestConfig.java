@@ -32,7 +32,7 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
-import org.apache.metron.rest.service.StormCLIWrapper;
+import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -41,8 +41,10 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Nullable;
 import java.util.Properties;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
 @Configuration
-@Profile("test")
+@Profile(TEST_PROFILE)
 public class TestConfig {
 
   @Bean

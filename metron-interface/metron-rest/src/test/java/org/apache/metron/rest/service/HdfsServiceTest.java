@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.config.HadoopConfig;
+import org.apache.metron.rest.service.impl.HdfsServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,12 +35,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.File;
 import java.io.IOException;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={HadoopConfig.class, HdfsServiceTest.HdfsServiceTestContextConfiguration.class})
-@ActiveProfiles("test")
+@ActiveProfiles(TEST_PROFILE)
 public class HdfsServiceTest {
 
     @Configuration
@@ -48,7 +50,7 @@ public class HdfsServiceTest {
 
         @Bean
         public HdfsService hdfsService() {
-            return new HdfsService();
+            return new HdfsServiceImpl();
         }
     }
 

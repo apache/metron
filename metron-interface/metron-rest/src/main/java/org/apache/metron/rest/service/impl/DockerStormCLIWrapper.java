@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.rest.service.impl;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;

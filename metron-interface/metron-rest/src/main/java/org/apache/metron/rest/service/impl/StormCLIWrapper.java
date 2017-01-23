@@ -15,11 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.rest.service.impl;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.config.KafkaConfig;
-import org.apache.metron.rest.config.ZookeeperConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -31,14 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.metron.rest.service.StormService.ENRICHMENT_TOPOLOGY_NAME;
-import static org.apache.metron.rest.service.StormService.INDEXING_TOPOLOGY_NAME;
+import static org.apache.metron.rest.MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME;
+import static org.apache.metron.rest.MetronRestConstants.INDEXING_TOPOLOGY_NAME;
 
 public class StormCLIWrapper {
-
-  public static final String PARSER_SCRIPT_PATH_SPRING_PROPERTY = "storm.parser.script.path";
-  public static final String ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY = "storm.enrichment.script.path";
-  public static final String INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.script.path";
 
   @Autowired
   private Environment environment;
@@ -82,11 +77,11 @@ public class StormCLIWrapper {
 
   protected String[] getParserStartCommand(String name) {
     String[] command = new String[7];
-    command[0] = environment.getProperty(PARSER_SCRIPT_PATH_SPRING_PROPERTY);
+    command[0] = environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY);
     command[1] = "-k";
-    command[2] = environment.getProperty(KafkaConfig.KAFKA_BROKER_URL_SPRING_PROPERTY);
+    command[2] = environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY);
     command[3] = "-z";
-    command[4] = environment.getProperty(ZookeeperConfig.ZK_URL_SPRING_PROPERTY);
+    command[4] = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
     command[5] = "-s";
     command[6] = name;
     return command;
@@ -94,13 +89,13 @@ public class StormCLIWrapper {
 
   protected String[] getEnrichmentStartCommand() {
     String[] command = new String[1];
-    command[0] = environment.getProperty(ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY);
+    command[0] = environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY);
     return command;
   }
 
   protected String[] getIndexingStartCommand() {
     String[] command = new String[1];
-    command[0] = environment.getProperty(INDEXING_SCRIPT_PATH_SPRING_PROPERTY);
+    command[0] = environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY);
     return command;
   }
 
@@ -125,9 +120,9 @@ public class StormCLIWrapper {
 
   public Map<String, String> getStormClientStatus() throws RestException {
     Map<String, String> status = new HashMap<>();
-    status.put("parserScriptPath", environment.getProperty(PARSER_SCRIPT_PATH_SPRING_PROPERTY));
-    status.put("enrichmentScriptPath", environment.getProperty(ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY));
-    status.put("indexingScriptPath", environment.getProperty(INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
+    status.put("parserScriptPath", environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY));
+    status.put("enrichmentScriptPath", environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY));
+    status.put("indexingScriptPath", environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
     status.put("stormClientVersionInstalled", stormClientVersionInstalled());
     return status;
   }

@@ -23,33 +23,30 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
-@Configuration
-@Profile("!test")
-public class ZookeeperConfig {
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
-  public static final String ZK_URL_SPRING_PROPERTY = "zookeeper.url";
-  public static final String ZK_CLIENT_SESSION_TIMEOUT = "zookeeper.client.timeout.session";
-  public static final String ZK_CLIENT_CONNECTION_TIMEOUT = "zookeeper.client.timeout.connection";
-  public static final String CURATOR_SLEEP_TIME = "curator.sleep.time";
-  public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
+@Configuration
+@Profile("!" + TEST_PROFILE)
+public class ZookeeperConfig {
 
   @Bean(initMethod = "start", destroyMethod="close")
   public CuratorFramework client(Environment environment) {
-    int sleepTime = Integer.parseInt(environment.getProperty(CURATOR_SLEEP_TIME));
-    int maxRetries = Integer.parseInt(environment.getProperty(CURATOR_MAX_RETRIES));
+    int sleepTime = Integer.parseInt(environment.getProperty(MetronRestConstants.CURATOR_SLEEP_TIME));
+    int maxRetries = Integer.parseInt(environment.getProperty(MetronRestConstants.CURATOR_MAX_RETRIES));
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(sleepTime, maxRetries);
-    return CuratorFrameworkFactory.newClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), retryPolicy);
+    return CuratorFrameworkFactory.newClient(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY), retryPolicy);
   }
 
   @Bean(destroyMethod="close")
   public ZkClient zkClient(Environment environment) {
-    int sessionTimeout = Integer.parseInt(environment.getProperty(ZK_CLIENT_SESSION_TIMEOUT));
-    int connectionTimeout = Integer.parseInt(environment.getProperty(ZK_CLIENT_CONNECTION_TIMEOUT));
-    return new ZkClient(environment.getProperty(ZK_URL_SPRING_PROPERTY), sessionTimeout, connectionTimeout, ZKStringSerializer$.MODULE$);
+    int sessionTimeout = Integer.parseInt(environment.getProperty(MetronRestConstants.ZK_CLIENT_SESSION_TIMEOUT));
+    int connectionTimeout = Integer.parseInt(environment.getProperty(MetronRestConstants.ZK_CLIENT_CONNECTION_TIMEOUT));
+    return new ZkClient(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY), sessionTimeout, connectionTimeout, ZKStringSerializer$.MODULE$);
   }
 }

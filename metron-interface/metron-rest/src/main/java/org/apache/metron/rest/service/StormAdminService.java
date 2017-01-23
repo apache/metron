@@ -18,22 +18,25 @@
 package org.apache.metron.rest.service;
 
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.TopologyResponse;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
-public interface SensorIndexingConfigService {
+public interface StormAdminService {
 
-  Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException;
+  TopologyResponse startParserTopology(String name) throws RestException;
 
-  Map<String, Object> findOne(String name) throws RestException;
+  TopologyResponse stopParserTopology(String name, boolean stopNow) throws RestException;
 
-  Map<String, Map<String, Object>> getAll() throws RestException;
+  TopologyResponse startEnrichmentTopology() throws RestException;
 
-  List<String> getAllTypes() throws RestException;
+  TopologyResponse stopEnrichmentTopology(boolean stopNow) throws RestException;
 
-  boolean delete(String name) throws RestException;
+  TopologyResponse startIndexingTopology() throws RestException;
 
+  TopologyResponse stopIndexingTopology(boolean stopNow) throws RestException;
+
+  Map<String, String> getStormClientStatus() throws RestException;
 }

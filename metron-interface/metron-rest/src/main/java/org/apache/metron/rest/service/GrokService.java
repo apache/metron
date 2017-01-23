@@ -17,148 +17,17 @@
  */
 package org.apache.metron.rest.service;
 
-import oi.thekraken.grok.api.Grok;
-import oi.thekraken.grok.api.Match;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.parsers.GrokParser;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.Map;
 
 @Service
-public class GrokService {
+public interface GrokService {
 
-    public static final String GROK_DEFAULT_PATH_SPRING_PROPERTY = "grok.path.default";
-    public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
-    public static final String GROK_CLASS_NAME = GrokParser.class.getName();
-    public static final String GROK_PATH_KEY = "grokPath";
-    public static final String GROK_STATEMENT_KEY = "grokStatement";
-    public static final String GROK_PATTERN_LABEL_KEY = "patternLabel";
+    Map<String, String> getCommonGrokPatterns();
 
-    @Autowired
-    private Environment environment;
-
-    @Autowired
-    private Grok commonGrok;
-
-    @Autowired
-    private HdfsService hdfsService;
-
-    public Map<String, String> getCommonGrokPatterns() {
-        return commonGrok.getPatterns();
-    }
-
-    public GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException {
-        Map<String, Object> results;
-        try {
-            Grok grok = new Grok();
-            grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
-            grok.addPatternFromReader(new StringReader(grokValidation.getStatement()));
-            String patternLabel = grokValidation.getStatement().substring(0, grokValidation.getStatement().indexOf(" "));
-            String grokPattern = "%{" + patternLabel + "}";
-            grok.compile(grokPattern);
-            Match gm = grok.match(grokValidation.getSampleData());
-            gm.captures();
-            results = gm.toMap();
-            results.remove(patternLabel);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new RestException("A pattern label must be included (ex. PATTERN_LABEL ${PATTERN:field} ...)", e.getCause());
-        } catch (Exception e) {
-            throw new RestException(e);
-        }
-        grokValidation.setResults(results);
-        return grokValidation;
-    }
-
-    public boolean isGrokConfig(SensorParserConfig sensorParserConfig) {
-        return GROK_CLASS_NAME.equals(sensorParserConfig.getParserClassName());
-    }
-
-    public void addGrokStatementToConfig(SensorParserConfig sensorParserConfig) throws RestException {
-        String grokStatement = "";
-        String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
-        if (grokPath != null) {
-            String fullGrokStatement = getGrokStatement(grokPath);
-            String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
-            grokStatement = fullGrokStatement.replaceFirst(patternLabel + " ", "");
-        }
-        sensorParserConfig.getParserConfig().put(GROK_STATEMENT_KEY, grokStatement);
-    }
-
-    public void addGrokPathToConfig(SensorParserConfig sensorParserConfig) {
-        if (sensorParserConfig.getParserConfig().get(GROK_PATH_KEY) == null) {
-            String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
-            if (grokStatement != null) {
-                sensorParserConfig.getParserConfig().put(GROK_PATH_KEY,
-                      new Path(environment.getProperty(GROK_DEFAULT_PATH_SPRING_PROPERTY), sensorParserConfig.getSensorTopic()).toString());
-            }
-        }
-    }
-
-    public String getGrokStatement(String path) throws RestException {
-        try {
-            return new String(hdfsService.read(new Path(path)));
-        } catch (IOException e) {
-            throw new RestException(e);
-        }
-    }
-
-    public void saveGrokStatement(SensorParserConfig sensorParserConfig) throws RestException {
-        saveGrokStatement(sensorParserConfig, false);
-    }
-
-    public void saveTemporaryGrokStatement(SensorParserConfig sensorParserConfig) throws RestException {
-        saveGrokStatement(sensorParserConfig, true);
-    }
-
-    private void saveGrokStatement(SensorParserConfig sensorParserConfig, boolean isTemporary) throws RestException {
-        String patternLabel = (String) sensorParserConfig.getParserConfig().get(GROK_PATTERN_LABEL_KEY);
-        String grokPath = (String) sensorParserConfig.getParserConfig().get(GROK_PATH_KEY);
-        String grokStatement = (String) sensorParserConfig.getParserConfig().get(GROK_STATEMENT_KEY);
-        if (grokStatement != null) {
-            String fullGrokStatement = patternLabel + " " + grokStatement;
-            try {
-                if (!isTemporary) {
-                    hdfsService.write(new Path(grokPath), fullGrokStatement.getBytes());
-                } else {
-                    File grokDirectory = new File(getTemporaryGrokRootPath());
-                    if (!grokDirectory.exists()) {
-                        grokDirectory.mkdirs();
-                    }
-                    FileWriter fileWriter = new FileWriter(new File(grokDirectory, sensorParserConfig.getSensorTopic()));
-                    fileWriter.write(fullGrokStatement);
-                    fileWriter.close();
-                }
-            } catch (IOException e) {
-                throw new RestException(e);
-            }
-        } else {
-          throw new RestException("A grokStatement must be provided");
-        }
-    }
-
-    public void deleteTemporaryGrokStatement(SensorParserConfig sensorParserConfig) {
-        File file = new File(getTemporaryGrokRootPath(), sensorParserConfig.getSensorTopic());
-        file.delete();
-    }
-
-    public String getTemporaryGrokRootPath() {
-        String grokTempPath = environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return new Path(grokTempPath, authentication.getName()).toString();
-    }
-
+    GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException;
 
 }

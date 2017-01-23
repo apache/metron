@@ -141,6 +141,11 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
   public void test() throws Exception {
     sensorEnrichmentConfigService.delete("broTest");
 
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl).with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().bytes("{}".getBytes()));
+
     this.mockMvc.perform(post(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))

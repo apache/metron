@@ -17,8 +17,8 @@
  */
 package org.apache.metron.rest.config;
 
-import org.apache.metron.rest.service.DockerStormCLIWrapper;
-import org.apache.metron.rest.service.StormCLIWrapper;
+import org.apache.metron.rest.service.impl.DockerStormCLIWrapper;
+import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,8 +27,11 @@ import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
 
+import static org.apache.metron.rest.MetronRestConstants.DOCKER_PROFILE;
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
 @Configuration
-@Profile("!test")
+@Profile("!" + TEST_PROFILE)
 public class StormConfig {
 
   @Autowired
@@ -36,7 +39,7 @@ public class StormConfig {
 
   @Bean
   public StormCLIWrapper stormCLIClientWrapper() {
-    if (Arrays.asList(environment.getActiveProfiles()).contains("docker")) {
+    if (Arrays.asList(environment.getActiveProfiles()).contains(DOCKER_PROFILE)) {
       return new DockerStormCLIWrapper();
     } else {
       return new StormCLIWrapper();

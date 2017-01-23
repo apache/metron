@@ -17,41 +17,20 @@
  */
 package org.apache.metron.rest.service;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @Service
-public class HdfsService {
+public interface HdfsService {
 
-    @Autowired
-    private Configuration configuration;
+    byte[] read(Path path) throws IOException;
 
-    public byte[] read(Path path) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        IOUtils.copyBytes(FileSystem.get(configuration).open(path), byteArrayOutputStream, configuration);
-        return byteArrayOutputStream.toByteArray();
-    }
+    void write(Path path, byte[] contents) throws IOException;
 
-    public void write(Path path, byte[] contents) throws IOException {
-        FSDataOutputStream fsDataOutputStream = FileSystem.get(configuration).create(path, true);
-        fsDataOutputStream.write(contents);
-        fsDataOutputStream.close();
-    }
+    FileStatus[] list(Path path) throws IOException;
 
-    public FileStatus[] list(Path path) throws IOException {
-        return FileSystem.get(configuration).listStatus(path);
-    }
-
-    public boolean delete(Path path, boolean recursive) throws IOException {
-        return FileSystem.get(configuration).delete(path, recursive);
-    }
+    boolean delete(Path path, boolean recursive) throws IOException;
  }
