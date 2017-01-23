@@ -77,6 +77,7 @@ public class SourceHandler {
           if (this.out instanceof HdfsDataOutputStream) {
             ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
           } else {
+            System.out.println("Flush!");
             this.out.hsync();
           }
           this.syncPolicy.reset();
