@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -43,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles(TEST_PROFILE)
 public class SensorEnrichmentConfigControllerIntegrationTest {
 
   /**
@@ -140,8 +141,30 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
   public void test() throws Exception {
     sensorEnrichmentConfigService.delete("broTest");
 
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl).with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().bytes("{}".getBytes()));
+
     this.mockMvc.perform(post(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.enrichment.fieldMap.geo[0]").value("ip_dst_addr"))
+            .andExpect(jsonPath("$.enrichment.fieldMap.host[0]").value("ip_dst_addr"))
+            .andExpect(jsonPath("$.enrichment.fieldMap.hbaseEnrichment[0]").value("ip_src_addr"))
+            .andExpect(jsonPath("$.enrichment.fieldToTypeMap.ip_src_addr[0]").value("sample"))
+            .andExpect(jsonPath("$.enrichment.fieldMap.stellar.config.group1.foo").value("1 + 1"))
+            .andExpect(jsonPath("$.enrichment.fieldMap.stellar.config.group1.bar").value("foo"))
+            .andExpect(jsonPath("$.enrichment.fieldMap.stellar.config.group2.ALL_CAPS").value("TO_UPPER(source.type)"))
+            .andExpect(jsonPath("$.threatIntel.fieldMap.hbaseThreatIntel[0]").value("ip_src_addr"))
+            .andExpect(jsonPath("$.threatIntel.fieldMap.hbaseThreatIntel[1]").value("ip_dst_addr"))
+            .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_src_addr[0]").value("malicious_ip"))
+            .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_dst_addr[0]").value("malicious_ip"))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"]").value(10))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.aggregator").value("MAX"));
+
+    this.mockMvc.perform(post(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+            .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.enrichment.fieldMap.geo[0]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.enrichment.fieldMap.host[0]").value("ip_dst_addr"))

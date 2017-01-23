@@ -25,7 +25,7 @@ import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.rest.repository.SensorParserConfigVersionRepository;
+import org.apache.metron.rest.service.impl.SensorParserConfigServiceImpl;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,11 +68,8 @@ public class SensorParserConfigTest {
   @Mock
   private GrokService grokService;
 
-  @Mock
-  private SensorParserConfigVersionRepository sensorParserRepository;
-
   @InjectMocks
-  private SensorParserConfigService sensorParserConfigService;
+  private SensorParserConfigServiceImpl sensorParserConfigService;
 
   @Before
   public void setUp() throws Exception {
@@ -89,7 +86,6 @@ public class SensorParserConfigTest {
     broParserConfig.setParserClassName("org.apache.metron.parsers.bro.BasicBroParser");
     broParserConfig.setSensorTopic("broTest");
     Mockito.when(objectMapper.writeValueAsString(broParserConfig)).thenReturn(new String(JSONUtils.INSTANCE.toJSON(broParserConfig)));
-    Mockito.when(grokService.isGrokConfig(broParserConfig)).thenReturn(false);
     sensorParserConfigService.save(broParserConfig);
     verifyStatic(times(1));
     ConfigurationsUtils.writeSensorParserConfigToZookeeper("broTest", JSONUtils.INSTANCE.toJSON(broParserConfig), client);

@@ -45,10 +45,16 @@ public class SensorParserConfigController {
   private SensorParserConfigService sensorParserConfigService;
 
   @ApiOperation(value = "Updates or creates a SensorParserConfig in Zookeeper")
-  @ApiResponse(message = "Returns saved SensorParserConfig", code = 200)
+  @ApiResponses(value = { @ApiResponse(message = "SensorParserConfig updated. Returns saved SensorParserConfig", code = 200),
+          @ApiResponse(message = "SensorParserConfig created. Returns saved SensorParserConfig", code = 201) })
   @RequestMapping(method = RequestMethod.POST)
   ResponseEntity<SensorParserConfig> save(@ApiParam(name="sensorParserConfig", value="SensorParserConfig", required=true)@RequestBody SensorParserConfig sensorParserConfig) throws RestException {
-    return new ResponseEntity<>(sensorParserConfigService.save(sensorParserConfig), HttpStatus.CREATED);
+    String name = sensorParserConfig.getSensorTopic();
+    if (sensorParserConfigService.findOne(name) == null) {
+      return new ResponseEntity<>(sensorParserConfigService.save(sensorParserConfig), HttpStatus.CREATED);
+    } else {
+      return new ResponseEntity<>(sensorParserConfigService.save(sensorParserConfig), HttpStatus.OK);
+    }
   }
 
   @ApiOperation(value = "Retrieves a SensorParserConfig from Zookeeper")

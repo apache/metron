@@ -42,11 +42,16 @@ public class SensorIndexingConfigController {
   private SensorIndexingConfigService sensorIndexingConfigService;
 
   @ApiOperation(value = "Updates or creates a SensorIndexingConfig in Zookeeper")
-  @ApiResponse(message = "Returns saved SensorIndexingConfig", code = 200)
+  @ApiResponses(value = { @ApiResponse(message = "SensorIndexingConfig updated. Returns saved SensorIndexingConfig", code = 200),
+          @ApiResponse(message = "SensorIndexingConfig created. Returns saved SensorIndexingConfig", code = 201) })
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   ResponseEntity<Map<String, Object>> save(@ApiParam(name="name", value="SensorIndexingConfig name", required=true)@PathVariable String name,
                                            @ApiParam(name="sensorIndexingConfig", value="SensorIndexingConfig", required=true)@RequestBody Map<String, Object> sensorIndexingConfig) throws RestException {
-    return new ResponseEntity<>(sensorIndexingConfigService.save(name, sensorIndexingConfig), HttpStatus.CREATED);
+    if (sensorIndexingConfigService.findOne(name) == null) {
+      return new ResponseEntity<>(sensorIndexingConfigService.save(name, sensorIndexingConfig), HttpStatus.CREATED);
+    } else {
+      return new ResponseEntity<>(sensorIndexingConfigService.save(name, sensorIndexingConfig), HttpStatus.OK);
+    }
   }
 
   @ApiOperation(value = "Retrieves a SensorIndexingConfig from Zookeeper")

@@ -19,10 +19,10 @@ package org.apache.metron.rest.model;
 
 public class TopologyResponse {
 
-  private String status;
+  private TopologyResponseCode status;
   private String message;
 
-  public String getStatus() {
+  public TopologyResponseCode getStatus() {
     return status;
   }
 
@@ -31,12 +31,12 @@ public class TopologyResponse {
   }
 
   public void setSuccessMessage(String message) {
-    this.status = "success";
+    this.status = TopologyResponseCode.SUCCESS;
     this.message = message;
   }
 
   public void setErrorMessage(String message) {
-    this.status = "error";
+    this.status = TopologyResponseCode.ERROR;
     this.message = message;
   }
 }

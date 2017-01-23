@@ -15,17 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.audit;
+package org.apache.metron.rest.model;
 
-import org.hibernate.envers.DefaultRevisionEntity;
-import org.hibernate.envers.RevisionEntity;
+public enum TopologyResponseCode {
 
-import javax.persistence.Entity;
-
-@Entity
-@RevisionEntity(UserRevisionListener.class)
-public class UserRevEntity extends DefaultRevisionEntity {
-    private String username;
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+  SUCCESS,ERROR
 }

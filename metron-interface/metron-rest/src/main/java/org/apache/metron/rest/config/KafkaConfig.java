@@ -20,6 +20,7 @@ package org.apache.metron.rest.config;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,11 +29,11 @@ import org.springframework.core.env.Environment;
 
 import java.util.Properties;
 
-@Configuration
-@Profile("!test")
-public class KafkaConfig {
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
-  public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
+@Configuration
+@Profile("!" + TEST_PROFILE)
+public class KafkaConfig {
 
   @Autowired
   private Environment environment;
@@ -48,7 +49,7 @@ public class KafkaConfig {
   @Bean(destroyMethod="close")
   public KafkaConsumer<String, String> kafkaConsumer() {
     Properties props = new Properties();
-    props.put("bootstrap.servers", environment.getProperty(KAFKA_BROKER_URL_SPRING_PROPERTY));
+    props.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
     props.put("group.id", "metron-config");
     props.put("enable.auto.commit", "false");
     props.put("auto.commit.interval.ms", "1000");

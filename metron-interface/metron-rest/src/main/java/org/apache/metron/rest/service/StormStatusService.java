@@ -15,10 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.repository;
+package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.model.SensorParserConfigVersion;
-import org.springframework.data.repository.CrudRepository;
+import org.apache.metron.rest.model.TopologyResponse;
+import org.apache.metron.rest.model.TopologyStatus;
+import org.apache.metron.rest.model.TopologySummary;
+import org.springframework.stereotype.Service;
 
-public interface SensorParserConfigVersionRepository extends CrudRepository<SensorParserConfigVersion, String> {
+import java.util.List;
+
+@Service
+public interface StormStatusService {
+
+  TopologySummary getTopologySummary();
+
+  TopologyStatus getTopologyStatus(String name);
+
+  List<TopologyStatus> getAllTopologyStatus();
+
+  TopologyResponse activateTopology(String name);
+
+  TopologyResponse deactivateTopology(String name);
 }

@@ -15,37 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.rest.service;
 
-import org.hibernate.envers.Audited;
+import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.TopologyResponse;
+import org.springframework.stereotype.Service;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import java.util.Map;
 
-@Entity
-@Audited
-public class SensorParserConfigVersion {
+@Service
+public interface StormAdminService {
 
-    @Id
-    private String name;
+  TopologyResponse startParserTopology(String name) throws RestException;
 
-    @Column(length = 10000)
-    private String config;
+  TopologyResponse stopParserTopology(String name, boolean stopNow) throws RestException;
 
-    public String getName() {
-        return name;
-    }
+  TopologyResponse startEnrichmentTopology() throws RestException;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  TopologyResponse stopEnrichmentTopology(boolean stopNow) throws RestException;
 
-    public String getConfig() {
-        return config;
-    }
+  TopologyResponse startIndexingTopology() throws RestException;
 
-    public void setConfig(String config) {
-        this.config = config;
-    }
+  TopologyResponse stopIndexingTopology(boolean stopNow) throws RestException;
+
+  Map<String, String> getStormClientStatus() throws RestException;
 }

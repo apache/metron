@@ -28,3 +28,15 @@ grok:
   path:
     temp: ./
     default: /apps/metron/patterns
+
+zookeeper:
+  client:
+    timeout:
+      session: 10000
+      connection: 10000
+
+curator:
+  sleep:
+    time: 1000
+  max:
+    retries: 3

@@ -17,55 +17,17 @@
  */
 package org.apache.metron.rest.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.RestException;
-import org.apache.zookeeper.KeeperException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 @Service
-public class GlobalConfigService {
+public interface GlobalConfigService {
 
-    @Autowired
-    private CuratorFramework client;
+    Map<String, Object> save(Map<String, Object> globalConfig) throws RestException;
 
-    public Map<String, Object> save(Map<String, Object> globalConfig) throws RestException {
-      try {
-        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, client);
-      } catch (Exception e) {
-        throw new RestException(e);
-      }
-      return globalConfig;
-    }
+    Map<String, Object> get() throws RestException;
 
-    public Map<String, Object> get() throws RestException {
-        Map<String, Object> globalConfig;
-        try {
-            byte[] globalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-            globalConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(globalConfigBytes), new TypeReference<Map<String, Object>>(){});
-        } catch (KeeperException.NoNodeException e) {
-            return null;
-        } catch (Exception e) {
-          throw new RestException(e);
-        }
-        return globalConfig;
-    }
-
-    public boolean delete() throws RestException {
-        try {
-            client.delete().forPath(ConfigurationType.GLOBAL.getZookeeperRoot());
-        } catch (KeeperException.NoNodeException e) {
-            return false;
-        } catch (Exception e) {
-          throw new RestException(e);
-        }
-        return true;
-    }
+    boolean delete() throws RestException;
 }

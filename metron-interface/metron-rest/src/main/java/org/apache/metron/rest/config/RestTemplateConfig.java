@@ -22,8 +22,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestTemplate;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
 @Configuration
-@Profile("!test")
+@Profile("!" + TEST_PROFILE)
 public class RestTemplateConfig {
 
     @Bean

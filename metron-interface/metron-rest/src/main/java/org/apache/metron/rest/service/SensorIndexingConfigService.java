@@ -17,84 +17,23 @@
  */
 package org.apache.metron.rest.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.RestException;
-import org.apache.zookeeper.KeeperException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class SensorIndexingConfigService {
+public interface SensorIndexingConfigService {
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException;
 
-  @Autowired
-  private CuratorFramework client;
+  Map<String, Object> findOne(String name) throws RestException;
 
-  public Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException {
-    try {
-      ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(name, objectMapper.writeValueAsString(sensorIndexingConfig).getBytes(), client);
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return sensorIndexingConfig;
-  }
+  Map<String, Map<String, Object>> getAll() throws RestException;
 
-  public Map<String, Object> findOne(String name) throws RestException {
-    Map<String, Object> sensorIndexingConfig;
-    try {
-      byte[] sensorIndexingConfigBytes = ConfigurationsUtils.readSensorIndexingConfigBytesFromZookeeper(name, client);
-      sensorIndexingConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(sensorIndexingConfigBytes), new TypeReference<Map<String, Object>>(){});
-    } catch (KeeperException.NoNodeException e) {
-      return null;
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return sensorIndexingConfig;
-  }
+  List<String> getAllTypes() throws RestException;
 
-  public Map<String, Map<String, Object>> getAll() throws RestException {
-    Map<String, Map<String, Object>> sensorIndexingConfigs = new HashMap<>();
-    List<String> sensorNames = getAllTypes();
-    for (String name : sensorNames) {
-      sensorIndexingConfigs.put(name, findOne(name));
-    }
-    return sensorIndexingConfigs;
-  }
-
-  public List<String> getAllTypes() throws RestException {
-    List<String> types;
-    try {
-        types = client.getChildren().forPath(ConfigurationType.INDEXING.getZookeeperRoot());
-    } catch (KeeperException.NoNodeException e) {
-        types = new ArrayList<>();
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return types;
-  }
-
-  public boolean delete(String name) throws RestException {
-    try {
-        client.delete().forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/" + name);
-    } catch (KeeperException.NoNodeException e) {
-        return false;
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return true;
-  }
+  boolean delete(String name) throws RestException;
 
 }
