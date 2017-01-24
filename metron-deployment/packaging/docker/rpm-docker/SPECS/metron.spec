@@ -317,6 +317,8 @@ This package installs the Metron Profiler %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Tue Jan 24 2017 <justinjleet@gmail.com> - 0.3.0
+- Adding
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
 - Add ASA parser/enrichment configuration files 
 * Thu Jul 21 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1

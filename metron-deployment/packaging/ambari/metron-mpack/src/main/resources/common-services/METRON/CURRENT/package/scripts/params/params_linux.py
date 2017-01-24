@@ -193,4 +193,4 @@ snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
 
 # Zeppelin Notebooks
-zeppelin_welcome_path = tmp_dir + "/Welcome to Metron - Analyzing Telemetry.json"
+metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")

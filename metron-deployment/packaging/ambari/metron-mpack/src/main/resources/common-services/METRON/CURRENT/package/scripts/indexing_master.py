@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
@@ -119,8 +120,12 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
 
-        zeppelin_cmd = ambari_format('curl -s -XPOST http://{zeppelin_server_url}/api/notebook/import -d "@{zeppelin_welcome_path}"')
-        Execute(zeppelin_cmd, logoutput=True)
+        for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
+            for fileName in files:
+                if fileName.endswith(".json"):
+                    zeppelin_cmd = ambari_format(
+                        'curl -s -XPOST http://{zeppelin_server_url}/api/notebook/import -d "@' + os.path.join(dirName, fileName) + '"')
+                    Execute(zeppelin_cmd, logoutput=True)
 
 if __name__ == "__main__":
     Indexing().execute()
