@@ -22,7 +22,7 @@ import {HttpUtil} from '../util/httpUtil';
 import {IAppConfig} from '../app.config.interface';
 import {SensorParserConfigHistory} from '../model/sensor-parser-config-history';
 import {APP_CONFIG} from '../app.config';
-import {SensorParserConfig} from "../model/sensor-parser-config";
+import {SensorParserConfig} from '../model/sensor-parser-config';
 
 @Injectable()
 export class SensorParserConfigHistoryService {
@@ -51,7 +51,7 @@ export class SensorParserConfigHistoryService {
         for (let sensorParserConfig of sensorParserConfigs) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
           sensorParserConfigHistory.config = sensorParserConfig;
-          sensorParserConfigHistoryArray.push(sensorParserConfigHistory)
+          sensorParserConfigHistoryArray.push(sensorParserConfigHistory);
         }
         return sensorParserConfigHistoryArray;
       })

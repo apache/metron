@@ -60,10 +60,6 @@ describe('SensorParserConfigHistoryService', () => {
     let sensorParserConfigHistoryService: SensorParserConfigHistoryService;
     let mockBackend: MockBackend;
     let sensorParserConfigHistory = new SensorParserConfigHistory();
-    sensorParserConfigHistory.createdBy = 'user1';
-    sensorParserConfigHistory.createdDate = 'createDate';
-    sensorParserConfigHistory.modifiedBy = 'user2';
-    sensorParserConfigHistory.modifiedByDate = 'modifiedDate';
     let sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfigHistory.config = sensorParserConfig;
@@ -73,8 +69,8 @@ describe('SensorParserConfigHistoryService', () => {
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       sensorParserConfigHistoryService = new SensorParserConfigHistoryService(http, config);
-      sensorParserConfigHistoryResponse = new Response(new ResponseOptions({status: 200, body: sensorParserConfigHistory}));
-      allSensorParserConfigHistoryResponse = new Response(new ResponseOptions({status: 200, body: [sensorParserConfigHistory]}));
+      sensorParserConfigHistoryResponse = new Response(new ResponseOptions({status: 200, body: sensorParserConfig}));
+      allSensorParserConfigHistoryResponse = new Response(new ResponseOptions({status: 200, body: [sensorParserConfig]}));
     }));
 
     it('get', async(inject([], () => {
