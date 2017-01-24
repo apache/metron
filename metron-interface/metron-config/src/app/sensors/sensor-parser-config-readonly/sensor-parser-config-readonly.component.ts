@@ -25,6 +25,8 @@ import {StormService} from '../../service/storm.service';
 import {TopologyStatus} from '../../model/topology-status';
 import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
+import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
+import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 
 @Component({
   selector: 'metron-config-sensor-parser-readonly',
@@ -38,41 +40,49 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   kafkaTopic: KafkaTopic = new KafkaTopic();
   sensorParserConfigHistory: SensorParserConfigHistory = new SensorParserConfigHistory();
   topologyStatus: TopologyStatus = new TopologyStatus();
-
-  grokMainStatement: string = '';
-  grokFunctionStatement: string = '';
+  sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
+  grokStatement: string = '';
+  transformsConfigKeys: string[] = [];
+  aggregationConfigKeys: string[] = [];
 
   editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
     {type: 'SEPARATOR', model: '', value: ''},
-    {label: 'LAST EDITED', model: 'sensorParserConfigHistory', value: 'modifiedByDate'},
-    {label: 'LAST EDITED BY', model: 'sensorParserConfigHistory', value: 'modifiedBy'},
-    {label: 'ORIGINATOR', model: 'sensorInfo', value: 'createdBy'},
-    {label: 'CREATION DATE', model: 'sensorInfo', value: 'createdDate'},
+    {label: 'PARSERS', model: 'sensorParserConfigHistory', value: 'parserName'},
+    {label: 'LAST UPDATED', model: 'sensorParserConfigHistory', value: 'modifiedByDate'},
+    {label: 'LAST EDITOR', model: 'sensorParserConfigHistory', value: 'modifiedBy'},
+    {label: 'STATE', model: 'topologyStatus', value: 'sensorStatus'},
+    {label: 'ORIGINATOR', model: 'sensorParserConfigHistory', value: 'createdBy'},
+    {label: 'CREATION DATE', model: 'sensorParserConfigHistory', value: 'createdDate'},
 
     {type: 'SPACER', model: '', value: ''},
 
-    {label: 'STORM', model: 'sensorStatus', value: 'status', boldTitle: true},
-    {label: 'LATENCY', model: 'sensorStatus', value: 'latency'},
-    {label: 'THROUGHPUT', model: 'sensorStatus', value: 'throughput'},
+    {label: 'STORM', model: 'topologyStatus', value: 'status', boldTitle: true},
+    {label: 'LATENCY', model: 'topologyStatus', value: 'latency'},
+    {label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput'},
 
     {type: 'SPACER', model: '', value: ''},
 
-    {label: 'KAFKA', model: 'kafka', value: 'currentKafkaStatus', boldTitle: true},
-    {label: 'PARTITONS', model: 'kafka', value: 'numPartitions'},
-    {label: 'REPLICATION FACTOR', model: 'kafka', value: 'replicationFactor'},
+    {label: 'KAFKA', model: 'kafkaTopic', value: 'currentKafkaStatus', boldTitle: true},
+    {label: 'PARTITONS', model: 'kafkaTopic', value: 'numPartitions'},
+    {label: 'REPLICATION FACTOR', model: 'kafkaTopic', value: 'replicationFactor'},
     {type: 'SEPARATOR', model: '', value: ''},
 
     {type: 'TITLE', model: '', value: 'Grok Statement'},
     {label: '', model: 'grokStatement', value: 'grokPattern'},
     {type: 'SEPARATOR', model: '', value: ''},
 
-    {type: 'TITLE', model: '', value: 'Transforms'},
-    {label: '', model: 'transforms', value: ''}
+    {type: 'TITLE', model: '', value: 'Schema'},
+    {label: '', model: 'transforms', value: ''},
+    {type: 'SEPARATOR', model: '', value: ''},
+
+    {type: 'TITLE', model: '', value: 'Threat Triage Rules'},
+    {label: '', model: 'threatTriageRules', value: ''}
 
   ];
 
   constructor(private sensorParserConfigHistoryService: SensorParserConfigHistoryService,
               private sensorParserConfigService: SensorParserConfigService,
+              private sensorEnrichmentService: SensorEnrichmentConfigService,
               private stormService: StormService,
               private kafkaService: KafkaService,
               private activatedRoute: ActivatedRoute, private router: Router,
@@ -83,9 +93,11 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.sensorParserConfigHistoryService.get(this.selectedSensorName).subscribe(
       (results: SensorParserConfigHistory) => {
         this.sensorParserConfigHistory = results;
+
         this.sensorParserConfigHistory['parserName'] =
             (this.sensorParserConfigHistory.config.parserClassName === 'org.apache.metron.parsers.GrokParser') ? 'Grok' : 'Java';
         this.setGrokStatement();
+        this.setTransformsConfigKeys();
       });
   }
 
@@ -93,22 +105,26 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.stormService.getStatus(this.selectedSensorName).subscribe(
       (results: TopologyStatus) => {
         this.topologyStatus = results;
-
         this.topologyStatus.latency = (this.topologyStatus.latency ? this.topologyStatus.latency : '0') + 's';
         this.topologyStatus.throughput = (this.topologyStatus.throughput ? this.topologyStatus.throughput : '0') + 'kb/s';
 
+        this.topologyStatus['sensorStatus'] = '-';
+
         if (this.topologyStatus.status === 'ACTIVE') {
           this.topologyStatus.status = 'Running';
+          this.topologyStatus['sensorStatus'] = 'Enabled';
         } else if (this.topologyStatus.status === 'KILLED') {
           this.topologyStatus.status = 'Stopped';
         } else if (this.topologyStatus.status === 'INACTIVE') {
           this.topologyStatus.status = 'Disabled';
+          this.topologyStatus['sensorStatus'] = 'Disabled';
         } else {
           this.topologyStatus.status = 'Stopped';
           }
       },
       error => {
         this.topologyStatus.status = 'Stopped';
+        this.topologyStatus['sensorStatus'] = '-';
       });
   }
 
@@ -127,6 +143,13 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       });
   }
 
+  getEnrichmentData() {
+    this.sensorEnrichmentService.get(this.selectedSensorName).subscribe((sensorEnrichmentConfig) => {
+      this.sensorEnrichmentConfig = sensorEnrichmentConfig;
+      this.aggregationConfigKeys = Object.keys(sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules);
+    });
+  }
+
   ngOnInit() {
     this.activatedRoute.params.subscribe(params => {
       this.selectedSensorName = params['id'];
@@ -138,36 +161,26 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.getSensorInfo();
     this.getSensorStatusService();
     this.getKafkaData();
+    this.getEnrichmentData();
   }
 
   setGrokStatement() {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.parserConfig &&
         this.sensorParserConfigHistory.config.parserConfig['grokStatement']) {
-      let statement = this.sensorParserConfigHistory.config.parserConfig['grokStatement'];
-      if ((statement.match(/,/g) || []).length > 1) {
-        statement = statement.replace(/\n/g, ' <br> ');
-        let lastIndex = statement.lastIndexOf(' <br> ');
-        this.grokMainStatement = statement.substr(lastIndex + 5);
-        this.grokFunctionStatement = statement.substr(0, lastIndex);
-      } else {
-        this.grokMainStatement = statement;
-      }
+      this.grokStatement = this.sensorParserConfigHistory.config.parserConfig['grokStatement'];
     }
   }
 
-  getTransformsConfigKeys(): string[] {
+  setTransformsConfigKeys() {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.fieldTransformations &&
         this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
-      let output = [];
+      this.transformsConfigKeys = [];
       for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
         if (transforms.config) {
-          output = output.concat(Object.keys(transforms.config));
+          this.transformsConfigKeys = this.transformsConfigKeys.concat(Object.keys(transforms.config));
         }
       }
-      return output;
     }
-
-    return [];
   }
 
   getTransformsOutput(): string {
