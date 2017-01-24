@@ -35,6 +35,8 @@ import {FieldTransformer} from '../../model/field-transformer';
 import {SensorParserConfigReadonlyModule} from './sensor-parser-config-readonly.module';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {IAppConfig} from '../../app.config.interface';
+import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
+import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 
 class MockRouter {
 
@@ -148,11 +150,34 @@ class MockKafkaService extends KafkaService {
   }
 }
 
+class MockSensorEnrichmentConfigService {
+  private sensorEnrichmentConfig: SensorEnrichmentConfig;
+
+  setForTest(sensorEnrichmentConfig: SensorEnrichmentConfig) {
+    this.sensorEnrichmentConfig = sensorEnrichmentConfig;
+  }
+
+  public get(name: string): Observable<SensorEnrichmentConfig> {
+    return Observable.create(observer => {
+      observer.next(this.sensorEnrichmentConfig);
+      observer.complete();
+    });
+  }
+
+  public getAvailable(): Observable<string[]> {
+    return Observable.create((observer) => {
+      observer.next(['geo', 'host', 'whois']);
+      observer.complete();
+    });
+  }
+}
+
 describe('Component: SensorParserConfigReadonly', () => {
 
   let comp: SensorParserConfigReadonlyComponent;
   let fixture: ComponentFixture<SensorParserConfigReadonlyComponent>;
   let sensorParserConfigHistoryService: MockSensorParserConfigHistoryService;
+  let sensorEnrichmentConfigService: MockSensorEnrichmentConfigService;
   let sensorParserConfigService: SensorParserConfigService;
   let kafkaService: MockKafkaService;
   let stormService: MockStormService;
@@ -169,6 +194,7 @@ describe('Component: SensorParserConfigReadonly', () => {
         {provide: Http},
         {provide: ActivatedRoute, useClass: MockActivatedRoute},
         {provide: AuthenticationService, useClass: MockAuthenticationService},
+        {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
         {provide: SensorParserConfigHistoryService, useClass: MockSensorParserConfigHistoryService},
         {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
         {provide: StormService, useClass: MockStormService},
@@ -184,6 +210,7 @@ describe('Component: SensorParserConfigReadonly', () => {
         activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
         authenticationService = fixture.debugElement.injector.get(AuthenticationService);
         sensorParserConfigHistoryService = fixture.debugElement.injector.get(SensorParserConfigHistoryService);
+        sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
         sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
         stormService = fixture.debugElement.injector.get(StormService);
         kafkaService = fixture.debugElement.injector.get(KafkaService);
@@ -200,7 +227,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('should have metadata defined ', async(() => {
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
-    expect(component.editViewMetaData.length).toEqual(19);
+    expect(component.editViewMetaData.length).toEqual(24);
   }));
 
   it('should have sensorsService with parserName and grokPattern defined and kafkaService defined', async(() => {
@@ -222,6 +249,25 @@ describe('Component: SensorParserConfigReadonly', () => {
     topologyStatus.latency = '10.1';
     topologyStatus.throughput = '15.2';
 
+    let broEnrichment = {
+      'fieldMap': {
+        'geo': ['ip_dst_addr'],
+        'host': ['ip_dst_addr'],
+        'whois': [],
+        'stellar': {'config': {'group1': {}}}
+      },
+      'fieldToTypeMap': {}, 'config': {}
+    };
+    let broThreatIntel = {'threatIntel': {
+      'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
+      'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
+    }
+    };
+    let broEnrichments = new SensorEnrichmentConfig();
+    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
+    broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
+
+    sensorEnrichmentConfigService.setForTest(broEnrichments);
     sensorParserConfigHistoryService.setForTest(sensorParserInfo);
     kafkaService.setForTest(kafkaTopic);
     stormService.setForTest(topologyStatus);
@@ -233,6 +279,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.ngOnInit();
     expect(component.sensorParserConfigHistory).toEqual(Object.assign(new SensorParserConfigHistory(), sensorParserInfo));
     expect(component.kafkaTopic).toEqual(kafkaTopic);
+    expect(component.sensorEnrichmentConfig).toEqual(broEnrichments);
   }));
 
   it('getSensorStatusService should initialise the state variable to appropriate values ', async(() => {
@@ -247,21 +294,25 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     component.getSensorStatusService();
     expect(component.topologyStatus.status).toEqual('Stopped');
+    expect(component.topologyStatus['sensorStatus']).toEqual('-');
 
     sensorParserStatus.status = 'ACTIVE';
     stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
     expect(component.topologyStatus.status).toEqual('Running');
+    expect(component.topologyStatus['sensorStatus']).toEqual('Enabled');
 
     sensorParserStatus.status = 'KILLED';
     stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
     expect(component.topologyStatus.status).toEqual('Stopped');
+    expect(component.topologyStatus['sensorStatus']).toEqual('-');
 
     sensorParserStatus.status = 'INACTIVE';
     stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
     expect(component.topologyStatus.status).toEqual('Disabled');
+    expect(component.topologyStatus['sensorStatus']).toEqual('Disabled');
   }));
 
   it('setGrokStatement should set the variables appropriately ', async(() => {
@@ -289,19 +340,20 @@ describe('Component: SensorParserConfigReadonly', () => {
     component.sensorParserConfigHistory = sensorParserInfo;
     component.setGrokStatement();
 
-    expect(component.grokFunctionStatement).toEqual('IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|' +
-      '2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]d|' +
-      '1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|' +
-      '((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|' +
-      '2[0-4]d|1dd|[1-9]?d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]d|1dd|' +
-      '[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:)))(%.+)? <br>       IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|' +
-      '[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|' +
-      '2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9]) <br>     IP (?:%{IPV6:UNWANTED}|%{IPV4:UNWANTED}) <br>  <br>     MESSAGE .* <br> ');
-    expect(component.grokMainStatement).toEqual('     WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}');
+    expect(component.grokStatement).toEqual('IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|' +
+        '(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|' +
+        '[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|' +
+        '2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|' +
+        '((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|' +
+        '(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|' +
+        '[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|' +
+        '((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|' +
+        '(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|' +
+        '[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|' +
+        '((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\n' +
+        '      IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|' +
+        '2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])\n    IP (?:%{IPV6:UNWANTED}|' +
+        '%{IPV4:UNWANTED})\n\n    MESSAGE .*\n\n    WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}');
   }));
 
   it('getTransformsConfigKeys/getTransformsOutput should return the keys of the transforms config  ', async(() => {
@@ -316,19 +368,19 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
 
-    let transformsConfigKeys = component.getTransformsConfigKeys();
+    component.setTransformsConfigKeys();
     let transformsOutput = component.getTransformsOutput();
 
-    expect(transformsConfigKeys.length).toEqual(0);
-    expect(transformsConfigKeys).toEqual([]);
+    expect(component.transformsConfigKeys.length).toEqual(0);
+    expect(component.transformsConfigKeys).toEqual([]);
     expect(transformsOutput).toEqual('-');
 
     component.sensorParserConfigHistory = sensorParserInfo;
-    transformsConfigKeys = component.getTransformsConfigKeys();
+    component.setTransformsConfigKeys();
     transformsOutput = component.getTransformsOutput();
 
-    expect(transformsConfigKeys.length).toEqual(2);
-    expect(transformsConfigKeys).toEqual(['a', 'x']);
+    expect(component.transformsConfigKeys.length).toEqual(2);
+    expect(component.transformsConfigKeys).toEqual(['a', 'x']);
     expect(transformsOutput).toEqual('a, b, c');
   }));
 
@@ -352,6 +404,38 @@ describe('Component: SensorParserConfigReadonly', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors(dialog:sensors-config/abc)');
   }));
 
+  it('should set sensorEnrichmentConfig and aggregationConfigKeys to be initialised', async(() => {
+    let threatIntel = {
+      'fieldMap': {
+        'hbaseThreatIntel': [ 'ip_dst_addr', 'ip_src_addr', 'action']
+      },
+      'fieldToTypeMap': {
+        'ip_dst_addr': [ 'malicious_ip'], 'ip_src_addr': [ 'malicious_ip'], 'action': [ 'malicious_ip']
+      },
+      'config': {},
+      'triageConfig': {
+        'riskLevelRules': {
+          'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')': 3,
+          'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'': 3
+        },
+        'aggregator': 'MAX',
+        'aggregationConfig': {}
+      }
+    };
+    let expected = ['IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\''];
+
+    let sensorEnrichmentConfig = new SensorEnrichmentConfig();
+    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), threatIntel);
+    sensorEnrichmentConfigService.setForTest(sensorEnrichmentConfig);
+
+    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
+    component.getEnrichmentData();
+
+
+    expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
+    expect(component.aggregationConfigKeys).toEqual(expected);
+  }));
+
   let setDataForSensorOperation = function () {
     let sensorParserInfo = new SensorParserConfigHistory();
     let sensorParserConfig = new SensorParserConfig();
@@ -371,10 +455,28 @@ describe('Component: SensorParserConfigReadonly', () => {
     topologyStatus.latency = '10.1';
     topologyStatus.throughput = '15.2';
 
-    sensorParserConfigHistoryService.setForTest(sensorParserInfo);
+    let broEnrichment = {
+      'fieldMap': {
+        'geo': ['ip_dst_addr'],
+        'host': ['ip_dst_addr'],
+        'whois': [],
+        'stellar': {'config': {'group1': {}}}
+      },
+      'fieldToTypeMap': {}, 'config': {}
+    };
+    let broThreatIntel = {'threatIntel': {
+      'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
+      'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
+    }
+    };
+    let broEnrichments = new SensorEnrichmentConfig();
+    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
+    broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
+
     kafkaService.setForTest(kafkaTopic);
     stormService.setForTest(topologyStatus);
-
+    sensorEnrichmentConfigService.setForTest(broEnrichments);
+    sensorParserConfigHistoryService.setForTest(sensorParserInfo);
   };
 
   it('onStartSensor should  start sensor', async(() => {
