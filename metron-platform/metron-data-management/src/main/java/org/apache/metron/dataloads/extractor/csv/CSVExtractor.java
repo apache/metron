@@ -32,14 +32,14 @@ public class CSVExtractor extends CSVConverter implements Extractor {
   public static final String TYPE_KEY="type";
   public static final String LOOKUP_CONVERTER = "lookup_converter";
 
-  private int typeColumn;
+  private int typeColumnIndex;
   private String type;
   private int indicatorColumn;
 
   private LookupConverter converter = LookupConverters.ENRICHMENT.getConverter();
 
-  public int getTypeColumn() {
-    return typeColumn;
+  public int getTypeColumnIndex() {
+    return typeColumnIndex;
   }
 
   public String getType() {
@@ -73,7 +73,7 @@ public class CSVExtractor extends CSVConverter implements Extractor {
 
   private String getType(String[] tokens) {
     if(type == null) {
-      return tokens[typeColumn];
+      return tokens[typeColumnIndex];
     }
     else {
       return type;
@@ -93,7 +93,7 @@ public class CSVExtractor extends CSVConverter implements Extractor {
       type = config.get(TYPE_KEY).toString();
     }
     else if(config.containsKey(TYPE_COLUMN_KEY)) {
-      typeColumn = columnMap.get(config.get(TYPE_COLUMN_KEY).toString());
+      typeColumnIndex = columnMap.get(config.get(TYPE_COLUMN_KEY).toString());
     }
     if(config.containsKey(LOOKUP_CONVERTER)) {
       converter = LookupConverters.getConverter((String) config.get(LOOKUP_CONVERTER));

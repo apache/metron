@@ -21,7 +21,6 @@ import org.apache.metron.dataloads.extractor.csv.CSVExtractor;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 public enum Extractors implements ExtractorCreator {
     CSV(new ExtractorCreator() {
@@ -48,6 +47,7 @@ public enum Extractors implements ExtractorCreator {
     }
     public static Extractor create(String extractorName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         try {
+            //TODO create decorated extractor here - in init method setup Stellar
             ExtractorCreator ec = Extractors.valueOf(extractorName);
             return ec.create();
         }

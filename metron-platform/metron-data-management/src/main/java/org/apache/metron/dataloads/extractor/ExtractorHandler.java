@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class ExtractorHandler {
@@ -60,6 +59,8 @@ public class ExtractorHandler {
     }
     public void setExtractor(String extractor) {
         try {
+            // TODO look in config for txformations/filter
+            // if true, decorate extractors.create
             this.extractor = Extractors.create(extractor);
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Unable to create an extractor", e);
