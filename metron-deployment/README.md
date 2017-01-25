@@ -151,8 +151,6 @@ The RPMs DO NOT reach out to the internet (because there is currently no hosting
 ### Current Limitations
 There are a set of limitations that should be addressed based to improve the current state of the mpacks.
 
-- MySQL install should be optional (and allow for using an existing instance).
-- MySQL should not be installed on a node already running a MySQL instance (e.g. an Ambari Server using MySQL as its database).
 - There is currently no hosting for RPMs remotely.  They will have to be built locally.
 - Colocation of appropriate services should be enforced by Ambari.  See [#Installing Management Pack] for more details.
 - Storm's topology.classpath is not updated with the Metron service install and needs to be updated separately.
