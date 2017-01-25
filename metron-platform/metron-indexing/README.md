@@ -69,5 +69,6 @@ to modify the flux file, the following might be of use to you:
 
 ## Zeppelin Notebooks
 Zeppelin notebooks can be added to src/main/config/zeppelin/ (and subdirectories can be created for organization).  The placed files must be .json files and be named appropriately.
+These files must be added to the metron.spec file and the RPMs rebuilt to be available to be loaded into Ambari.
 
 The Ambari Management Pack has a custom action to load these templates, ZEPPELIN_DASHBOARD_INSTALL, that will import them into Zeppelin.
