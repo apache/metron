@@ -18,7 +18,6 @@
 
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
