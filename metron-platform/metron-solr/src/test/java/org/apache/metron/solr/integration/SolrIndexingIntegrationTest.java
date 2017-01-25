@@ -55,125 +55,6 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
     return fieldNameConverter;
   }
 
-  public static class Util {
-    private static long lastCpuTimeMillis;
-    private static long lastPollTimeMillis;
-    private static final DecimalFormat MILLIS_FORMAT = new DecimalFormat("#0.000");
-    public static final String NEWLINE = System.getProperty("line.separator");
-    private static ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
-    public static void checkLoadAverage(String fileName) {
-      long now = System.currentTimeMillis();
-      long currentCpuMillis = getTotalCpuTimeMillis();
-      double loadAvg = calcLoadAveragePercentage(now, currentCpuMillis);
-      try (FileWriter fw = new FileWriter(fileName, true)) {
-        System.out.println(String.format("Writing to '%s'", fileName));
-        dumpStack("Load average percentage is " + loadAvg, fw);
-      } catch (IOException e) {
-        // Oh well, we tried
-      }
-      lastCpuTimeMillis = currentCpuMillis;
-      lastPollTimeMillis = now;
-    }
-    private static long getTotalCpuTimeMillis() {
-      long total = 0;
-      for (long id : threadMxBean.getAllThreadIds()) {
-        long cpuTime = threadMxBean.getThreadCpuTime(id);
-        if (cpuTime > 0) {
-          total += cpuTime;
-        }
-      }
-      // since is in nano-seconds
-      long currentCpuMillis = total / 1000000;
-      return currentCpuMillis;
-    }
-    private static double calcLoadAveragePercentage(long now, long currentCpuMillis) {
-      long timeDiff = now - lastPollTimeMillis;
-      if (timeDiff == 0) {
-        timeDiff = 1;
-      }
-      long cpuDiff = currentCpuMillis - lastCpuTimeMillis;
-      double loadAvg = (double) cpuDiff / (double) timeDiff;
-      return loadAvg;
-    }
-    /*
-     * Method that dumps the stack trace for all of the threads to a file
-     */
-    public static void dumpStack(String message, Writer writer) throws IOException {
-      ThreadInfo[] threadInfos = threadMxBean.getThreadInfo(threadMxBean.getAllThreadIds(), 0);
-      Map<Long, ThreadInfo> threadInfoMap = new HashMap<>();
-      for (ThreadInfo threadInfo : threadInfos) {
-        threadInfoMap.put(threadInfo.getThreadId(), threadInfo);
-      }
-      try {
-        if (message != null) {
-          writer.write(message);
-          writer.write(NEWLINE);
-        }
-        Map<Thread, StackTraceElement[]> stacks = Thread.getAllStackTraces();
-        writer.write("Dump of " + stacks.size() + " threads at "
-                + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z").format(new Date(System.currentTimeMillis()))
-                + NEWLINE + NEWLINE);
-        for (Map.Entry<Thread, StackTraceElement[]> entry : stacks.entrySet()) {
-          Thread thread = entry.getKey();
-          writer.write("\"" + thread.getName() + "\" prio=" + thread.getPriority() + " tid=" + thread.getId()
-                  + " " + thread.getState() + " " + (thread.isDaemon() ? "deamon" : "worker") + NEWLINE);
-          ThreadInfo threadInfo = threadInfoMap.get(thread.getId());
-          if (threadInfo != null) {
-            writer.write("    native=" + threadInfo.isInNative() + ", suspended=" + threadInfo.isSuspended()
-                    + ", block=" + threadInfo.getBlockedCount() + ", wait=" + threadInfo.getWaitedCount()
-                    + NEWLINE);
-            writer.write("    lock="
-                    + threadInfo.getLockName()
-                    + " owned by "
-                    + threadInfo.getLockOwnerName()
-                    + " ("
-                    + threadInfo.getLockOwnerId()
-                    + "), cpu="
-                    + durationMillisToString(threadMxBean.getThreadCpuTime(threadInfo.getThreadId()) / 1000000L)
-                    + ", user="
-                    + durationMillisToString(threadMxBean.getThreadUserTime(threadInfo.getThreadId()) / 1000000L)
-                    + NEWLINE);
-          }
-          for (StackTraceElement element : entry.getValue()) {
-            writer.write("    ");
-            String eleStr = element.toString();
-            if (eleStr.startsWith("com.mprew")) {
-              writer.write(">>  ");
-            } else {
-              writer.write("    ");
-            }
-            writer.write(eleStr);
-            writer.write(NEWLINE);
-          }
-          writer.write(NEWLINE);
-        }
-        writer.write("------------------------------------------------------");
-        writer.write(NEWLINE);
-        writer.write("Non-daemon threads: ");
-        for (Thread thread : stacks.keySet()) {
-          if (!thread.isDaemon()) {
-            writer.write("\"" + thread.getName() + "\", ");
-          }
-        }
-        writer.write(NEWLINE);
-        writer.write("------------------------------------------------------");
-        writer.write(NEWLINE);
-        writer.write("Blocked threads: ");
-        for (Thread thread : stacks.keySet()) {
-          if (thread.getState() == Thread.State.BLOCKED) {
-            writer.write("\"" + thread.getName() + "\", ");
-          }
-        }
-        writer.write(NEWLINE);
-      } finally {
-        writer.close();
-      }
-    }
-    private static String durationMillisToString(long millis) {
-      return MILLIS_FORMAT.format(millis);
-    }
-  }
-
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
     SolrComponent solrComponent = new SolrComponent.Builder()
@@ -213,10 +94,6 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
           try {
             docs = solrComponent.getAllIndexedDocs(collection);
             docsFromDisk = readDocsFromDisk(hdfsDir);
-            int docsFromDiskSize = docsFromDisk.size();
-            if(docsFromDiskSize == 6) {
-//              Util.dumpStack("Threads", new PrintWriter(System.out));
-            }
             System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
           } catch (IOException e) {
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
