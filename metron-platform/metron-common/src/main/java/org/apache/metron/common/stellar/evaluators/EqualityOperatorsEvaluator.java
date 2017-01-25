@@ -38,7 +38,7 @@ public class EqualityOperatorsEvaluator implements ComparisonExpressionEvaluator
    * 3. Otherwise use {@code equals} method compare the left side with the right side.
    * @param left  The token representing the left side of a comparison expression.
    * @param right The token representing the right side of a comparison expression.
-   * @param op    This is a representation of a comparison operator (eg. <, <=, >, >=, ==, !=)
+   * @param op    This is a representation of a comparison operator {@literal (eg. <, <=, >, >=, ==, !=) }
    * @return A boolean value based on the comparison of {@code left} and {@code right}.
    */
   @Override

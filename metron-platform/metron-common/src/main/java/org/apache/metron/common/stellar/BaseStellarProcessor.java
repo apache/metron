@@ -129,8 +129,8 @@ public class BaseStellarProcessor<T> {
 
   /**
    * This method determines if a given rule is valid or not. If the given rule is valid then true
-   * will be returned otherwise a {@link ParseException} is thrown. If it is desired that to return a boolean
-   * whether the rule is valid or not see {@link this#validate(String, boolean, Context)}. It is important
+   * will be returned otherwise a {@link ParseException} is thrown. If it is desired to return a boolean
+   * whether the rule is valid or not, use the {@link #validate(String, boolean, Context) validate} method. It is important
    * to note that all variables will resolve to 'null.'
    *
    * @param rule The rule to validate.
