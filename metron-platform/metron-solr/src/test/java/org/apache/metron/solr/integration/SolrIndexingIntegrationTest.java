@@ -215,7 +215,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
             docsFromDisk = readDocsFromDisk(hdfsDir);
             int docsFromDiskSize = docsFromDisk.size();
             if(docsFromDiskSize == 6) {
-              Util.dumpStack("Threads", new PrintWriter(System.out));
+//              Util.dumpStack("Threads", new PrintWriter(System.out));
             }
             System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
           } catch (IOException e) {

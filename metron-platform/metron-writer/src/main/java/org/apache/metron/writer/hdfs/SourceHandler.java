@@ -71,12 +71,14 @@ public class SourceHandler {
       byte[] bytes = (message.toJSONString() + "\n").getBytes();
       synchronized (this.writeLock) {
         out.write(bytes);
+        System.out.println("write!");
         this.offset += bytes.length;
 
         if (this.syncPolicy.mark(null, this.offset)) {
           if (this.out instanceof HdfsDataOutputStream) {
             ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
           } else {
+            System.out.println("flush!");
             this.out.hsync();
           }
           this.syncPolicy.reset();
