@@ -23,6 +23,7 @@ title: Apache Metron (Incubating) Community
                 <li class="active"><a href="#projectmembers">Project Members</a></li>
                 <li class=""><a href="#communityresources">Community Resources</a></li>
                 <li class=""><a href="#getinvolved">Get Involved</a></li>
+                <li class=""><a href="#mailinglist">Mailing List</a></li>
             </ul>  
         </div>
     </div>  
@@ -99,6 +100,22 @@ title: Apache Metron (Incubating) Community
         <div class="content-960 hover-btn text-center">
             <p> Do you want to contribute to Apache Metron (Incubating)? Follow these simple steps to subscribe to the user and development mailing lists, familiarize yourself with the Metron code, set up your development environment, and start contributing.</p>
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Community+Resources#CommunityResources-JointheCommunity-GetingStarted" target="_blank">Take Me There</a>
+        </div>
+</section>
+
+<section class="intro-block darken mailing-list" id="mailinglist">
+        <div class="text-center">
+          <h2>Mailing List</h2>
+        </div>
+        <div class="content-960 hover-btn text-center">
+            <h4> General & Public Discussion </h4>
+                [<a href="mailto:general-subscribe@incubator.apache.org">Subscribe</a>]
+                [<a href="mailto:general-unsubscribe@incubator.apache.org">Unsubscribe</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-general/">Archives</a>]
+            <h4> Code & Documentation Change </h4>
+                [<a href="mailto:cvs-subscribe@incubator.apache.org">Subscribe</a>]
+                [<a href="mailto:cvs-unsubscribe@incubator.apache.org">Unsubscribe</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-cvs/">Archives</a>]
         </div>
 </section>
 

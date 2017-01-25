@@ -233,13 +233,6 @@ jQuery(document).ready(function () {
 	    jQuery(document).click(function(e){
 	      window.hwxLastClicked = e.target;
 	    });
-	    
-	    // Prevent top level links from being followed unless they were the last element clicked
-	    jQuery('.main-menu > li > a').click(function(e){
-	      if(window.hwxLastClicked !== this && !jQuery('.main-menu').hasClass('mobile-menu')) {
-	        e.preventDefault();
-	      }
-	    });
 	  }
 });
 
