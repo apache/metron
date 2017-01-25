@@ -126,7 +126,7 @@ public enum GeoLiteDatabase {
       LOG.warn("[Metron] No result found for IP {}", ip, e);
       return Optional.empty();
     }
-    if (isLocalAddress(ip, addr)) {
+    if (isIneligibleAddress(ip, addr)) {
       return Optional.of(new HashMap());
     }
 
@@ -176,7 +176,7 @@ public enum GeoLiteDatabase {
     return raw == null ? "" : String.valueOf(raw);
   }
 
-  private boolean isLocalAddress(String ipStr, InetAddress addr) {
+  private boolean isIneligibleAddress(String ipStr, InetAddress addr) {
     return addr.isAnyLocalAddress() || addr.isLoopbackAddress()
             || addr.isSiteLocalAddress() || addr.isMulticastAddress()
             || !ipvalidator.isValidInet4Address(ipStr);
