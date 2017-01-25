@@ -81,6 +81,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     Map<String, Object> globalConfig = value.getConfig().getConfiguration();
     Map<String, Object> sensorConfig = value.getConfig().getEnrichment().getConfig();
     if(handler == null) {
+        _LOG.trace("Stellar ConfigHandler is null.");
       return new JSONObject();
     }
     Map<String, Object> message = value.getValue(Map.class);
@@ -105,7 +106,9 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
         }
       }
     }
-    return new JSONObject(message);
+    JSONObject enriched = new JSONObject(message);
+    _LOG.trace("Stellar Enrichment Success: " + enriched);
+    return enriched;
   }
 
   @Override

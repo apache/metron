@@ -163,8 +163,6 @@ indexing.executors=0
 kafka.zk={{ zookeeper_quorum }}
 kafka.broker={{ kafka_brokers }}
 kafka.start=WHERE_I_LEFT_OFF
-##### GEO #####
-geo.hdfs.file={{ geoip_hdfs_file }}
 ##### Indexing #####
 index.input.topic=indexing
 index.error.topic=indexing_error

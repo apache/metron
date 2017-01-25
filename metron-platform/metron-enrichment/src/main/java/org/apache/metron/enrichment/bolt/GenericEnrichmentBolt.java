@@ -167,7 +167,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     stellarContext = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
-                         .with(Context.Capabilities.GEO_IP, () -> GeoLiteDatabase.INSTANCE)
                          .build();
     StellarFunctions.initialize(stellarContext);
   }
