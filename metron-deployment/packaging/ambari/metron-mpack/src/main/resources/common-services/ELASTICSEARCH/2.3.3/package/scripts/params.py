@@ -42,6 +42,8 @@ elastic_env_sh_template = config['configurations']['elastic-env']['content']
 sysconfig_template = config['configurations']['elastic-sysconfig']['content']
 
 cluster_name = config['configurations']['elastic-site']['cluster_name']
+single_node_elasticsearch = config['configurations']['elastic-site']['single_node_elasticsearch']
+masters_also_are_datanodes = config['configurations']['elastic-site']['masters_also_are_datanodes']
 zen_discovery_ping_unicast_hosts = config['configurations']['elastic-site']['zen_discovery_ping_unicast_hosts']
 
 path_data = config['configurations']['elastic-site']['path_data']

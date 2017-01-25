@@ -54,7 +54,9 @@ def elastic():
     print "Master yml: ""{0}/elasticsearch.yml".format(params.conf_dir)
     File("{0}/elasticsearch.yml".format(params.conf_dir),
          content=Template(
-             "elasticsearch.master.yaml.j2",
+             "elasticsearch.master.yaml.j2"
+                if (not params.single_node_elasticsearch) else
+             "elasticsearch.singlenode.yaml.j2",
              configurations=configurations),
          owner=params.elastic_user,
          group=params.elastic_user

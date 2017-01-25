@@ -20,34 +20,61 @@
 <!-- Elastic search  Configurations -->
 
 <configuration supports_final="true">
-    <!-- Configurations -->
+    <!-- Basic Configurations -->
     <property>
         <name>cluster_name</name>
         <value>metron</value>
-        <description>Cluster name identifies your cluster</description>
+        <description>Elasticsearch Cluster Name identifies your Elasticsearch subsystem</description>
+    </property>
+    <property>
+        <name>single_node_elasticsearch</name>
+        <value>false</value>
+        <description>Must set to true if the Elasticsearch component is installed as a single-node subsystem.</description>
+    </property>
+    <property>
+        <name>masters_also_are_datanodes</name>
+        <value>false</value>
+        <description>ES Masters and Slaves cannot be installed on the same nodes.  Set this to true if you want the ES master nodes to serve as combined master/datanodes.</description>
     </property>
     <property>
         <name>zen_discovery_ping_unicast_hosts</name>
         <!--Ideally this gets populated by the list of master eligible nodes (as an acceptable default).  Unsure how to do this.-->
         <value></value>
-        <description>Unicast discovery list of hosts to act as gossip routers, in comma separated format.</description>
+        <description>List elasticsearch master hosts, in comma separated format.</description>
     </property>
     <property>
         <name>index_number_of_shards</name>
         <value>4</value>
-        <description>Set the number of shards (splits) of an index</description>
+        <description>Set the number of shards (splits) of an index.  Cannot be changed after index creation.</description>
     </property>
     <property>
         <name>index_number_of_replicas</name>
         <value>2</value>
-        <description>Set the number of replicas (additional copies) of an index</description>
+        <description>Set the number of replicas (copies in addition to the first) of an index</description>
     </property>
-    <!--  Logging Configurations -->
     <property>
         <name>path_data</name>
         <value>"/opt/lmm/es_data"</value>
-        <description>Path to directory where to store index data allocated for this node. e.g. "/mnt/first", "/mnt/second"</description>
+        <description>Comma-separated list of directories where to store index data allocated for this node. e.g. "/mnt/first,/mnt/second".  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
     </property>
+    <!--  Network access -->
+    <property>
+        <name>http_port</name>
+        <value>9200-9300</value>
+        <description>Set a custom port to listen for HTTP traffic</description>
+    </property>
+    <property>
+        <name>transport_tcp_port</name>
+        <value>9300-9400</value>
+        <description>Set a custom port for the node to node communication</description>
+    </property>
+    <property>
+        <name>network_host</name>
+        <value>_lo:ipv4_,_eth0:ipv4_</value>
+        <description>Network interface(s) will bind to. Confirm names via ifconfig.  Should have entries for primary external and loopback interfaces, with ":ipv4" annotation.</description>
+    </property>
+
+    <!--  Advanced Configurations -->
     <property>
         <name>http_cors_enabled</name>
         <value>"false"</value>
@@ -56,22 +83,11 @@
             <type>string</type>
         </value-attributes>
     </property>
-    <!--  Discovery -->
-    <property>
-        <name>transport_tcp_port</name>
-        <value>9300-9400</value>
-        <description>Set a custom port for the node to node communication</description>
-    </property>
-    <property>
-        <name>http_port</name>
-        <value>9200-9300</value>
-        <description>Set a custom port to listen for HTTP traffic</description>
-    </property>
-    <!--  Discovery -->
+    <!--  Multi-node Discovery -->
     <property>
         <name>discovery_zen_ping_multicast_enabled</name>
         <value>false</value>
-        <description>master eligible nodes</description>
+        <description>Whether to use multicast</description>
     </property>
     <property>
         <name>discovery_zen_ping_timeout</name>
@@ -179,10 +195,5 @@
         <name>cluster_routing_allocation_node_concurrent_recoveries</name>
         <value>4</value>
         <description>Max concurrent recoveries, useful for fast recovery of the cluster nodes on restart</description>
-    </property>
-    <property>
-        <name>network_host</name>
-        <value>_lo_,_eth0_</value>
-        <description>Network interface(s) will bind to. </description>
     </property>
 </configuration>
