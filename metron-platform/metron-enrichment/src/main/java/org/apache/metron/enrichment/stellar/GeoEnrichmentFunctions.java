@@ -50,7 +50,7 @@ public class GeoEnrichmentFunctions {
         return null;
       }
       if(args.size() > 2) {
-        return null;
+        throw new IllegalArgumentException("GEO_GET received more arguments than expected: " + args.size());
       }
 
       if(args.size() == 1 && args.get(0) instanceof String) {

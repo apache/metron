@@ -141,11 +141,10 @@ public class GeoEnrichmentFunctionsTest {
     Assert.assertEquals("Remote Local IP should return country result based on DB", expectedSubsetMessage, result);
   }
 
-  @Test
+  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
   @SuppressWarnings("unchecked")
   public void testGetTooManyParams() throws Exception {
     String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'], 'garbage')";
-    Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote Local IP should return country result based on DB", null, result);
+    run(stellar, ImmutableMap.of());
   }
 }
