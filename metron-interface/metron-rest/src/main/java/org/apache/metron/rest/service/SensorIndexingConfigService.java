@@ -18,12 +18,10 @@
 package org.apache.metron.rest.service;
 
 import org.apache.metron.rest.RestException;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
-@Service
 public interface SensorIndexingConfigService {
 
   Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException;

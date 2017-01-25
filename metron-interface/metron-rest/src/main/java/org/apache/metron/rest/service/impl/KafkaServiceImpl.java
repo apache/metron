@@ -48,6 +48,7 @@ public class KafkaServiceImpl implements KafkaService {
 
     private String offsetTopic = "__consumer_offsets";
 
+    @Override
     public KafkaTopic createTopic(KafkaTopic topic) throws RestException {
         if (!listTopics().contains(topic.getName())) {
           try {
@@ -59,6 +60,7 @@ public class KafkaServiceImpl implements KafkaService {
         return topic;
     }
 
+    @Override
     public boolean deleteTopic(String name) {
         if (listTopics().contains(name)) {
             AdminUtils.deleteTopic(zkUtils, name);
@@ -68,6 +70,7 @@ public class KafkaServiceImpl implements KafkaService {
         }
     }
 
+    @Override
     public KafkaTopic getTopic(String name) {
         KafkaTopic kafkaTopic = null;
         if (listTopics().contains(name)) {
@@ -83,6 +86,7 @@ public class KafkaServiceImpl implements KafkaService {
         return kafkaTopic;
     }
 
+    @Override
     public Set<String> listTopics() {
         Set<String> topics;
         synchronized (this) {
@@ -92,6 +96,7 @@ public class KafkaServiceImpl implements KafkaService {
         return topics;
     }
 
+    @Override
     public String getSampleMessage(String topic) {
         String message = null;
         if (listTopics().contains(topic)) {
