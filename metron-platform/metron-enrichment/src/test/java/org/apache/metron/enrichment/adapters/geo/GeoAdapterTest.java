@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.geo;
 
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -28,6 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Map;
 
 public class GeoAdapterTest {
   private static final String IP = "216.160.83.56";
@@ -60,14 +62,8 @@ public class GeoAdapterTest {
     String baseDir = UnitTestHelper.findDir("GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
 
-    geo = new GeoAdapter() {
-      @Override
-      public boolean initializeAdapter() {
-        GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
-        return true;
-      }
-    };
-    geo.initializeAdapter();
+    geo = new GeoAdapter();
+    geo.initializeAdapter(ImmutableMap.of(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath()));
   }
 
   @Test

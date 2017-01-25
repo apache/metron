@@ -130,7 +130,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       }
     }
     if(type == ConfigurationType.GLOBAL) {
-      GeoLiteDatabase.INSTANCE.updateIfNecessary(getConfigurations().getGlobalConfig());
+      adapter.updateAdapter(getConfigurations().getGlobalConfig());
     }
   }
 
@@ -154,8 +154,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
-    GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
-    boolean success = adapter.initializeAdapter();
+    boolean success = adapter.initializeAdapter(getConfigurations().getGlobalConfig());
     if (!success) {
       LOG.error("[Metron] GenericEnrichmentBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");

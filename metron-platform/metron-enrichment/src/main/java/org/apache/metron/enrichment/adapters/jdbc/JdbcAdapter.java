@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.sql.*;
+import java.util.Map;
 
 public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
 
@@ -53,7 +54,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>, Serial
   protected boolean resetConnectionIfNecessary() {
     if(isConnectionClosed()) {
       this.cleanup();
-      return this.initializeAdapter();
+      return this.initializeAdapter(null);
     }
     return true;
   }
@@ -69,7 +70,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>, Serial
 
 
   @Override
-  public boolean initializeAdapter() {
+  public boolean initializeAdapter(Map<String, Object> config) {
     try {
       if (!InetAddress.getByName(host).isReachable(500)) {
         throw new Exception("Unable to reach host " + host);

@@ -177,10 +177,10 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
       fail("Should fail if an adapter is not set");
     } catch(IllegalStateException e) {}
     genericEnrichmentBolt.withEnrichment(testEnrichment);
-    when(enrichmentAdapter.initializeAdapter()).thenReturn(true);
+    when(enrichmentAdapter.initializeAdapter(globalConfig)).thenReturn(true);
     genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-    verify(enrichmentAdapter, times(1)).initializeAdapter();
-    when(enrichmentAdapter.initializeAdapter()).thenReturn(false);
+    verify(enrichmentAdapter, times(1)).initializeAdapter(globalConfig);
+    when(enrichmentAdapter.initializeAdapter(globalConfig)).thenReturn(false);
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.FATAL);
     try {
       genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);

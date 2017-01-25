@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
@@ -55,9 +56,14 @@ public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
   }
 
   @Override
-  public boolean initializeAdapter() {
-    // GeoIpDatabase already updated in the GenericEnrichmentBolt.
-      return true;
+  public boolean initializeAdapter(Map<String, Object> config) {
+    GeoLiteDatabase.INSTANCE.update((String)config.get(GeoLiteDatabase.GEO_HDFS_FILE));
+    return true;
+  }
+
+  @Override
+  public void updateAdapter(Map<String, Object> config) {
+    GeoLiteDatabase.INSTANCE.updateIfNecessary(config);
   }
 
   @Override
