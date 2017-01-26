@@ -277,6 +277,11 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   }
 
   @Override
+  public String getName() {
+    return "hbaseEnrichment";
+  }
+
+  @Override
   public void close() throws Exception {
     synchronized(this) {
       if(table != null) {

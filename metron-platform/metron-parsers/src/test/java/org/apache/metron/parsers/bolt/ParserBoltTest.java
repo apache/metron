@@ -17,12 +17,11 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.*;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.dsl.Context;
@@ -97,6 +96,11 @@ public class ParserBoltTest extends BaseBoltTest {
       BulkWriterResponse ret = new BulkWriterResponse();
       ret.addAllSuccesses(tuples);
       return ret;
+    }
+
+    @Override
+    public String getName() {
+      return "recording";
     }
 
     @Override
@@ -400,7 +404,7 @@ public void testImplicitBatchOfOne() throws Exception {
               @Override
               public Map<String, Object> getParserConfig() {
                 return new HashMap<String, Object>() {{
-                  put(ParserWriterConfiguration.BATCH_CONF, "1");
+                  put(IndexingConfigurations.BATCH_SIZE_CONF, "1");
                 }};
               }
             };
@@ -438,7 +442,7 @@ public void testImplicitBatchOfOne() throws Exception {
               @Override
               public Map<String, Object> getParserConfig() {
                 return new HashMap<String, Object>() {{
-                  put(ParserWriterConfiguration.BATCH_CONF, 5);
+                  put(IndexingConfigurations.BATCH_SIZE_CONF, 5);
                 }};
               }
             };
@@ -486,7 +490,7 @@ public void testImplicitBatchOfOne() throws Exception {
               @Override
               public Map<String, Object> getParserConfig() {
                 return new HashMap<String, Object>() {{
-                  put(ParserWriterConfiguration.BATCH_CONF, 5);
+                  put(IndexingConfigurations.BATCH_SIZE_CONF, 5);
                 }};
               }
             };
