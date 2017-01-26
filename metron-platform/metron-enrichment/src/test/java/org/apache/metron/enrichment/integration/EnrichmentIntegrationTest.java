@@ -20,8 +20,6 @@ package org.apache.metron.enrichment.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.*;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
@@ -47,7 +45,6 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.ParseException;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -77,11 +74,9 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
-  private String sampleIndexedPath = TestConstants.SAMPLE_DATA_INDEXED_PATH + "TestIndexed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
-  private static File geoTmpLocalDir;
 
   public static class Provider implements TableProvider, Serializable {
     MockHTable.Provider  provider = new MockHTable.Provider();
@@ -103,14 +98,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static void setupOnce() throws ParseException {
     String baseDir = UnitTestHelper.findDir("GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
-
-    geoTmpLocalDir = Files.createTempDir();
-  }
-
-  @AfterClass
-  public static void tearDownOnce() throws IOException {
-    FileUtils.deleteDirectory(geoTmpLocalDir);
-    FileUtils.forceDelete(geoHdfsFile);
   }
 
   @Test
