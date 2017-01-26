@@ -59,9 +59,12 @@
       ]
     },
     "triageConfig" : {
-      "riskLevelRules" : {
-        "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'" : 10
-      },
+      "riskLevelRules" : [
+        {
+          "rule" : "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'",
+          "score": 10
+        }
+      ],
       "aggregator" : "MAX"
     }
   }

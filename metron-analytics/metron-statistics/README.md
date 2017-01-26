@@ -324,9 +324,12 @@ PROFILE_GET( 'sketchy_mad', 'global', 10, 'MINUTES') ), value)"
     "fieldMap": { },
     "fieldToTypeMap": { },
     "triageConfig" : {
-      "riskLevelRules" : {
-        "parser_score > 3.5" : 10
-      },
+      "riskLevelRules" : [
+        {
+          "rule" : "parser_score > 3.5",
+          "score" : 10
+        }
+      ],
       "aggregator" : "MAX"
     }
   }

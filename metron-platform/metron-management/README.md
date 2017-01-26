@@ -166,7 +166,7 @@ The functions are split roughly into a few sections:
   * Returns: The String representation of the config in zookeeper
 
 
-### Enrichment Functions
+### Indexing Functions
 
 * `INDEXING_SET_BATCH`
   * Description: Set batch size
@@ -189,6 +189,9 @@ The functions are split roughly into a few sections:
     * writer - The writer to update (e.g. elasticsearch, solr or hdfs)
     * sensor - sensor name
   * Returns: The String representation of the config in zookeeper
+
+### Enrichment Functions
+
 * `ENRICHMENT_STELLAR_TRANSFORM_ADD`
   * Description: Add stellar field transformation.
   * Input:
@@ -219,6 +222,7 @@ The functions are split roughly into a few sections:
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * stellarTransforms - A Map associating stellar rules to scores
+    * triageRules - Map (or list of Maps) representing a triage rule.  It must contain 'rule' and 'score' keys, the stellar expression for the rule and triage score respectively.  It may contain 'name' and 'comment', the name of the rule and comment associated with the rule respectively."
   * Returns: The String representation of the threat triage rules
 * `THREAT_TRIAGE_PRINT`
   * Description: Retrieve stellar enrichment transformations.
@@ -229,7 +233,7 @@ The functions are split roughly into a few sections:
   * Description: Remove stellar threat triage rule(s).
   * Input:
     * sensorConfig - Sensor config to add transformation to.
-    * stellarTransforms - A list of stellar rules to remove
+    * rules - A list of stellar rules or rule names to remove
   * Returns: The String representation of the enrichment config
 * `THREAT_TRIAGE_SET_AGGREGATOR`
   * Description: Set the threat triage aggregator.
@@ -541,7 +545,7 @@ Functions loaded, you may refer to functions now...
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : { },
+      "riskLevelRules" : [ ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
@@ -659,7 +663,7 @@ Returns: The String representation of the config in zookeeper
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : { },
+      "riskLevelRules" : [ ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
@@ -689,7 +693,7 @@ Returns: The String representation of the config in zookeeper
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : { },
+      "riskLevelRules" : [ ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
@@ -741,7 +745,7 @@ Returns: The String representation of the config in zookeeper
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : { },
+      "riskLevelRules" : [ ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
@@ -894,11 +898,20 @@ Aggregation: MAX
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : {
-        "whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')" : 50.0,
-        "IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')" : 20.0,
-        "whois_info.home_country != 'US'" : 10.0
-      },
+      "riskLevelRules" : [
+        {
+          "rule" : "whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')",
+          "score" : 50.0
+        },
+        {
+          "rule" : "IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')",
+          "score" : 20.0
+        },
+        {
+          "rule" : "whois_info.home_country != 'US'",
+          "score" : 10.0
+        }
+      ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
@@ -944,7 +957,7 @@ SION('is_both') ] )
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : { },
+      "riskLevelRules" : [ ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
