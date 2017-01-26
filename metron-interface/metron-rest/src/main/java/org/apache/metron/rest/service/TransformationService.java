@@ -20,12 +20,10 @@ package org.apache.metron.rest.service;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.rest.model.StellarFunctionDescription;
 import org.apache.metron.rest.model.TransformationValidation;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
-@Service
 public interface TransformationService {
 
     Map<String, Boolean> validateRules(List<String> rules);

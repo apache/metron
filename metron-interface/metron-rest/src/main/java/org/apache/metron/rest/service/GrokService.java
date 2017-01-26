@@ -19,11 +19,9 @@ package org.apache.metron.rest.service;
 
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
 public interface GrokService {
 
     Map<String, String> getCommonGrokPatterns();

@@ -21,11 +21,9 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.json.simple.JSONObject;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
 public interface SensorParserConfigService {
 
   SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException;

@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+#
+# simulates the behavior of a sensor by sending canned telemetry data
+# to a Kafka topic.
+#
+# a subset of the canned data is randomly selected and is sent in 
+# batches.  the timestamp of the message is altered to match current
+# system time.  the number of messages sent in each batch, along with 
+# the time delay between batches can be configured.
+#
+# start-yaf-stub <DELAY> <COUNT>
+#
+
+#
+# how long to delay between each 'batch' in seconds.
+#
+DELAY=${1:-{{ sensor_stubs_delay }}}
+
+#
+# how many messages to send in each 'batch'.  the messages are drawn randomly
+# from the entire set of canned data. 
+#
+COUNT=${2:-{{ sensor_stubs_count }}}
+
+
+INPUT="{{ sensor_stubs_data }}/yaf.out"
+PRODUCER="{{ kafka_home }}/bin/kafka-console-producer.sh"
+TOPIC="yaf"
+
+while true; do
+  
+  # transform the timestamp and push to kafka
+  SEARCH="[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}\.[0-9]\+"
+  REPLACE="`date +'%Y-%m-%d %H:%M:%S'`.000"
+  shuf -n $COUNT $INPUT | sed -e "s/$SEARCH/$REPLACE/g" | $PRODUCER --broker-list {{ kafka_broker_url }} --topic $TOPIC
+  
+  sleep $DELAY
+done

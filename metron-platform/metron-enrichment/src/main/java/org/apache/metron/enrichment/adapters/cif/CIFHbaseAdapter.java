@@ -93,7 +93,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 	}
 
 	@Override
-	public boolean initializeAdapter() {
+	public boolean initializeAdapter(Map<String, Object> config) {
 
 		// Initialize HBase Table
 		Configuration conf = null;
@@ -115,6 +115,10 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 		}
 
 		return false;
+	}
+
+	@Override
+	public void updateAdapter(Map<String, Object> config) {
 	}
 
 

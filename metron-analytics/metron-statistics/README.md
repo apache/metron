@@ -355,10 +355,6 @@ Create the following file at
         "s": "OUTLIER_MAD_STATE_MERGE(PROFILE_GET('sketchy_mad',
 'global', 5, 'MINUTES'))"
                },
-      "tickUpdate": {
-        "s": "OUTLIER_MAD_STATE_MERGE(PROFILE_GET('sketchy_mad',
-'global', 5, 'MINUTES'), s)"
-                },
       "update": {
         "s": "OUTLIER_MAD_ADD(s, value)"
                 },

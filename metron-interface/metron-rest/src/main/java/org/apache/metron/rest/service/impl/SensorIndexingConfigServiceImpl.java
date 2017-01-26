@@ -44,6 +44,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
   @Autowired
   private CuratorFramework client;
 
+  @Override
   public Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException {
     try {
       ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(name, objectMapper.writeValueAsString(sensorIndexingConfig).getBytes(), client);
@@ -53,6 +54,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     return sensorIndexingConfig;
   }
 
+  @Override
   public Map<String, Object> findOne(String name) throws RestException {
     Map<String, Object> sensorIndexingConfig;
     try {
@@ -66,6 +68,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     return sensorIndexingConfig;
   }
 
+  @Override
   public Map<String, Map<String, Object>> getAll() throws RestException {
     Map<String, Map<String, Object>> sensorIndexingConfigs = new HashMap<>();
     List<String> sensorNames = getAllTypes();
@@ -75,6 +78,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     return sensorIndexingConfigs;
   }
 
+  @Override
   public List<String> getAllTypes() throws RestException {
     List<String> types;
     try {
@@ -87,6 +91,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     return types;
   }
 
+  @Override
   public boolean delete(String name) throws RestException {
     try {
         client.delete().forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/" + name);

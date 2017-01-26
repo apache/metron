@@ -20,11 +20,9 @@ package org.apache.metron.rest.service;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologySummary;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface StormStatusService {
 
   TopologySummary getTopologySummary();

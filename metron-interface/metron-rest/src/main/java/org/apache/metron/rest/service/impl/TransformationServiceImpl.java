@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 @Service
 public class TransformationServiceImpl implements TransformationService {
 
+    @Override
     public Map<String, Boolean> validateRules(List<String> rules) {
         Map<String, Boolean> results = new HashMap<>();
         StellarProcessor stellarProcessor = new StellarProcessor();
@@ -52,6 +53,7 @@ public class TransformationServiceImpl implements TransformationService {
         return results;
     }
 
+    @Override
     public Map<String, Object> validateTransformation(TransformationValidation transformationValidation) {
         JSONObject sampleJson = new JSONObject(transformationValidation.getSampleData());
         transformationValidation.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
@@ -61,10 +63,12 @@ public class TransformationServiceImpl implements TransformationService {
         return sampleJson;
     }
 
+    @Override
     public FieldTransformations[] getTransformations() {
         return FieldTransformations.values();
     }
 
+    @Override
     public List<StellarFunctionDescription> getStellarFunctions() {
         List<StellarFunctionDescription> stellarFunctionDescriptions = new ArrayList<>();
         Iterable<StellarFunctionInfo> stellarFunctionsInfo = SingletonFunctionResolver.getInstance().getFunctionInfo();
@@ -78,6 +82,7 @@ public class TransformationServiceImpl implements TransformationService {
         return stellarFunctionDescriptions;
     }
 
+    @Override
     public List<StellarFunctionDescription> getSimpleStellarFunctions() {
       List<StellarFunctionDescription> stellarFunctionDescriptions = getStellarFunctions();
       return stellarFunctionDescriptions.stream().filter(stellarFunctionDescription ->

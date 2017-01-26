@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-@Service
 public interface HdfsService {
 
     byte[] read(Path path) throws IOException;

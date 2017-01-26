@@ -61,6 +61,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   }
   /**
    {
+   "geo.hdfs.file": "src/test/resources/GeoLite/GeoIP2-City-Test.mmdb.gz",
     "fieldValidations" : [
         {
           "validation" : "org.apache.metron.writers.integration.WriterBoltIntegrationTest$MockValidator"

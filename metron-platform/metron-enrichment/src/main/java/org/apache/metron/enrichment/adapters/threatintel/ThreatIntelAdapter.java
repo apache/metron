@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
@@ -66,7 +67,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   @Override
   public JSONObject enrich(CacheKey value) {
     if(!isInitialized()) {
-      initializeAdapter();
+      initializeAdapter(null);
     }
     JSONObject enriched = new JSONObject();
     List<String> enrichmentTypes = value.getConfig()
@@ -95,7 +96,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       }
       catch(IOException e) {
         _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
-        initializeAdapter();
+        initializeAdapter(null);
         throw new RuntimeException("Theat Intel Unable to retrieve value", e);
       }
     }
@@ -108,7 +109,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   }
 
   @Override
-  public boolean initializeAdapter() {
+  public boolean initializeAdapter(Map<String, Object> configuration) {
     PersistentAccessTracker accessTracker;
     String hbaseTable = config.getHBaseTable();
     int expectedInsertions = config.getExpectedInsertions();
@@ -133,6 +134,10 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     }
 
     return true;
+  }
+
+  @Override
+  public void updateAdapter(Map<String, Object> config) {
   }
 
   @Override

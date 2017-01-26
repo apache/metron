@@ -19,3 +19,11 @@
 - include: monit.yml
 - include: scripts.yml
 - include: monit-definitions.yml
+
+- include: monit-sensor-definitions.yml
+  tags:
+    - sensors
+
+- include: monit-stub-definitions.yml
+  tags:
+    - sensor-stubs

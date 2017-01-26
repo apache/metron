@@ -269,8 +269,8 @@ public class ProfileBuilderTest {
    *   "profile": "test",
    *   "foreach": "ip_src_addr",
    *   "init": {
-   *     "x": "0",
-   *     "y": "0"
+   *     "x": "if exists(x) then x else 0",
+   *     "y": "if exists(y) then y else 0"
    *   },
    *   "update": {
    *     "x": "x + 1",
@@ -283,7 +283,7 @@ public class ProfileBuilderTest {
   private String testFlushProfile;
 
   @Test
-  public void testFlushClearsState() throws Exception {
+  public void testFlushDoesNotClearsState() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testFlushProfile, ProfileConfig.class);
     builder = new ProfileBuilder.Builder()
@@ -304,9 +304,51 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate
-    assertEquals(3, (int) convert(m.getValue(), Integer.class));
+    assertEquals(33, (int) convert(m.getValue(), Integer.class));
   }
 
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "init": {
+   *     "x": "0",
+   *     "y": "0"
+   *   },
+   *   "update": {
+   *     "x": "x + 1",
+   *     "y": "y + 2"
+   *   },
+   *   "result": "x + y"
+   * }
+   */
+  @Multiline
+  private String testFlushProfileWithNaiveInit;
+
+  @Test
+  public void testFlushDoesNotClearsStateButInitDoes() throws Exception {
+    // setup
+    definition = JSONUtils.INSTANCE.load(testFlushProfileWithNaiveInit, ProfileConfig.class);
+    builder = new ProfileBuilder.Builder()
+            .withDefinition(definition)
+            .withEntity("10.0.0.1")
+            .withPeriodDuration(10, TimeUnit.MINUTES)
+            .build();
+
+    // execute - accumulate some state then flush it
+    int count = 10;
+    for(int i=0; i<count; i++) {
+      builder.apply(message);
+    }
+    builder.flush();
+
+    // apply another message to accumulate new state, then flush again to validate original state was cleared
+    builder.apply(message);
+    ProfileMeasurement m = builder.flush();
+
+    // validate
+    assertEquals(3, (int) convert(m.getValue(), Integer.class));
+  }
   /**
    * {
    *   "profile": "test",
@@ -339,45 +381,4 @@ public class ProfileBuilderTest {
     assertEquals(entity, m.getEntity());
   }
 
-  /**
-   * {
-   *   "profile": "test",
-   *   "foreach": "ip_src_addr",
-   *   "tickUpdate": {
-   *     "ticks": "ticks + 1"
-   *   },
-   *   "result": "if exists(ticks) then ticks else 0"
-   * }
-   */
-  @Multiline
-  private String testTickUpdateProfile;
-
-  @Test
-  public void testTickUpdate() throws Exception {
-    // setup
-    definition = JSONUtils.INSTANCE.load(testTickUpdateProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
-            .withDefinition(definition)
-            .withEntity("10.0.0.1")
-            .withPeriodDuration(10, TimeUnit.MINUTES)
-            .build();
-
-    // 'tickUpdate' only executed when flushed - 'result' only has access to the 'old' tick value, not latest
-    {
-      ProfileMeasurement m = builder.flush();
-      assertEquals(0, (int) convert(m.getValue(), Integer.class));
-    }
-
-    // execute many flushes
-    int count = 10;
-    for(int i=0; i<count; i++) {
-      builder.flush();
-    }
-
-    {
-      // validate - the tickUpdate state should not be cleared between periods and is only run once per period
-      ProfileMeasurement m = builder.flush();
-      assertEquals(11, (int) convert(m.getValue(), Integer.class));
-    }
-  }
 }

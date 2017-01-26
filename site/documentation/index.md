@@ -23,9 +23,10 @@ title: Apache Metron (Incubating) Documentation
                 <li class="active"><a href="#quickstart">Quick Start</a></li>
                 <li class=""><a href="#installation">Installation</a></li>
                 <li class=""><a href="#docshome">DOCS Home</a></li>
+                <li class=""><a href="#releases">Releases</a></li>
             </ul>
         </div>
-    </div>  
+    </div>
 </section>
 
 <section class="intro-block" id="quickstart">
@@ -47,11 +48,11 @@ title: Apache Metron (Incubating) Documentation
                 <h2>Installation</h2>
             </div>
             <div class="col-two text-center">
-                <h5 class="bold blue-text">Ansible-based Vagrant single node VM install</h5> <br>      
+                <h5 class="bold blue-text">Ansible-based Vagrant single node VM install</h5> <br>
                 <p>This is the best place to play with Metron first. This approach uses the Quick Start installation which automates the provisioning and deployment of Apache Metron on a single, virtualized host running on VirtualBox.</p>
             </div>
             <div class="col-two text-center">
-                <h5 class="bold blue-text">Fully automated 10 Node Ansible-based install on AWS using Ambari blueprints and AWS APIs</h5> <br>                
+                <h5 class="bold blue-text">Fully automated 10 Node Ansible-based install on AWS using Ambari blueprints and AWS APIs</h5> <br>
                 <p>If you want a more realistic setup of the Metron application, use this approach. This install creates a full-functioning, end-to-end, multi-node cluster running Apache Metron. Keep in mind that this install will spin up 10 m4.xlarge EC2 instances by default.</p>
             </div>
             </div>
@@ -67,5 +68,31 @@ title: Apache Metron (Incubating) Documentation
     <div class="content-960 hover-btn text-center">
         <p> Apache Metron documentation provides information on quickly getting started with Metron, performing a full installation, adding additional data sources, and using Metron to triage alerts. Metron documentation is currently a work in progress. Please check back again later as we continue to grow this documentation set.</p>
         <a class="button-default" href=" https://cwiki.apache.org/confluence/display/METRON/Documentation" target="_blank">LEARN MORE</a>
+    </div>
+</section>
+
+<section class="events-section info-block darken" id="releases">
+    <div class="wrapper downloads">
+        <div class="text-center">
+            <h4>Current Release</h4>
+        </div>
+        <div class="content-960 hover-btn text-center">
+            <ul>
+                <li>
+                <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz" target="new">
+                    apache-metron-0.3.0-incubating.tar.gz
+                </a>
+                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.asc" target="new">
+                    PGP
+                 </a>]
+                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.sha" target="new">
+                    SHA512
+                 </a>]
+                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.0/apache-metron-0.3.0-incubating.tar.gz.md5" target="new">
+                    MD5
+                  </a>]
+                </li>
+            </ul>
+        </div>
     </div>
 </section>

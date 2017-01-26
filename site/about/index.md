@@ -24,6 +24,7 @@ title: Apache Metron (Incubating) About
                 <li class=""><a href="#architecture">Architecture</a></li>
                 <li class=""><a href="#corecapabilities">Core Capabilities </a></li>
                 <li class="" style="min-width:220px"><a href="#functionalThemes">Functional Themes</a></li>
+                <li class=""><a href="#license">License</a></li>
             </ul>
         </div>
     </div>  
@@ -35,7 +36,7 @@ title: Apache Metron (Incubating) About
         <h2>Evolution</h2>
     </div>
     <div>
-        <img class="v-middle img82" src="/img/metron_evolution.png" alt="What Apache Metron (Incubating) Does" style="margin:0 auto;left: 0px;">
+        <img class="img82" src="/img/metron_evolution.png" alt="What Apache Metron (Incubating) Does" style="margin:0 auto;left: 0px;display:block;">
     </div>
     <div class="hover-btn text-center">
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Evolution+of+Apache+Metron" target="new">LEARN MORE</a>
@@ -96,7 +97,7 @@ title: Apache Metron (Incubating) About
         <h2>Core Capabilities</h2>
     </div>
     <div>
-        <img class="v-middle img82" src="/img/metron_core_capabilities.png" alt="Metron Core Capabilities" style="margin:0 auto;left: 0px;">
+        <img class="img82" src="/img/metron_core_capabilities.png" alt="Metron Core Capabilities" style="margin:0 auto;left: 0px;display:block;">
     </div>
     <div class="hover-btn text-center">
         <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Metron+Core+Capabilities+and+Functional+Themes#MetronCoreCapabilitiesandFunctionalThemes-CoreFunctionalCapabilites" target="_new">LEARN MORE</a>
@@ -108,10 +109,19 @@ title: Apache Metron (Incubating) About
         <h2>Functional Themes</h2>
     </div>
     <div>
-        <img class="v-middle img82" src="/img/metron_functional_themes.png" alt="Metron Functional Themes" style="margin:0 auto;left: 0px;">
+        <img class="img82" src="/img/metron_functional_themes.png" alt="Metron Functional Themes" style="margin:0 auto;left: 0px;display:block;">
     </div>
     <div class="hover-btn text-center">
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Metron+Core+Capabilities+and+Functional+Themes#MetronCoreCapabilitiesandFunctionalThemes-CoreFunctionalThemes" target="new">LEARN MORE</a>
+    </div>
+</section>
+
+<section  class="events-section darken" id="license">
+    <div class="text-center">
+        <h2>License</h2>
+    </div>
+    <div class="content-960 hover-btn text-center downloads">
+        Metron is distributed under <a class="externalLink" href="http://www.apache.org/licenses/LICENSE-2.0" target="new">Apache License</a>
     </div>
 </section>
 

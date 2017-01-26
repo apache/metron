@@ -23,13 +23,20 @@ $(document).ready(function () {
 //    }
 //    triggerTopForm();
 
+    $('.main-menu .button-green').on('click', function() {
+        window.location = window.location.origin + "/documentation/#releases";
+    });
+
+    $('.main-menu #apache-website').on('click', function() {
+        window.open("http://incubator.apache.org/", "_blank");
+    });
+
     /*
      * Top-form UI/UX effects
      */
     $('.trigger-top-form, .top-form-container .close-btn').on('click', function () {
         if ($('body').hasClass('form-active')) {
             $('body').removeClass('form-active');
-            $('.marketo-form-embed').validationEngine('hideAll');
         }
         else {
             $('body').addClass('form-active');

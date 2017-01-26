@@ -37,6 +37,7 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
     @Autowired
     private CuratorFramework client;
 
+    @Override
     public Map<String, Object> save(Map<String, Object> globalConfig) throws RestException {
       try {
         ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, client);
@@ -46,6 +47,7 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
       return globalConfig;
     }
 
+    @Override
     public Map<String, Object> get() throws RestException {
         Map<String, Object> globalConfig;
         try {
@@ -59,6 +61,7 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
         return globalConfig;
     }
 
+    @Override
     public boolean delete() throws RestException {
         try {
             client.delete().forPath(ConfigurationType.GLOBAL.getZookeeperRoot());

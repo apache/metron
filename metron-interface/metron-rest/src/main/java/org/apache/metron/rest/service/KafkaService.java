@@ -19,11 +19,9 @@ package org.apache.metron.rest.service;
 
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
-import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
-@Service
 public interface KafkaService {
 
     KafkaTopic createTopic(KafkaTopic topic) throws RestException;

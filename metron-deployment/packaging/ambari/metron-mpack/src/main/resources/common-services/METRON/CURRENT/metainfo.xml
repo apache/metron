@@ -113,29 +113,6 @@
         </component>
 
         <component>
-          <name>METRON_ENRICHMENT_MYSQL_SERVER</name>
-          <displayName>MySQL Server</displayName>
-          <category>MASTER</category>
-          <cardinality>1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
-          <clientsToUpdateConfigs></clientsToUpdateConfigs>
-          <commandScript>
-            <script>scripts/mysql_server.py</script>
-            <scriptType>PYTHON</scriptType>
-          </commandScript>
-          <customCommands>
-            <customCommand>
-              <name>CLEAN</name>
-              <commandScript>
-                <script>scripts/mysql_server.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>600</timeout>
-              </commandScript>
-            </customCommand>
-          </customCommands>
-        </component>
-
-        <component>
           <name>METRON_INDEXING</name>
           <displayName>Metron Indexing</displayName>
           <category>MASTER</category>
@@ -230,33 +207,6 @@
           <packages>
             <package>
               <name>expect</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat7</osFamily>
-          <packages>
-            <package>
-              <name>mysql-community-release</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>mysql-community-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>MySQL-python</package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat6</osFamily>
-          <packages>
-            <package>
-              <name>mysql-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>mysql</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>

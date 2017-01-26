@@ -64,6 +64,11 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
   }
 
   @Override
+  public String getName() {
+    return messageWriter.getName();
+  }
+
+  @Override
   public void close() throws Exception {
     messageWriter.close();
   }

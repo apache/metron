@@ -18,11 +18,9 @@
 package org.apache.metron.rest.service;
 
 import org.apache.metron.rest.RestException;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service
 public interface GlobalConfigService {
 
     Map<String, Object> save(Map<String, Object> globalConfig) throws RestException;
