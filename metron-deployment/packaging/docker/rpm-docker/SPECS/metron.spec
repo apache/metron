@@ -261,6 +261,7 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zookeeper/indexing/websphere.json
 %{metron_home}/config/zookeeper/indexing/yaf.json
 %{metron_home}/config/zookeeper/indexing/asa.json
+%{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
