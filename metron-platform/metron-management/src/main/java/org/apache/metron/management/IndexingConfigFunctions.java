@@ -27,6 +27,7 @@ import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ public class IndexingConfigFunctions {
           ,name = "SET_BATCH"
           ,description = "Set batch size"
           ,params = {"sensorConfig - Sensor config to add transformation to."
+                    ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
                     ,"size - batch size (integer)"
                     }
           ,returns = "The String representation of the config in zookeeper"
@@ -57,11 +59,79 @@ public class IndexingConfigFunctions {
       else {
         configObj = (Map<String, Object>) INDEXING.deserialize(config);
       }
-      int batchSize = 5;
+      String writer = null;
       if(args.size() > 1) {
+        writer = ConversionUtils.convert(args.get(i++), String.class);
+        if(!configObj.containsKey(writer)) {
+          configObj.put(writer, new HashMap<String, Object>());
+        }
+      }
+      if(writer == null) {
+        throw new IllegalStateException("Invalid writer name: " + config);
+      }
+      int batchSize = 5;
+      if(args.size() > 2) {
         batchSize = ConversionUtils.convert(args.get(i++), Integer.class);
       }
-      configObj = IndexingConfigurations.setBatchSize(configObj, batchSize);
+      configObj.put(writer, IndexingConfigurations.setBatchSize((Map<String, Object>) configObj.get(writer), batchSize));
+      try {
+        return JSONUtils.INSTANCE.toJSON(configObj, true);
+      } catch (JsonProcessingException e) {
+        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        return config;
+      }
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
+  @Stellar(
+           namespace = "INDEXING"
+          ,name = "SET_ENABLED"
+          ,description = "Enable or disable an indexing writer for a sensor."
+          ,params = {"sensorConfig - Sensor config to add transformation to."
+                    ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
+                    ,"enabled? - boolean indicating whether the writer is enabled.  If omitted, then it will set enabled."
+                    }
+          ,returns = "The String representation of the config in zookeeper"
+          )
+  public static class Enabled implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      int i = 0;
+      String config = (String) args.get(i++);
+      Map<String, Object> configObj;
+      if(config == null || config.isEmpty()) {
+        throw new IllegalStateException("Invalid config: " + config);
+      }
+      else {
+        configObj = (Map<String, Object>) INDEXING.deserialize(config);
+      }
+      String writer = null;
+      if(args.size() > 1) {
+        writer = ConversionUtils.convert(args.get(i++), String.class);
+        if(!configObj.containsKey(writer)) {
+          configObj.put(writer, new HashMap<String, Object>());
+        }
+      }
+      if(writer == null) {
+        throw new IllegalStateException("Invalid writer name: " + config);
+      }
+      boolean enabled = true;
+      if(args.size() > 2) {
+        enabled = ConversionUtils.convert(args.get(i++), Boolean.class);
+      }
+
+      configObj.put(writer, IndexingConfigurations.setEnabled((Map<String, Object>) configObj.get(writer), enabled));
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
@@ -86,6 +156,7 @@ public class IndexingConfigFunctions {
           ,name = "SET_INDEX"
           ,description = "Set the index for the sensor"
           ,params = {"sensorConfig - Sensor config to add transformation to."
+                    ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
                     ,"sensor - sensor name"
                     }
           ,returns = "The String representation of the config in zookeeper"
@@ -103,11 +174,21 @@ public class IndexingConfigFunctions {
       else {
         configObj = (Map<String, Object>) INDEXING.deserialize(config);
       }
+      String writer = null;
+      if(args.size() > 1) {
+        writer = ConversionUtils.convert(args.get(i++), String.class);
+        if(!configObj.containsKey(writer)) {
+          configObj.put(writer, new HashMap<String, Object>());
+        }
+      }
+      if(writer == null) {
+        throw new IllegalStateException("Invalid writer name: " + config);
+      }
       String sensorName = ConversionUtils.convert(args.get(i++), String.class);
       if(sensorName == null) {
         throw new IllegalStateException("Invalid sensor name: " + config);
       }
-      configObj = IndexingConfigurations.setIndex(configObj, sensorName);
+      configObj.put(writer, IndexingConfigurations.setIndex((Map<String, Object>) configObj.get(writer), sensorName));
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {

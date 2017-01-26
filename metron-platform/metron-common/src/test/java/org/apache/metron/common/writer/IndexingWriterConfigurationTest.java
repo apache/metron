@@ -27,14 +27,14 @@ import org.junit.Test;
 public class IndexingWriterConfigurationTest {
   @Test
   public void testDefaultBatchSize() {
-    IndexingWriterConfiguration config = new IndexingWriterConfiguration(
+    IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
            new IndexingConfigurations()
     );
     Assert.assertEquals(1, config.getBatchSize("foo"));
   }
   @Test
   public void testDefaultIndex() {
-    IndexingWriterConfiguration config = new IndexingWriterConfiguration(
+    IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
            new IndexingConfigurations()
     );
     Assert.assertEquals("foo", config.getIndex("foo"));

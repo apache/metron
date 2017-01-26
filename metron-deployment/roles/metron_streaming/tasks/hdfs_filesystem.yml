@@ -30,12 +30,27 @@
   become: yes
   become_user: hdfs
 
+- name: Create Metron HDFS geo directory
+  command: hdfs dfs -mkdir -p {{ geo_hdfs_path }}
+  become: yes
+  become_user: hdfs
+
 - name: Assign hdfs as owner of HDFS output directory
   command: hdfs dfs -chown hdfs:hadoop {{ metron_hdfs_output_dir }}
   become: yes
   become_user: hdfs
 
+- name: Assign hdfs as owner of HDFS Geo directory
+  command: hdfs dfs -chown hdfs:hadoop {{ geo_hdfs_path }}
+  become: yes
+  become_user: hdfs
+
 - name: Assign permissions of HDFS output directory
   command: hdfs dfs -chmod 775 {{ metron_hdfs_output_dir }}
+  become: yes
+  become_user: hdfs
+
+- name: Assign permissions of HDFS geo directory
+  command: hdfs dfs -chmod 775 {{ geo_hdfs_path }}
   become: yes
   become_user: hdfs

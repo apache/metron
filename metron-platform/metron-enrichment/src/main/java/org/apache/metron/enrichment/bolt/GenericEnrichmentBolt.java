@@ -47,19 +47,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
  * entries. For a list of available enrichment adapters see
- * org.apache.metron.enrichment.adapters.
- * <p/>
+ * {@link org.apache.metron.enrichment.adapters}.
+ * <p>
  * At the moment of release the following enrichment adapters are available:
- * <p/>
+ * <p>
  * <ul>
- * <p/>
  * <li>geo = attaches geo coordinates to IPs
  * <li>whois = attaches whois information to domains
  * <li>host = attaches reputation information to known hosts
  * <li>CIF = attaches information from threat intelligence feeds
- * <ul>
- * <p/>
- * <p/>
+ * </ul>
+ * <p>
  * Enrichments are optional
  **/
 
@@ -120,12 +118,16 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
+
   @Override
   public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();
       }
+    }
+    if(type == ConfigurationType.GLOBAL) {
+      adapter.updateAdapter(getConfigurations().getGlobalConfig());
     }
   }
 
@@ -149,9 +151,9 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
-    boolean success = adapter.initializeAdapter();
+    boolean success = adapter.initializeAdapter(getConfigurations().getGlobalConfig());
     if (!success) {
-      LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
+      LOG.error("[Metron] GenericEnrichmentBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
     initializeStellar();
@@ -240,7 +242,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
       enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
       if(error) {
-        throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
+        throw new Exception("Unable to enrich " + rawMessage + " check logs for specifics.");
       }
       if (!enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
@@ -259,10 +261,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
     }
     collector.emit(ERROR_STREAM, new Values(error));
-  }
-
-  protected void handleError() {
-
   }
 
   @Override

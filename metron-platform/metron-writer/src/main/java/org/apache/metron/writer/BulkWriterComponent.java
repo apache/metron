@@ -100,6 +100,9 @@ public class BulkWriterComponent<MESSAGE_T> {
                    , WriterConfiguration configurations
                    ) throws Exception
   {
+    if(!configurations.isEnabled(sensorType)) {
+      return;
+    }
     int batchSize = configurations.getBatchSize(sensorType);
     Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);
     if (tupleList == null) {

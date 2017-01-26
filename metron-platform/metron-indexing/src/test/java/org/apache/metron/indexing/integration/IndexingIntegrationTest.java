@@ -21,8 +21,10 @@ package org.apache.metron.indexing.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -37,13 +39,18 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
 
 public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected String hdfsDir = "target/indexingIntegrationTest/hdfs";
@@ -139,12 +146,22 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       inputDocs.add(m);
 
     }
+    final AtomicBoolean isLoaded = new AtomicBoolean(false);
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
             .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
             .withIndexingConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            ;
+            .withPostStartCallback(component -> {
+              try {
+                waitForIndex(component.getTopologyProperties().getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY));
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+              isLoaded.set(true);
+              }
+            );
+
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
@@ -166,10 +183,11 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     runner.start();
 
     try {
+      while(!isLoaded.get()) {
+        Thread.sleep(100);
+      }
       fluxComponent.submitTopology();
-
       kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, inputMessages);
-      StringBuffer buffer = new StringBuffer();
       List<Map<String, Object>> docs = cleanDocs(runner.process(getProcessor(inputMessages)));
       Assert.assertEquals(docs.size(), inputMessages.size());
       //assert that our input docs are equivalent to the output docs, converting the input docs keys based
@@ -181,6 +199,23 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       if(runner != null) {
         runner.stop();
       }
+    }
+  }
+
+  private void waitForIndex(String zookeeperQuorum) throws Exception {
+    try(CuratorFramework client = getClient(zookeeperQuorum)) {
+      client.start();
+      byte[] bytes = null;
+      do {
+        try {
+          bytes = ConfigurationsUtils.readSensorIndexingConfigBytesFromZookeeper(testSensorType, client);
+          Thread.sleep(1000);
+        }
+        catch(KeeperException.NoNodeException nne) {
+          //kindly ignore because the path might not exist just yet.
+        }
+      }
+      while(bytes == null || bytes.length == 0);
     }
   }
 

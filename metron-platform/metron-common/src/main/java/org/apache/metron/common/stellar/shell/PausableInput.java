@@ -44,7 +44,6 @@ public class PausableInput extends InputStream {
 
   /**
    * Stop mirroring stdin
-   * @throws IOException
    */
   public void pause() {
     paused = true;

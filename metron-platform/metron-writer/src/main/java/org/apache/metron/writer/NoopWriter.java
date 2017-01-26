@@ -24,13 +24,14 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.json.simple.JSONObject;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
-public class NoopWriter extends AbstractWriter implements BulkMessageWriter<Object> {
+public class NoopWriter extends AbstractWriter implements BulkMessageWriter<JSONObject> {
 
   public static class RandomLatency implements Function<Void, Void> {
     private int min;
@@ -129,7 +130,7 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<Obje
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<Object> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
     if(sleepFunction != null) {
       sleepFunction.apply(null);
     }
@@ -137,6 +138,11 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<Obje
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllSuccesses(tuples);
     return response;
+  }
+
+  @Override
+  public String getName() {
+    return "noop";
   }
 
   @Override

@@ -19,6 +19,7 @@
 package org.apache.metron.enrichment.adapters.host;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
@@ -38,7 +39,7 @@ public abstract class AbstractHostAdapter implements EnrichmentAdapter<CacheKey>
 			.getLogger(AbstractHostAdapter.class);
 	
 	@Override
-	abstract public boolean initializeAdapter();
+	abstract public boolean initializeAdapter(Map<String, Object> config);
 	@Override
 	abstract public JSONObject enrich(CacheKey metadata);
 

@@ -69,42 +69,6 @@
         <display-name>Metron Parsers</display-name>
     </property>
     <property>
-        <name>metron_enrichment_db_user</name>
-        <value>metron</value>
-        <description>Database username to use to connect to the database.</description>
-        <display-name>Enrichment Database User</display-name>
-    </property>
-    <property>
-        <name>metron_enrichment_db_port</name>
-        <display-name>Metron Enrichment Database Port</display-name>
-        <value>3306</value>
-        <description>Database port to use to connect to the database.</description>
-    </property>
-    <property>
-        <name>metron_enrichment_db_password</name>
-        <value></value>
-        <property-type>PASSWORD</property-type>
-        <display-name>Metron Enrichment Database Password</display-name>
-        <description>Password to use against database</description>
-        <value-attributes>
-            <type>password</type>
-            <overridable>false</overridable>
-        </value-attributes>
-        <on-ambari-upgrade add="true"/>
-    </property>
-    <property>
-        <name>mysql_admin_password</name>
-        <value></value>
-        <property-type>PASSWORD</property-type>
-        <display-name>MySQL root user password</display-name>
-        <description>Password to use to add Metron user to MySQL</description>
-        <value-attributes>
-            <type>password</type>
-            <overridable>false</overridable>
-        </value-attributes>
-        <on-ambari-upgrade add="true"/>
-    </property>
-    <property>
         <name>metron_indexing_topology</name>
         <value>indexing</value>
         <description>The Storm topology name for Indexing</description>
@@ -118,7 +82,7 @@
     </property>
     <property>
         <name>geoip_url</name>
-        <value>http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz</value>
+        <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</value>
         <description>Location of the GeoIP data to load.</description>
         <display-name>GEOIP Load Datafile URL</display-name>
     </property>
@@ -170,32 +134,6 @@
     <property>
         <name>repo_url</name>
         <display-name>Repository URL</display-name>
-        <value></value>
-    </property>
-    <property>
-        <name>install_mysql</name>
-        <description>Install New MySQL Instance for Enrichments</description>
-        <display-name>Install MySQL</display-name>
-        <value>Yes</value>
-        <value-attributes>
-            <overridable>false</overridable>
-            <type>value-list</type>
-            <entries>
-                <entry>
-                    <value>Yes</value>
-                    <label>Yes</label>
-                </entry>
-                <entry>
-                    <value>No</value>
-                    <label>No</label>
-                </entry>
-            </entries>
-            <selection-cardinality>1</selection-cardinality>
-        </value-attributes>
-    </property>
-    <property>
-        <name>mysql_host</name>
-        <display-name>MySQL Host Address</display-name>
         <value></value>
     </property>
     <property>
