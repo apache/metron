@@ -15,7 +15,8 @@
 #  limitations under the License.
 #
 ---
-mysql_rpm_version: mysql57-community-release-el6-7.noarch
-mysql_yum_repo_url: https://dev.mysql.com/get/{{ mysql_rpm_version }}.rpm
-mysql_root_password: P@ssw0rd
-geodata_file: http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.tar.xz
+
+- name: Load Geo DB
+  shell: "{{ metron_directory }}/bin/geo_enrichment_load.sh -z {{ zookeeper_url }}"
+  become: yes
+  become_user: hdfs

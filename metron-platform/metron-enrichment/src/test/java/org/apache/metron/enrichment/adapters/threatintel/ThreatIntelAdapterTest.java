@@ -157,7 +157,7 @@ public class ThreatIntelAdapterTest {
     config.withProviderImpl(ExceptionProvider.class.getName());
     ThreatIntelAdapter tia = new ThreatIntelAdapter(config);
     UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.FATAL);
-    tia.initializeAdapter();
+    tia.initializeAdapter(null);
     UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.ERROR);
     Assert.assertFalse(tia.isInitialized());
   }

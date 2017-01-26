@@ -34,7 +34,8 @@ public class Context implements Serializable {
     , GLOBAL_CONFIG
     , ZOOKEEPER_CLIENT
     , SERVICE_DISCOVERER
-    , STELLAR_CONFIG;
+    , STELLAR_CONFIG
+    , GEO_IP
   }
 
   public static class Builder {
@@ -98,8 +99,8 @@ public class Context implements Serializable {
     if(c == null && errorIfNotThere) {
       throw new IllegalStateException("Unable to find capability " + capability + "; it may not be available in your context.");
     }
-    else if(c == null && !errorIfNotThere) {
-      return Optional.ofNullable(null);
+    else if(c == null) {
+      return Optional.empty();
     }
     return Optional.ofNullable(c.get());
   }

@@ -17,7 +17,6 @@ limitations under the License.
 
 import os
 import time
-
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -74,14 +73,38 @@ class EnrichmentCommands:
             yum_repo_types[repo_type]()
             Logger.info("Writing out repo file")
             repo_template = ("echo \"[METRON-${metron.version}]\n"
-                            "name=Metron ${metron.version} packages\n"
-                            "baseurl={0}\n"
-                            "gpgcheck=0\n"
-                            "enabled=1\n\""
-                         "   > /etc/yum.repos.d/metron.repo")
+                             "name=Metron ${metron.version} packages\n"
+                             "baseurl={0}\n"
+                             "gpgcheck=0\n"
+                             "enabled=1\n\""
+                             "   > /etc/yum.repos.d/metron.repo")
             Execute(repo_template.format(self.__params.repo_url))
         else:
             raise ValueError("Unsupported repo type '{0}'".format(repo_type))
+
+    def init_geo(self):
+        Logger.info("Creating HDFS location for GeoIP database")
+        self.__params.HdfsResource(self.__params.geoip_hdfs_dir,
+                                   type="directory",
+                                   action="create_on_execute",
+                                   owner=self.__params.metron_user,
+                                   group=self.__params.user_group,
+                                   mode=0775,
+                                   )
+
+        Logger.info("Creating and loading GeoIp database")
+        command_template = """{0}/bin/geo_enrichment_load.sh \
+                                -g {1} \
+                                -r {2} \
+                                -z {3}"""
+        command = command_template.format(self.__params.metron_home,
+                                          self.__params.geoip_url,
+                                          self.__params.geoip_hdfs_dir,
+                                          self.__params.zookeeper_quorum
+                                          )
+        Logger.info("Executing command " + command)
+        Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
+        Logger.info("Done intializing GeoIP data")
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')

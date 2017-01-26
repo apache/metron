@@ -2,7 +2,6 @@
 /compose/kafkazk/common
 /compose/kafkazk/parser
 /compose/kafkazk/enrichment
-/compose/mysql/enrichment
 /compose/hbase/data-management
 /compose/storm/elasticsearch
 /compose/storm/enrichment
