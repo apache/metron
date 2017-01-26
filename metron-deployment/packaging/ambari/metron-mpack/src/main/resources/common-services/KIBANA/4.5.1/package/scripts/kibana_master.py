@@ -53,9 +53,9 @@ class Kibana(Script):
         majorVersion = OSCheck.get_os_major_version()
         Logger.info("CentOS/RHEL major version reported by Ambari: " + majorVersion)
         if majorVersion == "6" or majorVersion == "7":
-            repoName = "name=CentOS/RHEL {} repository for Elasticsearch Curator 4.x packages\n".format(majorVersion)
-            baseUrl = "baseurl=http://packages.elastic.co/curator/4/centos/{}\n".format(majorVersion)
-            Logger.info("Installing Elasticsearch Curator CentOS/RHEL {} repo".format(majorVersion))
+            repoName = "name=CentOS/RHEL {0} repository for Elasticsearch Curator 4.x packages\n".format(majorVersion)
+            baseUrl = "baseurl=http://packages.elastic.co/curator/4/centos/{0}\n".format(majorVersion)
+            Logger.info("Installing Elasticsearch Curator CentOS/RHEL {0} repo".format(majorVersion))
             Execute("echo \"[curator-4]\n" +
                     repoName +
                     baseUrl +
@@ -81,7 +81,7 @@ class Kibana(Script):
                   group=params.kibana_user
                   )
 
-        File("{}/kibana.yml".format(params.conf_dir),
+        File("{0}/kibana.yml".format(params.conf_dir),
              owner=params.kibana_user,
              content=InlineTemplate(params.kibana_yml_template)
              )
@@ -101,7 +101,6 @@ class Kibana(Script):
         self.configure(env)
 
         Logger.info("Start the Master")
-
 
         Execute("service kibana start")
 

@@ -31,12 +31,6 @@
         <display-name>Metron apps HDFS dir</display-name>
     </property>
     <property>
-        <name>metron_apps_indexed_hdfs_dir</name>
-        <value>{{metron_apps_hdfs_dir}}/indexing/indexed</value>
-        <description>Indexing bolts will write to this HDFS directory</description>
-        <display-name>Metron apps indexed HDFS dir</display-name>
-    </property>
-    <property>
         <name>metron_zookeeper_config_dir</name>
         <value>config/zookeeper</value>
         <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
@@ -125,19 +119,19 @@
     <property require-input="true">
         <name>es_hosts</name>
         <value></value>
-        <description>Comma delimited list of Elasticsearch Hosts. (eshost1,eshost2)</description>
+        <description>Comma delimited list of Elasticsearch Master Hosts (eshost1,eshost2).</description>
         <display-name>Elasticsearch Hosts</display-name>
     </property>
     <property>
         <name>es_binary_port</name>
         <value>9300</value>
-        <description>Elasticsearch binary port. (9300)</description>
+        <description>Elasticsearch binary port (9300).</description>
         <display-name>Elasticsearch Binary Port</display-name>
     </property>
     <property>
         <name>es_http_port</name>
         <value>9200</value>
-        <description>Elasticsearch HTTP port. (9200)</description>
+        <description>Elasticsearch HTTP port (9200).</description>
         <display-name>Elasticsearch HTTP port</display-name>
     </property>
     <property require-input = "true">
@@ -205,7 +199,7 @@
         <value>
 {
 "es.clustername": "{{ es_cluster_name }}",
-"es.ip": "{{ es_url }}",
+"es.ip": "{{ es_binary_urls }}",
 "es.date.format": "yyyy.MM.dd.HH"
 }
         </value>

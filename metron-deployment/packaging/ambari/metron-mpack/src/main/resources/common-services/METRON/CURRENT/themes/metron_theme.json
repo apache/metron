@@ -110,11 +110,11 @@
           "subsection-name": "subsection-general-database"
         },
         {
-          "config": "metron-env/es_hosts",
+          "config": "metron-env/es_cluster_name",
           "subsection-name": "subsection-general-indexing"
         },
         {
-          "config": "metron-env/es_binary_port",
+          "config": "metron-env/es_hosts",
           "subsection-name": "subsection-general-indexing"
         },
         {
@@ -122,7 +122,7 @@
           "subsection-name": "subsection-general-indexing"
         },
         {
-          "config": "metron-env/es_cluster_name",
+          "config": "metron-env/es_binary_port",
           "subsection-name": "subsection-general-indexing"
         },
         {

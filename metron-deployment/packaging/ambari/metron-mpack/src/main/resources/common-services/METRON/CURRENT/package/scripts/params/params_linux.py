@@ -62,7 +62,7 @@ es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_hosts = config['configurations']['metron-env']['es_hosts']
 es_host_list = es_hosts.split(",")
 es_binary_port = config['configurations']['metron-env']['es_binary_port']
-es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
+es_binary_urls = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
 es_http_url = es_host_list[0] + ":" + es_http_port
 
@@ -110,9 +110,7 @@ if has_kafka_host:
     kafka_brokers += ':' + kafka_broker_port
 
 metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
-# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
-# well enough until we find a better way via Ambari
-metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_indexed_hdfs_dir']))
+metron_apps_indexed_hdfs_dir = format("{metron_apps_hdfs_dir}/indexing/indexed")
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
