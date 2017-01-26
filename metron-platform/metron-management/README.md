@@ -533,8 +533,6 @@ Functions loaded, you may refer to functions now...
 [Stellar]>>> # Just to make sure it looks right, we can view the JSON
 [Stellar]>>> squid_enrichment_config
 {
-  "index" : "squid",
-  "batchSize" : 0,
   "enrichment" : {
     "fieldMap" : { },
     "fieldToTypeMap" : { },
@@ -552,9 +550,6 @@ Functions loaded, you may refer to functions now...
   },
   "configuration" : { }
 }
-[Stellar]>>> # Wait, that batch size looks terrible.  That is because it did not exist in zookeeper, so it is the default.
-[Stellar]>>> # We can correct it, thankfully. 
-[Stellar]>>> squid_enrichment_config := INDEXING_SET_BATCH( squid_enrichment_config, 100)
 [Stellar]>>> # Now that we have a config, we can add an enrichment to the Stellar adapter
 [Stellar]>>> # We should make sure that the current enrichment does not have any already
 [Stellar]>>> ?ENRICHMENT_STELLAR_TRANSFORM_PRINT
@@ -769,8 +764,6 @@ Please note that functions are loading lazily in the background and will be unav
 26751 [Thread-1] INFO  o.r.Reflections - Reflections took 24407 ms to scan 22 urls, producing 17898 keys and 121520 values 
 26828 [Thread-1] INFO  o.a.m.c.d.FunctionResolverSingleton - Found 84 Stellar Functions...
 Functions loaded, you may refer to functions now...
-[Stellar]>>> # Just as in the previous example, we should adjust the batch size
-[Stellar]>>> squid_enrichment_config := INDEXING_SET_BATCH( squid_enrichment_config, 100)
 [Stellar]>>> # We should not have any threat triage rules
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config)
 ╔═════════════╤═══════╗
@@ -853,7 +846,7 @@ Returns: A Map associated with the indicator and enrichment type.  Empty otherwi
 [Stellar]>>> non_us := whois_info.home_country != 'US'
 [Stellar]>>> is_local := IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
 [Stellar]>>> is_both := whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
-[Stellar]>>> rules := { SHELL_GET_EXPRESSION('non_us') : 10, SHELL_GET_EXPRESSION('is_local') : 20, SHELL_GET_EXPRESSION('is_both') : 50 }
+[Stellar]>>> rules := [ { 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'rule' : SHELL_GET_EXPRESSION('is_local'), 'score' : 20 } , { 'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]
 [Stellar]>>> # Now that we have our rules staged, we can add them to our config.
 [Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_ADD( squid_enrichment_config_new, rules )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
