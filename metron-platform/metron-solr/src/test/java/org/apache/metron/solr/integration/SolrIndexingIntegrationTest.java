@@ -20,31 +20,21 @@ package org.apache.metron.solr.integration;
 import com.google.common.base.Function;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.utils.JSONUtils;
 
 import javax.annotation.Nullable;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 

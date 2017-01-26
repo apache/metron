@@ -159,8 +159,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withComponent("storm", fluxComponent)
             .withComponent("search", getSearchComponent(topologyProperties))
             .withMillisecondsBetweenAttempts(15000)
-            .withNumRetries(20)
-            .withMaxTimeMS(300000)
+            .withNumRetries(10)
+            .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
     runner.start();

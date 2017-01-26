@@ -78,7 +78,6 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     try {
       handler.handle(messages);
     } catch(Exception e) {
-      e.printStackTrace();
       response.addAllErrors(e, tuples);
     }
 
