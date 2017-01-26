@@ -159,10 +159,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
                 e.printStackTrace();
               }
               isLoaded.set(true);
-              return null;
               }
             );
-            ;
+
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
@@ -217,10 +216,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
         }
       }
       while(bytes == null || bytes.length == 0);
-      return;
     }
-
-
   }
 
   public List<Map<String, Object>> cleanDocs(ProcessorResult<List<Map<String, Object>>> result) {
