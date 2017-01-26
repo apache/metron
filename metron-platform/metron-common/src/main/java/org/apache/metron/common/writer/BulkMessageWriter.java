@@ -45,4 +45,5 @@ public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializabl
             , List<MESSAGE_T> messages
             ) throws Exception;
 
+  String getName();
 }

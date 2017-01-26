@@ -29,11 +29,18 @@ import java.util.Map;
 
 public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
+  public static final String ENABLED_CONF = "enabled";
   public static final String INDEX_CONF = "index";
 
-  public Map<String, Object> getSensorIndexingConfig(String sensorType) {
+  public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
     Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
-    return ret != null?ret:new HashMap<>();
+    if(ret == null) {
+      return new HashMap();
+    }
+    else {
+      Map<String, Object> writerConfig = (Map<String, Object>)ret.get(writerName);
+      return writerConfig != null?writerConfig:new HashMap<>();
+    }
   }
 
   public void updateSensorIndexingConfig(String sensorType, byte[] data) throws IOException {
@@ -54,13 +61,35 @@ public class IndexingConfigurations extends Configurations {
     return ConfigurationType.INDEXING.getName() + "." + sensorType;
   }
 
-
-  public int getBatchSize(String sensorName) {
-     return getBatchSize(getSensorIndexingConfig(sensorName));
+  public boolean isDefault(String sensorName, String writerName) {
+    Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorName));
+    if(ret == null) {
+      return true;
+    }
+    else {
+      Map<String, Object> writerConfig = (Map<String, Object>)ret.get(writerName);
+      return writerConfig != null?false:true;
+    }
   }
 
-  public String getIndex(String sensorName) {
-    return getIndex(getSensorIndexingConfig(sensorName), sensorName);
+  public int getBatchSize(String sensorName, String writerName ) {
+     return getBatchSize(getSensorIndexingConfig(sensorName, writerName));
+  }
+
+  public String getIndex(String sensorName, String writerName) {
+    return getIndex(getSensorIndexingConfig(sensorName, writerName), sensorName);
+  }
+
+  public boolean isEnabled(String sensorName, String writerName) {
+    return isEnabled(getSensorIndexingConfig(sensorName, writerName));
+  }
+
+  public static boolean isEnabled(Map<String, Object> conf) {
+    return getAs( ENABLED_CONF
+                 ,conf
+                , true
+                , Boolean.class
+                );
   }
 
   public static int getBatchSize(Map<String, Object> conf) {
@@ -79,6 +108,11 @@ public class IndexingConfigurations extends Configurations {
                 );
   }
 
+  public static Map<String, Object> setEnabled(Map<String, Object> conf, boolean enabled) {
+    Map<String, Object> ret = conf == null?new HashMap<>():conf;
+    ret.put(ENABLED_CONF, enabled);
+    return ret;
+  }
   public static Map<String, Object> setBatchSize(Map<String, Object> conf, int batchSize) {
     Map<String, Object> ret = conf == null?new HashMap<>():conf;
     ret.put(BATCH_SIZE_CONF, batchSize);
