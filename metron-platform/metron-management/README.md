@@ -846,20 +846,19 @@ Returns: A Map associated with the indicator and enrichment type.  Empty otherwi
 [Stellar]>>> non_us := whois_info.home_country != 'US'
 [Stellar]>>> is_local := IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
 [Stellar]>>> is_both := whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
-[Stellar]>>> rules := [ { 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'rule' : SHELL_GET_EXPRESSION('is_local'), 'score' : 20 } , { 'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]
+[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local '), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]  
 [Stellar]>>> # Now that we have our rules staged, we can add them to our config.
 [Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_ADD( squid_enrichment_config_new, rules )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
-╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╤═══════╗
-║ Triage Rule                                                                                                       │ Score ║
-╠═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╪═══════╣
-║ whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21') │ 50    ║
-╟───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼───────╢
-║ IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')                                    │ 20    ║
-╟───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼───────╢
-║ whois_info.home_country != 'US'                                                                                   │ 10    ║
-╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧═══════╝
-
+╔═══════════════════════╤══════════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╤═══════╗
+║ Name                  │ Comment              │ Triage Rule                                                                                                       │ Score ║
+╠═══════════════════════╪══════════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╪═══════╣
+║ is non-us             │                      │ whois_info.home_country != 'US'                                                                                   │ 10    ║
+╟───────────────────────┼──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼───────╢
+║ is local              │                      │ IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')                                    │ 20    ║
+╟───────────────────────┼──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼───────╢
+║ both non-us and local │ union of both rules. │ whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21') │ 50    ║
+╚═══════════════════════╧══════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧═══════╝
 
 Aggregation: MAX
 [Stellar]>>> # Looks good, we can push the configs up
@@ -867,8 +866,6 @@ Aggregation: MAX
 [Stellar]>>> # And admire the resulting JSON that you did not have to edit directly.
 [Stellar]>>> CONFIG_GET('ENRICHMENT', 'squid')
 {
-  "index" : "squid",
-  "batchSize" : 100,
   "enrichment" : {
     "fieldMap" : {
       "stellar" : {
@@ -891,20 +888,20 @@ Aggregation: MAX
     "fieldToTypeMap" : { },
     "config" : { },
     "triageConfig" : {
-      "riskLevelRules" : [
-        {
-          "rule" : "whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')",
-          "score" : 50.0
-        },
-        {
-          "rule" : "IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')",
-          "score" : 20.0
-        },
-        {
-          "rule" : "whois_info.home_country != 'US'",
-          "score" : 10.0
-        }
-      ],
+      "riskLevelRules" : [ {
+        "name" : "is non-us",
+        "rule" : "whois_info.home_country != 'US'",
+        "score" : 10.0
+      }, {
+        "name" : "is local",
+        "rule" : "IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')",
+        "score" : 20.0
+      }, {
+        "name" : "both non-us and local",
+        "comment" : "union of both rules.",
+        "rule" : "whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')",
+        "score" : 50.0
+      } ],
       "aggregator" : "MAX",
       "aggregationConfig" : { }
     }
@@ -915,19 +912,17 @@ Aggregation: MAX
 [Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_REMOVE( squid_enrichment_config_new, [ SHELL_GET_EXPRESSION('non_us') , SHELL_GET_EXPRESSION('is_local') , SHELL_GET_EXPRES 
 SION('is_both') ] )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
-╔═════════════╤═══════╗
-║ Triage Rule │ Score ║
-╠═════════════╧═══════╣
-║ (empty)             ║
-╚═════════════════════╝
+╔══════╤═════════╤═════════════╤═══════╗
+║ Name │ Comment │ Triage Rule │ Score ║
+╠══════╧═════════╧═════════════╧═══════╣
+║ (empty)                              ║
+╚══════════════════════════════════════╝
 
 [Stellar]>>> # and push configs
 [Stellar]>>> CONFIG_PUT('ENRICHMENT', squid_enrichment_config_new, 'squid')
 [Stellar]>>> # And admire the resulting JSON that is devoid of threat triage rules.
 [Stellar]>>> CONFIG_GET('ENRICHMENT', 'squid')
 {
-  "index" : "squid",
-  "batchSize" : 100,
   "enrichment" : {
     "fieldMap" : {
       "stellar" : {
