@@ -27,31 +27,40 @@ import java.util.Optional;
 
 public class IndexingWriterConfiguration implements WriterConfiguration{
   private Optional<IndexingConfigurations> config;
+  private String writerName;
 
-
-  public IndexingWriterConfiguration(IndexingConfigurations config) {
+  public IndexingWriterConfiguration(String writerName, IndexingConfigurations config) {
     this.config = Optional.ofNullable(config);
+    this.writerName = writerName;
   }
-
-
 
   @Override
   public int getBatchSize(String sensorName) {
-    return config.orElse(new IndexingConfigurations()).getBatchSize(sensorName);
+    return config.orElse(new IndexingConfigurations()).getBatchSize(sensorName, writerName);
   }
 
   @Override
   public String getIndex(String sensorName) {
-    return config.orElse(new IndexingConfigurations()).getIndex(sensorName);
+    return config.orElse(new IndexingConfigurations()).getIndex(sensorName, writerName);
+  }
+
+  @Override
+  public boolean isEnabled(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).isEnabled(sensorName, writerName);
   }
 
   @Override
   public Map<String, Object> getSensorConfig(String sensorName) {
-    return config.orElse(new IndexingConfigurations()).getSensorIndexingConfig(sensorName);
+    return config.orElse(new IndexingConfigurations()).getSensorIndexingConfig(sensorName, writerName);
   }
 
   @Override
   public Map<String, Object> getGlobalConfig() {
     return config.orElse(new IndexingConfigurations()).getGlobalConfig();
+  }
+
+  @Override
+  public boolean isDefault(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).isDefault(sensorName, writerName);
   }
 }

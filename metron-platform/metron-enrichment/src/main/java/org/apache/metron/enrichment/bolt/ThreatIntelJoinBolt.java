@@ -17,6 +17,8 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
@@ -63,12 +65,14 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   @Override
   public void prepare(Map map, TopologyContext topologyContext) {
     super.prepare(map, topologyContext);
+    GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
     initializeStellar();
   }
 
   protected void initializeStellar() {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+                                .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
                                 .build();
     StellarFunctions.initialize(stellarContext);
     this.functionResolver = StellarFunctions.FUNCTION_RESOLVER();
@@ -146,5 +150,13 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     }
 
     return ret;
+  }
+
+  @Override
+  public void reloadCallback(String name, ConfigurationType type) {
+    super.reloadCallback(name, type);
+    if(type == ConfigurationType.GLOBAL) {
+      GeoLiteDatabase.INSTANCE.updateIfNecessary(getConfigurations().getGlobalConfig());
+    }
   }
 }

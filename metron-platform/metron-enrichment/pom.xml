@@ -24,9 +24,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <mysql.version>5.1.31</mysql.version>
         <slf4j.version>1.7.7</slf4j.version>
         <storm.hdfs.version>0.1.2</storm.hdfs.version>
+        <commons-compress.version>1.13</commons-compress.version>
+        <geoip.version>2.8.0</geoip.version>
         <guava.version>${global_hbase_guava_version}</guava.version>
     </properties>
     <dependencies>
@@ -72,9 +73,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.version}</version>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>${geoip.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
@@ -240,6 +241,11 @@
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>${commons-compress.version}</version>
+        </dependency>
     </dependencies>
     <reporting>
         <plugins>
@@ -321,6 +327,10 @@
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>org.apache.metron.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.apache.metron.guava.enrichment</shadedPattern>
                                 </relocation>
                             </relocations>
                             <artifactSet>

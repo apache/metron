@@ -21,16 +21,20 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -158,6 +162,11 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
       }
     }
     threatIntelJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, enrichmentConfig);
+    HashMap<String, Object> globalConfig = new HashMap<>();
+    String baseDir = UnitTestHelper.findDir("GeoLite");
+    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    threatIntelJoinBolt.getConfigurations().updateGlobalConfig(globalConfig);
     threatIntelJoinBolt.withMaxCacheSize(100);
     threatIntelJoinBolt.withMaxTimeRetain(10000);
     threatIntelJoinBolt.prepare(new HashMap<>(), topologyContext, outputCollector);

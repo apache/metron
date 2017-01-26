@@ -41,6 +41,9 @@
 - include: source_config.yml
   run_once: true
 
+- include: geoip.yml
+  run_once: true
+
 - include: threat_intel.yml
   run_once: true
   when: threat_intel_bulk_load == True

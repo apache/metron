@@ -51,4 +51,9 @@ public class PcapWriter extends HBaseWriter {
     values.put(column, tuple.getBinary(0));
     return values;
   }
+
+  @Override
+  public String getName() {
+    return "pcap";
+  }
 }

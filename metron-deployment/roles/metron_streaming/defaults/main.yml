@@ -64,6 +64,7 @@ metron_profiler_properties_config_path: "{{ metron_directory }}/config/profiler.
 hbase_config_path: "/etc/hbase/conf"
 hdfs_config_path: "/etc/hadoop/conf"
 pcap_hdfs_path: "/apps/metron/pcap"
+geo_hdfs_path: "/apps/metron/geo/default"
 
 threat_intel_bulk_load: True
 threat_intel_bin: "{{ metron_directory }}/bin/threatintel_bulk_load.sh"

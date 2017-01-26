@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +41,7 @@ public class Configurations implements Serializable {
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.get(ConfigurationType.GLOBAL.getName());
+    return (Map<String, Object>) configurations.getOrDefault(ConfigurationType.GLOBAL.getName(), new HashMap());
   }
 
   public List<FieldValidator> getFieldValidations() {

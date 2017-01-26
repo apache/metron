@@ -157,8 +157,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
       // when a 'tick' is received, flush the profile and emit the completed profile measurement
       profileCache.asMap().forEach((key, profileBuilder) -> {
-        ProfileMeasurement measurement = profileBuilder.flush();
-        collector.emit(new Values(measurement, profileBuilder.getDefinition()));
+        if(profileBuilder.isInitialized()) {
+          ProfileMeasurement measurement = profileBuilder.flush();
+          collector.emit(new Values(measurement, profileBuilder.getDefinition()));
+        }
       });
 
       // cache maintenance

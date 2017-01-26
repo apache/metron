@@ -74,7 +74,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
                    ) throws Exception
   {
     BulkWriterResponse response = new BulkWriterResponse();
-    SourceHandler handler = getSourceHandler(sourceType);
+    SourceHandler handler = getSourceHandler(configurations.getIndex(sourceType));
     try {
       handler.handle(messages);
     } catch(Exception e) {
@@ -83,6 +83,11 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
     response.addAllSuccesses(tuples);
     return response;
+  }
+
+  @Override
+  public String getName() {
+    return "hdfs";
   }
 
   @Override

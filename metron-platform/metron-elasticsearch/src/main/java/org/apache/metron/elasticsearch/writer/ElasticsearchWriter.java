@@ -190,6 +190,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     return buildWriteReponse(tuples, bulkResponse);
   }
 
+  @Override
+  public String getName() {
+    return "elasticsearch";
+  }
+
   protected BulkWriterResponse buildWriteReponse(Iterable<Tuple> tuples, BulkResponse bulkResponse) throws Exception {
     // Elasticsearch responses are in the same order as the request, giving us an implicit mapping with Tuples
     BulkWriterResponse writerResponse = new BulkWriterResponse();

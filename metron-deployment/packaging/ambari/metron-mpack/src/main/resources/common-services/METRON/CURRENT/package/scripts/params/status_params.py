@@ -42,13 +42,7 @@ enrichment_cf = 't'
 threatintel_table = 'threatintel'
 threatintel_cf = 't'
 
-mysql_process_name = 'mysqld'
-if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-    daemon_name = 'mysql'
-else:
-    daemon_name = 'mysqld'
-
-# ing
+# Indexing
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 

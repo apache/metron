@@ -33,13 +33,7 @@ public abstract class BaseIntegrationTest {
 
     protected static ZKServerComponent getZKServerComponent(final Properties topologyProperties) {
         return new ZKServerComponent()
-                .withPostStartCallback(new Function<ZKServerComponent, Void>() {
-                    @Nullable
-                    @Override
-                    public Void apply(@Nullable ZKServerComponent zkComponent) {
-                        topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
-                        return null;
-                    }
-                });
+                .withPostStartCallback((zkComponent) -> topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString())
+                );
     }
 }

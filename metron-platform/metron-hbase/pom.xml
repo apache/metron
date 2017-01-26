@@ -24,7 +24,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <mysql.version>5.1.31</mysql.version>
         <slf4j.version>1.7.7</slf4j.version>
         <storm.hdfs.version>0.1.2</storm.hdfs.version>
         <guava.version>${global_hbase_guava_version}</guava.version>

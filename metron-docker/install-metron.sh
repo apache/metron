@@ -21,14 +21,11 @@ METRON_PLATFORM_ROOT=$METRON_DOCKER_ROOT/../metron-platform
 if [ $# -gt 0 ] && [ $1 == "-b" ]
     then cd $METRON_PLATFORM_ROOT && mvn clean package -DskipTests
 fi
-mkdir -p $METRON_DOCKER_ROOT/mysql/enrichment/
 mkdir -p $METRON_DOCKER_ROOT/hbase/data-management
 mkdir -p $METRON_DOCKER_ROOT/storm/parser/
 mkdir -p $METRON_DOCKER_ROOT/storm/enrichment/
 mkdir -p $METRON_DOCKER_ROOT/storm/indexing/
 mkdir -p $METRON_DOCKER_ROOT/storm/elasticsearch/
-echo Installing MySQL dependencies
-cp $METRON_PLATFORM_ROOT/metron-enrichment/target/metron-enrichment-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/mysql/enrichment/
 echo Installing HBase dependencies
 cp $METRON_PLATFORM_ROOT/metron-data-management/target/metron-data-management-$METRON_VERSION-archive.tar.gz $METRON_DOCKER_ROOT/hbase/data-management
 echo Installing Storm dependencies

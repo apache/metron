@@ -118,12 +118,16 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
+
   @Override
   public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
       if (cache != null) {
         cache.invalidateAll();
       }
+    }
+    if(type == ConfigurationType.GLOBAL) {
+      adapter.updateAdapter(getConfigurations().getGlobalConfig());
     }
   }
 
@@ -147,9 +151,9 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
-    boolean success = adapter.initializeAdapter();
+    boolean success = adapter.initializeAdapter(getConfigurations().getGlobalConfig());
     if (!success) {
-      LOG.error("[Metron] EnrichmentSplitterBolt could not initialize adapter");
+      LOG.error("[Metron] GenericEnrichmentBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
     initializeStellar();
@@ -238,7 +242,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
       enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
       if(error) {
-        throw new Exception("Unable to enrich " + enrichedMessage + " check logs for specifics.");
+        throw new Exception("Unable to enrich " + rawMessage + " check logs for specifics.");
       }
       if (!enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
@@ -257,10 +261,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
     }
     collector.emit(ERROR_STREAM, new Values(error));
-  }
-
-  protected void handleError() {
-
   }
 
   @Override

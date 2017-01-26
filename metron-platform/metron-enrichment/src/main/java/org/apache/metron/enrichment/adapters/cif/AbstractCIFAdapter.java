@@ -19,6 +19,7 @@
 package org.apache.metron.enrichment.adapters.cif;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public abstract class AbstractCIFAdapter implements EnrichmentAdapter<CacheKey>,
 			.getLogger(AbstractCIFAdapter.class);
 	
 	@Override
-	abstract public boolean initializeAdapter();
+	abstract public boolean initializeAdapter(Map<String, Object> config);
 	abstract public String enrichByIP(String metadata);
 	abstract public String enrichByDomain(String metadata);
 	abstract public String enrichByEmail(String metadata);

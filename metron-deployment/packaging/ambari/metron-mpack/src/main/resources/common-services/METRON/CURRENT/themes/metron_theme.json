@@ -6,7 +6,7 @@
         "tabs": [
           {
             "name": "metron_general",
-            "display-name": "Settings",
+            "display-name": "Index Settings",
             "layout": {
               "tab-columns": "1",
               "tab-rows": "1",
@@ -17,22 +17,13 @@
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
-                  "section-columns": "2",
+                  "section-columns": "1",
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-general-database",
-                      "display-name" : "Database Settings",
+                      "name": "subsection-general-indexing",
                       "row-index": "0",
                       "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    },
-                    {
-                      "name": "subsection-general-indexing",
-                      "display-name": "Index Settings",
-                      "row-index": "0",
-                      "column-index": "1",
                       "row-span": "1",
                       "column-span": "1"
                     }
@@ -75,36 +66,6 @@
     "placement": {
       "configuration-layout": "default",
       "configs": [
-        {
-          "config": "metron-env/install_mysql",
-          "subsection-name": "subsection-general-database"
-        },
-        {
-          "config": "metron-env/mysql_admin_password",
-          "subsection-name": "subsection-general-database",
-          "depends-on": [
-            {
-              "configs":[
-                "metron-env/install_mysql"
-              ],
-              "if": "${metron-env/install_mysql} === No",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "metron-env/metron_enrichment_db_password",
-          "subsection-name": "subsection-general-database"
-        },
         {
           "config": "metron-env/metron_enrichment_db_port",
           "subsection-name": "subsection-general-database"
@@ -154,30 +115,6 @@
       ]
     },
     "widgets": [
-      {
-        "config": "metron-env/install_mysql",
-        "widget": {
-          "type": "toggle"
-        }
-      },
-      {
-        "config": "metron-env/mysql_admin_password",
-        "widget": {
-          "type": "password"
-        }
-      },
-      {
-        "config": "metron-env/metron_enrichment_db_password",
-        "widget": {
-          "type": "password"
-        }
-      },
-      {
-        "config": "metron-env/metron_enrichment_db_port",
-        "widget": {
-          "type": "text-field"
-        }
-      },
       {
         "config": "metron-env/es_hosts",
         "widget": {

@@ -107,24 +107,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>copy-enrichment-to-mysql</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/compose/mysql/enrichment</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>../metron-platform/metron-enrichment/target/</directory>
-                                    <includes>
-                                        <include>*.tar.gz</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>copy-parsers-to-storm</id>
                         <phase>prepare-package</phase>
                         <goals>
@@ -241,24 +223,6 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.basedir}/compose/kafkazk/bin</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>./scripts</directory>
-                                    <includes>
-                                        <include>wait-for-it.sh</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-wait-for-it-to-mysql</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/compose/mysql/bin</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>./scripts</directory>
