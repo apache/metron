@@ -188,7 +188,7 @@
                 </commandScript>
               </customCommand>
               <customCommand>
-                <name>ZEPPELIN_DASHBOARD_INSTALL</name>
+                <name>ZEPPELIN_NOTEBOOK_IMPORT</name>
                 <commandScript>
                   <script>scripts/indexing_master.py</script>
                   <scriptType>PYTHON</scriptType>

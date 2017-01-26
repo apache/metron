@@ -116,10 +116,11 @@ class Indexing(Script):
         yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/yaf_index*"')
         Execute(yaf_cmd, logoutput=True)
 
-    def zeppelin_dashboard_install(self, env):
+    def zeppelin_notebook_import(self, env):
         from params import params
         env.set_params(params)
 
+        Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
         for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
             for fileName in files:
                 if fileName.endswith(".json"):
