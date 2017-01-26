@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!-- Elastic search  Configurations -->
+
+<configuration supports_final="true">
+    <!-- Basic Configurations -->
+    <property>
+        <name>es_cluster_name</name>
+        <value>metron</value>
+        <description>Elasticsearch Cluster Name identifies your Elasticsearch subsystem</description>
+    </property>
+    <property require-input="true">
+        <name>es_cluster_hosts</name>
+        <!-- Should self-populate the list of selected ES nodes (masters only?). -->
+        <value></value>
+        <description>Elasticsearch Cluster hostnames, comma-separated list.  Used for unicast discovery in zen_discovery_ping_unicast_hosts (eshost1,eshost2).</description>
+    </property>
+    <property>
+        <name>index_number_of_shards</name>
+        <value>1</value>
+        <description>Set the number of shards (splits) of an index.  Changes are not effective after index creation.</description>
+    </property>
+    <property>
+        <name>index_number_of_replicas</name>
+        <value>0</value>
+        <description>Set the number of replicas (copies in addition to the first) of an index</description>
+    </property>
+    <property>
+        <name>path_data</name>
+        <value>"/opt/lmm/es_data"</value>
+        <description>Comma-separated list of directories where to store index data allocated for each node. e.g. "/mnt/first","/mnt/second".  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
+    </property>
+    <!--  Network access -->
+    <property>
+        <name>http_port</name>
+        <value>9200-9300</value>
+        <description>Set a custom port to listen for HTTP traffic</description>
+    </property>
+    <property>
+        <name>transport_tcp_port</name>
+        <value>9300-9400</value>
+        <description>Set a custom port for the node to node communication</description>
+    </property>
+    <property>
+        <name>network_bindings</name>
+        <value>"_lo:ipv4_","_eth0:ipv4_"</value>
+        <description>Network interface(s) ES will bind to within each node. Confirm names via ifconfig.  Should have entries for primary external and loopback interfaces, with :ipv4 annotation and quote marks around each entry, eg: "_lo:ipv4_","_eth0:ipv4_"</description>
+    </property>
+
+    <!--  Advanced Configurations -->
+    <!--  not relevant to single-node config -->
+
+</configuration>

@@ -1,21 +1,26 @@
 # Overview
-This set of playbooks can be used to deploy an Ambari-managed Hadoop cluster, Metron services, or both using ansible
-playbooks. These playbooks currently only target RHEL/CentOS 6.x operating
-systems.
-
-In addition, an Ambari Management Pack can be built which can be deployed in conjuction with RPMs detailed in this README.
+These modules provide three alternatives for assisted deployment of an Ambari-managed Hadoop cluster, Metron services,
+or both:
+- A set of Ansible playbooks. These playbooks currently only target RHEL/CentOS 6.x/7.x operating systems.
+- A Vagrant image for an entire pre-installed stack with Metron, in a single node.
+- An Ambari Mpack, which in conjuction with RPMs detailed below can be used to deploy Metron services on an existing Ambari 2.4 managed stack,
+or with Ambari to install a new stack plus Metron.
 
 ## Prerequisites
 The following tools are required to run these scripts:
 
-- Maven - https://maven.apache.org/
+- Maven - https://maven.apache.org/ (version 3.3.9 recommended)
 - Git - https://git-scm.com/
-- Ansible - http://www.ansible.com/ (version 2.0 or greater)
+- Python - version 2.7 required; version 2.7.11 strongly recommended
+- Ansible - http://www.ansible.com/ (version 2.0 or greater; version 2.0.0.2 strongly recommended) Required only for Ansible deployment.
+- Vagrant - https://www.vagrantup.com/ (version 1.8.1 required), and Virtualbox (version 5.0.16 or greater) Required only for Vagrant deployment.
 
 Currently Metron must be built from source.  Before running these scripts perform the following steps:
 
 1. Clone the Metron git repository with `git clone git@github.com:apache/incubator-metron.git`
 2. Navigate to `incubator-metron` and run `mvn clean package`
+
+# Using Ansible Playbooks
 
 These scripts depend on two files for configuration:
 
@@ -82,19 +87,20 @@ instance and update the java_home variable to match the java path on your hosts.
 Navigate to `incubator-metron/metron-deployment/playbooks` and run:
 `ansible-playbook -i ../inventory/project_name metron_install.yml`
 
-## Vagrant
+# Using Vagrant Image
 A VagrantFile is included and will install a working version of the entire Metron stack.  The following is required to
 run this:
 
-- Vagrant - https://www.vagrantup.com/
 - Hostmanager plugin for vagrant - Run `vagrant plugin install vagrant-hostmanager` on the machine where Vagrant is
 installed
 
 Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.  This also provides a good
 example of how to run a full end-to-end Metron install.
 
-## Ambari Management Pack
-An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.
+# Using Ambari Management Pack
+
+An Ambari Management Pack can be built in order to make the Metron service available on top of an existing Ambari-managed stack,
+or install Metron along with a new stack with Ambari.
 
 This will set up
 - Metron Parsers
@@ -104,19 +110,23 @@ This will set up
 - Optional Elasticsearch
 - Optional Kibana
 
-### Prerequisites
-- A cluster managed by Ambari 2.4
+## Prerequisites
+- A cluster managed (or to be managed) by Ambari 2.4
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#RPM) for further information.
 
-### Building Management Pack
+## Building Management Pack
 From `metron-deployment` run
 ```
 mvn clean package
 ```
 
-A tar.gz that can be used with Ambari can be found at `metron-deployment/packaging/ambari/metron-mpack/target/`
+This builds both `metron-mpack` and `metron-mpack-singlenode`.  The tar.gz files can be found at
+`metron-deployment/packaging/ambari/metron-mpack/target/`  The `metron-mpack` requires a minimum of 4 nodes, and
+is the only mpack that should be used in production environments.  The `metron-mpack-singlenode` is intended only
+for lab or test environments.  It has been tested on 1-node test clusters.  It may also work on 2- or 3-node clusters,
+but has not been adequately tested there.
 
-### Installing Management Pack
+## Installing Management Pack
 Before installing the mpack, update Storm's topology.classpath in Ambari to include '/etc/hbase/conf:/etc/hadoop/conf'. Restart Storm service.
 
 Place the mpack's tar.gz onto the node running Ambari Server. From the command line on this node, run
@@ -125,15 +135,15 @@ ambari-server install-mpack --mpack=<mpack_location> --verbose
 ```
 
 This will make the services available in Ambari in the same manner as any services in a stack, e.g. through Add Services or during cluster install.
-The Indexing / Parsers/ Enrichment masters should be colocated with a Kafka Broker (to create topics) and HBase client (to create the enrichment and theatintel tables).
+The Indexing / Parsers / Enrichment masters should be colocated with a Kafka Broker (to create topics) and HBase client (to create the enrichment and threatintel tables).
 This colocation is currently not enforced by Ambari, and should be managed by either a Service or Stack advisor as an enhancement.
 
 Several configuration parameters will need to be filled in, and should be pretty self explanatory (primarily a couple of Elasticsearch configs, and the Storm REST URL).  Examples are provided in the descriptions on Ambari.
 Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file://` location
 
-After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
+After installation, a custom Metron action is available in Ambari (in the Metron stop / start services pull-down) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
 
-#### Offline installation
+### Offline installation
 Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information that is preloaded into MySQL.
 
 The RPMs DO NOT reach out to the internet (because there is currently no hosting for them).  They look on the local filesystem in `/localrepo`.
@@ -141,8 +151,6 @@ The RPMs DO NOT reach out to the internet (because there is currently no hosting
 ### Current Limitations
 There are a set of limitations that should be addressed based to improve the current state of the mpacks.
 
-- MySQL install should be optional (and allow for using an existing instance).
-- MySQL should not be installed on a node already running a MySQL instance (e.g. an Ambari Server using MySQL as its database).
 - There is currently no hosting for RPMs remotely.  They will have to be built locally.
 - Colocation of appropriate services should be enforced by Ambari.  See [#Installing Management Pack] for more details.
 - Storm's topology.classpath is not updated with the Metron service install and needs to be updated separately.
@@ -176,7 +184,7 @@ The output RPM files will land in `target/RPMS/noarch`.  They can be installed w
 rpm -i <package>
 ```
 
-## TODO
+# TODO
 - migrate existing MySQL/GeoLite playbook
 - Support Ubuntu deployments
 
