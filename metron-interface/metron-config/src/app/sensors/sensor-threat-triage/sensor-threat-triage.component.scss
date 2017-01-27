@@ -72,8 +72,25 @@ textarea
 
 .threat-triage-rules-sort
 {
-  display: inline-block;
   padding-top: 5px;
+  font-size: 12px;
+  font-family: Roboto-Regular;
+  .label
+  {
+    display: inline-block;
+    padding-right: 8px;
+  }
+  .dropdown
+  {
+    list-style: none;
+    display: inline-block;
+    color: $field-button-color;
+  }
+}
+
+.rules-summary-title
+{
+  font-size: 15px;
 }
 
 .threat-triage-rules-list

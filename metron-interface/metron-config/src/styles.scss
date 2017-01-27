@@ -94,16 +94,22 @@ table, .table
       border-top: none;
       border-bottom: 1px solid #404040;
     }
+    &:hover
+    {
+      background: $edit-background;
+      border-left: 1px solid $edit-background-border;
+      border-right: 1px solid $edit-background-border;
+    }
   }
   .active
   {
-    background: $edit-background;
-    border-left: 1px solid $edit-background-border;
-    border-right: 1px solid $edit-background-border;
+    background: $table-selection;
+    border-left: 1px solid $table-selection-lr-border;
+    border-right: 1px solid $table-selection-lr-border;
     td
     {
-      border-top: 1px solid  $edit-background-border !important;
-      border-bottom: 1px solid $edit-background-border;
+      border-top: 1px solid  $table-selection-tb-border !important;
+      border-bottom: 1px solid $table-selection-tb-border;
     }
   }
 }

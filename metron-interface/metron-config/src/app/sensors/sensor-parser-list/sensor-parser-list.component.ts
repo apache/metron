@@ -285,7 +285,12 @@ export class SensorParserListComponent implements OnInit {
     this.toggleStartStopInProgress(sensor);
 
     this.stormService.startParser(sensor.config.sensorTopic).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Started sensor ' + sensor.config.sensorTopic);
+        if (result['status'] === 'ERROR') {
+          this.metronAlerts.showErrorMessage('Unable to start sensor ' + sensor.config.sensorTopic + ': ' + result['message']);
+        } else {
+          this.metronAlerts.showSuccessMessage('Started sensor ' + sensor.config.sensorTopic);
+        }
+
         this.toggleStartStopInProgress(sensor);
       },
       error => {

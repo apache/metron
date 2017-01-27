@@ -43,6 +43,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   grokStatement: string = '';
   transformsConfigKeys: string[] = [];
+  transformsConfigMap: {} = {};
   aggregationConfigKeys: string[] = [];
 
   editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
@@ -177,22 +178,33 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       this.transformsConfigKeys = [];
       for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
         if (transforms.config) {
-          this.transformsConfigKeys = this.transformsConfigKeys.concat(Object.keys(transforms.config));
+          for (let key of Object.keys(transforms.config)) {
+            if (this.transformsConfigKeys.indexOf(key) === -1) {
+              this.transformsConfigMap[key] = [];
+              this.transformsConfigKeys.push(key);
+            }
+            this.transformsConfigMap[key].push(transforms.config[key]);
+          }
         }
       }
+      this.transformsConfigKeys = this.transformsConfigKeys.sort();
     }
   }
 
   getTransformsOutput(): string {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.fieldTransformations &&
         this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
-      let output = '';
+      let output = [];
       for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
         if (transforms.output) {
-          output += (output.length > 0 ? ',' : '' ) + transforms.output.join(', ');
+          output = output.concat(transforms.output);
         }
       }
-      return output;
+      output = output.sort().filter(function(item, pos, self) {
+        return self.indexOf(item) === pos;
+      });
+
+      return output.join(', ');
     }
 
     return '-';

@@ -356,14 +356,17 @@ describe('Component: SensorParserConfigReadonly', () => {
         '%{IPV4:UNWANTED})\n\n    MESSAGE .*\n\n    WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}');
   }));
 
-  it('getTransformsConfigKeys/getTransformsOutput should return the keys of the transforms config  ', async(() => {
+  it('setTransformsConfigKeys/getTransformsOutput should return the keys of the transforms config  ', async(() => {
     let sensorParserInfo = new SensorParserConfigHistory();
     let sensorParserConfig = new SensorParserConfig();
-    let fieldTransformer = new FieldTransformer();
+    let fieldTransformer1 = new FieldTransformer();
+    let fieldTransformer2 = new FieldTransformer();
 
-    fieldTransformer.config = {'a': 'abc', 'x': 'xyz'};
-    fieldTransformer.output = ['a', 'b', 'c'];
-    sensorParserConfig.fieldTransformations = [fieldTransformer];
+    fieldTransformer1.config = {'a': 'abc', 'x': 'xyz'};
+    fieldTransformer1.output = ['a', 'b', 'c'];
+    fieldTransformer2.config = {'x': 'klm', 'b': 'def'};
+    fieldTransformer2.output = ['a', 'b', 'c'];
+    sensorParserConfig.fieldTransformations = [fieldTransformer1, fieldTransformer2];
     sensorParserInfo.config = sensorParserConfig;
 
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
@@ -373,14 +376,16 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     expect(component.transformsConfigKeys.length).toEqual(0);
     expect(component.transformsConfigKeys).toEqual([]);
+    expect(component.transformsConfigMap).toEqual({});
     expect(transformsOutput).toEqual('-');
 
     component.sensorParserConfigHistory = sensorParserInfo;
     component.setTransformsConfigKeys();
     transformsOutput = component.getTransformsOutput();
 
-    expect(component.transformsConfigKeys.length).toEqual(2);
-    expect(component.transformsConfigKeys).toEqual(['a', 'x']);
+    expect(component.transformsConfigKeys.length).toEqual(3);
+    expect(component.transformsConfigKeys).toEqual(['a', 'b', 'x']);
+    expect(component.transformsConfigMap).toEqual({'a': ['abc'], 'b': ['def'], 'x': ['xyz', 'klm']});
     expect(transformsOutput).toEqual('a, b, c');
   }));
 
