@@ -38,3 +38,11 @@
   overflow-x: hidden;
   overflow-y: auto;
 }
+.dialog-pane {
+  min-height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
