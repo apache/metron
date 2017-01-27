@@ -118,7 +118,7 @@ public class SimpleEnrichmentFlatFileLoader {
       @Nullable
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "threads", true, "The batch size to use for hbase puts");
+        Option o = new Option(s, "threads", true, "The number of threads to use when extracting data");
         o.setArgName("NUM_THREADS");
         o.setRequired(false);
         return o;
@@ -128,7 +128,7 @@ public class SimpleEnrichmentFlatFileLoader {
       @Nullable
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "batchSize", true, "The batch size to use for hbase puts");
+        Option o = new Option(s, "batchSize", true, "The batch size to use for HBase puts");
         o.setArgName("SIZE");
         o.setRequired(false);
         return o;

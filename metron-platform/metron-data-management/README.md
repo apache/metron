@@ -240,16 +240,17 @@ each document to be considered as input to the Extractor.
 
 The parameters for the utility are as follows:
 
-| Short Code | Long Code           | Is Required? | Description                                                                                                                                                                          |
-|------------|---------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| -h         |                     | No           | Generate the help screen/set of options                                                                                                                                              |
-| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                    |
-| -t         | --hbase_table       | Yes          | The HBase table to import into                                                                                                                                                       |
-| -c         | --hbase_cf          | Yes          | The HBase table column family to import into                                                                                                                                         |
-| -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory. |
-| -l         | --log4j             | No           | The log4j properties file to load                                                                                                                                                    |
-| -n         | --enrichment_config | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified.                                                                    |
-
+| Short Code | Long Code           | Is Required? | Description                                                                                                                                                                         |   |
+|------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
+| -h         |                     | No           | Generate the help screen/set of options                                                                                                                                             |   |
+| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                   |   |
+| -t         | --hbase_table       | Yes          | The HBase table to import into                                                                                                                                                      |   |
+| -c         | --hbase_cf          | Yes          | The HBase table column family to import into                                                                                                                                        |   |
+| -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory. |   |
+| -l         | --log4j             | No           | The log4j properties file to load                                                                                                                                                   |   |
+| -n         | --enrichment_config | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified.                                                                   |   |
+| -p         | --threads           | No           | The number of threads to use when extracting data                                                                                                                                   |   |
+| -b         | --batchSize         | No           | The batch size to use for HBase puts                                                                                                                                   |   |
 ### GeoLite2 Loader
 
 The shell script `$METRON_HOME/bin/geo_enrichment_load.sh` will retrieve MaxMind GeoLite2 data and load data into HDFS, and update the configuration.
