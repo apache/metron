@@ -51,3 +51,6 @@ enrichment_configured_flag_file = metron_zookeeper_config_path + '/../metron_enr
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
+
+# Zeppelin
+zeppelin_server_url = config['configurations']['metron-env']['zeppelin_server_url']
