@@ -49,7 +49,7 @@ public enum Extractors implements ExtractorCreator {
         try {
             //TODO create decorated extractor here - in init method setup Stellar
             ExtractorCreator ec = Extractors.valueOf(extractorName);
-            return ec.create();
+            return new TransformFilterExtractorDecorator(ec.create());
         }
         catch(IllegalArgumentException iae) {
             Extractor ex = (Extractor) Class.forName(extractorName).getConstructor().newInstance();

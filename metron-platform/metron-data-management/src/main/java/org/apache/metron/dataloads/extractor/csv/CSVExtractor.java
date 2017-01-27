@@ -50,10 +50,10 @@ public class CSVExtractor extends CSVConverter implements Extractor {
     return indicatorColumn;
   }
 
-
   public LookupConverter getConverter() {
     return converter;
   }
+
   @Override
   public Iterable<LookupKV> extract(String line) throws IOException {
     if(ignore(line)) {
@@ -69,8 +69,6 @@ public class CSVExtractor extends CSVConverter implements Extractor {
     return Arrays.asList(new LookupKV(key, converter.toValue(values)));
   }
 
-
-
   private String getType(String[] tokens) {
     if(type == null) {
       return tokens[typeColumnIndex];
@@ -79,8 +77,6 @@ public class CSVExtractor extends CSVConverter implements Extractor {
       return type;
     }
   }
-
-
 
   @Override
   public void initialize(Map<String, Object> config) {

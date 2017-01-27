@@ -29,53 +29,74 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 public class ExtractorHandler {
-    final static ObjectMapper _mapper = new ObjectMapper();
-    private Map<String, Object> config;
-    private Extractor extractor;
-    private InputFormatHandler inputFormatHandler = Formats.BY_LINE;
+  final static ObjectMapper _mapper = new ObjectMapper();
+  private Map<String, Object> config;
+  private Extractor extractor;
+  private InputFormatHandler inputFormatHandler = Formats.BY_LINE;
 
-    public Map<String, Object> getConfig() {
-        return config;
-    }
+  public Map<String, Object> getConfig() {
+    return config;
+  }
 
-    public void setConfig(Map<String, Object> config) {
-        this.config = config;
-    }
+  /**
+   * Set by jackson. Extractor configuration from JSON
+   */
+  public void setConfig(Map<String, Object> config) {
+    this.config = config;
+  }
 
-    public InputFormatHandler getInputFormatHandler() {
-        return inputFormatHandler;
-    }
+  public InputFormatHandler getInputFormatHandler() {
+    return inputFormatHandler;
+  }
 
-    public void setInputFormatHandler(String handler) {
-        try {
-            this.inputFormatHandler= Formats.create(handler);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            throw new IllegalStateException("Unable to create an inputformathandler", e);
-        }
+  /**
+   * Set by jackson
+   */
+  public void setInputFormatHandler(String handler) {
+    try {
+      this.inputFormatHandler = Formats.create(handler);
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+      throw new IllegalStateException("Unable to create an inputformathandler", e);
     }
+  }
 
-    public Extractor getExtractor() {
-        return extractor;
-    }
-    public void setExtractor(String extractor) {
-        try {
-            // TODO look in config for txformations/filter
-            // if true, decorate extractors.create
-            this.extractor = Extractors.create(extractor);
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-            throw new IllegalStateException("Unable to create an extractor", e);
-        }
-    }
+  public Extractor getExtractor() {
+    return extractor;
+  }
 
-    public static synchronized ExtractorHandler load(InputStream is) throws IOException {
-        ExtractorHandler ret = _mapper.readValue(is, ExtractorHandler.class);
-        ret.getExtractor().initialize(ret.getConfig());
-        return ret;
+  /**
+   * Set by jackson.
+   *
+   * @param extractor Name of extractor to instantiate
+   */
+  public void setExtractor(String extractor) {
+    try {
+      this.extractor = Extractors.create(extractor);
+    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+      throw new IllegalStateException("Unable to create an extractor", e);
     }
-    public static synchronized ExtractorHandler load(String s, Charset c) throws IOException {
-        return load( new ByteArrayInputStream(s.getBytes(c)));
-    }
-    public static synchronized ExtractorHandler load(String s) throws IOException {
-        return load( s, Charset.defaultCharset());
-    }
+  }
+
+  /**
+   * Load json configuration
+   */
+  public static synchronized ExtractorHandler load(InputStream is) throws IOException {
+    ExtractorHandler ret = _mapper.readValue(is, ExtractorHandler.class);
+    ret.getExtractor().initialize(ret.getConfig());
+    return ret;
+  }
+
+  /**
+   * Load json configuration
+   */
+  public static synchronized ExtractorHandler load(String s, Charset c) throws IOException {
+    return load(new ByteArrayInputStream(s.getBytes(c)));
+  }
+
+  /**
+   * Load json configuration
+   */
+  public static synchronized ExtractorHandler load(String s) throws IOException {
+    return load(s, Charset.defaultCharset());
+  }
 }
