@@ -55,14 +55,7 @@ public class TestConfig {
   @Bean
   public ZKServerComponent zkServerComponent(Properties zkProperties) {
     return new ZKServerComponent()
-            .withPostStartCallback(new Function<ZKServerComponent, Void>() {
-              @Nullable
-              @Override
-              public Void apply(@Nullable ZKServerComponent zkComponent) {
-                zkProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
-                return null;
-              }
-            });
+            .withPostStartCallback((zkComponent) -> zkProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString()));
   }
 
   @Bean
