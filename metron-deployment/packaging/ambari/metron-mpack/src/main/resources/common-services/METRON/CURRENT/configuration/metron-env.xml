@@ -110,6 +110,12 @@
         <description>URL of Storm UI (storm.ui.hostname:8744)</description>
         <value></value>
     </property>
+    <property require-input = "true">
+        <name>zeppelin_server_url</name>
+        <display-name>Zeppelin Server Address</display-name>
+        <description>URL of Zeppelin (zeppelin.server.addr:zeppelin.server.port)</description>
+        <value></value>
+    </property>
     <property>
         <name>repo_type</name>
         <display-name>Repository Type</display-name>
