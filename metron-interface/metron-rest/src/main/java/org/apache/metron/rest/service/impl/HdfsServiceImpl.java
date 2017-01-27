@@ -36,22 +36,26 @@ public class HdfsServiceImpl implements HdfsService {
     @Autowired
     private Configuration configuration;
 
+    @Override
     public byte[] read(Path path) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         IOUtils.copyBytes(FileSystem.get(configuration).open(path), byteArrayOutputStream, configuration);
         return byteArrayOutputStream.toByteArray();
     }
 
+    @Override
     public void write(Path path, byte[] contents) throws IOException {
         FSDataOutputStream fsDataOutputStream = FileSystem.get(configuration).create(path, true);
         fsDataOutputStream.write(contents);
         fsDataOutputStream.close();
     }
 
+    @Override
     public FileStatus[] list(Path path) throws IOException {
         return FileSystem.get(configuration).listStatus(path);
     }
 
+    @Override
     public boolean delete(Path path, boolean recursive) throws IOException {
         return FileSystem.get(configuration).delete(path, recursive);
     }

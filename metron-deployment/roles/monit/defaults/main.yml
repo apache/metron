@@ -19,10 +19,9 @@ monit_home: /usr/local/monit
 monit_config_home: /etc/monit.d
 monit_user: admin
 monit_pass: monit
-topology_start_timeout: 60
-topology_stop_timeout: 60
+topology_start_timeout: 120
+topology_stop_timeout: 120
 
 bro_pid_file: /usr/local/bro/spool/bro/.pid
 elasticsearch_pid_file: /var/run/elasticsearch/elasticsearch.pid
-mysql_pid_file: /var/run/mysqld/mysqld.pid
 snort_alert_csv_path: /var/log/snort/alert.csv

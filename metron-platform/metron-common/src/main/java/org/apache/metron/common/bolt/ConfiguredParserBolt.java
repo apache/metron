@@ -28,7 +28,7 @@ import java.io.IOException;
 
 public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigurations> {
 
-  private static final Logger LOG = Logger.getLogger(ConfiguredEnrichmentBolt.class);
+  private static final Logger LOG = Logger.getLogger(ConfiguredParserBolt.class);
 
 
   protected final ParserConfigurations configurations = new ParserConfigurations();

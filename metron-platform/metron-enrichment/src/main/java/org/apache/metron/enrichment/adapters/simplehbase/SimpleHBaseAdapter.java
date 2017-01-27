@@ -67,7 +67,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
     if(!isInitialized()) {
-      initializeAdapter();
+      initializeAdapter(null);
     }
     List<String> enrichmentTypes = value.getConfig()
                                         .getEnrichment().getFieldToTypeMap()
@@ -95,7 +95,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       }
       catch (IOException e) {
         _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
-        initializeAdapter();
+        initializeAdapter(null);
         throw new RuntimeException("Unable to retrieve value: " + e.getMessage(), e);
       }
     }
@@ -104,7 +104,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   }
 
   @Override
-  public boolean initializeAdapter() {
+  public boolean initializeAdapter(Map<String, Object> configuration) {
     String hbaseTable = config.getHBaseTable();
     Configuration hbaseConfig = HBaseConfiguration.create();
     try {
@@ -117,6 +117,10 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       return false;
     }
     return true;
+  }
+
+  @Override
+  public void updateAdapter(Map<String, Object> config) {
   }
 
   @Override

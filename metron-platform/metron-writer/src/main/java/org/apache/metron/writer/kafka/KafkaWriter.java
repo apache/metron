@@ -175,6 +175,11 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
   }
 
   @Override
+  public String getName() {
+    return "kafka";
+  }
+
+  @Override
   public void close() throws Exception {
     kafkaProducer.close();
   }

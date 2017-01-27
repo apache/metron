@@ -177,6 +177,7 @@ This package installs the Metron Parser files
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/Whois_CSV_to_JSON.py
+%{metron_home}/bin/geo_enrichment_load.sh
 %{metron_home}/bin/flatfile_loader.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
 %{metron_home}/bin/prune_hdfs_files.sh
@@ -224,7 +225,6 @@ This package installs the Metron Enrichment files
 %dir %{metron_home}/config
 %dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/config/zookeeper/enrichments
-%dir %{metron_home}/ddl
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/latency_summarizer.sh
@@ -235,7 +235,6 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/websphere.json
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
-%{metron_home}/ddl/geoip_ddl.sql
 %{metron_home}/flux/enrichment/remote.yaml
 %exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
@@ -317,6 +316,8 @@ This package installs the Metron Profiler %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.0
+- Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
 - Add ASA parser/enrichment configuration files 
 * Thu Jul 21 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1

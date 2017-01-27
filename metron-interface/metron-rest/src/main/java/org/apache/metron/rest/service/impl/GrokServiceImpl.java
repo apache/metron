@@ -35,10 +35,12 @@ public class GrokServiceImpl implements GrokService {
     @Autowired
     private Grok commonGrok;
 
+    @Override
     public Map<String, String> getCommonGrokPatterns() {
         return commonGrok.getPatterns();
     }
 
+    @Override
     public GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException {
         Map<String, Object> results;
         try {

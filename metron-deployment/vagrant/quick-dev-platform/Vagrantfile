@@ -17,7 +17,7 @@
 require 'getoptlong'
 
 ansibleTags='ambari-agent,hdp-deploy,metron'
-ansibleSkipTags='solr,yaf'
+ansibleSkipTags='solr,sensors'
 
 begin
    opts = GetoptLong.new(

@@ -41,7 +41,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
    * A sensible default for compression to use in the T-Digest.
    * As per https://github.com/tdunning/t-digest/blob/master/src/main/java/com/tdunning/math/stats/TDigest.java#L86
    * 100 is a sensible default and the number of centroids retained (to construct the sketch)
-   * is usually a smallish (usually < 10) multiple of the compression.  However, we have found through some
+   * is usually a smallish (usually less than 10) multiple of the compression.  However, we have found through some
    * testing that 150 gives a bit finer granularity for smaller numbers of data points.
    */
   public static final int COMPRESSION = 150;

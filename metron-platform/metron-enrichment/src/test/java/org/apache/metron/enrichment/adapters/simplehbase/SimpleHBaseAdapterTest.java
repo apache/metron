@@ -173,7 +173,7 @@ public class SimpleHBaseAdapterTest {
   public void testInitializeAdapter() {
     SimpleHBaseConfig config = new SimpleHBaseConfig();
     SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
-    sha.initializeAdapter();
+    sha.initializeAdapter(null);
   }
 
 }

@@ -395,7 +395,7 @@
                                     <shadedPattern>org.apache.metron.httpcore.dataload</shadedPattern>
                                 </relocation>
                              </relocations>
-                             <transformers> 
+                             <transformers>
                                 <transformer
                                   implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                      <resources>

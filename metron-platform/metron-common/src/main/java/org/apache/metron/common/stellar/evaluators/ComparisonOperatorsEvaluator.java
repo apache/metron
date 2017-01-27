@@ -23,8 +23,8 @@ import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
 /**
- * {@link ComparisonOperatorsEvaluator} is used to evaluate comparison expressions using the following operator '<', '<=', '>',
- * or '>='. There are four major cases when evaluating a comparison expression.
+ * {@link ComparisonOperatorsEvaluator} is used to evaluate comparison expressions using the following
+ * operator {@literal '<', '<=', '>', or '>='.} There are four major cases when evaluating a comparison expression.
  */
 public class ComparisonOperatorsEvaluator implements ComparisonExpressionEvaluator {
 
@@ -40,7 +40,7 @@ public class ComparisonOperatorsEvaluator implements ComparisonExpressionEvaluat
    *
    * @param left  The token representing the left side of a comparison expression.
    * @param right The token representing the right side of a comparison expression.
-   * @param op    This is a representation of a comparison operator (eg. <, <=, >, >=, ==, !=)
+   * @param op    This is a representation of a comparison operator {@literal (eg. <, <=, >, >=, ==, !=) }
    * @return A boolean value based on the comparison of {@code left} and {@code right}.
    */
   @Override

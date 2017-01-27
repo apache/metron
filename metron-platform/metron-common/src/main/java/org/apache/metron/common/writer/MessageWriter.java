@@ -27,4 +27,5 @@ public interface MessageWriter<T> extends AutoCloseable, Serializable {
 
   void init();
   void write(String sensorType, WriterConfiguration configurations, Tuple tuple, T message) throws Exception;
+  String getName();
 }

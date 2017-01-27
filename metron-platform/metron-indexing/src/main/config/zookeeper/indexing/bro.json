@@ -1,5 +1,17 @@
 {
-  "index": "bro",
-  "batchSize": 5
+  "hdfs" : {
+    "index": "bro",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "elasticsearch" : {
+    "index": "bro",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "solr" : {
+    "index": "bro",
+    "batchSize": 5,
+    "enabled" : true
+  }
 }
-

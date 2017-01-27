@@ -94,11 +94,17 @@ public class DefaultStellarExecutor implements StellarExecutor, Serializable {
   @Override
   public void assign(String variable, String expression, Map<String, Object> transientState) {
     Object result = execute(expression, transientState);
+    if(result == null || variable == null) {
+      return;
+    }
     state.put(variable, result);
   }
 
   @Override
   public void assign(String variable, Object value) {
+    if(value == null || variable == null) {
+      return;
+    }
     state.put(variable, value);
   }
 

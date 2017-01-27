@@ -76,6 +76,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   private Map<String, String> availableParsers;
 
+  @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
     String serializedConfig;
     if (isGrokConfig(sensorParserConfig)) {
@@ -106,6 +107,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return serializedConfig;
   }
 
+  @Override
   public SensorParserConfig findOne(String name) throws RestException {
     SensorParserConfig sensorParserConfig;
     try {
@@ -121,6 +123,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return sensorParserConfig;
   }
 
+  @Override
   public Iterable<SensorParserConfig> getAll() throws RestException {
     List<SensorParserConfig> sensorParserConfigs = new ArrayList<>();
     List<String> sensorNames = getAllTypes();
@@ -130,6 +133,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return sensorParserConfigs;
   }
 
+  @Override
   public boolean delete(String name) throws RestException {
     try {
       client.delete().forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/" + name);
@@ -141,7 +145,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return true;
   }
 
-  public List<String> getAllTypes() throws RestException {
+  private List<String> getAllTypes() throws RestException {
     List<String> types;
     try {
       types = client.getChildren().forPath(ConfigurationType.PARSER.getZookeeperRoot());
@@ -153,6 +157,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return types;
   }
 
+  @Override
   public Map<String, String> getAvailableParsers() {
     if (availableParsers == null) {
       availableParsers = new HashMap<>();
@@ -166,6 +171,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return availableParsers;
   }
 
+  @Override
   public Map<String, String> reloadAvailableParsers() {
     availableParsers = null;
     return getAvailableParsers();
@@ -176,6 +182,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     return reflections.getSubTypesOf(MessageParser.class);
   }
 
+  @Override
   public JSONObject parseMessage(ParseMessageRequest parseMessageRequest) throws RestException {
     SensorParserConfig sensorParserConfig = parseMessageRequest.getSensorParserConfig();
     if (sensorParserConfig == null) {

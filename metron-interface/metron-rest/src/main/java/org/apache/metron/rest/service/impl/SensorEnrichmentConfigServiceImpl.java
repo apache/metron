@@ -42,6 +42,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
     @Autowired
     private CuratorFramework client;
 
+    @Override
     public SensorEnrichmentConfig save(String name, SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
       try {
         ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(name, objectMapper.writeValueAsString(sensorEnrichmentConfig).getBytes(), client);
@@ -51,6 +52,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
       return sensorEnrichmentConfig;
     }
 
+    @Override
     public SensorEnrichmentConfig findOne(String name) throws RestException {
         SensorEnrichmentConfig sensorEnrichmentConfig;
         try {
@@ -63,6 +65,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
       return sensorEnrichmentConfig;
     }
 
+    @Override
     public Map<String, SensorEnrichmentConfig> getAll() throws RestException {
         Map<String, SensorEnrichmentConfig> sensorEnrichmentConfigs = new HashMap<>();
         List<String> sensorNames = getAllTypes();
@@ -72,6 +75,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
         return sensorEnrichmentConfigs;
     }
 
+    @Override
     public List<String> getAllTypes() throws RestException {
         List<String> types;
         try {
@@ -84,6 +88,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
       return types;
     }
 
+    @Override
     public boolean delete(String name) throws RestException {
         try {
             client.delete().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/" + name);
@@ -95,6 +100,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
       return true;
     }
 
+    @Override
     public List<String> getAvailableEnrichments() {
         return new ArrayList<String>() {{
             add("geo");

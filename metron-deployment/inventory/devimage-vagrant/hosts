@@ -39,9 +39,6 @@ node1
 [sensors]
 node1
 
-[mysql]
-node1
-
 [pcap_server]
 node1
 
@@ -50,7 +47,6 @@ enrichment
 search
 web
 sensors
-mysql
 metron_kafka_topics
 metron_hbase_tables
 pcap_server

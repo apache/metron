@@ -23,40 +23,43 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.curator.test.TestingServer;
 import java.util.Map;
-public class ZKServerComponent implements InMemoryComponent{
-    public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
-    private TestingServer testZkServer;
-    private String zookeeperUrl = null;
-    private Map<String,String> properties = null;
-    private Function<ZKServerComponent, Void> postStartCallback;
-    public String getConnectionString()
-    {
-        return this.zookeeperUrl;
-    }
-    public ZKServerComponent withPostStartCallback(Function<ZKServerComponent, Void> f) {
-        postStartCallback = f;
-        return this;
-    }
+import java.util.Optional;
+import java.util.function.Consumer;
 
-    @Override
-    public void start() throws UnableToStartException {
-        try {
-            testZkServer = new TestingServer(true);
-            zookeeperUrl = testZkServer.getConnectString();
-            if(postStartCallback != null) {
-                postStartCallback.apply(this);
-            }
-        }catch(Exception e){
-            throw new UnableToStartException("Unable to start TestingServer",e);
-        }
-    }
+public class ZKServerComponent implements InMemoryComponent {
+  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
+  private TestingServer testZkServer;
+  private String zookeeperUrl = null;
+  private Map<String,String> properties = null;
+  private Optional<Consumer<ZKServerComponent>> postStartCallback = Optional.empty();
+  public String getConnectionString()
+  {
+    return this.zookeeperUrl;
+  }
+  public ZKServerComponent withPostStartCallback(Consumer<ZKServerComponent> f) {
+    postStartCallback = Optional.ofNullable(f);
+    return this;
+  }
 
-    @Override
-    public void stop() {
-        try {
-            if (testZkServer != null) {
-                testZkServer.close();
-            }
-        }catch(Exception e){}
+  @Override
+  public void start() throws UnableToStartException {
+    try {
+      testZkServer = new TestingServer(true);
+      zookeeperUrl = testZkServer.getConnectString();
+      if(postStartCallback.isPresent()) {
+        postStartCallback.get().accept(this);
+      }
+    }catch(Exception e){
+      throw new UnableToStartException("Unable to start TestingServer",e);
     }
+  }
+
+  @Override
+  public void stop() {
+    try {
+      if (testZkServer != null) {
+        testZkServer.close();
+      }
+    }catch(Exception e){}
+  }
 }

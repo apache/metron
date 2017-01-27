@@ -34,13 +34,17 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	}
 
 	@Override
-	public boolean initializeAdapter()
+	public boolean initializeAdapter(Map<String, Object> config)
 	{
 		
 		if(_known_hosts.size() > 0)
 			return true;
 		else
 			return false;
+	}
+
+	@Override
+	public void updateAdapter(Map<String, Object> config) {
 	}
 
 	@Override

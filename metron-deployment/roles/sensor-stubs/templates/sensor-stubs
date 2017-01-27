@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# metron sensor-stubs service
+# chkconfig: 345 20 80
+# description: Simulates the behavior of a sensor by sending canned telemetry data to a Kafka topic
+# processname: sensor-stubs
+#
+NAME=sensor-stubs
+DESC="Simulates the behavior of a sensor by sending canned telemetry data to a Kafka topic"
+SCRIPTNAME=/etc/init.d/$NAME
+LOGFILE="{{ sensor_stubs_log }}"
+DAEMON_PATH="{{ sensor_stubs_home }}"
+DATA="{{ sensor_stubs_data }}"
+
+# the delay between each 'batch' of messages in seconds.  
+# see {{ sensor_stubs_bin }}/start-sensor-stub for more information.
+DELAY={{ sensor_stubs_delay }}
+
+# the number of messages to send in each batch.  
+# see {{ sensor_stubs_bin }}/start-sensor-stub for more information.
+COUNT={{ sensor_stubs_count }}
+
+#
+# which sensors? defaults to bro, snort, yaf
+#
+SENSORS="${@:2}"
+if [ -z "${SENSORS}" ]; then 
+    SENSORS=('bro' 'yaf' 'snort')
+fi
+
+#
+# start a sensor stub
+#
+start() {  
+
+  # if pidfile exists, do not start another
+  PIDFILE="/var/run/$NAME-$1.pid"
+  if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      printf "%10s: %s \n" "$1" "OK [$PID]"
+      return
+  fi
+
+  # kick-off the daemon
+  DAEMON="{{ sensor_stubs_bin }}/start-$1-stub $DELAY $COUNT"
+  PID=`$DAEMON >> $LOGFILE 2>&1 & echo $!`
+
+  if [ -z $PID ]; then
+      printf "%10s: %s \n" "$1" "Fail"
+  else
+      echo $PID > $PIDFILE
+      printf "%10s: %s \n" "$1" "Ok [$PID]"
+  fi
+}
+
+#
+# stop a sensor stub
+#
+stop() {
+  PIDFILE="/var/run/$NAME-$1.pid"
+  cd $DAEMON_PATH
+  if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      while sleep 1
+        echo -n "."
+        kill -0 $PID >/dev/null 2>&1
+      do
+        kill $PID
+      done
+
+      printf "%10s: %s \n" "$1" "Stopped [$PID]"
+      rm -f $PIDFILE
+  else
+      printf "%10s: %s \n" "$1" "Not running"
+  fi
+}
+
+#
+# status check of sensor stub
+#
+status() {
+  PIDFILE="/var/run/$NAME-$1.pid"
+  if [ -f $PIDFILE ]; then
+    PID=`cat $PIDFILE`
+    if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+      printf "%10s: %s \n" "$1" "Process dead but pidfile exists"
+    else
+      printf "%10s: %s \n" "$1" "Running [${PID}]"
+    fi
+  else
+    printf "%10s: %s \n" "$1" "Not running"
+  fi
+}
+
+case "$1" in
+
+  ##############################################################################
+  # start
+  #
+  start)
+    printf "%-50s \n" "Starting $NAME..."
+    for sensor in "${SENSORS[@]}"; do
+      start $sensor
+    done
+  ;;
+
+  ##############################################################################
+  # status
+  #
+  status)
+    printf "%-50s \n" "Checking $NAME..."
+    for sensor in "${SENSORS[@]}"; do
+      status $sensor
+    done
+  ;;
+
+  ##############################################################################
+  # stop
+  #
+  stop)
+    printf "%-50s \n" "Stopping $NAME..."
+    for sensor in "${SENSORS[@]}"; do
+      stop $sensor
+    done
+  ;;
+
+  ##############################################################################
+  # restart
+  #
+  restart)
+    $0 stop
+    $0 start
+  ;;
+
+  *)
+    echo "Usage: $0 {status|start|stop|restart}"
+    exit 1
+esac

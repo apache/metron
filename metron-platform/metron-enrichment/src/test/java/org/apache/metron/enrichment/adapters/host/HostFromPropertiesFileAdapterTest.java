@@ -90,7 +90,7 @@ public class HostFromPropertiesFileAdapterTest {
     public void testInitializeAdapter() throws Exception {
         Map<String, JSONObject> mapKnownHosts = new HashMap<>();
         HostFromPropertiesFileAdapter hfa = new HostFromPropertiesFileAdapter(mapKnownHosts);
-        Assert.assertFalse(hfa.initializeAdapter());
+        Assert.assertFalse(hfa.initializeAdapter(null));
         JSONArray jsonArray = (JSONArray) JSONValue.parse(expectedKnownHostsString);
         Iterator jsonArrayIterator = jsonArray.iterator();
         while(jsonArrayIterator.hasNext()) {
@@ -99,7 +99,7 @@ public class HostFromPropertiesFileAdapterTest {
             mapKnownHosts.put(host, jsonObject);
         }
         hfa = new HostFromPropertiesFileAdapter(mapKnownHosts);
-        Assert.assertTrue(hfa.initializeAdapter());
+        Assert.assertTrue(hfa.initializeAdapter(null));
     }
 
 }

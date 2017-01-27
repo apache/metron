@@ -191,13 +191,11 @@ public class MockHTable implements HTableInterface {
 
   /**
    * Test for the existence of columns in the table, as specified by the Gets.
-   * <p/>
-   * <p/>
-   * This will return an array of booleans. Each value will be true if the related Get matches
+   *
+   * <p>This will return an array of booleans. Each value will be true if the related Get matches
    * one or more keys, false if not.
-   * <p/>
-   * <p/>
-   * This is a server-side call so it prevents any data from being transferred to
+   *
+   * <p>This is a server-side call so it prevents any data from being transferred to
    * the client.
    *
    * @param gets the Gets

@@ -1,5 +1,18 @@
 {
+  "hdfs" : {
     "index": "asa",
-    "batchSize": 5
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "elasticsearch" : {
+    "index": "asa",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "solr" : {
+    "index": "asa",
+    "batchSize": 5,
+    "enabled" : true
+  }
 }
 

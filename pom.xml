@@ -269,6 +269,7 @@
                         <exclude>**/hbase/data/**</exclude>
                         <exclude>**/kafkazk/data/**</exclude>
                         <exclude>**/wait-for-it.sh</exclude>
+			<exclude>**/*.out</exclude>
                         <exclude>metron-docker/kibana/styles/commons.style.css</exclude>
                         <exclude>**/metron-config/coverage/**</exclude>
                         <exclude>**/metron-config/dist/**</exclude>

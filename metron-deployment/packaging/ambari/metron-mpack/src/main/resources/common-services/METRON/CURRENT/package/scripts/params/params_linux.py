@@ -42,9 +42,8 @@ hostname = config['hostname']
 user_group = config['configurations']['cluster-env']['user_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
-metron_ddl_dir = metron_home + '/ddl'
-geoip_ddl = metron_ddl_dir + '/geoip_ddl.sql'
 geoip_url = config['configurations']['metron-env']['geoip_url']
+geoip_hdfs_dir = "/apps/metron/geo/default/"
 metron_indexing_topology = status_params.metron_indexing_topology
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_group = config['configurations']['metron-env']['metron_group']
@@ -110,6 +109,7 @@ if has_kafka_host:
     kafka_brokers += ':' + kafka_broker_port
 
 metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+
 # the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
 # well enough until we find a better way via Ambari
 metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_indexed_hdfs_dir']))
@@ -128,32 +128,6 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 dfs_type = default("/commandParams/dfs_type", "")
-
-# MYSQL
-if OSCheck.is_ubuntu_family():
-    mysql_configname = '/etc/mysql/my.cnf'
-else:
-    mysql_configname = '/etc/my.cnf'
-
-daemon_name = status_params.daemon_name
-
-install_mysql = config['configurations']['metron-env']['install_mysql']
-mysql_admin_password = config['configurations']['metron-env']['mysql_admin_password']
-
-# There will always be exactly one mysql_host
-mysql_host = config['clusterHostInfo']['metron_enrichment_mysql_server_hosts'][0]
-
-mysql_port = config['configurations']['metron-env']['metron_enrichment_db_port']
-
-mysql_adduser_path = tmp_dir + "/addMysqlUser.sh"
-mysql_deluser_path = tmp_dir + "/removeMysqlUser.sh"
-mysql_create_geoip_path = tmp_dir + "/createMysqlGeoIp.sh"
-
-enrichment_metron_user = config['configurations']['metron-env']['metron_enrichment_db_user']
-enrichment_metron_user_passwd = config['configurations']['metron-env']['metron_enrichment_db_password']
-enrichment_metron_user_passwd = unicode(enrichment_metron_user_passwd) if not is_empty(
-    enrichment_metron_user_passwd) else enrichment_metron_user_passwd
-mysql_process_name = status_params.mysql_process_name
 
 # create partial functions with common arguments for every HdfsResource call
 # to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
