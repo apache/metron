@@ -20,6 +20,7 @@ package org.apache.metron.dataloads.nonbulk.flatfile;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -28,6 +29,8 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.file.ReaderSpliterator;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat;
@@ -39,13 +42,13 @@ import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.common.utils.JSONUtils;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Stream;
 
 public class SimpleEnrichmentFlatFileLoader {
   private static abstract class OptionHandler implements Function<String, Option> {}
@@ -107,6 +110,26 @@ public class SimpleEnrichmentFlatFileLoader {
       public Option apply(@Nullable String s) {
         Option o = new Option(s, "log4j", true, "The log4j properties file to load");
         o.setArgName("FILE");
+        o.setRequired(false);
+        return o;
+      }
+    })
+    ,NUM_THREADS("p", new OptionHandler() {
+      @Nullable
+      @Override
+      public Option apply(@Nullable String s) {
+        Option o = new Option(s, "threads", true, "The batch size to use for hbase puts");
+        o.setArgName("NUM_THREADS");
+        o.setRequired(false);
+        return o;
+      }
+    })
+    ,BATCH_SIZE("b", new OptionHandler() {
+      @Nullable
+      @Override
+      public Option apply(@Nullable String s) {
+        Option o = new Option(s, "batchSize", true, "The batch size to use for hbase puts");
+        o.setArgName("SIZE");
         o.setRequired(false);
         return o;
       }
@@ -207,25 +230,56 @@ public class SimpleEnrichmentFlatFileLoader {
     return ret;
   }
 
-
-  public void loadFile( File inputFile
-                      , Extractor extractor
-                      , HTableInterface table
-                      , String cf
-                      , HbaseConverter converter
-                      , boolean lineByLine
-                      ) throws IOException
+  public void load( final Iterable<Stream<String>> streams
+                  , final ThreadLocal<ExtractorState> state
+                  , final String cf
+                  , int numThreads
+                  )
   {
-    if(!lineByLine) {
-      table.put(extract(FileUtils.readFileToString(inputFile), extractor, cf, converter));
-    }
-    else {
-      BufferedReader br = new BufferedReader(new FileReader(inputFile));
-      for(String line = null;(line = br.readLine()) != null;) {
-        table.put(extract(line, extractor, cf, converter));
+    System.out.println("Number of threads: " + numThreads);
+    for(Stream<String> stream : streams) {
+      try {
+        ForkJoinPool forkJoinPool = new ForkJoinPool(numThreads);
+        forkJoinPool.submit(() ->
+          stream.parallel().forEach(input -> {
+            ExtractorState es = state.get();
+            try {
+              es.getTable().put(extract(input, es.getExtractor(), cf, es.getConverter()));
+            } catch (IOException e) {
+              throw new IllegalStateException("Unable to continue: " + e.getMessage(), e);
+            }
+            }
+                                   )
+        ).get();
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e.getMessage(), e);
+      } catch (ExecutionException e) {
+        throw new IllegalStateException(e.getMessage(), e);
+      } finally {
+        stream.close();
       }
     }
   }
+
+  private static Iterable<Stream<String>> streamify(List<File> files, int batchSize, boolean lineByLine) throws FileNotFoundException {
+    List<Stream<String>> ret = new ArrayList<>();
+    if(!lineByLine) {
+      ret.add(files.stream().map(f -> {
+        try {
+          return FileUtils.readFileToString(f);
+        } catch (IOException e) {
+          throw new IllegalStateException("File " + f.getName() + " not found.");
+        }
+      }));
+    }
+    else {
+      for(File f : files) {
+        ret.add(ReaderSpliterator.lineStream(new BufferedReader(new FileReader(f)), batchSize));
+      }
+    }
+    return ret;
+  }
+
   public static void main(String... argv) throws Exception {
     Configuration conf = HBaseConfiguration.create();
     String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
@@ -237,23 +291,40 @@ public class SimpleEnrichmentFlatFileLoader {
     ExtractorHandler handler = ExtractorHandler.load(
             FileUtils.readFileToString(new File(LoadOptions.EXTRACTOR_CONFIG.get(cli)))
     );
+    int batchSize = 128;
+    if(LoadOptions.BATCH_SIZE.has(cli)) {
+      batchSize = ConversionUtils.convert(LoadOptions.BATCH_SIZE.get(cli), Integer.class);
+    }
+    int numThreads = Runtime.getRuntime().availableProcessors();
+    if(LoadOptions.NUM_THREADS.has(cli)) {
+      numThreads = ConversionUtils.convert(LoadOptions.NUM_THREADS.get(cli), Integer.class);
+    }
     boolean lineByLine = !handler.getInputFormatHandler().getClass().equals(WholeFileFormat.class);
-    Extractor e = handler.getExtractor();
     SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(LoadOptions.ENRICHMENT_CONFIG.has(cli)) {
       sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(LoadOptions.ENRICHMENT_CONFIG.get(cli))
               , SensorEnrichmentUpdateConfig.class
       );
     }
-    HbaseConverter converter = new EnrichmentConverter();
     List<File> inputFiles = getFiles(new File(LoadOptions.INPUT.get(cli)));
     SimpleEnrichmentFlatFileLoader loader = new SimpleEnrichmentFlatFileLoader();
-    HTableInterface table = loader.getProvider()
-            .getTable(conf, LoadOptions.HBASE_TABLE.get(cli));
+    ThreadLocal<ExtractorState> state = new ThreadLocal<ExtractorState>() {
+      @Override
+      protected ExtractorState initialValue() {
+        try {
+          ExtractorHandler handler = ExtractorHandler.load(
+            FileUtils.readFileToString(new File(LoadOptions.EXTRACTOR_CONFIG.get(cli)))
+          );
+          HTableInterface table = loader.getProvider().getTable(conf, LoadOptions.HBASE_TABLE.get(cli));
+          return new ExtractorState(table, handler.getExtractor(), new EnrichmentConverter());
+        } catch (IOException e1) {
+          throw new IllegalStateException("Unable to get table: " + e1);
+        }
+      }
+    };
 
-    for (File f : inputFiles) {
-      loader.loadFile(f, e, table, LoadOptions.HBASE_CF.get(cli), converter, lineByLine);
-    }
+    loader.load(streamify(inputFiles, batchSize, lineByLine), state, LoadOptions.HBASE_CF.get(cli), numThreads);
+
     if(sensorEnrichmentUpdateConfig != null) {
       sensorEnrichmentUpdateConfig.updateSensorConfigs();
     }
