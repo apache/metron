@@ -118,7 +118,7 @@ public class SimpleEnrichmentFlatFileLoader {
       @Nullable
       @Override
       public Option apply(@Nullable String s) {
-        Option o = new Option(s, "threads", true, "The number of threads to use when extracting data");
+        Option o = new Option(s, "threads", true, "The number of threads to use when extracting data.  The default is the number of cores of your machine.");
         o.setArgName("NUM_THREADS");
         o.setRequired(false);
         return o;
