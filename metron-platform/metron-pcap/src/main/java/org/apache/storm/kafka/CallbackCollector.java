@@ -149,9 +149,9 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      * stream must have been declared as a direct stream, and the specified task must
      * use a direct grouping on this stream to receive the message. The emitted values must be
      * immutable.
-     * <p/>
+     *
      * <p> Because no message id is specified, Storm will not track this message
-     * so ack and fail will never be called for this tuple.</p>
+     * so ack and fail will never be called for this tuple.
      *
      * @param taskId
      * @param streamId
@@ -170,9 +170,9 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      * stream must have been declared as a direct stream, and the specified task must
      * use a direct grouping on this stream to receive the message. The emitted values must be
      * immutable.
-     * <p/>
+     *
      * <p> Because no message id is specified, Storm will not track this message
-     * so ack and fail will never be called for this tuple.</p>
+     * so ack and fail will never be called for this tuple.
      *
      * @param taskId
      * @param tuple

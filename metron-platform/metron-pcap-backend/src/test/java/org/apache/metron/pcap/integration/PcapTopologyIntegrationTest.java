@@ -215,14 +215,9 @@ public class PcapTopologyIntegrationTest {
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
-    final ZKServerComponent zkServerComponent = new ZKServerComponent().withPostStartCallback(new Function<ZKServerComponent, Void>() {
-      @Nullable
-      @Override
-      public Void apply(@Nullable ZKServerComponent zkComponent) {
-        topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
-        return null;
-      }
-    });
+    final ZKServerComponent zkServerComponent = new ZKServerComponent().withPostStartCallback(
+            (zkComponent) -> topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString())
+    );
     final KafkaComponent kafkaComponent = new KafkaComponent().withTopics(new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(KAFKA_TOPIC, 1));
     }}).withTopologyProperties(topologyProperties);

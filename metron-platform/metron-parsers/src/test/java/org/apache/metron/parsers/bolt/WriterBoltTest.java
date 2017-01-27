@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.bolt;
 import org.apache.log4j.Level;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.storm.task.OutputCollector;
@@ -66,7 +67,7 @@ public class WriterBoltTest extends BaseBoltTest{
               @Override
               public Map<String, Object> getParserConfig() {
                 return new HashMap<String, Object>() {{
-                  put(ParserWriterConfiguration.BATCH_CONF, batchSize);
+                  put(IndexingConfigurations.BATCH_SIZE_CONF, batchSize);
                 }};
               }
             };

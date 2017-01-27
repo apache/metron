@@ -48,6 +48,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private BulkWriterComponent<JSONObject> writerComponent;
   private String messageGetterStr = MessageGetters.NAMED.name();
   private transient MessageGetter messageGetter = null;
+  private transient OutputCollector collector;
   private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation;
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -71,6 +72,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.writerComponent = new BulkWriterComponent<>(collector);
+    this.collector = collector;
     super.prepare(stormConf, context, collector);
     messageGetter = MessageGetters.valueOf(messageGetterStr);
     if(bulkMessageWriter instanceof WriterToBulkWriter) {
@@ -81,7 +83,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     }
     try {
       bulkMessageWriter.init(stormConf
-                            , configurationTransformation.apply(new IndexingWriterConfiguration(getConfigurations()))
+                            , configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
                             );
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -95,11 +97,16 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     String sensorType = MessageUtils.getSensorType(message);
     try
     {
+      WriterConfiguration writerConfiguration = configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+      if(writerConfiguration.isDefault(sensorType)) {
+        //want to warn, but not fail the tuple
+        collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
+      }
       writerComponent.write(sensorType
                            , tuple
                            , message
                            , bulkMessageWriter
-                           , configurationTransformation.apply(new IndexingWriterConfiguration(getConfigurations()))
+                           , writerConfiguration
                            );
       LOG.trace("Writing enrichment message: {}", message);
     }

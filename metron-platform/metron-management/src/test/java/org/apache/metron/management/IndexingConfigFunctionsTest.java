@@ -58,32 +58,48 @@ public class IndexingConfigFunctionsTest {
 
   @Test
   public void testSetBatch() {
-    String out = (String) run("INDEXING_SET_BATCH(config, 10)"
+    String out = (String) run("INDEXING_SET_BATCH(config, 'hdfs', 10)"
                              , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertEquals(IndexingConfigurations.getBatchSize(config), 10);
+    Assert.assertEquals(IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")), 10);
   }
 
   @Test(expected=ParseException.class)
   public void testSetBatchBad() {
-    run("INDEXING_SET_BATCH(config, 10)"
+    run("INDEXING_SET_BATCH(config, 'hdfs', 10)"
+                             , new HashMap<>()
+    );
+  }
+
+  @Test
+  public void testSetEnabled() {
+    String out = (String) run("INDEXING_SET_ENABLED(config, 'hdfs', true)"
+                             , toMap("config", "{}")
+    );
+    Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
+    Assert.assertTrue(IndexingConfigurations.isEnabled((Map<String, Object>) config.get("hdfs")));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSetEnabledBad() {
+    run("INDEXING_SET_ENABLED(config, 'hdfs', 10)"
                              , new HashMap<>()
     );
   }
 
   @Test
   public void testSetIndex() {
-    String out = (String) run("INDEXING_SET_INDEX(config, 'foo')"
+    String out = (String) run("INDEXING_SET_INDEX(config, 'hdfs', 'foo')"
             , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertEquals("foo", IndexingConfigurations.getIndex(config, null));
+    Assert.assertEquals("foo", IndexingConfigurations.getIndex((Map<String, Object>)config.get("hdfs"), null));
   }
 
   @Test(expected= ParseException.class)
   public void testSetIndexBad() {
-    run("INDEXING_SET_INDEX(config, NULL)"
+    run("INDEXING_SET_INDEX(config, 'hdfs', NULL)"
             , new HashMap<>()
     );
   }

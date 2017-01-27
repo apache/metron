@@ -100,6 +100,7 @@ The `!=` operator is the negation of the above.
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
 | [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
+| [ `GEO_GET`](#geo_get)                                                                             |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
@@ -269,6 +270,13 @@ The `!=` operator is the negation of the above.
     * len - the required length
   * Returns: Last element of the list
 
+### `GEO_GET`
+  * Description: Look up an IPV4 address and returns geographic information about it
+  * Input:
+    * ip - The IPV4 address to lookup
+    * fields - Optional list of GeoIP fields to grab. Options are locID, country, city postalCode, dmaCode, latitude, longitude, location_point
+  * Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
+
 ### `GET`
   * Description: Returns the i'th element of the list 
   * Input:
@@ -287,8 +295,6 @@ The `!=` operator is the negation of the above.
   * Input:
     * input - List
   * Returns: Last element of the list
-
-
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.

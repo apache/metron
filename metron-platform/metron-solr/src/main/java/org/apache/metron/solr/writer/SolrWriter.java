@@ -86,6 +86,11 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     return response;
   }
 
+  @Override
+  public String getName() {
+    return "solr";
+  }
+
   protected String getCollection(WriterConfiguration configurations) {
     String collection = (String) configurations.getGlobalConfig().get("solr.collection");
     return collection != null ? collection : DEFAULT_COLLECTION;

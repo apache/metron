@@ -112,9 +112,13 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
   }
 
   @Override
-  public boolean initializeAdapter() {
+  public boolean initializeAdapter(Map<String, Object> config) {
     getHandler = EnrichmentType.valueOf(enrichmentType);
     return true;
+  }
+
+  @Override
+  public void updateAdapter(Map<String, Object> config) {
   }
 
   @Override

@@ -152,19 +152,6 @@ public class ProfileBuilder implements Serializable {
     // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
     List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", value), "groupBy");
 
-    // execute the 'tickUpdate' expression(s) - can refer to value of 'result' expression
-    assign(definition.getTickUpdate(), ImmutableMap.of("result", value),"tickUpdate");
-
-    // save a copy of current state then clear it to prepare for the next window
-    Map<String, Object> state = executor.getState();
-    executor.clearState();
-
-    // the 'tickUpdate' state is not flushed - make sure to bring that state along to the next period
-    definition.getTickUpdate().forEach((var, expr) -> {
-      Object val = state.get(var);
-      executor.assign(var, val);
-    });
-
     isInitialized = false;
 
     return new ProfileMeasurement()

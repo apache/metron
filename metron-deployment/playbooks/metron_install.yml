@@ -60,23 +60,6 @@
     - solr
 
 #
-# mysql
-#
-- hosts: mysql
-  become: true
-  roles:
-    - role: mysql_server
-  tags:
-    - mysql-server
-
-- hosts: ambari_slave
-  become: true
-  roles:
-    - role: mysql_client
-  tags:
-    - mysql-client
-
-#
 # parsers, enrichment, and indexing topologies
 #
 - hosts: metron_hbase_tables
@@ -135,6 +118,18 @@
     - { role: sensor-test-mode,       tags: ['sensor-test-mode'] }
   tags:
     - sensors
+
+#
+# sensor stubs - rather than deploying the sensors, deploy ligher weight
+# stubs that mimic the behavior of the real sensors
+#
+- hosts: sensors
+  become: true
+  roles:
+    - { role: ambari_gather_facts }
+    - { role: sensor-stubs }
+  tags:
+    - sensor-stubs
 
 #
 # monitor and start metron services with monit

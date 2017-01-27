@@ -127,6 +127,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
       fail("A runtime exception should be thrown when bulkMessageWriter.init throws an exception");
     } catch(RuntimeException e) {}
     reset(bulkMessageWriter);
+    when(bulkMessageWriter.getName()).thenReturn("hdfs");
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
     verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
     tupleList = new ArrayList<>();

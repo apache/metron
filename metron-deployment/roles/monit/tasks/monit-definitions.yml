@@ -16,10 +16,6 @@
 #  limitations under the License.
 #
 ---
-- name: Create monit definition for bro
-  template: src=monit/bro.monit dest={{ monit_config_home }}/bro.monit
-  when: ("sensors" in group_names) and (install_bro | default(True))
-
 - name: Create monit definition for elasticsearch
   template: src=monit/elasticsearch.monit dest={{ monit_config_home }}/elasticsearch.monit
   when: ("search" in group_names) and (install_elasticsearch | default(True))
@@ -36,10 +32,6 @@
   template: src=monit/kibana.monit dest={{ monit_config_home }}/kibana.monit
   when: ("web" in group_names) and (install_elasticsearch | default(True))
 
-- name: Create monit definition for mysql
-  template: src=monit/mysql.monit dest={{ monit_config_home }}/mysql.monit
-  when: ("mysql" in group_names)
-
 - name: Create monit definition for parsers
   template: src=monit/parsers.monit dest={{ monit_config_home }}/parsers.monit
   when: ("enrichment" in group_names)
@@ -47,19 +39,9 @@
 - name: Create monit definition for pcap-replay
   template: src=monit/pcap-replay.monit dest={{ monit_config_home }}/pcap-replay.monit
   when: ("sensors" in group_names) and (install_pcap_replay | default(False))
-
+  tags: sensors
+  
 - name: Create monit definition for pcap-service
   template: src=monit/pcap-service.monit dest={{ monit_config_home }}/pcap-service.monit
   when: ("pcap_server" in group_names)
 
-- name: Create monit definition for pycapa
-  template: src=monit/pycapa.monit dest={{ monit_config_home }}/pycapa.monit
-  when: ("sensors" in group_names) and (install_pycapa | default(True))
-
-- name: Create monit definition for snort
-  template: src=monit/snort.monit dest={{ monit_config_home }}/snort.monit
-  when: ("sensors" in group_names) and (install_snort | default(True))
-
-- name: Create monit definition for yaf
-  template: src=monit/yaf.monit dest={{ monit_config_home }}/yaf.monit
-  when: ("sensors" in group_names) and (install_yaf | default(True))

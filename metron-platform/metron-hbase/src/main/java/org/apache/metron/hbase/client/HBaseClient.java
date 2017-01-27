@@ -78,7 +78,6 @@ public class HBaseClient implements Closeable {
    * @param rowKey     The row key of the Mutation.
    * @param cols       The columns affected by the Mutation.
    * @param durability The durability of the mutation.
-   * @return
    */
   public void addMutation(byte[] rowKey, ColumnList cols, Durability durability) {
 

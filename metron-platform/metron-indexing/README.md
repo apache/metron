@@ -28,14 +28,88 @@ Errors during indexing are sent to a kafka queue called `index_errors`
 
 ##Sensor Indexing Configuration
 The sensor specific configuration is intended to configure the
-indexing used for a given sensor type (e.g. `snort`).
+indexing used for a given sensor type (e.g. `snort`).  
 
-Just like the global config, the format is a JSON stored in zookeeper.
-The configuration is a JSON map with the following fields:
+Just like the global config, the format is a JSON stored in zookeeper and on disk at `$METRON_HOME/config/zookeeper/indexing`.  Within the sensor-specific configuration, you can configure the individual writers.  The writers currently supported are:
+* `elasticsearch`
+* `hdfs`
+* `solr`
+
+Depending on how you start the indexing topology, it will have either
+elasticsearch or solr and hdfs writers running.
+
+The configuration for an individual writer-specific configuration is a JSON map with the following fields:
 * `index` : The name of the index to write to (defaulted to the name of the sensor).
-* `batchSize` : The size of the batch that is written to the indices at once (defaulted to 1.
+* `batchSize` : The size of the batch that is written to the indices at once (defaulted to `1`).
+* `enabled` : Whether the writer is enabled (default `true`).
 
+### Indexing Configuration Examples
+For a given  sensor, the following scenarios would be indicated by
+the following cases:
+#### Base Case
+```
+{
+}
+```
+or no file at all.
 
+* elasticsearch writer
+  * enabled
+  * batch size of 1
+  * index name the same as the sensor
+* hdfs writer
+  * enabled
+  * batch size of 1
+  * index name the same as the sensor
+
+If a writer config is unspecified, then a warning is indicated in the
+Storm console.  e.g.:
+`WARNING: Default and (likely) unoptimized writer config used for hdfs writer and sensor squid`
+
+#### Fully specified
+```
+{
+   "elasticsearch": {
+      "index": "foo",
+      "batchSize" : 100,
+      "enabled" : true 
+    },
+   "hdfs": {
+      "index": "foo",
+      "batchSize": 1,
+      "enabled" : true
+    }
+}
+```
+* elasticsearch writer
+  * enabled
+  * batch size of 100
+  * index name of "foo"
+* hdfs writer
+  * enabled
+  * batch size of 1
+  * index name of "foo"
+
+#### HDFS Writer turned off
+```
+{
+   "elasticsearch": {
+      "index": "foo",
+      "enabled" : true 
+    },
+   "hdfs": {
+      "index": "foo",
+      "batchSize": 100,
+      "enabled" : false
+    }
+}
+```
+* elasticsearch writer
+  * enabled
+  * batch size of 1
+  * index name of "foo"
+* hdfs writer
+  * disabled
 
 # Notes on Performance Tuning
 
@@ -66,3 +140,11 @@ Finally, if workers and executors are new to you or you don't know where
 to modify the flux file, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
 * [Flux Docs](http://storm.apache.org/releases/current/flux.html)
+
+## Zeppelin Notebooks
+Zeppelin notebooks can be added to `/src/main/config/zeppelin/` (and subdirectories can be created for organization).  The placed files must be .json files and be named appropriately.
+These files must be added to the metron.spec file and the RPMs rebuilt to be available to be loaded into Ambari.
+
+The notebook files will be found on the server in `$METRON_HOME/config/zeppelin`
+
+The Ambari Management Pack has a custom action to load these templates, ZEPPELIN_DASHBOARD_INSTALL, that will import them into Zeppelin.

@@ -17,100 +17,66 @@
  */
 package org.apache.metron.enrichment.adapters.geo;
 
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-import java.sql.ResultSet;
-import java.sql.Statement;
-
-import static org.mockito.Mockito.when;
+import java.io.File;
+import java.util.Map;
 
 public class GeoAdapterTest {
-
-
-  private String ip = "72.163.4.161";
-
+  private static final String IP = "216.160.83.56";
 
   /**
    * {
-   * "locID":"1",
-   * "country":"test country",
-   * "city":"test city",
-   * "postalCode":"test zip",
-   * "latitude":"test latitude",
-   * "longitude":"test longitude",
-   * "dmaCode":"test dma",
-   * "location_point":"test latitude,test longitude"
+   * "locID":"6252001",
+   * "country":"US",
+   * "city":"Milton",
+   * "postalCode":"98354",
+   * "latitude":"47.2513",
+   * "longitude":"-122.3149",
+   * "dmaCode":"819",
+   * "location_point":"47.2513,-122.3149"
    * }
    */
   @Multiline
-  private String expectedMessageString;
+  private static String expectedMessageString;
 
-  private JSONObject expectedMessage;
+  private static JSONObject expectedMessage;
 
-  @Mock
-  Statement statetment;
-  @Mock
-  ResultSet resultSet, resultSet1;
+  private static GeoAdapter geo;
+  private static File geoHdfsFile;
 
-
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void setupOnce() throws ParseException {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
-    MockitoAnnotations.initMocks(this);
-    when(statetment.executeQuery("select IPTOLOCID(\"" + ip + "\") as ANS")).thenReturn(resultSet);
-    when(statetment.executeQuery("select * from location where locID = 1")).thenReturn(resultSet1);
-    when(resultSet.next()).thenReturn(Boolean.TRUE, Boolean.FALSE);
-    when(resultSet.getString("ANS")).thenReturn("1");
-    when(resultSet1.next()).thenReturn(Boolean.TRUE, Boolean.FALSE);
-    when(resultSet1.getString("locID")).thenReturn("1");
-    when(resultSet1.getString("country")).thenReturn("test country");
-    when(resultSet1.getString("city")).thenReturn("test city");
-    when(resultSet1.getString("postalCode")).thenReturn("test zip");
-    when(resultSet1.getString("latitude")).thenReturn("test latitude");
-    when(resultSet1.getString("longitude")).thenReturn("test longitude");
-    when(resultSet1.getString("dmaCode")).thenReturn("test dma");
-  }
 
+    String baseDir = UnitTestHelper.findDir("GeoLite");
+    geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
+
+    geo = new GeoAdapter();
+    geo.initializeAdapter(ImmutableMap.of(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath()));
+  }
 
   @Test
   public void testEnrich() throws Exception {
-    GeoAdapter geo = new GeoAdapter() {
-      @Override
-      public boolean initializeAdapter() {
-        return true;
-      }
-    };
-    geo.setStatement(statetment);
-    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", ip, null));
+    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", IP, null));
+
     Assert.assertNotNull(actualMessage.get("locID"));
     Assert.assertEquals(expectedMessage, actualMessage);
   }
 
   @Test
   public void testEnrichNonString() throws Exception {
-    GeoAdapter geo = new GeoAdapter() {
-      @Override
-      public boolean initializeAdapter() {
-        return true;
-      }
-    };
-    geo.setStatement(statetment);
-    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", ip, null));
-    Assert.assertNotNull(actualMessage.get("locID"));
-    Assert.assertEquals(expectedMessage, actualMessage);
-
-    actualMessage = geo.enrich(new CacheKey("dummy", 10L, null));
-    Assert.assertEquals(actualMessage,new JSONObject());
+    JSONObject actualMessage = geo.enrich(new CacheKey("dummy", 10L, null));
+    Assert.assertEquals(new JSONObject(), actualMessage);
   }
-
 }
-

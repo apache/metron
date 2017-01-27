@@ -34,7 +34,7 @@ components:
             -   ref: "stellarEnrichmentAdapter"
 
     -   id: "geoEnrichmentAdapter"
-        className: "org.apache.metron.enrichment.integration.mock.MockGeoAdapter"
+        className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
     -   id: "geoEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:

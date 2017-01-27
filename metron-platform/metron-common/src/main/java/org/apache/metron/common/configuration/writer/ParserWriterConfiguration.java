@@ -18,14 +18,13 @@
 
 package org.apache.metron.common.configuration.writer;
 
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.Map;
 
 public class ParserWriterConfiguration implements WriterConfiguration {
-  public static final String BATCH_CONF = "batchSize";
-  public static final String INDEX_CONF = "indexName";
   private ParserConfigurations config;
   public ParserWriterConfiguration(ParserConfigurations config) {
     this.config = config;
@@ -36,7 +35,7 @@ public class ParserWriterConfiguration implements WriterConfiguration {
     && config.getSensorParserConfig(sensorName) != null
     && config.getSensorParserConfig(sensorName).getParserConfig() != null
       ) {
-      Object batchObj = config.getSensorParserConfig(sensorName).getParserConfig().get(BATCH_CONF);
+      Object batchObj = config.getSensorParserConfig(sensorName).getParserConfig().get(IndexingConfigurations.BATCH_SIZE_CONF);
       return batchObj == null ? 1 : ConversionUtils.convert(batchObj, Integer.class);
     }
     return 1;
@@ -47,13 +46,25 @@ public class ParserWriterConfiguration implements WriterConfiguration {
     if(config != null && config.getSensorParserConfig(sensorName) != null
     && config.getSensorParserConfig(sensorName).getParserConfig() != null
       ) {
-      Object indexObj = config.getSensorParserConfig(sensorName).getParserConfig().get(INDEX_CONF);
+      Object indexObj = config.getSensorParserConfig(sensorName).getParserConfig().get(IndexingConfigurations.INDEX_CONF);
       if(indexObj != null) {
         return indexObj.toString();
       }
       return null;
     }
     return sensorName;
+  }
+
+  @Override
+  public boolean isEnabled(String sensorName) {
+    if(config != null
+    && config.getSensorParserConfig(sensorName) != null
+    && config.getSensorParserConfig(sensorName).getParserConfig() != null
+      ) {
+      Object enabledObj = config.getSensorParserConfig(sensorName).getParserConfig().get(IndexingConfigurations.ENABLED_CONF);
+      return enabledObj == null ? true : ConversionUtils.convert(enabledObj, Boolean.class);
+    }
+    return true;
   }
 
   @Override
@@ -64,5 +75,10 @@ public class ParserWriterConfiguration implements WriterConfiguration {
   @Override
   public Map<String, Object> getGlobalConfig() {
     return config.getGlobalConfig();
+  }
+
+  @Override
+  public boolean isDefault(String sensorName) {
+    return false;
   }
 }

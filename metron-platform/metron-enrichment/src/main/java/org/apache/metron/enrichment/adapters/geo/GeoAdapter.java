@@ -17,71 +17,56 @@
  */
 package org.apache.metron.enrichment.adapters.geo;
 
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.apache.metron.enrichment.adapters.jdbc.JdbcAdapter;
 import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-public class GeoAdapter extends JdbcAdapter {
-
-  private InetAddressValidator ipvalidator = new InetAddressValidator();
+public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
+  protected static final Logger _LOG = LoggerFactory.getLogger(GeoAdapter.class);
 
   @Override
   public void logAccess(CacheKey value) {
-
   }
 
   @Override
-	public String getOutputPrefix(CacheKey value) {
-		return value.getField();
-	}
+  public String getOutputPrefix(CacheKey value) {
+    return value.getField();
+  }
 
   @SuppressWarnings("unchecked")
   @Override
   public JSONObject enrich(CacheKey value) {
     JSONObject enriched = new JSONObject();
-    if(!resetConnectionIfNecessary()) {
-      _LOG.error("GEO Enrichment failure, cannot maintain a connection to JDBC.  Please check connection.  In the meantime, I'm not enriching.");
-      return enriched;
-    }
-    try {
-      InetAddress addr = InetAddress.getByName(value.coerceValue(String.class));
-      if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
-              || addr.isSiteLocalAddress() || addr.isMulticastAddress()
-              || !ipvalidator.isValidInet4Address(value.coerceValue(String.class))) {
-        return new JSONObject();
-      }
-      String locidQuery = "select IPTOLOCID(\"" + value.getValue()
-              + "\") as ANS";
-      ResultSet resultSet = statement.executeQuery(locidQuery);
-      String locid = null;
-      if (resultSet.next()) {
-        locid = resultSet.getString("ANS");
-      }
-      resultSet.close();
-      if (locid == null) return new JSONObject();
-      String geoQuery = "select * from location where locID = " + locid;
-      resultSet = statement.executeQuery(geoQuery);
-      if (resultSet.next()) {
-        enriched.put("locID", resultSet.getString("locID"));
-        enriched.put("country", resultSet.getString("country"));
-        enriched.put("city", resultSet.getString("city"));
-        enriched.put("postalCode", resultSet.getString("postalCode"));
-        enriched.put("latitude", resultSet.getString("latitude"));
-        enriched.put("longitude", resultSet.getString("longitude"));
-        enriched.put("dmaCode", resultSet.getString("dmaCode"));
-        enriched.put("location_point", enriched.get("latitude") + "," + enriched.get("longitude"));
-      }
-      resultSet.close();
-    } catch (Exception e) {
-      _LOG.error("GEO Enrichment failure: " + e.getMessage(), e);
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(value.coerceValue(String.class));
+    if(!result.isPresent()) {
+      _LOG.error("GEO Enrichment failure: {}", value.coerceValue(String.class));
       return new JSONObject();
     }
-    _LOG.trace("GEO Enrichment success: ", enriched);
+
+    enriched = new JSONObject(result.get());
+    _LOG.trace("GEO Enrichment success: {}", enriched);
     return enriched;
+  }
+
+  @Override
+  public boolean initializeAdapter(Map<String, Object> config) {
+    GeoLiteDatabase.INSTANCE.update((String)config.get(GeoLiteDatabase.GEO_HDFS_FILE));
+    return true;
+  }
+
+  @Override
+  public void updateAdapter(Map<String, Object> config) {
+    GeoLiteDatabase.INSTANCE.updateIfNecessary(config);
+  }
+
+  @Override
+  public void cleanup() {
   }
 }
