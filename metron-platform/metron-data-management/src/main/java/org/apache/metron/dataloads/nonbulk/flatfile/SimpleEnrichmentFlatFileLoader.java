@@ -236,7 +236,6 @@ public class SimpleEnrichmentFlatFileLoader {
                   , int numThreads
                   )
   {
-    System.out.println("Number of threads: " + numThreads);
     for(Stream<String> stream : streams) {
       try {
         ForkJoinPool forkJoinPool = new ForkJoinPool(numThreads);
