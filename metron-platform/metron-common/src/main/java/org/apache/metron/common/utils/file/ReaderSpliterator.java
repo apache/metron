@@ -27,6 +27,16 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Spliterators.spliterator;
 
+/**
+ * A Spliterator which works well on sequential streams by constructing a
+ * fixed batch size split rather than inheriting the spliterator from BufferedReader.lines()
+ * which gives up and reports no size and has no strategy for batching.  This is a bug
+ * in Java 8 and will be fixed in Java 9.
+ *
+ * The ideas have been informed by https://www.airpair.com/java/posts/parallel-processing-of-io-based-data-with-java-streams
+ * except more specific to strings and motivated by a JDK 8 bug as
+ * described at http://bytefish.de/blog/jdk8_files_lines_parallel_stream/
+ */
 public class ReaderSpliterator implements Spliterator<String> {
   private static int characteristics = NONNULL | ORDERED | IMMUTABLE;
   private int batchSize ;
@@ -127,7 +137,7 @@ public class ReaderSpliterator implements Spliterator<String> {
    */
   @Override
   public Spliterator<String> trySplit() {
-    final HoldingConsumer<String> holder = new HoldingConsumer<>();
+    final ConsumerWithLookback holder = new ConsumerWithLookback();
     if (!tryAdvance(holder)) {
       return null;
     }
@@ -191,7 +201,7 @@ public class ReaderSpliterator implements Spliterator<String> {
     return characteristics;
   }
 
-  static class HoldingConsumer<String> implements Consumer<String> {
+  static class ConsumerWithLookback implements Consumer<String> {
     String value;
     /**
      * Performs this operation on the given argument.
