@@ -215,7 +215,11 @@ public class ReaderSpliterator implements Spliterator<String> {
   }
 
   public static Stream<String> lineStream(BufferedReader in, int batchSize) {
-    return StreamSupport.stream(new ReaderSpliterator(in, batchSize), false)
+    return lineStream(in, batchSize, false);
+  }
+
+  public static Stream<String> lineStream(BufferedReader in, int batchSize, boolean isParallel) {
+    return StreamSupport.stream(new ReaderSpliterator(in, batchSize), isParallel)
                         .onClose(() -> {
                           try {
                             in.close();

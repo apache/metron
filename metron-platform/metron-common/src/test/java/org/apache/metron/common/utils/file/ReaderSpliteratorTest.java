@@ -136,6 +136,37 @@ public class ReaderSpliteratorTest {
   }
 
   @Test
+  public void testActuallyParallel_mediumBatchNotImplicitlyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
+    //Since this is not parallel and we're not making the stream itself parallel, we should only use one thread from the thread pool.
+    try( Stream<String> stream = ReaderSpliterator.lineStream(getReader(), 2, false)) {
+      ForkJoinPool forkJoinPool = new ForkJoinPool(10);
+      forkJoinPool.submit(() -> {
+                Map<String, Integer> threads =
+                        stream.map(s -> Thread.currentThread().getName())
+                                .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
+                Assert.assertTrue(threads.size() == 1);
+              }
+      ).get();
+    }
+  }
+
+  @Test
+  public void testActuallyParallel_mediumBatchImplicitlyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
+    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most 5 threads of the pool of 10 will be used
+    //despite not calling .parallel() on the stream, we are constructing the stream to be implicitly parallel
+    try( Stream<String> stream = ReaderSpliterator.lineStream(getReader(), 2, true)) {
+      ForkJoinPool forkJoinPool = new ForkJoinPool(10);
+      forkJoinPool.submit(() -> {
+                Map<String, Integer> threads =
+                        stream.map(s -> Thread.currentThread().getName())
+                                .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
+                Assert.assertTrue(threads.size() <= (int) Math.ceil(9.0 / 2) && threads.size() > 1);
+              }
+      ).get();
+    }
+  }
+
+  @Test
   public void testActuallyParallel_bigBatch() throws ExecutionException, InterruptedException, FileNotFoundException {
     //With 9 elements and a batch of 10, we should only have one batch, so only one thread will be used
     //despite the thread pool size of 2.
