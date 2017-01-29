@@ -15,14 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { browser, element, by } from 'protractor/globals';
 
-export class ClitestPage {
-  navigateTo() {
-    return browser.get('/');
-  }
+export class SensorListPage {
 
-  getParagraphText() {
-    return element(by.css('app-root h1')).getText();
-  }
+    getTableColumnNames() {
+        browser.debugger();
+        // return element.all(by.css('thead>tr')).first().all(by.tagName('td')).map(function (elm) {
+        //     return elm.getText();
+        // });
+
+        return element.all(by.css('table th a')).map(function(elm) {
+            return elm.getText();
+        });
+    }
+    getParserCount() {
+        browser.debugger();
+        browser.waitForAngular();
+        return element.all(by.css('table>tbody>tr')).count();
+    }
 }

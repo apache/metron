@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ClitestPage } from './app.po';
+import { ClitestPage } from './page-objects/app.po';
 
 describe('clitest App', function() {
   let page: ClitestPage;
 
-  beforeEach(() => {
-    page = new ClitestPage();
-  });
-
-  it('should display message saying app works', () => {
-    page.navigateTo();
-    expect(page.getParagraphText()).toEqual('app works!');
-  });
+  // beforeEach(() => {
+  //   page = new ClitestPage();
+  // });
+  //
+  // it('should display message saying app works', () => {
+  //   page.navigateTo();
+  //   expect(page.getParagraphText()).toEqual('app works!');
+  // });
 });
