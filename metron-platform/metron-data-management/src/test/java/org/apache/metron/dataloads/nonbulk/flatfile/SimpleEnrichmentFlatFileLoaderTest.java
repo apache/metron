@@ -135,10 +135,14 @@ public class SimpleEnrichmentFlatFileLoaderTest {
        "columns" : {
          "domain" : 1
        },
-       "transformations" : {
+       "value_transform" : {
           "domain" : "TO_UPPER(domain)"
        },
-       "filter" : "LENGTH(domain) > 0",
+       "indicator_transform" : {
+          "domain" : "TO_UPPER(domain)"
+       },
+       "value_filter" : "LENGTH(domain) > 0",
+       "indicator_filter" : "LENGTH(domain) > 0",
        "indicator_column" : "domain",
        "type" : "topdomain",
        "separator" : ","

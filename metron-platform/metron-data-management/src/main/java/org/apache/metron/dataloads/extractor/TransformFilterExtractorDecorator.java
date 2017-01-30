@@ -19,11 +19,15 @@ import java.util.*;
 
 public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private static final Logger LOG = Logger.getLogger(TransformFilterExtractorDecorator.class);
-  private static final String TRANSFORMATIONS = "transformations";
-  private static final String FILTER = "filter";
+  private static final String VALUE_TRANSFORM = "value_transform";
+  private static final String VALUE_FILTER = "value_filter";
+  private static final String INDICATOR_TRANSFORM = "indicator_transform";
+  private static final String INDICATOR_FILTER = "indicator_filter";
   private static final String ZK_QUORUM = "zk_quorum";
-  private Map<String, String> transforms;
-  private String filterExpression;
+  private Map<String, String> valueTransforms;
+  private Map<String, String> indicatorTransforms;
+  private String valueFilter;
+  private String indicatorFilter;
   private Context stellarContext;
   private StellarProcessor transformProcessor;
   private StellarPredicateProcessor filterProcessor;
@@ -36,13 +40,21 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   @Override
   public void initialize(Map<String, Object> config) {
     super.initialize(config);
-    if (config.containsKey(TRANSFORMATIONS)) {
-      this.transforms = getTransforms(config.get(TRANSFORMATIONS));
+    if (config.containsKey(VALUE_TRANSFORM)) {
+      this.valueTransforms = getTransforms(config.get(VALUE_TRANSFORM));
     } else {
-      this.transforms = new HashMap<>();
+      this.valueTransforms = new HashMap<>();
     }
-    if (config.containsKey(FILTER)) {
-      this.filterExpression = config.get(FILTER).toString();
+    if (config.containsKey(INDICATOR_TRANSFORM)) {
+      this.indicatorTransforms = getTransforms(config.get(INDICATOR_TRANSFORM));
+    } else {
+      this.indicatorTransforms = new HashMap<>();
+    }
+    if (config.containsKey(VALUE_FILTER)) {
+      this.valueFilter = config.get(VALUE_FILTER).toString();
+    }
+    if (config.containsKey(INDICATOR_FILTER)) {
+      this.indicatorFilter = config.get(INDICATOR_FILTER).toString();
     }
     String zkClientUrl = "";
     if (config.containsKey(ZK_QUORUM)) {
@@ -120,7 +132,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private boolean updateLookupKV(LookupKV lkv) {
     Map<String, Object> ret = lkv.getValue().getMetadata();
     MapVariableResolver resolver = new MapVariableResolver(ret, globalConfig);
-    for (Map.Entry<String, String> entry : transforms.entrySet()) {
+    for (Map.Entry<String, String> entry : valueTransforms.entrySet()) {
       Object o = transformProcessor.parse(entry.getValue(), resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
       if (o == null) {
         ret.remove(entry.getKey());
@@ -128,7 +140,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
         ret.put(entry.getKey(), o);
       }
     }
-    return filterProcessor.parse(filterExpression, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+    return filterProcessor.parse(valueFilter, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
   }
 
 }
