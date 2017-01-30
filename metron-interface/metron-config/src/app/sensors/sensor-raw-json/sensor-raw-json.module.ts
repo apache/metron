@@ -22,6 +22,7 @@ import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
 
 @NgModule ({
   imports: [ SharedModule, AceEditorModule ],
-  declarations: [SensorRawJsonComponent]
+  declarations: [ SensorRawJsonComponent ],
+  exports: [ SensorRawJsonComponent ]
 })
 export class SensorRawJsonModule {}
