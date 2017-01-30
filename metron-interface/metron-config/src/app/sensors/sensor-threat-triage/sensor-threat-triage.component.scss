@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 @import "../../_variables.scss";
+@import "../../../styles.scss";
 
 textarea
 {
@@ -102,4 +103,9 @@ textarea
   i {
     color: $field-button-color;
   }
+}
+
+metron-config-sensor-rule-editor
+{
+  @extend .metron-edit-pane-background;
 }
