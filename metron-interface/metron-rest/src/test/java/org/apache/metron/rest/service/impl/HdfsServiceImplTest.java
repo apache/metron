@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.rest.service.impl;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.config.HadoopConfig;
-import org.apache.metron.rest.service.impl.HdfsServiceImpl;
+import org.apache.metron.rest.service.HdfsService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +40,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes={HadoopConfig.class, HdfsServiceTest.HdfsServiceTestContextConfiguration.class})
+@ContextConfiguration(classes={HadoopConfig.class, HdfsServiceImplTest.HdfsServiceTestContextConfiguration.class})
 @ActiveProfiles(TEST_PROFILE)
-public class HdfsServiceTest {
+public class HdfsServiceImplTest {
 
     @Configuration
     @Profile("test")

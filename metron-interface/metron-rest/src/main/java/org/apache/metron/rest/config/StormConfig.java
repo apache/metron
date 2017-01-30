@@ -40,7 +40,7 @@ public class StormConfig {
   @Bean
   public StormCLIWrapper stormCLIClientWrapper() {
     if (Arrays.asList(environment.getActiveProfiles()).contains(DOCKER_PROFILE)) {
-      return new DockerStormCLIWrapper();
+      return new DockerStormCLIWrapper(environment);
     } else {
       return new StormCLIWrapper();
     }

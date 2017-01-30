@@ -18,10 +18,9 @@
 package org.apache.metron.rest.service.impl;
 
 import kafka.admin.AdminOperationException;
-import kafka.admin.AdminUtils;
+import kafka.admin.AdminUtils$;
 import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
@@ -32,27 +31,30 @@ import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class KafkaServiceImpl implements KafkaService {
-
-    @Autowired
     private ZkUtils zkUtils;
+    private KafkaConsumer<String, String> kafkaConsumer;
+    private AdminUtils$ adminUtils;
 
     @Autowired
-    private KafkaConsumer<String, String> kafkaConsumer;
-
-    private String offsetTopic = "__consumer_offsets";
+    public KafkaServiceImpl(ZkUtils zkUtils, KafkaConsumer<String, String> kafkaConsumer, AdminUtils$ adminUtils) {
+        this.zkUtils = zkUtils;
+        this.kafkaConsumer = kafkaConsumer;
+        this.adminUtils = adminUtils;
+    }
 
     @Override
     public KafkaTopic createTopic(KafkaTopic topic) throws RestException {
         if (!listTopics().contains(topic.getName())) {
           try {
-              AdminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
+              adminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
           } catch (AdminOperationException e) {
               throw new RestException(e);
           }
@@ -62,8 +64,9 @@ public class KafkaServiceImpl implements KafkaService {
 
     @Override
     public boolean deleteTopic(String name) {
-        if (listTopics().contains(name)) {
-            AdminUtils.deleteTopic(zkUtils, name);
+        Set<String> topics = listTopics();
+        if (topics != null && topics.contains(name)) {
+            adminUtils.deleteTopic(zkUtils, name);
             return true;
         } else {
             return false;
@@ -90,8 +93,9 @@ public class KafkaServiceImpl implements KafkaService {
     public Set<String> listTopics() {
         Set<String> topics;
         synchronized (this) {
-            topics = kafkaConsumer.listTopics().keySet();
-            topics.remove(offsetTopic);
+            Map<String, List<PartitionInfo>> topicsInfo = kafkaConsumer.listTopics();
+            topics = topicsInfo == null ? new HashSet<>() : topicsInfo.keySet();
+            topics.remove(CONSUMER_OFFSETS_TOPIC);
         }
         return topics;
     }
@@ -101,20 +105,16 @@ public class KafkaServiceImpl implements KafkaService {
         String message = null;
         if (listTopics().contains(topic)) {
             synchronized (this) {
-                kafkaConsumer.assign(kafkaConsumer.partitionsFor(topic).stream().map(partitionInfo ->
-                        new TopicPartition(topic, partitionInfo.partition())).collect(Collectors.toList()));
-                for (TopicPartition topicPartition : kafkaConsumer.assignment()) {
-                    long offset = kafkaConsumer.position(topicPartition) - 1;
-                    if (offset >= 0) {
-                        kafkaConsumer.seek(topicPartition, offset);
-                    }
-                }
+                kafkaConsumer.assign(kafkaConsumer.partitionsFor(topic).stream()
+                    .map(partitionInfo -> new TopicPartition(topic, partitionInfo.partition()))
+                    .collect(Collectors.toList()));
+
+                kafkaConsumer.assignment().stream()
+                    .filter(p -> (kafkaConsumer.position(p) -1) >= 0)
+                    .forEach(p -> kafkaConsumer.seek(p, kafkaConsumer.position(p) - 1));
+
                 ConsumerRecords<String, String> records = kafkaConsumer.poll(100);
-                Iterator<ConsumerRecord<String, String>> iterator = records.iterator();
-                if (iterator.hasNext()) {
-                    ConsumerRecord<String, String> record = iterator.next();
-                    message = record.value();
-                }
+                message  = records.isEmpty() ? null : records.iterator().next().value();
                 kafkaConsumer.unsubscribe();
             }
         }

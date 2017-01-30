@@ -30,10 +30,14 @@ import java.util.Map;
 
 public class DockerStormCLIWrapper extends StormCLIWrapper {
 
-  private Logger LOG = LoggerFactory.getLogger(DockerStormCLIWrapper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DockerStormCLIWrapper.class);
+
+  private Environment environment;
 
   @Autowired
-  private Environment environment;
+  public DockerStormCLIWrapper(Environment environment) {
+    this.environment = environment;
+  }
 
   @Override
   protected ProcessBuilder getProcessBuilder(String... command) {
@@ -45,7 +49,7 @@ public class DockerStormCLIWrapper extends StormCLIWrapper {
     return pb;
   }
 
-  protected void setDockerEnvironment(Map<String, String> environmentVariables) {
+  private void setDockerEnvironment(Map<String, String> environmentVariables) {
     ProcessBuilder pb = getDockerEnvironmentProcessBuilder();
     try {
       Process process = pb.start();
@@ -63,7 +67,7 @@ public class DockerStormCLIWrapper extends StormCLIWrapper {
     }
   }
 
-  protected ProcessBuilder getDockerEnvironmentProcessBuilder() {
+  private ProcessBuilder getDockerEnvironmentProcessBuilder() {
     String[] command = {"docker-machine", "env", "metron-machine"};
     return new ProcessBuilder(command);
   }
