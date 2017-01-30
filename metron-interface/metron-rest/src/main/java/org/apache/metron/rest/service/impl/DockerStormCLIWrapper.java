@@ -30,30 +30,34 @@ import java.util.Map;
 
 public class DockerStormCLIWrapper extends StormCLIWrapper {
 
-  private Logger LOG = LoggerFactory.getLogger(DockerStormCLIWrapper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DockerStormCLIWrapper.class);
 
-  @Autowired
   private Environment environment;
 
+  @Autowired
+  public DockerStormCLIWrapper(final Environment environment) {
+    this.environment = environment;
+  }
+
   @Override
-  protected ProcessBuilder getProcessBuilder(String... command) {
-    String[] dockerCommand = {"docker-compose", "-f", environment.getProperty("docker.compose.path"), "-p", "metron", "exec", "storm"};
-    ProcessBuilder pb = new ProcessBuilder(ArrayUtils.addAll(dockerCommand, command));
-    Map<String, String> pbEnvironment = pb.environment();
+  protected ProcessBuilder getProcessBuilder(final String... command) {
+    final String[] dockerCommand = {"docker-compose", "-f", environment.getProperty("docker.compose.path"), "-p", "metron", "exec", "storm"};
+    final ProcessBuilder pb = new ProcessBuilder(ArrayUtils.addAll(dockerCommand, command));
+    final Map<String, String> pbEnvironment = pb.environment();
     pbEnvironment.put("METRON_VERSION", environment.getProperty("metron.version"));
     setDockerEnvironment(pbEnvironment);
     return pb;
   }
 
-  protected void setDockerEnvironment(Map<String, String> environmentVariables) {
-    ProcessBuilder pb = getDockerEnvironmentProcessBuilder();
+  private void setDockerEnvironment(final Map<String, String> environmentVariables) {
+    final ProcessBuilder pb = getDockerEnvironmentProcessBuilder();
     try {
-      Process process = pb.start();
-      BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      final Process process = pb.start();
+      final BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String line;
-      while((line = inputStream.readLine()) != null) {
+      while ((line = inputStream.readLine()) != null) {
         if (line.startsWith("export")) {
-          String[] parts = line.replaceFirst("export ", "").split("=");
+          final String[] parts = line.replaceFirst("export ", "").split("=");
           environmentVariables.put(parts[0], parts[1].replaceAll("\"", ""));
         }
       }
@@ -63,7 +67,7 @@ public class DockerStormCLIWrapper extends StormCLIWrapper {
     }
   }
 
-  protected ProcessBuilder getDockerEnvironmentProcessBuilder() {
+  private ProcessBuilder getDockerEnvironmentProcessBuilder() {
     String[] command = {"docker-machine", "env", "metron-machine"};
     return new ProcessBuilder(command);
   }

@@ -57,4 +57,26 @@ public class KafkaTopic {
     public void setProperties(Properties properties) {
         this.properties = properties;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        KafkaTopic that = (KafkaTopic) o;
+
+        if (numPartitions != that.numPartitions) return false;
+        if (replicationFactor != that.replicationFactor) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        return properties != null ? properties.equals(that.properties) : that.properties == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + numPartitions;
+        result = 31 * result + replicationFactor;
+        result = 31 * result + (properties != null ? properties.hashCode() : 0);
+        return result;
+    }
 }

@@ -43,7 +43,7 @@ public class GrokController {
     @ApiOperation(value = "Applies a Grok statement to a sample message")
     @ApiResponse(message = "JSON results", code = 200)
     @RequestMapping(value = "/validate", method = RequestMethod.POST)
-    ResponseEntity<GrokValidation> post(@ApiParam(name="grokValidation", value="Object containing Grok statment and sample message", required=true)@RequestBody GrokValidation grokValidation) throws RestException {
+    ResponseEntity<GrokValidation> post(@ApiParam(name = "grokValidation", value = "Object containing Grok statement and sample message", required = true) @RequestBody GrokValidation grokValidation) throws RestException {
         return new ResponseEntity<>(grokService.validateGrokStatement(grokValidation), HttpStatus.OK);
     }
 
