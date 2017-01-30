@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
+import kafka.admin.AdminUtils$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -46,7 +47,7 @@ public class KafkaConfig {
     return ZkUtils.apply(zkClient, false);
   }
 
-  @Bean(destroyMethod="close")
+  @Bean(destroyMethod = "close")
   public KafkaConsumer<String, String> kafkaConsumer() {
     Properties props = new Properties();
     props.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
@@ -57,5 +58,10 @@ public class KafkaConfig {
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     return new KafkaConsumer<>(props);
+  }
+
+  @Bean
+  public AdminUtils$ adminUtils() {
+    return AdminUtils$.MODULE$;
   }
 }

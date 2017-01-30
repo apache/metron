@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
+import org.apache.directory.api.util.Strings;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
@@ -31,9 +32,12 @@ import java.util.Map;
 
 @Service
 public class GrokServiceImpl implements GrokService {
+    private Grok commonGrok;
 
     @Autowired
-    private Grok commonGrok;
+    public GrokServiceImpl(Grok commonGrok) {
+        this.commonGrok = commonGrok;
+    }
 
     @Override
     public Map<String, String> getCommonGrokPatterns() {
@@ -44,10 +48,12 @@ public class GrokServiceImpl implements GrokService {
     public GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException {
         Map<String, Object> results;
         try {
+            String statement = Strings.isEmpty(grokValidation.getStatement()) ? "" : grokValidation.getStatement();
+
             Grok grok = new Grok();
             grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
-            grok.addPatternFromReader(new StringReader(grokValidation.getStatement()));
-            String patternLabel = grokValidation.getStatement().substring(0, grokValidation.getStatement().indexOf(" "));
+            grok.addPatternFromReader(new StringReader(statement));
+            String patternLabel = statement.substring(0, statement.indexOf(" "));
             String grokPattern = "%{" + patternLabel + "}";
             grok.compile(grokPattern);
             Match gm = grok.match(grokValidation.getSampleData());
@@ -55,7 +61,7 @@ public class GrokServiceImpl implements GrokService {
             results = gm.toMap();
             results.remove(patternLabel);
         } catch (StringIndexOutOfBoundsException e) {
-            throw new RestException("A pattern label must be included (ex. PATTERN_LABEL ${PATTERN:field} ...)", e.getCause());
+            throw new RestException("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)", e.getCause());
         } catch (Exception e) {
             throw new RestException(e);
         }
