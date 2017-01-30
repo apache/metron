@@ -17,7 +17,7 @@
  */
 import { NgModule } from '@angular/core';
 import {SharedModule} from '../../../shared/shared.module';
-import {SensorRuleEditorComponent} from "./sensor-rule-editor.component";
+import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
 import {NumberSpinnerModule} from '../../../shared/number-spinner/number-spinner.module';
 
 @NgModule ({
