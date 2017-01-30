@@ -21,7 +21,7 @@
 
 module.exports = function (config) {
   config.set({
-    basePath: '',
+    basePath: process.cwd(),
     frameworks: ['jasmine', 'angular-cli'],
     plugins: [
       require('karma-jasmine'),
@@ -36,7 +36,7 @@ module.exports = function (config) {
       { pattern: './src/test.ts', watched: false }
     ],
     proxies: {
-      "/assets/fonts/Roboto/": "/assets/fonts/Roboto/"
+      "/assets/fonts/Roboto/": "/basePath/assets/fonts/Roboto/"
     },
     preprocessors: {
       './src/test.ts': ['angular-cli']
