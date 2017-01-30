@@ -58,7 +58,7 @@
                 <div>
                   <div *ngFor="let results of transformsConfigKeys" >
                     <div class="form-label">{{ results }}</div>
-                    <div class="form-value">{{ sensorParserConfigHistory.config.fieldTransformations[0].config[results] }}</div>
+                    <div class="form-value">{{ transformsConfigMap[results] }}</div>
                   </div>
                 </div>
               </div>

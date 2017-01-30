@@ -122,18 +122,15 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(component.highAlerts).toEqual(2);
 
     // sorted by name high to low
-    component.sortOrder = SortOrderOption.HIGHEST_NAME;
-    component.onSortOrderChange();
+    component.onSortOrderChange(SortOrderOption.Highest_Name);
     expect(component.rules).toEqual(['ruleE', 'ruleD', 'ruleC', 'ruleB', 'ruleA']);
 
     // sorted by score low to high
-    component.sortOrder = SortOrderOption.LOWEST_SCORE;
-    component.onSortOrderChange();
+    component.onSortOrderChange(SortOrderOption.Lowest_Score);
     expect(component.rules).toEqual(['ruleE', 'ruleA', 'ruleC', 'ruleD', 'ruleB']);
 
     // sorted by name low to high
-    component.sortOrder = SortOrderOption.LOWEST_NAME;
-    component.onSortOrderChange();
+    component.onSortOrderChange(SortOrderOption.Lowest_Name);
     expect(component.rules).toEqual(['ruleA', 'ruleB', 'ruleC', 'ruleD', 'ruleE']);
 
     component.onNewRule();
@@ -147,7 +144,7 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(component.showTextEditor).toEqual(false);
     expect(component.rules).toEqual(['ruleA', 'ruleB', 'ruleC', 'ruleD', 'ruleE']);
 
-    component.sortOrder = SortOrderOption.LOWEST_SCORE;
+    component.sortOrder = SortOrderOption.Lowest_Score;
     component.onNewRule();
     component.textEditorValue = 'ruleF';
     component.textEditorScore = 21;
