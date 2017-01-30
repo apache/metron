@@ -60,6 +60,9 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     {label: 'STORM', model: 'topologyStatus', value: 'status', boldTitle: true},
     {label: 'LATENCY', model: 'topologyStatus', value: 'latency'},
     {label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput'},
+    {label: 'PASSED(10 MIN)', model: 'topologyStatus', value: 'passed'},
+    {label: 'Ingested(10 MIN)', model: 'topologyStatus', value: 'ingested'},
+    {label: 'Ackd(10 MIN)', model: 'topologyStatus', value: 'acked'},
 
     {type: 'SPACER', model: '', value: ''},
 
