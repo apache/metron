@@ -28,9 +28,9 @@ public class TopologyStatus {
   private Map<String, Object>[] topologyStats;
   private double latency = 0;
   private double throughput = 0;
-  private long passed = 0;
-  private long ingested = 0;
-  private long acked = 0;
+  private int passed = 0;
+  private int ingested = 0;
+  private int acked = 0;
 
   public String getId() {
     return id;
@@ -83,13 +83,12 @@ public class TopologyStatus {
         if (topologyStatsItem.get("acked") != null) {
           acked = (int) topologyStatsItem.get("acked");
         }
-        if (topologyStatsItem.get("emitted") != null) {
-          ingested = (int) topologyStatsItem.get("emitted");
-        }
         if (topologyStatsItem.get("transferred") != null) {
-          passed = (int) topologyStatsItem.get("transferred");
+          ingested= (int) topologyStatsItem.get("transferred");
+          int failed = (int) (topologyStatsItem.get("failed") != null ? topologyStatsItem.get("failed") : 0);
+          passed = ingested - failed;
         }
-        throughput = ((int)acked) / 600.00;
+        throughput = acked / 600.00;
       }
     }
   }

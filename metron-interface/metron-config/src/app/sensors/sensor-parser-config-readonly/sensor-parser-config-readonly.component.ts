@@ -60,9 +60,9 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     {label: 'STORM', model: 'topologyStatus', value: 'status', boldTitle: true},
     {label: 'LATENCY', model: 'topologyStatus', value: 'latency'},
     {label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput'},
+    {label: 'EMITTED(10 MIN)', model: 'topologyStatus', value: 'ingested'},
     {label: 'PASSED(10 MIN)', model: 'topologyStatus', value: 'passed'},
-    {label: 'Ingested(10 MIN)', model: 'topologyStatus', value: 'ingested'},
-    {label: 'Ackd(10 MIN)', model: 'topologyStatus', value: 'acked'},
+    {label: 'ACKED(10 MIN)', model: 'topologyStatus', value: 'acked'},
 
     {type: 'SPACER', model: '', value: ''},
 
@@ -110,7 +110,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       (results: TopologyStatus) => {
         this.topologyStatus = results;
         this.topologyStatus.latency = (this.topologyStatus.latency ? this.topologyStatus.latency : '0') + 's';
-        this.topologyStatus.throughput = (this.topologyStatus.throughput ? this.topologyStatus.throughput : '0') + 'kb/s';
+        this.topologyStatus.throughput = (this.topologyStatus.throughput ? (Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) : '0') + 'kb/s';
+
 
         this.topologyStatus['sensorStatus'] = '-';
 
