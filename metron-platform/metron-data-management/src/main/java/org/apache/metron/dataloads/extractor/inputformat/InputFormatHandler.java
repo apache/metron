@@ -17,12 +17,17 @@
  */
 package org.apache.metron.dataloads.extractor.inputformat;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public interface InputFormatHandler {
-    void set(Job job, Path input, Map<String, Object> config) throws IOException;
+  void set(Job job, List<Path> input, Map<String, Object> config) throws IOException;
+  default void set(Job job, Path input, Map<String, Object> config) throws IOException {
+    set(job, ImmutableList.of(input), config);
+  }
 }
