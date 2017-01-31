@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -89,13 +89,13 @@ DOUBLE_LITERAL :
   | INT_LITERAL EXPONENT D?
   | INT_LITERAL EXPONENT? D
   ;
-FLOAT_LITERAL  :
+FLOAT_LITERAL :
   INT_LITERAL PERIOD DIGIT* EXPONENT? F
   | MINUS? PERIOD DIGIT+ EXPONENT? F
   | INT_LITERAL EXPONENT? F
   ;
-LONG_LITERAL  : INT_LITERAL L ;
-IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]* ;
+LONG_LITERAL : INT_LITERAL L;
+IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]*;
 
 STRING_LITERAL :
   DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
@@ -105,9 +105,9 @@ STRING_LITERAL :
 // COMMENT and WS are stripped from the output token stream by sending
 // to a different channel 'skip'
 
-COMMENT : '//' .+? (EOL|EOF) -> skip ;
+COMMENT : '//' .+? (EOL|EOF) -> skip;
 
-WS : [ \r\t\u000C\n]+ -> skip ;
+WS : [ \r\t\u000C\n]+ -> skip;
 
 fragment ZERO: '0';
 fragment FIRST_DIGIT: '1'..'9';
@@ -125,8 +125,8 @@ transformation : transformation_expr EOF;
 
 transformation_expr:
    conditional_expr #ConditionalExpr
-  |  LPAREN transformation_expr RPAREN #TransformationExpr
-  | arithmetic_expr               # ArithExpression
+  | LPAREN transformation_expr RPAREN #TransformationExpr
+  | arithmetic_expr # ArithExpression
   | transformation_entity #TransformationEntity
   | comparison_expr # ComparisonExpression
   | logical_expr #LogicalExpression
@@ -161,57 +161,69 @@ comparison_expr :
   | identifier_operand #operand
   ;
 
-transformation_entity : identifier_operand
+transformation_entity : identifier_operand;
+
+comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp;
+
+func_args :
+  LPAREN op_list RPAREN
+  | LPAREN RPAREN
   ;
-comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp
-              ;
-func_args : LPAREN op_list RPAREN
-          | LPAREN RPAREN
-          ;
-op_list : identifier_operand
-        | op_list COMMA identifier_operand
-        | conditional_expr
-        | op_list COMMA conditional_expr
-        ;
+
+op_list :
+  identifier_operand
+  | op_list COMMA identifier_operand
+  | conditional_expr
+  | op_list COMMA conditional_expr
+  ;
 
 list_entity :
   LBRACKET op_list RBRACKET
   | LBRACKET RBRACKET
   ;
 
-kv_list : identifier_operand COLON transformation_expr
-        | kv_list COMMA identifier_operand COLON transformation_expr
-        ;
+kv_list :
+  identifier_operand COLON transformation_expr
+  | kv_list COMMA identifier_operand COLON transformation_expr
+  ;
 
-map_entity : LBRACE kv_list RBRACE
-           | LBRACE RBRACE;
+map_entity :
+  LBRACE kv_list RBRACE
+  | LBRACE RBRACE
+  ;
 
-arithmetic_expr: arithmetic_expr_mul #ArithExpr_solo
-               | arithmetic_expr PLUS arithmetic_expr_mul #ArithExpr_plus
-               | arithmetic_expr MINUS arithmetic_expr_mul #ArithExpr_minus
-                ;
-arithmetic_expr_mul : arithmetic_operands #ArithExpr_mul_solo
-                    | arithmetic_expr_mul MUL arithmetic_expr_mul #ArithExpr_mul
-                    | arithmetic_expr_mul DIV arithmetic_expr_mul #ArithExpr_div
-                    ;
+arithmetic_expr:
+  arithmetic_expr_mul #ArithExpr_solo
+  | arithmetic_expr PLUS arithmetic_expr_mul #ArithExpr_plus
+  | arithmetic_expr MINUS arithmetic_expr_mul #ArithExpr_minus
+  ;
 
-functions : IDENTIFIER func_args #TransformationFunc
-          ;
-arithmetic_operands : functions #NumericFunctions
-                    | DOUBLE_LITERAL #DoubleLiteral
-                    | INT_LITERAL #IntLiteral
-                    | LONG_LITERAL #LongLiteral
-                    | FLOAT_LITERAL #FloatLiteral
-                    | IDENTIFIER #Variable
-                    | LPAREN arithmetic_expr RPAREN #ParenArith
-                    | LPAREN conditional_expr RPAREN#condExpr
-                    ;
-identifier_operand : (TRUE | FALSE) # LogicalConst
-                   | arithmetic_expr #ArithmeticOperands
-                   | STRING_LITERAL # StringLiteral
-                   | list_entity #List
-                   | map_entity #MapConst
-                   | NULL #NullConst
-                   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
-                   | LPAREN conditional_expr RPAREN#condExpr_paren
-                   ;
+arithmetic_expr_mul :
+  arithmetic_operands #ArithExpr_mul_solo
+  | arithmetic_expr_mul MUL arithmetic_expr_mul #ArithExpr_mul
+  | arithmetic_expr_mul DIV arithmetic_expr_mul #ArithExpr_div
+  ;
+
+functions : IDENTIFIER func_args #TransformationFunc;
+
+arithmetic_operands :
+  functions #NumericFunctions
+  | DOUBLE_LITERAL #DoubleLiteral
+  | INT_LITERAL #IntLiteral
+  | LONG_LITERAL #LongLiteral
+  | FLOAT_LITERAL #FloatLiteral
+  | IDENTIFIER #Variable
+  | LPAREN arithmetic_expr RPAREN #ParenArith
+  | LPAREN conditional_expr RPAREN #condExpr
+  ;
+
+identifier_operand :
+  (TRUE | FALSE) #LogicalConst
+  | arithmetic_expr #ArithmeticOperands
+  | STRING_LITERAL # StringLiteral
+  | list_entity #List
+  | map_entity #MapConst
+  | NULL #NullConst
+  | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
+  | LPAREN conditional_expr RPAREN #condExpr_paren
+  ;
