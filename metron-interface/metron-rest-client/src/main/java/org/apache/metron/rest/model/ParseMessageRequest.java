@@ -22,6 +22,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 public class ParseMessageRequest {
 
     private SensorParserConfig sensorParserConfig;
+    private String grokStatement;
     private String sampleData;
 
     public SensorParserConfig getSensorParserConfig() {
@@ -30,6 +31,14 @@ public class ParseMessageRequest {
 
     public void setSensorParserConfig(SensorParserConfig sensorParserConfig) {
         this.sensorParserConfig = sensorParserConfig;
+    }
+
+    public String getGrokStatement() {
+        return grokStatement;
+    }
+
+    public void setGrokStatement(String grokStatement) {
+        this.grokStatement = grokStatement;
     }
 
     public String getSampleData() {

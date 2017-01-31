@@ -30,13 +30,14 @@ public class DocumentationGenerator {
     List<StellarFunctionInfo> functions = Lists.newArrayList(SingletonFunctionResolver.getInstance().getFunctionInfo());
     Collections.sort(functions, (o1, o2) -> o1.getName().compareTo(o2.getName()));
     for(StellarFunctionInfo info: functions) {
-      System.out.println( "* `" + info.getName() + "`");
+      System.out.println( "### `" + info.getName() + "`");
       System.out.println( "  * Description: " + info.getDescription() );
       System.out.println( "  * Input:");
       for(String param :info.getParams()) {
         System.out.println( "    * " + param );
       }
       System.out.println( "  * Returns: " + info.getReturns() );
+      System.out.println("");
     }
   }
 

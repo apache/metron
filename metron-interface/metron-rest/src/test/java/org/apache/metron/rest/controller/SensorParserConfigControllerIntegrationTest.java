@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.rest.MetronRestConstants;
+import org.apache.metron.rest.service.GrokService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +59,7 @@ public class SensorParserConfigControllerIntegrationTest {
    "sensorTopic": "squidTest",
    "parserConfig": {
    "patternLabel": "SQUIDTEST",
-   "grokStatement": "%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}",
+   "grokPath": "target/patterns/squidTest",
    "timestampField": "timestamp"
    },
    "fieldTransformations" : [
@@ -78,19 +79,6 @@ public class SensorParserConfigControllerIntegrationTest {
 
   /**
    {
-   "parserClassName": "org.apache.metron.parsers.GrokParser",
-   "sensorTopic": "squidTest",
-   "parserConfig": {
-   "patternLabel": "SQUIDTEST",
-   "timestampField": "timestamp"
-   }
-   }
-   */
-  @Multiline
-  public static String missingGrokJson;
-
-  /**
-   {
    "parserClassName":"org.apache.metron.parsers.bro.BasicBroParser",
    "sensorTopic":"broTest",
    "parserConfig": {}
@@ -106,12 +94,12 @@ public class SensorParserConfigControllerIntegrationTest {
    "parserClassName": "org.apache.metron.parsers.GrokParser",
    "sensorTopic": "squidTest",
    "parserConfig": {
-   "grokStatement": "%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}",
-   "patternLabel": "SQUIDTEST",
+   "patternLabel": "SQUID_DELIMITED",
    "grokPath":"./squidTest",
    "timestampField": "timestamp"
    }
    },
+   "grokStatement":"SQUID_DELIMITED %{NUMBER:timestamp}[^0-9]*%{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url}[^0-9]*(%{IP:ip_dst_addr})?",
    "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html"
    }
    */
@@ -168,6 +156,9 @@ public class SensorParserConfigControllerIntegrationTest {
   private Environment environment;
 
   @Autowired
+  private GrokService grokService;
+
+  @Autowired
   private WebApplicationContext wac;
 
   private MockMvc mockMvc;
@@ -207,19 +198,12 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.sensorTopic").value("squidTest"))
             .andExpect(jsonPath("$.parserConfig.grokPath").value("target/patterns/squidTest"))
             .andExpect(jsonPath("$.parserConfig.patternLabel").value("SQUIDTEST"))
-            .andExpect(jsonPath("$.parserConfig.grokStatement").value("%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}"))
             .andExpect(jsonPath("$.parserConfig.timestampField").value("timestamp"))
             .andExpect(jsonPath("$.fieldTransformations[0].transformation").value("STELLAR"))
             .andExpect(jsonPath("$.fieldTransformations[0].output[0]").value("full_hostname"))
             .andExpect(jsonPath("$.fieldTransformations[0].output[1]").value("domain_without_subdomains"))
             .andExpect(jsonPath("$.fieldTransformations[0].config.full_hostname").value("URL_TO_HOST(url)"))
             .andExpect(jsonPath("$.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"));
-
-    this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(missingGrokJson))
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.responseCode").value(500))
-            .andExpect(jsonPath("$.message").value("A grokStatement must be provided"));
 
     this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -228,7 +212,6 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.sensorTopic").value("squidTest"))
             .andExpect(jsonPath("$.parserConfig.grokPath").value("target/patterns/squidTest"))
             .andExpect(jsonPath("$.parserConfig.patternLabel").value("SQUIDTEST"))
-            .andExpect(jsonPath("$.parserConfig.grokStatement").value("%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}"))
             .andExpect(jsonPath("$.parserConfig.timestampField").value("timestamp"))
             .andExpect(jsonPath("$.fieldTransformations[0].transformation").value("STELLAR"))
             .andExpect(jsonPath("$.fieldTransformations[0].output[0]").value("full_hostname"))

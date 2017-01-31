@@ -96,7 +96,11 @@ The `!=` operator is the negation of the above.
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
-| [ `GEO_GET`](#geo_get)                                                                          |
+| [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
+| [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
+| [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
+| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
+| [ `GEO_GET`](#geo_get)                                                                             |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
@@ -250,6 +254,22 @@ The `!=` operator is the negation of the above.
     * column_family - The Column Family to use
   * Returns: A Map associated with the indicator and enrichment type.  Empty otherwise.
 
+### `FILL_LEFT`
+  * Description: Fills or pads a given string with a given character, to a given length on the left
+  * Input:
+    * input - string
+    * fill - the fill character
+    * len - the required length
+  * Returns: the filled string
+
+### `FILL_RIGHT`
+  * Description: Fills or pads a given string with a given character, to a given length on the right
+  * Input:
+    * input - string
+    * fill - the fill character string
+    * len - the required length
+  * Returns: Last element of the list
+
 ### `GEO_GET`
   * Description: Look up an IPV4 address and returns geographic information about it
   * Input:
@@ -274,22 +294,6 @@ The `!=` operator is the negation of the above.
   * Description: Returns the last element of the list
   * Input:
     * input - List
-  * Returns: Last element of the list
-
-### `FILL_LEFT`
-  * Description: Fills or pads a given string with a given character, to a given length on the left
-  * Input:
-    * input - string
-    * fill - the fill character
-    * len - the required length
-  * Returns: the filled string
-
-### `FILL_RIGHT`
-  * Description: Fills or pads a given string with a given character, to a given length on the right
-  * Input:
-    * input - string
-    * fill - the fill character string
-    * len - the required length
   * Returns: Last element of the list
 
 ### `IN_SUBNET`
@@ -407,7 +411,8 @@ The `!=` operator is the negation of the above.
     * key - The key to check for existence
     * map - The map to check for existence of the key
   * Returns: True if the key is found in the map and false if otherwise.
-MAP_GET`
+
+### `MAP_GET`
   * Description: Gets the value associated with a key from a map
   * Input:
     * key - The key

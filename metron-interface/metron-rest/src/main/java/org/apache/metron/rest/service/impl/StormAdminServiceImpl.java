@@ -33,16 +33,17 @@ public class StormAdminServiceImpl implements StormAdminService {
 
     private StormCLIWrapper stormCLIClientWrapper;
 
-    @Autowired
-    public void setStormCLIClientWrapper(StormCLIWrapper stormCLIClientWrapper) {
-        this.stormCLIClientWrapper = stormCLIClientWrapper;
-    }
-
-    @Autowired
     private GlobalConfigService globalConfigService;
 
-    @Autowired
     private SensorParserConfigService sensorParserConfigService;
+
+    @Autowired
+    public StormAdminServiceImpl(StormCLIWrapper stormCLIClientWrapper, GlobalConfigService globalConfigService, SensorParserConfigService sensorParserConfigService) {
+        this.stormCLIClientWrapper = stormCLIClientWrapper;
+        this.globalConfigService = globalConfigService;
+        this.sensorParserConfigService = sensorParserConfigService;
+    }
+
 
     @Override
     public TopologyResponse startParserTopology(String name) throws RestException {
