@@ -17,32 +17,19 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.metron.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.file.ReaderSpliterator;
-import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.enrichment.converter.HbaseConverter;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Stream;
 
 public class SimpleEnrichmentFlatFileLoader {
 
@@ -50,14 +37,17 @@ public class SimpleEnrichmentFlatFileLoader {
   public static void main(String... argv) throws Exception {
     Configuration hadoopConfig = HBaseConfiguration.create();
     String[] otherArgs = new GenericOptionsParser(hadoopConfig, argv).getRemainingArgs();
+    main(hadoopConfig, otherArgs);
+  }
+  public static void main(Configuration hadoopConfig, String[] argv) throws Exception {
 
-    CommandLine cli = LoadOptions.parse(new PosixParser(), otherArgs);
+    CommandLine cli = LoadOptions.parse(new PosixParser(), argv);
     EnumMap<LoadOptions, Optional<Object>> config = LoadOptions.createConfig(cli);
     if(LoadOptions.LOG4J_PROPERTIES.has(cli)) {
       PropertyConfigurator.configure(LoadOptions.LOG4J_PROPERTIES.get(cli));
     }
     ExtractorHandler handler = ExtractorHandler.load(
-            FileUtils.readFileToString(new File(LoadOptions.EXTRACTOR_CONFIG.get(cli)))
+            FileUtils.readFileToString(new File(LoadOptions.EXTRACTOR_CONFIG.get(cli).trim()))
     );
     ImportStrategy strategy = (ImportStrategy) config.get(LoadOptions.IMPORT_MODE).get();
     strategy.getImporter().importData(config, handler, hadoopConfig);

@@ -1,4 +1,4 @@
-package org.apache.metron.dataloads.nonbulk.flatfile;
+package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -8,6 +8,7 @@ import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.hbase.mr.BulkLoadMapper;
+import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ public enum MapReduceImporter implements Importer{
     job.setOutputValueClass(Put.class);
     job.setNumReduceTasks(0);
     List<Path> paths = inputs.stream().map(p -> new Path(p)).collect(Collectors.toList());
-    handler.getInputFormatHandler().set(job, paths, handler.getConfig());
+    handler.getInputFormat().set(job, paths, handler.getConfig());
     try {
       job.waitForCompletion(true);
     } catch (Exception e) {

@@ -1,8 +1,5 @@
-package org.apache.metron.dataloads.nonbulk.flatfile;
+package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
-import com.google.common.base.Joiner;
-
-import java.util.List;
 import java.util.Optional;
 
 public enum ImportStrategy {
@@ -24,7 +21,7 @@ public enum ImportStrategy {
       return Optional.empty();
     }
     for(ImportStrategy strategy : values()) {
-      if(strategy.name().equalsIgnoreCase(strategyName)) {
+      if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
         return Optional.of(strategy);
       }
     }

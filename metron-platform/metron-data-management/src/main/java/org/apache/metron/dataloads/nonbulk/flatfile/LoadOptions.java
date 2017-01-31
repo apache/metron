@@ -5,6 +5,7 @@ import com.google.common.base.Splitter;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -54,7 +55,7 @@ public enum LoadOptions {
 
     @Override
     public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      return Optional.ofNullable(option.get(cli));
+      return Optional.ofNullable(option.get(cli).trim());
     }
   })
   ,HBASE_CF("c", new OptionHandler() {
@@ -69,7 +70,7 @@ public enum LoadOptions {
 
     @Override
     public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      return Optional.ofNullable(option.get(cli));
+      return Optional.ofNullable(option.get(cli).trim());
     }
   })
   ,EXTRACTOR_CONFIG("e", new OptionHandler() {
@@ -85,7 +86,7 @@ public enum LoadOptions {
     @Override
     public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
       try {
-        return Optional.ofNullable(FileUtils.readFileToString(new File(option.get(cli))));
+        return Optional.ofNullable(FileUtils.readFileToString(new File(option.get(cli).trim())));
       } catch (IOException e) {
         throw new IllegalStateException("Unable to retrieve extractor config from " + option.get(cli) + ": " + e.getMessage(), e);
       }
