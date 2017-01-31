@@ -20,7 +20,7 @@ grammar Stellar;
 
 @header {
 //CHECKSTYLE:OFF
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -45,7 +45,6 @@ DOUBLE_QUOTE : '"';
 SINGLE_QUOTE : '\'';
 COMMA : ',';
 PERIOD : '.';
-fragment EOL : '\n';
 
 AND : 'and' | '&&' | 'AND';
 OR : 'or' | '||' | 'OR';
@@ -118,7 +117,7 @@ fragment D: ('d'|'D');
 fragment E: ('e'|'E');
 fragment F: ('f'|'F');
 fragment L: ('l'|'L');
-
+fragment EOL : '\n';
 
 /* Parser rules */
 
@@ -129,29 +128,43 @@ transformation_expr:
   |  LPAREN transformation_expr RPAREN #TransformationExpr
   | arithmetic_expr               # ArithExpression
   | transformation_entity #TransformationEntity
-  | comparison_expr               # ComparisonExpression
+  | comparison_expr # ComparisonExpression
+  | logical_expr #LogicalExpression
+  | in_expr #InExpression
   ;
-conditional_expr :  comparison_expr QUESTION transformation_expr COLON transformation_expr #TernaryFuncWithoutIf
-                 | IF comparison_expr THEN transformation_expr ELSE transformation_expr #TernaryFuncWithIf
-                 ;
 
-comparison_expr : identifier_operand comp_operator identifier_operand # ComparisonExpressionWithOperator
-                | identifier_operand IN identifier_operand #InExpression
-                | identifier_operand NIN identifier_operand #NInExpression
-                | comparison_expr AND comparison_expr #LogicalExpressionAnd
-                | comparison_expr OR comparison_expr #LogicalExpressionOr
-                | NOT LPAREN comparison_expr RPAREN #NotFunc
-                | LPAREN comparison_expr RPAREN # ComparisonExpressionParens
-                | identifier_operand #operand
-                ;
+conditional_expr :
+  logical_expr QUESTION transformation_expr COLON transformation_expr #TernaryFuncWithoutIf
+  | IF logical_expr THEN transformation_expr ELSE transformation_expr #TernaryFuncWithIf
+  ;
+
+logical_expr:
+  b_expr AND logical_expr #LogicalExpressionAnd
+  | b_expr OR logical_expr #LogicalExpressionOr
+  | b_expr #BoleanExpression
+  ;
+
+b_expr:
+  comparison_expr
+  | in_expr
+  ;
+
+in_expr:
+  identifier_operand IN b_expr #InExpressionStatement
+  | identifier_operand NIN b_expr #NInExpressionStatement
+  ;
+
+comparison_expr :
+  comparison_expr comp_operator comparison_expr #ComparisonExpressionWithOperator
+  | NOT LPAREN logical_expr RPAREN #NotFunc
+  | LPAREN logical_expr RPAREN #ComparisonExpressionParens
+  | identifier_operand #operand
+  ;
+
 transformation_entity : identifier_operand
   ;
 comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp
               ;
-arith_operator_addition : (PLUS | MINUS) # ArithOp_plus
-               ;
-arith_operator_mul : (MUL | DIV) # ArithOp_mul
-               ;
 func_args : LPAREN op_list RPAREN
           | LPAREN RPAREN
           ;
@@ -160,8 +173,11 @@ op_list : identifier_operand
         | conditional_expr
         | op_list COMMA conditional_expr
         ;
-list_entity : LBRACKET op_list RBRACKET
-            | LBRACKET RBRACKET;
+
+list_entity :
+  LBRACKET op_list RBRACKET
+  | LBRACKET RBRACKET
+  ;
 
 kv_list : identifier_operand COLON transformation_expr
         | kv_list COMMA identifier_operand COLON transformation_expr
