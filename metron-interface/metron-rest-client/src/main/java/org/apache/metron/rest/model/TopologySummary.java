@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.model;
 
+import java.util.Arrays;
+
 public class TopologySummary {
 
     private TopologyStatus[] topologies;
@@ -30,5 +32,20 @@ public class TopologySummary {
 
     public void setTopologies(TopologyStatus[] topologies) {
         this.topologies = topologies;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      TopologySummary that = (TopologySummary) o;
+
+      return topologies != null ? Arrays.equals(topologies, that.topologies) : that.topologies != null;
+    }
+
+    @Override
+    public int hashCode() {
+      return topologies != null ? Arrays.hashCode(topologies) : 0;
     }
 }

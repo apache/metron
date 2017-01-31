@@ -20,22 +20,35 @@ package org.apache.metron.rest.service.impl;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.directory.api.util.Strings;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Map;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
+
 @Service
 public class GrokServiceImpl implements GrokService {
+
+    private Environment environment;
+
     private Grok commonGrok;
 
     @Autowired
-    public GrokServiceImpl(Grok commonGrok) {
+    public GrokServiceImpl(Environment environment, Grok commonGrok) {
+        this.environment = environment;
         this.commonGrok = commonGrok;
     }
 
@@ -67,6 +80,33 @@ public class GrokServiceImpl implements GrokService {
         }
         grokValidation.setResults(results);
         return grokValidation;
+    }
+
+    @Override
+    public File saveTemporary(String statement, String name) throws RestException {
+        if (statement != null) {
+            try {
+                File grokDirectory = new File(getTemporaryGrokRootPath());
+                if (!grokDirectory.exists()) {
+                  grokDirectory.mkdirs();
+                }
+                File path = new File(grokDirectory, name);
+                FileWriter fileWriter = new FileWriter(new File(grokDirectory, name));
+                fileWriter.write(statement);
+                fileWriter.close();
+                return path;
+            } catch (IOException e) {
+                throw new RestException(e);
+            }
+        } else {
+            throw new RestException("A grokStatement must be provided");
+        }
+    }
+
+    private String getTemporaryGrokRootPath() {
+      String grokTempPath = environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY);
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      return new Path(grokTempPath, authentication.getName()).toString();
     }
 
 }

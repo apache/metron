@@ -26,8 +26,8 @@ public class TopologyStatus {
   private String name;
   private TopologyStatusCode status;
   private Map<String, Object>[] topologyStats;
-  private double latency = 0;
-  private double throughput = 0;
+  private Double latency = 0.0;
+  private Double throughput = 0.0;
 
   public String getId() {
     return id;
@@ -72,5 +72,29 @@ public class TopologyStatus {
         throughput = acked / 600.00;
       }
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    TopologyStatus that = (TopologyStatus) o;
+
+    if (id != null ? !id.equals(that.id) : that.id != null) return false;
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (status != null ? !status.equals(that.status) : that.status != null) return false;
+    if (!latency.equals(that.latency)) return false;
+    return throughput.equals(that.throughput);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (status != null ? status.hashCode() : 0);
+    result = 31 * result + (latency != null ? latency.hashCode() : 0);
+    result = 31 * result + (throughput != null ? throughput.hashCode() : 0);
+    return result;
   }
 }
