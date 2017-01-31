@@ -210,6 +210,23 @@ This product bundles some test examples from the Stix project (metron-platform/m
 
 This product bundles wait-for-it.sh, which is available under a "MIT Software License" license.  For details, see https://github.com/vishnubob/wait-for-it
 
+------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------
+  Creative Commons Attribution-ShareAlike 4.0 International License
+------------------------------------------------------------------------------------
+
+This product includes GeoLite2 data created by MaxMind, available from
+<a href="http://www.maxmind.com">http://www.maxmind.com</a>.
+
+------------------------------------------------------------------------------------
+  Creative Commons Attribution-ShareAlike 3.0 License
+------------------------------------------------------------------------------------
+
+This product includes a MaxMind DB created by MaxMind, available from
+<a href="https://github.com/maxmind/MaxMind-DB">https://github.com/maxmind/MaxMind-DB</a>.
+
+------------------------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

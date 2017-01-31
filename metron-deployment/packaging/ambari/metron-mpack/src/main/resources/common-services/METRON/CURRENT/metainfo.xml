@@ -113,29 +113,6 @@
         </component>
 
         <component>
-          <name>METRON_ENRICHMENT_MYSQL_SERVER</name>
-          <displayName>MySQL Server</displayName>
-          <category>MASTER</category>
-          <cardinality>1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
-          <clientsToUpdateConfigs></clientsToUpdateConfigs>
-          <commandScript>
-            <script>scripts/mysql_server.py</script>
-            <scriptType>PYTHON</scriptType>
-          </commandScript>
-          <customCommands>
-            <customCommand>
-              <name>CLEAN</name>
-              <commandScript>
-                <script>scripts/mysql_server.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>600</timeout>
-              </commandScript>
-            </customCommand>
-          </customCommands>
-        </component>
-
-        <component>
           <name>METRON_INDEXING</name>
           <displayName>Metron Indexing</displayName>
           <category>MASTER</category>
@@ -181,6 +158,14 @@
               </customCommand>
               <customCommand>
                 <name>ELASTICSEARCH_TEMPLATE_DELETE</name>
+                <commandScript>
+                  <script>scripts/indexing_master.py</script>
+                  <scriptType>PYTHON</scriptType>
+                  <timeout>600</timeout>
+                </commandScript>
+              </customCommand>
+              <customCommand>
+                <name>ZEPPELIN_NOTEBOOK_IMPORT</name>
                 <commandScript>
                   <script>scripts/indexing_master.py</script>
                   <scriptType>PYTHON</scriptType>
@@ -234,33 +219,6 @@
             </package>
           </packages>
         </osSpecific>
-        <osSpecific>
-          <osFamily>redhat7</osFamily>
-          <packages>
-            <package>
-              <name>mysql-community-release</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>mysql-community-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>MySQL-python</package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat6</osFamily>
-          <packages>
-            <package>
-              <name>mysql-server</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>mysql</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
       </osSpecifics>
       <commandScript>
         <script>scripts/service_check.py</script>
@@ -274,6 +232,7 @@
         <service>STORM</service>
         <service>ZOOKEEPER</service>
         <service>HBASE</service>
+        <service>ZEPPELIN</service>
       </requiredServices>
 
       <configuration-dependencies>
@@ -282,6 +241,7 @@
         <config-type>storm-site</config-type>
         <config-type>kafka-broker</config-type>
         <config-type>kafka-env</config-type>
+        <config-type>zeppelin-config</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
       <quickLinksConfigurations>

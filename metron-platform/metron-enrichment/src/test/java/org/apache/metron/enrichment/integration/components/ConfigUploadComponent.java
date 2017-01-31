@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.apache.metron.common.configuration.ConfigurationsUtils.*;
 
@@ -38,6 +40,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private String enrichmentConfigsPath;
   private String indexingConfigsPath;
   private String profilerConfigPath;
+  private Optional<Consumer<ConfigUploadComponent>> postStartCallback = Optional.empty();
   private Optional<String> globalConfig = Optional.empty();
   private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
   public ConfigUploadComponent withTopologyProperties(Properties topologyProperties) {
@@ -78,6 +81,47 @@ public class ConfigUploadComponent implements InMemoryComponent {
     return this;
   }
 
+  public ConfigUploadComponent withPostStartCallback(Consumer<ConfigUploadComponent> f) {
+        this.postStartCallback = Optional.ofNullable(f);
+        return this;
+  }
+
+  public Properties getTopologyProperties() {
+    return topologyProperties;
+  }
+
+  public String getGlobalConfigPath() {
+    return globalConfigPath;
+  }
+
+  public String getParserConfigsPath() {
+    return parserConfigsPath;
+  }
+
+  public String getEnrichmentConfigsPath() {
+    return enrichmentConfigsPath;
+  }
+
+  public String getIndexingConfigsPath() {
+    return indexingConfigsPath;
+  }
+
+  public String getProfilerConfigPath() {
+    return profilerConfigPath;
+  }
+
+  public Optional<Consumer<ConfigUploadComponent>> getPostStartCallback() {
+    return postStartCallback;
+  }
+
+  public Optional<String> getGlobalConfig() {
+    return globalConfig;
+  }
+
+  public Map<String, SensorParserConfig> getParserSensorConfigs() {
+    return parserSensorConfigs;
+  }
+
   @Override
   public void start() throws UnableToStartException {
     try {
@@ -98,6 +142,9 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
       if(globalConfig.isPresent()) {
         writeGlobalConfigToZookeeper(globalConfig.get().getBytes(), zookeeperUrl);
+      }
+      if(postStartCallback.isPresent()) {
+        postStartCallback.get().accept(this);
       }
 
     } catch (Exception e) {

@@ -85,7 +85,7 @@ public class HostFromJSONListAdapterTest {
   @Test
   public void testInitializeAdapter() throws Exception {
     HostFromJSONListAdapter hja = new HostFromJSONListAdapter(expectedKnownHostsString);
-    Assert.assertTrue(hja.initializeAdapter());
+    Assert.assertTrue(hja.initializeAdapter(null));
   }
 
 }

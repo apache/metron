@@ -34,25 +34,8 @@ components:
             -   "stellar"
             -   ref: "stellarEnrichmentAdapter"
 
-    -   id: "jdbcConfig"
-        className: "org.apache.metron.enrichment.adapters.jdbc.MySqlConfig"
-        properties:
-            -   name: "host"
-                value: "${mysql.ip}"
-            -   name: "port"
-                value: ${mysql.port}
-            -   name: "username"
-                value: "${mysql.username}"
-            -   name: "password"
-                value: "${mysql.password}"
-            -   name: "table"
-                value: "GEO"
     -   id: "geoEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.geo.GeoAdapter"
-        configMethods:
-            -   name: "withJdbcConfig"
-                args:
-                    - ref: "jdbcConfig"
     -   id: "geoEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:

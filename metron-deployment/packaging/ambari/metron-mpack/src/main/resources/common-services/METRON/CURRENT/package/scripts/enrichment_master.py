@@ -22,6 +22,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
 
 from enrichment_commands import EnrichmentCommands
+import metron_service
 
 
 class Enrichment(Script):
@@ -48,9 +49,12 @@ class Enrichment(Script):
         env.set_params(params)
         commands = EnrichmentCommands(params)
 
+        metron_service.load_global_config(params)
+
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.create_hbase_tables()
+            commands.init_geo()
             commands.set_configured()
 
         commands.start_enrichment_topology()
