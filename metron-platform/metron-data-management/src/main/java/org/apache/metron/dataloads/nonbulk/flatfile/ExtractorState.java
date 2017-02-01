@@ -15,11 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.lookup;
+package org.apache.metron.dataloads.nonbulk.flatfile;
 
-public interface LookupKey {
-  byte[] toBytes();
-  void fromBytes(byte[] in);
-  String getIndicator();
-  void setIndicator(String indicator);
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.dataloads.extractor.Extractor;
+import org.apache.metron.enrichment.converter.HbaseConverter;
+
+public class ExtractorState {
+  private HTableInterface table;
+  private Extractor extractor;
+  private HbaseConverter converter;
+
+  public ExtractorState(HTableInterface table, Extractor extractor, HbaseConverter converter) {
+    this.table = table;
+    this.extractor = extractor;
+    this.converter = converter;
+  }
+
+  public HTableInterface getTable() {
+    return table;
+  }
+
+  public Extractor getExtractor() {
+    return extractor;
+  }
+
+  public HbaseConverter getConverter() {
+    return converter;
+  }
 }

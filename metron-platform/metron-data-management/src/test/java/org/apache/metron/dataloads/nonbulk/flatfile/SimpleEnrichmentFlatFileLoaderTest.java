@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
+import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -44,37 +45,38 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class SimpleEnrichmentFlatFileLoaderTest {
 
-    private HBaseTestingUtility testUtil;
+  private HBaseTestingUtility testUtil;
 
-    /** The test table. */
-    private HTable testTable;
-    private String tableName = "enrichment";
-    private String cf = "cf";
-    private String csvFile="input.csv";
-    private String extractorJson = "extractor.json";
-    private String enrichmentJson = "enrichment_config.json";
-    private String log4jProperty = "log4j";
+  /** The test table. */
+  private HTable testTable;
+  private String tableName = "enrichment";
+  private String cf = "cf";
+  private String csvFile="input.csv";
+  private String extractorJson = "extractor.json";
+  private String enrichmentJson = "enrichment_config.json";
+  private String log4jProperty = "log4j";
 
-    Configuration config = null;
-    /**
-     {
-        "config" : {
-            "columns" : {
-                "host" : 0,
-                "meta" : 2
-            },
-            "indicator_column" : "host",
-            "separator" : ",",
-            "type" : "enrichment"
-        },
-        "extractor" : "CSV"
-     }
-     */
-    @Multiline
-    private static String extractorConfig;
+  Configuration config = null;
+  /**
+   {
+      "config" : {
+        "columns" : {
+          "host" : 0,
+          "meta" : 2
+                    },
+        "indicator_column" : "host",
+        "separator" : ",",
+        "type" : "enrichment"
+                 },
+      "extractor" : "CSV"
+   }
+   */
+  @Multiline
+  private static String extractorConfig;
 
   @Before
   public void setup() throws Exception {
@@ -93,20 +95,26 @@ public class SimpleEnrichmentFlatFileLoaderTest {
   public void testCommandLine() throws Exception {
     Configuration conf = HBaseConfiguration.create();
 
-    String[] argv = {"-c cf", "-t enrichment", "-e extractor.json", "-n enrichment_config.json", "-l log4j", "-i input.csv"};
+    String[] argv = { "-c cf", "-t enrichment"
+            , "-e extractor.json", "-n enrichment_config.json"
+            , "-l log4j", "-i input.csv"
+            , "-p 2", "-b 128"
+    };
     String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
 
     CommandLine cli = SimpleEnrichmentFlatFileLoader.LoadOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals(extractorJson, SimpleEnrichmentFlatFileLoader.LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
+    Assert.assertEquals(extractorJson,SimpleEnrichmentFlatFileLoader.LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
     Assert.assertEquals(cf, SimpleEnrichmentFlatFileLoader.LoadOptions.HBASE_CF.get(cli).trim());
-    Assert.assertEquals(tableName, SimpleEnrichmentFlatFileLoader.LoadOptions.HBASE_TABLE.get(cli).trim());
-    Assert.assertEquals(enrichmentJson, SimpleEnrichmentFlatFileLoader.LoadOptions.ENRICHMENT_CONFIG.get(cli).trim());
-    Assert.assertEquals(csvFile, SimpleEnrichmentFlatFileLoader.LoadOptions.INPUT.get(cli).trim());
+    Assert.assertEquals(tableName,SimpleEnrichmentFlatFileLoader.LoadOptions.HBASE_TABLE.get(cli).trim());
+    Assert.assertEquals(enrichmentJson,SimpleEnrichmentFlatFileLoader.LoadOptions.ENRICHMENT_CONFIG.get(cli).trim());
+    Assert.assertEquals(csvFile,SimpleEnrichmentFlatFileLoader.LoadOptions.INPUT.get(cli).trim());
     Assert.assertEquals(log4jProperty, SimpleEnrichmentFlatFileLoader.LoadOptions.LOG4J_PROPERTIES.get(cli).trim());
+    Assert.assertEquals("2", SimpleEnrichmentFlatFileLoader.LoadOptions.NUM_THREADS.get(cli).trim());
+    Assert.assertEquals("128", SimpleEnrichmentFlatFileLoader.LoadOptions.BATCH_SIZE.get(cli).trim());
   }
 
   @Test
-  public void basicTest() throws Exception {
+  public void test() throws Exception {
     Assert.assertNotNull(testTable);
     String contents = "google.com,1,foo";
 
@@ -114,11 +122,22 @@ public class SimpleEnrichmentFlatFileLoaderTest {
     ExtractorHandler handler = ExtractorHandler.load(extractorConfig);
     Extractor e = handler.getExtractor();
     SimpleEnrichmentFlatFileLoader loader = new SimpleEnrichmentFlatFileLoader();
-    testTable.put(loader.extract(contents, e, cf, converter));
+    Stream<String> contentStreams = ImmutableList.of(contents).stream();
+    ThreadLocal<ExtractorState> state = new ThreadLocal<ExtractorState>() {
+      @Override
+      protected ExtractorState initialValue() {
+        return new ExtractorState(testTable, e, converter);
+      }
+    };
+    loader.load(ImmutableList.of(contentStreams)
+               , state
+               , cf
+               , 2
+               );
 
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
-    for (Result r : scanner) {
+    for(Result r : scanner) {
       results.add(converter.fromResult(r, cf));
     }
     Assert.assertEquals(1, results.size());
@@ -130,25 +149,25 @@ public class SimpleEnrichmentFlatFileLoaderTest {
   }
 
   /**
-   {
-     "config" : {
-       "columns" : {
-         "domain" : 1
-       },
-       "value_transform" : {
-          "domain" : "TO_UPPER(domain)"
-       },
-       "indicator_transform" : {
-          "domain" : "TO_UPPER(domain)"
-       },
-       "value_filter" : "LENGTH(domain) > 0",
-       "indicator_filter" : "LENGTH(domain) > 0",
-       "indicator_column" : "domain",
-       "type" : "topdomain",
-       "separator" : ","
-     },
-     "extractor" : "CSV"
-   }
+   *{
+   *  "config" : {
+   *    "columns" : {
+   *      "domain" : 1
+   *    },
+   *    "value_transform" : {
+   *      "domain" : "TO_UPPER(domain)"
+   *    },
+   *    "indicator_transform" : {
+   *      "indicator" : "TO_UPPER(indicator)"
+   *    },
+   *    "value_filter" : "LENGTH(domain) > 0",
+   *    "indicator_filter" : "LENGTH(domain) > 0",
+   *    "indicator_column" : "domain",
+   *    "type" : "topdomain",
+   *    "separator" : ","
+   *  },
+   *  "extractor" : "CSV"
+   *}
    */
   @Multiline
   private static String stellarExtractorConfig;
@@ -175,11 +194,9 @@ public class SimpleEnrichmentFlatFileLoaderTest {
     for (Result r : scanner) {
       results.add(converter.fromResult(r, cf));
     }
-    Assert.assertEquals(1, results.size());
-    Assert.assertEquals(results.get(0).getKey().indicator, "google.com");
     Assert.assertEquals(results.get(0).getKey().type, "topdomain");
+    Assert.assertEquals(results.get(0).getKey().getIndicator(), "GOOGLE.COM");
     Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 1);
     Assert.assertEquals(results.get(0).getValue().getMetadata().get("domain"), "GOOGLE.COM");
   }
-
 }

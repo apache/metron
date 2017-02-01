@@ -205,6 +205,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   private void waitForIndex(String zookeeperQuorum) throws Exception {
     try(CuratorFramework client = getClient(zookeeperQuorum)) {
       client.start();
+      System.out.println("Waiting for zookeeper...");
       byte[] bytes = null;
       do {
         try {
@@ -216,6 +217,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
         }
       }
       while(bytes == null || bytes.length == 0);
+      System.out.println("Found index config in zookeeper...");
     }
   }
 

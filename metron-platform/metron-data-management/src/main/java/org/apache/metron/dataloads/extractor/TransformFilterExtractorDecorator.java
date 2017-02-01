@@ -131,16 +131,39 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
 
   private boolean updateLookupKV(LookupKV lkv) {
     Map<String, Object> ret = lkv.getValue().getMetadata();
-    MapVariableResolver resolver = new MapVariableResolver(ret, globalConfig);
+    MapVariableResolver metadataResolver = new MapVariableResolver(ret, globalConfig);
     for (Map.Entry<String, String> entry : valueTransforms.entrySet()) {
-      Object o = transformProcessor.parse(entry.getValue(), resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+      Object o = transformProcessor.parse(entry.getValue(), metadataResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
       if (o == null) {
         ret.remove(entry.getKey());
       } else {
         ret.put(entry.getKey(), o);
       }
     }
-    return filterProcessor.parse(valueFilter, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+    // update key
+    // transform
+    String indicator = lkv.getKey().getIndicator();
+    // add indicator as a resolvable variable. Also enable using resolved/transformed variables and values from operating on the value metadata
+    Map<String, Object> ind = new HashMap<>();
+    ind.putAll(ret);
+    ind.put("indicator", indicator);
+    MapVariableResolver indicatorResolver = new MapVariableResolver(ind, globalConfig);
+    for (Map.Entry<String, String> entry : indicatorTransforms.entrySet()) {
+      Object o = transformProcessor.parse(entry.getValue(), indicatorResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+      if (o == null) {
+        ind.remove(entry.getKey());
+      } else {
+        ind.put(entry.getKey(), o);
+      }
+    }
+    // update indicator
+    if (ind.get("indicator") != null) {
+      lkv.getKey().setIndicator(ind.get("indicator").toString());
+    }
+    // filter on indicator not being empty and both filters passing muster
+    return (ind.get("indicator") != null)
+            && filterProcessor.parse(indicatorFilter, metadataResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext)
+            && filterProcessor.parse(valueFilter, metadataResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
   }
 
 }
