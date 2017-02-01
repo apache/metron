@@ -41,6 +41,19 @@ public enum LoadOptions {
       return new Option(s, "help", false, "Generate Help screen");
     }
   })
+  ,QUIET("q", new OptionHandler() {
+
+    @Nullable
+    @Override
+    public Option apply(@Nullable String s) {
+      return new Option(s, "quiet", false, "Do not update progress");
+    }
+
+    @Override
+    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
+      return Optional.of(option.has(cli));
+    }
+  })
   , IMPORT_MODE("m", new OptionHandler() {
     @Nullable
     @Override

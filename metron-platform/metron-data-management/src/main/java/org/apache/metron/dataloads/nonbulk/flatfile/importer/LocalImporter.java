@@ -37,6 +37,7 @@ import org.apache.metron.hbase.HTableProvider;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -73,17 +74,17 @@ public enum LocalImporter implements Importer {
         }
       }
     };
-
+    boolean quiet = (boolean) config.get(LoadOptions.QUIET).get();
     boolean lineByLine = !handler.getInputFormat().getClass().equals(WholeFileFormat.class);
     List<String> inputs = (List<String>) config.get(LoadOptions.INPUT).get();
     String cf = (String) config.get(LoadOptions.HBASE_CF).get();
     if(!lineByLine) {
-      extractWholeFiles(inputs, state, cf);
+      extractWholeFiles(inputs, state, cf, quiet);
     }
     else {
       int batchSize = (int) config.get(LoadOptions.BATCH_SIZE).get();
       int numThreads = (int) config.get(LoadOptions.NUM_THREADS).get();
-      extractLineByLine(inputs, state, cf, batchSize, numThreads);
+      extractLineByLine(inputs, state, cf, batchSize, numThreads, quiet);
     }
 
   }
@@ -93,38 +94,46 @@ public enum LocalImporter implements Importer {
                                , String cf
                                , int batchSize
                                , int numThreads
+                               , boolean quiet
                                ) throws IOException {
     inputs.stream().map(input -> LocationStrategy.getLocation(input, state.get().getFileSystem()))
                    .forEach( loc -> {
-                     System.out.println("Processing " + loc.toString() + " using " + loc.getRawLocation().getClass());
-                             try (Stream<String> stream = ReaderSpliterator.lineStream(loc.openReader(), batchSize)) {
-
-                               ForkJoinPool forkJoinPool = new ForkJoinPool(numThreads);
-                               forkJoinPool.submit(() ->
-                                       stream.parallel().forEach(input -> {
-                                                 ExtractorState es = state.get();
-                                                 try {
-                                                   es.getTable().put(extract(input, es.getExtractor(), cf, es.getConverter()));
-                                                 } catch (IOException e) {
-                                                   throw new IllegalStateException("Unable to continue: " + e.getMessage(), e);
-                                                 }
-                                               }
+                      final Progress progress = new Progress();
+                      System.out.println("Processing " + loc.toString());
+                      try (Stream<String> stream = ReaderSpliterator.lineStream(loc.openReader(), batchSize)) {
+                        ForkJoinPool forkJoinPool = new ForkJoinPool(numThreads);
+                        forkJoinPool.submit(() ->
+                          stream.parallel().forEach(input -> {
+                            ExtractorState es = state.get();
+                            try {
+                              es.getTable().put(extract(input, es.getExtractor(), cf, es.getConverter(), progress, quiet));
+                            } catch (IOException e) {
+                              throw new IllegalStateException("Unable to continue: " + e.getMessage(), e);
+                            }
+                                                             }
                                        )
                                ).get();
                              } catch (Exception e) {
                                throw new IllegalStateException(e.getMessage(), e);
                              }
-                           }
+                                  }
                    );
   }
 
-  public void extractWholeFiles( List<String> inputs, ThreadLocal<ExtractorState> state, String cf) throws IOException {
+  public void extractWholeFiles( List<String> inputs, ThreadLocal<ExtractorState> state, String cf, boolean quiet) throws IOException {
+    final Progress progress = new Progress();
     final List<Location> locations = new ArrayList<>();
       Location.fileVisitor(inputs, loc -> locations.add(loc), state.get().getFileSystem());
       locations.parallelStream().forEach(loc -> {
         try(BufferedReader br = loc.openReader()) {
           String s = br.lines().collect(Collectors.joining());
-          state.get().getTable().put(extract(s, state.get().getExtractor(), cf, state.get().getConverter()));
+          state.get().getTable().put(extract( s
+                                            , state.get().getExtractor()
+                                            , cf, state.get().getConverter()
+                                            , progress
+                                            , quiet
+                                            )
+                                    );
         } catch (IOException e) {
           throw new IllegalStateException("Unable to read " + loc + ": " + e.getMessage(), e);
         }
@@ -136,6 +145,8 @@ public enum LocalImporter implements Importer {
                      , Extractor extractor
                      , String cf
                      , HbaseConverter converter
+                     , final Progress progress
+                     , final boolean quiet
                      ) throws IOException
   {
     List<Put> ret = new ArrayList<>();
@@ -144,10 +155,21 @@ public enum LocalImporter implements Importer {
       Put put = converter.toPut(cf, kv.getKey(), kv.getValue());
       ret.add(put);
     }
+    if(!quiet) {
+      progress.update();
+    }
     return ret;
   }
 
 
+  public static class Progress {
+    private int count = 0;
+    private String anim= "|/-\\";
 
+    public synchronized void update() {
+      int currentCount = count++;
+      System.out.print("\rProcessed " + currentCount + " - " + anim.charAt(currentCount % anim.length()));
+    }
+  }
 
 }
