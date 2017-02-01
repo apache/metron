@@ -45,7 +45,7 @@ functions can be used from everywhere where Stellar is used.
 * Input:
   * number - The number to take the absolute value of
 * Returns: The absolute value of the number passed in.
-*
+
 #### `BIN`
 * Description: Computes the bin that the value is in given a set of bounds.
 * Input:

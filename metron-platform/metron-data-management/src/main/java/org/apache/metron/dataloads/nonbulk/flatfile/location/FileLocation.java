@@ -17,13 +17,12 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile.location;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
 
 public class FileLocation implements RawLocation {
   @Override
@@ -47,7 +46,15 @@ public class FileLocation implements RawLocation {
 
   @Override
   public BufferedReader openReader(String loc) throws IOException {
-    return new BufferedReader(new FileReader(loc));
+    if(loc.endsWith(".gz")) {
+      return new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(loc))));
+    }
+    else if(loc.endsWith(".zip")){
+      return new BufferedReader(new InputStreamReader(new ZipInputStream(new FileInputStream(loc))));
+    }
+    else {
+      return new BufferedReader(new FileReader(loc));
+    }
   }
 
   @Override

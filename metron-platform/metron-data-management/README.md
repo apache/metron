@@ -206,32 +206,16 @@ The parameters for the utility are as follows:
 | -n         | --enrichment_config       | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified.                                  |
 
 
-### Bulk Load from HDFS
-
-The shell script `$METRON_HOME/bin/threatintel_bulk_load.sh` will kick off a MR job to load data staged in HDFS into an HBase table.  Note: despite what
-the naming may suggest, this utility works for enrichment as well as threat intel due to the underlying infrastructure being the same.
-
-The parameters for the utility are as follows:
-
-| Short Code | Long Code           | Is Required? | Description                                                                                                       |
-|------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------|
-| -h         |                     | No           | Generate the help screen/set of options                                                                           |
-| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                 |
-| -t         | --table             | Yes          | The HBase table to import into                                                                                    |
-| -f         | --column_family     | Yes          | The HBase table column family to import into                                                                      |
-| -i         | --input             | Yes          | The input data location on HDFS                                                                                   |
-| -n         | --enrichment_config | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified. |
-or threat intel.
 
 ### Flatfile Loader
 
-The shell script `$METRON_HOME/bin/flatfile_loader.sh` will read data from local disk and load the enrichment or threat intel data into an HBase table.  
+The shell script `$METRON_HOME/bin/flatfile_loader.sh` will read data from local disk, HDFS or URLs and load the enrichment or threat intel data into an HBase table.  
 Note: This utility works for enrichment as well as threat intel due to the underlying infrastructure being the same.
 
 One special thing to note here is that there is a special configuration
 parameter to the Extractor config that is only considered during this
 loader:
-* inputFormatHandler : This specifies how to consider the data.  The two implementations are `BY_LINE` and `org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat`.
+* inputFormat : This specifies how to consider the data.  The two implementations are `BY_LINE` and `WHOLE_FILE`.
 
 The default is `BY_LINE`, which makes sense for a list of CSVs where
 each line indicates a unit of information which can be imported.
@@ -244,6 +228,7 @@ The parameters for the utility are as follows:
 |------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
 | -h         |                     | No           | Generate the help screen/set of options                                                                                                                                             |   |
 | -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                   |   |
+| -m         | --import_mode       | No           | The Import mode to use: LOCAL, MR.  Default is MR                                                                                                                   |   |
 | -t         | --hbase_table       | Yes          | The HBase table to import into                                                                                                                                                      |   |
 | -c         | --hbase_cf          | Yes          | The HBase table column family to import into                                                                                                                                        |   |
 | -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory. |   |
