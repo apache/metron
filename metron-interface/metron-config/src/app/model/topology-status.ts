@@ -21,4 +21,6 @@ export class TopologyStatus {
   status: string;
   latency: string;
   throughput: string;
+  emitted: string;
+  acked: string;
 }

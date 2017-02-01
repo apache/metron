@@ -28,6 +28,8 @@ public class TopologyStatus {
   private Map<String, Object>[] topologyStats;
   private Double latency = 0.0;
   private Double throughput = 0.0;
+  private Integer emitted = 0;
+  private Integer acked = 0;
 
   public String getId() {
     return id;
@@ -61,13 +63,23 @@ public class TopologyStatus {
     return throughput;
   }
 
+  public Integer getEmitted() {
+    return emitted;
+  }
+
+  public long getAcked() {
+    return acked;
+  }
+
   public void setTopologyStats(List<Map<String, Object>> topologyStats) {
     for(Map<String, Object> topologyStatsItem: topologyStats) {
       if ("600".equals(topologyStatsItem.get("window"))) {
         latency = Double.parseDouble((String) topologyStatsItem.get("completeLatency"));
-        int acked = 0;
         if (topologyStatsItem.get("acked") != null) {
           acked = (int) topologyStatsItem.get("acked");
+        }
+        if (topologyStatsItem.get("emitted") != null) {
+          emitted= (int) topologyStatsItem.get("emitted");
         }
         throughput = acked / 600.00;
       }
