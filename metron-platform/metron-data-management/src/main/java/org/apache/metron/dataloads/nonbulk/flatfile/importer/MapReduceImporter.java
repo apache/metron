@@ -47,7 +47,7 @@ public enum MapReduceImporter implements Importer{
     String table = (String) config.get(LoadOptions.HBASE_TABLE).get();
     String cf = (String) config.get(LoadOptions.HBASE_CF).get();
     String extractorConfigContents  = (String) config.get(LoadOptions.EXTRACTOR_CONFIG).get();
-    Job job = new Job(hadoopConfig);
+    Job job = Job.getInstance(hadoopConfig);
     List<String> inputs = (List<String>) config.get(LoadOptions.INPUT).get();
     job.setJobName("MapReduceImporter: " + inputs.stream().collect(Collectors.joining(",")) + " => " +  table + ":" + cf);
     System.out.println("Configuring " + job.getJobName());
