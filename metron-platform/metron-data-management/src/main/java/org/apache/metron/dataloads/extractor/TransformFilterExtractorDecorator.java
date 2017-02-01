@@ -10,6 +10,7 @@ import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.lookup.LookupKV;
 
@@ -24,6 +25,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private static final String INDICATOR_TRANSFORM = "indicator_transform";
   private static final String INDICATOR_FILTER = "indicator_filter";
   private static final String ZK_QUORUM = "zk_quorum";
+  private static final String INDICATOR = "indicator";
   private Map<String, String> valueTransforms;
   private Map<String, String> indicatorTransforms;
   private String valueFilter;
@@ -35,30 +37,30 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
 
   public TransformFilterExtractorDecorator(Extractor decoratedExtractor) {
     super(decoratedExtractor);
+    this.valueTransforms = new HashMap<>();
+    this.indicatorTransforms = new HashMap<>();
+    this.valueFilter = "";
+    this.indicatorFilter = "";
   }
 
   @Override
   public void initialize(Map<String, Object> config) {
     super.initialize(config);
     if (config.containsKey(VALUE_TRANSFORM)) {
-      this.valueTransforms = getTransforms(config.get(VALUE_TRANSFORM));
-    } else {
-      this.valueTransforms = new HashMap<>();
+      this.valueTransforms = getTransforms(config, VALUE_TRANSFORM);
     }
     if (config.containsKey(INDICATOR_TRANSFORM)) {
-      this.indicatorTransforms = getTransforms(config.get(INDICATOR_TRANSFORM));
-    } else {
-      this.indicatorTransforms = new HashMap<>();
+      this.indicatorTransforms = getTransforms(config, INDICATOR_TRANSFORM);
     }
     if (config.containsKey(VALUE_FILTER)) {
-      this.valueFilter = config.get(VALUE_FILTER).toString();
+      this.valueFilter = getFilter(config, VALUE_FILTER);
     }
     if (config.containsKey(INDICATOR_FILTER)) {
-      this.indicatorFilter = config.get(INDICATOR_FILTER).toString();
+      this.indicatorFilter = getFilter(config, INDICATOR_FILTER);
     }
     String zkClientUrl = "";
     if (config.containsKey(ZK_QUORUM)) {
-      zkClientUrl = config.get(ZK_QUORUM).toString();
+      zkClientUrl = ConversionUtils.convert(config.get(ZK_QUORUM), String.class);
     }
     Optional<CuratorFramework> zkClient = createClient(zkClientUrl);
     this.globalConfig = getGlobalConfig(zkClient);
@@ -68,13 +70,23 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     this.filterProcessor = new StellarPredicateProcessor();
   }
 
-  private Map<String, String> getTransforms(Object transformsConfig) {
+  private String getFilter(Map<String, Object> config, String valueFilter) {
+    return ConversionUtils.convertOrFail(config.get(valueFilter), String.class);
+  }
+
+  /**
+   * Get a map of the transformations from the config of the specified type
+   * @param config main config map
+   * @param type the transformation type to get from config
+   * @return map of transformations.
+   */
+  private Map<String, String> getTransforms(Map<String, Object> config, String type) {
+    Map<Object, Object> transformsConfig = ConversionUtils.convertOrFail(config.get(type), Map.class);
     Map<String, String> transforms = new HashMap<>();
-    if (transformsConfig instanceof Map) {
-      Map<Object, Object> map = (Map<Object, Object>) transformsConfig;
-      for (Map.Entry<Object, Object> e : map.entrySet()) {
-        transforms.put(e.getKey().toString(), e.getValue().toString());
-      }
+    for (Map.Entry<Object, Object> e : transformsConfig.entrySet()) {
+      String key = ConversionUtils.convertOrFail(e.getKey(), String.class);
+      String val = ConversionUtils.convertOrFail(e.getValue(), String.class);
+      transforms.put(key, val);
     }
     return transforms;
   }
@@ -129,41 +141,46 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     return lkvs;
   }
 
+  /**
+   * Returns true if lookupkv is not null after transforms and filtering on the value and indicator key
+   * @param lkv LookupKV to transform and filter
+   * @return true if lkv is not null after transform/filter
+   */
   private boolean updateLookupKV(LookupKV lkv) {
     Map<String, Object> ret = lkv.getValue().getMetadata();
-    MapVariableResolver metadataResolver = new MapVariableResolver(ret, globalConfig);
-    for (Map.Entry<String, String> entry : valueTransforms.entrySet()) {
-      Object o = transformProcessor.parse(entry.getValue(), metadataResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-      if (o == null) {
-        ret.remove(entry.getKey());
-      } else {
-        ret.put(entry.getKey(), o);
-      }
-    }
-    // update key
-    // transform
+    Map<String, Object> ind = new HashMap<>();
     String indicator = lkv.getKey().getIndicator();
     // add indicator as a resolvable variable. Also enable using resolved/transformed variables and values from operating on the value metadata
-    Map<String, Object> ind = new HashMap<>();
-    ind.putAll(ret);
-    ind.put("indicator", indicator);
-    MapVariableResolver indicatorResolver = new MapVariableResolver(ind, globalConfig);
-    for (Map.Entry<String, String> entry : indicatorTransforms.entrySet()) {
-      Object o = transformProcessor.parse(entry.getValue(), indicatorResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+    ind.put(INDICATOR, indicator);
+    MapVariableResolver resolver = new MapVariableResolver(ret, ind, globalConfig);
+    transform(valueTransforms, ret, resolver);
+    transform(indicatorTransforms, ind, resolver);
+    // update indicator
+    Object updatedIndicator = ind.get(INDICATOR);
+    if (updatedIndicator != null) {
+      if (!(updatedIndicator instanceof String)) {
+        throw new UnsupportedOperationException("Indicator transform must return String type");
+      }
+      lkv.getKey().setIndicator((String) updatedIndicator);
+      return filter(indicatorFilter, resolver) && filter(valueFilter, resolver);
+    } else {
+      return false;
+    }
+  }
+
+  private void transform(Map<String, String> transforms, Map<String, Object> variableMap, MapVariableResolver variableResolver) {
+    for (Map.Entry<String, String> entry : transforms.entrySet()) {
+      Object o = transformProcessor.parse(entry.getValue(), variableResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
       if (o == null) {
-        ind.remove(entry.getKey());
+        variableMap.remove(entry.getKey());
       } else {
-        ind.put(entry.getKey(), o);
+        variableMap.put(entry.getKey(), o);
       }
     }
-    // update indicator
-    if (ind.get("indicator") != null) {
-      lkv.getKey().setIndicator(ind.get("indicator").toString());
-    }
-    // filter on indicator not being empty and both filters passing muster
-    return (ind.get("indicator") != null)
-            && filterProcessor.parse(indicatorFilter, metadataResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext)
-            && filterProcessor.parse(valueFilter, metadataResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+  }
+
+  private Boolean filter(String filterPredicate, MapVariableResolver variableResolver) {
+    return filterProcessor.parse(filterPredicate, variableResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
   }
 
 }

@@ -19,9 +19,12 @@
 package org.apache.metron.common.utils;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class ConversionUtilsTest {
+
   @Test
   public void testIntegerConversions() {
     Object o = 1;
@@ -29,4 +32,21 @@ public class ConversionUtilsTest {
     Assert.assertEquals(Integer.valueOf(1), ConversionUtils.convert("1", Integer.class));
     Assert.assertNull(ConversionUtils.convert("foo", Integer.class));
   }
+
+  @Test
+  public void same_object_type_hierarchy_will_pass_convertOrFail() {
+    Assert.assertEquals(new Integer(5), ConversionUtils.convertOrFail(new Integer(5), Integer.class));
+    Assert.assertEquals(new Integer(5), ConversionUtils.convertOrFail(new Integer(5), Number.class));
+  }
+
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
+
+  @Test
+  public void different_object_types_will_fail_convertOrFail() {
+    exception.expect(IllegalArgumentException.class);
+    exception.expectMessage("Object is not of type java.lang.String");
+    ConversionUtils.convertOrFail(new Integer(5), String.class);
+  }
+
 }
