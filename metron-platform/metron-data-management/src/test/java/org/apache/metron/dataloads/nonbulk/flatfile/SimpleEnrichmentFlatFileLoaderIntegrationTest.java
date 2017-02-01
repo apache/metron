@@ -43,6 +43,7 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -52,6 +53,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
@@ -155,9 +160,31 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     if(multilineFile.exists()) {
       multilineFile.delete();
     }
-    try(PrintWriter pw = new PrintWriter(multilineFile)) {
+    if(multilineGzFile.exists()) {
+      multilineGzFile.delete();
+    }
+    if(multilineGzFile.exists()) {
+      multilineZipFile.delete();
+    }
+    PrintWriter[] pws =new PrintWriter[] {};
+    try {
+      ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(multilineZipFile));
+      ZipEntry entry = new ZipEntry("file");
+      zos.putNextEntry(entry);
+       pws = new PrintWriter[]{
+         new PrintWriter(multilineFile),
+         new PrintWriter(zos),
+         new PrintWriter(new GZIPOutputStream(new FileOutputStream(multilineGzFile)))
+                              };
       for(int i = 0;i < NUM_LINES;++i) {
-        pw.println("google" + i + ".com," + i + ",foo" + i);
+        for(PrintWriter pw : pws) {
+          pw.println("google" + i + ".com," + i + ",foo" + i);
+        }
+      }
+    }
+    finally {
+      for(PrintWriter pw : pws) {
+        pw.close();
       }
     }
 
@@ -169,6 +196,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     file1.delete();
     file2.delete();
     multilineFile.delete();
+    multilineGzFile.delete();
+    multilineZipFile.delete();
     lineByLineExtractorConfigFile.delete();
     wholeFileExtractorConfigFile.delete();
   }
@@ -179,7 +208,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     String[] argv = {"-c cf", "-t enrichment"
             , "-e extractor.json", "-n enrichment_config.json"
             , "-l log4j", "-i input.csv"
-            , "-p 2", "-b 128"
+            , "-p 2", "-b 128", "-q"
     };
 
     String[] otherArgs = new GenericOptionsParser(config, argv).getRemainingArgs();
@@ -200,7 +229,55 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     String[] argv = {"-c cf", "-t enrichment"
             , "-e " + lineByLineExtractorConfigFile.getPath()
             , "-i " + multilineFile.getPath()
-            , "-p 2", "-b 128"
+            , "-p 2", "-b 128", "-q"
+    };
+    SimpleEnrichmentFlatFileLoader.main(config, argv);
+    EnrichmentConverter converter = new EnrichmentConverter();
+    ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
+    List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
+    for (Result r : scanner) {
+      results.add(converter.fromResult(r, cf));
+      testTable.delete(new Delete(r.getRow()));
+    }
+    Assert.assertEquals(NUM_LINES, results.size());
+    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
+    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+
+  }
+
+  @Test
+  public void testLocalLineByLine_gz() throws Exception {
+    String[] argv = {"-c cf", "-t enrichment"
+            , "-e " + lineByLineExtractorConfigFile.getPath()
+            , "-i " + multilineGzFile.getPath()
+            , "-p 2", "-b 128", "-q"
+    };
+    SimpleEnrichmentFlatFileLoader.main(config, argv);
+    EnrichmentConverter converter = new EnrichmentConverter();
+    ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
+    List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
+    for (Result r : scanner) {
+      results.add(converter.fromResult(r, cf));
+      testTable.delete(new Delete(r.getRow()));
+    }
+    Assert.assertEquals(NUM_LINES, results.size());
+    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
+    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+
+  }
+
+  @Test
+  public void testLocalLineByLine_zip() throws Exception {
+    String[] argv = {"-c cf", "-t enrichment"
+            , "-e " + lineByLineExtractorConfigFile.getPath()
+            , "-i " + multilineZipFile.getPath()
+            , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
     EnrichmentConverter converter = new EnrichmentConverter();
@@ -224,7 +301,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     String[] argv = { "-c cf", "-t enrichment"
             , "-e " + wholeFileExtractorConfigFile.getPath()
             , "-i " + file1.getPath() + "," + file2.getPath()
-            , "-p 2", "-b 128"
+            , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
     EnrichmentConverter converter = new EnrichmentConverter();
@@ -249,7 +326,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-e " + lineByLineExtractorConfigFile.getPath()
             , "-i " + multilineFile.getName()
             , "-m MR"
-            , "-p 2", "-b 128"
+            , "-p 2", "-b 128", "-q"
     };
     FileSystem fs = FileSystem.get(config);
     HBaseUtil.INSTANCE.writeFile(new String(Files.readAllBytes(multilineFile.toPath())), new Path(multilineFile.getName()), fs);

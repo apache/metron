@@ -99,7 +99,9 @@ public enum LocalImporter implements Importer {
     inputs.stream().map(input -> LocationStrategy.getLocation(input, state.get().getFileSystem()))
                    .forEach( loc -> {
                       final Progress progress = new Progress();
-                      System.out.println("Processing " + loc.toString());
+                      if(!quiet) {
+                        System.out.println("\nProcessing " + loc.toString());
+                      }
                       try (Stream<String> stream = ReaderSpliterator.lineStream(loc.openReader(), batchSize)) {
                         ForkJoinPool forkJoinPool = new ForkJoinPool(numThreads);
                         forkJoinPool.submit(() ->
