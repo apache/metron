@@ -20,6 +20,7 @@ package org.apache.metron.management;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.RiskLevelRule;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.management.EnrichmentConfigFunctionsTest.emptyTransformationsConfig;
@@ -54,7 +56,7 @@ public class ThreatTriageFunctionsTest {
             .build();
   }
 
-  public static Map<String, Number> getTriageRules(String config) {
+  public static List<RiskLevelRule> getTriageRules(String config) {
     SensorEnrichmentConfig sensorConfig = (SensorEnrichmentConfig) ENRICHMENT.deserialize(config);
     return sensorConfig.getThreatIntel().getTriageConfig().getRiskLevelRules();
   }
@@ -81,41 +83,48 @@ public class ThreatTriageFunctionsTest {
   public void testAddEmpty() {
 
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 } )"
             , toMap("config", configStr
             )
     );
 
-    Map<String, Number> triageRules = getTriageRules(newConfig);
+    List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(1, triageRules.size());
-    Assert.assertEquals(10.0, triageRules.get(variables.get("less").getExpression()).doubleValue(), 1e-6 );
+    RiskLevelRule rule = triageRules.get(0);
+    Assert.assertEquals(variables.get("less").getExpression(), rule.getRule() );
+    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
   }
 
   @Test
   public void testAddHasExisting() {
 
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 } )"
             , toMap("config", configStr
             )
     );
 
     newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('greater') : 20 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } )"
             , toMap("config",newConfig
             )
     );
 
-    Map<String, Number> triageRules = getTriageRules(newConfig);
+    List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(2, triageRules.size());
-    Assert.assertEquals(10.0, triageRules.get(variables.get("less").getExpression()).doubleValue(), 1e-6 );
-    Assert.assertEquals(20.0, triageRules.get(variables.get("greater").getExpression()).doubleValue(), 1e-6 );
+    RiskLevelRule less = triageRules.get(0);
+    Assert.assertEquals(variables.get("less").getExpression(), less.getRule() );
+    Assert.assertEquals(10.0, less.getScore().doubleValue(), 1e-6 );
+
+    RiskLevelRule greater = triageRules.get(1);
+    Assert.assertEquals(variables.get("greater").getExpression(), greater.getRule() );
+    Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
   }
 
-  @Test
+  @Test(expected=ParseException.class)
   public void testAddMalformed() {
     Object o = run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('foo') : 10 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule': SHELL_GET_EXPRESSION('foo'), 'score' : 10 } )"
             , toMap("config", configStr
             )
     );
@@ -125,26 +134,28 @@ public class ThreatTriageFunctionsTest {
   @Test
   public void testAddDuplicate() {
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 } )"
             , toMap("config", configStr
             )
     );
 
     newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 } )"
             , toMap("config",newConfig
             )
     );
 
-    Map<String, Number> triageRules = getTriageRules(newConfig);
+    List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(1, triageRules.size());
-    Assert.assertEquals(10.0, triageRules.get(variables.get("less").getExpression()).doubleValue(), 1e-6 );
+    RiskLevelRule rule = triageRules.get(0);
+    Assert.assertEquals(variables.get("less").getExpression(), rule.getRule() );
+    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
   }
 
   @Test
   public void testRemove() {
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10, SHELL_GET_EXPRESSION('greater') : 20 } )"
+            "THREAT_TRIAGE_ADD(config, [ { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 }, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } ] )"
             , toMap("config", configStr
             )
     );
@@ -155,17 +166,18 @@ public class ThreatTriageFunctionsTest {
             )
     );
 
-    Map<String, Number> triageRules = getTriageRules(newConfig);
+    List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(1, triageRules.size());
-    Assert.assertEquals(10.0, triageRules.get(variables.get("less").getExpression()).doubleValue(), 1e-6 );
+    RiskLevelRule rule = triageRules.get(0);
+    Assert.assertEquals(variables.get("less").getExpression(), rule.getRule() );
+    Assert.assertEquals(10.0, rule.getScore().doubleValue(), 1e-6 );
   }
 
   @Test
   public void testRemoveMultiple() {
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10, SHELL_GET_EXPRESSION('greater') : 20 } )"
-            , toMap("config", configStr
-            )
+            "THREAT_TRIAGE_ADD(config, [ { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 }, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } ] )"
+            , toMap("config", configStr )
     );
 
     newConfig = (String) run(
@@ -174,7 +186,7 @@ public class ThreatTriageFunctionsTest {
             )
     );
 
-    Map<String, Number> triageRules = getTriageRules(newConfig);
+    List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(0, triageRules.size());
   }
 
@@ -182,7 +194,7 @@ public class ThreatTriageFunctionsTest {
   public void testRemoveMissing() {
 
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10, SHELL_GET_EXPRESSION('greater') : 20 } )"
+            "THREAT_TRIAGE_ADD(config, [ { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 }, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } ] )"
             , toMap("config", configStr
             )
     );
@@ -193,20 +205,25 @@ public class ThreatTriageFunctionsTest {
             )
     );
 
-    Map<String, Number> triageRules = getTriageRules(newConfig);
+    List<RiskLevelRule> triageRules = getTriageRules(newConfig);
     Assert.assertEquals(2, triageRules.size());
-    Assert.assertEquals(10.0, triageRules.get(variables.get("less").getExpression()).doubleValue(), 1e-6 );
-    Assert.assertEquals(20.0, triageRules.get(variables.get("greater").getExpression()).doubleValue(), 1e-6 );
+    RiskLevelRule less = triageRules.get(0);
+    Assert.assertEquals(variables.get("less").getExpression(), less.getRule() );
+    Assert.assertEquals(10.0, less.getScore().doubleValue(), 1e-6 );
+
+    RiskLevelRule greater = triageRules.get(1);
+    Assert.assertEquals(variables.get("greater").getExpression(), greater.getRule() );
+    Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
   }
 
   /**
-╔═════════════╤═══════╗
-║ Triage Rule │ Score ║
-╠═════════════╪═══════╣
-║ 1 > 2       │ 20    ║
-╟─────────────┼───────╢
-║ 1 < 2       │ 10    ║
-╚═════════════╧═══════╝
+╔══════╤═════════╤═════════════╤═══════╗
+║ Name │ Comment │ Triage Rule │ Score ║
+╠══════╪═════════╪═════════════╪═══════╣
+║      │         │ 1 < 2       │ 10    ║
+╟──────┼─────────┼─────────────┼───────╢
+║      │         │ 1 > 2       │ 20    ║
+╚══════╧═════════╧═════════════╧═══════╝
 
 
 Aggregation: MAX*/
@@ -217,7 +234,7 @@ Aggregation: MAX*/
   public void testPrint() {
 
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { SHELL_GET_EXPRESSION('less') : 10, SHELL_GET_EXPRESSION('greater') : 20 } )"
+            "THREAT_TRIAGE_ADD(config, [ { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 }, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } ] )"
             , toMap("config", configStr
             )
     );
@@ -231,11 +248,11 @@ Aggregation: MAX*/
   }
 
   /**
-╔═════════════╤═══════╗
-║ Triage Rule │ Score ║
-╠═════════════╧═══════╣
-║ (empty)             ║
-╚═════════════════════╝
+╔══════╤═════════╤═════════════╤═══════╗
+║ Name │ Comment │ Triage Rule │ Score ║
+╠══════╧═════════╧═════════════╧═══════╣
+║ (empty)                              ║
+╚══════════════════════════════════════╝
    */
   @Multiline
   static String testPrintEmptyExpected;

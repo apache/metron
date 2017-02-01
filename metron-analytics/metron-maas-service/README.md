@@ -169,9 +169,12 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
   "threatIntel" : {
     "fieldMap":{},
     "triageConfig" : {
-      "riskLevelRules" : {
-        "is_malicious == 'malicious'" : 100
-      },
+      "riskLevelRules" : [
+        {
+          "rule" : "is_malicious == 'malicious'",
+          "score" : 100
+        }
+      ],
       "aggregator" : "MAX"
     }
   }
