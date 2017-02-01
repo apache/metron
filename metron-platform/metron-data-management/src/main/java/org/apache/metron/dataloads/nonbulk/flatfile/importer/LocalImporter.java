@@ -96,6 +96,7 @@ public enum LocalImporter implements Importer {
                                ) throws IOException {
     inputs.stream().map(input -> LocationStrategy.getLocation(input, state.get().getFileSystem()))
                    .forEach( loc -> {
+                     System.out.println("Processing " + loc.toString() + " using " + loc.getRawLocation().getClass());
                              try (Stream<String> stream = ReaderSpliterator.lineStream(loc.openReader(), batchSize)) {
 
                                ForkJoinPool forkJoinPool = new ForkJoinPool(numThreads);

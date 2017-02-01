@@ -17,16 +17,16 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile.location;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 public class URLLocation implements RawLocation {
@@ -47,15 +47,8 @@ public class URLLocation implements RawLocation {
   }
 
   @Override
-  public BufferedReader openReader(String loc) throws IOException {
-    InputStream is = new URL(loc).openStream();
-    if(loc.endsWith(".zip")) {
-      is = new ZipInputStream(is);
-    }
-    else if(loc.endsWith(".gz")) {
-      is = new GZIPInputStream(is);
-    }
-    return new BufferedReader(new InputStreamReader(is));
+  public InputStream openInputStream(String loc) throws IOException {
+    return new URL(loc).openConnection().getInputStream();
   }
 
   @Override

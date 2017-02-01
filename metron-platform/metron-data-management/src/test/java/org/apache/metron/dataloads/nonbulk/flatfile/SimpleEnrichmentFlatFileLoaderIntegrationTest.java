@@ -69,6 +69,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   private static final File file1 = new File("target/sefflt_data_1.csv");
   private static final File file2 = new File("target/sefflt_data_2.csv");
   private static final File multilineFile= new File("target/sefflt_data_2.csv");
+  private static final File multilineZipFile= new File("target/sefflt_data_2.csv.zip");
+  private static final File multilineGzFile= new File("target/sefflt_data_2.csv.gz");
   private static final File lineByLineExtractorConfigFile = new File("target/sefflt_extractorConfig_lbl.json");
   private static final File wholeFileExtractorConfigFile = new File("target/sefflt_extractorConfig_wf.json");
   private static final int NUM_LINES = 1000;

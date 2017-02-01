@@ -17,18 +17,41 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile.location;
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public interface RawLocation<T> {
   Optional<List<String>> list(String loc) throws IOException;
   boolean exists(String loc) throws IOException;
   boolean isDirectory(String loc) throws IOException;
-  BufferedReader openReader(String loc) throws IOException;
+
+  InputStream openInputStream(String loc) throws IOException;
   boolean match(String loc);
   default void init(T state) {
 
+  }
+
+  default BufferedReader openReader(String loc) throws IOException {
+    InputStream is = openInputStream(loc);
+    if(loc.endsWith(".gz")) {
+      return new BufferedReader(new InputStreamReader(new GZIPInputStream(is)));
+    }
+    else if(loc.endsWith(".zip")) {
+      ZipInputStream zis = new ZipInputStream(is);
+      ZipEntry entry = zis.getNextEntry();
+      if(entry != null) {
+        return new BufferedReader(new InputStreamReader(zis));
+      }
+      else {
+        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(new byte[] {})));
+      }
+    }
+    else {
+      return new BufferedReader(new InputStreamReader(is));
+    }
   }
 }

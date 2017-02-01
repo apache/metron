@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class FileLocation implements RawLocation {
@@ -45,16 +46,8 @@ public class FileLocation implements RawLocation {
   }
 
   @Override
-  public BufferedReader openReader(String loc) throws IOException {
-    if(loc.endsWith(".gz")) {
-      return new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(loc))));
-    }
-    else if(loc.endsWith(".zip")){
-      return new BufferedReader(new InputStreamReader(new ZipInputStream(new FileInputStream(loc))));
-    }
-    else {
-      return new BufferedReader(new FileReader(loc));
-    }
+  public InputStream openInputStream(String loc) throws IOException {
+    return new FileInputStream(loc);
   }
 
   @Override

@@ -38,6 +38,10 @@ public class Location {
 
   }
 
+  public RawLocation<?> getRawLocation() {
+    return rawLocation;
+  }
+
   public Optional<List<Location>> getChildren() throws IOException {
       if(exists() && isDirectory()) {
         List<Location> children = new ArrayList<>();

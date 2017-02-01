@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.Path;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +53,8 @@ public class HDFSLocation implements RawLocation<FileSystem> {
   }
 
   @Override
-  public BufferedReader openReader(String loc) throws IOException {
-    return new BufferedReader(new InputStreamReader(fs.open(new Path(loc))));
+  public InputStream openInputStream(String loc) throws IOException {
+    return fs.open(new Path(loc));
   }
 
   @Override
