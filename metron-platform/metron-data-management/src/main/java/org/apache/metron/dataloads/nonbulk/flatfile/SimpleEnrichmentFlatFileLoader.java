@@ -52,7 +52,6 @@ public class SimpleEnrichmentFlatFileLoader {
     ImportStrategy strategy = (ImportStrategy) config.get(LoadOptions.IMPORT_MODE).get();
     strategy.getImporter().importData(config, handler, hadoopConfig);
 
-
     SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(LoadOptions.ENRICHMENT_CONFIG.has(cli)) {
       sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(LoadOptions.ENRICHMENT_CONFIG.get(cli))
