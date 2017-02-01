@@ -56,6 +56,12 @@
             <artifactId>solr-test-framework</artifactId>
             <version>${global_solr_version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>fastutil</artifactId>
+                    <groupId>it.unimi.dsi</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>

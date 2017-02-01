@@ -326,7 +326,11 @@
             <artifactId>aesh</artifactId>
             <version>0.66.8</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.clearspring.analytics</groupId>
+            <artifactId>stream</artifactId>
+            <version>2.9.5</version>
+        </dependency>
     </dependencies>
 
     <reporting>

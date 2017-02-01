@@ -33,9 +33,12 @@ import java.util.Map;
 
 @Service
 public class GlobalConfigServiceImpl implements GlobalConfigService {
+    private CuratorFramework client;
 
     @Autowired
-    private CuratorFramework client;
+    public GlobalConfigServiceImpl(CuratorFramework client) {
+      this.client = client;
+    }
 
     @Override
     public Map<String, Object> save(Map<String, Object> globalConfig) throws RestException {

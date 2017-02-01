@@ -112,12 +112,20 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
                 if property not in storm_site:
                     putStormSiteProperty(property, desired_value)
                 elif  property == "topology.classpath" and storm_site[property] != desired_value:
-                    topololgyClasspath = storm_site[property]
+                    topologyClasspath = storm_site[property]
                     #check that desired values exist in topology.classpath. append them if they do not
                     for path in desired_value.split(':'):
-                        if path not in topololgyClasspath:
-                            topololgyClasspath += ":" + path
-                    putStormSiteProperty(property,topololgyClasspath)
+                        if path not in topologyClasspath:
+                            topologyClasspath += ":" + path
+                    putStormSiteProperty(property,topologyClasspath)
+
+        #Suggest Zeppelin Server URL
+        if "zeppelin-config" in services["configurations"]:
+            zeppelinServerHost = self.getComponentHostNames(services, "ZEPPELIN", "ZEPPELIN_MASTER")[0]
+            zeppelinServerPort = services["configurations"]["zeppelin-config"]["properties"]["zeppelin.server.port"]
+            zeppelinServerUrl = zeppelinServerHost + ":" + zeppelinServerPort
+            putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
+            putMetronEnvProperty("zeppelin_server_url", zeppelinServerUrl)
 
     def validateSTORMSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
 

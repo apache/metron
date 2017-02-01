@@ -26,11 +26,10 @@ public class TopologyStatus {
   private String name;
   private TopologyStatusCode status;
   private Map<String, Object>[] topologyStats;
-  private double latency = 0;
-  private double throughput = 0;
-  private int passed = 0;
-  private int ingested = 0;
-  private int acked = 0;
+  private Double latency = 0.0;
+  private Double throughput = 0.0;
+  private Integer emitted = 0;
+  private Integer acked = 0;
 
   public String getId() {
     return id;
@@ -64,12 +63,8 @@ public class TopologyStatus {
     return throughput;
   }
 
-  public long getPassed() {
-    return passed;
-  }
-
-  public long getIngested() {
-    return ingested;
+  public Integer getEmitted() {
+    return emitted;
   }
 
   public long getAcked() {
@@ -83,13 +78,35 @@ public class TopologyStatus {
         if (topologyStatsItem.get("acked") != null) {
           acked = (int) topologyStatsItem.get("acked");
         }
-        if (topologyStatsItem.get("transferred") != null) {
-          ingested= (int) topologyStatsItem.get("transferred");
-          int failed = (int) (topologyStatsItem.get("failed") != null ? topologyStatsItem.get("failed") : 0);
-          passed = ingested - failed;
+        if (topologyStatsItem.get("emitted") != null) {
+          emitted= (int) topologyStatsItem.get("emitted");
         }
         throughput = acked / 600.00;
       }
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    TopologyStatus that = (TopologyStatus) o;
+
+    if (id != null ? !id.equals(that.id) : that.id != null) return false;
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (status != null ? !status.equals(that.status) : that.status != null) return false;
+    if (!latency.equals(that.latency)) return false;
+    return throughput.equals(that.throughput);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (status != null ? status.hashCode() : 0);
+    result = 31 * result + (latency != null ? latency.hashCode() : 0);
+    result = 31 * result + (throughput != null ? throughput.hashCode() : 0);
+    return result;
   }
 }

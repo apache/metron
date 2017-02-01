@@ -20,6 +20,7 @@ package org.apache.metron.rest.service;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 
+import java.io.File;
 import java.util.Map;
 
 public interface GrokService {
@@ -27,5 +28,7 @@ public interface GrokService {
     Map<String, String> getCommonGrokPatterns();
 
     GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException;
+
+    File saveTemporary(String statement, String name) throws RestException;
 
 }

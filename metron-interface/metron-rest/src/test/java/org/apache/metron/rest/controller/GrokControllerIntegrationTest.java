@@ -105,7 +105,7 @@ public class GrokControllerIntegrationTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.responseCode").value(500))
-                .andExpect(jsonPath("$.message").value("A pattern label must be included (ex. PATTERN_LABEL ${PATTERN:field} ...)"));
+                .andExpect(jsonPath("$.message").value("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)"));
 
         this.mockMvc.perform(get(grokUrl + "/list").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
