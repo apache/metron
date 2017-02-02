@@ -238,7 +238,7 @@
                 <configuration>
                   <excludes>
                         <exclude>dependencies_with_url.csv</exclude>
-                        <exclude>**/README.md</exclude>
+                        <exclude>**/*.md</exclude>
                         <exclude>**/VERSION</exclude>
                         <exclude>**/*.json</exclude>
                         <exclude>**/*.tokens</exclude>
@@ -273,7 +273,8 @@
                         <exclude>metron-docker/kibana/styles/commons.style.css</exclude>
                         <exclude>**/metron-config/coverage/**</exclude>
                         <exclude>**/metron-config/dist/**</exclude>
-                        <exclude>**/metron-config/e2e/*.js</exclude>
+                        <exclude>**/metron-config/dist/**</exclude>
+                        <exclude>**/metron-config/src/assets/ace/**</exclude>
                         <exclude>**/metron-config/e2e/*.js.map</exclude>
                         <exclude>**/metron-config/node_modules/**</exclude>
                     </excludes>

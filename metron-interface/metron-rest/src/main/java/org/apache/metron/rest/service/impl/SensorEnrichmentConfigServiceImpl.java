@@ -36,11 +36,15 @@ import java.util.Map;
 @Service
 public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfigService {
 
-    @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
     private CuratorFramework client;
+
+    @Autowired
+    public SensorEnrichmentConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client) {
+      this.objectMapper = objectMapper;
+      this.client = client;
+    }
 
     @Override
     public SensorEnrichmentConfig save(String name, SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
