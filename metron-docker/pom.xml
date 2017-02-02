@@ -271,6 +271,25 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>compose</directory>
+                            <includes>
+                                <include>**/*.tar.gz</include>
+                                <include>**/wait-for-it.sh</include>
+                                <include>**/*.template</include>
+                            </includes>
+                            <excludes>
+                                <exclude>scripts/wait-for-it.sh</exclude>
+                            </excludes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
