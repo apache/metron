@@ -39,10 +39,11 @@ public class IndexingConfigFunctions {
   @Stellar(
            namespace = "INDEXING"
           ,name = "SET_BATCH"
-          ,description = "Set batch size"
+          ,description = "Set batch size and timeout"
           ,params = {"sensorConfig - Sensor config to add transformation to."
                     ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
-                    ,"size - batch size (integer)"
+                    ,"size - batch size (integer), defaults to 5"
+                    ,"timeout - (optional) batch timeout in seconds (integer), defaults to 0, meaning system default"
                     }
           ,returns = "The String representation of the config in zookeeper"
           )
@@ -74,6 +75,11 @@ public class IndexingConfigFunctions {
         batchSize = ConversionUtils.convert(args.get(i++), Integer.class);
       }
       configObj.put(writer, IndexingConfigurations.setBatchSize((Map<String, Object>) configObj.get(writer), batchSize));
+      int batchTimeout = 0;
+      if(args.size() > 3) {
+        batchTimeout = ConversionUtils.convert(args.get(i++), Integer.class);
+      }
+      configObj.put(writer, IndexingConfigurations.setBatchTimeout((Map<String, Object>) configObj.get(writer), batchTimeout));
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {

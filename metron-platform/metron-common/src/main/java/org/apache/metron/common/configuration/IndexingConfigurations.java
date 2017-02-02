@@ -29,6 +29,7 @@ import java.util.Map;
 
 public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
+  public static final String BATCH_TIMEOUT_CONF = "batchTimeout";
   public static final String ENABLED_CONF = "enabled";
   public static final String INDEX_CONF = "index";
 
@@ -73,7 +74,11 @@ public class IndexingConfigurations extends Configurations {
   }
 
   public int getBatchSize(String sensorName, String writerName ) {
-     return getBatchSize(getSensorIndexingConfig(sensorName, writerName));
+    return getBatchSize(getSensorIndexingConfig(sensorName, writerName));
+  }
+
+  public int getBatchTimeout(String sensorName, String writerName ) {
+    return getBatchTimeout(getSensorIndexingConfig(sensorName, writerName));
   }
 
   public String getIndex(String sensorName, String writerName) {
@@ -94,10 +99,18 @@ public class IndexingConfigurations extends Configurations {
 
   public static int getBatchSize(Map<String, Object> conf) {
     return getAs( BATCH_SIZE_CONF
-                 ,conf
-                , 1
-                , Integer.class
-                );
+            ,conf
+            , 1
+            , Integer.class
+    );
+  }
+
+  public static int getBatchTimeout(Map<String, Object> conf) {
+    return getAs( BATCH_TIMEOUT_CONF
+            ,conf
+            , 0
+            , Integer.class
+    );
   }
 
   public static String getIndex(Map<String, Object> conf, String sensorName) {
@@ -116,6 +129,12 @@ public class IndexingConfigurations extends Configurations {
   public static Map<String, Object> setBatchSize(Map<String, Object> conf, int batchSize) {
     Map<String, Object> ret = conf == null?new HashMap<>():conf;
     ret.put(BATCH_SIZE_CONF, batchSize);
+    return ret;
+  }
+
+  public static Map<String, Object> setBatchTimeout(Map<String, Object> conf, int batchTimeout) {
+    Map<String, Object> ret = conf == null?new HashMap<>():conf;
+    ret.put(BATCH_TIMEOUT_CONF, batchTimeout);
     return ret;
   }
 

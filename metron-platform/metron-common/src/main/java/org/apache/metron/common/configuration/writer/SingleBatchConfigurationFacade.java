@@ -32,6 +32,11 @@ public class SingleBatchConfigurationFacade implements WriterConfiguration {
   }
 
   @Override
+  public int getBatchTimeout(String sensorName) {
+    return 0;
+  }
+
+  @Override
   public String getIndex(String sensorName) {
     return config.getIndex(sensorName);
   }

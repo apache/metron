@@ -40,6 +40,11 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   }
 
   @Override
+  public int getBatchTimeout(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).getBatchTimeout(sensorName, writerName);
+  }
+
+  @Override
   public String getIndex(String sensorName) {
     return config.orElse(new IndexingConfigurations()).getIndex(sensorName, writerName);
   }
