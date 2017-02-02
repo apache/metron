@@ -18,14 +18,35 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.*;
 
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.*;
+
 public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private static final Logger LOG = Logger.getLogger(TransformFilterExtractorDecorator.class);
-  private static final String VALUE_TRANSFORM = "value_transform";
-  private static final String VALUE_FILTER = "value_filter";
-  private static final String INDICATOR_TRANSFORM = "indicator_transform";
-  private static final String INDICATOR_FILTER = "indicator_filter";
-  private static final String ZK_QUORUM = "zk_quorum";
-  private static final String INDICATOR = "indicator";
+
+  protected enum ExtractorOptions {
+    VALUE_TRANSFORM("value_transform"),
+    VALUE_FILTER("value_filter"),
+    INDICATOR_TRANSFORM("indicator_transform"),
+    INDICATOR_FILTER("indicator_filter"),
+    ZK_QUORUM("zk_quorum"),
+    INDICATOR("indicator");
+
+    private String key;
+
+    ExtractorOptions(String key) {
+      this.key = key;
+    }
+
+    @Override
+    public String toString() {
+      return key;
+    }
+
+    public boolean existsIn(Map<String, Object> config) {
+      return config.containsKey(key);
+    }
+  }
+
   private Optional<CuratorFramework> zkClient;
   private Map<String, String> valueTransforms;
   private Map<String, String> indicatorTransforms;
@@ -48,21 +69,21 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   @Override
   public void initialize(Map<String, Object> config) {
     super.initialize(config);
-    if (config.containsKey(VALUE_TRANSFORM)) {
-      this.valueTransforms = getTransforms(config, VALUE_TRANSFORM);
+    if (VALUE_TRANSFORM.existsIn(config)) {
+      this.valueTransforms = getTransforms(config, VALUE_TRANSFORM.toString());
     }
-    if (config.containsKey(INDICATOR_TRANSFORM)) {
-      this.indicatorTransforms = getTransforms(config, INDICATOR_TRANSFORM);
+    if (INDICATOR_TRANSFORM.existsIn(config)) {
+      this.indicatorTransforms = getTransforms(config, INDICATOR_TRANSFORM.toString());
     }
-    if (config.containsKey(VALUE_FILTER)) {
-      this.valueFilter = getFilter(config, VALUE_FILTER);
+    if (VALUE_FILTER.existsIn(config)) {
+      this.valueFilter = getFilter(config, VALUE_FILTER.toString());
     }
-    if (config.containsKey(INDICATOR_FILTER)) {
-      this.indicatorFilter = getFilter(config, INDICATOR_FILTER);
+    if (INDICATOR_FILTER.existsIn(config)) {
+      this.indicatorFilter = getFilter(config, INDICATOR_FILTER.toString());
     }
     String zkClientUrl = "";
-    if (config.containsKey(ZK_QUORUM)) {
-      zkClientUrl = ConversionUtils.convert(config.get(ZK_QUORUM), String.class);
+    if (ZK_QUORUM.existsIn(config)) {
+      zkClientUrl = ConversionUtils.convert(config.get(ZK_QUORUM.toString()), String.class);
     }
     zkClient = setupClient(zkClient, zkClientUrl);
     this.globalConfig = getGlobalConfig(zkClient);
@@ -157,12 +178,12 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     Map<String, Object> ind = new LinkedHashMap<>();
     String indicator = lkv.getKey().getIndicator();
     // add indicator as a resolvable variable. Also enable using resolved/transformed variables and values from operating on the value metadata
-    ind.put(INDICATOR, indicator);
+    ind.put(INDICATOR.toString(), indicator);
     MapVariableResolver resolver = new MapVariableResolver(ret, ind, globalConfig);
     transform(valueTransforms, ret, resolver);
     transform(indicatorTransforms, ind, resolver);
     // update indicator
-    Object updatedIndicator = ind.get(INDICATOR);
+    Object updatedIndicator = ind.get(INDICATOR.toString());
     if (updatedIndicator != null) {
       if (!(updatedIndicator instanceof String)) {
         throw new UnsupportedOperationException("Indicator transform must return String type");
