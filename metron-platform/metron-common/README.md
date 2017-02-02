@@ -96,6 +96,7 @@ The `!=` operator is the negation of the above.
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
+| [ `FORMAT`](#format)                                                                       |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
@@ -269,6 +270,13 @@ The `!=` operator is the negation of the above.
     * fill - the fill character string
     * len - the required length
   * Returns: Last element of the list
+
+### `FORMAT`
+  * Description: Returns a formatted string using the specified format string and arguments.
+  * Input:
+    * format - string
+    * arguments... - object(s)
+  * Returns: A formatted string.
 
 ### `GEO_GET`
   * Description: Look up an IPV4 address and returns geographic information about it

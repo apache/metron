@@ -21,10 +21,13 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.collections.map.SingletonMap;
 import org.apache.metron.common.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -171,5 +174,37 @@ public class StringFunctionsTest {
       -0.5*-1 - 0.25*-2 - 0.25*-2 = 1.5
      */
     Assert.assertEquals(1.5, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "aaaaaaaaaabbbbbccccc")), 0.0);
+  }
+
+  @Test
+  public void testFormat() throws Exception {
+
+    Map<String, Object> vars = ImmutableMap.of(
+            "cal", new Calendar.Builder().setDate(2017, 02, 02).build(),
+            "x", 234,
+            "y", 3);
+
+    Assert.assertEquals("no args",        run("FORMAT('no args')", vars));
+    Assert.assertEquals("234.0",          run("FORMAT('%.1f', TO_DOUBLE(234))", vars));
+    Assert.assertEquals("000234",         run("FORMAT('%06d', 234)", vars));
+    Assert.assertEquals("03 2,2017",      run("FORMAT('%1$tm %1$te,%1$tY', cal)", vars));
+    Assert.assertEquals("234 > 3",        run("FORMAT('%d > %d', x, y)", vars));
+    Assert.assertEquals("missing: null",  run("FORMAT('missing: %d', missing)", vars));
+  }
+
+  /**
+   * FORMAT - Not passing a format string will throw an exception
+   */
+  @Test(expected = ParseException.class)
+  public void testFormatWithNoArguments() throws Exception {
+    run("FORMAT()", Collections.emptyMap());
+  }
+
+  /**
+   * FORMAT - Forgetting to pass an argument required by the format string will throw an exception.
+   */
+  @Test(expected = ParseException.class)
+  public void testFormatWithMissingArguments() throws Exception {
+    run("FORMAT('missing arg: %d')", Collections.emptyMap());
   }
 }
