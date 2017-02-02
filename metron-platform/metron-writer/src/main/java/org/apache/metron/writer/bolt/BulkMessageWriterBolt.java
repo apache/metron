@@ -23,6 +23,7 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import static org.apache.storm.utils.TupleUtils.isTick;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -93,11 +94,23 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = messageGetter.getMessage(tuple);
-    String sensorType = MessageUtils.getSensorType(message);
     try
     {
-      WriterConfiguration writerConfiguration = configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+      if (isTick(tuple)) {
+        if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
+          //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
+          LOG.debug("Flushing message queues older than their batchTimeouts");
+          writerComponent.flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
+                  new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations())));
+        }
+        return;
+      }
+
+      JSONObject message = messageGetter.getMessage(tuple);
+      String sensorType = MessageUtils.getSensorType(message);
+      LOG.trace("Writing enrichment message: {}", message);
+      WriterConfiguration writerConfiguration = configurationTransformation.apply(
+              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
       if(writerConfiguration.isDefault(sensorType)) {
         //want to warn, but not fail the tuple
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
@@ -108,7 +121,6 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
                            , bulkMessageWriter
                            , writerConfiguration
                            );
-      LOG.trace("Writing enrichment message: {}", message);
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);

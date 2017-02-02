@@ -23,7 +23,7 @@ import java.util.Map;
 
 public interface WriterConfiguration extends Serializable {
   int getBatchSize(String sensorName);
-  int getBatchTimeout(String sensorName);
+  default int getBatchTimeout(String sensorName) {return 0;}
   String getIndex(String sensorName);
   boolean isEnabled(String sensorName);
   Map<String, Object> getSensorConfig(String sensorName);
