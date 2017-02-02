@@ -22,6 +22,7 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.json.simple.JSONObject;
 
+import java.util.List;
 import java.util.Map;
 
 public interface SensorParserConfigService {
@@ -31,6 +32,8 @@ public interface SensorParserConfigService {
   SensorParserConfig findOne(String name) throws RestException;
 
   Iterable<SensorParserConfig> getAll() throws RestException;
+
+  List<String> getAllTypes() throws RestException;
 
   boolean delete(String name) throws RestException;
 

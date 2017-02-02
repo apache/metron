@@ -38,11 +38,15 @@ import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
 @Service
 public class StormStatusServiceImpl implements StormStatusService {
 
-  @Autowired
   private Environment environment;
 
-  @Autowired
   private RestTemplate restTemplate;
+
+  @Autowired
+  public StormStatusServiceImpl(Environment environment, RestTemplate restTemplate) {
+    this.environment = environment;
+    this.restTemplate = restTemplate;
+  }
 
   @Override
   public TopologySummary getTopologySummary() {

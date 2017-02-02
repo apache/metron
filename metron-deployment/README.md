@@ -133,6 +133,8 @@ Notably, the URL for the GeoIP database that is preloaded (and is prefilled by d
 
 After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
 
+Another custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing README.md](../metron-platform/metron-indexing/README.md)
+
 #### Offline installation
 Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information.
 

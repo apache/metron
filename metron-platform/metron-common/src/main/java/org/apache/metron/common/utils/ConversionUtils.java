@@ -18,23 +18,41 @@
 
 package org.apache.metron.common.utils;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 
+import java.util.List;
+
 public class ConversionUtils {
-  private static ThreadLocal<ConvertUtilsBean> UTILS_BEAN  = new ThreadLocal<ConvertUtilsBean>() {
+  private static ThreadLocal<ConvertUtilsBean> UTILS_BEAN = new ThreadLocal<ConvertUtilsBean>() {
     @Override
     protected ConvertUtilsBean initialValue() {
       ConvertUtilsBean ret = BeanUtilsBean2.getInstance().getConvertUtils();
       ret.deregister();
-      ret.register(false,true, 1);
+      ret.register(false, true, 1);
       return ret;
     }
   };
+
   public static <T> T convert(Object o, Class<T> clazz) {
-    if(o == null) {
+    if (o == null) {
       return null;
     }
     return clazz.cast(UTILS_BEAN.get().convert(o, clazz));
   }
+
+  /**
+   * Performs naive List type conversion.
+   *
+   * @param from Source list
+   * @param clazz Class type to cast the List elements to
+   * @param <T> Source element type
+   * @param <U> Desired element type
+   * @return New List with the elements cast to the desired type
+   */
+  public static <T, U> List<U> convertList(List<T> from, Class<U> clazz) {
+    return Lists.transform(from, s -> convert(s, clazz));
+  }
+
 }
