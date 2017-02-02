@@ -32,7 +32,7 @@ public class SyslogUtilsTest {
     public void testRfc3164Timestamp() throws ParseException {
         String originalTimestamp = "Oct  9 13:42:11";
 
-        // FixedLookback clock is behind parsed timestamp, but by less than 4 days. Expect year of clock.
+        // Fixed clock is behind parsed timestamp, but by less than 4 days. Expect year of clock.
         ZonedDateTime fixedInstant =
                 ZonedDateTime.of(2016, 10, 8, 18, 30, 30, 0, ZoneOffset.UTC);
         Clock fixedClock = Clock.fixed(fixedInstant.toInstant(), fixedInstant.getZone());
@@ -44,7 +44,7 @@ public class SyslogUtilsTest {
     public void testRfc3164TimestampBackDate() throws ParseException {
         String originalTimestamp = "Oct  9 13:42:11";
 
-        // FixedLookback clock is behind parsed timestamp by more than 4 days. Expect year of clock - 1.
+        // Fixed clock is behind parsed timestamp by more than 4 days. Expect year of clock - 1.
         ZonedDateTime fixedInstant =
                 ZonedDateTime.of(2016, 10, 1, 18, 30, 30, 0, ZoneOffset.UTC);
         Clock fixedClock = Clock.fixed(fixedInstant.toInstant(), fixedInstant.getZone());
