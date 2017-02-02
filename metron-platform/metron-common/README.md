@@ -272,7 +272,7 @@ The `!=` operator is the negation of the above.
   * Returns: Last element of the list
 
 ### `FORMAT`
-  * Description: Returns a formatted string using the specified format string and arguments.
+  * Description: Returns a formatted string using the specified format string and arguments. Uses Java's string formatting conventions.
   * Input:
     * format - string
     * arguments... - object(s)
