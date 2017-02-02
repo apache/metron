@@ -33,14 +33,14 @@ import java.util.concurrent.TimeUnit;
 @Stellar(
       namespace="PROFILE",
       name="FIXED",
-      description="The timestamps associated with a fixed lookback starting from now.",
+      description="The profiler periods associated with a fixed lookback starting from now.",
       params={
         "durationAgo - How long ago should values be retrieved from?",
         "units - The units of 'durationAgo'.",
         "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
                 "of the same name. Default is the empty Map, meaning no overrides."
       },
-      returns="The selected profile measurement timestamps."
+      returns="The selected profile measurement periods."
 )
 public class FixedLookback implements StellarFunction {
 
@@ -59,7 +59,7 @@ public class FixedLookback implements StellarFunction {
     TimeUnit tickUnit = TimeUnit.valueOf(ProfilerConfig.PROFILER_PERIOD_UNITS.get(effectiveConfigs, String.class));
     long end = System.currentTimeMillis();
     long start = end - units.toMillis(durationAgo);
-    return ProfilePeriod.visitTimestamps(start, end, tickDuration, tickUnit, Optional.empty(), ts -> ts);
+    return ProfilePeriod.visitTimestamps(start, end, tickDuration, tickUnit, Optional.empty(), period -> period.getPeriod());
   }
 
   @Override

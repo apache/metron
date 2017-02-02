@@ -29,7 +29,7 @@ The Stellar client consists of the `PROFILE_GET` command, which takes the follow
 REQUIRED:
     profile - The name of the profile
     entity - The name of the entity
-    timestamps - The list of timestamps (epoch millis) to grab
+    periods - The list of profile periods to grab
 OPTIONAL:
 	groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of 
             groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when 
@@ -39,9 +39,9 @@ OPTIONAL:
 ```
 There is an older calling format where `groups_list` is specified as a sequence of group names, "varargs" style, instead of a List object.  This format is still supported for backward compatibility, but it is deprecated, and it is disallowed if the optional `config_overrides` argument is used.
 
-The `timestamps` field is (likely) the output of another Stellar function which defines the times to include.
+The `periods` field is (likely) the output of another Stellar function which defines the times to include.
 
-`PROFILE_FIXED`:      The timestamps associated with a fixed lookback starting from now
+`PROFILE_FIXED`: The profiler periods associated with a fixed lookback starting from now
 ```
 REQUIRED:
     durationAgo - How long ago should values be retrieved from?

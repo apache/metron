@@ -122,16 +122,15 @@ public class ProfilePeriod {
                                            , long endEpochMillis
                                            , long duration
                                            , TimeUnit units
-                                           , Optional<Predicate<Long>> inclusionPredicate
-                                           , Function<Long,T> transformation
+                                           , Optional<Predicate<ProfilePeriod>> inclusionPredicate
+                                           , Function<ProfilePeriod,T> transformation
                                            )
   {
     ProfilePeriod period = new ProfilePeriod(startEpochMillis, duration, units);
     List<T> ret = new ArrayList<>();
     while(period.getStartTimeMillis() <= endEpochMillis) {
-      long ts = period.getTimestamp();
-      if(!inclusionPredicate.isPresent() || inclusionPredicate.get().test(ts)) {
-        ret.add(transformation.apply(ts));
+      if(!inclusionPredicate.isPresent() || inclusionPredicate.get().test(period)) {
+        ret.add(transformation.apply(period));
       }
       period = period.next();
     }

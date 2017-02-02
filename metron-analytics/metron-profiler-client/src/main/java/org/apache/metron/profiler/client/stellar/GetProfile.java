@@ -81,7 +81,7 @@ import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
         params={
           "profile - The name of the profile.",
           "entity - The name of the entity.",
-          "timestamps - The list of timestamps (epoch millis) to grab",
+          "periods - The list of profile periods to grab",
           "groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of "+
                   "groupBy values used to filter the profile. Default is the " +
                   "empty list, meaning groupBy was not used when creating the profile.",
@@ -132,7 +132,7 @@ public class GetProfile implements StellarFunction {
 
     String profile = getArg(0, String.class, args);
     String entity = getArg(1, String.class, args);
-    Optional<List<Long>> timestamps = Optional.ofNullable(getArg(2, List.class, args));
+    Optional<List<Long>> periods = Optional.ofNullable(getArg(2, List.class, args));
     //Optional arguments
     @SuppressWarnings("unchecked")
     List<Object> groups = null;
@@ -166,7 +166,7 @@ public class GetProfile implements StellarFunction {
       cachedConfigMap = effectiveConfig;
     }
 
-    return client.fetch(Object.class, profile, entity, groups, timestamps.orElse(new ArrayList<>(0)));
+    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)));
   }
 
 

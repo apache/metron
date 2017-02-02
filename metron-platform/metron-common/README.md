@@ -432,13 +432,13 @@ The `!=` operator is the negation of the above.
   * Input:
     * profile - The name of the profile.
     * entity - The name of the entity.
-    * timestamps - The list of timestamps (epoch millis) to grab
+    * periods - The list of profile periods to grab
     * groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when creating the profile.
     * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
   * Returns: The selected profile measurements.
 
 ### `PROFILE_FIXED`
-  * Description: The timestamps associated with a fixed lookback starting from now
+  * Description: The profile periods associated with a fixed lookback starting from now
   * Input:
     * durationAgo - How long ago should values be retrieved from?
     * units - The units of 'durationAgo'.
