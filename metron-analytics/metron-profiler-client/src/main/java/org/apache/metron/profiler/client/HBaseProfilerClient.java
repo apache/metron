@@ -111,6 +111,34 @@ public class HBaseProfilerClient implements ProfilerClient {
   }
 
   /**
+   * Fetch the values stored in a profile based on a set of timestamps.
+   *
+   * @param clazz      The type of values stored by the profile.
+   * @param profile    The name of the profile.
+   * @param entity     The name of the entity.
+   * @param groups     The groups used to sort the profile data.
+   * @param timestamps The set of timestamps
+   * @return A list of values.
+   */
+  @Override
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<Long> timestamps) {
+    byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
+    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
+
+    // find all the row keys that satisfy this fetch
+    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, timestamps);
+
+    // create a Get for each of the row keys
+    List<Get> gets = keysToFetch
+            .stream()
+            .map(k -> new Get(k).addColumn(columnFamily, columnQualifier))
+            .collect(Collectors.toList());
+
+    // get the 'gets'
+    return get(gets, columnQualifier, columnFamily, clazz);
+  }
+
+  /**
    * Submits multiple Gets to HBase and deserialize the results.
    *
    * @param gets            The gets to submit to HBase.

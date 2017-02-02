@@ -55,4 +55,17 @@ public interface ProfilerClient {
    * @return A list of values.
    */
   <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end);
+
+  /**
+   * Fetch the values stored in a profile based on a set of timestamps.
+   *
+   * @param clazz   The type of values stored by the profile.
+   * @param profile The name of the profile.
+   * @param entity  The name of the entity.
+   * @param groups  The groups used to sort the profile data.
+   * @param timestamps The set of timestamps
+   * @param <T>     The type of values stored by the profile.
+   * @return A list of values.
+   */
+  <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<Long> timestamps);
 }

@@ -56,4 +56,19 @@ public interface RowKeyBuilder extends Serializable {
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end);
+
+  /**
+   * Builds a list of row keys necessary to retrieve a profile's measurements over
+   * a time horizon.
+   *
+   * This method is useful when attempting to read ProfileMeasurements stored in HBase.
+   *
+   * @param profile The name of the profile.
+   * @param entity The name of the entity.
+   * @param groups The group(s) used to sort the profile data.
+   * @param timestamps The timestamps to compute the rowkeys for
+   * @return All of the row keys necessary to retrieve the profile measurements.
+   */
+  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> timestamps);
+
 }

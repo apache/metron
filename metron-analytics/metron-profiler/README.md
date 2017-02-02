@@ -66,11 +66,11 @@ This section will describe the steps required to get your first profile running.
 
 1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.
 More information on configuring and using the client can be found [here](../metron-profiler-client).
-It is assumed that the PROFILE_GET client is correctly configured before using it.
+It is assumed that the `PROFILE_GET` client is correctly configured before using it.
     ```
     $ bin/stellar -z node1:2181
     
-    [Stellar]>>> PROFILE_GET( "test", "10.0.0.1", 30, "MINUTES")
+    [Stellar]>>> PROFILE_GET( "test", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [451, 448]
     ```
 
@@ -334,7 +334,7 @@ Retrieve the last 30 minutes of profile measurements for a specific host.
 ```
 $ bin/stellar -z node1:2181
 
-[Stellar]>>> stats := PROFILE_GET( "example4", "10.0.0.1", 30, "MINUTES")
+[Stellar]>>> stats := PROFILE_GET( "example4", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
 [Stellar]>>> stats
 [org.apache.metron.common.math.stats.OnlineStatisticsProvider@79fe4ab9, ...]
 ```

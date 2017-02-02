@@ -20,7 +20,12 @@
 
 package org.apache.metron.profiler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 
@@ -102,5 +107,25 @@ public class ProfilePeriod {
             "period=" + period +
             ", durationMillis=" + durationMillis +
             '}';
+  }
+
+  public static <T> List<T> visitTimestamps( long startEpochMillis
+                                           , long endEpochMillis
+                                           , long duration
+                                           , TimeUnit units
+                                           , Optional<Predicate<Long>> inclusionPredicate
+                                           , Function<Long,T> transformation
+                                           )
+  {
+    ProfilePeriod period = new ProfilePeriod(startEpochMillis, duration, units);
+    List<T> ret = new ArrayList<>();
+    while(period.getStartTimeMillis() <= endEpochMillis) {
+      long ts = period.getPeriod();
+      if(!inclusionPredicate.isPresent() || inclusionPredicate.get().test(ts)) {
+        ret.add(transformation.apply(ts));
+      }
+      period = period.next();
+    }
+    return ret;
   }
 }
