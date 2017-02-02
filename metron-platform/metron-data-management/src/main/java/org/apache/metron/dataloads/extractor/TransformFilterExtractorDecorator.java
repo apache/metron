@@ -26,6 +26,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private static final String INDICATOR_FILTER = "indicator_filter";
   private static final String ZK_QUORUM = "zk_quorum";
   private static final String INDICATOR = "indicator";
+  private Optional<CuratorFramework> zkClient;
   private Map<String, String> valueTransforms;
   private Map<String, String> indicatorTransforms;
   private String valueFilter;
@@ -37,8 +38,9 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
 
   public TransformFilterExtractorDecorator(Extractor decoratedExtractor) {
     super(decoratedExtractor);
-    this.valueTransforms = new HashMap<>();
-    this.indicatorTransforms = new HashMap<>();
+    this.zkClient = Optional.empty();
+    this.valueTransforms = new LinkedHashMap<>();
+    this.indicatorTransforms = new LinkedHashMap<>();
     this.valueFilter = "";
     this.indicatorFilter = "";
   }
@@ -62,7 +64,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     if (config.containsKey(ZK_QUORUM)) {
       zkClientUrl = ConversionUtils.convert(config.get(ZK_QUORUM), String.class);
     }
-    Optional<CuratorFramework> zkClient = createClient(zkClientUrl);
+    zkClient = setupClient(zkClient, zkClientUrl);
     this.globalConfig = getGlobalConfig(zkClient);
     this.stellarContext = createContext(zkClient);
     StellarFunctions.initialize(stellarContext);
@@ -82,7 +84,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
    */
   private Map<String, String> getTransforms(Map<String, Object> config, String type) {
     Map<Object, Object> transformsConfig = ConversionUtils.convertOrFail(config.get(type), Map.class);
-    Map<String, String> transforms = new HashMap<>();
+    Map<String, String> transforms = new LinkedHashMap<>();
     for (Map.Entry<Object, Object> e : transformsConfig.entrySet()) {
       String key = ConversionUtils.convertOrFail(e.getKey(), String.class);
       String val = ConversionUtils.convertOrFail(e.getValue(), String.class);
@@ -92,18 +94,22 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   }
 
   /**
-   * Creates a Zookeeper client.
+   * Creates a Zookeeper client if it doesn't exist and a url for zk is provided.
    * @param zookeeperUrl The Zookeeper URL.
    */
-  private Optional<CuratorFramework> createClient(String zookeeperUrl) {
-    // can only create client, if have valid zookeeper URL
-    if (StringUtils.isNotBlank(zookeeperUrl)) {
-      CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
-      client.start();
-      return Optional.of(client);
+  private Optional<CuratorFramework> setupClient(Optional<CuratorFramework> zkClient, String zookeeperUrl) {
+    // can only create client if we have a valid zookeeper URL
+    if (!zkClient.isPresent()) {
+      if (StringUtils.isNotBlank(zookeeperUrl)) {
+        CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
+        client.start();
+        return Optional.of(client);
+      } else {
+        LOG.warn("Unable to setup zookeeper client - zk_quorum url not provided. **This will limit some Stellar functionality**");
+        return Optional.empty();
+      }
     } else {
-      LOG.warn("Unable to setup zookeeper client - zk_quorum url not provided. **This will limit some Stellar functionality**");
-      return Optional.empty();
+      return zkClient;
     }
   }
 
@@ -118,13 +124,13 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
         LOG.warn("Exception thrown while attempting to get global config from Zookeeper.", e);
       }
     }
-    return new HashMap<>();
+    return new LinkedHashMap<>();
   }
 
   private Context createContext(Optional<CuratorFramework> zkClient) {
     Context.Builder builder = new Context.Builder();
     if (zkClient.isPresent()) {
-      builder.with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> zkClient.get())
+      builder.with(Context.Capabilities.ZOOKEEPER_CLIENT, zkClient::get)
               .with(Context.Capabilities.GLOBAL_CONFIG, () -> globalConfig);
     }
     return builder.build();
@@ -148,7 +154,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
    */
   private boolean updateLookupKV(LookupKV lkv) {
     Map<String, Object> ret = lkv.getValue().getMetadata();
-    Map<String, Object> ind = new HashMap<>();
+    Map<String, Object> ind = new LinkedHashMap<>();
     String indicator = lkv.getKey().getIndicator();
     // add indicator as a resolvable variable. Also enable using resolved/transformed variables and values from operating on the value metadata
     ind.put(INDICATOR, indicator);
@@ -181,6 +187,10 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
 
   private Boolean filter(String filterPredicate, MapVariableResolver variableResolver) {
     return filterProcessor.parse(filterPredicate, variableResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+  }
+
+  protected void setZkClient(Optional<CuratorFramework> zkClient) {
+    this.zkClient = zkClient;
   }
 
 }

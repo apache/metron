@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
+import org.apache.curator.test.TestingServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
@@ -60,6 +61,9 @@ public class SimpleEnrichmentFlatFileLoaderTest {
   private String enrichmentJson = "enrichment_config.json";
   private String log4jProperty = "log4j";
 
+  private TestingServer testZkServer;
+  private String zookeeperUrl;
+
   Configuration config = null;
   /**
    {
@@ -84,6 +88,8 @@ public class SimpleEnrichmentFlatFileLoaderTest {
     config = kv.getValue();
     testUtil = kv.getKey();
     testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
+    testZkServer = new TestingServer(true);
+    zookeeperUrl = testZkServer.getConnectString();
   }
 
   @After
@@ -161,10 +167,11 @@ public class SimpleEnrichmentFlatFileLoaderTest {
    *      "indicator" : "TO_UPPER(indicator)"
    *    },
    *    "value_filter" : "LENGTH(domain) > 0",
-   *    "indicator_filter" : "LENGTH(domain) > 0",
+   *    "indicator_filter" : "LENGTH(indicator) > 0",
    *    "indicator_column" : "domain",
    *    "type" : "topdomain",
-   *    "separator" : ","
+   *    "separator" : ",",
+   *    "zk_quorum" : "%ZK_QUORUM%"
    *  },
    *  "extractor" : "CSV"
    *}
@@ -175,13 +182,15 @@ public class SimpleEnrichmentFlatFileLoaderTest {
   @Test
   public void transforms_fields() throws Exception {
     Assert.assertNotNull(testTable);
+    // TODO
+//    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, zookeeperUrl);
     String[] contents = new String[]{
             "1,google.com",
             "2,"
     };
 
     EnrichmentConverter converter = new EnrichmentConverter();
-    ExtractorHandler handler = ExtractorHandler.load(stellarExtractorConfig);
+    ExtractorHandler handler = ExtractorHandler.load(stellarExtractorConfig.replaceAll("%ZK_QUORUM", zookeeperUrl));
     Extractor e = handler.getExtractor();
     SimpleEnrichmentFlatFileLoader loader = new SimpleEnrichmentFlatFileLoader();
     List<Put> extract = loader.extract(contents[0], e, cf, converter);
