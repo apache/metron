@@ -73,7 +73,6 @@ public class Util {
    * @throws ParseException - if any override values are of wrong type.
    */
   public static Map<String, Object> getEffectiveConfig(Context context , Map configOverridesMap ) throws ParseException {
-
     // ensure the required capabilities are defined
     final Context.Capabilities[] required = { GLOBAL_CONFIG };
     validateCapabilities(context, required);
@@ -82,7 +81,7 @@ public class Util {
 
     Map<String, Object> result = new HashMap<>(6);
 
-    // extract the relevant parameters from global
+    // extract the relevant parameters from global, the overrides and the defaults
     for (ProfilerConfig k : ProfilerConfig.values()) {
       Object globalValue = global.containsKey(k.key)?ConversionUtils.convert(global.get(k.key), k.valueType):null;
       Object overrideValue = configOverridesMap == null?null:k.getOrDefault(configOverridesMap, null);
