@@ -118,7 +118,7 @@ public class ProfilePeriod {
             '}';
   }
 
-  public static <T> List<T> visitTimestamps( long startEpochMillis
+  public static <T> List<T> visitPeriods(long startEpochMillis
                                            , long endEpochMillis
                                            , long duration
                                            , TimeUnit units

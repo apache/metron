@@ -87,7 +87,7 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     start = Math.min(start, end);
 
     // find the starting period and advance until the end time is reached
-    return ProfilePeriod.visitTimestamps( start
+    return ProfilePeriod.visitPeriods( start
                                         , end
                                         , periodDurationMillis
                                         , TimeUnit.MILLISECONDS
