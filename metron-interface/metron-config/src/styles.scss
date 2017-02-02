@@ -79,26 +79,28 @@ table, .table
       border-bottom: 2px solid #404040 !important;
     }
   }
-  tr
-  {
-    font-family: Roboto-Regular;
-    font-size: 12px;
-    letter-spacing: 0.1px;
-    color: $table-cell-text-color;
-    td:first-child
+  tbody {
+    tr
     {
-      color: $text-color-white;
-    }
-    td
-    {
-      border-top: none;
-      border-bottom: 1px solid #404040;
-    }
-    &:hover
-    {
-      background: $edit-background;
-      border-left: 1px solid $edit-background-border;
-      border-right: 1px solid $edit-background-border;
+      font-family: Roboto-Regular;
+      font-size: 12px;
+      letter-spacing: 0.1px;
+      color: $table-cell-text-color;
+      td:first-child
+      {
+        color: $text-color-white;
+      }
+      td
+      {
+        border-top: none;
+        border-bottom: 1px solid #404040;
+      }
+      &:hover
+      {
+        background: $edit-background;
+        border-left: 1px solid $edit-background-border;
+        border-right: 1px solid $edit-background-border;
+      }
     }
   }
   .active
@@ -175,6 +177,8 @@ label
 
 .metron-slider-pane
 {
+  background-color: $gray-light;
+  border: solid 1px $gray-border;
   height: auto;
   display: inline-block;
   vertical-align:top;
