@@ -96,6 +96,9 @@ if has_zk_host:
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
 
+# Zeppelin
+zeppelin_server_url = status_params.zeppelin_server_url
+
 # Kafka
 kafka_hosts = default("/clusterHostInfo/kafka_broker_hosts", [])
 has_kafka_host = not len(kafka_hosts) == 0
@@ -162,3 +165,6 @@ metron_threat_intel_error_topic = status_params.metron_threat_intel_error_topic
 bro_index_path = tmp_dir + "/bro_index.template"
 snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
+
+# Zeppelin Notebooks
+metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")

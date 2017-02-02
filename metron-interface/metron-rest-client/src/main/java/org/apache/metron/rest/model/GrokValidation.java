@@ -52,4 +52,24 @@ public class GrokValidation {
     public void setResults(Map<String, Object> results) {
         this.results = results;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GrokValidation that = (GrokValidation) o;
+
+        if (statement != null ? !statement.equals(that.statement) : that.statement != null) return false;
+        if (sampleData != null ? !sampleData.equals(that.sampleData) : that.sampleData != null) return false;
+        return results != null ? results.equals(that.results) : that.results == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = statement != null ? statement.hashCode() : 0;
+        result = 31 * result + (sampleData != null ? sampleData.hashCode() : 0);
+        result = 31 * result + (results != null ? results.hashCode() : 0);
+        return result;
+    }
 }

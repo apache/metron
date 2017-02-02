@@ -140,3 +140,11 @@ Finally, if workers and executors are new to you or you don't know where
 to modify the flux file, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
 * [Flux Docs](http://storm.apache.org/releases/current/flux.html)
+
+## Zeppelin Notebooks
+Zeppelin notebooks can be added to `/src/main/config/zeppelin/` (and subdirectories can be created for organization).  The placed files must be .json files and be named appropriately.
+These files must be added to the metron.spec file and the RPMs rebuilt to be available to be loaded into Ambari.
+
+The notebook files will be found on the server in `$METRON_HOME/config/zeppelin`
+
+The Ambari Management Pack has a custom action to load these templates, ZEPPELIN_DASHBOARD_INSTALL, that will import them into Zeppelin.

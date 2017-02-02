@@ -23,6 +23,7 @@ import org.apache.metron.rest.model.KafkaTopic;
 import java.util.Set;
 
 public interface KafkaService {
+    String CONSUMER_OFFSETS_TOPIC = "__consumer_offsets";
 
     KafkaTopic createTopic(KafkaTopic topic) throws RestException;
 
@@ -33,5 +34,4 @@ public interface KafkaService {
     Set<String> listTopics();
 
     String getSampleMessage(String topic);
-
 }

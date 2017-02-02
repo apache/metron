@@ -35,8 +35,12 @@ import static org.apache.metron.rest.MetronRestConstants.INDEXING_TOPOLOGY_NAME;
 
 public class StormCLIWrapper {
 
-  @Autowired
   private Environment environment;
+
+  @Autowired
+  public void setEnvironment(final Environment environment) {
+    this.environment = environment;
+  }
 
   public int startParserTopology(String name) throws RestException {
     return runCommand(getParserStartCommand(name));
