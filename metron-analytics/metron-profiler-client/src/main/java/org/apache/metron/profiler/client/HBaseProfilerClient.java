@@ -117,16 +117,16 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @param profile    The name of the profile.
    * @param entity     The name of the entity.
    * @param groups     The groups used to sort the profile data.
-   * @param timestamps The set of timestamps
+   * @param periods    The set of profile measurement periods
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<Long> timestamps) {
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<Long> periods) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, timestamps);
+    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, periods);
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch

@@ -92,7 +92,7 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
                                         , periodDurationMillis
                                         , TimeUnit.MILLISECONDS
                                         , Optional.empty()
-                                        , ts -> rowKey(profile, entity, ts, groups)
+                                        , period -> rowKey(profile, entity, period, groups)
                                         );
 
   }
@@ -106,14 +106,14 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param profile    The name of the profile.
    * @param entity     The name of the entity.
    * @param groups     The group(s) used to sort the profile data.
-   * @param timestamps The timestamps to compute the rowkeys for
+   * @param periods    The profile measurement periods to compute the rowkeys for
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   @Override
-  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> timestamps) {
+  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> periods) {
     List<byte[]> ret = new ArrayList<>();
-    for(long ts : timestamps) {
-      ret.add(rowKey(profile, entity, ts, groups));
+    for(long period : periods) {
+      ret.add(rowKey(profile, entity, period, groups));
     }
     return ret;
   }
@@ -144,17 +144,17 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * Build the row key.
    * @param profile The name of the profile.
    * @param entity The name of the entity.
-   * @param ts The timestamp associated with the period
+   * @param period The measure period
    * @param groups The groups.
    * @return The HBase row key.
    */
-  public byte[] rowKey(String profile, String entity, long ts, List<Object> groups) {
+  public byte[] rowKey(String profile, String entity, long period, List<Object> groups) {
 
     // row key = salt + prefix + group(s) + time
-    byte[] salt = getSalt(ts, saltDivisor);
+    byte[] salt = getSalt(period, saltDivisor);
     byte[] prefixKey = prefixKey(profile, entity);
     byte[] groupKey = groupKey(groups);
-    byte[] timeKey = timeKey(ts);
+    byte[] timeKey = timeKey(period);
 
     int capacity = salt.length + prefixKey.length + groupKey.length + timeKey.length;
     return ByteBuffer
@@ -200,16 +200,16 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
 
   /**
    * Builds the 'time' portion of the row key
-   * @param ts the timestamp associated with the period
+   * @param period the period
    */
-  private static byte[] timeKey(long ts) {
-    return Bytes.toBytes(ts);
+  private static byte[] timeKey(long period) {
+    return Bytes.toBytes(period);
   }
 
   /**
    * Calculates a salt value that is used as part of the row key.
    *
-   * The salt is calculated as 'md5(timestamp) % N' where N is a configurable value that ideally
+   * The salt is calculated as 'md5(period) % N' where N is a configurable value that ideally
    * is close to the number of nodes in the Hbase cluster.
    *
    * @param period The period in which a profile measurement is taken.
@@ -221,16 +221,17 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   /**
    * Calculates a salt value that is used as part of the row key.
    *
-   * The salt is calculated as 'md5(timestamp) % N' where N is a configurable value that ideally
+   * The salt is calculated as 'md5(period) % N' where N is a configurable value that ideally
    * is close to the number of nodes in the Hbase cluster.
    *
-   * @param timestamp The timestamp associated with the period
+   * @param period The period
+   * @param saltDivisor The salt divisor
    */
-  public static byte[] getSalt(long timestamp, int saltDivisor) {
+  public static byte[] getSalt(long period, int saltDivisor) {
     try {
       // an MD5 is 16 bytes aka 128 bits
       MessageDigest digest = MessageDigest.getInstance("MD5");
-      byte[] hash = digest.digest(timeKey(timestamp));
+      byte[] hash = digest.digest(timeKey(period));
       int salt = Bytes.toShort(hash) % saltDivisor;
       return Bytes.toBytes(salt);
 

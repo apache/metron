@@ -66,9 +66,9 @@ public interface RowKeyBuilder extends Serializable {
    * @param profile The name of the profile.
    * @param entity The name of the entity.
    * @param groups The group(s) used to sort the profile data.
-   * @param timestamps The timestamps to compute the rowkeys for
+   * @param periods The profile measurement periods to compute the rowkeys for
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
-  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> timestamps);
+  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> periods);
 
 }
