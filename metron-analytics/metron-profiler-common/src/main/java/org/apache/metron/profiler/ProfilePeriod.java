@@ -47,6 +47,11 @@ public class ProfilePeriod {
   private long durationMillis;
 
   /**
+   * The timestamp underlying the period.
+   */
+  private long timestamp;
+
+  /**
    * @param epochMillis A timestamp contained somewhere within the profile period.
    * @param duration The duration of each profile period.
    * @param units The units of the duration; hours, minutes, etc.
@@ -56,7 +61,7 @@ public class ProfilePeriod {
       throw new IllegalArgumentException(format(
               "period duration must be greater than 0; got '%d %s'", duration, units));
     }
-
+    this.timestamp = epochMillis;
     this.durationMillis = units.toMillis(duration);
     this.period = epochMillis / durationMillis;
   }
@@ -78,6 +83,10 @@ public class ProfilePeriod {
 
   public long getPeriod() {
     return period;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
   }
 
   public long getDurationMillis() {
@@ -120,7 +129,7 @@ public class ProfilePeriod {
     ProfilePeriod period = new ProfilePeriod(startEpochMillis, duration, units);
     List<T> ret = new ArrayList<>();
     while(period.getStartTimeMillis() <= endEpochMillis) {
-      long ts = period.getPeriod();
+      long ts = period.getTimestamp();
       if(!inclusionPredicate.isPresent() || inclusionPredicate.get().test(ts)) {
         ret.add(transformation.apply(ts));
       }
