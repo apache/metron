@@ -18,6 +18,8 @@
 package org.apache.metron.enrichment.bolt;
 
 import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
@@ -133,14 +136,18 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           LOG.debug(sourceType + ": Empty rules!");
         }
 
+        // triage the threat
         ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, stellarContext);
-        Double triageLevel = threatTriageProcessor.apply(ret);
+        ThreatScore score = threatTriageProcessor.apply(ret);
+
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules());
-          LOG.debug("Marked " + sourceType + " as triage level " + triageLevel + " with rules " + rules);
+          LOG.debug("Marked " + sourceType + " as triage level " + score.getScore() + " with rules " + rules);
         }
-        if(triageLevel != null && triageLevel > 0) {
-          ret.put("threat.triage.level", triageLevel);
+
+        // attach the triage threat score to the message
+        if(score.getRuleScores().size() > 0) {
+          ret.put("threat.triage.level", toMap(score));
         }
       }
       else {
@@ -158,5 +165,21 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     if(type == ConfigurationType.GLOBAL) {
       GeoLiteDatabase.INSTANCE.updateIfNecessary(getConfigurations().getGlobalConfig());
     }
+  }
+
+  private Map<String, Object> toMap(ThreatScore threatScore) {
+    Map<String, Object> map = new HashMap();
+    map.put("score", threatScore.getScore());
+    map.put("rules", threatScore.getRuleScores().stream().map(score -> toMap(score)).collect(Collectors.toList()));
+    return map;
+  }
+
+  private Map<String, Object> toMap(RuleScore score) {
+    Map<String, Object> map = new HashMap();
+    map.put("name", score.getRule().getName());
+    map.put("comment", score.getRule().getComment());
+    map.put("score", score.getRule().getScore());
+    map.put("reason", score.getReason());
+    return map;
   }
 }

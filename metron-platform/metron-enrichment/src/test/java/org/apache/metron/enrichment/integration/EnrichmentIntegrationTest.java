@@ -44,6 +44,7 @@ import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.test.utils.UnitTestHelper;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -356,7 +357,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(keyPatternExists("threatintels.", indexedDoc));
       Assert.assertTrue(indexedDoc.containsKey("threat.triage.level"));
       Assert.assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
-      Assert.assertEquals((double)indexedDoc.get("threat.triage.level"), 10d, 1e-7);
+      Double score = (Double) ((Map) indexedDoc.get("threat.triage.level")).get("score");
+      Assert.assertEquals(score, 10d, 1e-7);
     }
     else {
       //For YAF this is the case, but if we do snort later on, this will be invalid.
