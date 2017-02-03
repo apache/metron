@@ -17,19 +17,29 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.enrichment.converter.HbaseConverter;
+
+import java.io.IOException;
 
 public class ExtractorState {
   private HTableInterface table;
   private Extractor extractor;
   private HbaseConverter converter;
+  private FileSystem fs;
 
-  public ExtractorState(HTableInterface table, Extractor extractor, HbaseConverter converter) {
+  public ExtractorState(HTableInterface table, Extractor extractor, HbaseConverter converter, Configuration config) {
     this.table = table;
     this.extractor = extractor;
     this.converter = converter;
+    try {
+      this.fs = FileSystem.get(config);
+    } catch (IOException e) {
+      throw new IllegalStateException("Unable to retrieve hadoop file system: " + e.getMessage(), e);
+    }
   }
 
   public HTableInterface getTable() {
@@ -42,5 +52,9 @@ public class ExtractorState {
 
   public HbaseConverter getConverter() {
     return converter;
+  }
+
+  public FileSystem getFileSystem() {
+    return fs;
   }
 }
