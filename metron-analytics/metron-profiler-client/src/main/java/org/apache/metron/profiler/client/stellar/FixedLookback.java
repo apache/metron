@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
         "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
                 "of the same name. Default is the empty Map, meaning no overrides."
       },
-      returns="The selected profile measurement periods."
+      returns="The selected profile measurement periods.  These are ProfilePeriod objects."
 )
 public class FixedLookback implements StellarFunction {
 

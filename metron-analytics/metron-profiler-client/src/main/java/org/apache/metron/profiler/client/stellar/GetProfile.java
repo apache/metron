@@ -82,7 +82,7 @@ import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
         params={
           "profile - The name of the profile.",
           "entity - The name of the entity.",
-          "periods - The list of profile periods to grab",
+          "periods - The list of profile periods to grab.  These are ProfilePeriod objects.",
           "groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of "+
                   "groupBy values used to filter the profile. Default is the " +
                   "empty list, meaning groupBy was not used when creating the profile.",
