@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,7 +20,7 @@ grammar Stellar;
 
 @header {
 //CHECKSTYLE:OFF
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -45,7 +45,6 @@ DOUBLE_QUOTE : '"';
 SINGLE_QUOTE : '\'';
 COMMA : ',';
 PERIOD : '.';
-fragment EOL : '\n';
 
 AND : 'and' | '&&' | 'AND';
 OR : 'or' | '||' | 'OR';
@@ -90,13 +89,13 @@ DOUBLE_LITERAL :
   | INT_LITERAL EXPONENT D?
   | INT_LITERAL EXPONENT? D
   ;
-FLOAT_LITERAL  :
+FLOAT_LITERAL :
   INT_LITERAL PERIOD DIGIT* EXPONENT? F
   | MINUS? PERIOD DIGIT+ EXPONENT? F
   | INT_LITERAL EXPONENT? F
   ;
-LONG_LITERAL  : INT_LITERAL L ;
-IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]* ;
+LONG_LITERAL : INT_LITERAL L;
+IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]*;
 
 STRING_LITERAL :
   DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
@@ -106,9 +105,9 @@ STRING_LITERAL :
 // COMMENT and WS are stripped from the output token stream by sending
 // to a different channel 'skip'
 
-COMMENT : '//' .+? (EOL|EOF) -> skip ;
+COMMENT : '//' .+? (EOL|EOF) -> skip;
 
-WS : [ \r\t\u000C\n]+ -> skip ;
+WS : [ \r\t\u000C\n]+ -> skip;
 
 fragment ZERO: '0';
 fragment FIRST_DIGIT: '1'..'9';
@@ -118,7 +117,7 @@ fragment D: ('d'|'D');
 fragment E: ('e'|'E');
 fragment F: ('f'|'F');
 fragment L: ('l'|'L');
-
+fragment EOL : '\n';
 
 /* Parser rules */
 
@@ -126,76 +125,105 @@ transformation : transformation_expr EOF;
 
 transformation_expr:
    conditional_expr #ConditionalExpr
-  |  LPAREN transformation_expr RPAREN #TransformationExpr
-  | arithmetic_expr               # ArithExpression
+  | LPAREN transformation_expr RPAREN #TransformationExpr
+  | arithmetic_expr # ArithExpression
   | transformation_entity #TransformationEntity
-  | comparison_expr               # ComparisonExpression
+  | comparison_expr # ComparisonExpression
+  | logical_expr #LogicalExpression
+  | in_expr #InExpression
   ;
-conditional_expr :  comparison_expr QUESTION transformation_expr COLON transformation_expr #TernaryFuncWithoutIf
-                 | IF comparison_expr THEN transformation_expr ELSE transformation_expr #TernaryFuncWithIf
-                 ;
 
-comparison_expr : identifier_operand comp_operator identifier_operand # ComparisonExpressionWithOperator
-                | identifier_operand IN identifier_operand #InExpression
-                | identifier_operand NIN identifier_operand #NInExpression
-                | comparison_expr AND comparison_expr #LogicalExpressionAnd
-                | comparison_expr OR comparison_expr #LogicalExpressionOr
-                | NOT LPAREN comparison_expr RPAREN #NotFunc
-                | LPAREN comparison_expr RPAREN # ComparisonExpressionParens
-                | identifier_operand #operand
-                ;
-transformation_entity : identifier_operand
+conditional_expr :
+  logical_expr QUESTION transformation_expr COLON transformation_expr #TernaryFuncWithoutIf
+  | IF logical_expr THEN transformation_expr ELSE transformation_expr #TernaryFuncWithIf
   ;
-comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp
-              ;
-arith_operator_addition : (PLUS | MINUS) # ArithOp_plus
-               ;
-arith_operator_mul : (MUL | DIV) # ArithOp_mul
-               ;
-func_args : LPAREN op_list RPAREN
-          | LPAREN RPAREN
-          ;
-op_list : identifier_operand
-        | op_list COMMA identifier_operand
-        | conditional_expr
-        | op_list COMMA conditional_expr
-        ;
-list_entity : LBRACKET op_list RBRACKET
-            | LBRACKET RBRACKET;
 
-kv_list : identifier_operand COLON transformation_expr
-        | kv_list COMMA identifier_operand COLON transformation_expr
-        ;
+logical_expr:
+  b_expr AND logical_expr #LogicalExpressionAnd
+  | b_expr OR logical_expr #LogicalExpressionOr
+  | b_expr #BoleanExpression
+  ;
 
-map_entity : LBRACE kv_list RBRACE
-           | LBRACE RBRACE;
+b_expr:
+  comparison_expr
+  | in_expr
+  ;
 
-arithmetic_expr: arithmetic_expr_mul #ArithExpr_solo
-               | arithmetic_expr PLUS arithmetic_expr_mul #ArithExpr_plus
-               | arithmetic_expr MINUS arithmetic_expr_mul #ArithExpr_minus
-                ;
-arithmetic_expr_mul : arithmetic_operands #ArithExpr_mul_solo
-                    | arithmetic_expr_mul MUL arithmetic_expr_mul #ArithExpr_mul
-                    | arithmetic_expr_mul DIV arithmetic_expr_mul #ArithExpr_div
-                    ;
+in_expr:
+  identifier_operand IN b_expr #InExpressionStatement
+  | identifier_operand NIN b_expr #NInExpressionStatement
+  ;
 
-functions : IDENTIFIER func_args #TransformationFunc
-          ;
-arithmetic_operands : functions #NumericFunctions
-                    | DOUBLE_LITERAL #DoubleLiteral
-                    | INT_LITERAL #IntLiteral
-                    | LONG_LITERAL #LongLiteral
-                    | FLOAT_LITERAL #FloatLiteral
-                    | IDENTIFIER #Variable
-                    | LPAREN arithmetic_expr RPAREN #ParenArith
-                    | LPAREN conditional_expr RPAREN#condExpr
-                    ;
-identifier_operand : (TRUE | FALSE) # LogicalConst
-                   | arithmetic_expr #ArithmeticOperands
-                   | STRING_LITERAL # StringLiteral
-                   | list_entity #List
-                   | map_entity #MapConst
-                   | NULL #NullConst
-                   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
-                   | LPAREN conditional_expr RPAREN#condExpr_paren
-                   ;
+comparison_expr :
+  comparison_expr comp_operator comparison_expr #ComparisonExpressionWithOperator
+  | NOT LPAREN logical_expr RPAREN #NotFunc
+  | LPAREN logical_expr RPAREN #ComparisonExpressionParens
+  | identifier_operand #operand
+  ;
+
+transformation_entity : identifier_operand;
+
+comp_operator : (EQ | NEQ | LT | LTE | GT | GTE) # ComparisonOp;
+
+func_args :
+  LPAREN op_list RPAREN
+  | LPAREN RPAREN
+  ;
+
+op_list :
+  identifier_operand
+  | op_list COMMA identifier_operand
+  | conditional_expr
+  | op_list COMMA conditional_expr
+  ;
+
+list_entity :
+  LBRACKET op_list RBRACKET
+  | LBRACKET RBRACKET
+  ;
+
+kv_list :
+  identifier_operand COLON transformation_expr
+  | kv_list COMMA identifier_operand COLON transformation_expr
+  ;
+
+map_entity :
+  LBRACE kv_list RBRACE
+  | LBRACE RBRACE
+  ;
+
+arithmetic_expr:
+  arithmetic_expr_mul #ArithExpr_solo
+  | arithmetic_expr PLUS arithmetic_expr_mul #ArithExpr_plus
+  | arithmetic_expr MINUS arithmetic_expr_mul #ArithExpr_minus
+  ;
+
+arithmetic_expr_mul :
+  arithmetic_operands #ArithExpr_mul_solo
+  | arithmetic_expr_mul MUL arithmetic_expr_mul #ArithExpr_mul
+  | arithmetic_expr_mul DIV arithmetic_expr_mul #ArithExpr_div
+  ;
+
+functions : IDENTIFIER func_args #TransformationFunc;
+
+arithmetic_operands :
+  functions #NumericFunctions
+  | DOUBLE_LITERAL #DoubleLiteral
+  | INT_LITERAL #IntLiteral
+  | LONG_LITERAL #LongLiteral
+  | FLOAT_LITERAL #FloatLiteral
+  | IDENTIFIER #Variable
+  | LPAREN arithmetic_expr RPAREN #ParenArith
+  | LPAREN conditional_expr RPAREN #condExpr
+  ;
+
+identifier_operand :
+  (TRUE | FALSE) #LogicalConst
+  | arithmetic_expr #ArithmeticOperands
+  | STRING_LITERAL # StringLiteral
+  | list_entity #List
+  | map_entity #MapConst
+  | NULL #NullConst
+  | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
+  | LPAREN conditional_expr RPAREN #condExpr_paren
+  ;
