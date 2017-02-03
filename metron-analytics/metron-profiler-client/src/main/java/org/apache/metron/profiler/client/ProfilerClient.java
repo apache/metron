@@ -20,6 +20,8 @@
 
 package org.apache.metron.profiler.client;
 
+import org.apache.metron.profiler.ProfilePeriod;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -67,5 +69,5 @@ public interface ProfilerClient {
    * @param <T>     The type of values stored by the profile.
    * @return A list of values.
    */
-  <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<Long> periods);
+  <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods);
 }

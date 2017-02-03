@@ -110,9 +110,9 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   @Override
-  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> periods) {
+  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
     List<byte[]> ret = new ArrayList<>();
-    for(long period : periods) {
+    for(ProfilePeriod period : periods) {
       ret.add(rowKey(profile, entity, period, groups));
     }
     return ret;

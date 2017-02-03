@@ -46,10 +46,6 @@ public class ProfilePeriod {
    */
   private long durationMillis;
 
-  /**
-   * The timestamp underlying the period.
-   */
-  private long timestamp;
 
   /**
    * @param epochMillis A timestamp contained somewhere within the profile period.
@@ -61,7 +57,6 @@ public class ProfilePeriod {
       throw new IllegalArgumentException(format(
               "period duration must be greater than 0; got '%d %s'", duration, units));
     }
-    this.timestamp = epochMillis;
     this.durationMillis = units.toMillis(duration);
     this.period = epochMillis / durationMillis;
   }
@@ -85,9 +80,6 @@ public class ProfilePeriod {
     return period;
   }
 
-  public long getTimestamp() {
-    return timestamp;
-  }
 
   public long getDurationMillis() {
     return durationMillis;

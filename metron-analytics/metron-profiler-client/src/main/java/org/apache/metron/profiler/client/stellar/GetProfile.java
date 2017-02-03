@@ -28,6 +28,7 @@ import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.client.HBaseProfilerClient;
 import org.apache.metron.profiler.client.ProfilerClient;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
@@ -132,7 +133,7 @@ public class GetProfile implements StellarFunction {
 
     String profile = getArg(0, String.class, args);
     String entity = getArg(1, String.class, args);
-    Optional<List<Long>> periods = Optional.ofNullable(getArg(2, List.class, args));
+    Optional<List<ProfilePeriod>> periods = Optional.ofNullable(getArg(2, List.class, args));
     //Optional arguments
     @SuppressWarnings("unchecked")
     List<Object> groups = null;

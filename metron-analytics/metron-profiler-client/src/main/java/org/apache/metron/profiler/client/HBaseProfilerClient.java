@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -121,7 +122,7 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @return A list of values.
    */
   @Override
-  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<Long> periods) {
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 

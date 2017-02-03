@@ -59,7 +59,7 @@ public class FixedLookback implements StellarFunction {
     TimeUnit tickUnit = TimeUnit.valueOf(ProfilerConfig.PROFILER_PERIOD_UNITS.get(effectiveConfigs, String.class));
     long end = System.currentTimeMillis();
     long start = end - units.toMillis(durationAgo);
-    return ProfilePeriod.visitPeriods(start, end, tickDuration, tickUnit, Optional.empty(), period -> period.getPeriod());
+    return ProfilePeriod.visitPeriods(start, end, tickDuration, tickUnit, Optional.empty(), period -> period);
   }
 
   @Override

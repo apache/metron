@@ -21,6 +21,7 @@
 package org.apache.metron.profiler.hbase;
 
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.ProfilePeriod;
 
 import java.io.Serializable;
 import java.util.List;
@@ -69,6 +70,6 @@ public interface RowKeyBuilder extends Serializable {
    * @param periods The profile measurement periods to compute the rowkeys for
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
-  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<Long> periods);
+  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods);
 
 }
