@@ -22,6 +22,7 @@ import com.google.common.base.Splitter;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.cli.OptionHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
 
 import javax.annotation.Nullable;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 public enum LoadOptions {
-  HELP("h", new OptionHandler() {
+  HELP("h", new OptionHandler<LoadOptions>() {
 
     @Nullable
     @Override
@@ -41,7 +42,7 @@ public enum LoadOptions {
       return new Option(s, "help", false, "Generate Help screen");
     }
   })
-  ,QUIET("q", new OptionHandler() {
+  ,QUIET("q", new OptionHandler<LoadOptions>() {
 
     @Nullable
     @Override
@@ -54,7 +55,7 @@ public enum LoadOptions {
       return Optional.of(option.has(cli));
     }
   })
-  , IMPORT_MODE("m", new OptionHandler() {
+  , IMPORT_MODE("m", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -73,7 +74,7 @@ public enum LoadOptions {
       return Optional.of(ImportStrategy.getStrategy(mode).orElse(ImportStrategy.LOCAL));
     }
   })
-  ,HBASE_TABLE("t", new OptionHandler() {
+  ,HBASE_TABLE("t", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -88,7 +89,7 @@ public enum LoadOptions {
       return Optional.ofNullable(option.get(cli).trim());
     }
   })
-  ,HBASE_CF("c", new OptionHandler() {
+  ,HBASE_CF("c", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -103,7 +104,7 @@ public enum LoadOptions {
       return Optional.ofNullable(option.get(cli).trim());
     }
   })
-  ,EXTRACTOR_CONFIG("e", new OptionHandler() {
+  ,EXTRACTOR_CONFIG("e", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -122,7 +123,7 @@ public enum LoadOptions {
       }
     }
   })
-  ,ENRICHMENT_CONFIG("n", new OptionHandler() {
+  ,ENRICHMENT_CONFIG("n", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -135,7 +136,7 @@ public enum LoadOptions {
       return o;
     }
   })
-  ,LOG4J_PROPERTIES("l", new OptionHandler() {
+  ,LOG4J_PROPERTIES("l", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -145,7 +146,7 @@ public enum LoadOptions {
       return o;
     }
   })
-  ,NUM_THREADS("p", new OptionHandler() {
+  ,NUM_THREADS("p", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -164,7 +165,7 @@ public enum LoadOptions {
       return Optional.of(numThreads);
     }
   })
-  ,BATCH_SIZE("b", new OptionHandler() {
+  ,BATCH_SIZE("b", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -183,7 +184,7 @@ public enum LoadOptions {
       return Optional.of(batchSize);
     }
   })
-  ,INPUT("i", new OptionHandler() {
+  ,INPUT("i", new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -205,8 +206,8 @@ public enum LoadOptions {
   ;
   Option option;
   String shortCode;
-  OptionHandler handler;
-  LoadOptions(String shortCode, OptionHandler optionHandler) {
+  OptionHandler<LoadOptions> handler;
+  LoadOptions(String shortCode, OptionHandler<LoadOptions> optionHandler) {
     this.shortCode = shortCode;
     this.handler = optionHandler;
     this.option = optionHandler.apply(shortCode);

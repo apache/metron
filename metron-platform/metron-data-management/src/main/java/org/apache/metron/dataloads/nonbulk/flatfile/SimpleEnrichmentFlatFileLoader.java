@@ -39,6 +39,7 @@ public class SimpleEnrichmentFlatFileLoader {
     String[] otherArgs = new GenericOptionsParser(hadoopConfig, argv).getRemainingArgs();
     main(hadoopConfig, otherArgs);
   }
+
   public static void main(Configuration hadoopConfig, String[] argv) throws Exception {
 
     CommandLine cli = LoadOptions.parse(new PosixParser(), argv);
