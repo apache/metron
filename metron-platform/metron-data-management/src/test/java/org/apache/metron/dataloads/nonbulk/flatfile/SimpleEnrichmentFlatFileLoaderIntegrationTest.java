@@ -55,6 +55,9 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+
 public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
   private static HBaseTestingUtility testUtil;
@@ -120,7 +123,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
    *  "config" : {
    *    "columns" : {
    *      "host" : 0,
-   *      "meta" : 1
+   *      "meta" : 2
    *    },
    *    "value_transform" : {
    *      "host" : "TO_UPPER(host)"
@@ -133,7 +136,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
    *    "indicator_filter" : "LENGTH(indicator) > 0",
    *    "type" : "enrichment",
    *    "separator" : ","
-   *  }
+   *  },
+   *  "extractor" : "CSV"
    *}
    */
   @Multiline
@@ -169,9 +173,9 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     if(stellarExtractorConfigFile.exists()) {
       stellarExtractorConfigFile.delete();
     }
-    Files.write(stellarExtractorConfigFile.toPath()
-            , stellarExtractorConfig.getBytes()
-            , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
+    Files.write( stellarExtractorConfigFile.toPath()
+               , stellarExtractorConfig.getBytes()
+               , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(file1.exists()) {
       file1.delete();
@@ -231,6 +235,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     multilineZipFile.delete();
     lineByLineExtractorConfigFile.delete();
     wholeFileExtractorConfigFile.delete();
+    stellarExtractorConfigFile.delete();
   }
 
 
@@ -392,11 +397,11 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       testTable.delete(new Delete(r.getRow()));
     }
     Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
-    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
-    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("GOOGLE"));
+    Assert.assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
+    Assert.assertThat(results.get(0).getKey().type, equalTo("enrichment"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().size(), equalTo(2));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
   }
 
 }

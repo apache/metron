@@ -32,7 +32,7 @@ public class ExtractorHandler {
   final static ObjectMapper _mapper = new ObjectMapper();
   private Map<String, Object> config;
   private Extractor extractor;
-  private InputFormatHandler inputFormatHandler = Formats.BY_LINE;
+  private InputFormatHandler inputFormat = Formats.BY_LINE;
 
   public Map<String, Object> getConfig() {
     return config;
@@ -45,16 +45,16 @@ public class ExtractorHandler {
     this.config = config;
   }
 
-  public InputFormatHandler getInputFormatHandler() {
-    return inputFormatHandler;
+  public InputFormatHandler getInputFormat() {
+    return inputFormat;
   }
 
   /**
    * Set by jackson
    */
-  public void setInputFormatHandler(String handler) {
+  public void setInputFormat(String handler) {
     try {
-      this.inputFormatHandler = Formats.create(handler);
+      this.inputFormat = Formats.create(handler);
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
       throw new IllegalStateException("Unable to create an inputformathandler", e);
     }
