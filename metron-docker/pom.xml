@@ -281,11 +281,9 @@
                             <includes>
                                 <include>**/*.tar.gz</include>
                                 <include>**/wait-for-it.sh</include>
+                                <include>.env</include>
                                 <include>**/*.template</include>
                             </includes>
-                            <excludes>
-                                <exclude>scripts/wait-for-it.sh</exclude>
-                            </excludes>
                         </fileset>
                     </filesets>
                 </configuration>
