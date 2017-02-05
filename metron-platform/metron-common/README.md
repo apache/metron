@@ -124,6 +124,7 @@ The `!=` operator is the negation of the above.
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
+| [ `PROFILE_FIXED`](#profile_fixed)                                                                     |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
@@ -439,11 +440,18 @@ The `!=` operator is the negation of the above.
   * Input:
     * profile - The name of the profile.
     * entity - The name of the entity.
-    * durationAgo - How long ago should values be retrieved from?
-    * units - The units of 'durationAgo'.
+    * periods - The list of profile periods to grab.  These are ProfilePeriod objects.
     * groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of groupBy values used to filter the profile. Default is the empty list, meaning groupBy was not used when creating the profile.
     * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
   * Returns: The selected profile measurements.
+
+### `PROFILE_FIXED`
+  * Description: The profile periods associated with a fixed lookback starting from now
+  * Input:
+    * durationAgo - How long ago should values be retrieved from?
+    * units - The units of 'durationAgo'.
+    * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+  * Returns: The selected profile measurement timestamps.  These are ProfilePeriod objects.
 
 ### `PROTOCOL_TO_NAME`
   * Description: Converts the IANA protocol number to the protocol name

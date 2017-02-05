@@ -28,6 +28,7 @@ import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
@@ -49,12 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.GetProfile.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.ProfilerConfig.*;
 
 /**
  * Tests the GetProfile class.
@@ -114,18 +110,19 @@ public class GetProfileTest {
 
     // global properties
     Map<String, Object> global = new HashMap<String, Object>() {{
-      put(PROFILER_HBASE_TABLE, tableName);
-      put(PROFILER_COLUMN_FAMILY, columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER, MockTableProvider.class.getName());
-      put(PROFILER_PERIOD, Long.toString(periodDuration));
-      put(PROFILER_PERIOD_UNITS, periodUnits.toString());
-      put(PROFILER_SALT_DIVISOR, Integer.toString(saltDivisor));
+      put(PROFILER_HBASE_TABLE.getKey(), tableName);
+      put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
+      put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration));
+      put(PROFILER_PERIOD_UNITS.getKey(), periodUnits.toString());
+      put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor));
     }};
 
     // create the stellar execution environment
     executor = new DefaultStellarExecutor(
             new SimpleFunctionResolver()
-                    .withClass(GetProfile.class),
+                    .withClass(GetProfile.class)
+                    .withClass(FixedLookback.class),
             new Context.Builder()
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
                     .build());
@@ -154,12 +151,12 @@ public class GetProfileTest {
 
     // global properties
     Map<String, Object> global = new HashMap<String, Object>() {{
-      put(PROFILER_HBASE_TABLE, tableName);
-      put(PROFILER_COLUMN_FAMILY, columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER, MockTableProvider.class.getName());
-      put(PROFILER_PERIOD, Long.toString(periodDuration2));
-      put(PROFILER_PERIOD_UNITS, periodUnits2.toString());
-      put(PROFILER_SALT_DIVISOR, Integer.toString(saltDivisor2));
+      put(PROFILER_HBASE_TABLE.getKey(), tableName);
+      put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
+      put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration2));
+      put(PROFILER_PERIOD_UNITS.getKey(), periodUnits2.toString());
+      put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor2));
     }};
 
     // create the modified context
@@ -170,7 +167,8 @@ public class GetProfileTest {
     // create the stellar execution environment
     executor = new DefaultStellarExecutor(
             new SimpleFunctionResolver()
-                    .withClass(GetProfile.class),
+                    .withClass(GetProfile.class)
+                    .withClass(FixedLookback.class),
             context2);
 
     return context2; //because there is no executor.getContext() method
@@ -197,7 +195,7 @@ public class GetProfileTest {
     profileWriter.write(m, count, group, val -> expectedValue);
 
     // execute - read the profile values - no groups
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS')";
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
@@ -228,7 +226,7 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'])";
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekends'])";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
@@ -236,7 +234,7 @@ public class GetProfileTest {
     Assert.assertEquals(count, result.size());
 
     // test the deprecated but allowed "varargs" form of groups specification
-    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekends')";
+    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekends')";
     result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -266,7 +264,7 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekdays', 'tuesday'])";
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekdays', 'tuesday'])";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
@@ -274,7 +272,7 @@ public class GetProfileTest {
     Assert.assertEquals(count, result.size());
 
     // test the deprecated but allowed "varargs" form of groups specification
-    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', 'weekdays', 'tuesday')";
+    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekdays', 'tuesday')";
     result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -295,7 +293,7 @@ public class GetProfileTest {
     SingletonFunctionResolver.getInstance().initialize(empty);
 
     // validate - function should be unable to initialize
-    String expr = "PROFILE_GET('profile1', 'entity1', 1000, 'SECONDS', groups)";
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(1000, 'SECONDS'), groups)";
     run(expr, List.class);
   }
 
@@ -321,7 +319,7 @@ public class GetProfileTest {
     state.put("groups", group);
 
     // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'SECONDS')";
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'SECONDS'))";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
@@ -353,13 +351,13 @@ public class GetProfileTest {
     // validate it is changed in significant way
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
-    Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
+    Assert.assertEquals(PROFILER_PERIOD.get(global), periodDuration2);
     Assert.assertNotEquals(periodDuration, periodDuration2);
 
     // execute - read the profile values - with (wrong) default global config values.
     // No error message at this time, but returns empty results list, because
     // row keys are not correctly calculated.
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS')";
+    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
@@ -368,10 +366,11 @@ public class GetProfileTest {
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
-    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', [], {"
-            + "'profiler.client.period.duration' : '" + periodDuration + "', "
+    String overrides = "{'profiler.client.period.duration' : '" + periodDuration + "', "
             + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
-            + "'profiler.client.salt.divisor' : " + saltDivisor + " })";
+            + "'profiler.client.salt.divisor' : " + saltDivisor + " }";
+    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS', " + overrides + "), [], " + overrides + ")"
+            ;
     result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
@@ -407,15 +406,17 @@ public class GetProfileTest {
     // validate it is changed in significant way
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
-    Assert.assertEquals(global.get(PROFILER_PERIOD), Long.toString(periodDuration2));
+    Assert.assertEquals(global.get(PROFILER_PERIOD.getKey()), Long.toString(periodDuration2));
     Assert.assertNotEquals(periodDuration, periodDuration2);
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
-    String expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'], {"
-            + "'profiler.client.period.duration' : '" + periodDuration + "', "
+    String overrides = "{'profiler.client.period.duration' : '" + periodDuration + "', "
             + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
-            + "'profiler.client.salt.divisor' : " + saltDivisor + " })";
+            + "'profiler.client.salt.divisor' : " + saltDivisor + " }";
+    String expr = "PROFILE_GET('profile1', 'entity1'" +
+            ", PROFILE_FIXED(4, 'HOURS', " + overrides + "), ['weekends'], " +
+            overrides + ")";
     @SuppressWarnings("unchecked")
     List<Integer> result = run(expr, List.class);
 
@@ -425,7 +426,7 @@ public class GetProfileTest {
     // execute - read the profile values - with (wrong) default global config values.
     // No error message at this time, but returns empty results list, because
     // row keys are not correctly calculated.
-    expr = "PROFILE_GET('profile1', 'entity1', 4, 'HOURS', ['weekends'])";
+    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekends'])";
     result = run(expr, List.class);
 
     // validate - expect to fail to read any values

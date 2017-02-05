@@ -341,7 +341,7 @@ Create the following in
       "stellar" : {
         "config" : {
           "parser_score" : "OUTLIER_MAD_SCORE(OUTLIER_MAD_STATE_MERGE(
-PROFILE_GET( 'sketchy_mad', 'global', 10, 'MINUTES') ), value)"
+PROFILE_GET( 'sketchy_mad', 'global', PROFILE_FIXED(10, 'MINUTES')) ), value)"
          ,"is_alert" : "if parser_score > 3.5 then true else is_alert"
         }
       }
@@ -384,7 +384,7 @@ Create the following file at
       "onlyif": "true",
       "init" : {
         "s": "OUTLIER_MAD_STATE_MERGE(PROFILE_GET('sketchy_mad',
-'global', 5, 'MINUTES'))"
+'global', PROFILE_FIXED(5, 'MINUTES')))"
                },
       "update": {
         "s": "OUTLIER_MAD_ADD(s, value)"
