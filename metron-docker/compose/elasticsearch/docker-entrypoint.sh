@@ -25,7 +25,7 @@ chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs
 gosu elasticsearch /usr/share/elasticsearch/bin/elasticsearch -d
 
 # wait for elasticsearch to start
-/wait-for-it.sh localhost:9200
+/wait-for-it.sh localhost:9200 -t 30
 
 # load elasticsearch templates
 for template_file in `ls -1 /es_templates`; do
