@@ -21,5 +21,7 @@ RUN /usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head
 ADD ./es_templates /es_templates
 
 COPY ./wait-for-it.sh /
+RUN chmod 755 /wait-for-it.sh
+
 COPY ./docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
