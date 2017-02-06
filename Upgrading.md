@@ -97,7 +97,7 @@ to:
 For every sensor enrichment configuration, you will need to migrate the `riskLevelRules` section
 to move from a map to a list of risk level rule objects.
 
-### [METRON-283: Make Threat Triage rules able to be assigned names and comments](https://issues.apache.org/jira/browse/METRON-283)
+### [METRON-283: Migrate Geo Enrichment outside of MySQL](https://issues.apache.org/jira/browse/METRON-283)
 
 #### Description
 
@@ -139,3 +139,16 @@ $METRON_HOME/bin/zk_load_configs.sh -z <zk_server>:<zk_port> -m DUMP
 The new config will be `geo.hdfs.file` in the global section of the
 configuration. Append this key-value into the global.json in the config
 directory. A PUSH is unnecessary
+
+### [METRON-684: Decouple Timestamp calculation from PROFILE_GET](https://issues.apache.org/jira/browse/METRON-684)
+
+#### Description
+
+During 0.3.1 we decoupled specifying durations for calls to the profiler
+into a separate function.  The consequence is that existing calls to
+`PROFILE_GET` will need to migrate.
+
+#### Migration
+
+Existing calls to `PROFILE_GET` will need to change from `PROFILE_GET('profile', 'entity', duration, 'durationUnits')` to `PROFILE_GET('profile', 'entity', PROFILE_FIXED(duration, 'durationUnits'))`
+
