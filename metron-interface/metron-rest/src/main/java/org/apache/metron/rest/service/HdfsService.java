@@ -17,19 +17,18 @@
  */
 package org.apache.metron.rest.service;
 
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
-import org.springframework.stereotype.Service;
+import org.apache.metron.rest.RestException;
 
-import java.io.IOException;
+import java.util.List;
 
 public interface HdfsService {
 
-    byte[] read(Path path) throws IOException;
+    String read(Path path) throws RestException;
 
-    void write(Path path, byte[] contents) throws IOException;
+    void write(Path path, byte[] contents) throws RestException;
 
-    FileStatus[] list(Path path) throws IOException;
+    List<String> list(Path path) throws RestException;
 
-    boolean delete(Path path, boolean recursive) throws IOException;
+    boolean delete(Path path, boolean recursive) throws RestException;
  }

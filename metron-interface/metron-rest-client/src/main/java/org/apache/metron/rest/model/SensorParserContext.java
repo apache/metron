@@ -22,7 +22,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TransformationValidation {
+public class SensorParserContext {
 
     private Map<String, Object> sampleData;
     private SensorParserConfig sensorParserConfig;
