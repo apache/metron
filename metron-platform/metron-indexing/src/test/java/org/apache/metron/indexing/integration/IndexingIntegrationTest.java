@@ -175,8 +175,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withComponent("search", getSearchComponent(topologyProperties))
-            .withMillisecondsBetweenAttempts(15000)
-            .withNumRetries(10)
+            .withMillisecondsBetweenAttempts(1500)
+            .withNumRetries(100)
             .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
