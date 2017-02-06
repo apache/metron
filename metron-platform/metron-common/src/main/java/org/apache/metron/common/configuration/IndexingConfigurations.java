@@ -24,14 +24,15 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
   public static final String BATCH_TIMEOUT_CONF = "batchTimeout";
   public static final String ENABLED_CONF = "enabled";
   public static final String INDEX_CONF = "index";
+  private static final String SENSOR_MARKER_STRING = "zzzxxxFOOzzzxxx";
 
   public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
     Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
@@ -43,6 +44,7 @@ public class IndexingConfigurations extends Configurations {
       return writerConfig != null?writerConfig:new HashMap<>();
     }
   }
+
 
   public void updateSensorIndexingConfig(String sensorType, byte[] data) throws IOException {
     updateSensorIndexingConfig(sensorType, new ByteArrayInputStream(data));
@@ -79,6 +81,21 @@ public class IndexingConfigurations extends Configurations {
 
   public int getBatchTimeout(String sensorName, String writerName ) {
     return getBatchTimeout(getSensorIndexingConfig(sensorName, writerName));
+  }
+
+  public List<Integer> getAllConfiguredTimeouts(String writerName) {
+    //The configuration infrastructure was not designed to enumerate sensors, so we synthesize.
+    String markerKeyString = getKey(SENSOR_MARKER_STRING);
+    int prefixStringLength = markerKeyString.indexOf(SENSOR_MARKER_STRING);
+    String keyPrefixString = markerKeyString.substring(0, prefixStringLength);
+    List<Integer> configuredBatchTimeouts = new ArrayList<>();
+    for (String sensorKeyString : configurations.keySet()) {
+      if (sensorKeyString.startsWith(keyPrefixString)) {
+        String configuredSensorName = sensorKeyString.substring(prefixStringLength);
+        configuredBatchTimeouts.add(getBatchTimeout(configuredSensorName, writerName));
+      }
+    }
+    return configuredBatchTimeouts;
   }
 
   public String getIndex(String sensorName, String writerName) {

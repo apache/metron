@@ -18,6 +18,8 @@
 
 package org.apache.metron.common.configuration.writer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class SingleBatchConfigurationFacade implements WriterConfiguration {
@@ -34,6 +36,12 @@ public class SingleBatchConfigurationFacade implements WriterConfiguration {
   @Override
   public int getBatchTimeout(String sensorName) {
     return 0;
+  }
+
+  @Override
+  public List<Integer> getAllConfiguredTimeouts() {
+    // null implementation since batching is disabled
+    return new ArrayList<Integer>();
   }
 
   @Override

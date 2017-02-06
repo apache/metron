@@ -22,8 +22,10 @@ import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.utils.ConversionUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class IndexingWriterConfiguration implements WriterConfiguration{
   private Optional<IndexingConfigurations> config;
@@ -42,6 +44,11 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   @Override
   public int getBatchTimeout(String sensorName) {
     return config.orElse(new IndexingConfigurations()).getBatchTimeout(sensorName, writerName);
+  }
+
+  @Override
+  public List<Integer> getAllConfiguredTimeouts() {
+      return config.orElse(new IndexingConfigurations()).getAllConfiguredTimeouts(writerName);
   }
 
   @Override

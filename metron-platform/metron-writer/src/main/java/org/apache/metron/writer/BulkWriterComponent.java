@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
@@ -179,7 +180,7 @@ public class BulkWriterComponent<MESSAGE_T> {
       Long batchCreateTime = batchLastCreateTimeNs.get(sensorType);
       if (batchCreateTime == null) batchCreateTime = 0L; //shouldn't happen
       long ageNs = System.nanoTime() - batchCreateTime;
-      if (ageNs >= batchTimeout*(1e9)) {
+      if (ageNs >= TimeUnit.SECONDS.toNanos(batchTimeout)) {
         LOG.debug("Flushing " + sensorType + " batch queue due to age " + ageNs + "ns > " + batchTimeout + " secs");
         flush(sensorType, bulkMessageWriter, configurations,
                 sensorTupleMap.get(sensorType), sensorMessageMap.get(sensorType));

@@ -22,6 +22,8 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.utils.ConversionUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ParserWriterConfiguration implements WriterConfiguration {
@@ -51,6 +53,12 @@ public class ParserWriterConfiguration implements WriterConfiguration {
       return batchObj == null ? 0 : ConversionUtils.convert(batchObj, Integer.class);
     }
     return 0;
+  }
+
+  @Override
+  public List<Integer> getAllConfiguredTimeouts() {
+    // TODO - stub implementation
+    return new ArrayList<Integer>();
   }
 
   @Override

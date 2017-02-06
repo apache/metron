@@ -18,6 +18,7 @@
 package org.apache.metron.writer.bolt;
 
 import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
+import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -50,7 +51,10 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private String messageGetterStr = MessageGetters.NAMED.name();
   private transient MessageGetter messageGetter = null;
   private transient OutputCollector collector;
-  private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation;
+  private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation = null;
+  private BatchTimeoutHelper timeoutHelper = null;
+  private int batchTimeoutDivisor = 1;
+
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -70,6 +74,55 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return this;
   }
 
+  /**
+   * If this BulkMessageWriterBolt is in a topology where it is daisy-chained with
+   * other queuing Writers, then the max amount of time it takes for a tuple
+   * to clear the whole topology is the sum of all the batchTimeouts for all the
+   * daisy-chained Writers.  In the common case where each Writer is using the default
+   * batchTimeout, it is then necessary to divide that batchTimeout by the number of
+   * daisy-chained Writers.  For example, the Enrichment and Threat Intel features
+   * both use a BulkMessageWriterBolt, but are in a single topology, so one would
+   * initialize those Bolts withBatchTimeoutDivisor(2).  Default value, if not set, is 1.
+   *
+   * If non-default batchTimeouts are configured for some components, the administrator
+   * will want to take this behavior into account.
+   *
+   * @param batchTimeoutDivisor
+   * @return
+   */
+  public BulkMessageWriterBolt withBatchTimeoutDivisor(int batchTimeoutDivisor) {
+    this.batchTimeoutDivisor = batchTimeoutDivisor;
+    return this;
+  }
+
+  @Override
+  public Map<String, Object> getComponentConfiguration() {
+    // configure how often a tick tuple will be sent to our bolt
+    if (timeoutHelper == null) {
+      // Not sure if called before or after prepare(), so do some of the same stuff as prepare() does,
+      // to get the valid WriterConfiguration:
+      if(bulkMessageWriter instanceof WriterToBulkWriter) {
+        configurationTransformation = WriterToBulkWriter.TRANSFORMATION;
+      }
+      else {
+        configurationTransformation = x -> x;
+      }
+      WriterConfiguration wrconf = configurationTransformation.apply(
+              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+
+      timeoutHelper = new BatchTimeoutHelper(wrconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
+    }
+    int requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
+
+    Map<String, Object> conf = super.getComponentConfiguration();
+    if (conf == null) {
+      conf = new HashMap<String, Object>();
+    }
+    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, requestedTickFreqSecs);
+    LOG.info("Requesting " + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + " set to " + Integer.toString(requestedTickFreqSecs));
+    return conf;
+  }
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.writerComponent = new BulkWriterComponent<>(collector);
@@ -84,8 +137,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     }
     try {
       bulkMessageWriter.init(stormConf
-                            , configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
-                            );
+              , configurationTransformation.apply(
+                      new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations())));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
