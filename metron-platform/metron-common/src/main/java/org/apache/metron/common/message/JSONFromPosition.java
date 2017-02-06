@@ -15,25 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.message;
 
-package org.apache.metron.integration.processors;
+import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.util.List;
+public class JSONFromPosition implements MessageGetStrategy {
 
-public class KafkaMessageSet{
-    public List<byte[]> messages;
-    public List<byte[]> errors;
+  private int position = 0;
 
-    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors) {
-        this.messages = messages;
-        this.errors = errors;
+  private ThreadLocal<JSONParser> parser = new ThreadLocal<JSONParser>() {
+    @Override
+    protected JSONParser initialValue() {
+      return new JSONParser();
     }
+  };
 
+  public JSONFromPosition() {};
 
-    public List<byte[]> getMessages() {
-        return messages;
+  public JSONFromPosition(int position) {
+    this.position = position;
+  }
+
+  @Override
+  public JSONObject get(Tuple tuple) {
+    try {
+      return (JSONObject) parser.get().parse(new String(tuple.getBinary(position), "UTF8"));
+    } catch (Exception e) {
+      throw new IllegalStateException(e.getMessage(), e);
     }
-    public List<byte[]> getErrors() {
-        return errors;
-    }
+  }
 }

@@ -15,25 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.message;
 
-package org.apache.metron.integration.processors;
+import org.apache.storm.tuple.Tuple;
 
-import java.util.List;
+public class BytesFromPosition implements MessageGetStrategy {
 
-public class KafkaMessageSet{
-    public List<byte[]> messages;
-    public List<byte[]> errors;
+  private int position = 0;
 
-    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors) {
-        this.messages = messages;
-        this.errors = errors;
-    }
+  public BytesFromPosition() {};
 
+  public BytesFromPosition(int position) {
+    this.position = position;
+  }
 
-    public List<byte[]> getMessages() {
-        return messages;
-    }
-    public List<byte[]> getErrors() {
-        return errors;
-    }
+  @Override
+  public byte[] get(Tuple tuple) {
+    return tuple.getBinary(position);
+  }
 }

@@ -44,7 +44,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -125,7 +124,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       setProperty("indexing.workers", "1");
       setProperty("indexing.executors", "0");
       setProperty("index.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("index.error.topic", Constants.INDEXING_ERROR_TOPIC);
+      setProperty("index.error.topic", Constants.ERROR_TOPIC);
       setProperty("index.date.format", dateFormat);
       //HDFS settings
 
@@ -138,7 +137,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
-      add(new KafkaComponent.Topic(Constants.INDEXING_ERROR_TOPIC, 1));
+      add(new KafkaComponent.Topic(Constants.ERROR_TOPIC, 1));
     }});
     List<Map<String, Object>> inputDocs = new ArrayList<>();
     for(byte[] b : inputMessages) {

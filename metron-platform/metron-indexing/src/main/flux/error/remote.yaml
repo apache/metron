@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "indexing"
+name: "error"
 config:
     topology.workers: ${indexing.workers}
     topology.acker.executors: ${indexing.executors}
@@ -26,7 +26,7 @@ components:
         configMethods:
             -   name: "withPrefix"
                 args:
-                    - "enrichment-"
+                    - "error-"
             -   name: "withExtension"
                 args:
                   - ".json"
@@ -49,15 +49,6 @@ components:
             -   name: "withRotationPolicy"
                 args:
                     - ref: "hdfsRotationPolicy"
-    -   id: "kafkaWriter"
-        className: "org.apache.metron.writer.kafka.KafkaWriter"
-        configMethods:
-            -   name: "withTopic"
-                args:
-                    - "${index.error.topic}"
-            -   name: "withZkQuorum"
-                args:
-                    - "${kafka.zk}"
 
     -   id: "indexWriter"
         className: "${writer.class.name}"
@@ -77,7 +68,7 @@ components:
             # zk root
             - ""
             # id
-            - "indexing"
+            - "error"
         configMethods:
             -   name: "from"
                 args:
@@ -115,15 +106,6 @@ bolts:
                 args:
                     - "JSON_FROM_POSITION"
 
-    -   id: "indexingErrorBolt"
-        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withMessageWriter"
-                args:
-                    - ref: "kafkaWriter"
-
 streams:
 
     -   name: "spout -> indexing"
@@ -138,16 +120,3 @@ streams:
         grouping:
             type: SHUFFLE
 
-    -   name: "indexingBolt -> errorIndexingBolt"
-        from: "indexingBolt"
-        to: "indexingErrorBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE
-
-    -   name: "hdfsBolt -> errorIndexingBolt"
-        from: "hdfsIndexingBolt"
-        to: "indexingErrorBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE

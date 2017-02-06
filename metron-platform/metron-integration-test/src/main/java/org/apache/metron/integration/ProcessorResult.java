@@ -24,7 +24,6 @@ public class ProcessorResult<T> {
     public static class Builder<T>{
         T result;
         List<byte[]> processErrors;
-        List<byte[]> processInvalids;
 
         public Builder(){}
 
@@ -38,25 +37,18 @@ public class ProcessorResult<T> {
             return this;
         }
 
-        public Builder withProcessInvalids(List<byte[]> processInvalids){
-            this.processInvalids = processInvalids;
-            return this;
-        }
-
         public ProcessorResult<T> build(){
-            return new ProcessorResult<T>(result,processErrors,processInvalids);
+            return new ProcessorResult<T>(result,processErrors);
         }
 
     }
 
     T result;
     List<byte[]> processErrors;
-    List<byte[]> processInvalids;
     @SuppressWarnings("unchecked")
-    public ProcessorResult(T result,List<byte[]> processErrors, List<byte[]> processInvalids){
+    public ProcessorResult(T result,List<byte[]> processErrors){
         this.result = result;
         this.processErrors = processErrors == null ? new ArrayList() : processErrors;
-        this.processInvalids = processInvalids == null ? new ArrayList() : processInvalids;
     }
 
     public T getResult(){
@@ -67,12 +59,8 @@ public class ProcessorResult<T> {
         return processErrors;
     }
 
-    public List<byte[]> getProcessInvalids(){
-        return processInvalids;
-    }
-
     public boolean failed(){
-        return processErrors.size() > 0 || processInvalids.size() > 0;
+        return processErrors.size() > 0;
     }
 
     public void getBadResults(StringBuffer buffer){
@@ -81,11 +69,6 @@ public class ProcessorResult<T> {
         }
         buffer.append(String.format("%d Errors", processErrors.size()));
         for (byte[] outputMessage : processErrors) {
-            buffer.append(new String(outputMessage));
-        }
-        buffer.append("\n");
-        buffer.append(String.format("%d Invalid Messages", processInvalids.size()));
-        for (byte[] outputMessage : processInvalids) {
             buffer.append(new String(outputMessage));
         }
         buffer.append("\n");

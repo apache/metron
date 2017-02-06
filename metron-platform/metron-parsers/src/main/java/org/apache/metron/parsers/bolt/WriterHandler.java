@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.bolt;
 
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -80,11 +81,12 @@ public class WriterHandler implements Serializable {
                    , Tuple tuple
                    , JSONObject message
                    , ParserConfigurations configurations
+                   , MessageGetStrategy messageGetStrategy
                    ) throws Exception {
-    writerComponent.write(sensorType, tuple, message, messageWriter, writerTransformer.apply(configurations));
+    writerComponent.write(sensorType, tuple, message, messageWriter, writerTransformer.apply(configurations), messageGetStrategy);
   }
 
-  public void errorAll(String sensorType, Throwable e) {
-    writerComponent.errorAll(sensorType, e);
+  public void errorAll(String sensorType, Throwable e, MessageGetStrategy messageGetStrategy) {
+    writerComponent.errorAll(sensorType, e, messageGetStrategy);
   }
 }

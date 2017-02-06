@@ -47,8 +47,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(sensorType, 1));
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
-      add(new KafkaComponent.Topic(Constants.INVALID_STREAM,1));
-      add(new KafkaComponent.Topic(Constants.ERROR_STREAM,1));
+      add(new KafkaComponent.Topic(Constants.ERROR_TOPIC,1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
@@ -116,12 +115,11 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
             .withKafkaComponentName("kafka")
             .withReadTopic(Constants.ENRICHMENT_TOPIC)
             .withErrorTopic(Constants.ERROR_STREAM)
-            .withInvalidTopic(Constants.INVALID_STREAM)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
               public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-                return (messageSet.getMessages().size() + messageSet.getErrors().size() + messageSet.getInvalids().size()) == inputMessages.size();
+                return (messageSet.getMessages().size() + messageSet.getErrors().size() == inputMessages.size());
               }
             })
             .withProvideResult(new Function<KafkaMessageSet,List<byte[]>>(){

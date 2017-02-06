@@ -15,25 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.message;
 
-package org.apache.metron.integration.processors;
+import org.apache.storm.tuple.Tuple;
 
-import java.util.List;
+public interface MessageGetStrategy {
 
-public class KafkaMessageSet{
-    public List<byte[]> messages;
-    public List<byte[]> errors;
-
-    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors) {
-        this.messages = messages;
-        this.errors = errors;
-    }
-
-
-    public List<byte[]> getMessages() {
-        return messages;
-    }
-    public List<byte[]> getErrors() {
-        return errors;
-    }
+  Object get(Tuple tuple);
 }

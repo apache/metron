@@ -18,6 +18,10 @@
 
 package org.apache.metron.parsers.bolt;
 
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.JSONFromField;
+import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.message.MessageGetters;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -35,6 +39,8 @@ public class WriterBolt extends BaseRichBolt {
   private WriterHandler handler;
   private ParserConfigurations configuration;
   private String sensorType;
+  private Constants.ErrorType errorType = Constants.ErrorType.DEFAULT_ERROR;
+  private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
   public WriterBolt(WriterHandler handler, ParserConfigurations configuration, String sensorType) {
     this.handler = handler;
@@ -42,9 +48,15 @@ public class WriterBolt extends BaseRichBolt {
     this.sensorType = sensorType;
   }
 
+  public WriterBolt withErrorType(Constants.ErrorType errorType) {
+    this.errorType = errorType;
+    return this;
+  }
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
+    messageGetStrategy = MessageGetters.JSON_FROM_FIELD.get();
     handler.init(stormConf, collector, configuration);
   }
 
@@ -65,18 +77,18 @@ public class WriterBolt extends BaseRichBolt {
   public void execute(Tuple tuple) {
     JSONObject message = null;
     try {
-      message = (JSONObject)((JSONObject) tuple.getValueByField("message")).clone();
-      handler.write(sensorType, tuple, message, configuration);
+      message = (JSONObject) messageGetStrategy.get(tuple);
+      handler.write(sensorType, tuple, message, configuration, messageGetStrategy);
       if(!handler.handleAck()) {
         collector.ack(tuple);
       }
     } catch (Throwable e) {
-      ErrorUtils.handleError( collector
-                            , e
-                            , Constants.ERROR_STREAM
-                            , Optional.of(sensorType)
-                            , Optional.ofNullable(message)
-                            );
+      MetronError error = new MetronError()
+              .withErrorType(errorType)
+              .withThrowable(e)
+              .withSensorType(sensorType)
+              .addRawMessage(message);
+      ErrorUtils.handleError(collector, error);
       collector.ack(tuple);
     }
   }

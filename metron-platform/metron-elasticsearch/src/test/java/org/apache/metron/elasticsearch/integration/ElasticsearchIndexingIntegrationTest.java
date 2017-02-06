@@ -76,7 +76,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
           if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
-            errors = kafkaComponent.readMessages(Constants.INDEXING_ERROR_TOPIC);
+            errors = kafkaComponent.readMessages(Constants.ERROR_TOPIC);
             if(errors.size() > 0){
               return ReadinessState.READY;
             }

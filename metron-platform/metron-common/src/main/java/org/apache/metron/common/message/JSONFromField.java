@@ -15,25 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.message;
 
-package org.apache.metron.integration.processors;
+import org.apache.storm.tuple.Tuple;
+import org.json.simple.JSONObject;
 
-import java.util.List;
+public class JSONFromField implements MessageGetStrategy {
 
-public class KafkaMessageSet{
-    public List<byte[]> messages;
-    public List<byte[]> errors;
+  private String fieldValue = "message";
 
-    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors) {
-        this.messages = messages;
-        this.errors = errors;
-    }
+  public JSONFromField() {};
 
+  public JSONFromField(String fieldValue) {
+    this.fieldValue = fieldValue;
+  }
 
-    public List<byte[]> getMessages() {
-        return messages;
-    }
-    public List<byte[]> getErrors() {
-        return errors;
-    }
+  @Override
+  public JSONObject get(Tuple tuple) {
+    return (JSONObject) ((JSONObject) tuple.getValueByField(fieldValue)).clone();
+  }
 }

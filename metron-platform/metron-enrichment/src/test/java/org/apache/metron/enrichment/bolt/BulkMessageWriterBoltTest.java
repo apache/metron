@@ -18,6 +18,7 @@
 package org.apache.metron.enrichment.bolt;
 
 import org.apache.log4j.Level;
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
@@ -111,6 +112,9 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
   @Mock
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
+
+  @Mock
+  private MessageGetStrategy messageGetStrategy;
 
   @Test
   public void test() throws Exception {
