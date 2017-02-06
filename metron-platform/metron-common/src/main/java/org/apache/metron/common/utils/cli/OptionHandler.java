@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.nonbulk.flatfile;
+package org.apache.metron.common.utils.cli;
 
 import com.google.common.base.Function;
 import org.apache.commons.cli.CommandLine;
@@ -23,9 +23,9 @@ import org.apache.commons.cli.Option;
 
 import java.util.Optional;
 
-public abstract class OptionHandler implements Function<String, Option>
+public abstract class OptionHandler<OPT_T extends Enum<OPT_T>> implements Function<String, Option>
 {
-  public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
+  public Optional<Object> getValue(OPT_T option, CommandLine cli) {
     return Optional.empty();
   }
 }

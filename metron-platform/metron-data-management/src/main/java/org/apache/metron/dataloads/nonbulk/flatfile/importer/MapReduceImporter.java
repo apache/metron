@@ -23,6 +23,7 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.log4j.Logger;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.hbase.mr.BulkLoadMapper;
 import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
@@ -39,6 +40,8 @@ public enum MapReduceImporter implements Importer{
   INSTANCE
   ;
 
+  private static final Logger LOG = Logger.getLogger(MapReduceImporter.class);
+
   @Override
   public void importData(EnumMap<LoadOptions, Optional<Object>> config
                         , ExtractorHandler handler
@@ -50,7 +53,7 @@ public enum MapReduceImporter implements Importer{
     Job job = Job.getInstance(hadoopConfig);
     List<String> inputs = (List<String>) config.get(LoadOptions.INPUT).get();
     job.setJobName("MapReduceImporter: " + inputs.stream().collect(Collectors.joining(",")) + " => " +  table + ":" + cf);
-    System.out.println("Configuring " + job.getJobName());
+    LOG.info("Configuring " + job.getJobName());
     job.setJarByClass(MapReduceImporter.class);
     job.setMapperClass(org.apache.metron.dataloads.hbase.mr.BulkLoadMapper.class);
     job.setOutputFormatClass(TableOutputFormat.class);
