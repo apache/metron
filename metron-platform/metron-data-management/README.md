@@ -1,4 +1,4 @@
-# metron-data-management
+# Resource Data Management
 
 This project is a collection of classes to assist with loading of
 various enrichment and threat intelligence sources into Metron.
@@ -64,7 +64,7 @@ schema if necessary for the data if it is not fixed (as in STIX, e.g.).
 Consider the following example configuration file which
 describes how to process a CSV file.
 
-````
+```
 {
   "config" : {
     "columns" : {
@@ -77,7 +77,7 @@ describes how to process a CSV file.
   }
   ,"extractor" : "CSV"
 }
-````
+```
 
 In this example, we have instructed the extractor of the schema (i.e. the columns field), 
 two columns at the first and third position.  We have indicated that the `ip` column is the indicator type
@@ -113,14 +113,14 @@ NOTE: The enrichment type will be used as the type above.
 
 Consider the following configuration for an Extractor
 
-````
+```
 {
   "config" : {
     "stix_address_categories" : "IPV_4_ADDR"
   }
   ,"extractor" : "STIX"
 }
-````
+```
 
 In here, we're configuring the STIX extractor to load from a series of STIX files, however we only want to bring in IPv4
 addresses from the set of all possible addresses.  Note that if no categories are specified for import, all are assumed.
@@ -136,7 +136,7 @@ documents flowing through the enrichment topology.
 
 Consider the following Enrichment Configuration JSON.  This one is for a threat intelligence type:
 
-````
+```
 {
   "zkQuorum" : "localhost:2181"
  ,"sensorToFieldList" : {
@@ -149,7 +149,7 @@ Consider the following Enrichment Configuration JSON.  This one is for a threat 
            }
                         }
 }
-````
+```
 
 We have to specify the following:
 * The zookeeper quorum which holds the cluster configuration
@@ -174,7 +174,7 @@ It is quite common for this Taxii server to be an aggregation server such as Sol
 In addition to the Enrichment and Extractor configs described above, this loader requires a configuration file describing the connection information
 to the Taxii server.  An illustrative example of such a configuration file is:
 
-````
+```
 {
    "endpoint" : "http://localhost:8282/taxii-discovery-service"
   ,"type" : "DISCOVER"
@@ -183,7 +183,7 @@ to the Taxii server.  An illustrative example of such a configuration file is:
   ,"columnFamily" : "cf"
   ,"allowedIndicatorTypes" : [ "domainname:FQDN", "address:IPV_4_ADDR" ]
 }
-````
+```
 
 As you can see, we are specifying the following information:
 * endpoint : The URL of the endpoint
@@ -206,32 +206,16 @@ The parameters for the utility are as follows:
 | -n         | --enrichment_config       | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified.                                  |
 
 
-### Bulk Load from HDFS
-
-The shell script `$METRON_HOME/bin/threatintel_bulk_load.sh` will kick off a MR job to load data staged in HDFS into an HBase table.  Note: despite what
-the naming may suggest, this utility works for enrichment as well as threat intel due to the underlying infrastructure being the same.
-
-The parameters for the utility are as follows:
-
-| Short Code | Long Code           | Is Required? | Description                                                                                                       |
-|------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------|
-| -h         |                     | No           | Generate the help screen/set of options                                                                           |
-| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                 |
-| -t         | --table             | Yes          | The HBase table to import into                                                                                    |
-| -f         | --column_family     | Yes          | The HBase table column family to import into                                                                      |
-| -i         | --input             | Yes          | The input data location on HDFS                                                                                   |
-| -n         | --enrichment_config | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified. |
-or threat intel.
 
 ### Flatfile Loader
 
-The shell script `$METRON_HOME/bin/flatfile_loader.sh` will read data from local disk and load the enrichment or threat intel data into an HBase table.  
+The shell script `$METRON_HOME/bin/flatfile_loader.sh` will read data from local disk, HDFS or URLs and load the enrichment or threat intel data into an HBase table.  
 Note: This utility works for enrichment as well as threat intel due to the underlying infrastructure being the same.
 
 One special thing to note here is that there is a special configuration
 parameter to the Extractor config that is only considered during this
 loader:
-* inputFormatHandler : This specifies how to consider the data.  The two implementations are `BY_LINE` and `org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat`.
+* inputFormat : This specifies how to consider the data.  The two implementations are `BY_LINE` and `WHOLE_FILE`.
 
 The default is `BY_LINE`, which makes sense for a list of CSVs where
 each line indicates a unit of information which can be imported.
@@ -243,7 +227,9 @@ The parameters for the utility are as follows:
 | Short Code | Long Code           | Is Required? | Description                                                                                                                                                                         |   |
 |------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
 | -h         |                     | No           | Generate the help screen/set of options                                                                                                                                             |   |
+| -q         | --quiet             | No           | Do not update progress
 | -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                   |   |
+| -m         | --import_mode       | No           | The Import mode to use: LOCAL, MR.  Default: LOCAL                                                                                                                  |   |
 | -t         | --hbase_table       | Yes          | The HBase table to import into                                                                                                                                                      |   |
 | -c         | --hbase_cf          | Yes          | The HBase table column family to import into                                                                                                                                        |   |
 | -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory. |   |
@@ -263,6 +249,6 @@ The parameters for the utility are as follows:
 |------------|---------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | -h         |                     | No           | Generate the help screen/set of options                                                                                                                                              |
 | -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
-| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/<epoch millis>/
+| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/
 | -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp
 | -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)
