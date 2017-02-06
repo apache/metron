@@ -15,19 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.extractor.inputformat;
+package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Job;
+import java.util.Optional;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+public enum ImportStrategy {
+  LOCAL(LocalImporter.INSTANCE),
+  MR(MapReduceImporter.INSTANCE)
+  ;
+  private Importer importer;
 
-public interface InputFormatHandler {
-  void set(Job job, List<Path> input, Map<String, Object> config) throws IOException;
-  default void set(Job job, Path input, Map<String, Object> config) throws IOException {
-    set(job, ImmutableList.of(input), config);
+  ImportStrategy(Importer importer) {
+    this.importer = importer;
+  }
+
+  public Importer getImporter() {
+    return importer;
+  }
+
+  public static Optional<ImportStrategy> getStrategy(String strategyName) {
+    if(strategyName == null) {
+      return Optional.empty();
+    }
+    for(ImportStrategy strategy : values()) {
+      if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
+        return Optional.of(strategy);
+      }
+    }
+    return Optional.empty();
   }
 }

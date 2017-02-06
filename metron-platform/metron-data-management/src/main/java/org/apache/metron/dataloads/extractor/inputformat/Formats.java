@@ -23,34 +23,34 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public enum Formats implements InputFormatHandler{
-    BY_LINE(new InputFormatHandler() {
-        @Override
-        public void set(Job job, Path input, Map<String, Object> config) throws IOException {
+public enum Formats implements InputFormatHandler {
+  BY_LINE( (job, inputs, config) -> {
+      for(Path input : inputs) {
+        FileInputFormat.addInputPath(job, input);
+      }
+  }),
+  WHOLE_FILE( new WholeFileFormat());
+  InputFormatHandler _handler = null;
+  Formats(InputFormatHandler handler) {
+    this._handler = handler;
+  }
+  @Override
+  public void set(Job job, List<Path> path, Map<String, Object> config) throws IOException {
+    _handler.set(job, path, config);
+  }
 
-            FileInputFormat.addInputPath(job, input);
-        }
-    })
-    ;
-    InputFormatHandler _handler = null;
-    Formats(InputFormatHandler handler) {
-        this._handler = handler;
+  public static InputFormatHandler create(String handlerName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    try {
+      InputFormatHandler ec = Formats.valueOf(handlerName)._handler;
+      return ec;
     }
-    @Override
-    public void set(Job job, Path path, Map<String, Object> config) throws IOException {
-        _handler.set(job, path, config);
+    catch(IllegalArgumentException iae) {
+      InputFormatHandler ex = (InputFormatHandler) Class.forName(handlerName).getConstructor().newInstance();
+      return ex;
     }
-
-    public static InputFormatHandler create(String handlerName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        try {
-            InputFormatHandler ec = Formats.valueOf(handlerName);
-            return ec;
-        }
-        catch(IllegalArgumentException iae) {
-            InputFormatHandler ex = (InputFormatHandler) Class.forName(handlerName).getConstructor().newInstance();
-            return ex;
-        }
-    }
+  }
 }

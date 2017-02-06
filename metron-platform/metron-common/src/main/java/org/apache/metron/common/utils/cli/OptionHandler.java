@@ -15,19 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.extractor.inputformat;
+package org.apache.metron.common.utils.cli;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Job;
+import com.google.common.base.Function;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-public interface InputFormatHandler {
-  void set(Job job, List<Path> input, Map<String, Object> config) throws IOException;
-  default void set(Job job, Path input, Map<String, Object> config) throws IOException {
-    set(job, ImmutableList.of(input), config);
+public abstract class OptionHandler<OPT_T extends Enum<OPT_T>> implements Function<String, Option>
+{
+  public Optional<Object> getValue(OPT_T option, CommandLine cli) {
+    return Optional.empty();
   }
 }

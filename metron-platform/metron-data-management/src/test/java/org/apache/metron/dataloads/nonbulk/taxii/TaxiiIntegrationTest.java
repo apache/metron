@@ -33,10 +33,7 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -44,13 +41,13 @@ import java.util.Set;
 
 public class TaxiiIntegrationTest {
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeClass
+    public static void setup() throws IOException {
         MockTaxiiService.start(8282);
     }
 
-    @After
-    public void teardown() {
+    @AfterClass
+    public static void teardown() {
         MockTaxiiService.shutdown();
         MockHTable.Provider.clear();
     }
