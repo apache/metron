@@ -96,3 +96,46 @@ to:
 
 For every sensor enrichment configuration, you will need to migrate the `riskLevelRules` section
 to move from a map to a list of risk level rule objects.
+
+### [METRON-283: Make Threat Triage rules able to be assigned names and comments](https://issues.apache.org/jira/browse/METRON-283)
+
+#### Description
+
+As of 0.3.0, a MySQL database was used for storage and retrieval of
+GeoIP information during enrichment.
+As of 0.3.1, the MySQL database is removed in favor of using MaxMind's
+binary GeoIP files and stored on HDFS
+
+After initial setup, this change is transparent and existing enrichment
+definitions will run as-is.
+
+#### Migration
+
+While new installs will not require any additional steps, in an existing
+install a script must be run to retrieve and load the initial data.
+
+The shell script `geo_enrichment_load.sh` will retrieve MaxMind GeoLite2
+data and load data into HDFS, and update the configuration to point to
+this data.
+In most cases the following usage will grab the data appropriately:
+
+```
+$METRON_HOME/bin/geo_enrichment_load.sh -z <zk_server>:<zk_port>
+```
+
+Additional options, including changing the source file location (which
+can be a file:// location if the GeoIP data is already downloaded), are
+available with the
+-h flag and are also detailed in the metron-data-management README.me
+ file.
+
+One caveat is that this script will NOT update on disk config files. It
+is recommended to retrieve the configuration using
+
+```
+$METRON_HOME/bin/zk_load_configs.sh -z <zk_server>:<zk_port> -m DUMP
+```
+
+The new config will be `geo.hdfs.file` in the global section of the
+configuration. Append this key-value into the global.json in the config
+directory. A PUSH is unnecessary
