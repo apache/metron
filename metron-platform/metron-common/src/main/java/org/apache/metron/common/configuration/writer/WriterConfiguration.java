@@ -21,7 +21,6 @@ package org.apache.metron.common.configuration.writer;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public interface WriterConfiguration extends Serializable {
   int getBatchSize(String sensorName);

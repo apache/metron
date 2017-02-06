@@ -25,7 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.Supplier;
 
 public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
@@ -44,7 +43,6 @@ public class IndexingConfigurations extends Configurations {
       return writerConfig != null?writerConfig:new HashMap<>();
     }
   }
-
 
   public void updateSensorIndexingConfig(String sensorType, byte[] data) throws IOException {
     updateSensorIndexingConfig(sensorType, new ByteArrayInputStream(data));
@@ -116,18 +114,18 @@ public class IndexingConfigurations extends Configurations {
 
   public static int getBatchSize(Map<String, Object> conf) {
     return getAs( BATCH_SIZE_CONF
-            ,conf
-            , 1
-            , Integer.class
-    );
+                 ,conf
+                , 1
+                , Integer.class
+                );
   }
 
   public static int getBatchTimeout(Map<String, Object> conf) {
     return getAs( BATCH_TIMEOUT_CONF
-            ,conf
-            , 0
-            , Integer.class
-    );
+                 ,conf
+                , 0
+                , Integer.class
+                );
   }
 
   public static String getIndex(Map<String, Object> conf, String sensorName) {

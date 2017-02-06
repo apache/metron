@@ -174,6 +174,8 @@ public class BulkWriterComponent<MESSAGE_T> {
           ) throws Exception
   {
     // Flushes all queues older than their batchTimeouts.
+    // This strategy does not guarantee each queue to be flushed at the exact batchTimeout.  Rather,
+    // the latency will be between the sensorType's batchTimeout and batchTimeout + tick.tuple.freq.secs.
     // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorTupleMap.
     for (String sensorType : sensorTupleMap.keySet()) {
       int batchTimeout = configurations.getBatchTimeout(sensorType);

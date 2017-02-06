@@ -25,7 +25,6 @@ import org.apache.metron.common.utils.ConversionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class IndexingWriterConfiguration implements WriterConfiguration{
   private Optional<IndexingConfigurations> config;
