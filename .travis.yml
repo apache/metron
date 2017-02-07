@@ -4,7 +4,7 @@ jdk:
   - oraclejdk8
 script:
   - |
-    mvn -q -DskipTests -T 2C install && mvn -q -T 2C test && mvn -q -Dtest=\*IntegrationTest -DfailIfNoTests=false integration-test && build_utils/verify_licenses.sh
+    mvn apache-rat:check && mvn -q -T 2C test && mvn -q surefire:test@integration-tests && build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2
