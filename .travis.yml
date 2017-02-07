@@ -12,7 +12,7 @@ env:
   - TEST_SUITE=surefire:test@integration-tests
 script:
   - |
-    mvn -q -T 2C -DskipTests install && mvn -q $TEST_SUITE && build_utils/verify_licenses.sh
+    mvn -q -T 2C -DskipTests install && mvn -q $(echo $TEST_SUITE) && build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2
