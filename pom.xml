@@ -237,6 +237,7 @@
                 <configuration>
                   <excludes>
                         <exclude>dependencies_with_url.csv</exclude>
+                        <exclude>apache-maven-3.3.9/**</exclude>
                         <exclude>**/*.md</exclude>
                         <exclude>**/VERSION</exclude>
                         <exclude>**/*.json</exclude>
