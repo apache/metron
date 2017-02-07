@@ -7,9 +7,12 @@ before_install:
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
+env:
+  - TEST_SUITE=-T 2C surefire:test@unit-tests
+  - TEST_SUITE=surefire:test@integration-tests
 script:
   - |
-    mvn -q -T 2C -DskipTests install && mvn -q -T 2C surefire:test@unit-tests && mvn -q surefire:test@integration-tests && build_utils/verify_licenses.sh
+    mvn -q -T 2C -DskipTests install && mvn -q $TEST_SUITE && build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2
