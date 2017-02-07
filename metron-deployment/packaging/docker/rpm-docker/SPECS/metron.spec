@@ -316,7 +316,7 @@ This package installs the Metron Profiler %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
-* Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.0
+* Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
 - Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
 - Add ASA parser/enrichment configuration files 
