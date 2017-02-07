@@ -18,7 +18,11 @@
 package org.apache.metron.common.configuration.profiler;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -84,6 +88,32 @@ public class ProfileConfig implements Serializable {
    */
   private Long expires;
 
+  /**
+   * The destination to which the profile measurements are written.  Default destination
+   * includes both HBase and Kafka.
+   */
+  private List<String> destination = Arrays.asList(HBASE_DESTINATION, KAFKA_DESTINATION);
+
+  // TODO default to Kafka and HBase
+
+  /**
+   * The destination used to write a Profile's measurements to Kafka.
+   */
+  public static final String KAFKA_DESTINATION = "kafka";
+
+  /**
+   * The destination used to write a Profile's measurements to HBase.
+   */
+  public static final String HBASE_DESTINATION = "hbase";
+
+  /**
+   * Returns all of the valid destination that can be used in a Profile definition.
+   * @return A List of all valid profile destination.
+   */
+  public static List<String> getValidDestinations() {
+    return Arrays.asList(KAFKA_DESTINATION, HBASE_DESTINATION);
+  }
+
   public String getProfile() {
     return profile;
   }
@@ -148,18 +178,12 @@ public class ProfileConfig implements Serializable {
     this.expires = TimeUnit.DAYS.toMillis(expiresDays);
   }
 
-  @Override
-  public String toString() {
-    return "ProfileConfig{" +
-            "profile='" + profile + '\'' +
-            ", foreach='" + foreach + '\'' +
-            ", onlyif='" + onlyif + '\'' +
-            ", init=" + init +
-            ", update=" + update +
-            ", groupBy=" + groupBy +
-            ", result='" + result + '\'' +
-            ", expires=" + expires +
-            '}';
+  public List<String> getDestination() {
+    return destination;
+  }
+
+  public void setDestination(List<String> destination) {
+    this.destination = destination;
   }
 
   @Override
@@ -176,8 +200,8 @@ public class ProfileConfig implements Serializable {
     if (update != null ? !update.equals(that.update) : that.update != null) return false;
     if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
     if (result != null ? !result.equals(that.result) : that.result != null) return false;
-    return expires != null ? expires.equals(that.expires) : that.expires == null;
-
+    if (expires != null ? !expires.equals(that.expires) : that.expires != null) return false;
+    return destination != null ? destination.equals(that.destination) : that.destination == null;
   }
 
   @Override
@@ -190,6 +214,22 @@ public class ProfileConfig implements Serializable {
     result1 = 31 * result1 + (groupBy != null ? groupBy.hashCode() : 0);
     result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
     result1 = 31 * result1 + (expires != null ? expires.hashCode() : 0);
+    result1 = 31 * result1 + (destination != null ? destination.hashCode() : 0);
     return result1;
+  }
+
+  @Override
+  public String toString() {
+    return "ProfileConfig{" +
+            "profile='" + profile + '\'' +
+            ", foreach='" + foreach + '\'' +
+            ", onlyif='" + onlyif + '\'' +
+            ", init=" + init +
+            ", update=" + update +
+            ", groupBy=" + groupBy +
+            ", result='" + result + '\'' +
+            ", expires=" + expires +
+            ", destination=" + destination +
+            '}';
   }
 }

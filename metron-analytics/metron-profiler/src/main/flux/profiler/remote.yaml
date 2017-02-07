@@ -64,6 +64,16 @@ components:
                 args:
                     - "${kafka.start}"
 
+    -   id: "kafkaWriter"
+        className: "org.apache.metron.writer.kafka.KafkaWriter"
+        configMethods:
+            -   name: "withTopic"
+                args:
+                    - "${profiler.output.topic}"
+            -   name: "withZkQuorum"
+                args:
+                    - "${kafka.zk}"
+
 spouts:
 
     -   id: "kafkaSpout"
@@ -101,6 +111,17 @@ bolts:
             - name: "withFlushIntervalSecs"
               args: [${profiler.hbase.flush.interval.seconds}]
 
+    -   id: "kafkaBolt"
+        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withMessageWriter"
+                args:
+                    - ref: "kafkaWriter"
+            -   name: "withMessageGetter"
+                args:
+                    - "NAMED"
 streams:
 
     -   name: "spout -> splitter"
@@ -116,8 +137,18 @@ streams:
             type: FIELDS
             args: ["entity", "profile", "message"]
 
+    # writes profile measurements to HBase; 'streamId' must match a profile's 'destination' field
     -   name: "builder -> hbase"
         from: "builderBolt"
         to: "hbaseBolt"
         grouping:
+            streamId: "hbase"
+            type: SHUFFLE
+
+    # writes profile measurements to Kafka; 'streamId' must match a profile's 'destination' field
+    -   name: "builder -> kafka"
+        from: "builderBolt"
+        to: "kafkaBolt"
+        grouping:
+            streamId: "kafka"
             type: SHUFFLE

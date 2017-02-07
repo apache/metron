@@ -111,6 +111,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
   private static final double epsilon = 0.001;
+  private static final String inputTopic = Constants.INDEXING_TOPIC;
+  private static final String outputTopic = "profiler";
 
   /**
    * A TableProvider that allows us to mock HBase.
@@ -290,7 +292,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
-      setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
+      setProperty("profiler.input.topic", inputTopic);
+      setProperty("profiler.output.topic", outputTopic);
       setProperty("profiler.period.duration", "20");
       setProperty("profiler.period.duration.units", "SECONDS");
       setProperty("profiler.ttl", "30");
@@ -310,8 +313,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     zkComponent = getZKServerComponent(topologyProperties);
 
     // create the input topic
-    kafkaComponent = getKafkaComponent(topologyProperties,
-            Arrays.asList(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1)));
+    kafkaComponent = getKafkaComponent(topologyProperties, Arrays.asList(
+            new KafkaComponent.Topic(inputTopic, 1),
+            new KafkaComponent.Topic(outputTopic, 1)));
 
     // upload profiler configuration to zookeeper
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()

@@ -127,8 +127,15 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    // once the time window expires, a complete ProfileMeasurement is emitted
-    declarer.declare(new Fields("measurement", "profile"));
+
+    /*
+     * a separate stream is used for each profile destination; kafka, hbase. even if a particular
+     * stream is not used in a set of profile definitions, all valid streams that *might*
+     * be used, must be declared here.
+     */
+    for(String destination : ProfileConfig.getValidDestinations()) {
+      declarer.declareStream(destination, new Fields("measurement", "profile"));
+    }
   }
 
   @Override
@@ -155,11 +162,17 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
     if(TupleUtils.isTick(input)) {
 
-      // when a 'tick' is received, flush the profile and emit the completed profile measurement
+      // when a 'tick' is received...
       profileCache.asMap().forEach((key, profileBuilder) -> {
         if(profileBuilder.isInitialized()) {
+
+          // flush the profile
           ProfileMeasurement measurement = profileBuilder.flush();
-          collector.emit(new Values(measurement, profileBuilder.getDefinition()));
+
+          // emit the measurement to each 'destination' stream defined by the profile
+          for(String destination : profileBuilder.getDefinition().getDestination()) {
+            collector.emit(destination, new Values(measurement, profileBuilder.getDefinition()));
+          }
         }
       });
 

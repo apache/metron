@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +46,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -242,11 +245,11 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   }
 
   /**
-   * A ProfileMeasurement should be emitted for each profile/entity currently being tracked
-   * by the bolt.
+   * A ProfileMeasurement is build for each profile/entity pair.  A measurement for each profile/entity
+   * pair should be emitted.
    */
   @Test
-  public void testEmitMeasurementsOnFlush() throws Exception {
+  public void testEmitMeasurements() throws Exception {
 
     // setup
     ProfileBuilderBolt bolt = createBolt();
@@ -267,15 +270,15 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(outputCollector, times(2)).emit(arg.capture());
 
-    // validate
-    for(Values value : arg.getAllValues()) {
+    // validate emitted measurements
+    verify(outputCollector, atLeastOnce()).emit(any(String.class), arg.capture());
+    for (Values value : arg.getAllValues()) {
 
       ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
       ProfileConfig definition = (ProfileConfig) value.get(1);
 
-      if(StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
+      if (StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
 
         // validate measurement emitted for profile two
         assertEquals(definitionTwo, definition);
@@ -283,7 +286,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
         assertEquals(definitionTwo.getProfile(), measurement.getProfileName());
         assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
 
-      } else if(StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
+      } else if (StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
 
         // validate measurement emitted for profile one
         assertEquals(definitionOne, definition);
@@ -295,5 +298,120 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
         fail();
       }
     }
+  }
+
+  /**
+   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to each
+   * destination defined by the profile. By default, a profile uses both Kafka and HBase as destinations.
+   */
+  @Test
+  public void testEmitMeasurementWithDefaultDestinations() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    final String entity = (String) messageOne.get("ip_src_addr");
+
+    // apply the message to the first profile
+    ProfileConfig definitionOne = createDefinition(profileOne);
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // execute - the tick tuple triggers a flush of the profile
+    bolt.execute(mockTickTuple());
+
+    // capture the ProfileMeasurement that should be emitted
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+
+    // validate measurements emitted to HBase - two are emitted, one for each profile
+    verify(outputCollector, times(1)).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
+
+    // validate measurements emitted to Kafka - two are emitted, one for each profile
+    verify(outputCollector, times(1)).emit(eq(ProfileConfig.KAFKA_DESTINATION), arg.capture());
+  }
+
+
+  /**
+   * {
+   *   "profile": "profile-one-destination",
+   *   "foreach": "ip_src_addr",
+   *   "init":   { "x": "0" },
+   *   "update": { "x": "x + 1" },
+   *   "result": "x",
+   *   "destination": ["hbase"]
+   * }
+   */
+  @Multiline
+  private String profileWithOneDestination;
+
+  /**
+   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to only the
+   * destination specified by the profile.
+   */
+  @Test
+  public void testEmitMeasurementWithOneDestination() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    final String entity = (String) messageOne.get("ip_src_addr");
+
+    // alter the default destination so measurements only sent to HBase
+    ProfileConfig definitionOne = createDefinition(profileWithOneDestination);
+
+    // apply the message to the profile
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // the tick tuple triggers a flush of the profile
+    bolt.execute(mockTickTuple());
+
+    // capture any ProfileMeasurements that are emitted
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+
+    // a measurement should be emitted for HBase
+    verify(outputCollector, times(1)).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
+
+    // no measurement should be emitted for Kafka
+    verify(outputCollector, times(0)).emit(eq(ProfileConfig.KAFKA_DESTINATION), arg.capture());
+  }
+
+  /**
+   * {
+   *   "profile": "profile-no-destination",
+   *   "foreach": "ip_src_addr",
+   *   "init":   { "x": "0" },
+   *   "update": { "x": "x + 1" },
+   *   "result": "x",
+   *   "destination": []
+   * }
+   */
+  @Multiline
+  private String profileWithNoDestination;
+
+  /**
+   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to only the
+   * destination specified by the profile.  If no destinations are specified, then none should be emitted.
+   */
+  @Test
+  public void testEmitMeasurementWithNoDestinations() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    final String entity = (String) messageOne.get("ip_src_addr");
+
+    // alter the profile so that there are no destinations
+    ProfileConfig definitionOne = createDefinition(profileWithNoDestination);
+
+    // apply the message to the first profile
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // execute - the tick tuple triggers a flush of the profile
+    bolt.execute(mockTickTuple());
+
+    // capture the ProfileMeasurement that should be emitted
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+
+    // no destinations for this profile - do not emit
+    verify(outputCollector, times(0)).emit(any(String.class), arg.capture());
   }
 }
