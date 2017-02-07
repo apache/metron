@@ -94,8 +94,6 @@ public class ProfileConfig implements Serializable {
    */
   private List<String> destination = Arrays.asList(HBASE_DESTINATION, KAFKA_DESTINATION);
 
-  // TODO default to Kafka and HBase
-
   /**
    * The destination used to write a Profile's measurements to Kafka.
    */

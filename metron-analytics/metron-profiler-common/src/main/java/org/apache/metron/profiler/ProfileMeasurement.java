@@ -20,6 +20,8 @@
 
 package org.apache.metron.profiler;
 
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +60,11 @@ public class ProfileMeasurement {
    */
   private ProfilePeriod period;
 
+  /**
+   * The profile definition that resulted in this measurement.
+   */
+  private ProfileConfig definition;
+
   public ProfileMeasurement() {
     this.groups = Collections.emptyList();
   }
@@ -87,6 +94,11 @@ public class ProfileMeasurement {
     return this;
   }
 
+  public ProfileMeasurement withDefinition(ProfileConfig definition) {
+    this.definition = definition;
+    return this;
+  }
+
   public String getProfileName() {
     return profileName;
   }
@@ -107,6 +119,10 @@ public class ProfileMeasurement {
     return groups;
   }
 
+  public ProfileConfig getDefinition() {
+    return definition;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -118,7 +134,8 @@ public class ProfileMeasurement {
     if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
     if (value != null ? !value.equals(that.value) : that.value != null) return false;
     if (groups != null ? !groups.equals(that.groups) : that.groups != null) return false;
-    return period != null ? period.equals(that.period) : that.period == null;
+    if (period != null ? !period.equals(that.period) : that.period != null) return false;
+    return definition != null ? definition.equals(that.definition) : that.definition == null;
   }
 
   @Override
@@ -128,6 +145,7 @@ public class ProfileMeasurement {
     result = 31 * result + (value != null ? value.hashCode() : 0);
     result = 31 * result + (groups != null ? groups.hashCode() : 0);
     result = 31 * result + (period != null ? period.hashCode() : 0);
+    result = 31 * result + (definition != null ? definition.hashCode() : 0);
     return result;
   }
 
@@ -139,6 +157,7 @@ public class ProfileMeasurement {
             ", value=" + value +
             ", groups=" + groups +
             ", period=" + period +
+            ", definition=" + definition +
             '}';
   }
 }

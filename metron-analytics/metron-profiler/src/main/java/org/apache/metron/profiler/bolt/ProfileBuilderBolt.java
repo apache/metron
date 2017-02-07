@@ -22,9 +22,11 @@ package org.apache.metron.profiler.bolt;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.clock.WallClock;
@@ -134,7 +136,14 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
      * be used, must be declared here.
      */
     for(String destination : ProfileConfig.getValidDestinations()) {
-      declarer.declareStream(destination, new Fields("measurement", "profile"));
+
+      // TODO hack! Should not have to emit different values for kafka versus hbase
+      if(destination.equals("kafka")) {
+        declarer.declareStream(destination, new Fields("message"));
+
+      } else {
+        declarer.declareStream(destination, new Fields("measurement"));
+      }
     }
   }
 
@@ -171,7 +180,16 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
           // emit the measurement to each 'destination' stream defined by the profile
           for(String destination : profileBuilder.getDefinition().getDestination()) {
-            collector.emit(destination, new Values(measurement, profileBuilder.getDefinition()));
+
+            // TODO hack! Should not have to emit different values for kafka versus hbase
+            if(destination.equals("kafka")) {
+              BeanMap beanMap = new BeanMap(measurement);
+              JSONObject message = new JSONObject(beanMap);
+              collector.emit(destination, new Values(message));
+
+            } else {
+              collector.emit(destination, new Values(measurement));
+            }
           }
         }
       });

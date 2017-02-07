@@ -276,7 +276,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     for (Values value : arg.getAllValues()) {
 
       ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
-      ProfileConfig definition = (ProfileConfig) value.get(1);
+      ProfileConfig definition = measurement.getDefinition();
 
       if (StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
 

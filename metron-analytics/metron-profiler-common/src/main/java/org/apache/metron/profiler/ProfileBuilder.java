@@ -159,7 +159,8 @@ public class ProfileBuilder implements Serializable {
             .withEntity(entity)
             .withGroups(groups)
             .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
-            .withValue(value);
+            .withValue(value)
+            .withDefinition(definition);
   }
 
   /**
