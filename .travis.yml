@@ -8,7 +8,7 @@ before_install:
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
 env:
-  - TEST_SUITE=-T 2C surefire:test@unit-tests
+  - TEST_SUITE="-T 2C surefire:test@unit-tests"
   - TEST_SUITE=surefire:test@integration-tests
 script:
   - |
