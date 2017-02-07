@@ -4,7 +4,7 @@ jdk:
   - oraclejdk8
 script:
   - |
-    mvn -q integration-test install && build_utils/verify_licenses.sh
+    mvn -q -DskipTests -T 1.5C install && mvn -q -T 1.5C test && mvn -q integration-test && build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2
