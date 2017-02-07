@@ -89,7 +89,7 @@ for the value will be 'meta'.  For instance, given an input string of `123.45.12
 would be extracted:
 * Indicator : `123.45.123.12`
 * Type : `malicious_ip`
-* Value : `{ "source" : "the grapevine" }`
+* Value : `{ "ip" : "123.45.123.12", "source" : "the grapevine" }`
 
 ### STIX Extractor
 
@@ -126,6 +126,85 @@ In here, we're configuring the STIX extractor to load from a series of STIX file
 addresses from the set of all possible addresses.  Note that if no categories are specified for import, all are assumed.
 Also, only address and domain types allow filtering via `stix_address_categories` and `stix_domain_categories` config
 parameters.
+
+### Common Extractor Properties
+
+Users also have the ability to transform and filter enrichment and threat intel data using Stellar as it is loaded into HBase. This feature is available to all extractor types.
+
+As an example, we will be providing a CSV list of top domains as an enrichment and filtering the value metadata, as well as the indicator column, with Stellar expressions.
+
+````
+{
+  "config" : {
+    "zk_quorum" : "node1:2181",
+    "columns" : {
+       "rank" : 0,
+       "domain" : 1
+    },
+    "value_transform" : {
+       "domain" : "DOMAIN_REMOVE_TLD(domain)"
+    },
+    "value_filter" : "LENGTH(domain) > 0",
+    "indicator_column" : "domain",
+    "indicator_transform" : {
+       "indicator" : "DOMAIN_REMOVE_TLD(indicator)"
+    },
+    "indicator_filter" : "LENGTH(indicator) > 0",
+    "type" : "top_domains",
+    "separator" : ","
+  },
+  "extractor" : "CSV"
+}
+````
+
+There are 2 property maps that work with full Stellar expressions, and 2 properties that will work with Stellar predicates.
+
+| Property            | Description |
+|---------------------|-------------|
+| value_transform     | Transform fields defined in the "columns" mapping with Stellar transformations. New keys introduced in the transform will be added to the key metadata. |
+| value_filter        | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose domain property is empty after removing the TLD will be omitted. |
+| indicator_transform | Transform the indicator column independent of the value transformations. You can refer to the original indicator value by using "indicator" as the variable name, as shown in the example above. In addition, if you prefer to piggyback your transformations, you can refer to the variable "domain", which will allow your indicator transforms to inherit transformations done to this value during the value transformations. |
+| indicator_filter    | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose indicator value is empty after removing the TLD will be omitted. |
+
+top-list.csv
+````
+1,google.com
+2,youtube.com
+...
+````
+
+Running a file import with the above data and extractor configuration would result in the following 2 extracted data records:
+
+| Indicator | Type | Value |
+|-----------|------|-------|
+| google    | top_domains | { "rank" : "1", "domain" : "google" } |
+| yahoo     | top_domains | { "rank" : "2", "domain" : "yahoo" } |
+
+Similar to the parser framework, providing a Zookeeper quorum via the zk_quorum property will enable Stellar to access properties that reside in the global config.
+Expanding on our example above, if the global config looks as follows:
+````
+{
+    "global_property" : "metron-ftw"
+}
+````
+
+And we expand our value_tranform:
+````
+...
+    "value_transform" : {
+       "domain" : "DOMAIN_REMOVE_TLD(domain)",
+       "a-new-prop" : "global_property"
+    },
+...
+
+````
+
+The resulting value data would look like the following:
+
+| Indicator | Type | Value |
+|-----------|------|-------|
+| google    | top_domains | { "rank" : "1", "domain" : "google", "a-new-prop" : "metron-ftw" } |
+| yahoo     | top_domains | { "rank" : "2", "domain" : "yahoo", "a-new-prop" : "metron-ftw" } |
 
 ## Enrichment Config
 

@@ -47,13 +47,12 @@ public enum Extractors implements ExtractorCreator {
     }
     public static Extractor create(String extractorName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         try {
-            //TODO create decorated extractor here - in init method setup Stellar
             ExtractorCreator ec = Extractors.valueOf(extractorName);
             return new TransformFilterExtractorDecorator(ec.create());
         }
         catch(IllegalArgumentException iae) {
             Extractor ex = (Extractor) Class.forName(extractorName).getConstructor().newInstance();
-            return ex;
+            return new TransformFilterExtractorDecorator(ex);
         }
     }
 }
