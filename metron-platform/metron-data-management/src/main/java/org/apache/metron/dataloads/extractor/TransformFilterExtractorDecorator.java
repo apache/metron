@@ -113,7 +113,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   }
 
   private String getFilter(Map<String, Object> config, String valueFilter) {
-    return ConversionUtils.convertOrFail(config.get(valueFilter), String.class);
+    return (String) config.get(valueFilter);
   }
 
   /**
@@ -123,12 +123,11 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
    * @return map of transformations.
    */
   private Map<String, String> getTransforms(Map<String, Object> config, String type) {
-    Map<Object, Object> transformsConfig = ConversionUtils.convertOrFail(config.get(type), Map.class);
+    // If this isn't a Map of Strings, let an exception be thrown
+    @SuppressWarnings("unchecked") Map<Object, Object> transformsConfig = (Map) config.get(type);
     Map<String, String> transforms = new LinkedHashMap<>();
     for (Map.Entry<Object, Object> e : transformsConfig.entrySet()) {
-      String key = ConversionUtils.convertOrFail(e.getKey(), String.class);
-      String val = ConversionUtils.convertOrFail(e.getValue(), String.class);
-      transforms.put(key, val);
+      transforms.put((String) e.getKey(), (String) e.getValue());
     }
     return transforms;
   }
@@ -170,9 +169,9 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private Context createContext(Optional<CuratorFramework> zkClient) {
     Context.Builder builder = new Context.Builder();
     if (zkClient.isPresent()) {
-      builder.with(Context.Capabilities.ZOOKEEPER_CLIENT, zkClient::get)
-              .with(Context.Capabilities.GLOBAL_CONFIG, () -> globalConfig);
+      builder.with(Context.Capabilities.ZOOKEEPER_CLIENT, zkClient::get);
     }
+    builder.with(Context.Capabilities.GLOBAL_CONFIG, () -> globalConfig);
     return builder.build();
   }
 

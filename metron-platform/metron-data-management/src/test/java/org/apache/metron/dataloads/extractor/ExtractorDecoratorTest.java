@@ -17,7 +17,6 @@
  */
 package org.apache.metron.dataloads.extractor;
 
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 
@@ -44,7 +44,7 @@ public class ExtractorDecoratorTest {
   @Test
   public void sets_member_variables() {
     ExtractorDecorator decorator = new ExtractorDecorator(extractor);
-    Assert.assertThat(decorator.decoratedExtractor, Matchers.notNullValue());
+    Assert.assertThat(decorator.decoratedExtractor, notNullValue());
   }
 
   @Test

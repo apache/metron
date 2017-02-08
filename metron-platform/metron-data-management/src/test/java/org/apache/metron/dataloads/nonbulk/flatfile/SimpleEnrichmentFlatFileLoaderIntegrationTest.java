@@ -296,6 +296,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     lineByLineExtractorConfigFile.delete();
     wholeFileExtractorConfigFile.delete();
     stellarExtractorConfigFile.delete();
+    customLineByLineExtractorConfigFile.delete();
   }
 
 

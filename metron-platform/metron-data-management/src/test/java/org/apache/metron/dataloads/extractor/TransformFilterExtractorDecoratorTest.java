@@ -149,8 +149,7 @@ public class TransformFilterExtractorDecoratorTest {
   @Test
   public void bad_value_transform_causes_exception() throws Exception {
     final int badValue = 5;
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Object is not of type java.util.Map");
+    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.VALUE_TRANSFORM.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
@@ -160,8 +159,7 @@ public class TransformFilterExtractorDecoratorTest {
   @Test
   public void bad_value_filter_causes_exception() throws Exception {
     final int badValue = 5;
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Object is not of type java.lang.String");
+    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.VALUE_FILTER.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
@@ -171,8 +169,7 @@ public class TransformFilterExtractorDecoratorTest {
   @Test
   public void bad_indicator_transform_causes_exception() throws Exception {
     final int badValue = 5;
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Object is not of type java.util.Map");
+    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_TRANSFORM.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
@@ -182,8 +179,7 @@ public class TransformFilterExtractorDecoratorTest {
   @Test
   public void bad_indicator_filter_causes_exception() throws Exception {
     final int badValue = 5;
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Object is not of type java.lang.String");
+    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_FILTER.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));

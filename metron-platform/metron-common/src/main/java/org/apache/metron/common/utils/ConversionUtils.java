@@ -35,14 +35,6 @@ public class ConversionUtils {
     }
   };
 
-  public static <T> T convertOrFail(Object o, Class<T> clazz) {
-    if (clazz.isInstance(o)) {
-      return convert(o, clazz);
-    } else {
-      throw new IllegalArgumentException(String.format("Object is not of type %s", clazz.getCanonicalName()));
-    }
-  }
-
   public static <T> T convert(Object o, Class<T> clazz) {
     if (o == null) {
       return null;
