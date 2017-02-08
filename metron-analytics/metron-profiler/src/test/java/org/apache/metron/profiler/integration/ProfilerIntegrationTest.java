@@ -112,7 +112,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String columnFamily = "P";
   private static final double epsilon = 0.001;
   private static final String inputTopic = Constants.INDEXING_TOPIC;
-  private static final String outputTopic = "profiler";
+  private static final String outputTopic = "profiles";
 
   /**
    * A TableProvider that allows us to mock HBase.
