@@ -36,7 +36,7 @@ public class GeoAdapterTest {
 
   /**
    * {
-   * "locID":"6252001",
+   * "locID":"5803556",
    * "country":"US",
    * "city":"Milton",
    * "postalCode":"98354",

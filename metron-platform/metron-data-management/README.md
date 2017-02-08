@@ -1,4 +1,4 @@
-# metron-data-management
+# Resource Data Management
 
 This project is a collection of classes to assist with loading of
 various enrichment and threat intelligence sources into Metron.
@@ -64,7 +64,7 @@ schema if necessary for the data if it is not fixed (as in STIX, e.g.).
 Consider the following example configuration file which
 describes how to process a CSV file.
 
-````
+```
 {
   "config" : {
     "columns" : {
@@ -77,7 +77,7 @@ describes how to process a CSV file.
   }
   ,"extractor" : "CSV"
 }
-````
+```
 
 In this example, we have instructed the extractor of the schema (i.e. the columns field), 
 two columns at the first and third position.  We have indicated that the `ip` column is the indicator type
@@ -113,14 +113,14 @@ NOTE: The enrichment type will be used as the type above.
 
 Consider the following configuration for an Extractor
 
-````
+```
 {
   "config" : {
     "stix_address_categories" : "IPV_4_ADDR"
   }
   ,"extractor" : "STIX"
 }
-````
+```
 
 In here, we're configuring the STIX extractor to load from a series of STIX files, however we only want to bring in IPv4
 addresses from the set of all possible addresses.  Note that if no categories are specified for import, all are assumed.
@@ -215,7 +215,7 @@ documents flowing through the enrichment topology.
 
 Consider the following Enrichment Configuration JSON.  This one is for a threat intelligence type:
 
-````
+```
 {
   "zkQuorum" : "localhost:2181"
  ,"sensorToFieldList" : {
@@ -228,7 +228,7 @@ Consider the following Enrichment Configuration JSON.  This one is for a threat 
            }
                         }
 }
-````
+```
 
 We have to specify the following:
 * The zookeeper quorum which holds the cluster configuration
@@ -253,7 +253,7 @@ It is quite common for this Taxii server to be an aggregation server such as Sol
 In addition to the Enrichment and Extractor configs described above, this loader requires a configuration file describing the connection information
 to the Taxii server.  An illustrative example of such a configuration file is:
 
-````
+```
 {
    "endpoint" : "http://localhost:8282/taxii-discovery-service"
   ,"type" : "DISCOVER"
@@ -262,7 +262,7 @@ to the Taxii server.  An illustrative example of such a configuration file is:
   ,"columnFamily" : "cf"
   ,"allowedIndicatorTypes" : [ "domainname:FQDN", "address:IPV_4_ADDR" ]
 }
-````
+```
 
 As you can see, we are specifying the following information:
 * endpoint : The URL of the endpoint
@@ -328,6 +328,6 @@ The parameters for the utility are as follows:
 |------------|---------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | -h         |                     | No           | Generate the help screen/set of options                                                                                                                                              |
 | -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
-| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/<epoch millis>/
+| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/
 | -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp
 | -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)

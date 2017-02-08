@@ -1,0 +1,34 @@
+
+The problem #5 (rewrite_relative_links) is particularly tricky, so this test file
+allows you to test it.  Run 
+`cp src/test/resources/test-fix-md.txt.stat src/test/resources/test-fix-md.txt`
+then
+`awk -f bin/fix-md-dialect.awk src/test/resources/test-fix-md.txt`
+The .txt file will be re-written in place.  You can check the results by comparing
+the "Should be..." lines with the lines above them.  Contrast with the original
+.stat file to see before re-write.
+
+Here [Don't rewrite abs urls](http://nowhere.foo:80/README.md) is case 1.
+Should still be               http://nowhere.foo:80/README.md
+
+Here [Fleeber](index.html) is case 2a.
+Should be      index.html
+
+Here [Fleeber](NO_README.html) is case 2b.
+Should be      NO_README.html
+
+Here [Fleeber](index.html#Fleeber) is case 2c.
+Should be      index.html#Fleeber
+
+Here [Fleeber](NO_README.html#Fleeber) is case 2b.
+Should be      NO_README.html#Fleeber
+
+Here [`Fleeber`](multi.html#Fleeber) is case 3.
+Should be        multi.html#Fleeber
+
+Here [When All Is Lost](#When_All_Is_Lost) intra-document link is case 4.
+Should be               #When_All_Is_Lost
+
+Here is a combo: [Creative Nonsense](../metron-params/index.html#Creative_Nonsense) and [`RPM`](../metron-params/index.html#RPM)
+Should be:                           ../metron-params/index.html#Creative_Nonsense) and [`RPM`](../metron-params/index.html#RPM)
+

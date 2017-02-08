@@ -263,7 +263,7 @@ to retry, use: --limit @playbook.retry
 
 This will occur if Apache Metron attempts to deploy more host instances than allowed by your account.  The total number of instances required for Apache Metron can be reduced by editing `deployment/amazon-ec/playbook.yml`.  Perhaps a better alternative is to request of Amazon that this limit be increased.  Amazon has some additional [advice for dealing with this error and more](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
 
-> You've reached the limit on the number of instances you can run concurrently. The limit depends on the instance type. For more information, see [How many instances can I run in Amazon EC2](http://aws.amazon.com/ec2/faqs/#How_many_instances_can_I_run_in_Amazon_EC2). If you need additional instances, complete the [Amazon EC2 Instance Request Form](https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&limitType=service-code-ec2-instances).
+> You've reached the limit on the number of instances you can run concurrently. The limit depends on the instance type. For more information, see [How many instances can I run in Amazon EC2](http://aws.amazon.com/ec2/faqs/#How_many_instances_can_I_run_in_Amazon_EC2). If you need additional instances, complete the [Amazon EC2 Instance Request Form](https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&amp;limitType=service-code-ec2-instances).
 
 ### Error: 'SSH encountered an unknown error during the connection'
 

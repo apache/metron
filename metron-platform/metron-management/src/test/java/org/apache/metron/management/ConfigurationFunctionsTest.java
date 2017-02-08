@@ -131,7 +131,7 @@ public class ConfigurationFunctionsTest {
         "fieldToTypeMap" : { },
         "config" : { },
         "triageConfig" : {
-          "riskLevelRules" : { },
+          "riskLevelRules" : [ ],
           "aggregator" : "MAX",
           "aggregationConfig" : { }
         }
