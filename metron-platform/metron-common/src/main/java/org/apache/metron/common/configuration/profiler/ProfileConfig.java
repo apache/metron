@@ -104,14 +104,6 @@ public class ProfileConfig implements Serializable {
    */
   public static final String HBASE_DESTINATION = "hbase";
 
-  /**
-   * Returns all of the valid destination that can be used in a Profile definition.
-   * @return A List of all valid profile destination.
-   */
-  public static List<String> getValidDestinations() {
-    return Arrays.asList(KAFKA_DESTINATION, HBASE_DESTINATION);
-  }
-
   public String getProfile() {
     return profile;
   }

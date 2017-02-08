@@ -35,10 +35,8 @@ import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +47,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -127,8 +124,12 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.setTreeCache(cache);
     bolt.withPeriodDuration(10, TimeUnit.MINUTES);
     bolt.withTimeToLive(30, TimeUnit.MINUTES);
-    bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
 
+    // define the valid destinations for the profiler
+    bolt.withDestinationHandler(new HBaseDestinationHandler());
+    bolt.withDestinationHandler(new KafkaDestinationHandler());
+
+    bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     return bolt;
   }
 

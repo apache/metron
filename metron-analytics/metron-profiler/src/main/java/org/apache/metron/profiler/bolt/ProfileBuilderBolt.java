@@ -26,7 +26,6 @@ import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.clock.WallClock;
@@ -34,7 +33,6 @@ import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.TupleUtils;
@@ -43,6 +41,9 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -87,10 +88,19 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private transient JSONParser parser;
 
   /**
+   * The measurements produced by a profile can be written to multiple destinations.  Each
+   * destination is handled by a separate `DestinationHandler`.
+   */
+  private Map<String, DestinationHandler> destinations;
+
+  // TODO initialize the handlers and provide defaults
+
+  /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration data.
    */
   public ProfileBuilderBolt(String zookeeperUrl) {
     super(zookeeperUrl);
+    this.destinations = new HashMap<>();
   }
 
   /**
@@ -123,24 +133,14 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
             .build();
   }
 
-  /**
-   * The builder emits a single field, 'measurement', which contains a ProfileMeasurement. A
-   * ProfileMeasurement is emitted when a time window expires and a flush occurs.
-   */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
-    // separate stream used for each destination. all valid streams that *might* be used, must be declared here
-    for(String destination : ProfileConfig.getValidDestinations()) {
-
-      // the kafka writer expects a field called 'message'
-      if(destination.equals(ProfileConfig.KAFKA_DESTINATION)) {
-        declarer.declareStream(destination, new Fields("message"));
-
-      } else {
-        declarer.declareStream(destination, new Fields("measurement"));
-      }
+    if(destinations.size() == 0) {
+      throw new IllegalStateException("At least one profile destination must be defined.");
     }
+
+    // each destination will define its own stream
+    destinations.values().forEach(dest -> dest.declareOutputFields(declarer));
   }
 
   @Override
@@ -171,21 +171,10 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       profileCache.asMap().forEach((key, profileBuilder) -> {
         if(profileBuilder.isInitialized()) {
 
-          // flush the profile
+          // flush the profile and emit the measurement to each of the profile destinations
           ProfileMeasurement measurement = profileBuilder.flush();
-
-          // emit the measurement to each 'destination' stream defined by the profile
-          for(String destination : profileBuilder.getDefinition().getDestination()) {
-
-            // the kafka write expects a JSONObject
-            if(destination.equals(ProfileConfig.KAFKA_DESTINATION)) {
-              JSONObject message = new JSONObject(new BeanMap(measurement));
-              collector.emit(destination, new Values(message));
-
-            } else {
-              collector.emit(destination, new Values(measurement));
-            }
-          }
+          profileBuilder.getDefinition().getDestination().forEach(dest ->
+                  destinations.get(dest).emit(measurement, collector));
         }
       });
 
@@ -263,4 +252,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     return withTimeToLiveMillis(units.toMillis(duration));
   }
 
+  public ProfileBuilderBolt withDestinationHandler(DestinationHandler handler) {
+    this.destinations.put(handler.getStreamId(), handler);
+    return this;
+  }
 }
