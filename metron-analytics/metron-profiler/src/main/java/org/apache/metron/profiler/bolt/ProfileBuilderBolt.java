@@ -130,15 +130,11 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-    /*
-     * a separate stream is used for each profile destination; kafka, hbase. even if a particular
-     * stream is not used in a set of profile definitions, all valid streams that *might*
-     * be used, must be declared here.
-     */
+    // separate stream used for each destination. all valid streams that *might* be used, must be declared here
     for(String destination : ProfileConfig.getValidDestinations()) {
 
-      // TODO hack! Should not have to emit different values for kafka versus hbase
-      if(destination.equals("kafka")) {
+      // the kafka writer expects a field called 'message'
+      if(destination.equals(ProfileConfig.KAFKA_DESTINATION)) {
         declarer.declareStream(destination, new Fields("message"));
 
       } else {
@@ -181,10 +177,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
           // emit the measurement to each 'destination' stream defined by the profile
           for(String destination : profileBuilder.getDefinition().getDestination()) {
 
-            // TODO hack! Should not have to emit different values for kafka versus hbase
-            if(destination.equals("kafka")) {
-              BeanMap beanMap = new BeanMap(measurement);
-              JSONObject message = new JSONObject(beanMap);
+            // the kafka write expects a JSONObject
+            if(destination.equals(ProfileConfig.KAFKA_DESTINATION)) {
+              JSONObject message = new JSONObject(new BeanMap(measurement));
               collector.emit(destination, new Values(message));
 
             } else {

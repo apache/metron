@@ -35,6 +35,7 @@ import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -48,6 +49,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -271,8 +273,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
-    // validate emitted measurements
-    verify(outputCollector, atLeastOnce()).emit(any(String.class), arg.capture());
+    // validate emitted measurements for hbase
+    verify(outputCollector, atLeastOnce()).emit(eq("hbase"), arg.capture());
     for (Values value : arg.getAllValues()) {
 
       ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
@@ -322,11 +324,13 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
-    // validate measurements emitted to HBase - two are emitted, one for each profile
+    // validate measurements emitted to HBase
     verify(outputCollector, times(1)).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
+    assertTrue(arg.getValue().get(0) instanceof ProfileMeasurement);
 
-    // validate measurements emitted to Kafka - two are emitted, one for each profile
+    // validate measurements emitted to Kafka
     verify(outputCollector, times(1)).emit(eq(ProfileConfig.KAFKA_DESTINATION), arg.capture());
+    assertTrue(arg.getValue().get(0) instanceof JSONObject);
   }
 
 
@@ -369,9 +373,10 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // a measurement should be emitted for HBase
     verify(outputCollector, times(1)).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
+    assertTrue(arg.getValue().get(0) instanceof ProfileMeasurement);
 
     // no measurement should be emitted for Kafka
-    verify(outputCollector, times(0)).emit(eq(ProfileConfig.KAFKA_DESTINATION), arg.capture());
+    verify(outputCollector, times(0)).emit(eq(ProfileConfig.KAFKA_DESTINATION), any());
   }
 
   /**
@@ -412,6 +417,6 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
     // no destinations for this profile - do not emit
-    verify(outputCollector, times(0)).emit(any(String.class), arg.capture());
+    verify(outputCollector, times(0)).emit(any(String.class), any());
   }
 }
