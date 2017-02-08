@@ -81,6 +81,8 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     this.indicatorTransforms = new LinkedHashMap<>();
     this.valueFilter = "";
     this.indicatorFilter = "";
+    this.transformProcessor = new StellarProcessor();
+    this.filterProcessor = new StellarPredicateProcessor();
   }
 
   @Override

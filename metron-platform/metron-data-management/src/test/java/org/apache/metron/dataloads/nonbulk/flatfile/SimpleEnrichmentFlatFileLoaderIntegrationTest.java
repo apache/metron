@@ -142,8 +142,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
    *    },
    *    "value_transform" : {
    *      "host" : "TO_UPPER(host)",
-   *      "empty" : "enrichment_property",
-   *      "BLAH" : "enrichment_property"
+   *      "empty" : "enrichment_property"
    *    },
    *    "value_filter" : "LENGTH(host) > 0",
    *    "indicator_column" : "host",
