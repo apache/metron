@@ -45,6 +45,7 @@ parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
 metron_indexing_topology = status_params.metron_indexing_topology
+metron_error_topology = status_params.metron_error_topology
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_config_path = metron_home + '/config'
@@ -53,8 +54,10 @@ metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 enrichment_configured_flag_file = status_params.enrichment_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
+error_configured_flag_file = status_params.error_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
+error_properties_template = config['configurations']['metron-env']['elasticsearch-error-properties']
 
 # Elasticsearch hosts and port management
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
@@ -116,6 +119,7 @@ metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_
 # the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
 # well enough until we find a better way via Ambari
 metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_indexed_hdfs_dir']))
+metron_apps_error_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_error_hdfs_dir']))
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
@@ -158,13 +162,12 @@ threatintel_cf = status_params.threatintel_cf
 
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
-metron_enrichment_error_topic = status_params.metron_enrichment_error_topic
-metron_threat_intel_error_topic = status_params.metron_threat_intel_error_topic
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"
 snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
+error_index_path = tmp_dir + "/error_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")

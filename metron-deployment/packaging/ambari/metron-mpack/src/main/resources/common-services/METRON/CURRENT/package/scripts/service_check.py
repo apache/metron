@@ -23,14 +23,15 @@ from resource_management.libraries.script import Script
 
 from indexing_commands import IndexingCommands
 from parser_commands import ParserCommands
-
+from error_commands import ErrorCommands
 
 class ServiceCheck(Script):
     def service_check(self, env):
         from params import params
         parsercommands = ParserCommands(params)
         indexingcommands = IndexingCommands(params)
-        all_found = parsercommands.topologies_running(env) and indexingcommands.is_topology_active(env)
+        errorcommands = ErrorCommands(params)
+        all_found = parsercommands.topologies_running(env) and indexingcommands.is_topology_active(env) and errorcommands.is_topology_active(env)
         if all_found:
             exit(0)
         else:
