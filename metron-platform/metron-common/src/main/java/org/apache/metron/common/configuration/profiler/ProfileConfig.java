@@ -50,7 +50,7 @@ public class ProfileConfig implements Serializable {
    * is only applied to a profile if this condition is true. This allows a profile
    * to filter the messages that it receives.
    */
-  private String onlyif;
+  private String onlyif = "true";
 
   /**
    * A set of expressions that is executed at the start of a window period.  A map is
