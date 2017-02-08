@@ -27,7 +27,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
-        <antlr.version>4.5</antlr.version>
     </properties>
     <repositories>
         <repository>
@@ -65,7 +64,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>${antlr.version}</version>
+            <version>${global_antlr_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
@@ -376,7 +375,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>${antlr.version}</version>
+                <version>${global_antlr_version}</version>
                 <configuration>
                   <outputDirectory>${basedir}/src/main/java</outputDirectory>
                 </configuration>

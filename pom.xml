@@ -71,6 +71,7 @@
         <base_hbase_version>1.1.1</base_hbase_version>
         <base_flume_version>1.5.2</base_flume_version>
         <!-- full dependency versions -->
+        <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_curator_version>2.7.1</global_curator_version>
         <global_storm_version>${base_storm_version}</global_storm_version>
