@@ -18,6 +18,7 @@
 package org.apache.metron.writer.bolt;
 
 import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
+import org.apache.metron.common.message.JSONFromField;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.storm.task.OutputCollector;
@@ -47,6 +48,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
   private BulkWriterComponent<JSONObject> writerComponent;
   private String messageGetStrategyType = MessageGetters.JSON_FROM_FIELD.name();
+  private String messageGetField;
   private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
   private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation;
@@ -69,12 +71,21 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return this;
   }
 
+  public BulkMessageWriterBolt withMessageGetterField(String messageGetField) {
+    this.messageGetField = messageGetField;
+    return this;
+  }
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.writerComponent = new BulkWriterComponent<>(collector);
     this.collector = collector;
     super.prepare(stormConf, context, collector);
-    messageGetStrategy = MessageGetters.valueOf(messageGetStrategyType).get();
+    if (messageGetStrategyType.equals(MessageGetters.JSON_FROM_FIELD.name()) && messageGetField != null) {
+      messageGetStrategy = new JSONFromField(messageGetField);
+    } else {
+      messageGetStrategy = MessageGetters.valueOf(messageGetStrategyType).get();
+    }
     if(bulkMessageWriter instanceof WriterToBulkWriter) {
       configurationTransformation = WriterToBulkWriter.TRANSFORMATION;
     }

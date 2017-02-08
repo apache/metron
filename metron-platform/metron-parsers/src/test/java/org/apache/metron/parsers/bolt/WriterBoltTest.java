@@ -17,22 +17,23 @@
  */
 
 package org.apache.metron.parsers.bolt;
+
 import org.apache.log4j.Level;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.test.bolt.BaseBoltTest;
+import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
-import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.test.bolt.BaseBoltTest;
 import org.json.simple.JSONObject;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -44,7 +45,12 @@ import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class WriterBoltTest extends BaseBoltTest{
   @Mock
@@ -143,16 +149,24 @@ public class WriterBoltTest extends BaseBoltTest{
     ParserConfigurations configurations = getConfigurations(1);
     String sensorType = "test";
     Tuple t = mock(Tuple.class);
+    when(t.toString()).thenReturn("tuple");
     when(t.getValueByField(eq("message"))).thenReturn(new JSONObject());
     WriterBolt bolt = new WriterBolt(new WriterHandler(writer), configurations, sensorType);
     bolt.prepare(new HashMap(), topologyContext, outputCollector);
-    doThrow(new Exception()).when(writer).write(any(), any(), any(), any());
+    doThrow(new Exception("write error")).when(writer).write(any(), any(), any(), any());
     verify(writer, times(1)).init();
     bolt.execute(t);
     verify(outputCollector, times(1)).ack(t);
     verify(writer, times(1)).write(eq(sensorType), any(), any(), any());
     verify(outputCollector, times(1)).reportError(any());
     verify(outputCollector, times(0)).fail(any());
+
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.DEFAULT_ERROR)
+            .withThrowable(new IllegalStateException("Unhandled bulk errors in response: {java.lang.Exception: write error=[tuple]}"))
+            .withSensorType(sensorType)
+            .addRawMessage(new JSONObject());
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
 
   @Test

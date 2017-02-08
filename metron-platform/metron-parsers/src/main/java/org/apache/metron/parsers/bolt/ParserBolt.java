@@ -17,34 +17,38 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.FieldValidator;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.BytesFromPosition;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.parsers.filters.Filters;
+import org.apache.metron.parsers.interfaces.MessageFilter;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredParserBolt;
-import org.apache.metron.common.configuration.FieldValidator;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.parsers.filters.Filters;
-import org.apache.metron.common.configuration.FieldTransformer;
-import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
@@ -118,7 +122,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void execute(Tuple tuple) {
     byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
-    //byte[] originalMessage = (byte[]) messageGetter.getMessage(tuple);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
       //we want to ack the tuple in the situation where we have are not doing a bulk write

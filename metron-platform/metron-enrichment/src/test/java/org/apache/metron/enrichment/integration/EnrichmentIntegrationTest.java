@@ -466,41 +466,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
-//  @SuppressWarnings("unchecked")
-//  private Processor<List<Map<String, Object>>> getProcessor() {
-//
-//    KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
-//            .withReadTopic(Constants.INDEXING_TOPIC)
-//            .withErrorTopic(Constants.ERROR_TOPIC)
-//            .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
-//              @Nullable
-//              @Override
-//              public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-//                // this test is written to return 10 errors and 10 messages
-//                // we can just check when the messages match here
-//                // if they do then we are good
-//                return messageSet.getMessages().size() == inputMessages.size();
-//              }
-//            })
-//            .withProvideResult(new Function<KafkaMessageSet , List<Map<String, Object>>>() {
-//              @Nullable
-//              @Override
-//              public List<Map<String, Object>> apply(@Nullable KafkaMessageSet messageSet) {
-//                List<Map<String,Object>> docs = new ArrayList<>();
-//                for (byte[] message : messageSet.getMessages()) {
-//                  try {
-//                    docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {
-//                    }));
-//                  } catch (IOException e) {
-//                    throw new IllegalStateException(e.getMessage(), e);
-//                  }
-//                }
-//                return docs;
-//              }
-//            });
-//    return kafkaProcessor;
-//  }
-
   private static List<Map<String, Object>> loadMessages(List<byte[]> outputMessages) {
     List<Map<String, Object>> tmp = new ArrayList<>();
     Iterables.addAll(tmp

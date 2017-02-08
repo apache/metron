@@ -17,11 +17,14 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.common.message.MessageGetStrategy;
+import com.google.common.cache.LoadingCache;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Values;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -32,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -91,7 +95,7 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
   }
 
   @Test
-  public void test() {
+  public void test() throws Exception {
     StandAloneJoinBolt joinBolt = new StandAloneJoinBolt("zookeeperUrl");
     joinBolt.setCuratorFramework(client);
     joinBolt.setTreeCache(cache);
@@ -128,5 +132,16 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     joinBolt.execute(tuple);
     verify(outputCollector, times(1)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, joinedMessage)));
     verify(outputCollector, times(1)).ack(tuple);
+
+    joinBolt.cache = mock(LoadingCache.class);
+    when(joinBolt.cache.get(key)).thenThrow(new ExecutionException(new Exception("join exception")));
+    joinBolt.execute(tuple);
+
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
+            .withMessage("Joining problem: {}")
+            .withThrowable(new ExecutionException(new Exception("join exception")))
+            .addRawMessage(new JSONObject());
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
 }
