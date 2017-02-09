@@ -124,7 +124,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
     bolt.withPeriodDuration(10, TimeUnit.MINUTES);
-    bolt.withTimeToLive(30, TimeUnit.MINUTES);
+    bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
 
     // define the valid destinations for the profiler
     bolt.withDestinationHandler(new HBaseDestinationHandler());
@@ -466,7 +466,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
     bolt.withPeriodDuration(10, TimeUnit.MINUTES);
-    bolt.withTimeToLive(30, TimeUnit.MINUTES);
+    bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
 
     // expect an exception as their are no destinations
     OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);

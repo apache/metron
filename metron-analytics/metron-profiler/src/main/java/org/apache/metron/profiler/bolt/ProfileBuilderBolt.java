@@ -40,9 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -63,6 +61,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private OutputCollector collector;
 
   /**
+   * The key containing a value within each message of a 'time to live' for the message.  This
+   * value is embedded in each message that is produced, then checked and decremented
+   * to prevent unintentional looping.
+   */
+  protected static final String MESSAGE_TTL_KEY = "metron.profiler.message.ttl";
+
+  /**
    * The duration of each profile period in milliseconds.
    */
   private long periodDurationMillis;
@@ -71,9 +76,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * If a message has not been applied to a Profile in this number of milliseconds,
    * the Profile will be forgotten and its resources will be cleaned up.
    *
-   * The TTL must be at least greater than the period duration.
+   * WARNING: The TTL must be at least greater than the period duration.
    */
-  private long timeToLiveMillis;
+  private long profileTimeToLiveMillis;
 
   /**
    * Maintains the state of a profile which is unique to a profile/entity pair.
@@ -115,17 +120,17 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
 
-    if(timeToLiveMillis < periodDurationMillis) {
+    if(profileTimeToLiveMillis < periodDurationMillis) {
       throw new IllegalStateException(format(
               "invalid configuration: expect profile TTL (%d) to be greater than period duration (%d)",
-              timeToLiveMillis,
+              profileTimeToLiveMillis,
               periodDurationMillis));
     }
     this.collector = collector;
     this.parser = new JSONParser();
     this.profileCache = CacheBuilder
             .newBuilder()
-            .expireAfterAccess(timeToLiveMillis, TimeUnit.MILLISECONDS)
+            .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .build();
   }
 
@@ -139,10 +144,21 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     destinationHandlers.values().forEach(dest -> dest.declareOutputFields(declarer));
   }
 
+  /**
+   * Expect to receive either a tick tuple or a telemetry message that needs applied
+   * to a profile.
+   * @param input The tuple.
+   */
   @Override
   public void execute(Tuple input) {
     try {
-      doExecute(input);
+      if(TupleUtils.isTick(input)) {
+        handleTick();
+        profileCache.cleanUp();
+
+      } else {
+        handleMessage(input);
+      }
 
     } catch (Throwable e) {
       LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
@@ -154,43 +170,36 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   }
 
   /**
-   * Update the execution environment based on data contained in the
-   * message.  If the tuple is a tick tuple, then flush the profile
-   * and reset the execution environment.
-   * @param input The tuple to execute.
+   * Handles a telemetry message
+   * @param input The tuple.
    */
-  private void doExecute(Tuple input) throws ExecutionException {
+  private void handleMessage(Tuple input) throws ExecutionException {
+    JSONObject message = getField("message", input, JSONObject.class);
+    getBuilder(input).apply(message);
+  }
 
-    if(TupleUtils.isTick(input)) {
+  /**
+   * Handles a tick tuple.
+   */
+  private void handleTick() {
+    // when a 'tick' is received...
+    profileCache.asMap().forEach((key, profileBuilder) -> {
+      if(profileBuilder.isInitialized()) {
 
-      // when a 'tick' is received...
-      profileCache.asMap().forEach((key, profileBuilder) -> {
-        if(profileBuilder.isInitialized()) {
+        // flush the profile
+        ProfileMeasurement measurement = profileBuilder.flush();
 
-          // flush the profile
-          ProfileMeasurement measurement = profileBuilder.flush();
+        // emit the measurement to each profile destination
+        for(String dest : profileBuilder.getDefinition().getDestination()) {
+          DestinationHandler handler = destinationHandlers.get(dest);
 
-          // emit the measurement to each of the profile destinations
-          for(String dest : profileBuilder.getDefinition().getDestination()) {
-            DestinationHandler handler = destinationHandlers.get(dest);
-
-            // ensure the destination is valid
-            if(handler != null) {
-              handler.emit(measurement, collector);
-            }
+          // ensure the destination is valid
+          if(handler != null) {
+            handler.emit(measurement, collector);
           }
         }
-      });
-
-      // cache maintenance
-      profileCache.cleanUp();
-
-    } else {
-
-      // telemetry message provides additional context for 'init' and 'update' expressions
-      JSONObject message = getField("message", input, JSONObject.class);
-      getBuilder(input).apply(message);
-    }
+      }
+    });
   }
 
   /**
@@ -232,7 +241,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private <T> T getField(String fieldName, Tuple tuple, Class<T> clazz) {
     T value = ConversionUtils.convert(tuple.getValueByField(fieldName), clazz);
     if(value == null) {
-      throw new IllegalStateException(format("invalid tuple received: missing field '%s'", fieldName));
+      throw new IllegalStateException(format("invalid tuple received: missing or invalid field '%s'", fieldName));
     }
 
     return value;
@@ -247,13 +256,13 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     return withPeriodDurationMillis(units.toMillis(duration));
   }
 
-  public ProfileBuilderBolt withTimeToLiveMillis(long timeToLiveMillis) {
-    this.timeToLiveMillis = timeToLiveMillis;
+  public ProfileBuilderBolt withProfileTimeToLiveMillis(long timeToLiveMillis) {
+    this.profileTimeToLiveMillis = timeToLiveMillis;
     return this;
   }
 
-  public ProfileBuilderBolt withTimeToLive(int duration, TimeUnit units) {
-    return withTimeToLiveMillis(units.toMillis(duration));
+  public ProfileBuilderBolt withProfileTimeToLive(int duration, TimeUnit units) {
+    return withProfileTimeToLiveMillis(units.toMillis(duration));
   }
 
   public ProfileBuilderBolt withDestinationHandler(DestinationHandler handler) {

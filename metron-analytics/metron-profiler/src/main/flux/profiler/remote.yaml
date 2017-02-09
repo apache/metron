@@ -100,7 +100,7 @@ bolts:
         configMethods:
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
-            - name: "withTimeToLive"
+            - name: "withProfileTimeToLive"
               args: [${profiler.ttl}, "${profiler.ttl.units}"]
             - name: "withDestinationHandler"
               args: [ref: "kafkaDestinationHandler"]
