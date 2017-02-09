@@ -18,9 +18,9 @@ The computer used to deploy Apache Metron will need to have the following compon
  - Python 2.7.11
  - Maven 3.3.9
 
-#### OS X
+#### macOS
 
-Any platform that supports these tools is suitable, but the following instructions cover installation on Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+Any platform that supports these tools is suitable, but the following instructions cover installation on macOS.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
 1. Install Homebrew by following the instructions at [Homebrew](http://brew.sh/).
 
