@@ -33,12 +33,11 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
 
     try {
-
       JSONObject message = JSONUtils.INSTANCE.toJSONObject(measurement);
       collector.emit(getStreamId(), new Values(message));
 
     } catch(Exception e) {
-      throw new IllegalStateException("foo", e);
+      throw new IllegalStateException("unable to serialize a profile measurement", e);
     }
   }
 }
