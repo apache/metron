@@ -18,7 +18,7 @@
           "type": "string",
           "index": "not_analyzed"
         },
-        "time": {
+        "timestamp": {
           "type": "date",
           "format": "epoch_millis"
         },
@@ -35,11 +35,15 @@
           "type": "binary",
           "index": "no"
         },
-        "raw_message_hash": {
+        "error_fields": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "source_type": {
+        "error_hash": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "failed_sensor_type": {
           "type": "string",
           "index": "not_analyzed"
         },
