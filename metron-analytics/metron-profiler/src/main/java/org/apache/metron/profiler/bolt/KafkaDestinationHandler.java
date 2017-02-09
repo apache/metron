@@ -1,6 +1,5 @@
 package org.apache.metron.profiler.bolt;
 
-import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;
@@ -8,7 +7,6 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.io.Serializable;
 
@@ -18,10 +16,10 @@ import java.io.Serializable;
  */
 public class KafkaDestinationHandler implements DestinationHandler, Serializable {
 
-  @Override
-  public String getStreamId() {
-    return "kafka";
-  }
+  /**
+   * The stream identifier used for this destination;
+   */
+  private String streamId = "kafka";
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -39,5 +37,14 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
     } catch(Exception e) {
       throw new IllegalStateException("unable to serialize a profile measurement", e);
     }
+  }
+
+  @Override
+  public String getStreamId() {
+    return streamId;
+  }
+
+  public void setStreamId(String streamId) {
+    this.streamId = streamId;
   }
 }

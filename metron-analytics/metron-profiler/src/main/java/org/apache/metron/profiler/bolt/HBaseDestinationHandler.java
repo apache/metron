@@ -14,10 +14,10 @@ import java.io.Serializable;
  */
 public class HBaseDestinationHandler implements DestinationHandler, Serializable {
 
-  @Override
-  public String getStreamId() {
-    return "hbase";
-  }
+  /**
+   * The stream identifier used for this destination;
+   */
+  private String streamId = "hbase";
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -27,5 +27,14 @@ public class HBaseDestinationHandler implements DestinationHandler, Serializable
   @Override
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
     collector.emit(getStreamId(), new Values(measurement));
+  }
+
+  @Override
+  public String getStreamId() {
+    return streamId;
+  }
+
+  public void setStreamId(String streamId) {
+    this.streamId = streamId;
   }
 }
