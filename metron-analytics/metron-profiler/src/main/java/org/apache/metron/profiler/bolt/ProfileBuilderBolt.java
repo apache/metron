@@ -22,7 +22,6 @@ package org.apache.metron.profiler.bolt;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.apache.commons.beanutils.BeanMap;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -34,17 +33,16 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.TupleUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -91,16 +89,14 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * The measurements produced by a profile can be written to multiple destinations.  Each
    * destination is handled by a separate `DestinationHandler`.
    */
-  private Map<String, DestinationHandler> destinations;
-
-  // TODO initialize the handlers and provide defaults
+  private Map<String, DestinationHandler> destinationHandlers;
 
   /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration data.
    */
   public ProfileBuilderBolt(String zookeeperUrl) {
     super(zookeeperUrl);
-    this.destinations = new HashMap<>();
+    this.destinationHandlers = new HashMap<>();
   }
 
   /**
@@ -135,12 +131,12 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    if(destinations.size() == 0) {
-      throw new IllegalStateException("At least one profile destination must be defined.");
+    if(destinationHandlers.size() == 0) {
+      throw new IllegalStateException("At least one destination handler must be defined.");
     }
 
     // each destination will define its own stream
-    destinations.values().forEach(dest -> dest.declareOutputFields(declarer));
+    destinationHandlers.values().forEach(dest -> dest.declareOutputFields(declarer));
   }
 
   @Override
@@ -171,10 +167,18 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
       profileCache.asMap().forEach((key, profileBuilder) -> {
         if(profileBuilder.isInitialized()) {
 
-          // flush the profile and emit the measurement to each of the profile destinations
+          // flush the profile
           ProfileMeasurement measurement = profileBuilder.flush();
-          profileBuilder.getDefinition().getDestination().forEach(dest ->
-                  destinations.get(dest).emit(measurement, collector));
+
+          // emit the measurement to each of the profile destinations
+          for(String dest : profileBuilder.getDefinition().getDestination()) {
+            DestinationHandler handler = destinationHandlers.get(dest);
+
+            // ensure the destination is valid
+            if(handler != null) {
+              handler.emit(measurement, collector);
+            }
+          }
         }
       });
 
@@ -253,7 +257,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   }
 
   public ProfileBuilderBolt withDestinationHandler(DestinationHandler handler) {
-    this.destinations.put(handler.getStreamId(), handler);
+    this.destinationHandlers.put(handler.getStreamId(), handler);
     return this;
   }
 }

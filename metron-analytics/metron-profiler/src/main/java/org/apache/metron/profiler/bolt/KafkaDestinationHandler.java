@@ -32,15 +32,7 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
   @Override
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
 
-    // the kafka writer expects a JSONObject
-//    JSONObject message = new JSONObject(new BeanMap(measurement));
-//    message.put("period", new JSONObject(new BeanMap(measurement.getPeriod())));
-//    message.put("definition", new JSONObject(new BeanMap(measurement.getDefinition())));
-
     try {
-//      String jsonStr = JSONUtils.INSTANCE.toJSON(measurement, true);
-//      JSONParser parser = new JSONParser();
-//      JSONObject message = (JSONObject) parser.parse(jsonStr);
 
       JSONObject message = JSONUtils.INSTANCE.toJSONObject(measurement);
       collector.emit(getStreamId(), new Values(message));

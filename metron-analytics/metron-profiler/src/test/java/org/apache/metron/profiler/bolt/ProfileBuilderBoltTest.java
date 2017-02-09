@@ -28,6 +28,7 @@ import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.Constants;
+import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
@@ -275,7 +276,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
     // validate emitted measurements for hbase
-    verify(outputCollector, atLeastOnce()).emit(eq("hbase"), arg.capture());
+    verify(outputCollector, atLeastOnce()).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
     for (Values value : arg.getAllValues()) {
 
       ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
@@ -308,21 +309,21 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * destination defined by the profile. By default, a profile uses both Kafka and HBase as destinations.
    */
   @Test
-  public void testEmitMeasurementWithDefaultDestinations() throws Exception {
+  public void testDefaultDestinations() throws Exception {
 
     // setup
     ProfileBuilderBolt bolt = createBolt();
-    final String entity = (String) messageOne.get("ip_src_addr");
+    ProfileConfig definitionOne = createDefinition(profileOne);
 
     // apply the message to the first profile
-    ProfileConfig definitionOne = createDefinition(profileOne);
+    final String entity = (String) messageOne.get("ip_src_addr");
     Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
     bolt.execute(tupleOne);
 
-    // execute - the tick tuple triggers a flush of the profile
+    // trigger a flush of the profile
     bolt.execute(mockTickTuple());
 
-    // capture the ProfileMeasurement that should be emitted
+    // capture the values that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
     // validate measurements emitted to HBase
@@ -353,20 +354,20 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * destination specified by the profile.
    */
   @Test
-  public void testEmitMeasurementWithOneDestination() throws Exception {
+  public void testOneDestination() throws Exception {
 
     // setup
     ProfileBuilderBolt bolt = createBolt();
     final String entity = (String) messageOne.get("ip_src_addr");
 
-    // alter the default destination so measurements only sent to HBase
+    // create a profile with one destination
     ProfileConfig definitionOne = createDefinition(profileWithOneDestination);
 
     // apply the message to the profile
     Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
     bolt.execute(tupleOne);
 
-    // the tick tuple triggers a flush of the profile
+    // trigger a flush of the profile
     bolt.execute(mockTickTuple());
 
     // capture any ProfileMeasurements that are emitted
@@ -393,31 +394,82 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   @Multiline
   private String profileWithNoDestination;
 
-  /**
-   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to only the
-   * destination specified by the profile.  If no destinations are specified, then none should be emitted.
-   */
   @Test
-  public void testEmitMeasurementWithNoDestinations() throws Exception {
+  public void testNoDestinations() throws Exception {
 
     // setup
     ProfileBuilderBolt bolt = createBolt();
-    final String entity = (String) messageOne.get("ip_src_addr");
+    OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
+    bolt.declareOutputFields(declarer);
 
-    // alter the profile so that there are no destinations
+    // create profile with no destination
     ProfileConfig definitionOne = createDefinition(profileWithNoDestination);
 
-    // apply the message to the first profile
+    // apply the message to the profile
+    final String entity = (String) messageOne.get("ip_src_addr");
     Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
     bolt.execute(tupleOne);
 
-    // execute - the tick tuple triggers a flush of the profile
+    // trigger a flush of the profile
     bolt.execute(mockTickTuple());
-
-    // capture the ProfileMeasurement that should be emitted
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
     // no destinations for this profile - do not emit
     verify(outputCollector, times(0)).emit(any(String.class), any());
+  }
+
+  /**
+   * {
+   *   "profile": "profile-no-destination",
+   *   "foreach": "ip_src_addr",
+   *   "init":   { "x": "0" },
+   *   "update": { "x": "x + 1" },
+   *   "result": "x",
+   *   "destination": ["invalid", "hbase"]
+   * }
+   */
+  @Multiline
+  private String profileWithInvalidDestination;
+
+  @Test
+  public void testInvalidDestinations() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
+    bolt.declareOutputFields(declarer);
+
+    final String entity = (String) messageOne.get("ip_src_addr");
+
+    // profile with invalid destination
+    ProfileConfig definitionOne = createDefinition(profileWithInvalidDestination);
+
+    // apply the message to the profile
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // trigger a flush of the profile
+    bolt.execute(mockTickTuple());
+
+    // the invalid destination should be ignored
+    verify(outputCollector, times(0)).emit(eq("invalid"), any());
+    verify(outputCollector, times(1)).emit(eq("hbase"), any());
+  }
+
+  /**
+   * The bolt must be initialized with at least 1 DestinationHandler.
+   */
+  @Test(expected = IllegalStateException.class)
+  public void testNoDestinationHandlers() throws Exception {
+
+    // create a bolt with no destination handlers
+    ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
+    bolt.setCuratorFramework(client);
+    bolt.setTreeCache(cache);
+    bolt.withPeriodDuration(10, TimeUnit.MINUTES);
+    bolt.withTimeToLive(30, TimeUnit.MINUTES);
+
+    // expect an exception as their are no destinations
+    OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
+    bolt.declareOutputFields(declarer);
   }
 }
