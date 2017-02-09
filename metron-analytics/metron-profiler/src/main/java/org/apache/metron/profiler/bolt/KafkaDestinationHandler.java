@@ -1,3 +1,22 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.apache.metron.profiler.bolt;
 
 import org.apache.metron.common.utils.JSONUtils;
@@ -31,7 +50,19 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
 
     try {
-      JSONObject message = JSONUtils.INSTANCE.toJSONObject(measurement);
+
+      // TODO How to embed binary in JSON?
+      // TODO How to serialize an object (like a StatisticsProvider) in a form that can be used on the other side? (Threat Triage)
+
+      //JSONObject message = JSONUtils.INSTANCE.toJSONObject(measurement);
+
+      JSONObject message = new JSONObject();
+      message.put("profile", measurement.getDefinition().getProfile());
+      message.put("entity", measurement.getEntity());
+      message.put("period", measurement.getPeriod().getPeriod());
+      message.put("periodStartTime", measurement.getPeriod().getStartTimeMillis());
+      message.put("value", measurement.getValue());
+
       collector.emit(getStreamId(), new Values(message));
 
     } catch(Exception e) {
