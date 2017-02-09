@@ -50,17 +50,14 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
 
     try {
-
-      // TODO How to embed binary in JSON?
-      // TODO How to serialize an object (like a StatisticsProvider) in a form that can be used on the other side? (Threat Triage)
-
-      //JSONObject message = JSONUtils.INSTANCE.toJSONObject(measurement);
-
       JSONObject message = new JSONObject();
       message.put("profile", measurement.getDefinition().getProfile());
       message.put("entity", measurement.getEntity());
       message.put("period", measurement.getPeriod().getPeriod());
       message.put("periodStartTime", measurement.getPeriod().getStartTimeMillis());
+
+      // TODO How to serialize an object (like a StatisticsProvider) in a form that can be used on the other side? (Threat Triage)
+      // TODO How to embed binary in JSON?
       message.put("value", measurement.getValue());
 
       collector.emit(getStreamId(), new Values(message));
