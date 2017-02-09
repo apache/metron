@@ -14,7 +14,7 @@ The computer used to deploy Apache Metron will need to have the following compon
 
  - [Ansible](https://github.com/ansible/ansible) 2.0.0.2
  - [Vagrant](https://www.vagrantup.com) 1.8.1
- - [Virtualbox](virtualbox.org) 5.0.16
+ - [Virtualbox](https://virtualbox.org) 5.0.16
  - Python 2.7.11
  - Maven 3.3.9
 
@@ -27,7 +27,7 @@ Any platform that supports these tools is suitable, but the following instructio
 2. Run the following command in a terminal to install all of the required tools.
 
   ```  
-  brew cask install vagrant virtualbox
+  brew cask install vagrant virtualbox java
   brew install maven git
   brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
   brew switch ansible 2.0.0.2

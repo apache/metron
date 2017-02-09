@@ -16,7 +16,7 @@ As with the Full Development Platform (`metron-deployment/vagrant/full-dev-platf
 
  - [Ansible](https://github.com/ansible/ansible) 2.0.0.2
  - [Vagrant](https://www.vagrantup.com) 1.8.1
- - [Virtualbox](virtualbox.org) 5.0.16
+ - [Virtualbox](https://virtualbox.org) 5.0.16
  - Python 2.7.11
  - Maven 3.3.9
 
