@@ -32,15 +32,12 @@ The query language supports the following:
 ## Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
 
-|              |              |           |
-|   :---:       |     :---:     |   :---:     | 
-| not| else | exists | 
-| if | then | and |
-| or | == | != | < |
-| <= | \> | \>= |
-| ? | \+ | \- |
-| , | \* | / |
-|  | \* | / |
+|               |               |             |             |             |
+| :-----------: | :-----------: | :---------: | :---------: | :---------: |
+| not           | else          | exists      | if          | then        |
+| and           | or            | ==          | !=          | \<          |
+| \<=           | \>            | \>=         | \+          | \-          |
+| ?             | \*            | /           | ,           |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -96,7 +93,7 @@ The `!=` operator is the negation of the above.
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
-| [ `FORMAT`](#format)                                                                       |
+| [ `FORMAT`](#format)                                                                               |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
