@@ -31,10 +31,7 @@ import org.apache.metron.profiler.client.window.generated.WindowLexer;
 import org.apache.metron.profiler.client.window.generated.WindowParser;
 import org.apache.metron.profiler.client.window.predicates.DayPredicates;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -43,13 +40,13 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class WindowProcessor extends WindowBaseListener {
   private Throwable throwable;
-  private Stack<Token<?>> stack;
+  private Deque<Token<?>> stack;
   private static final Token<Object> LIST_MARKER = new Token<>(null, Object.class);
   private static final Token<Object> DAY_SPECIFIER_MARKER = new Token<>(null, Object.class);
   private Window window;
 
   public WindowProcessor() {
-    this.stack = new Stack<>();
+    this.stack = new ArrayDeque<>();
     this.window = new Window();
   }
 
