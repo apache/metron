@@ -37,7 +37,6 @@ public class GrammarUtils {
   private static class AST {
 
     private final Object payload;
-
     private final List<AST> children;
 
     public AST(ParseTree tree) {
@@ -45,14 +44,12 @@ public class GrammarUtils {
     }
 
     private AST(AST ast, ParseTree tree) {
-      this(ast, tree, new ArrayList<AST>());
+      this(ast, tree, new ArrayList<>());
     }
 
     private AST(AST parent, ParseTree tree, List<AST> children) {
-
       this.payload = getPayload(tree);
       this.children = children;
-
       if (parent == null) {
         walk(tree, this);
       }
@@ -72,7 +69,6 @@ public class GrammarUtils {
     }
 
     private static void walk(ParseTree tree, AST ast) {
-
       if (tree.getChildCount() == 0) {
         new AST(ast, tree);
       }
@@ -94,27 +90,20 @@ public class GrammarUtils {
 
     @Override
     public String toString() {
-
       StringBuilder builder = new StringBuilder();
-
       AST ast = this;
       List<AST> firstStack = new ArrayList<>();
       firstStack.add(ast);
-
       List<List<AST>> childListStack = new ArrayList<>();
       childListStack.add(firstStack);
-
       while (!childListStack.isEmpty()) {
-
         List<AST> childStack = childListStack.get(childListStack.size() - 1);
-
         if (childStack.isEmpty()) {
           childListStack.remove(childListStack.size() - 1);
         }
         else {
           ast = childStack.remove(0);
           String caption;
-
           if (ast.payload instanceof Token) {
             Token token = (Token) ast.payload;
             caption = String.format("TOKEN[type: %s, text: %s]",
@@ -123,13 +112,10 @@ public class GrammarUtils {
           else {
             caption = String.valueOf(ast.payload);
           }
-
           String indent = "";
-
           for (int i = 0; i < childListStack.size() - 1; i++) {
             indent += (childListStack.get(i).size() > 0) ? "|  " : "   ";
           }
-
           builder.append(indent)
                   .append(childStack.isEmpty() ? "'- " : "|- ")
                   .append(caption)
@@ -144,7 +130,6 @@ public class GrammarUtils {
           }
         }
       }
-
       return builder.toString();
     }
   }
