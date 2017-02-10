@@ -76,11 +76,8 @@ public class GrammarUtils {
         walk(tree.getChild(0), ast);
       }
       else if (tree.getChildCount() > 1) {
-
         for (int i = 0; i < tree.getChildCount(); i++) {
-
           AST temp = new AST(ast, tree.getChild(i));
-
           if (!(temp.payload instanceof Token)) {
             walk(tree.getChild(i), temp);
           }
