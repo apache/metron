@@ -74,14 +74,6 @@ public class WindowProcessor extends WindowBaseListener {
     return predicates;
   }
 
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitIdentifier(WindowParser.IdentifierContext ctx) {
     if(checkForException(ctx)) {
@@ -90,13 +82,6 @@ public class WindowProcessor extends WindowBaseListener {
     stack.push(new Token<>(ctx.getText().substring(1), String.class));
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void enterSpecifier(WindowParser.SpecifierContext ctx) {
     if(checkForException(ctx)) {
@@ -105,13 +90,6 @@ public class WindowProcessor extends WindowBaseListener {
     stack.push(DAY_SPECIFIER_MARKER);
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitSpecifier(WindowParser.SpecifierContext ctx) {
     LinkedList<String> args = new LinkedList<>();
@@ -141,13 +119,6 @@ public class WindowProcessor extends WindowBaseListener {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitDay_specifier(WindowParser.Day_specifierContext ctx) {
     if(checkForException(ctx)) {
@@ -165,13 +136,6 @@ public class WindowProcessor extends WindowBaseListener {
     stack.push(new Token<>(specifier, String.class));
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void enterExcluding_specifier(WindowParser.Excluding_specifierContext ctx) {
     if(checkForException(ctx)) {
@@ -180,13 +144,6 @@ public class WindowProcessor extends WindowBaseListener {
     enterList();
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitExcluding_specifier(WindowParser.Excluding_specifierContext ctx) {
     if(checkForException(ctx)) {
@@ -195,13 +152,6 @@ public class WindowProcessor extends WindowBaseListener {
     window.setExcludes(getPredicates());
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void enterIncluding_specifier(WindowParser.Including_specifierContext ctx) {
     if(checkForException(ctx)) {
@@ -210,13 +160,6 @@ public class WindowProcessor extends WindowBaseListener {
     enterList();
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitIncluding_specifier(WindowParser.Including_specifierContext ctx) {
     if(checkForException(ctx)) {
@@ -230,14 +173,6 @@ public class WindowProcessor extends WindowBaseListener {
     window.setStartMillis(now -> now - Math.max(from, to));
   }
 
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitFromToDuration(org.apache.metron.profiler.client.window.generated.WindowParser.FromToDurationContext ctx) {
     if(checkForException(ctx)) {
@@ -250,13 +185,6 @@ public class WindowProcessor extends WindowBaseListener {
     setFromTo(from, to);
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitFromDuration(org.apache.metron.profiler.client.window.generated.WindowParser.FromDurationContext ctx) {
     if(checkForException(ctx)) {
@@ -267,13 +195,6 @@ public class WindowProcessor extends WindowBaseListener {
     setFromTo(from, 0);
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitSkipDistance(org.apache.metron.profiler.client.window.generated.WindowParser.SkipDistanceContext ctx) {
     if(checkForException(ctx)) {
@@ -284,13 +205,6 @@ public class WindowProcessor extends WindowBaseListener {
     window.setSkipDistance(width);
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitWindowWidth(org.apache.metron.profiler.client.window.generated.WindowParser.WindowWidthContext ctx) {
     if(checkForException(ctx)) {
@@ -303,13 +217,6 @@ public class WindowProcessor extends WindowBaseListener {
     window.setEndMillis(now -> now);
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitTimeInterval(org.apache.metron.profiler.client.window.generated.WindowParser.TimeIntervalContext ctx) {
     if(checkForException(ctx)) {
@@ -322,13 +229,6 @@ public class WindowProcessor extends WindowBaseListener {
     stack.push(new Token<>((int)unit.toMillis(duration), Integer.class));
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitTimeAmount(org.apache.metron.profiler.client.window.generated.WindowParser.TimeAmountContext ctx) {
     if(checkForException(ctx)) {
@@ -342,13 +242,6 @@ public class WindowProcessor extends WindowBaseListener {
     stack.push(new Token<>(duration, Integer.class));
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
   @Override
   public void exitTimeUnit(org.apache.metron.profiler.client.window.generated.WindowParser.TimeUnitContext ctx) {
     checkForException(ctx);
@@ -374,12 +267,10 @@ public class WindowProcessor extends WindowBaseListener {
 
   private boolean checkForException(ParserRuleContext ctx) {
     if(throwable != null)  {
-      //throw new ParseException(throwable.getMessage(), throwable);
       return true;
     }
     else if(ctx.exception != null) {
       return true;
-      //throw new ParseException(ctx.exception.getMessage(), ctx.exception);
     }
     return false;
   }
@@ -408,6 +299,9 @@ public class WindowProcessor extends WindowBaseListener {
     parser.removeErrorListeners();
     parser.addErrorListener(new ErrorListener());
     parser.window();
+    if(treeBuilder.throwable != null) {
+      throw new ParseException(treeBuilder.throwable.getMessage(), treeBuilder.throwable);
+    }
     return treeBuilder.getWindow();
   }
 

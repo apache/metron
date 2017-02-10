@@ -282,6 +282,11 @@ public class WindowProcessorTest {
     WindowProcessor.parse("30p minute window every 24 hours from 14 days ago");
   }
 
+  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  public void testInvalidDaySpecifier() throws ParseException {
+    WindowProcessor.parse("30 minute window every 14 hours from 14 days ago including date");
+  }
+
   private static void assertEquals(long expected, long actual) {
     long diff = expected - actual;
     long diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(diff);
