@@ -36,7 +36,7 @@ public class IntervalPredicateTest {
       add(Range.between(20L, 30L));
       add(Range.between(40L, 50L));
     }};
-    IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
+    IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertTrue(predicate.test(0L));
     Assert.assertTrue(predicate.test(10L));
     Assert.assertTrue(predicate.test(5L));
@@ -51,7 +51,7 @@ public class IntervalPredicateTest {
       add(Range.between(5L, 30L));
       add(Range.between(40L, 50L));
     }};
-    IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
+    IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertTrue(predicate.test(0L));
     Assert.assertTrue(predicate.test(5L));
     Assert.assertTrue(predicate.test(30L));
@@ -67,7 +67,7 @@ public class IntervalPredicateTest {
     List<Range<Long>> intervals = new ArrayList<Range<Long>>() {{
       add(Range.between(0L, 10L));
     }};
-    IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
+    IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertTrue(predicate.test(0L));
     Assert.assertTrue(predicate.test(5L));
     Assert.assertTrue(predicate.test(10L));
@@ -80,7 +80,7 @@ public class IntervalPredicateTest {
     List<Range<Long>> intervals = new ArrayList<Range<Long>>() {{
       add(Range.between(10L, 10L));
     }};
-    IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
+    IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertFalse(predicate.test(0L));
     Assert.assertFalse(predicate.test(5L));
     Assert.assertTrue(predicate.test(10L));
