@@ -74,6 +74,7 @@ public class WindowProcessorTest {
       "30 minute window every 1 hour from 2 hours ago to 30 minutes ago",
       "30 minute window every 1 hour starting from 2 hours ago to 30 minutes ago",
       "30 minute window every 1 hour starting from 2 hours ago until 30 minutes ago",
+      "30 minute window for every 1 hour starting from 2 hours ago until 30 minutes ago",
     })
     {
       Window w = WindowProcessor.parse(text);

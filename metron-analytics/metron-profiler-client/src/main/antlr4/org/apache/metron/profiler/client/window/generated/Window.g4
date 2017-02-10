@@ -49,7 +49,7 @@ EXCLUDE : 'exclude' | 'EXCLUDE' | 'excludes' | 'EXCLUDES' | 'excluding' | 'EXCLU
 NOW : 'NOW' | 'now';
 
 FROM : 'FROM' | 'from' | 'STARTING FROM' | 'starting from';
-EVERY : 'EVERY' | 'every';
+EVERY : 'EVERY' | 'every' | 'FOR EVERY' | 'for every';
 TO : 'TO' | 'to' | 'until' | 'UNTIL';
 AGO : 'AGO' | 'ago';
 
