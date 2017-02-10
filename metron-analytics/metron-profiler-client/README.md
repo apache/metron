@@ -105,7 +105,9 @@ OPTIONAL:
     config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter
             of the same name. Default is the empty Map, meaning no overrides.
 
-e.g. To retrieve all the profiles for the last 5 hours.  PROFILE_GET('profile', 'entity', PROFILE_FIXED(5, 'HOURS'))
+e.g. To retrieve all the measurements written for 'profile' and 'entity' for the last hour 
+on the same weekday excluding weekends and US holidays across the last 14 days: 
+PROFILE_GET('profile', 'entity', PROFILE_WINDOW('1 hour window every 24 hours starting from 14 days ago including the current day of the week excluding weekends, holidays:us'))
 ```
 
 Note that the `config_overrides` parameter operates exactly as the `config_overrides` argument in `PROFILE_GET`.
@@ -119,8 +121,7 @@ The domain specific language can be broken into a series of clauses, some option
 * <span style="color:blue">Total Temporal Duration</span> - The total range of time in which windows may be specified
 * <span style="color:red">Temporal Window Width</span> - How large each temporal window
 * <span style="color:green">Skip distance</span> (optional)- How far to skip between when one window starts and when the next begins
-* <span style="color:purple">Inclusion specifiers</span> (optional) - The set of specifiers to further filter the window
-* <span style="color:orange">Exclusion specifiers</span> (optional)- The set of specifiers to further filter the window
+* <span style="color:purple">Inclusion/Exclusion specifiers</span> (optional) - The set of specifiers to further filter the window
 
 One *must* specify either a total temporal duration or a temporal window width.
 The remaining clauses are optional.
@@ -184,7 +185,80 @@ This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
 ###### <span style="color:green">Skip distance</span>
 
 Skip distance is the amount of time between temporal window beginnings that the next window starts.
-It is, in effect, the window period.
+It is, in effect, the window period.  
+
+It is specified by the phrase `EVERY time_interval`
+* `time_interval` - A time amount followed by a unit (e.g. 1 hour).  The unit may be "minute", "day", "hour" with any pluralization.
+* `EVERY` - The word/phrase "every" or "for every"
+
+**Examples**
+
+* A repeating 30 minute window starting 2 hours ago and repeating every hour until now.
+This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
+  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`starting from 2 hours ago`</span>
+  * <span style="color:red">`30 minutes window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`from 2 hours ago`</span>
+* A repeating 30 minute window starting 2 hours ago and repeating every hour until 30 minutes ago.
+This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
+  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`starting from 2 hours ago until 30 minutes ago`</span>
+  * <span style="color:red">`30 minutes window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`from 2 hours ago to 30 minutes ago`</span> 
+  * <span style="color:red">`30 minutes window`</span><span style="color:green">`for every 1 hour`</span><span style="color:blue">`from 30 minutes ago to 2 hours ago`</span> 
+
+###### <span style="color:purple">Inclusion/Exclusion specifiers</span>
+Inclusion and Exclusion specifiers operate as filters on the set of windows.
+They operate on the window beginning timestamp.
+
+For inclusion specifiers, windows who are passed by _any_ of the set of inclusion specifiers are included.  
+inclusion specifiers. Similarly, windows who are passed by _any_ of the set of exclusion specifiers are excluded.
+Exclusion specifiers trump inclusion specifiers.
+
+Specifiers follow one of the following formats depending on if it is an inclusion or exclusion specifier:
+* `INCLUSION specifier, specifier, ...`
+  * `INCLUSION` can be "include", "includes" or "including"
+* `EXCLUSION specifier, specifier, ...`
+  * `EXCLUSION` can be "exclude", "excludes" or "excluding"
+
+
+The specifiers are a set of fixed specifiers available as part of the language:
+* Fixed day of week-based specifiers - includes or excludes if the window is on the specified day of the week
+  * "monday" or "mondays"
+  * "tuesday" or "tuesdays"
+  * "wednesday" or "wednesdays"
+  * "thursday" or "thursdays"
+  * "friday" or "fridays"
+  * "saturday" or "saturdays"
+  * "sunday" or "sundays"
+  * "weekday" or "weekdays"
+  * "weekend" or ""weekends"
+* Relative day of week-based specifiers - includes or excludes based on the day of week relative to now
+  * "current day of the week"
+  * "current day of week"
+  * "this day of the week"
+  * "this day of week" 
+* Specified date - includes or excludes based on the specified date
+  * "date" - Takes up to 2 arguments
+    * The day in `yyyy/MM/dd` format if no second argument is provided
+    * Optionally the format to specify the first argument in
+    * Example: `date:2017/12/25` would include or exclude December 25, 2017
+    * Example: `date:20171225:yyyyMMdd` would include or exclude December 25, 2017
+* Holidays - includes or excludes based on if the window starts during a holiday
+  * "holiday" or "holidays" 
+    * Arguments form the jollyday hierarchy of holidays.  e.g. "us:nyc" would be holidays for New York City, USA
+    * If none is specified, it will choose based on locale.
+    * Countries supported are those supported in [jollyday](https://github.com/svendiedrichsen/jollyday/tree/master/src/main/resources/holidays)
+    * Example: `holiday:us:nyc` would be the holidays of New York City, USA
+    * Example: `holiday:hu` would be the holidays of Hungary
+     
+**Examples**
+
+Assume these are executed at noon.
+* A 30 minute window every tuesday at noon starting 14 days ago until now
+  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 14 days ago`</span><span style="color:purple">`including tuesdays`</span>
+* A 30 minute window every day except holidays and weekends at noon starting 14 days ago until now
+  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 14 days ago`</span><span style="color:purple">`excluding holidays:us, weekends`</span>
+  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 14 days ago`</span><span style="color:purple">`including weekdays excluding holidays:us`</span>
+* A 30 minute window at noon every day from 7 days ago including saturdays and excluding weekends.  
+Because exclusions trump inclusions, the following will never yield any windows
+  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 7 days ago`</span><span style="color:purple">`including saturdays excluding weekends`</span>
 
 ### Errors
 The most common result of incorrect `PROFILE_GET` arguments or Client configuration parameters is an empty result set, rather than an error.

@@ -221,5 +221,5 @@ org.yaml:snakeyaml:jar:1.15:compile,Apache License Version 2.0,http://www.snakey
 ring-cors:ring-cors:jar:0.1.5:compile,Eclipse Public License 1.0,https://github.com/r0man/ring-cors
 xerces:xercesImpl:jar:2.9.1:compile,ASLv2,http://xerces.apache.org/xerces2-j
 xml-apis:xml-apis:jar:1.3.04:compile,ASLv2,http://xml.apache.org/commons/components/external/
-de.jollyday:jollyday:jar:0.5,ASLv2,http://jollyday.sourceforge.net/license.html
+de.jollyday:jollyday:jar:0.5.2,ASLv2,http://jollyday.sourceforge.net/license.html
 org.threeten:threeten-extra:jar:1.0:compile,BSD,http://www.threeten.org/threeten-extra/license.html

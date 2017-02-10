@@ -78,7 +78,9 @@ fragment THURSDAY : 'THURSDAY' | 'thursday' | 'THURSDAYS' | 'thursdays';
 fragment FRIDAY : 'FRIDAY' | 'friday' | 'FRIDAYS' | 'fridays';
 fragment SATURDAY: 'SATURDAY' | 'saturday' | 'SATURDAYS' | 'saturdays';
 fragment SUNDAY : 'SUNDAY' | 'sunday' | 'SUNDAYS' | 'sundays';
-fragment CURRENT_DAY_OF_WEEK: 'this day of week' | 'THIS DAY OF WEEK' | 'this day of the week' | 'THIS DAY OF THE WEEK';
+fragment CURRENT_DAY_OF_WEEK: 'this day of week' | 'THIS DAY OF WEEK' | 'this day of the week' | 'THIS DAY OF THE WEEK'
+                            | 'current day of week' | 'CURRENT DAY OF WEEK'
+                            | 'current day of the week' | 'CURRENT DAY OF THE WEEK';
 fragment WEEKEND : 'weekend' | 'WEEKEND' | 'weekends' | 'WEEKENDS';
 fragment WEEKDAY: 'weekday' | 'WEEKDAY' | 'weekdays' | 'WEEKDAYS';
 fragment HOLIDAYS: 'holiday' | 'HOLIDAY' | 'holidays' | 'HOLIDAYS';
