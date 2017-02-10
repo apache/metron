@@ -19,7 +19,7 @@
  */
 package org.apache.metron.profiler.client.stellar;
 
-import org.joda.time.Interval;
+import org.apache.commons.lang3.Range;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,10 +31,10 @@ import java.util.List;
 public class IntervalPredicateTest {
   @Test
   public void testBasicTest() {
-    List<Interval> intervals = new ArrayList<Interval>() {{
-      add(new Interval(0, 10));
-      add(new Interval(20, 30));
-      add(new Interval(40, 50));
+    List<Range<Long>> intervals = new ArrayList<Range<Long>>() {{
+      add(Range.between(0L, 10L));
+      add(Range.between(20L, 30L));
+      add(Range.between(40L, 50L));
     }};
     IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertTrue(predicate.test(0L));
@@ -46,10 +46,10 @@ public class IntervalPredicateTest {
 
   @Test
   public void testWithOverlap() {
-    List<Interval> intervals = new ArrayList<Interval>() {{
-      add(new Interval(0, 10));
-      add(new Interval(5, 30));
-      add(new Interval(40, 50));
+    List<Range<Long>> intervals = new ArrayList<Range<Long>>() {{
+      add(Range.between(0L, 10L));
+      add(Range.between(5L, 30L));
+      add(Range.between(40L, 50L));
     }};
     IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertTrue(predicate.test(0L));
@@ -64,8 +64,8 @@ public class IntervalPredicateTest {
 
   @Test
   public void testTrivialCase() {
-    List<Interval> intervals = new ArrayList<Interval>() {{
-      add(new Interval(0, 10));
+    List<Range<Long>> intervals = new ArrayList<Range<Long>>() {{
+      add(Range.between(0L, 10L));
     }};
     IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertTrue(predicate.test(0L));
@@ -77,8 +77,8 @@ public class IntervalPredicateTest {
 
   @Test
   public void testDegenerateCase() {
-    List<Interval> intervals = new ArrayList<Interval>() {{
-      add(new Interval(10, 10));
+    List<Range<Long>> intervals = new ArrayList<Range<Long>>() {{
+      add(Range.between(10L, 10L));
     }};
     IntervalPredicate predicate = new IntervalPredicate.Identity(intervals);
     Assert.assertFalse(predicate.test(0L));

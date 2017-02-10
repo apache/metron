@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
       name="WINDOW",
       description="The profiler periods associated with a fixed lookback starting from now.",
       params={
-        "windowSelector - The statement specifying the window to select",
+        "windowSelector - The statement specifying the window to select.",
         "now - Optional - The timestamp to use for now.",
         "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
                 "of the same name. Default is the empty Map, meaning no overrides."

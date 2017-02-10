@@ -20,6 +20,7 @@
 package org.apache.metron.profiler.client.stellar;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.Range;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.ParseException;
@@ -30,7 +31,6 @@ import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.client.window.WindowProcessor;
-import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -127,7 +127,7 @@ public class WindowLookbackTest {
 
   public State test(String windowSelector, Date now, Optional<Map<String, Object>> config, Assertions... assertions) {
 
-    List<Interval> windowIntervals = WindowProcessor.parse(windowSelector).toIntervals(now.getTime());
+    List<Range<Long>> windowIntervals = WindowProcessor.parse(windowSelector).toIntervals(now.getTime());
     String stellarStatement = "PROFILE_WINDOW('" + windowSelector + "', now"
                             + (config.isPresent()?", config":"")
                             + ")";
@@ -168,13 +168,13 @@ public class WindowLookbackTest {
     }),
     DISCONTIGUOUS( state -> !Assertions.CONTIGUOUS.test(state)),
     INTERVALS_CONTAIN_ALL_PERIODS( state -> {
-      List<Interval> windowIntervals = state.windowIntervals;
+      List<Range<Long>> windowIntervals = state.windowIntervals;
       List<ProfilePeriod> periods = state.periods;
 
-      Set<Interval> foundIntervals = new HashSet<>();
+      Set<Range<Long>> foundIntervals = new HashSet<>();
       for(ProfilePeriod period : periods) {
         boolean found = false;
-        for(Interval interval : windowIntervals) {
+        for(Range<Long> interval : windowIntervals) {
           if(interval.contains(period.getStartTimeMillis())) {
             foundIntervals.add(interval);
             found = true;
@@ -199,9 +199,9 @@ public class WindowLookbackTest {
   }
 
   private static class State {
-    List<Interval> windowIntervals;
+    List<Range<Long>> windowIntervals;
     List<ProfilePeriod> periods;
-    public State(List<Interval> windowIntervals, List<ProfilePeriod> periods) {
+    public State(List<Range<Long>> windowIntervals, List<ProfilePeriod> periods) {
       this.periods = periods;
       this.windowIntervals = windowIntervals;
     }

@@ -20,7 +20,7 @@
 package org.apache.metron.profiler.client.window;
 
 import com.google.common.collect.Iterables;
-import org.joda.time.Interval;
+import org.apache.commons.lang3.Range;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +85,8 @@ public class Window {
     this.skipDistance = Optional.of(skipDistance);
   }
 
-  public List<Interval> toIntervals(long now) {
-    List<Interval> intervals = new ArrayList<>();
+  public List<Range<Long>> toIntervals(long now) {
+    List<Range<Long>> intervals = new ArrayList<>();
     long startMillis = getStartMillis(now);
     long endMillis = getEndMillis(now);
     Iterable<Predicate<Long>> includes = getIncludes(now);
@@ -94,10 +94,11 @@ public class Window {
     //if we don't have a skip distance, then we just skip past everything to make the window dense
     int skipDistance = getSkipDistance().orElse(Integer.MAX_VALUE);
     //if we don't have a window width, then we want the window to be completely dense.
-    long binWidth = getBinWidth().isPresent()?getBinWidth().get():endMillis-startMillis;
+    Optional<Integer> binWidthOpt = getBinWidth();
+    long binWidth = binWidthOpt.isPresent()?binWidthOpt.get():endMillis-startMillis;
 
     for(long left = startMillis;left + binWidth <= endMillis;left += skipDistance) {
-      Interval interval = new Interval(left, left + binWidth);
+      Range<Long> interval = Range.between(left, left + binWidth);
       boolean include = includes.iterator().hasNext()?false:true;
       for(Predicate<Long> inclusionPredicate : includes) {
         include |= inclusionPredicate.test(left);
