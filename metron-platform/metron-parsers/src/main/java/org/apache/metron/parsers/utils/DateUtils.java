@@ -32,8 +32,8 @@ public class DateUtils {
 
 	public static List<SimpleDateFormat> DATE_FORMATS_CEF = new ArrayList<SimpleDateFormat>() {
 		{
+			// as per CEF Spec
 			add(new SimpleDateFormat("MMM dd HH:mm:ss.SSS zzz"));
-			/*
 			add(new SimpleDateFormat("MMM dd HH:mm:ss.SSS"));
 			add(new SimpleDateFormat("MMM dd HH:mm:ss zzz"));
 			add(new SimpleDateFormat("MMM dd HH:mm:ss"));
@@ -41,9 +41,8 @@ public class DateUtils {
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss.SSS"));
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss zzz"));
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss"));
-			*/
 			// found in the wild
-			add(new SimpleDateFormat("dd MMMM yyyy HH:mm:ss"));
+			add(new SimpleDateFormat("dd MMMM yyyy HH:mm:ss"));			
 		}
 	};
 
