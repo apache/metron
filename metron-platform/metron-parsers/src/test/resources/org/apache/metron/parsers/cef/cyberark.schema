@@ -1,0 +1,38 @@
+{
+	"title": "CyberArk Schema",
+	"type": "object",
+	"properties": {
+		"ip_src_addr": {
+			"type": "string"
+		},
+		"ip_dst_addr": {
+			"type": "string"
+		},
+		"original_string": {
+			"type": "string"
+		},
+		"timestamp": {
+			"type": "integer"
+		},
+		"DeviceVendor": {
+			"type": "string"
+		},
+		"DeviceProduct": {
+			"type": "string"
+		},
+		"DeviceVersion": {
+			"type": "string"
+		},
+		"DeviceEvent": {
+			"type": "string"
+		},
+		"Name": {
+			"type": "string"
+		},
+		"Severity": {
+			"type": "integer"
+		}
+	},
+	"required": ["original_string", "timestamp", 
+	"DeviceVendor", "DeviceProduct", "DeviceVersion", "Name", "Severity"]
+}

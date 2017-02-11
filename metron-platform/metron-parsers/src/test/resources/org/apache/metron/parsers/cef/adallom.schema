@@ -1,0 +1,37 @@
+{
+	"title": "Adallom Schema",
+	"type": "object",
+	"properties": {
+		"original_string": {
+			"type": "string"
+		},
+		"timestamp": {
+			"type": "integer"
+		},
+		"DeviceVendor": {
+			"type": "string"
+		},
+		"DeviceProduct": {
+			"type": "string"
+		},
+		"DeviceVersion": {
+			"type": "string"
+		},
+		"DeviceEvent": {
+			"type": "string"
+		},
+		"Name": {
+			"type": "string"
+		},
+		"Severity": {
+			"type": "integer"
+		},
+		"consoleUrl": {
+			"type": "string"
+		}
+	},
+	"required": [
+	"original_string", "timestamp", 
+	"DeviceVendor", "DeviceProduct", "DeviceVersion", "Name", "Severity",
+	"consoleUrl"]
+}
