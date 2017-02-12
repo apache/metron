@@ -42,7 +42,7 @@ public class DateUtils {
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss zzz"));
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss"));
 			// found in the wild
-			add(new SimpleDateFormat("dd MMMM yyyy HH:mm:ss"));			
+			add(new SimpleDateFormat("dd MMMM yyyy HH:mm:ss"));
 		}
 	};
 
@@ -50,7 +50,7 @@ public class DateUtils {
 		{
 			// As specified in https://tools.ietf.org/html/rfc5424
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-
+			
 			// common format per rsyslog defaults e.g. Mar 21 14:05:02
 			add(new SimpleDateFormat("MMM dd HH:mm:ss"));
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss"));

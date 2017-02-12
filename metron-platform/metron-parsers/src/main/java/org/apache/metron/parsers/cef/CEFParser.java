@@ -53,12 +53,14 @@ public class CEFParser extends BasicParser {
 		// Class ID|Name|Severity
 
 		String syslogTime = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\b +(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9]) (?!<[0-9])(?:2[0123]|[01]?[0-9]):(?:[0-5][0-9])(?::(?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?))(?![0-9])?";
+		String syslogTime5424 = "(?:\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2}))";
 		String syslogPriority = "<(?:[0-9]+)>";
 		String syslogHost = "[a-z0-9\\.\\\\-_]+";
 
 		StringBuilder sb = new StringBuilder("(?<syslogTime>");
-
 		sb.append(syslogTime);
+		sb.append("|");
+		sb.append(syslogTime5424);
 		sb.append(")?");
 
 		sb.append("(?<syslogHost>");

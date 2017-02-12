@@ -20,6 +20,8 @@ package org.apache.metron.parsers.cef;
 
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -88,6 +90,34 @@ public class CEFParserTest extends TestCase {
 		}
 	}
 
+	public void testTimestampPriority() throws java.text.ParseException {
+		long correctTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz").parse("2016-05-01T09:29:11.356-0400")
+				.getTime();
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz");
+
+		for (JSONObject obj : parse(
+				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=May 1 2016 09:29:11.356 -0400 dst=2.1.2.2 spt=1232")) {
+			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
+			assertEquals(correctTime, obj.get("timestamp"));
+		}
+		for (JSONObject obj : parse(
+				"2016-06-01T09:29:11.356-04:00 host CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=May 1 2016 09:29:11.356 -0400 dst=2.1.2.2 spt=1232")) {
+			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
+			assertEquals(correctTime, obj.get("timestamp"));
+		}
+		for (JSONObject obj : parse(
+				"2016-05-01T09:29:11.356-04:00 host CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 dst=2.1.2.2 spt=1232")) {
+			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
+			assertEquals(correctTime, obj.get("timestamp"));
+		}
+		for (JSONObject obj : parse(
+				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 dst=2.1.2.2 spt=1232")) {
+			assertNotNull(obj.get("timestamp"));
+		}
+
+	}
+
 	public void testCEFParserAdallom() throws Exception {
 		runTest("adallom", Resources.readLines(Resources.getResource(getClass(), "adallom.cef"), UTF_8),
 				Resources.toString(Resources.getResource(getClass(), "adallom.schema"), UTF_8));
@@ -115,7 +145,7 @@ public class CEFParserTest extends TestCase {
 			assertNotNull(parsed);
 			assertNotNull(parsed.get("timestamp"));
 			assertTrue((long) parsed.get("timestamp") > 0);
-			
+
 			System.out.println(parsed);
 			JSONParser parser = new JSONParser();
 
@@ -126,10 +156,10 @@ public class CEFParserTest extends TestCase {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			
+
 			// test against an explicit json example
-			if(!targetJson.isEmpty()) {
-				
+			if (!targetJson.isEmpty()) {
+
 			}
 		}
 	}
