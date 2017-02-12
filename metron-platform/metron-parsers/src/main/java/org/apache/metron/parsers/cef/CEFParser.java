@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 public class CEFParser extends BasicParser {
 	private static final long serialVersionUID = 1L;
-	
+
 	protected static final Logger LOG = LoggerFactory.getLogger(CEFParser.class);
 	private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
 	private static final String EXTENSION_CAPTURE_PATTERN = "(?<!\\\\)=";
@@ -174,24 +174,24 @@ public class CEFParser extends BasicParser {
 
 			obj.put("original_string", cefString);
 
-			// apply timestamp from message if present, using syslog timestamp,
-			// then rt field or default to current system time
+			// apply timestamp from message if present, using rt, syslog
+			// timestamp,
+			// default to current system time
 
-			String logTimestamp = matcher.group("syslogTime");
-			if (!(logTimestamp == null || logTimestamp.isEmpty())) {
+			if (obj.containsKey("rt")) {
+				String rt = (String) obj.get("rt");
 				try {
-					obj.put("timestamp", SyslogUtils.parseTimestampToEpochMillis(logTimestamp, Clock.systemUTC()));
-				} catch (ParseException e) {
-					throw new IllegalStateException("Cannot parse timestamp", e);
+					obj.put("timestamp", DateUtils.parseMultiformat(rt, DateUtils.DATE_FORMATS_CEF).getTime());
+				} catch (java.text.ParseException e) {
+					throw new IllegalStateException("rt field present in CEF but cannot be parsed", e);
 				}
 			} else {
-				// find the rt member
-				if (obj.containsKey("rt")) {
-					String rt = (String) obj.get("rt");
+				String logTimestamp = matcher.group("syslogTime");
+				if (!(logTimestamp == null || logTimestamp.isEmpty())) {
 					try {
-						obj.put("timestamp", DateUtils.parseMultiformat(rt, DateUtils.DATE_FORMATS_CEF).getTime());
-					} catch (java.text.ParseException e) {
-						throw new IllegalStateException("Cannot parse rt field in CEF", e);
+						obj.put("timestamp", SyslogUtils.parseTimestampToEpochMillis(logTimestamp, Clock.systemUTC()));
+					} catch (ParseException e) {
+						throw new IllegalStateException("Cannot parse syslog timestamp", e);
 					}
 				} else {
 					obj.put("timestamp", System.currentTimeMillis());
