@@ -42,7 +42,7 @@ export class LoginPage {
     }
 
     submitLoginForm() {
-        element.all(by.buttonText('LOG IN')).click();
+        return element.all(by.buttonText('LOG IN')).click();
     }
 
     getErrorMessage() {
