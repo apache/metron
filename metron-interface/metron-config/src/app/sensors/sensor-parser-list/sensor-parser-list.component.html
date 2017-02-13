@@ -26,11 +26,11 @@
             ACTIONS
           </button>
           <div class="dropdown-menu dropdown-menu-right metron-bg-inverse" aria-labelledby="dropdownMenu1">
-            <a class="dropdown-item" href="#" (click)="onDeleteSensor()" [class.disabled]="selectedSensors.length == 0">Delete</a>
-            <a class="dropdown-item" href="#" (click)="onEnableSensors()" [class.disabled]="selectedSensors.length == 0">Enable</a>
-            <a class="dropdown-item" href="#" (click)="onDisableSensors()" [class.disabled]="selectedSensors.length == 0">Disable</a>
-            <a class="dropdown-item" href="#" (click)="onStartSensors()" [class.disabled]="selectedSensors.length == 0">Start</a>
-            <a class="dropdown-item" href="#" (click)="onStopSensors()" [class.disabled]="selectedSensors.length == 0">Stop</a>
+            <span class="dropdown-item" data-action="Delete" (click)="onDeleteSensor()" [class.disabled]="selectedSensors.length == 0">Delete</span>
+            <span class="dropdown-item" data-action="Enable" (click)="onEnableSensors()" [class.disabled]="selectedSensors.length == 0">Enable</span>
+            <span class="dropdown-item" data-action="Disable" (click)="onDisableSensors()" [class.disabled]="selectedSensors.length == 0">Disable</span>
+            <span class="dropdown-item" data-action="Start" (click)="onStartSensors()" [class.disabled]="selectedSensors.length == 0">Start</span>
+            <span class="dropdown-item" data-action="Stop" (click)="onStopSensors()" [class.disabled]="selectedSensors.length == 0">Stop</span>
           </div>
         </div>
       </div>
