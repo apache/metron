@@ -1,19 +1,18 @@
-# Site Book Metron documentation 
+# Metron Site-Book documentation
 
 Metron's Site Book is an attempt at producing documentation that is
 
-- Versioned and reviewed,
-- Only committers can edit
+- Versioned and reviewed
 - Tied to code versions
 - Highly local to the code being documented
 
-Currently it is in a stand-alone, versioned-with-the-code sub-directory and sub-project. The idea is that a release
-manager would build the site-book (following the instructions below), then copy it into a versioned subdirectory of the (unversioned) public site, to publish it along with each code release.
+The idea is that a release manager would build the site-book (following the instructions below), then publish it from the public [Metron site](http://metron.incubator.apache.org/) as the docs for the new released version. Older site-book versions should remain available for users that need them.
 
 To build the book, do the following:
 In any git clone of incubator-metron containing the site-book subdirectory,
 
-```cd site-book
+```
+cd site-book
 bin/generate-md.sh
 mvn site:site
 ```
