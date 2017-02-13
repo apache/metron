@@ -17,19 +17,21 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
-import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.dataloads.extractor.ExtractorHandler;
+import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.EnumMap;
+import java.util.Optional;
 
 public class SimpleEnrichmentFlatFileLoader {
 

@@ -16,7 +16,7 @@ The host used to deploy Apache Metron will need the following software tools ins
   - Python 2.7.11
   - Maven 3.3.9  
 
-Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+Any platform that supports these tools is suitable, but the following instructions cover only macOS.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
 1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
@@ -27,6 +27,7 @@ Any platform that supports these tools is suitable, but the following instructio
 2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
 
   ```  
+  brew cask install java
   brew install maven git
   brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
   brew switch ansible 2.0.0.2

@@ -36,11 +36,11 @@ public class CSVExtractorTest {
         "columns" : {
             "host" : 0
            ,"meta" : 2
-                    }
+       }
        ,"indicator_column" : "host"
        ,"type" : "threat"
        ,"separator" : ","
-               }
+     }
      ,"extractor" : "CSV"
    }
    */
@@ -56,7 +56,7 @@ public class CSVExtractorTest {
 
     Assert.assertEquals(0, (int)ex.getColumnMap().get("host") );
     Assert.assertEquals(2, (int)ex.getColumnMap().get("meta") );
-    Assert.assertEquals(0, ex.getTypeColumn() );
+    Assert.assertEquals(0, ex.getTypeColumnIndex() );
     Assert.assertEquals(0, ex.getIndicatorColumn());
     Assert.assertEquals("threat", ex.getType() );
     Assert.assertEquals(',', ex.getParser().getSeparator());

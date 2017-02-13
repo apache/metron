@@ -10,9 +10,9 @@ Images Provided
 
 Prerequisites
 ---------------------
-- Packer 0.10.1 https://www.packer.io/
-- Virtualbox 5.0.16 https://www.virtualbox.org/
-- Be sure to build Metron prior to building the images- (cd *your-project-directory*/metron-platform ; mvn clean package -DskipTests)
+- [Packer](https://www.packer.io/) 0.10.1
+- [Virtualbox](https://www.virtualbox.org/) 5.0.16
+- Be sure to build Metron prior to building the images (cd *your-project-directory*/metron-platform && mvn clean package -DskipTests)
 
 Build Both Images
 ---------------------- 

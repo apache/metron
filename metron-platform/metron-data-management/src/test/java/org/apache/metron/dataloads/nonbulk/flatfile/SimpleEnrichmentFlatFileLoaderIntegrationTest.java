@@ -17,14 +17,14 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
-import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.test.TestingServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.HTable;
@@ -32,31 +32,34 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.apache.metron.dataloads.extractor.Extractor;
-import org.apache.metron.dataloads.extractor.ExtractorHandler;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.dataloads.extractor.csv.CSVExtractor;
 import org.apache.metron.dataloads.hbase.mr.HBaseUtil;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
 
 public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
@@ -65,6 +68,9 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   /** The test table. */
   private static HTable testTable;
   private static Configuration config = null;
+  private static TestingServer testZkServer;
+  private static String zookeeperUrl;
+  private static CuratorFramework client;
   private static final String tableName = "enrichment";
   private static final String cf = "cf";
   private static final String csvFile="input.csv";
@@ -78,7 +84,17 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   private static final File multilineGzFile= new File("target/sefflt_data_2.csv.gz");
   private static final File lineByLineExtractorConfigFile = new File("target/sefflt_extractorConfig_lbl.json");
   private static final File wholeFileExtractorConfigFile = new File("target/sefflt_extractorConfig_wf.json");
+  private static final File stellarExtractorConfigFile = new File("target/sefflt_extractorConfig_stellar.json");
+  private static final File customLineByLineExtractorConfigFile = new File("target/sefflt_extractorConfig_custom.json");
   private static final int NUM_LINES = 1000;
+
+  /**
+   * {
+   *   "enrichment_property" : "valfromglobalconfig"
+   * }
+   */
+  @Multiline
+  public static String globalConfig;
 
   /**
    {
@@ -115,6 +131,59 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   @Multiline
   private static String wholeFileExtractorConfig;
 
+  /**
+   *{
+   *  "config" : {
+   *    "zk_quorum" : "%ZK_QUORUM%",
+   *    "columns" : {
+   *      "host" : 0,
+   *      "empty" : 1,
+   *      "meta" : 2
+   *    },
+   *    "value_transform" : {
+   *      "host" : "TO_UPPER(host)",
+   *      "empty" : "enrichment_property"
+   *    },
+   *    "value_filter" : "LENGTH(host) > 0",
+   *    "indicator_column" : "host",
+   *    "indicator_transform" : {
+   *      "indicator" : "TO_UPPER(indicator)"
+   *    },
+   *    "indicator_filter" : "LENGTH(indicator) > 0",
+   *    "type" : "enrichment",
+   *    "separator" : ","
+   *  },
+   *  "extractor" : "CSV"
+   *}
+   */
+  @Multiline
+  public static String stellarExtractorConfig;
+
+  /**
+   *{
+   *  "config" : {
+   *    "columns" : {
+   *      "host" : 0,
+   *      "meta" : 2
+   *    },
+   *    "value_transform" : {
+   *      "host" : "TO_UPPER(host)"
+   *    },
+   *    "value_filter" : "LENGTH(host) > 0",
+   *    "indicator_column" : "host",
+   *    "indicator_transform" : {
+   *      "indicator" : "TO_UPPER(indicator)"
+   *    },
+   *    "indicator_filter" : "LENGTH(indicator) > 0",
+   *    "type" : "enrichment",
+   *    "separator" : ","
+   *  },
+   *  "extractor" : "%EXTRACTOR_CLASS%"
+   *}
+   */
+  @Multiline
+  private static String customLineByLineExtractorConfig;
+
   @BeforeClass
   public static void setup() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
@@ -122,6 +191,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     config = kv.getValue();
     testUtil = kv.getKey();
     testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
+    zookeeperUrl = getZookeeperUrl(config.get("hbase.zookeeper.quorum"), testUtil.getZkCluster().getClientPort());
+    setupGlobalConfig(zookeeperUrl);
 
     for(Result r : testTable.getScanner(Bytes.toBytes(cf))) {
       Delete d = new Delete(r.getRow());
@@ -140,6 +211,20 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     }
     Files.write( wholeFileExtractorConfigFile.toPath()
                , wholeFileExtractorConfig.getBytes()
+               , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
+    );
+    if(stellarExtractorConfigFile.exists()) {
+      stellarExtractorConfigFile.delete();
+    }
+    Files.write( stellarExtractorConfigFile.toPath()
+            , stellarExtractorConfig.replace("%ZK_QUORUM%", zookeeperUrl).getBytes()
+            , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
+    );
+    if(customLineByLineExtractorConfigFile.exists()) {
+      customLineByLineExtractorConfigFile.delete();
+    }
+    Files.write( customLineByLineExtractorConfigFile.toPath()
+               , customLineByLineExtractorConfig.replace("%EXTRACTOR_CLASS%", CSVExtractor.class.getName()).getBytes()
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(file1.exists()) {
@@ -190,6 +275,16 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
   }
 
+  private static String getZookeeperUrl(String host, int port) {
+    return host + ":" + port;
+  }
+
+  private static void setupGlobalConfig(String zookeeperUrl) throws Exception {
+    client = ConfigurationsUtils.getClient(zookeeperUrl);
+    client.start();
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zookeeperUrl);
+  }
+
   @AfterClass
   public static void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
@@ -200,6 +295,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     multilineZipFile.delete();
     lineByLineExtractorConfigFile.delete();
     wholeFileExtractorConfigFile.delete();
+    stellarExtractorConfigFile.delete();
+    customLineByLineExtractorConfigFile.delete();
   }
 
 
@@ -245,7 +342,6 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
     Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
     Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
-
   }
 
   @Test
@@ -344,6 +440,53 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
     Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
     Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+  }
+
+  @Test
+  public void stellar_transforms_and_filters_indicators_and_value_metadata() throws Exception {
+    String[] argv = {"-c cf", "-t enrichment"
+            , "-e " + stellarExtractorConfigFile.getPath()
+            , "-i " + multilineFile.getPath()
+            , "-p 2", "-b 128", "-q"
+    };
+    SimpleEnrichmentFlatFileLoader.main(config, argv);
+    EnrichmentConverter converter = new EnrichmentConverter();
+    ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
+    List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
+    for (Result r : scanner) {
+      results.add(converter.fromResult(r, cf));
+      testTable.delete(new Delete(r.getRow()));
+    }
+    Assert.assertEquals(NUM_LINES, results.size());
+    Assert.assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
+    Assert.assertThat(results.get(0).getKey().type, equalTo("enrichment"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().size(), equalTo(3));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("empty").toString(), startsWith("valfromglobalconfig"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
+  }
+
+  @Test
+  public void custom_extractor_transforms_and_filters_indicators_and_value_metadata() throws Exception {
+    String[] argv = {"-c cf", "-t enrichment"
+            , "-e " + customLineByLineExtractorConfigFile.getPath()
+            , "-i " + multilineFile.getPath()
+            , "-p 2", "-b 128", "-q"
+    };
+    SimpleEnrichmentFlatFileLoader.main(config, argv);
+    EnrichmentConverter converter = new EnrichmentConverter();
+    ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
+    List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
+    for (Result r : scanner) {
+      results.add(converter.fromResult(r, cf));
+      testTable.delete(new Delete(r.getRow()));
+    }
+    Assert.assertEquals(NUM_LINES, results.size());
+    Assert.assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
+    Assert.assertThat(results.get(0).getKey().type, equalTo("enrichment"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().size(), equalTo(2));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
+    Assert.assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
   }
 
 }
