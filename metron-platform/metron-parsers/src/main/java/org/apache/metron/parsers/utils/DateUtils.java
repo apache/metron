@@ -23,6 +23,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Various utilities for parsing and extracting dates
@@ -50,7 +53,7 @@ public class DateUtils {
 		{
 			// As specified in https://tools.ietf.org/html/rfc5424
 			add(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-			
+
 			// common format per rsyslog defaults e.g. Mar 21 14:05:02
 			add(new SimpleDateFormat("MMM dd HH:mm:ss"));
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss"));
@@ -63,16 +66,32 @@ public class DateUtils {
 		}
 	};
 
+	Pattern NUMERIC = Pattern.compile("\\b\\d+\\b");
+
+	/**
+	 * Parse the data according to a sequence of possible parse patterns.
+	 * 
+	 * If the given date is entirely numeric, it is assumed to be a unix timestamp.
+	 * 
+	 * @param candidate The possible date.
+	 * @param validPatterns A list of SimpleDateFormat instances to try parsing with.
+	 * @return A java.util.Date based on the parse result
+	 * @throws ParseException
+	 */
 	public static Date parseMultiformat(String candidate, List<SimpleDateFormat> validPatterns) throws ParseException {
-
-		for (SimpleDateFormat pattern : validPatterns) {
-			try {
-				return pattern.parse(candidate);
-			} catch (ParseException e) {
-				continue;
+		if (StringUtils.isNumeric(candidate)) {
+			Date date = new Date();
+			date.setTime(Long.valueOf(candidate));
+			return date;
+		} else {
+			for (SimpleDateFormat pattern : validPatterns) {
+				try {
+					return pattern.parse(candidate);
+				} catch (ParseException e) {
+					continue;
+				}
 			}
-
+			throw new ParseException("Failed to parse any of the given date formats", 0);
 		}
-		throw new ParseException("Failed to parse any of the given date formats", 0);
 	}
 }
