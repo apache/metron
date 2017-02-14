@@ -118,6 +118,16 @@ public class CEFParserTest extends TestCase {
 
 	}
 
+	public void testRtValueAsEpochTimestamp() throws java.text.ParseException {
+		long correctTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz").parse("2016-05-01T09:29:11.356-0400")
+				.getTime();
+		for (JSONObject obj : parse("CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt="
+				+ String.valueOf(correctTime) + " dst=2.1.2.2 spt=1232")) {
+			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
+			assertEquals(correctTime, obj.get("timestamp"));
+		}
+	}
+
 	public void testCEFParserAdallom() throws Exception {
 		runTest("adallom", Resources.readLines(Resources.getResource(getClass(), "adallom.cef"), UTF_8),
 				Resources.toString(Resources.getResource(getClass(), "adallom.schema"), UTF_8));
