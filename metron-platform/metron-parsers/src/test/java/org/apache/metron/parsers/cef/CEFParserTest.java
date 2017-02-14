@@ -21,6 +21,7 @@ package org.apache.metron.parsers.cef;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +124,18 @@ public class CEFParserTest extends TestCase {
 				.getTime();
 		for (JSONObject obj : parse("CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt="
 				+ String.valueOf(correctTime) + " dst=2.1.2.2 spt=1232")) {
+			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
+			assertEquals(correctTime, obj.get("timestamp"));
+		}
+	}
+
+	public void testMissingYearFromDate() throws java.text.ParseException {
+		int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+
+		long correctTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz")
+				.parse(String.valueOf(currentYear) + "-05-01T09:29:11.356-0400").getTime();
+		for (JSONObject obj : parse(
+				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=May 1 09:29:11.356 -0400 dst=2.1.2.2 spt=1232")) {
 			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
 			assertEquals(correctTime, obj.get("timestamp"));
 		}
