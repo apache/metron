@@ -28,7 +28,7 @@ public interface StellarService {
 
     Map<String, Boolean> validateRules(List<String> rules);
 
-    Map<String, Object> applyTransformations(SensorParserContext transformationValidation);
+    Map<String, Object> applyTransformations(SensorParserContext sensorParserContext);
 
     FieldTransformations[] getTransformations();
 
