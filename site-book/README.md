@@ -10,6 +10,7 @@ The idea is that a release manager would build the site-book (following the inst
 
 
 To build the book, do the following:
+
 In any git clone of incubator-metron containing the site-book subdirectory,
 
 ```
