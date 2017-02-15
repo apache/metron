@@ -1,5 +1,7 @@
 Thank you for submitting a contribution to Apache Metron (Incubating).
-Please refer to our [Development Guidelines](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=61332235) for the complete guide to follow for contributions
+Please refer to our [Development Guidelines](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=61332235) for the complete guide to follow for contributions.
+Please refer also to our [Build Verification guildlines](https://cwiki.apache.org/confluence/display/METRON/Verifying+Builds?show-miniview) for complete smoke testing guides.
+
 
 In order to streamline the review of the contribution we ask you follow these guidelines and ask you to double check
 the following:
@@ -23,6 +25,7 @@ mvn -q clean integration-test install && build_utils/verify_licenses.sh
 
 - [ ] Have you written or updated unit tests and or integration tests to verify your changes?
 - [ ] If adding new dependencies to the code, are these dependencies licensed in a way that is compatible for inclusion under [ASF 2.0](http://www.apache.org/legal/resolved.html#category-a)? 
+- [ ] Have you verified the basic functionality of the build by building and running locally with Vagrant full-dev environment or the equivalent?
 
 ### For documentation related changes:
 - [ ] Have you ensured that format looks appropriate for the output in which it is rendered by building and verifying the site-book? If not then run the following commands and the verify changes via site-book/target/site/index.html.
