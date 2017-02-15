@@ -8,9 +8,7 @@ the following:
 
 ### For all changes:
 - [ ] Is there a JIRA ticket associated with this PR? If not one needs to be created at [Metron Jira](https://issues.apache.org/jira/browse/METRON/?selectedTab=com.atlassian.jira.jira-projects-plugin:summary-panel). 
-
 - [ ] Does your PR title start with METRON-XXXX where XXXX is the JIRA number you are trying to resolve? Pay particular attention to the hyphen "-" character.
-
 - [ ] Has your PR been rebased against the latest commit within the target branch (typically master)?
 
 
