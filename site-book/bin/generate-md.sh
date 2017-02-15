@@ -269,9 +269,23 @@ echo "Done."
 echo " "
 
 echo "Fixing up markdown dialect problems between Github-MD and doxia-markdown:"
-find . -name '*.md' -print -exec python "$METRON_SOURCE"/site-book/bin/fix-md-dialect.py '{}' \;
-echo "Done."
-echo " "
+# Detecting errors from a `find -exec` command is difficult, have to use an intermediary file
+errfile="../errout.dat"
+if [ -e $errfile ]; then
+    rm -f $errfile
+fi
+touch $errfile
+find . -name '*.md' -print -exec python "$METRON_SOURCE"/site-book/bin/fix-md-dialect.py '{}' \; 2>> $errfile
+errlines=`cat $errfile|wc -l`
+if (( $errlines > 0 )) ; then
+    echo "ERROR DETECTED:"
+    cat $errfile
+    rm -f $errfile
+    exit 127
+else
+    rm -f $errfile
+    echo "Done."
+    echo " "
+    exit 0
+fi
 
-
-exit 0
