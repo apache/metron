@@ -5,13 +5,16 @@ In order to streamline the review of the contribution we ask you follow these gu
 the following:
 
 ### For all changes:
-- [ ] Is there a JIRA ticket associated with this PR? 
+- [ ] Is there a JIRA ticket associated with this PR? If not one needs to be created at [Metron Jira](https://issues.apache.org/jira/browse/METRON/?selectedTab=com.atlassian.jira.jira-projects-plugin:summary-panel) 
 
 - [ ] Does your PR title start with METRON-XXXX where XXXX is the JIRA number you are trying to resolve? Pay particular attention to the hyphen "-" character.
 
 - [ ] Has your PR been rebased against the latest commit within the target branch (typically master)?
 
+
 ### For code changes:
+- [ ] Have you included steps to reproduce the behavior or problem that is being changed or addressed?
+- [ ] Have you included steps or a guide to how the change may be verified and tested manually?
 - [ ] Have you ensured that the full suite of tests and checks have been executed in the root incubating-metron folder via:
 
 ```
