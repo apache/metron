@@ -485,6 +485,38 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Current user
 
+## Testing
+
+Profiles are includes for both the metron-docker and Quick Dev environments.
+
+### metron-docker
+
+Start the [metron-docker](../../metron-docker) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+```
+mvn clean package
+mvn spring-boot:run -Drun.profiles=docker,dev
+```
+The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
+
+### Quick Dev
+
+Start the [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+```
+mvn clean package
+mvn spring-boot:run -Drun.profiles=vagrant,dev
+```
+The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
+
+To run the application locally on the Quick Dev host, package the application and scp the archive to node1:
+```
+mvn clean package
+scp ./target/metron-rest-$METRON_VERSION-archive.tar.gz root@node1:~/
+```
+Login to node1 and unarchive the metron-rest application.  Start the application on a different port to avoid conflicting with Ambari:
+```
+java -jar ./lib/metron-rest-0.3.0.jar --spring.profiles.active=vagrant,dev --server.port=8082
+```
+The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
 
 ## License
 
