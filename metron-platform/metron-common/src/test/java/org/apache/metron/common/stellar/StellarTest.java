@@ -21,6 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.junit.Assert;
@@ -285,6 +286,26 @@ public class StellarTest {
       String query = "'foo' in ['', 'foo'] ? one*3 : 'two'";
       Assert.assertEquals(3, run(query, ImmutableMap.of("one", 1)));
     }
+  }
+
+  @Test
+  public void testInNotIN(){
+    HashMap variables = new HashMap<>();
+    boolean thrown = false;
+    try{
+      run("in in ['','in']" ,variables );
+    }catch(ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    try{
+      Assert.assertEquals(true,run("'in' in ['','in']" ,variables ));
+    }catch(ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertFalse(thrown);
   }
 
   @Test
