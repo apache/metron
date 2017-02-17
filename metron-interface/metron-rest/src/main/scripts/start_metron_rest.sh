@@ -15,19 +15,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-METRON_VERSION=0.3.0
+METRON_VERSION=${project.version}
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-if [ "$#" -ne 1 ]; then
-  echo "Usage: start.sh <path to application.yml file>"
+if [ "$#" -lt 1 ]; then
+  echo "Usage: start.sh <path to application.yml file> <spring options>"
   echo "Path can be absolute or relative to $SCRIPTS_ROOT"
 else
-  if [ -z "$MYSQL_CLIENT_HOME" ]; then
-    echo MYSQL_CLIENT_HOME is not set
-  else
-    if [ -z "$HIBERNATE_HOME" ]; then
-      echo HIBERNATE_HOME is not set
-    else
-      java -Dloader.path=$MYSQL_CLIENT_HOME/*,$HIBERNATE_HOME/lib/envers/*,$HIBERNATE_HOME/lib/jpa/*,$HIBERNATE_HOME/lib/required/* -jar $SCRIPTS_ROOT/../lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$1
-    fi
-  fi
+  java -jar $SCRIPTS_ROOT/../lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$@
 fi

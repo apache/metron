@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.HdfsService;
@@ -73,8 +74,9 @@ public class HdfsController {
 
   }
 
-  @ApiOperation(value = "Retrieves field transformations")
-  @ApiResponse(message = "Returns a list field transformations", code = 200)
+  @ApiOperation(value = "Deletes a file from HDFS")
+  @ApiResponses(value = { @ApiResponse(message = "File was deleted", code = 200),
+          @ApiResponse(message = "File was not found in HDFS", code = 404) })
   @RequestMapping(method = RequestMethod.DELETE)
   ResponseEntity<Boolean> delete(@ApiParam(name = "path", value = "Path to HDFS file", required = true) @RequestParam String path,
                                  @ApiParam(name = "recursive", value = "Delete files recursively") @RequestParam(required = false, defaultValue = "false") boolean recursive) throws RestException {

@@ -13,12 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-docker:
-  host:
-    address: 192.168.99.100
-  compose:
-    path: ../../metron-docker/compose/docker-compose.yml
-
 spring:
   datasource:
       driverClassName: org.h2.Driver
@@ -31,24 +25,24 @@ spring:
       ddl-auto: update
 
 zookeeper:
-  url:  ${docker.host.address}:2181
+  url:  node1:2181
 
 kafka:
   broker:
-    url: ${docker.host.address}:9092
+    url: node1:6667
 
 hdfs:
   namenode:
-    url: file:///
+    url: hdfs://node1:8020
 
 grok:
   path:
-    temp: target/patterns/temp
-    default: target/patterns
+    temp: ./patterns/temp
+    default: /apps/metron/patterns
 
 storm:
   ui:
-    url:   ${docker.host.address}:8080
+    url:   node1:8744
   parser:
     script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
   enrichment:
