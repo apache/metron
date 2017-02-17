@@ -43,7 +43,7 @@ public class GeoLiteDatabaseTest {
 
   /**
    * {
-   * "locID":"6252001",
+   * "locID":"5803556",
    * "country":"US",
    * "city":"Milton",
    * "postalCode":"98354",
@@ -60,7 +60,7 @@ public class GeoLiteDatabaseTest {
 
   /**
    * {
-   * "locID":"2635167",
+   * "locID":"2643743",
    * "country":"GB",
    * "city":"London",
    * "postalCode":"",

@@ -29,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -81,24 +82,40 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   @Override
   public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end) {
-    List<byte[]> rowKeys = new ArrayList<>();
-
     // be forgiving of out-of-order start and end times; order is critical to this algorithm
     end = Math.max(start, end);
     start = Math.min(start, end);
 
     // find the starting period and advance until the end time is reached
-    ProfilePeriod period = new ProfilePeriod(start, periodDurationMillis, TimeUnit.MILLISECONDS);
-    while(period.getStartTimeMillis() <= end) {
+    return ProfilePeriod.visitPeriods( start
+                                        , end
+                                        , periodDurationMillis
+                                        , TimeUnit.MILLISECONDS
+                                        , Optional.empty()
+                                        , period -> rowKey(profile, entity, period, groups)
+                                        );
 
-      byte[] k = rowKey(profile, entity, period, groups);
-      rowKeys.add(k);
+  }
 
-      // advance to the next period
-      period = period.next();
+  /**
+   * Builds a list of row keys necessary to retrieve a profile's measurements over
+   * a time horizon.
+   * <p>
+   * This method is useful when attempting to read ProfileMeasurements stored in HBase.
+   *
+   * @param profile    The name of the profile.
+   * @param entity     The name of the entity.
+   * @param groups     The group(s) used to sort the profile data.
+   * @param periods    The profile measurement periods to compute the rowkeys for
+   * @return All of the row keys necessary to retrieve the profile measurements.
+   */
+  @Override
+  public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
+    List<byte[]> ret = new ArrayList<>();
+    for(ProfilePeriod period : periods) {
+      ret.add(rowKey(profile, entity, period, groups));
     }
-
-    return rowKeys;
+    return ret;
   }
 
   /**
@@ -120,6 +137,18 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @return The HBase row key.
    */
   public byte[] rowKey(String profile, String entity, ProfilePeriod period, List<Object> groups) {
+    return rowKey(profile, entity, period.getPeriod(), groups);
+  }
+
+  /**
+   * Build the row key.
+   * @param profile The name of the profile.
+   * @param entity The name of the entity.
+   * @param period The measure period
+   * @param groups The groups.
+   * @return The HBase row key.
+   */
+  public byte[] rowKey(String profile, String entity, long period, List<Object> groups) {
 
     // row key = salt + prefix + group(s) + time
     byte[] salt = getSalt(period, saltDivisor);
@@ -161,25 +190,44 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     groups.forEach(g -> builder.append(g));
     return Bytes.toBytes(builder.toString());
   }
-
   /**
    * Builds the 'time' portion of the row key
    * @param period The ProfilePeriod in which the ProfileMeasurement was taken.
    */
   private static byte[] timeKey(ProfilePeriod period) {
-    long thePeriod = period.getPeriod();
-    return Bytes.toBytes(thePeriod);
+    return timeKey(period.getPeriod());
+  }
+
+  /**
+   * Builds the 'time' portion of the row key
+   * @param period the period
+   */
+  private static byte[] timeKey(long period) {
+    return Bytes.toBytes(period);
   }
 
   /**
    * Calculates a salt value that is used as part of the row key.
    *
-   * The salt is calculated as 'md5(timestamp) % N' where N is a configurable value that ideally
+   * The salt is calculated as 'md5(period) % N' where N is a configurable value that ideally
    * is close to the number of nodes in the Hbase cluster.
    *
    * @param period The period in which a profile measurement is taken.
    */
   public static byte[] getSalt(ProfilePeriod period, int saltDivisor) {
+    return getSalt(period.getPeriod(), saltDivisor);
+  }
+
+  /**
+   * Calculates a salt value that is used as part of the row key.
+   *
+   * The salt is calculated as 'md5(period) % N' where N is a configurable value that ideally
+   * is close to the number of nodes in the Hbase cluster.
+   *
+   * @param period The period
+   * @param saltDivisor The salt divisor
+   */
+  public static byte[] getSalt(long period, int saltDivisor) {
     try {
       // an MD5 is 16 bytes aka 128 bits
       MessageDigest digest = MessageDigest.getInstance("MD5");

@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-analytics</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
   </parent>
   <artifactId>metron-maas-service</artifactId>
   <properties>
@@ -309,6 +309,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptor>src/main/assembly/assembly.xml</descriptor>
+          <tarLongFileMode>posix</tarLongFileMode>
         </configuration>
         <executions>
           <execution>

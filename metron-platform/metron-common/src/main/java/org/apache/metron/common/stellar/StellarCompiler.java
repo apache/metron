@@ -57,20 +57,20 @@ public class StellarCompiler extends StellarBaseListener {
   private final NumberLiteralEvaluator numberLiteralEvaluator;
   private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
-  public StellarCompiler(VariableResolver variableResolver,
-                         FunctionResolver functionResolver,
-                         Context context,
-                         Stack<Token<?>> tokenStack,
-                         ArithmeticEvaluator arithmeticEvaluator,
-                         NumberLiteralEvaluator numberLiteralEvaluator,
-                         ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator) {
+  public StellarCompiler(final VariableResolver variableResolver,
+                         final FunctionResolver functionResolver,
+                         final Context context,
+                         final Stack<Token<?>> tokenStack,
+                         final ArithmeticEvaluator arithmeticEvaluator,
+                         final NumberLiteralEvaluator numberLiteralEvaluator,
+                         final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;
     this.tokenStack = tokenStack;
     this.arithmeticEvaluator = arithmeticEvaluator;
     this.numberLiteralEvaluator = numberLiteralEvaluator;
-    this. comparisonExpressionWithOperatorEvaluator = comparisonExpressionWithOperatorEvaluator;
+    this.comparisonExpressionWithOperatorEvaluator = comparisonExpressionWithOperatorEvaluator;
   }
 
   @Override
@@ -78,22 +78,22 @@ public class StellarCompiler extends StellarBaseListener {
     tokenStack.clear();
   }
 
-  private boolean handleIn(Token<?> left, Token<?> right) {
+  private boolean handleIn(final Token<?> left, final Token<?> right) {
     Object key = right.getValue();
 
 
     if (left.getValue() != null) {
-      if(left.getValue() instanceof String && key instanceof String) {
-        return ((String)left.getValue()).contains(key.toString());
+      if (left.getValue() instanceof String && key instanceof String) {
+        return ((String) left.getValue()).contains(key.toString());
       }
-      else if(left.getValue() instanceof Collection) {
-        return ((Collection)left.getValue()).contains(key);
+      else if (left.getValue() instanceof Collection) {
+        return ((Collection) left.getValue()).contains(key);
       }
-      else if(left.getValue() instanceof Map) {
-        return ((Map)left.getValue()).containsKey(key);
+      else if (left.getValue() instanceof Map) {
+        return ((Map) left.getValue()).containsKey(key);
       }
       else {
-        if(key == null) {
+        if (key == null) {
           return key == left.getValue();
         }
         else {
@@ -145,7 +145,7 @@ public class StellarCompiler extends StellarBaseListener {
     Token<?> elseExpr = popStack();
     Token<?> thenExpr = popStack();
     Token<?> ifExpr = popStack();
-    boolean b = ((Token<Boolean>) ifExpr).getValue();
+    @SuppressWarnings("unchecked") boolean b = ((Token<Boolean>) ifExpr).getValue();
     if (b) {
       tokenStack.push(thenExpr);
     } else {
@@ -164,14 +164,14 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   @Override
-  public void exitInExpression(StellarParser.InExpressionContext ctx) {
+  public void exitInExpressionStatement(StellarParser.InExpressionStatementContext ctx) {
     Token<?> left = popStack();
     Token<?> right = popStack();
     tokenStack.push(new Token<>(handleIn(left, right), Boolean.class));
   }
 
   @Override
-  public void exitNInExpression(StellarParser.NInExpressionContext ctx) {
+  public void exitNInExpressionStatement(StellarParser.NInExpressionStatementContext ctx) {
     Token<?> left = popStack();
     Token<?> right = popStack();
     tokenStack.push(new Token<>(!handleIn(left, right), Boolean.class));
@@ -230,7 +230,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitLogicalConst(StellarParser.LogicalConstContext ctx) {
-    Boolean b = null;
+    Boolean b;
     switch (ctx.getText().toUpperCase()) {
       case "TRUE":
         b = true;
@@ -244,7 +244,7 @@ public class StellarCompiler extends StellarBaseListener {
     tokenStack.push(new Token<>(b, Boolean.class));
   }
 
-  private boolean booleanOp(Token<?> left, Token<?> right, BooleanOp op, String opName) {
+  private boolean booleanOp(final Token<?> left, final Token<?> right, final BooleanOp op, final String opName) {
     Boolean l = ConversionUtils.convert(left.getValue(), Boolean.class);
     Boolean r = ConversionUtils.convert(right.getValue(), Boolean.class);
     if (l == null || r == null) {
@@ -277,7 +277,8 @@ public class StellarCompiler extends StellarBaseListener {
    * @param token The token containing the function arguments.
    * @return
    */
-  private List<Object> getFunctionArguments(Token<?> token) {
+  @SuppressWarnings("unchecked")
+  private List<Object> getFunctionArguments(final Token<?> token) {
     if (token.getUnderlyingType().equals(List.class)) {
       return (List<Object>) token.getValue();
 
@@ -404,8 +405,8 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   public Object getResult() throws ParseException {
-    if(actualException != null) {
-      throw new ParseException("Unable to execute: " +actualException.getMessage(), actualException);
+    if (actualException != null) {
+      throw new ParseException("Unable to execute: " + actualException.getMessage(), actualException);
     }
     if (tokenStack.empty()) {
       throw new ParseException("Invalid predicate: Empty stack.");

@@ -12,27 +12,27 @@ functions can be used from everywhere where Stellar is used.
 
 ### Approximation Statistics
 
-### `HLLP_ADD`
+#### `HLLP_ADD`
   * Description: Add value to the HyperLogLogPlus estimator set. See [HLLP README](HLLP.md)
   * Input:
     * hyperLogLogPlus - the hllp estimator to add a value to
     * value+ - value to add to the set. Takes a single item or a list.
   * Returns: The HyperLogLogPlus set with a new value added
 
-### `HLLP_CARDINALITY`
+#### `HLLP_CARDINALITY`
   * Description: Returns HyperLogLogPlus-estimated cardinality for this set. See [HLLP README](HLLP.md)
   * Input:
     * hyperLogLogPlus - the hllp set
   * Returns: Long value representing the cardinality for this set
 
-### `HLLP_INIT`
+#### `HLLP_INIT`
   * Description: Initializes the HyperLogLogPlus estimator set. p must be a value between 4 and sp and sp must be less than 32 and greater than 4. See [HLLP README](HLLP.md)
   * Input:
     * p - the precision value for the normal set
     * sp - the precision value for the sparse set. If p is set, but sp is 0 or not specified, the sparse set will be disabled.
   * Returns: A new HyperLogLogPlus set
 
-### `HLLP_MERGE`
+#### `HLLP_MERGE`
   * Description: Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)
   * Input:
     * hllp - List of hllp estimators to merge. Takes a single hllp set or a list.
@@ -45,7 +45,7 @@ functions can be used from everywhere where Stellar is used.
 * Input:
   * number - The number to take the absolute value of
 * Returns: The absolute value of the number passed in.
-*
+
 #### `BIN`
 * Description: Computes the bin that the value is in given a set of bounds.
 * Input:
@@ -341,7 +341,7 @@ Create the following in
       "stellar" : {
         "config" : {
           "parser_score" : "OUTLIER_MAD_SCORE(OUTLIER_MAD_STATE_MERGE(
-PROFILE_GET( 'sketchy_mad', 'global', 10, 'MINUTES') ), value)"
+PROFILE_GET( 'sketchy_mad', 'global', PROFILE_FIXED(10, 'MINUTES')) ), value)"
          ,"is_alert" : "if parser_score > 3.5 then true else is_alert"
         }
       }
@@ -352,9 +352,12 @@ PROFILE_GET( 'sketchy_mad', 'global', 10, 'MINUTES') ), value)"
     "fieldMap": { },
     "fieldToTypeMap": { },
     "triageConfig" : {
-      "riskLevelRules" : {
-        "parser_score > 3.5" : 10
-      },
+      "riskLevelRules" : [
+        {
+          "rule" : "parser_score > 3.5",
+          "score" : 10
+        }
+      ],
       "aggregator" : "MAX"
     }
   }
@@ -381,7 +384,7 @@ Create the following file at
       "onlyif": "true",
       "init" : {
         "s": "OUTLIER_MAD_STATE_MERGE(PROFILE_GET('sketchy_mad',
-'global', 5, 'MINUTES'))"
+'global', PROFILE_FIXED(5, 'MINUTES')))"
                },
       "update": {
         "s": "OUTLIER_MAD_ADD(s, value)"

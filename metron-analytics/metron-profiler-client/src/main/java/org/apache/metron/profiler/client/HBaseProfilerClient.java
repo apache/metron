@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.common.utils.SerDeUtils;
@@ -99,6 +100,34 @@ public class HBaseProfilerClient implements ProfilerClient {
 
     // find all the row keys that satisfy this fetch
     List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, start, end);
+
+    // create a Get for each of the row keys
+    List<Get> gets = keysToFetch
+            .stream()
+            .map(k -> new Get(k).addColumn(columnFamily, columnQualifier))
+            .collect(Collectors.toList());
+
+    // get the 'gets'
+    return get(gets, columnQualifier, columnFamily, clazz);
+  }
+
+  /**
+   * Fetch the values stored in a profile based on a set of timestamps.
+   *
+   * @param clazz      The type of values stored by the profile.
+   * @param profile    The name of the profile.
+   * @param entity     The name of the entity.
+   * @param groups     The groups used to sort the profile data.
+   * @param periods    The set of profile measurement periods
+   * @return A list of values.
+   */
+  @Override
+  public <T> List<T> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
+    byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
+    byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
+
+    // find all the row keys that satisfy this fetch
+    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, periods);
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch

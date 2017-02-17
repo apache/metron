@@ -113,4 +113,14 @@ public class EnrichmentKey implements LookupKey {
             ", type='" + type + '\'' +
             '}';
   }
+
+  @Override
+  public String getIndicator() {
+    return indicator;
+  }
+
+  @Override
+  public void setIndicator(String indicator) {
+    this.indicator = indicator;
+  }
 }

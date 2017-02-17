@@ -80,7 +80,10 @@ This tool exposes the two methods for filtering PCAP data via a command line too
 - fixed
 - query (Metron Stellar)
 
-The tool is executed via ```${metron_home}/bin/pcap_query.sh [fixed|query]```
+The tool is executed via 
+```
+${metron_home}/bin/pcap_query.sh [fixed|query]
+```
 
 #### Usage
 ```

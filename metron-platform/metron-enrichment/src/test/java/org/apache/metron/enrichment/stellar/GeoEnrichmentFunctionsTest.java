@@ -43,7 +43,7 @@ public class GeoEnrichmentFunctionsTest {
 
   /**
    * {
-   * "locID":"6252001",
+   * "locID":"5803556",
    * "country":"US",
    * "city":"Milton",
    * "postalCode":"98354",
@@ -122,7 +122,7 @@ public class GeoEnrichmentFunctionsTest {
   public void testGetRemote() throws Exception {
     String stellar = "GEO_GET('216.160.83.56')";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessage, result);
+    Assert.assertEquals("Remote IP should return result based on DB", expectedMessage, result);
   }
 
   @Test
@@ -130,7 +130,7 @@ public class GeoEnrichmentFunctionsTest {
   public void testGetRemoteSingleField() throws Exception {
     String stellar = "GEO_GET('216.160.83.56', ['country'])";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote Local IP should return country result based on DB", "US", result);
+    Assert.assertEquals("Remote IP should return country result based on DB", "US", result);
   }
 
   @Test
@@ -138,7 +138,7 @@ public class GeoEnrichmentFunctionsTest {
   public void testGetRemoteMultipleFields() throws Exception {
     String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'])";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote Local IP should return country result based on DB", expectedSubsetMessage, result);
+    Assert.assertEquals("Remote IP should return country result based on DB", expectedSubsetMessage, result);
   }
 
   @Test(expected=org.apache.metron.common.dsl.ParseException.class)

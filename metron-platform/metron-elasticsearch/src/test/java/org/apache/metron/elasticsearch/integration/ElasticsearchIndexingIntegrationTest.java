@@ -85,6 +85,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
             return ReadinessState.READY;
           }
         } else {
+          System.out.println("Missed index...");
           return ReadinessState.NOT_READY;
         }
       }

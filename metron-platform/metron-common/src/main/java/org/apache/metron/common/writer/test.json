@@ -19,9 +19,12 @@
       "ip_dst_addr" : ["malicious_ip"]
     },
     "triageConfig" : {
-      "riskLevelRules" : {
-        "ip_src_addr == '31.24.30.31'" : "Test"
-      },
+      "riskLevelRules" : [
+        {
+          "rule" : "ip_src_addr == '31.24.30.31'",
+          "score" : 10
+        }
+      ],
       "aggregator" : "MAX"
     }
   }
