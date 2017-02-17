@@ -125,6 +125,17 @@ One *must* specify either a total temporal duration or a temporal window width.
 The remaining clauses are optional.
 During the course of the following discussion, we will color code the clauses in the examples.
 
+From a high level, the language fits the following three forms:
+
+* <span style="color:red">`time_interval WINDOW?`</span><span style="color:purple">`(INCLUDING specifier_list)? (EXCLUDING specifier_list)?`</span>
+* <span style="color:red">`time_interval WINDOW?`</span><span style="color:green">`EVERY time_interval`</span><span style="color:blue">`FROM time_interval (TO time_interval)?`</span><span style="color:purple">`(INCLUDING specifier_list)? (EXCLUDING specifier_list)?`</span>
+* <span style="color:blue">`FROM time_interval (TO time_interval)?`</span>
+
+with
+* `time_interval` representing a time amount followed by a unit (e.g. "1 hour")
+* `specifier_list` representing a comma separated list of inclusion or exclusion specifiers (e.g. "holidays:us, tuesdays")
+
+
 ###### <span style="color:blue">Total Temporal Duration</span>
 
 Total temporal duration is specified by a phrase: `FROM time_interval AGO TO time_interval AGO`
