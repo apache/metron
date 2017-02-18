@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.cef;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -32,7 +33,9 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
@@ -50,6 +53,12 @@ public class CEFParserTest extends TestCase {
 	public void setUp() {
 		parser = new CEFParser();
 		parser.init();
+	}
+
+	@Test
+	public void testInvalid() {
+		List<JSONObject> obj = parse("test test test nonsense\n");
+		assertEquals(0, obj.size());
 	}
 
 	@Test
@@ -131,27 +140,28 @@ public class CEFParserTest extends TestCase {
 
 	private void runMissingYear(Calendar expected, Calendar input) {
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss.SSS");
-		for (JSONObject obj : parse(
-				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=" + sdf.format(input.getTime())+ " dst=2.1.2.2 spt=1232")) {
+		for (JSONObject obj : parse("CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt="
+				+ sdf.format(input.getTime()) + " dst=2.1.2.2 spt=1232")) {
 			assertEquals(expected.getTimeInMillis(), obj.get("timestamp"));
 			assertEquals(expected.getTime(), new Date((long) obj.get("timestamp")));
 		}
 	}
+
 	public void testMissingYearFromDate() throws java.text.ParseException {
 		Calendar current = Calendar.getInstance();
 		Calendar correct = Calendar.getInstance();
-		
+
 		correct.setTimeInMillis(current.getTimeInMillis());
-		
+
 		runMissingYear(correct, current);
 	}
-	
+
 	public void testFourDayFutureBecomesPast() {
 		Calendar current = Calendar.getInstance();
 		Calendar correct = Calendar.getInstance();
-		
+
 		current.add(Calendar.DAY_OF_MONTH, 5);
-		//correct.setTime(current.getTime());
+		// correct.setTime(current.getTime());
 		correct.setTimeInMillis(current.getTimeInMillis());
 		correct.add(Calendar.YEAR, -1);
 
@@ -202,6 +212,47 @@ public class CEFParserTest extends TestCase {
 
 			}
 		}
+	}
+
+	/**
+	 * Additional Sample from NiFi test Suite
+	 * (https://github.com/apache/nifi/blob/rel/nifi-1.1.1/nifi-nar-bundles/nifi
+	 * -standard-bundle/nifi-standard-processors/src/test/java/org/apache/nifi/
+	 * processors/standard/TestParseCEF.java)
+	 */
+	private final static String sample = "CEF:0|TestVendor|TestProduct|TestVersion|TestEventClassID|TestName|Low|" +
+			// TimeStamp, String and Long
+			"rt=Feb 09 2015 00:27:43 UTC cn3Label=Test Long cn3=9223372036854775807 " +
+			// FloatPoint and MacAddress
+			"cfp1=1.234 cfp1Label=Test FP Number smac=00:00:0c:07:ac:00 " +
+			// IPv6 and String
+			"c6a3=2001:cdba::3257:9652 c6a3Label=Test IPv6 cs1Label=Test String cs1=test test test chocolate " +
+			// IPv4
+			"destinationTranslatedAddress=123.123.123.123 " +
+			// Date without TZ
+			"deviceCustomDate1=Feb 06 2015 13:27:43 " +
+			// Integer and IP Address (from v4)
+			"dpt=1234 agt=123.123.0.124 dlat=40.366633 " +
+			// A JSON object inside one of CEF's custom Strings
+			"cs2Label=JSON payload "
+			+ "cs2={\"test_test_test\": \"chocolate!\", \"what?!?\": \"Simple! test test test chocolate!\"}";
+
+	@Test
+	public void testSuccessfulWhenCEFContainsJSON() throws JsonProcessingException, IOException {
+		List<JSONObject> parse = parse(sample);
+		JSONObject obj = parse.get(0);
+
+		assertEquals("TestVendor", obj.get("DeviceVendor"));
+		assertEquals(1423441663000L, obj.get("timestamp"));
+		assertEquals("9223372036854775807", obj.get("Test Long"));
+		assertEquals(obj.get("Test FP Number"), String.valueOf(1.234F));
+		assertEquals("00:00:0c:07:ac:00", obj.get("smac"));
+		assertEquals("2001:cdba::3257:9652", obj.get("Test IPv6"));
+		assertEquals("test test test chocolate", obj.get("Test String"));
+		assertEquals("123.123.123.123", obj.get("destinationTranslatedAddress"));
+
+		JsonNode inner = new ObjectMapper().readTree((String) obj.get("JSON payload"));
+		Assert.assertEquals("chocolate!", inner.get("test_test_test").asText());
 	}
 
 	protected boolean validateJsonData(final String jsonSchema, final String jsonData) throws Exception {
