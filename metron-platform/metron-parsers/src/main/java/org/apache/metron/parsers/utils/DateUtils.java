@@ -20,9 +20,12 @@ package org.apache.metron.parsers.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
@@ -71,22 +74,37 @@ public class DateUtils {
 	/**
 	 * Parse the data according to a sequence of possible parse patterns.
 	 * 
-	 * If the given date is entirely numeric, it is assumed to be a unix timestamp.
+	 * If the given date is entirely numeric, it is assumed to be a unix
+	 * timestamp.
 	 * 
-	 * @param candidate The possible date.
-	 * @param validPatterns A list of SimpleDateFormat instances to try parsing with.
+	 * If the year is not specified in the date string, use the current year.
+	 * Assume that any date more than 4 days in the future is in the past as per
+	 * SyslogUtils
+	 * 
+	 * @param candidate
+	 *            The possible date.
+	 * @param validPatterns
+	 *            A list of SimpleDateFormat instances to try parsing with.
 	 * @return A java.util.Date based on the parse result
 	 * @throws ParseException
 	 */
-	public static Date parseMultiformat(String candidate, List<SimpleDateFormat> validPatterns) throws ParseException {
+	public static long parseMultiformat(String candidate, List<SimpleDateFormat> validPatterns) throws ParseException {
 		if (StringUtils.isNumeric(candidate)) {
-			Date date = new Date();
-			date.setTime(Long.valueOf(candidate));
-			return date;
+			return Long.valueOf(candidate);
 		} else {
 			for (SimpleDateFormat pattern : validPatterns) {
 				try {
-					return pattern.parse(candidate);
+					Calendar cal = Calendar.getInstance();
+					cal.setTime(pattern.parse(candidate));
+					Calendar current = Calendar.getInstance();
+					if (cal.get(Calendar.YEAR) == 1970) {
+						cal.set(Calendar.YEAR, current.get(Calendar.YEAR));
+					}
+					current.add(Calendar.DAY_OF_MONTH, 4);
+					if (cal.after(current)) {
+						cal.add(Calendar.YEAR, -1);
+					}
+					return cal.getTimeInMillis();
 				} catch (ParseException e) {
 					continue;
 				}

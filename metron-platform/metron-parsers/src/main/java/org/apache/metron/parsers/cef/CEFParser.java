@@ -183,7 +183,7 @@ public class CEFParser extends BasicParser {
 			if (obj.containsKey("rt")) {
 				String rt = (String) obj.get("rt");
 				try {
-					obj.put("timestamp", DateUtils.parseMultiformat(rt, DateUtils.DATE_FORMATS_CEF).getTime());
+					obj.put("timestamp", DateUtils.parseMultiformat(rt, DateUtils.DATE_FORMATS_CEF));
 				} catch (java.text.ParseException e) {
 					throw new IllegalStateException("rt field present in CEF but cannot be parsed", e);
 				}

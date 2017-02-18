@@ -129,16 +129,33 @@ public class CEFParserTest extends TestCase {
 		}
 	}
 
-	public void testMissingYearFromDate() throws java.text.ParseException {
-		int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-
-		long correctTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSz")
-				.parse(String.valueOf(currentYear) + "-05-01T09:29:11.356-0400").getTime();
+	private void runMissingYear(Calendar expected, Calendar input) {
+		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss.SSS");
 		for (JSONObject obj : parse(
-				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=May 1 09:29:11.356 -0400 dst=2.1.2.2 spt=1232")) {
-			assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			assertEquals(correctTime, obj.get("timestamp"));
+				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=" + sdf.format(input.getTime())+ " dst=2.1.2.2 spt=1232")) {
+			assertEquals(expected.getTimeInMillis(), obj.get("timestamp"));
+			assertEquals(expected.getTime(), new Date((long) obj.get("timestamp")));
 		}
+	}
+	public void testMissingYearFromDate() throws java.text.ParseException {
+		Calendar current = Calendar.getInstance();
+		Calendar correct = Calendar.getInstance();
+		
+		correct.setTimeInMillis(current.getTimeInMillis());
+		
+		runMissingYear(correct, current);
+	}
+	
+	public void testFourDayFutureBecomesPast() {
+		Calendar current = Calendar.getInstance();
+		Calendar correct = Calendar.getInstance();
+		
+		current.add(Calendar.DAY_OF_MONTH, 5);
+		//correct.setTime(current.getTime());
+		correct.setTimeInMillis(current.getTimeInMillis());
+		correct.add(Calendar.YEAR, -1);
+
+		runMissingYear(correct, current);
 	}
 
 	public void testCEFParserAdallom() throws Exception {
