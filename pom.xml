@@ -60,11 +60,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>Metron-Kraken-Repo</id>
-            <name>Metron Kraken Repository</name>
-            <url>https://raw.github.com/opensoc/kraken/mvn-repo</url>
-        </repository>
     </repositories>
 
     <properties>
@@ -394,6 +389,7 @@
                     <reportSet>
                         <reports>
                             <report>checkstyle</report>
+                            <report>checkstyle-aggregate</report>
                         </reports>
                     </reportSet>
                 </reportSets>
@@ -410,6 +406,14 @@
                         </reports>
                     </reportSet>
                 </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.7</version>
+                <configuration>
+                    <targetJdk>${global_java_version}</targetJdk>
+                </configuration>
             </plugin>
         </plugins>
     </reporting>
