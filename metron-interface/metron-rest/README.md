@@ -514,7 +514,7 @@ scp ./target/metron-rest-$METRON_VERSION-archive.tar.gz root@node1:~/
 ```
 Login to node1 and unarchive the metron-rest application.  Start the application on a different port to avoid conflicting with Ambari:
 ```
-java -jar ./lib/metron-rest-0.3.0.jar --spring.profiles.active=vagrant,dev --server.port=8082
+java -jar ./lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082
 ```
 The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
 
