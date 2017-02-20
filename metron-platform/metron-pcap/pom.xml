@@ -21,6 +21,7 @@
         <version>0.4.0</version>
     </parent>
     <artifactId>metron-pcap</artifactId>
+    <name>metron-pcap</name>
     <description>Metron Pcap</description>
     <properties>
     </properties>

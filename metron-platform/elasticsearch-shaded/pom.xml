@@ -21,6 +21,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elasticsearch-shaded</artifactId>
+    <name>elasticsearch-shaded</name>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>

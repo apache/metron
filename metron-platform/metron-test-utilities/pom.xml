@@ -21,6 +21,7 @@
     <version>0.4.0</version>
   </parent>
   <artifactId>metron-test-utilities</artifactId>
+  <name>metron-test-utilities</name>
   <description>Metron Test Utilities</description>
   <properties>
   </properties>
@@ -159,6 +160,6 @@
 
   <build>
   </build>
-  <reporting>
-  </reporting>
+  <!--<reporting>-->
+  <!--</reporting>-->
 </project>
