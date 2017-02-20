@@ -88,13 +88,27 @@ public class GrokServiceImplTest {
   }
 
   @Test
-  public void validateGrokStatementShouldThrowExceptionWithEmptyStringAsStatement() throws Exception {
+  public void validateGrokStatementShouldThrowExceptionWithNullStringAsPatternLabel() throws Exception {
     exception.expect(RestException.class);
-    exception.expectMessage("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)");
+    exception.expectMessage("Pattern label is required");
 
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");
+    grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
+
+    grokService.validateGrokStatement(grokValidation);
+  }
+
+  @Test
+  public void validateGrokStatementShouldThrowExceptionWithEmptyStringAsStatement() throws Exception {
+    exception.expect(RestException.class);
+    exception.expectMessage("Grok statement is required");
+
+    GrokValidation grokValidation = new GrokValidation();
+    grokValidation.setResults(new HashMap<>());
+    grokValidation.setSampleData("asdf asdf");
+    grokValidation.setPatternLabel("LABEL");
     grokValidation.setStatement("");
 
     grokService.validateGrokStatement(grokValidation);
@@ -103,11 +117,12 @@ public class GrokServiceImplTest {
   @Test
   public void validateGrokStatementShouldThrowExceptionWithNullStringAsStatement() throws Exception {
     exception.expect(RestException.class);
-    exception.expectMessage("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)");
+    exception.expectMessage("Grok statement is required");
 
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");
+    grokValidation.setPatternLabel("LABEL");
     grokValidation.setStatement(null);
 
     grokService.validateGrokStatement(grokValidation);
@@ -119,11 +134,13 @@ public class GrokServiceImplTest {
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");
     grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
+    grokValidation.setPatternLabel("LABEL");
 
     GrokValidation expected = new GrokValidation();
     expected.setResults(new HashMap<String, Object>() {{ put("word1", "asdf"); put("word2", "asdf"); }});
     expected.setSampleData("asdf asdf");
     expected.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
+    expected.setPatternLabel("LABEL");
 
     GrokValidation actual = grokService.validateGrokStatement(grokValidation);
     assertEquals(expected, actual);
@@ -135,11 +152,13 @@ public class GrokServiceImplTest {
     final GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("");
+    grokValidation.setPatternLabel("LABEL");
     grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
 
     GrokValidation expected = new GrokValidation();
     expected.setResults(new HashMap<>());
     expected.setSampleData("");
+    expected.setPatternLabel("LABEL");
     expected.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
 
     assertEquals(expected, grokService.validateGrokStatement(grokValidation));
@@ -151,11 +170,13 @@ public class GrokServiceImplTest {
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData(null);
     grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
+    grokValidation.setPatternLabel("LABEL");
 
     GrokValidation expected = new GrokValidation();
     expected.setResults(new HashMap<>());
     expected.setSampleData(null);
     expected.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
+    expected.setPatternLabel("LABEL");
 
     assertEquals(expected, grokService.validateGrokStatement(grokValidation));
   }

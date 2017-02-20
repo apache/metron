@@ -48,6 +48,7 @@ public class GrokControllerIntegrationTest {
     /**
      {
      "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html",
+     "patternLabel":"SQUID",
      "statement":"SQUID %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}"
      }
      */
@@ -57,11 +58,20 @@ public class GrokControllerIntegrationTest {
     /**
      {
      "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html",
-     "statement":""
+     "statement":"SQUID %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}"
      }
      */
     @Multiline
-    public static String badGrokValidationJson;
+    public static String missingPatternLabelGrokValidationJson;
+
+    /**
+     {
+     "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html",
+     "patternLabel":"SQUID"
+     }
+     */
+    @Multiline
+    public static String missingStatementGrokValidationJson;
 
     @Autowired
     private WebApplicationContext wac;
@@ -101,11 +111,17 @@ public class GrokControllerIntegrationTest {
                 .andExpect(jsonPath("$.results.timestamp").value("1467011157.401"))
                 .andExpect(jsonPath("$.results.url").value("http://www.aliexpress.com/af/shoes.html?"));
 
-        this.mockMvc.perform(post(grokUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(badGrokValidationJson))
+        this.mockMvc.perform(post(grokUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(missingPatternLabelGrokValidationJson))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.responseCode").value(500))
-                .andExpect(jsonPath("$.message").value("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)"));
+                .andExpect(jsonPath("$.message").value("Pattern label is required"));
+
+        this.mockMvc.perform(post(grokUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(missingStatementGrokValidationJson))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+                .andExpect(jsonPath("$.responseCode").value(500))
+                .andExpect(jsonPath("$.message").value("Grok statement is required"));
 
         this.mockMvc.perform(get(grokUrl + "/list").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
