@@ -171,7 +171,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - JSON results
 
 ### `POST /api/v1/hdfs`
-  * Description: Writes contents to an HDFS file
+  * Description: Writes contents to an HDFS file.  Warning: this will overwite the contents of a file if it already exists.
   * Input:
     * path - Path to HDFS file
     * contents - File contents
