@@ -521,14 +521,6 @@ a.blue-label
   text-decoration: none ;
 }
 
-.readonly-view-inline-button {
-  display: inline-block;
-}
-
-.readonly-view-inline-button:not(:last-child) {
-  margin-right: 2px;
-}
-
 .input-placeholder {
   font-size: 11px;
   font-style: italic;

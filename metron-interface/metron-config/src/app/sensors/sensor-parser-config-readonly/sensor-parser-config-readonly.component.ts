@@ -70,9 +70,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     {label: 'REPLICATION FACTOR', model: 'kafkaTopic', value: 'replicationFactor'},
     {type: 'SEPARATOR', model: '', value: ''},
 
-    {type: 'TITLE', model: '', value: 'Grok Statement'},
     {label: '', model: 'grokStatement', value: 'grokPattern'},
-    {type: 'SEPARATOR', model: '', value: ''},
 
     {type: 'TITLE', model: '', value: 'Schema'},
     {label: '', model: 'transforms', value: ''},
@@ -108,8 +106,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.stormService.getStatus(this.selectedSensorName).subscribe(
       (results: TopologyStatus) => {
         this.topologyStatus = results;
-        this.topologyStatus.latency = (this.topologyStatus.latency ? this.topologyStatus.latency : '0') + 's';
-        this.topologyStatus.throughput = (this.topologyStatus.throughput ? (Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) : '0') + 'kb/s';
+        this.topologyStatus.latency = (this.topologyStatus.latency ? (this.topologyStatus.latency + 's') : '-');
+        this.topologyStatus.throughput = (this.topologyStatus.throughput ? ((Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) + 'kb/s')  : '-') ;
 
 
         this.topologyStatus['sensorStatus'] = '-';

@@ -65,15 +65,16 @@ a
   font-family: Roboto-Regular;
 }
 
-.metron-button-bar
+.form-enable-disable-button
 {
-  a
-  {
-    color:#E45D55;
-    text-decoration: none;
-    font-weight: bold;
-    cursor: pointer;
-  }
+  min-width: 50px;
+}
+
+.delete
+{
+  color:#E45D55;
+  font-weight: bold;
+  padding: 0.1rem;
 }
 
 .form-sub-sub-title
@@ -88,4 +89,11 @@ a
   font-size: 16px;
   font-family: Roboto-Regular;
   color: $form-field-text-color;
+}
+
+.start-stop-progress
+{
+  position: absolute;
+  top: 20px;
+  right: 140px;
 }
