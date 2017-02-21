@@ -46,8 +46,6 @@ WINDOW : 'window' | 'windows';
 INCLUDE : 'include' | 'INCLUDE' | 'includes' | 'INCLUDES' | 'including' | 'INCLUDING';
 EXCLUDE : 'exclude' | 'EXCLUDE' | 'excludes' | 'EXCLUDES' | 'excluding' | 'EXCLUDING';
 
-NOW : 'NOW' | 'now';
-
 FROM : 'FROM' | 'from' | 'STARTING FROM' | 'starting from';
 EVERY : 'EVERY' | 'every' | 'FOR EVERY' | 'for every';
 TO : 'TO' | 'to' | 'until' | 'UNTIL';
