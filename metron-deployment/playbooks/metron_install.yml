@@ -65,13 +65,6 @@
   tags:
     - sensor-stubs
 
-- hosts: metron
-  become: true
-  roles:
-    - role: metron-rpms
-  tags:
-    - copy-rpms
-
 #
 # monitor and start metron services with monit
 #

@@ -44,13 +44,13 @@
 
 - name: Copy MPack to Ambari Host
   copy:
-    src: "{{ playbook_dir }}/../packaging/ambari/metron-mpack/target/metron_mpack-1.0.0.0-SNAPSHOT.tar.gz"
+    src: "{{ playbook_dir }}/../packaging/ambari/metron-mpack/target/metron_mpack-0.3.1.0.tar.gz"
     dest: /tmp
 
 - name: Install MPack on Ambari Host
-  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-1.0.0.0-SNAPSHOT.tar.gz
+  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-0.3.1.0.tar.gz
   args:
-    creates: /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-1.0.0.0/addon-services
+    creates: /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-0.3.1.0/addon-services
 
 - name: start ambari server
   service:
