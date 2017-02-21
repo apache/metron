@@ -1,0 +1,67 @@
+{
+	"title": "WAF CEF Schema",
+	"type": "object",
+	"properties": {
+		"ip_src_addr": {
+			"type": "string"
+		},
+		"ip_src_port": {
+			"type": "integer"
+		},
+		"ip_dst_addr": {
+			"type": "string"
+		},
+		"ip_dst_port": {
+			"type": "integer"
+		},
+		"original_string": {
+			"type": "string"
+		},
+		"@version": {
+			"type": "string"
+		},
+		"timestamp": {
+			"type": "integer"
+		},
+		"type": {
+			"type": "string"
+		},
+		"DeviceVendor": {
+			"type": "string"
+		},
+		"DeviceProduct": {
+			"type": "string"
+		},
+		"DeviceVersion": {
+			"type": "string"
+		},
+		"DeviceEvent": {
+			"type": "string"
+		},
+		"Name": {
+			"type": "string"
+		},
+		"Severity": {
+			"type": "integer"
+		},
+		"cat": {
+			"type": "string"
+		},
+		"ServerGroup": {
+			"type": "string"
+		},
+		"ServiceName": {
+			"type": "string"
+		},
+		"ApplicationName": {
+			"type": "string"
+		},
+		"Description": {
+			"type": "string"
+		}
+	},
+	"required": ["ip_src_addr", "ip_dst_addr", "ip_src_port", "ip_dst_port", "original_string", "timestamp", 
+		"DeviceVendor", "DeviceProduct", "DeviceVersion", "Name", "Severity",  
+		"cat", 
+		"ServerGroup", "ServiceName", "ApplicationName", "Description"]
+}
