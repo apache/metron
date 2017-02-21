@@ -46,7 +46,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
-public class StormCliWrapperTest {
+public class StormCLIWrapperTest {
 
   @Rule
   public final ExpectedException exception = ExpectedException.none();

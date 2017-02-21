@@ -24,8 +24,8 @@ import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.rest.model.StellarFunctionDescription;
-import org.apache.metron.rest.model.TransformationValidation;
-import org.apache.metron.rest.service.TransformationService;
+import org.apache.metron.rest.model.SensorParserContext;
+import org.apache.metron.rest.service.StellarService;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class TransformationServiceImpl implements TransformationService {
+public class StellarServiceImpl implements StellarService {
 
     @Override
     public Map<String, Boolean> validateRules(List<String> rules) {
@@ -54,10 +54,10 @@ public class TransformationServiceImpl implements TransformationService {
     }
 
     @Override
-    public Map<String, Object> validateTransformation(TransformationValidation transformationValidation) {
-        JSONObject sampleJson = new JSONObject(transformationValidation.getSampleData());
-        transformationValidation.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
-                    fieldTransformer.transformAndUpdate(sampleJson, transformationValidation.getSensorParserConfig().getParserConfig(), Context.EMPTY_CONTEXT());
+    public Map<String, Object> applyTransformations(SensorParserContext sensorParserContext) {
+        JSONObject sampleJson = new JSONObject(sensorParserContext.getSampleData());
+        sensorParserContext.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
+                    fieldTransformer.transformAndUpdate(sampleJson, sensorParserContext.getSensorParserConfig().getParserConfig(), Context.EMPTY_CONTEXT());
                 }
         );
         return sampleJson;

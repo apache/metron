@@ -18,100 +18,87 @@
 package org.apache.metron.rest.service.impl;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.rest.config.HadoopConfig;
 import org.apache.metron.rest.service.HdfsService;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes={HadoopConfig.class, HdfsServiceImplTest.HdfsServiceTestContextConfiguration.class})
-@ActiveProfiles(TEST_PROFILE)
 public class HdfsServiceImplTest {
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
-    @Configuration
-    @Profile("test")
-    static class HdfsServiceTestContextConfiguration {
+    private Configuration configuration;
+    private HdfsService hdfsService;
+    private String testDir = "./target/hdfsUnitTest";
 
-        @Bean
-        public HdfsService hdfsService() {
-            return new HdfsServiceImpl();
+    @Before
+    public void setup() throws IOException {
+        configuration = new Configuration();
+        hdfsService = new HdfsServiceImpl(configuration);
+        File file = new File(testDir);
+        if (!file.exists()) {
+          file.mkdirs();
         }
+        FileUtils.cleanDirectory(file);
     }
 
-    @Autowired
-    private HdfsService hdfsService;
+    @After
+    public void teardown() throws IOException {
+        File file = new File(testDir);
+        FileUtils.cleanDirectory(file);
+    }
 
     @Test
-    public void test() throws IOException {
-        String rootDir = "./src/test/tmp";
-        File rootFile = new File(rootDir);
-        Path rootPath = new Path(rootDir);
-        if (rootFile.exists()) {
-            FileUtils.cleanDirectory(rootFile);
-            FileUtils.deleteDirectory(rootFile);
-        }
-        assertEquals(true, rootFile.mkdir());
-        String fileName1 = "fileName1";
-        String fileName2 = "fileName2";
-        Path path1 = new Path(rootDir, fileName1);
-        String value1 = "value1";
-        String value2 = "value2";
-        Path path2 = new Path(rootDir, fileName2);
-        String invalidFile = "invalidFile";
-        Path pathInvalidFile = new Path(rootDir, invalidFile);
+    public void listShouldListFiles() throws Exception {
+        FileUtils.writeStringToFile(new File(testDir, "file1.txt"), "value1");
+        FileUtils.writeStringToFile(new File(testDir, "file2.txt"), "value2");
 
-        FileStatus[] fileStatuses = hdfsService.list(new Path(rootDir));
-        assertEquals(0, fileStatuses.length);
+        List<String> paths = hdfsService.list(new Path(testDir));
+        assertEquals(2, paths.size());
+        assertEquals("file1.txt", paths.get(0));
+        assertEquals("file2.txt", paths.get(1));
+    }
 
 
-        hdfsService.write(path1, value1.getBytes());
-        assertEquals(value1, FileUtils.readFileToString(new File(rootDir, fileName1)));
-        assertEquals(value1, new String(hdfsService.read(path1)));
+    @Test
+    public void readShouldProperlyReadContents() throws Exception {
+        String contents = "contents";
+        FileUtils.writeStringToFile(new File(testDir, "readTest.txt"), contents);
 
-        fileStatuses = hdfsService.list(rootPath);
-        assertEquals(1, fileStatuses.length);
-        assertEquals(fileName1, fileStatuses[0].getPath().getName());
+        assertEquals("contents", hdfsService.read(new Path(testDir, "readTest.txt")));
+    }
 
-        hdfsService.write(path2, value2.getBytes());
-        assertEquals(value2, FileUtils.readFileToString(new File(rootDir, fileName2)));
-        assertEquals(value2, new String(hdfsService.read(path2)));
+    @Test
+    public void writeShouldProperlyWriteContents() throws Exception {
+        String contents = "contents";
+        hdfsService.write(new Path(testDir, "writeTest.txt"), contents.getBytes(UTF_8));
 
-        fileStatuses = hdfsService.list(rootPath);
-        assertEquals(2, fileStatuses.length);
-        assertEquals(fileName1, fileStatuses[0].getPath().getName());
-        assertEquals(fileName1, fileStatuses[0].getPath().getName());
+        assertEquals("contents", FileUtils.readFileToString(new File(testDir, "writeTest.txt")));
+    }
 
-        assertEquals(true, hdfsService.delete(path1, false));
-        fileStatuses = hdfsService.list(rootPath);
-        assertEquals(1, fileStatuses.length);
-        assertEquals(fileName2, fileStatuses[0].getPath().getName());
-        assertEquals(true, hdfsService.delete(path2, false));
-        fileStatuses = hdfsService.list(rootPath);
-        assertEquals(0, fileStatuses.length);
+    @Test
+    public void deleteShouldProperlyDeleteFile() throws Exception {
+        String contents = "contents";
+        FileUtils.writeStringToFile(new File(testDir, "deleteTest.txt"), contents);
 
-        try {
-            hdfsService.read(pathInvalidFile);
-            fail("Exception should be thrown when reading invalid file name");
-        } catch(IOException e) {
-        }
-        assertEquals(false, hdfsService.delete(pathInvalidFile, false));
+        List<String> paths = hdfsService.list(new Path(testDir));
+        assertEquals(1, paths.size());
+        assertEquals("deleteTest.txt", paths.get(0));
 
-        FileUtils.deleteDirectory(new File(rootDir));
+        hdfsService.delete(new Path(testDir, "deleteTest.txt"), false);
+
+        paths = hdfsService.list(new Path(testDir));
+        assertEquals(0, paths.size());
     }
 }

@@ -19,44 +19,73 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.HdfsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Service
 public class HdfsServiceImpl implements HdfsService {
 
-    @Autowired
     private Configuration configuration;
 
-    @Override
-    public byte[] read(Path path) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        IOUtils.copyBytes(FileSystem.get(configuration).open(path), byteArrayOutputStream, configuration);
-        return byteArrayOutputStream.toByteArray();
+    @Autowired
+    public HdfsServiceImpl(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
-    public void write(Path path, byte[] contents) throws IOException {
-        FSDataOutputStream fsDataOutputStream = FileSystem.get(configuration).create(path, true);
+    public List<String> list(Path path) throws RestException {
+      try {
+          return Arrays.asList(FileSystem.get(configuration).listStatus(path)).stream().map(fileStatus -> fileStatus.getPath().getName()).collect(Collectors.toList());
+      } catch (IOException e) {
+          throw new RestException(e);
+      }
+    }
+
+    @Override
+    public String read(Path path) throws RestException {
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      try {
+        IOUtils.copyBytes(FileSystem.get(configuration).open(path), byteArrayOutputStream, configuration);
+      } catch (FileNotFoundException e) {
+        return null;
+      } catch (IOException e) {
+        throw new RestException(e);
+      }
+      return new String(byteArrayOutputStream.toByteArray(), UTF_8);
+    }
+
+    @Override
+    public void write(Path path, byte[] contents) throws RestException {
+      FSDataOutputStream fsDataOutputStream;
+      try {
+        fsDataOutputStream = FileSystem.get(configuration).create(path, true);
         fsDataOutputStream.write(contents);
         fsDataOutputStream.close();
+      } catch (IOException e) {
+        throw new RestException(e);
+      }
     }
 
     @Override
-    public FileStatus[] list(Path path) throws IOException {
-        return FileSystem.get(configuration).listStatus(path);
-    }
-
-    @Override
-    public boolean delete(Path path, boolean recursive) throws IOException {
+    public boolean delete(Path path, boolean recursive) throws RestException {
+      try {
         return FileSystem.get(configuration).delete(path, recursive);
+      } catch (IOException e) {
+        throw new RestException(e);
+      }
     }
  }

@@ -20,16 +20,15 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.client.HBaseProfilerClient;
 import org.apache.metron.profiler.client.ProfilerClient;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
@@ -40,16 +39,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.profiler.client.stellar.ProfilerConfig.*;
+import static org.apache.metron.profiler.client.stellar.Util.getArg;
+import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -86,8 +82,7 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
         params={
           "profile - The name of the profile.",
           "entity - The name of the entity.",
-          "durationAgo - How long ago should values be retrieved from?",
-          "units - The units of 'durationAgo'.",
+          "periods - The list of profile periods to grab.  These are ProfilePeriod objects.",
           "groups_list - Optional, must correspond to the 'groupBy' list used in profile creation - List (in square brackets) of "+
                   "groupBy values used to filter the profile. Default is the " +
                   "empty list, meaning groupBy was not used when creating the profile.",
@@ -98,62 +93,7 @@ import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
 )
 public class GetProfile implements StellarFunction {
 
-  /**
-   * A global property that defines the name of the HBase table used to store profile data.
-   */
-  public static final String PROFILER_HBASE_TABLE = "profiler.client.hbase.table";
 
-  /**
-   * A global property that defines the name of the column family used to store profile data.
-   */
-  public static final String PROFILER_COLUMN_FAMILY = "profiler.client.hbase.column.family";
-
-  /**
-   * A global property that defines the name of the HBaseTableProvider implementation class.
-   */
-  public static final String PROFILER_HBASE_TABLE_PROVIDER = "hbase.provider.impl";
-
-  /**
-   * A global property that defines the duration of each profile period.  This value
-   * should be defined along with 'profiler.client.period.duration.units'.
-   */
-  public static final String PROFILER_PERIOD = "profiler.client.period.duration";
-
-  /**
-   * A global property that defines the units of the profile period duration.  This value
-   * should be defined along with 'profiler.client.period.duration'.
-   */
-  public static final String PROFILER_PERIOD_UNITS = "profiler.client.period.duration.units";
-
-  /**
-   * A global property that defines the salt divisor used to store profile data.
-   */
-  public static final String PROFILER_SALT_DIVISOR = "profiler.client.salt.divisor";
-
-  /**
-   * The default Profile HBase table name should none be defined in the global properties.
-   */
-  public static final String PROFILER_HBASE_TABLE_DEFAULT = "profiler";
-
-  /**
-   * The default Profile column family name should none be defined in the global properties.
-   */
-  public static final String PROFILER_COLUMN_FAMILY_DEFAULT = "P";
-
-  /**
-   * The default Profile period duration should none be defined in the global properties.
-   */
-  public static final String PROFILER_PERIOD_DEFAULT = "15";
-
-  /**
-   * The default units of the Profile period should none be defined in the global properties.
-   */
-  public static final String PROFILER_PERIOD_UNITS_DEFAULT = "MINUTES";
-
-  /**
-   * The default salt divisor should none be defined in the global properties.
-   */
-  public static final String PROFILER_SALT_DIVISOR_DEFAULT = "1000";
 
   /**
    * Cached client that can retrieve profile values.
@@ -193,29 +133,27 @@ public class GetProfile implements StellarFunction {
 
     String profile = getArg(0, String.class, args);
     String entity = getArg(1, String.class, args);
-    long durationAgo = getArg(2, Long.class, args);
-    String unitsName = getArg(3, String.class, args);
-    TimeUnit units = TimeUnit.valueOf(unitsName);
+    Optional<List<ProfilePeriod>> periods = Optional.ofNullable(getArg(2, List.class, args));
     //Optional arguments
     @SuppressWarnings("unchecked")
     List<Object> groups = null;
     Map configOverridesMap = null;
-    if (args.size() < 5) {
+    if (args.size() < 4) {
       // no optional args, so default 'groups' and configOverridesMap remains null.
       groups = new ArrayList<>(0);
     }
-    else if (args.get(4) instanceof List) {
+    else if (args.get(3) instanceof List) {
       // correct extensible usage
-      groups = getArg(4, List.class, args);
-      if (args.size() >= 6) {
-        configOverridesMap = getArg(5, Map.class, args);
+      groups = getArg(3, List.class, args);
+      if (args.size() >= 5) {
+        configOverridesMap = getArg(4, Map.class, args);
         if (configOverridesMap.isEmpty()) configOverridesMap = null;
       }
     }
     else {
       // Deprecated "varargs" style usage for groups_list
       // configOverridesMap cannot be specified so it remains null.
-      groups = getGroupsArg(4, args);
+      groups = getGroupsArg(3, args);
     }
 
     Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverridesMap);
@@ -229,83 +167,10 @@ public class GetProfile implements StellarFunction {
       cachedConfigMap = effectiveConfig;
     }
 
-    return client.fetch(Object.class, profile, entity, groups, durationAgo, units);
+    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)));
   }
 
-  /**
-   * Merge the configuration parameter override Map into the config from global context,
-   * and return the result.  This has to be done on each call, because either may have changed.
-   *
-   * Only the six recognized profiler client config parameters may be set,
-   * all other key-value pairs in either Map will be ignored.
-   *
-   * Type violations cause a Stellar ParseException.
-   *
-   * @param context - from which we get the global config Map.
-   * @param configOverridesMap - Map of overrides as described above.
-   * @return effective config Map with overrides applied.
-   * @throws ParseException - if any override values are of wrong type.
-   */
-  private Map<String, Object> getEffectiveConfig(
-              Context context
-              , Map configOverridesMap
-  ) throws ParseException {
 
-    final String[] KEYLIST = {
-            PROFILER_HBASE_TABLE, PROFILER_COLUMN_FAMILY,
-            PROFILER_HBASE_TABLE_PROVIDER, PROFILER_PERIOD,
-            PROFILER_PERIOD_UNITS, PROFILER_SALT_DIVISOR};
-
-    // ensure the required capabilities are defined
-    final Context.Capabilities[] required = { GLOBAL_CONFIG };
-    validateCapabilities(context, required);
-    @SuppressWarnings("unchecked")
-    Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).get();
-
-    Map<String, Object> result = new HashMap<String, Object>(6);
-    Object v;
-
-    // extract the relevant parameters from global
-    for (String k : KEYLIST) {
-      v = global.get(k);
-      if (v != null) result.put(k, v);
-    }
-    if (configOverridesMap == null) return result;
-
-    // extract override values, typechecking as we go
-    try {
-      for (Object key : configOverridesMap.keySet()) {
-        if (!(key instanceof String)) {
-          // Probably unintended user error, so throw an exception rather than ignore
-          throw new ParseException("Non-string key in config_overrides map is not allowed: " + key.toString());
-        }
-        switch ((String) key) {
-          case PROFILER_HBASE_TABLE:
-          case PROFILER_COLUMN_FAMILY:
-          case PROFILER_HBASE_TABLE_PROVIDER:
-          case PROFILER_PERIOD_UNITS:
-            v = configOverridesMap.get(key);
-            v = ConversionUtils.convert(v, String.class);
-            result.put((String) key, v);
-            break;
-          case PROFILER_PERIOD:
-          case PROFILER_SALT_DIVISOR:
-            // be tolerant if the user put a number instead of a string
-            // regardless, validate that it is an integer value
-            v = configOverridesMap.get(key);
-            long vlong = ConversionUtils.convert(v, Long.class);
-            result.put((String) key, String.valueOf(vlong));
-            break;
-          default:
-            LOG.warn("Ignoring unallowed key {} in config_overrides map.", key);
-            break;
-        }
-      }
-    } catch (ClassCastException | NumberFormatException cce) {
-      throw new ParseException("Type violation in config_overrides map values: ", cce);
-    }
-    return result;
-  }
 
   /**
    * Get the groups defined by the user.
@@ -329,40 +194,9 @@ public class GetProfile implements StellarFunction {
     return groups;
   }
 
-  /**
-   * Ensure that the required capabilities are defined.
-   * @param context The context to validate.
-   * @param required The required capabilities.
-   * @throws IllegalStateException if all of the required capabilities are not present in the Context.
-   */
-  private void validateCapabilities(Context context, Context.Capabilities[] required) throws IllegalStateException {
 
-    // collect the name of each missing capability
-    String missing = Stream
-            .of(required)
-            .filter(c -> !context.getCapability(c).isPresent())
-            .map(c -> c.toString())
-            .collect(Collectors.joining(", "));
 
-    if(StringUtils.isNotBlank(missing) || context == null) {
-      throw new IllegalStateException("missing required context: " + missing);
-    }
-  }
 
-  /**
-   * Get an argument from a list of arguments.
-   * @param index The index within the list of arguments.
-   * @param clazz The type expected.
-   * @param args All of the arguments.
-   * @param <T> The type of the argument expected.
-   */
-  private <T> T getArg(int index, Class<T> clazz, List<Object> args) {
-    if(index >= args.size()) {
-      throw new IllegalArgumentException(format("expected at least %d argument(s), found %d", index+1, args.size()));
-    }
-
-    return ConversionUtils.convert(args.get(index), clazz);
-  }
 
   /**
    * Creates the ColumnBuilder to use in accessing the profile data.
@@ -371,7 +205,7 @@ public class GetProfile implements StellarFunction {
   private ColumnBuilder getColumnBuilder(Map<String, Object> global) {
     ColumnBuilder columnBuilder;
 
-    String columnFamily = (String) global.getOrDefault(PROFILER_COLUMN_FAMILY, PROFILER_COLUMN_FAMILY_DEFAULT);
+    String columnFamily = PROFILER_COLUMN_FAMILY.get(global, String.class);
     columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
     return columnBuilder;
@@ -384,18 +218,16 @@ public class GetProfile implements StellarFunction {
   private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
 
     // how long is the profile period?
-    String configuredDuration = (String) global.getOrDefault(PROFILER_PERIOD, PROFILER_PERIOD_DEFAULT);
-    long duration = Long.parseLong(configuredDuration);
+    long duration = PROFILER_PERIOD.get(global, Long.class);
     LOG.debug("profiler client: {}={}", PROFILER_PERIOD, duration);
 
     // which units are used to define the profile period?
-    String configuredUnits = (String) global.getOrDefault(PROFILER_PERIOD_UNITS, PROFILER_PERIOD_UNITS_DEFAULT);
+    String configuredUnits = PROFILER_PERIOD_UNITS.get(global, String.class);
     TimeUnit units = TimeUnit.valueOf(configuredUnits);
     LOG.debug("profiler client: {}={}", PROFILER_PERIOD_UNITS, units);
 
     // what is the salt divisor?
-    String configuredSaltDivisor = (String) global.getOrDefault(PROFILER_SALT_DIVISOR, PROFILER_SALT_DIVISOR_DEFAULT);
-    int saltDivisor = Integer.parseInt(configuredSaltDivisor);
+    Integer saltDivisor = PROFILER_SALT_DIVISOR.get(global, Integer.class);
     LOG.debug("profiler client: {}={}", PROFILER_SALT_DIVISOR, saltDivisor);
 
     return new SaltyRowKeyBuilder(saltDivisor, duration, units);
@@ -408,7 +240,7 @@ public class GetProfile implements StellarFunction {
    */
   private HTableInterface getTable(Map<String, Object> global) {
 
-    String tableName = (String) global.getOrDefault(PROFILER_HBASE_TABLE, PROFILER_HBASE_TABLE_DEFAULT);
+    String tableName = PROFILER_HBASE_TABLE.get(global, String.class);
     TableProvider provider = getTableProvider(global);
 
     try {
@@ -424,7 +256,7 @@ public class GetProfile implements StellarFunction {
    * @param global The global configuration.
    */
   private TableProvider getTableProvider(Map<String, Object> global) {
-    String clazzName = (String) global.getOrDefault(PROFILER_HBASE_TABLE_PROVIDER, HTableProvider.class.getName());
+    String clazzName = PROFILER_HBASE_TABLE_PROVIDER.get(global, String.class);
 
     TableProvider provider;
     try {

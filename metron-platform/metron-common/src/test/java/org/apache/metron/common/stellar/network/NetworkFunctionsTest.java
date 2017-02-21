@@ -82,6 +82,7 @@ public class NetworkFunctionsTest {
 
   @Test
   public void removeTldTest() {
+    runWithArguments("DOMAIN_REMOVE_TLD", "google.com", "google");
     runWithArguments("DOMAIN_REMOVE_TLD", "www.google.co.uk", "www.google");
     runWithArguments("DOMAIN_REMOVE_TLD", "www.google.com", "www.google");
     runWithArguments("DOMAIN_REMOVE_TLD", "com", "");

@@ -8,9 +8,9 @@ In addition, an Ambari Management Pack can be built which can be deployed in con
 ## Prerequisites
 The following tools are required to run these scripts:
 
-- Maven - https://maven.apache.org/
-- Git - https://git-scm.com/
-- Ansible - http://www.ansible.com/ (version 2.0 or greater)
+- [Maven](https://maven.apache.org/)
+- [Git](https://git-scm.com/)
+- [Ansible](http://www.ansible.com/) (version 2.0 or greater)
 
 Currently Metron must be built from source.  Before running these scripts perform the following steps:
 
@@ -86,7 +86,7 @@ Navigate to `incubator-metron/metron-deployment/playbooks` and run:
 A VagrantFile is included and will install a working version of the entire Metron stack.  The following is required to
 run this:
 
-- Vagrant - https://www.vagrantup.com/
+- [Vagrant](https://www.vagrantup.com/)
 - Hostmanager plugin for vagrant - Run `vagrant plugin install vagrant-hostmanager` on the machine where Vagrant is
 installed
 
@@ -106,7 +106,7 @@ This will set up
 
 ### Prerequisites
 - A cluster managed by Ambari 2.4
-- Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#RPM) for further information.
+- Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
 
 ### Building Management Pack
 From `metron-deployment` run
@@ -129,11 +129,11 @@ The Indexing / Parsers/ Enrichment masters should be colocated with a Kafka Brok
 This colocation is currently not enforced by Ambari, and should be managed by either a Service or Stack advisor as an enhancement.
 
 Several configuration parameters will need to be filled in, and should be pretty self explanatory (primarily a couple of Elasticsearch configs, and the Storm REST URL).  Examples are provided in the descriptions on Ambari.
-Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file://` location
+Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file:///` location
 
 After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
 
-Another custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing README.md](../metron-platform/metron-indexing/README.md)
+Another custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../metron-platform/metron-indexing)
 
 #### Offline installation
 Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information.

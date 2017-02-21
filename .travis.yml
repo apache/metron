@@ -2,9 +2,14 @@ install: true
 language: java
 jdk:
   - oraclejdk8
+before_install:
+  - wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
+  - unzip -qq apache-maven-3.3.9-bin.zip
+  - export M2_HOME=$PWD/apache-maven-3.3.9
+  - export PATH=$M2_HOME/bin:$PATH
 script:
   - |
-    mvn -q integration-test install && build_utils/verify_licenses.sh
+    time mvn -q -T 2C -DskipTests install && time mvn -q -T 2C surefire:test@unit-tests && mvn -q surefire:test@integration-tests  && time build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2

@@ -123,8 +123,26 @@ The `triageConfig` field is also a complex field and it bears some description:
 
 | Field            | Description                                                                                                                                             | Example                                                                  |
 |------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| `riskLevelRules` | The mapping of Stellar (see above) queries to a score.                                                                                                  | `"riskLevelRules" : { "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')" : 10 }` |
+| `riskLevelRules` | This is a list of rules (represented as Stellar expressions) associated with scores with optional names and comments                                    |  see below|
 | `aggregator`     | An aggregation function that takes all non-zero scores representing the matching queries from `riskLevelRules` and aggregates them into a single score. | `"MAX"`                                                                  |
+
+A risk level rule is of the following format:
+* `name` : The name of the threat triage rule
+* `comment` : A comment describing the rule
+* `rule` : The rule, represented as a Stellar statement
+* `score` : Associated threat triage score for the rule
+
+An example of a rule is as follows:
+```
+    "riskLevelRules" : [ 
+        { 
+          "name" : "is internal"
+        , "comment" : "determines if the destination is internal."
+        , rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')"
+        , "score" : 10 
+        }
+                       ]
+```
 
 The supported aggregation functions are:
 * `MAX` : The max of all of the associated values for matching queries
@@ -177,9 +195,12 @@ An example configuration for the YAF sensor is as follows:
       ]
     },
     "triageConfig" : {
-      "riskLevelRules" : {
-        "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'" : 10
-      },
+      "riskLevelRules" : [ 
+        {
+          "rule" : "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'",
+          "score" : 10
+        }
+      ],
       "aggregator" : "MAX"
     }
   }

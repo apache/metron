@@ -19,16 +19,16 @@ package org.apache.metron.rest.service;
 
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.rest.model.StellarFunctionDescription;
-import org.apache.metron.rest.model.TransformationValidation;
+import org.apache.metron.rest.model.SensorParserContext;
 
 import java.util.List;
 import java.util.Map;
 
-public interface TransformationService {
+public interface StellarService {
 
     Map<String, Boolean> validateRules(List<String> rules);
 
-    Map<String, Object> validateTransformation(TransformationValidation transformationValidation);
+    Map<String, Object> applyTransformations(SensorParserContext sensorParserContext);
 
     FieldTransformations[] getTransformations();
 

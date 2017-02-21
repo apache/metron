@@ -36,10 +36,7 @@ import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,21 +46,21 @@ import java.util.logging.Level;
 
 public class LeastRecentlyUsedPrunerIntegrationTest {
     /** The test util. */
-    private HBaseTestingUtility testUtil;
+    private static HBaseTestingUtility testUtil;
 
     /** The test table. */
-    private HTable testTable;
-    private HTable atTable;
-    private String tableName = "malicious_domains";
-    private String cf = "cf";
-    private String atTableName = "access_trackers";
-    private String atCF= "cf";
-    private String beginTime = "04/14/2016 12:00:00";
-    private String timeFormat = "georgia";
-    private Configuration config = null;
+    private static HTable testTable;
+    private static HTable atTable;
+    private static final String tableName = "malicious_domains";
+    private static final String cf = "cf";
+    private static final String atTableName = "access_trackers";
+    private static final String atCF= "cf";
+    private static final String beginTime = "04/14/2016 12:00:00";
+    private static final String timeFormat = "georgia";
+    private static Configuration config = null;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeClass
+    public static void setup() throws Exception {
         UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
         Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
         config = kv.getValue();
@@ -71,10 +68,12 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
         atTable = testUtil.createTable(Bytes.toBytes(atTableName), Bytes.toBytes(atCF));
     }
-    @After
-    public void teardown() throws Exception {
+
+    @AfterClass
+    public static void teardown() throws Exception {
         HBaseUtil.INSTANCE.teardown(testUtil);
     }
+
     public List<LookupKey> getKeys(int start, int end) {
         List<LookupKey> keys = new ArrayList<>();
         for(int i = start;i < end;++i) {

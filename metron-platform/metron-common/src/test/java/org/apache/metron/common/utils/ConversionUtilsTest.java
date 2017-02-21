@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class ConversionUtilsTest {
+
   @Test
   public void testIntegerConversions() {
     Object o = 1;
@@ -29,4 +30,5 @@ public class ConversionUtilsTest {
     Assert.assertEquals(Integer.valueOf(1), ConversionUtils.convert("1", Integer.class));
     Assert.assertNull(ConversionUtils.convert("foo", Integer.class));
   }
+
 }

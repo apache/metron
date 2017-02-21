@@ -61,20 +61,21 @@ public class GrokServiceImpl implements GrokService {
     public GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException {
         Map<String, Object> results;
         try {
-            String statement = Strings.isEmpty(grokValidation.getStatement()) ? "" : grokValidation.getStatement();
-
+            if (grokValidation.getPatternLabel() == null) {
+              throw new RestException("Pattern label is required");
+            }
+            if (Strings.isEmpty(grokValidation.getStatement())) {
+              throw new RestException("Grok statement is required");
+            }
             Grok grok = new Grok();
             grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
-            grok.addPatternFromReader(new StringReader(statement));
-            String patternLabel = statement.substring(0, statement.indexOf(" "));
-            String grokPattern = "%{" + patternLabel + "}";
+            grok.addPatternFromReader(new StringReader(grokValidation.getStatement()));
+            String grokPattern = "%{" + grokValidation.getPatternLabel() + "}";
             grok.compile(grokPattern);
             Match gm = grok.match(grokValidation.getSampleData());
             gm.captures();
             results = gm.toMap();
-            results.remove(patternLabel);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new RestException("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)", e.getCause());
+            results.remove(grokValidation.getPatternLabel());
         } catch (Exception e) {
             throw new RestException(e);
         }
