@@ -7,6 +7,9 @@ import {GrokValidationService} from '../../service/grok-validation.service';
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
 import {AutocompleteGrokStatement} from '../../shared/autocomplete/autocomplete-grok-statement';
+import {MetronAlerts} from "../../shared/metron-alerts";
+import {HdfsService} from "../../service/hdfs.service";
+import {RestError} from "../../model/rest-error";
 
 @Component({
   selector: 'metron-config-sensor-grok',
@@ -17,20 +20,21 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   @Input() showGrok; boolean;
   @Input() sensorParserConfig: SensorParserConfig;
-  @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
+  @Input() grokStatement: string;
 
   @Output() hideGrok = new EventEmitter<void>();
+  @Output() onSaveGrokStatement = new EventEmitter<string>();
 
   @ViewChild(SampleDataComponent) sampleData: SampleDataComponent;
 
+  newGrokStatement = '';
   parsedMessage: any = {};
-  grokStatement: string = '';
   parsedMessageKeys: string[] = [];
   grokFunctionList: AutocompleteOption[] = [];
   autocompleteStatementGenerator = new AutocompleteGrokStatement();
   parseMessageRequest: ParseMessageRequest = new ParseMessageRequest();
 
-  constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService) {
+  constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService, private metronAlerts: MetronAlerts, private hdfsService: HdfsService) {
     this.parseMessageRequest.sampleData = '';
   }
 
@@ -40,11 +44,8 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showGrok'] && changes['showGrok'].currentValue) {
+      this.newGrokStatement = this.grokStatement;
       this.sampleData.getNextSample();
-      this.prepareGrokStatement();
-    }
-    if (changes['sensorParserConfig'] && changes['sensorParserConfig'].currentValue) {
-      this.prepareGrokStatement();
     }
   }
 
@@ -56,12 +57,12 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   onTestGrokStatement() {
     this.parsedMessage = {};
 
-    if (this.grokStatement.length === 0) {
+    if (this.newGrokStatement.length === 0) {
       return;
     }
 
     this.parseMessageRequest.sensorParserConfig = JSON.parse(JSON.stringify(this.sensorParserConfig));
-    this.parseMessageRequest.sensorParserConfig.parserConfig['grokStatement'] = this.grokStatement;
+    this.parseMessageRequest.grokStatement = this.newGrokStatement;
     if (this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] == null) {
       this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] =
           this.parseMessageRequest.sensorParserConfig.sensorTopic.toUpperCase();
@@ -73,20 +74,9 @@ export class SensorGrokComponent implements OnInit, OnChanges {
           this.parsedMessage = result;
           this.setParsedMessageKeys();
         }, error => {
-          this.parsedMessage = JSON.parse(error._body);
+          this.metronAlerts.showErrorMessage(error.message);
           this.setParsedMessageKeys();
         });
-  }
-
-  prepareGrokStatement(): void {
-    this.grokStatement = '';
-    if (this.sensorParserConfig.parserConfig['grokStatement']) {
-      this.grokStatement = this.sensorParserConfig.parserConfig['grokStatement'];
-      let indexOfExpresion = this.grokStatement.indexOf('%{');
-      if (indexOfExpresion > 0) {
-        this.grokStatement = this.grokStatement.substr(indexOfExpresion);
-      }
-    }
   }
 
   private getGrokFunctions() {
@@ -108,8 +98,8 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   }
 
   onSaveGrok(): void {
-    this.showGrok = false;
-    this.sensorParserConfig.parserConfig['grokStatement'] = this.grokStatement;
+    //this.showGrok = false;
+    this.onSaveGrokStatement.emit(this.newGrokStatement);
     this.hideGrok.emit();
   }
 

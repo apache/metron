@@ -21,7 +21,7 @@ import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {Router, ActivatedRoute} from '@angular/router';
 import {MetronAlerts} from '../../shared/metron-alerts';
-import {TransformationValidation} from '../../model/transformation-validation';
+import {SensorParserContext} from '../../model/sensor-parser-context';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
@@ -30,6 +30,9 @@ import {HttpUtil} from '../../util/httpUtil';
 import {KafkaService} from '../../service/kafka.service';
 import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
 import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
+import {RestError} from "../../model/rest-error";
+import {HdfsService} from "../../service/hdfs.service";
+import {GrokValidationService} from "../../service/grok-validation.service";
 
 export enum Pane {
   GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE
@@ -67,13 +70,14 @@ export class SensorParserConfigComponent implements OnInit {
   grokStatementValid = false;
   availableParsers = {};
   availableParserNames = [];
+  grokStatement = '';
 
   editMode: boolean = false;
 
   topicExists: boolean = false;
 
   transformsValidationResult: {map: any, keys: string[]} = {map: {}, keys: []};
-  transformsValidation: TransformationValidation = new TransformationValidation();
+  transformsValidation: SensorParserContext = new SensorParserContext();
 
   pane = Pane;
   openPane: Pane = null;
@@ -86,8 +90,8 @@ export class SensorParserConfigComponent implements OnInit {
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private metronAlerts: MetronAlerts,
               private sensorEnrichmentConfigService: SensorEnrichmentConfigService, private route: ActivatedRoute,
-              private sensorIndexingConfigService: SensorIndexingConfigService,
-              private router: Router, private kafkaService: KafkaService) {
+              private sensorIndexingConfigService: SensorIndexingConfigService, private grokValidationService: GrokValidationService,
+              private router: Router, private kafkaService: KafkaService, private hdfsService: HdfsService) {
     this.sensorParserConfig.parserConfig = {};
   }
 
@@ -96,21 +100,41 @@ export class SensorParserConfigComponent implements OnInit {
     if (id !== 'new') {
       this.editMode = true;
       this.sensorIndexingConfig.index = id;
-
       this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
         this.sensorParserConfig = results;
         this.getKafkaStatus();
         if (Object.keys(this.sensorParserConfig.parserConfig).length > 0) {
           this.showAdvancedParserConfiguration = true;
         }
-      });
+        if (this.isGrokParser(this.sensorParserConfig)) {
+          let path = this.sensorParserConfig.parserConfig['grokPath'];
+          if (path) {
+            this.hdfsService.read(path).subscribe(contents => {
+              this.grokStatement = contents;
+            }, (error: RestError) => {
+              this.grokValidationService.getStatement(path).subscribe(contents => {
+                this.grokStatement = contents;
+              }, (error: RestError) => {
+                this.metronAlerts.showErrorMessage('Could not find grok statement in HDFS or classpath at ' + path);
+              });
+          })
+        }
+      }});
 
       this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
         this.sensorEnrichmentConfig = result;
+      }, (error: RestError) => {
+        if (error.responseCode != 404) {
+          this.metronAlerts.showErrorMessage(error.message);
+        }
       });
 
       this.sensorIndexingConfigService.get(id).subscribe((result: SensorIndexingConfig) => {
             this.sensorIndexingConfig = result;
+      }, (error: RestError) => {
+        if (error.responseCode != 404) {
+          this.metronAlerts.showErrorMessage(error.message);
+        }
       });
     } else {
       this.sensorParserConfig = new SensorParserConfig();
@@ -131,7 +155,7 @@ export class SensorParserConfigComponent implements OnInit {
 
     group['sensorTopic'] = new FormControl(this.sensorParserConfig.sensorTopic, Validators.required);
     group['parserClassName'] = new FormControl(this.sensorParserConfig.parserClassName, Validators.required);
-    group['grokStatement'] = new FormControl(this.sensorParserConfig.parserConfig['grokStatement']);
+    group['grokStatement'] = new FormControl(this.grokStatement);
     group['transforms'] = new FormControl(this.sensorParserConfig['transforms']);
     group['stellar'] = new FormControl(this.sensorParserConfig);
     group['threatTriage'] = new FormControl(this.sensorEnrichmentConfig);
@@ -187,7 +211,7 @@ export class SensorParserConfigComponent implements OnInit {
     this.parserClassValid = this.sensorParserConfig.parserClassName !== undefined &&
         this.sensorParserConfig.parserClassName.length > 0;
     if (this.parserClassValid) {
-      if (this.isGrokParser()) {
+      if (this.isGrokParser(this.sensorParserConfig)) {
         if (!this.sensorParserConfig.parserConfig['patternLabel']) {
           this.sensorParserConfig.parserConfig['patternLabel'] = this.sensorParserConfig.sensorTopic.toUpperCase();
         }
@@ -199,13 +223,13 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onGrokStatementChange(): void {
-    this.grokStatementValid = this.sensorParserConfig.parserConfig['grokStatement'] !== undefined &&
-        this.sensorParserConfig.parserConfig['grokStatement'].length > 0;
+    this.grokStatementValid = this.grokStatement !== undefined &&
+        this.grokStatement.length > 0;
     this.isConfigValid();
   }
 
   isConfigValid() {
-    let isGrokParser = this.isGrokParser();
+    let isGrokParser = this.isGrokParser(this.sensorParserConfig);
     this.configValid = this.sensorNameValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
   }
 
@@ -246,6 +270,10 @@ export class SensorParserConfigComponent implements OnInit {
     this.router.navigateByUrl('/sensors');
   }
 
+  onSaveGrokStatement(grokStatement: string) {
+    this.grokStatement = grokStatement;
+  }
+
   onSave() {
     let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
     sensorParserConfigSave.parserConfig = {};
@@ -256,6 +284,10 @@ export class SensorParserConfigComponent implements OnInit {
 
     this.sensorParserConfigService.post(sensorParserConfigSave).subscribe(
       sensorParserConfig => {
+        if (this.isGrokParser(sensorParserConfig)) {
+            this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
+                response => {}, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
+        }
         this.sensorEnrichmentConfigService.post(sensorParserConfig.sensorTopic, this.sensorEnrichmentConfig).subscribe(
             (sensorEnrichmentConfig: SensorEnrichmentConfig) => {
               this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
@@ -272,8 +304,8 @@ export class SensorParserConfigComponent implements OnInit {
       });
   }
 
-  isGrokParser(): boolean {
-    return this.sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
+  isGrokParser(sensorParserConfig: SensorParserConfig): boolean {
+    return sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
   }
 
   getTransformationCount(): number {

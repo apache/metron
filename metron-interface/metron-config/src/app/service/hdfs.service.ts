@@ -16,40 +16,48 @@
  * limitations under the License.
  */
 import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, URLSearchParams} from '@angular/http';
+import {Http, Headers, RequestOptions, Response, URLSearchParams} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import {GrokValidation} from '../model/grok-validation';
 import {HttpUtil} from '../util/httpUtil';
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
 
 @Injectable()
-export class GrokValidationService {
-  url = this.config.apiEndpoint + '/grok';
+export class HdfsService {
+  url = this.config.apiEndpoint + '/hdfs';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-
   }
 
-  public validate(grokValidation: GrokValidation): Observable<GrokValidation> {
-    return this.http.post(this.url + '/validate', JSON.stringify(grokValidation),
-      new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
-  }
-
-  public list(): Observable<string[]> {
-    return this.http.get(this.url + '/list', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .catch(HttpUtil.handleError);
-  }
-
-  public getStatement(path: string): Observable<string> {
+  public list(path: string): Observable<string[]> {
     let params: URLSearchParams = new URLSearchParams();
     params.set('path', path);
-    return this.http.get(this.url + '/get/statement', new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
+    return this.http.get(this.url + '/list', new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
+      .map(HttpUtil.extractData)
+      .catch(HttpUtil.handleError);
+  }
+
+  public read(path: string): Observable<string> {
+    let params: URLSearchParams = new URLSearchParams();
+    params.set('path', path);
+    return this.http.get(this.url , new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
+      .map(HttpUtil.extractString)
+      .catch(HttpUtil.handleError);
+  }
+
+  public post(path: string, contents: string): Observable<{}> {
+    let params: URLSearchParams = new URLSearchParams();
+    params.set('path', path);
+    return this.http.post(this.url, contents, new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
         .map(HttpUtil.extractString)
+        .catch(HttpUtil.handleError);
+  }
+
+  public deleteFile(path: string): Observable<Response> {
+    let params: URLSearchParams = new URLSearchParams();
+    params.set('path', path);
+    return this.http.delete(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
         .catch(HttpUtil.handleError);
   }
 

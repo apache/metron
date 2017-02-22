@@ -17,21 +17,21 @@
  */
 import {async, inject, TestBed} from '@angular/core/testing';
 import {MockBackend, MockConnection} from '@angular/http/testing';
-import {TransformationValidationService} from './transformation-validation.service';
-import {TransformationValidation} from '../model/transformation-validation';
+import {StellarService} from './stellar.service';
+import {SensorParserContext} from '../model/sensor-parser-context';
 import {SensorParserConfig} from '../model/sensor-parser-config';
 import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
 import '../rxjs-operators';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
 import {IAppConfig} from '../app.config.interface';
 
-describe('TransformationValidationService', () => {
+describe('StellarService', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [HttpModule],
       providers: [
-        TransformationValidationService,
+        StellarService,
         {provide: XHRBackend, useClass: MockBackend},
         {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
       ]
@@ -40,14 +40,14 @@ describe('TransformationValidationService', () => {
   }));
 
   it('can instantiate service when inject service',
-    inject([TransformationValidationService], (service: TransformationValidationService) => {
-      expect(service instanceof TransformationValidationService).toBe(true);
+    inject([StellarService], (service: StellarService) => {
+      expect(service instanceof StellarService).toBe(true);
     }));
 
   it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
     expect(http).not.toBeNull('http should be provided');
-    let service = new TransformationValidationService(http, config);
-    expect(service instanceof TransformationValidationService).toBe(true, 'new service should be ok');
+    let service = new StellarService(http, config);
+    expect(service instanceof StellarService).toBe(true, 'new service should be ok');
   }));
 
 
@@ -57,11 +57,11 @@ describe('TransformationValidationService', () => {
     }));
 
   describe('when service functions', () => {
-    let transformationValidationService: TransformationValidationService;
+    let transformationValidationService: StellarService;
     let mockBackend: MockBackend;
     let transformationRules = ['rule1', 'rule2'];
     let transformationRulesValidation = {rule1: true, rule2: false};
-    let transformationValidation = new TransformationValidation();
+    let transformationValidation = new SensorParserContext();
     transformationValidation.sampleData = {'data': 'data'};
     transformationValidation.sensorParserConfig = new SensorParserConfig();
     transformationValidation.sensorParserConfig.sensorTopic = 'test';
@@ -76,7 +76,7 @@ describe('TransformationValidationService', () => {
 
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
-      transformationValidationService = new TransformationValidationService(http, config);
+      transformationValidationService = new StellarService(http, config);
       transformationRulesValidationResponse = new Response(new ResponseOptions({
         status: 200,
         body: transformationRulesValidation

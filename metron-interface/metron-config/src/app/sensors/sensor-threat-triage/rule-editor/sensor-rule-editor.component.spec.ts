@@ -20,6 +20,7 @@ import {async, TestBed, ComponentFixture} from '@angular/core/testing';
 import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
 import {SharedModule} from '../../../shared/shared.module';
 import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
+import {RiskLevelRule} from "../../../model/risk-level-rule";
 
 describe('Component: SensorRuleEditorComponent', () => {
 
@@ -45,24 +46,26 @@ describe('Component: SensorRuleEditorComponent', () => {
     });
 
     it('should edit rules', async(() => {
-        component.value =  'initial rule';
-        component.score = 1;
         let numCancelled = 0;
-        let savedRule = {};
+        let savedRule = new RiskLevelRule();
         component.onCancelTextEditor.subscribe((cancelled: boolean) => {
           numCancelled++;
         });
-        component.onSubmitTextEditor.subscribe((rule: {string: number}) => {
+        component.onSubmitTextEditor.subscribe((rule: RiskLevelRule) => {
           savedRule = rule;
         });
 
+        component.riskLevelRule =  {name:'rule1', rule:'initial rule', score:1, comment:''};
+        component.ngOnInit();
         component.onSave();
-        expect(savedRule).toEqual({'initial rule': 1});
+        let rule1 = Object.assign(new RiskLevelRule(), {name:'rule1', rule:'initial rule', score:1, comment:''});
+        expect(savedRule).toEqual(rule1);
 
-        component.value =  'new rule';
-        component.score = 2;
+        component.riskLevelRule = {name:'rule2', rule:'new rule', score:2, comment:''};
+        component.ngOnInit();
         component.onSave();
-        expect(savedRule).toEqual({'new rule': 2});
+        let rule2 = Object.assign(new RiskLevelRule(), {name:'rule2', rule:'new rule', score:2, comment:''});
+        expect(savedRule).toEqual(rule2);
 
         expect(numCancelled).toEqual(0);
         component.onCancel();

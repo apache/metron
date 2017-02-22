@@ -37,6 +37,8 @@ import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {IAppConfig} from '../../app.config.interface';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+import {HdfsService} from "../../service/hdfs.service";
+import {GrokValidationService} from "../../service/grok-validation.service";
 
 class MockRouter {
 
@@ -123,6 +125,27 @@ class MockStormService extends StormService {
   }
 }
 
+class MockGrokValidationService extends GrokValidationService {
+
+  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
+    super(http2, config2);
+  }
+
+  public list(): Observable<string[]> {
+    return Observable.create(observer => {
+      observer.next({
+        'BASE10NUM': '(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))',
+        'BASE16FLOAT': '\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b',
+        'BASE16NUM': '(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))',
+        'CISCOMAC': '(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})',
+        'COMMONMAC': '(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})',
+        'DATA': '.*?'
+      });
+      observer.complete();
+    });
+  }
+}
+
 class MockKafkaService extends KafkaService {
 
   private kafkaTopic: KafkaTopic;
@@ -145,6 +168,53 @@ class MockKafkaService extends KafkaService {
   public sample(name: string): Observable<string> {
     return Observable.create(observer => {
       observer.next(JSON.stringify({'data': 'data1', 'data2': 'data3'}));
+      observer.complete();
+    });
+  }
+}
+
+class MockHdfsService extends HdfsService {
+  private fileList: string[];
+  private contents: string;
+
+  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
+    super(http2, config2);
+  }
+
+  public setContents(contents: string) {
+    this.contents = contents;
+  }
+
+  public list(path: string): Observable<string[]> {
+    if (this.fileList === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      observer.next(this.fileList);
+      observer.complete();
+    });
+  }
+
+  public read(path: string): Observable<string> {
+    if (this.contents === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      observer.next(this.contents);
+      observer.complete();
+    });
+  }
+
+  public post(contents: string): Observable<{}> {
+    return Observable.create(observer => {
+      observer.next({});
+      observer.complete();
+    });
+  }
+
+  public deleteFile(path: string): Observable<Response> {
+    return Observable.create(observer => {
+      observer.next({});
       observer.complete();
     });
   }
@@ -180,6 +250,8 @@ describe('Component: SensorParserConfigReadonly', () => {
   let sensorEnrichmentConfigService: MockSensorEnrichmentConfigService;
   let sensorParserConfigService: SensorParserConfigService;
   let kafkaService: MockKafkaService;
+  let hdfsService: MockHdfsService;
+  let grokValidationService: MockGrokValidationService;
   let stormService: MockStormService;
   let alerts: MetronAlerts;
   let authenticationService: AuthenticationService;
@@ -199,6 +271,8 @@ describe('Component: SensorParserConfigReadonly', () => {
         {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
         {provide: StormService, useClass: MockStormService},
         {provide: KafkaService, useClass: MockKafkaService},
+        {provide: HdfsService, userClass: MockHdfsService},
+        {provide: GrokValidationService, userClass: MockGrokValidationService},
         {provide: Router, useClass: MockRouter},
         {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
         MetronAlerts
@@ -214,6 +288,8 @@ describe('Component: SensorParserConfigReadonly', () => {
         sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
         stormService = fixture.debugElement.injector.get(StormService);
         kafkaService = fixture.debugElement.injector.get(KafkaService);
+        hdfsService = fixture.debugElement.injector.get(HdfsService);
+        grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
         router = fixture.debugElement.injector.get(Router);
         alerts = fixture.debugElement.injector.get(MetronAlerts);
       });
@@ -438,7 +514,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
 
     expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
-    expect(component.aggregationConfigKeys).toEqual(expected);
+    expect(component.rules).toEqual(expected);
   }));
 
   let setDataForSensorOperation = function () {

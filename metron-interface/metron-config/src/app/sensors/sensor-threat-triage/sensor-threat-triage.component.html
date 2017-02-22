@@ -13,7 +13,7 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<metron-config-sensor-rule-editor *ngIf="showTextEditor" [value]="textEditorValue" [score]="textEditorScore"
+<metron-config-sensor-rule-editor *ngIf="showTextEditor" [riskLevelRule]="currentRiskLevelRule"
                                   (onCancelTextEditor)="onCancelTextEditor()"
                                   (onSubmitTextEditor)="onSubmitTextEditor($event)"></metron-config-sensor-rule-editor>
 
@@ -60,21 +60,21 @@
             </div>
         </div>
         <div class="form-group threat-triage-rules-list">
-            <div *ngFor="let rule of rules">
+            <div *ngFor="let riskLevelRule of this.visibleRules">
                 <div class="row mx-0 py-0">
-                    <div class="threat-triage-rule-row" style="color: khaki; font-size: 30px; margin-top: -7px" [style.color]="getRuleColor(rule)">
+                    <div class="threat-triage-rule-row" style="color: khaki; font-size: 30px; margin-top: -7px" [style.color]="getRuleColor(riskLevelRule)">
                         <b>I</b>
                     </div>
                     <div class="threat-triage-rule-row" style="font-size: small; width: 8%">
-                        {{ sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] }}
+                        {{ riskLevelRule.score }}
                     </div>
                     <div class="threat-triage-rule-row" style="width: 64%; padding-right: 10px; font-size: small">
-                        {{ rule }}
+                        {{ getDisplayName(riskLevelRule) }}
                     </div>
                     <div class="threat-triage-rule-row" style=""><i class="fa fa-i-cursor" aria-hidden="true"
-                                                                        style="cursor: pointer;" (click)="onEditRule(rule)"></i></div>
+                                                                        style="cursor: pointer;" (click)="onEditRule(riskLevelRule)"></i></div>
 
-                    <div class="threat-triage-rule-row" style=""><i  class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteRule(rule)" style="cursor: pointer"></i></div>
+                    <div class="threat-triage-rule-row" style=""><i  class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteRule(riskLevelRule)" style="cursor: pointer"></i></div>
                 </div>
                 <div class="form-seperator-edit"></div>
             </div>

@@ -18,15 +18,15 @@
 import {Injectable, Inject} from '@angular/core';
 import {Http, Headers, RequestOptions} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import {TransformationValidation} from '../model/transformation-validation';
+import {SensorParserContext} from '../model/sensor-parser-context';
 import {HttpUtil} from '../util/httpUtil';
 import {StellarFunctionDescription} from '../model/stellar-function-description';
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
 
 @Injectable()
-export class TransformationValidationService {
-  url = this.config.apiEndpoint + '/transformation';
+export class StellarService {
+  url = this.config.apiEndpoint + '/stellar';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
@@ -40,7 +40,7 @@ export class TransformationValidationService {
       .catch(HttpUtil.handleError);
   }
 
-  public validate(transformationValidation: TransformationValidation): Observable<{}> {
+  public validate(transformationValidation: SensorParserContext): Observable<{}> {
     return this.http.post(this.url + '/validate', JSON.stringify(transformationValidation),
       new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)

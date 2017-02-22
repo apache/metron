@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SensorParserConfig} from './sensor-parser-config';
-export class TransformationValidation {
-  sampleData: any;
-  sensorParserConfig: SensorParserConfig;
+export class RiskLevelRule {
+  name: string = '';
+  comment: string = '';
+  rule: string = '';
+  score: number = 0;
 }
