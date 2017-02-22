@@ -73,8 +73,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
-    String hdfsFile = (String) getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE);
-    GeoLiteDatabase.INSTANCE.update(hdfsFile);
     this.collector = collector;
     initializeStellar();
     if(getSensorParserConfig() != null && filter == null) {
