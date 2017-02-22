@@ -122,6 +122,7 @@ The `!=` operator is the negation of the above.
 | [ `MONTH`](#month)                                                                                 |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                     |
+| [ `PROFILE_WINDOW`](#profile_window)                                                                     |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
@@ -449,6 +450,14 @@ The `!=` operator is the negation of the above.
     * units - The units of 'durationAgo'.
     * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
   * Returns: The selected profile measurement timestamps.  These are ProfilePeriod objects.
+
+### `PROFILE_WINDOW`
+  * Description: The profiler periods associated with a window selector statement from an optional reference timestamp.
+  * Input:
+    * windowSelector - The statement specifying the window to select.
+    * now - Optional - The timestamp to use for now.
+    * config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+  * Returns: The selected profile measurement periods.  These are ProfilePeriod objects.
 
 ### `PROTOCOL_TO_NAME`
   * Description: Converts the IANA protocol number to the protocol name

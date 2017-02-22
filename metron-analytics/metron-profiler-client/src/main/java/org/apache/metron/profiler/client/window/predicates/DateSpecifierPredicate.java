@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * An inclusion/exclusion specifier which matches against a specific date.
+ * The default format is yyyy/MM/dd
+ */
 public class DateSpecifierPredicate implements Predicate<Long> {
   final static ThreadLocal<SimpleDateFormat> FORMAT = new ThreadLocal<SimpleDateFormat>() {
 
@@ -37,13 +41,19 @@ public class DateSpecifierPredicate implements Predicate<Long> {
     }
   };
   Date date;
+
+  /**
+   * Create a predicate given a date and (optionally) a format.  If no format is specified, it is assumed to be
+   * yyyy/MM/dd
+   * @param args
+   */
   public DateSpecifierPredicate(List<String> args) {
     if(args.size() == 1) {
       //just the date, use the default.
       try {
         date = FORMAT.get().parse(args.get(0));
       } catch (ParseException e) {
-        throw new IllegalStateException("Unable to parse " + args.get(0) + " as a date using " + FORMAT.get().toPattern());
+        throw new IllegalStateException("Unable to process " + args.get(0) + " as a date using " + FORMAT.get().toPattern());
       }
     }
     else if(args.size() == 0){
@@ -55,11 +65,16 @@ public class DateSpecifierPredicate implements Predicate<Long> {
       try {
         date = new SimpleDateFormat(format).parse(dateStr);
       } catch (ParseException e) {
-        throw new IllegalStateException("Unable to parse " + dateStr + " as a date using " + format);
+        throw new IllegalStateException("Unable to process " + dateStr + " as a date using " + format);
       }
     }
   }
 
+  /**
+   * Returns true if the timestamp happens on the specified day and false otherwise.
+   * @param ts
+   * @return
+   */
   @Override
   public boolean test(Long ts) {
     return DateUtils.isSameDay(new Date(ts), date);

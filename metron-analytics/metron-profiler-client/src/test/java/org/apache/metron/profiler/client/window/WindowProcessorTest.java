@@ -38,7 +38,7 @@ public class WindowProcessorTest {
             ,"1 hour(s)"
             ,"1 hours"
     }) {
-      Window w = WindowProcessor.parse(text);
+      Window w = WindowProcessor.process(text);
       Date now = new Date();
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(1, intervals.size());
@@ -56,7 +56,7 @@ public class WindowProcessorTest {
             ,"starting from 30 minutes ago until 2 hours ago"
             ,"from 30 minutes ago to 2 hours ago "
     }) {
-      Window w = WindowProcessor.parse(text);
+      Window w = WindowProcessor.process(text);
     /*
     A dense window starting 2 hour ago and continuing until 30 minutes ago
      */
@@ -77,7 +77,7 @@ public class WindowProcessorTest {
       "30 minute window for every 1 hour starting from 2 hours ago until 30 minutes ago",
     })
     {
-      Window w = WindowProcessor.parse(text);
+      Window w = WindowProcessor.process(text);
     /*
     A window size of 30 minutes
     Starting 2 hour ago and continuing until 30 minutes ago
@@ -97,7 +97,7 @@ public class WindowProcessorTest {
 
   @Test
   public void testRepeatTilNow() {
-    Window w = WindowProcessor.parse("30 minute window every 1 hour from 3 hours ago");
+    Window w = WindowProcessor.process("30 minute window every 1 hour from 3 hours ago");
     /*
     A window size of 30 minutes
     Starting 3 hours ago and continuing until now
@@ -122,7 +122,7 @@ public class WindowProcessorTest {
   @Test
   public void testRepeatWithInclusions() {
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago including tuesdays");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago including tuesdays");
     /*
     A window size of 30 minutes
     Starting 14 days ago  and continuing until now
@@ -133,7 +133,7 @@ public class WindowProcessorTest {
       Assert.assertEquals(2, intervals.size());
     }
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago including this day of the week");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago including this day of the week");
     /*
     A window size of 30 minutes
     Starting 14 days ago  and continuing until now
@@ -144,7 +144,7 @@ public class WindowProcessorTest {
       Assert.assertEquals(2, intervals.size());
     }
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago");
     /*
     A window size of 30 minutes
     Starting 14 days ago  and continuing until now
@@ -159,7 +159,7 @@ public class WindowProcessorTest {
 
   @Test
   public void testRepeatWithConflictingExclusionInclusion() throws ParseException {
-    Window w = WindowProcessor.parse("30 minute window every 24 hours from 7 days ago including saturdays excluding weekends");
+    Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago including saturdays excluding weekends");
 
     Date now = new Date();
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
@@ -168,7 +168,7 @@ public class WindowProcessorTest {
 
   @Test
   public void testRepeatWithWeekendExclusion() throws ParseException {
-    Window w = WindowProcessor.parse("30 minute window every 24 hours from 7 days ago excluding weekends");
+    Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago excluding weekends");
 
     Date now = new Date();
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
@@ -177,7 +177,7 @@ public class WindowProcessorTest {
 
   @Test
   public void testRepeatWithInclusionExclusion() throws ParseException {
-    Window w = WindowProcessor.parse("30 minute window every 24 hours from 7 days ago including holidays:us excluding weekends");
+    Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago including holidays:us excluding weekends");
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
     Date now = sdf.parse("2017/12/26 12:00");
@@ -186,8 +186,26 @@ public class WindowProcessorTest {
   }
 
   @Test
+  public void testManyMoonsAgo() throws ParseException {
+    {
+      Window w = WindowProcessor.process("1 hour window every 24 hours starting from 56 days ago");
+
+      Date now = new Date();
+      List<Range<Long>> intervals = w.toIntervals(now.getTime());
+      Assert.assertEquals(56, intervals.size());
+    }
+    {
+      Window w = WindowProcessor.process("1 hour window every 24 hours starting from 56 days ago including this day of the week");
+
+      Date now = new Date();
+      List<Range<Long>> intervals = w.toIntervals(now.getTime());
+      Assert.assertEquals(8, intervals.size());
+    }
+  }
+
+  @Test
   public void testRepeatWithWeekdayExclusion() throws ParseException {
-    Window w = WindowProcessor.parse("30 minute window every 24 hours from 7 days ago excluding weekdays");
+    Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago excluding weekdays");
 
     Date now = new Date();
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
@@ -197,21 +215,21 @@ public class WindowProcessorTest {
   @Test
   public void testRepeatWithHolidayExclusion() throws ParseException {
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago excluding holidays:us");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding holidays:us");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(13, intervals.size());
     }
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago excluding holidays:us:nyc");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding holidays:us:nyc");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(13, intervals.size());
     }
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago excluding holidays:us");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding holidays:us");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/08/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
@@ -227,7 +245,7 @@ public class WindowProcessorTest {
         "30 minute window every 24 hours from 14 days ago including date:2017/12/25",
       })
     {
-      Window w = WindowProcessor.parse(text);
+      Window w = WindowProcessor.process(text);
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
@@ -237,14 +255,14 @@ public class WindowProcessorTest {
       Assert.assertEquals("20171225", equalityFormat.format(includedDate));
     }
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago excluding date:2017/12/25");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding date:2017/12/25");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(13, intervals.size());
     }
     {
-      Window w = WindowProcessor.parse("30 minute window every 24 hours from 14 days ago including date:2017/12/25, date:2017/12/24");
+      Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago including date:2017/12/25, date:2017/12/24");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
@@ -264,27 +282,27 @@ public class WindowProcessorTest {
 
   @Test(expected=org.apache.metron.common.dsl.ParseException.class)
   public void testWithInvalidDaySpecifier() throws ParseException {
-    WindowProcessor.parse("30 minute window every 24 hours from 14 days ago excluding hoolidays:us");
+    WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding hoolidays:us");
   }
 
   @Test(expected=org.apache.metron.common.dsl.ParseException.class)
   public void testWithInvalidTimeUnit() throws ParseException {
-    WindowProcessor.parse("30 minute window every 24 months from 14 days ago");
+    WindowProcessor.process("30 minute window every 24 months from 14 days ago");
   }
 
   @Test(expected=org.apache.metron.common.dsl.ParseException.class)
   public void testWithInvalidWindowUnit() throws ParseException {
-    WindowProcessor.parse("30 minuete window every 24 hours from 14 days ago");
+    WindowProcessor.process("30 minuete window every 24 hours from 14 days ago");
   }
 
   @Test(expected=org.apache.metron.common.dsl.ParseException.class)
   public void testWithInvalidTimeNumber() throws ParseException {
-    WindowProcessor.parse("30p minute window every 24 hours from 14 days ago");
+    WindowProcessor.process("30p minute window every 24 hours from 14 days ago");
   }
 
   @Test(expected=org.apache.metron.common.dsl.ParseException.class)
   public void testInvalidDaySpecifier() throws ParseException {
-    WindowProcessor.parse("30 minute window every 14 hours from 14 days ago including date");
+    WindowProcessor.process("30 minute window every 14 hours from 14 days ago including date");
   }
 
   private static void assertEquals(long expected, long actual) {

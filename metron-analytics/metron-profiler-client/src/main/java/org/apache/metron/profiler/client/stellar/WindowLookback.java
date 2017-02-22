@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 @Stellar(
       namespace="PROFILE",
       name="WINDOW",
-      description="The profiler periods associated with a fixed lookback starting from now.",
+      description="The profiler periods associated with a window selector statement from an optional reference timestamp.",
       params={
         "windowSelector - The statement specifying the window to select.",
         "now - Optional - The timestamp to use for now.",
@@ -79,9 +79,9 @@ public class WindowLookback implements StellarFunction {
     TimeUnit tickUnit = TimeUnit.valueOf(ProfilerConfig.PROFILER_PERIOD_UNITS.get(effectiveConfigs, String.class));
     Window w = null;
     try {
-      w = windowCache.get(windowSelector, () -> WindowProcessor.parse(windowSelector));
+      w = windowCache.get(windowSelector, () -> WindowProcessor.process(windowSelector));
     } catch (ExecutionException e) {
-      throw new IllegalStateException("Unable to parse " + windowSelector + ": " + e.getMessage(), e);
+      throw new IllegalStateException("Unable to process " + windowSelector + ": " + e.getMessage(), e);
     }
     long end = w.getEndMillis(now);
     long start = w.getStartMillis(now);

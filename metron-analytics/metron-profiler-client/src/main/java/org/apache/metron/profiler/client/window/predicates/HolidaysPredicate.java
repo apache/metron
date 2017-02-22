@@ -29,9 +29,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+/**
+ * A inclusion/exclusion selector predicate that returns true if a timestamp falls on a holiday and
+ * false otherwise.
+ */
 public class HolidaysPredicate implements Predicate<Long> {
   HolidayManager manager;
   String[] args;
+
+  /**
+   * Create a holidays predicate.  The arguments are the hierarchical specifier for the holidays
+   * (see https://github.com/svendiedrichsen/jollyday/tree/master/src/main/resources/holidays for the hierarchies for your
+   * supported locales).  The first param is the locale.
+   * @param args
+   */
   public HolidaysPredicate(List<String> args) {
     if(args == null || args.size() == 0) {
       this.manager = HolidayManager.getInstance();
@@ -62,6 +73,11 @@ public class HolidaysPredicate implements Predicate<Long> {
     return Optional.empty();
   }
 
+  /**
+   * True if the timestamp falls on a holiday as specified or false otherwise.
+   * @param ts
+   * @return
+   */
   @Override
   public boolean test(Long ts) {
     Calendar c = Calendar.getInstance();

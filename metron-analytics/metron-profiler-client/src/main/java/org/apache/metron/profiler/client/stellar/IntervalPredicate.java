@@ -28,10 +28,21 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * A predicate applied to a type T which can be converted into a long which indicates whether it exists
+ * within a set of inclusive ranges of longs.  Generally these ranges may be thought of as timestamps.
+ * In this interpretation, it will let you quickly indicate whether a given timestamp is within a set of timestamp
+ * ranges.
+ *
+ * @param <T>
+ */
 public class IntervalPredicate<T> implements Predicate<T> {
   private final List<Range<Long>> intervals;
   private final Function<T, Long> timestampTransformer;
 
+  /**
+   * In the situation where we want longs directly.
+   */
   public static final class Identity extends IntervalPredicate<Long> {
 
     public Identity(List<Range<Long>> intervals) {
@@ -39,6 +50,14 @@ public class IntervalPredicate<T> implements Predicate<T> {
     }
   }
 
+  /**
+   * Construct an interval predicate given a set of intervals and a function to convert T's to timestamps.
+   * Please please please understand that intervals MUST be sorted.
+   *
+   * @param timestampTransformer The function to convert T's to timestamps.
+   * @param intervals A sorted list of timestamp intervals.
+   * @param clazz
+   */
   public IntervalPredicate(Function<T, Long> timestampTransformer, List<Range<Long>> intervals, Class<T> clazz) {
     this.intervals = intervals;
     this.timestampTransformer = timestampTransformer;
@@ -49,6 +68,9 @@ public class IntervalPredicate<T> implements Predicate<T> {
   }
 
 
+  /**
+   * A helpful interval comparator that looks sorts the intervals according to left-side.
+   */
   public static final Comparator<Range<Long>> INTERVAL_COMPARATOR = (o1, o2) -> {
       if(o1.getMinimum() == o2.getMinimum() && o1.getMaximum() == o2.getMaximum()) {
         return 0;
@@ -64,6 +86,11 @@ public class IntervalPredicate<T> implements Predicate<T> {
       }
   };
 
+  /**
+   * Determine if x is in the set of intervals in O(log*n) time.
+   * @param x
+   * @return true if in the set of intervals and false otherwise.
+   */
   @Override
   public boolean test(T x) {
     long ts = timestampTransformer.apply(x);
