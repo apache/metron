@@ -116,30 +116,27 @@ The only available parameters for override are:
 ##### The Profile Selector Language
 
 The domain specific language can be broken into a series of clauses, some optional
-* <span style="color:blue">Total Temporal Duration</span> - The total range of time in which windows may be specified
-* <span style="color:red">Temporal Window Width</span> - How large each temporal window
-* <span style="color:green">Skip distance</span> (optional)- How far to skip between when one window starts and when the next begins
-* <span style="color:purple">Inclusion/Exclusion specifiers</span> (optional) - The set of specifiers to further filter the window
+* <a href="#Temporal_Window_Width"><span style="color:blue">Total Temporal Duration</span></a> - The total range of time in which windows may be specified
+* <a href="#InclusionExclusion_specifiers"><span style="color:red">Temporal Window Width</span></a> - How large each temporal window
+* <a href="#Skip_distance"><span style="color:green">Skip distance</span></a> (optional)- How far to skip between when one window starts and when the next begins
+* <a href="#InclusionExclusion_specifiers"><span style="color:purple">Inclusion/Exclusion specifiers</span></a> (optional) - The set of specifiers to further filter the window
 
 One *must* specify either a total temporal duration or a temporal window width.
 The remaining clauses are optional.
-During the course of the following discussion, we will color code the clauses in the examples.
+During the course of the following discussion, we will color code the clauses in the examples and link them
+to the relevant section for more detail.
 
 From a high level, the language fits the following three forms:
 
-* <span style="color:red">`time_interval WINDOW?`</span><span style="color:purple">`(INCLUDING specifier_list)? (EXCLUDING specifier_list)?`</span>
-* <span style="color:red">`time_interval WINDOW?`</span><span style="color:green">`EVERY time_interval`</span><span style="color:blue">`FROM time_interval (TO time_interval)?`</span><span style="color:purple">`(INCLUDING specifier_list)? (EXCLUDING specifier_list)?`</span>
-* <span style="color:blue">`FROM time_interval (TO time_interval)?`</span>
-
-with
-* `time_interval` representing a time amount followed by a unit (e.g. "1 hour")
-* `specifier_list` representing a comma separated list of inclusion or exclusion specifiers (e.g. "holidays:us, tuesdays")
+* <a href="#Temporal_Window_Width"><span style="color:red">time_interval WINDOW?</span></a>  <a href="#InclusionExclusion_specifiers"><span style="color:purple">(INCLUDING specifier_list)? (EXCLUDING specifier_list)?</span></a>
+* <a href="#Temporal_Window_Width"><span style="color:red">time_interval WINDOW?</span></a> <a href="#Skip_distance"><span style="color:green">EVERY time_interval</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">FROM time_interval (TO time_interval)?</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">(INCLUDING specifier_list)? (EXCLUDING specifier_list)?</span></a>
+* <a href="#Total_Temporal_Duration"><span style="color:blue">FROM time_interval (TO time_interval)?</span></a>
 
 
 ###### <span style="color:blue">Total Temporal Duration</span>
 
 Total temporal duration is specified by a phrase: `FROM time_interval AGO TO time_interval AGO`
-This indicates the beginning and ending of a time interval.
+This indicates the beginning and ending of a time interval.  This is an inclusive duration.
 * `FROM` - Can be the words "from" or "starting from"
 * `time_interval` - A time amount followed by a unit (e.g. 1 hour).  The unit may be "minute", "day", "hour" with any pluralization.
 * `TO` - Can be the words "until" or "to"
@@ -150,27 +147,27 @@ The `TO time_interval AGO` portion is optional.  If unspecified then it is expec
 Due to the vagaries of the english language, the from and the to portions, if both specified, are interchangeable
 with regard to which one specifies the start and which specifies the end.  
 
-In other words <span style="color:blue">`starting from 1 hour ago to 30 minutes ago`</span> and
-<span style="color:blue">`starting from 30 minutes ago to 1 hour ago`</span> specify the same
+In other words "<span style="color:blue">starting from 1 hour ago to 30 minutes ago</span>" and
+"<span style="color:blue">starting from 30 minutes ago to 1 hour ago</span>" specify the same
 temporal duration.
 
 **Examples**
 
 * A duration starting 1 hour ago and ending now
-   * <span style="color:blue">`from 1 hour ago`</span>
-   * <span style="color:blue">`from 1 hour`</span>
-   * <span style="color:blue">`starting from 1 hour ago`</span>
-   * <span style="color:blue">`starting from 1 hour`</span>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">from 1 hour ago</span></a>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">from 1 hour</span></a>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 1 hour ago</span></a>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 1 hour</span></a>
 * A duration starting 1 hour ago and ending 30 minutes ago: 
-   * <span style="color:blue">`from 1 hour ago until 30 minutes ago`</span>
-   * <span style="color:blue">`from 30 minutes ago until 1 hour ago`</span>
-   * <span style="color:blue">`starting from 1 hour ago to 30 minutes ago`</span>
-   * <span style="color:blue">`starting from 1 hour to 30 minutes`</span>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">from 1 hour ago until 30 minutes ago</span></a>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">from 30 minutes ago until 1 hour ago</span></a>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 1 hour ago to 30 minutes ago</span></a>
+   * <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 1 hour to 30 minutes</span></a>
 
 ###### <span style="color:red">Temporal Window Width</span>
 
 Temporal window width is the specification of a window. 
-A window is may either repeat within total temporal duration or may fill the total temporal duration.
+A window is may either repeat within total temporal duration or may fill the total temporal duration.  This is an inclusive window.
 A window is specified by the phrase: `time_interval WINDOW`
 * `time_interval` - A time amount followed by a unit (e.g. 1 hour).  The unit may be "minute", "day", "hour" with any pluralization.
 * `WINDOW` - Optionally the word "window"
@@ -178,18 +175,18 @@ A window is specified by the phrase: `time_interval WINDOW`
 **Examples**
 
 * A fixed window starting 2 hours ago and going until now
-  * <span style="color:red">`2 hour`</span>
-  * <span style="color:red">`2 hours`</span>
-  * <span style="color:red">`2 hours window`</span>
+  * <a href="#Temporal_Window_Width"><span style="color:red">2 hour</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">2 hours</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">2 hours window</span></a>
 * A repeating 30 minute window starting 2 hours ago and repeating every hour until now.
 This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`starting from 2 hours ago`</span>
-  * <span style="color:red">`30 minutes window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`from 2 hours ago`</span>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 2 hours ago</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute windows</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 2 hours ago</span></a>
 * A repeating 30 minute window starting 2 hours ago and repeating every hour until 30 minutes ago.
 This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`starting from 2 hours ago until 30 minutes ago`</span>
-  * <span style="color:red">`30 minutes window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`from 2 hours ago to 30 minutes ago`</span> 
-  * <span style="color:red">`30 minutes window`</span><span style="color:green">`for every 1 hour`</span><span style="color:blue">`from 30 minutes ago to 2 hours ago`</span> 
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 2 hours ago until 30 minutes ago</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minutes window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 2 hours ago to 30 minutes ago</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minutes window</span></a> <a href="#Skip_distance"><span style="color:green">for every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 30 minutes ago to 2 hours ago</span></a>
 
 ###### <span style="color:green">Skip distance</span>
 
@@ -204,13 +201,13 @@ It is specified by the phrase `EVERY time_interval`
 
 * A repeating 30 minute window starting 2 hours ago and repeating every hour until now.
 This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`starting from 2 hours ago`</span>
-  * <span style="color:red">`30 minutes window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`from 2 hours ago`</span>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 2 hours ago </span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minutes window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 2 hours ago </span></a>
 * A repeating 30 minute window starting 2 hours ago and repeating every hour until 30 minutes ago.
 This would result in 2 30-minute wide windows: 2 hours ago and 1 hour ago
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`starting from 2 hours ago until 30 minutes ago`</span>
-  * <span style="color:red">`30 minutes window`</span><span style="color:green">`every 1 hour`</span><span style="color:blue">`from 2 hours ago to 30 minutes ago`</span> 
-  * <span style="color:red">`30 minutes window`</span><span style="color:green">`for every 1 hour`</span><span style="color:blue">`from 30 minutes ago to 2 hours ago`</span> 
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">starting from 2 hours ago until 30 minutes ago</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minutes window</span></a> <a href="#Skip_distance"><span style="color:green">every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 2 hours ago to 30 minutes ago</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minutes window</span></a> <a href="#Skip_distance"><span style="color:green">for every 1 hour</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 30 minutes ago to 2 hours ago</span></a>
 
 ###### <span style="color:purple">Inclusion/Exclusion specifiers</span>
 Inclusion and Exclusion specifiers operate as filters on the set of windows.
@@ -260,14 +257,18 @@ The specifiers are a set of fixed specifiers available as part of the language:
 **Examples**
 
 Assume these are executed at noon.
+* A 1 hour window for the past 8 'current day of the week'
+  * <a href="#Temporal_Window_Width"><span style="color:red">1 hour window</span></a> <a href="#Skip_distance"><span style="color:green">every 24 hours</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 56 days ago</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">including this day of the week</span></a>
+* A 1 hour window for the past 8 tuesdays
+  * <a href="#Temporal_Window_Width"><span style="color:red">1 hour window</span></a> <a href="#Skip_distance"><span style="color:green">every 24 hours</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 56 days ago</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">including tuesdays</span></a>
 * A 30 minute window every tuesday at noon starting 14 days ago until now
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 14 days ago`</span><span style="color:purple">`including tuesdays`</span>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 24 hours</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 14 days ago</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">including tuesdays</span></a>
 * A 30 minute window every day except holidays and weekends at noon starting 14 days ago until now
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 14 days ago`</span><span style="color:purple">`excluding holidays:us, weekends`</span>
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 14 days ago`</span><span style="color:purple">`including weekdays excluding holidays:us`</span>
-* A 30 minute window at noon every day from 7 days ago including saturdays and excluding weekends.  
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 24 hours</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 14 days ago</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">excluding holidays:us, weekends</span></a>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 24 hours</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 14 days ago</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">including weekdays excluding holidays:us, weekends</span></a>
+* A 30 minute window at noon every day from 7 days ago including saturdays and excluding weekends. 
 Because exclusions trump inclusions, the following will never yield any windows
-  * <span style="color:red">`30 minute window`</span><span style="color:green">`every 24 hours`</span><span style="color:blue">`from 7 days ago`</span><span style="color:purple">`including saturdays excluding weekends`</span>
+  * <a href="#Temporal_Window_Width"><span style="color:red">30 minute window</span></a> <a href="#Skip_distance"><span style="color:green">every 24 hours</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">from 7 days ago</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">including saturdays excluding weekends</span></a>
 
 ### Errors
 The most common result of incorrect `PROFILE_GET` arguments or Client configuration parameters is an empty result set, rather than an error.
