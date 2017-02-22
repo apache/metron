@@ -19,7 +19,6 @@ package org.apache.metron.parsers.bolt;
 
 import org.apache.metron.common.configuration.*;
 
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;

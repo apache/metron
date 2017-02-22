@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
