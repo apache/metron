@@ -126,7 +126,7 @@ The remaining clauses are optional.
 During the course of the following discussion, we will color code the clauses in the examples and link them
 to the relevant section for more detail.
 
-From a high level, the language fits the following three forms:
+From a high level, the language fits the following three forms, which are composed of the clauses above:
 
 * <a href="#Temporal_Window_Width"><span style="color:red">time_interval WINDOW?</span></a>  <a href="#InclusionExclusion_specifiers"><span style="color:purple">(INCLUDING specifier_list)? (EXCLUDING specifier_list)?</span></a>
 * <a href="#Temporal_Window_Width"><span style="color:red">time_interval WINDOW?</span></a> <a href="#Skip_distance"><span style="color:green">EVERY time_interval</span></a> <a href="#Total_Temporal_Duration"><span style="color:blue">FROM time_interval (TO time_interval)?</span></a> <a href="#InclusionExclusion_specifiers"><span style="color:purple">(INCLUDING specifier_list)? (EXCLUDING specifier_list)?</span></a>
@@ -138,7 +138,7 @@ From a high level, the language fits the following three forms:
 Total temporal duration is specified by a phrase: `FROM time_interval AGO TO time_interval AGO`
 This indicates the beginning and ending of a time interval.  This is an inclusive duration.
 * `FROM` - Can be the words "from" or "starting from"
-* `time_interval` - A time amount followed by a unit (e.g. 1 hour).  The unit may be "minute", "day", "hour" with any pluralization.
+* `time_interval` - A time amount followed by a unit (e.g. 1 hour). Fractional amounts are not supported. The unit may be "minute", "day", "hour" with any pluralization.
 * `TO` - Can be the words "until" or "to"
 * `AGO` - Optionally the word "ago"
 
@@ -147,8 +147,8 @@ The `TO time_interval AGO` portion is optional.  If unspecified then it is expec
 Due to the vagaries of the english language, the from and the to portions, if both specified, are interchangeable
 with regard to which one specifies the start and which specifies the end.  
 
-In other words "<span style="color:blue">starting from 1 hour ago to 30 minutes ago</span>" and
-"<span style="color:blue">starting from 30 minutes ago to 1 hour ago</span>" specify the same
+In other words "<a href="#Total_Temporal_Duration"><span style="color:blue">starting from 1 hour ago to 30 minutes ago</span></a>" and
+"<a href="#Total_Temporal_Duration"><span style="color:blue">starting from 30 minutes ago to 1 hour ago</span></a>" specify the same
 temporal duration.
 
 **Examples**
@@ -169,7 +169,7 @@ temporal duration.
 Temporal window width is the specification of a window. 
 A window is may either repeat within total temporal duration or may fill the total temporal duration.  This is an inclusive window.
 A window is specified by the phrase: `time_interval WINDOW`
-* `time_interval` - A time amount followed by a unit (e.g. 1 hour).  The unit may be "minute", "day", "hour" with any pluralization.
+* `time_interval` - A time amount followed by a unit (e.g. 1 hour).  Fractional amounts are not supported. The unit may be "minute", "day", "hour" with any pluralization.
 * `WINDOW` - Optionally the word "window"
 
 **Examples**
@@ -194,7 +194,7 @@ Skip distance is the amount of time between temporal window beginnings that the 
 It is, in effect, the window period.  
 
 It is specified by the phrase `EVERY time_interval`
-* `time_interval` - A time amount followed by a unit (e.g. 1 hour).  The unit may be "minute", "day", "hour" with any pluralization.
+* `time_interval` - A time amount followed by a unit (e.g. 1 hour).  Fractional amounts are not supported. The unit may be "minute", "day", "hour" with any pluralization. 
 * `EVERY` - The word/phrase "every" or "for every"
 
 **Examples**
