@@ -78,7 +78,7 @@ Then, assuming a host ip of `192.168.99.100`, the UIs and APIs are available at:
 
 * Storm - http://192.168.99.100:8080/
 * HBase - http://192.168.99.100:16010/
-* Elasticsearch - http://192.168.99.100:9200/
+* Elasticsearch - http://192.168.99.100:9200/_plugin/head/
 * Kibana - http://192.168.99.100:5601/
 
 The Storm logs can be useful when troubleshooting topologies.  They can be found on the Storm container in `/usr/share/apache-storm/logs`.
