@@ -42,6 +42,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 public class ReaderSpliteratorTest {
   /**
    foo
@@ -146,13 +149,14 @@ public class ReaderSpliteratorTest {
     Stream<String> stream = StreamSupport.stream(delegatingSpliterator, true);
 
     //now run it in a parallel pool and do some calculation that doesn't really matter.
-    ForkJoinPool forkJoinPool = new ForkJoinPool(10);
+    ForkJoinPool forkJoinPool = ForkJoinPool.commonPool();
     forkJoinPool.submit(() -> {
+                    Map<String, Integer> threads =
                       stream.parallel().map(s -> Thread.currentThread().getName())
                               .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
+                    Assert.assertTrue(threads.size() > 0);
             }
     ).get();
-    forkJoinPool.shutdownNow();
     return numSplits.get();
   }
 
