@@ -15,14 +15,9 @@
 #  limitations under the License.
 #
 ---
-- include: metron_build.yml
-  tags:
-    - build
+- name: Build Deployment Artifacts
+  local_action: shell cd {{ playbook_dir }}/../.. && mvn clean package -DskipTests -P HDP-2.5.0.0,build-rpms
+  become: false
+  run_once: true
 
-- include: ambari_install.yml
-  tags:
-    - ambari
-    
-- include: metron_install.yml
-  tags:
-    - metron
+

@@ -30,7 +30,9 @@ class EnrichmentCommands:
     __enrichment_topic = None
     __enrichment_error_topic = None
     __threat_intel_error_topic = None
-    __configured = False
+    __kafka_configured = False
+    __hbase_configured = False
+    __geo_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -40,14 +42,30 @@ class EnrichmentCommands:
         self.__enrichment_topic = params.metron_enrichment_topic
         self.__enrichment_error_topic = params.metron_enrichment_error_topic
         self.__threat_intel_error_topic = params.metron_threat_intel_error_topic
-        self.__configured = os.path.isfile(self.__params.enrichment_configured_flag_file)
+        self.__kafka_configured = os.path.isfile(self.__params.enrichment_kafka_configured_flag_file)
+        self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
+        self.__geo_configured = os.path.isfile(self.__params.enrichment_geo_configured_flag_file)
 
-    def is_configured(self):
-        return self.__configured
+    def is_kafka_configured(self):
+        return self.__kafka_configured
 
-    def set_configured(self):
-        Logger.info("Setting Configured to True")
-        File(self.__params.enrichment_configured_flag_file,
+    def set_kafka_configured(self):
+        Logger.info("Setting Kafka Configured to True")
+        File(self.__params.enrichment_kafka_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def set_hbase_configured(self):
+        Logger.info("Setting HBase Configured to True")
+        File(self.__params.enrichment_hbase_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def set_geo_configured(self):
+        Logger.info("Setting GEO Configured to True")
+        File(self.__params.enrichment_geo_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -106,6 +124,7 @@ class EnrichmentCommands:
         Logger.info("Executing command " + command)
         Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
         Logger.info("Done intializing GeoIP data")
+        self.set_geo_configured()
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
@@ -133,6 +152,7 @@ class EnrichmentCommands:
                                             retention_bytes))
 
         Logger.info("Done creating Kafka topics")
+        self.set_kafka_configured()
 
     def start_enrichment_topology(self):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
@@ -198,3 +218,4 @@ class EnrichmentCommands:
                 path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
                 )
         Logger.info("Done creating HBase Tables")
+        self.set_hbase_configured()

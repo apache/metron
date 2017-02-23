@@ -54,7 +54,6 @@ class Enrichment(Script):
             commands.init_kafka_topics()
             commands.create_hbase_tables()
             commands.init_geo()
-            commands.set_configured()
 
         commands.start_enrichment_topology()
 
