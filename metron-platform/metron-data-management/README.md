@@ -133,7 +133,7 @@ Users also have the ability to transform and filter enrichment and threat intel 
 
 As an example, we will be providing a CSV list of top domains as an enrichment and filtering the value metadata, as well as the indicator column, with Stellar expressions.
 
-````
+```
 {
   "config" : {
     "zk_quorum" : "node1:2181",
@@ -155,7 +155,7 @@ As an example, we will be providing a CSV list of top domains as an enrichment a
   },
   "extractor" : "CSV"
 }
-````
+```
 
 There are 2 property maps that work with full Stellar expressions, and 2 properties that will work with Stellar predicates.
 
@@ -167,11 +167,11 @@ There are 2 property maps that work with full Stellar expressions, and 2 propert
 | indicator_filter    | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose indicator value is empty after removing the TLD will be omitted. |
 
 top-list.csv
-````
+```
 1,google.com
 2,youtube.com
 ...
-````
+```
 
 Running a file import with the above data and extractor configuration would result in the following 2 extracted data records:
 
@@ -182,14 +182,14 @@ Running a file import with the above data and extractor configuration would resu
 
 Similar to the parser framework, providing a Zookeeper quorum via the zk_quorum property will enable Stellar to access properties that reside in the global config.
 Expanding on our example above, if the global config looks as follows:
-````
+```
 {
     "global_property" : "metron-ftw"
 }
-````
+```
 
 And we expand our value_tranform:
-````
+```
 ...
     "value_transform" : {
        "domain" : "DOMAIN_REMOVE_TLD(domain)",
@@ -197,7 +197,7 @@ And we expand our value_tranform:
     },
 ...
 
-````
+```
 
 The resulting value data would look like the following:
 

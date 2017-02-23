@@ -12,6 +12,7 @@ target/
 *.settings
 *.metadata
 *hbase-site.xml
+site.xml
 *.log
 *.swp
 *.tmp
