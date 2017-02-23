@@ -32,8 +32,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -114,23 +116,9 @@ public class ReaderSpliteratorTest {
     }
   }
 
-  @Test
-  public void testActuallyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
-    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most min(5, 2) = 2 threads will be used
-    try( Stream<String> stream = ReaderSpliterator.lineStream(getReader(), 2)) {
-      ForkJoinPool forkJoinPool = new ForkJoinPool(2);
-      forkJoinPool.submit(() -> {
-                Map<String, Integer> threads =
-                        stream.parallel().map(s -> Thread.currentThread().getName())
-                                .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                Assert.assertTrue(threads.size() <= 2);
-              }
-      ).get();
-      forkJoinPool.shutdownNow();
-    }
-  }
 
-  private void parallelMediumBatch(Supplier<Stream<String>> streamCreator) throws ExecutionException, InterruptedException {
+
+  private void actuallyParallel(Supplier<Stream<String>> streamCreator, Predicate<Integer> condition) throws ExecutionException, InterruptedException {
     final AtomicBoolean passed = new AtomicBoolean(false);
     long start = System.currentTimeMillis();
     //Sporadically this will not parallelize due to choices of the JVM.
@@ -138,14 +126,13 @@ public class ReaderSpliteratorTest {
     //so we'll run it for a minute at most and ensure at least one of those times we get multiple threads,
     //but not more than expected.
     while(!passed.get() && (System.currentTimeMillis() - start) < TimeUnit.MINUTES.toMillis(1)) {
-      //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most 5 threads of the pool of 10 will be used
       try (Stream<String> stream = streamCreator.get()) {
         ForkJoinPool forkJoinPool = new ForkJoinPool(10);
         forkJoinPool.submit(() -> {
                   Map<String, Integer> threads =
                           stream.parallel().map(s -> Thread.currentThread().getName())
                                   .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                  passed.set(threads.size() <= (int) Math.ceil(9.0 / 2) && threads.size() > 1);
+                  passed.set(condition.test(threads.size()));
                 }
         ).get();
         forkJoinPool.shutdownNow();
@@ -155,13 +142,21 @@ public class ReaderSpliteratorTest {
   }
 
   @Test
+  public void testActuallyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
+    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most min(5, 2) = 2 threads will be used
+    actuallyParallel(() -> ReaderSpliterator.lineStream(getReader(), 2), n -> n > 0 && n <= 2);
+  }
+
+  @Test
   public void testActuallyParallel_mediumBatch() throws ExecutionException, InterruptedException, FileNotFoundException {
-    parallelMediumBatch(() -> ReaderSpliterator.lineStream(getReader(), 2));
+    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most 5 threads of the pool of 10 will be used
+    actuallyParallel(() -> ReaderSpliterator.lineStream(getReader(), 2), n -> (n <= (int) Math.ceil(9.0 / 2) && n > 1));
   }
 
   @Test
   public void testActuallyParallel_mediumBatchImplicitlyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
-    parallelMediumBatch(() -> ReaderSpliterator.lineStream(getReader(), 2, true));
+    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most 5 threads of the pool of 10 will be used
+    actuallyParallel(() -> ReaderSpliterator.lineStream(getReader(), 2, true), n -> (n <= (int) Math.ceil(9.0 / 2) && n > 1));
   }
 
   @Test
@@ -173,7 +168,7 @@ public class ReaderSpliteratorTest {
                 Map<String, Integer> threads =
                         stream.map(s -> Thread.currentThread().getName())
                                 .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                Assert.assertTrue(threads.size() == 1);
+                Assert.assertEquals(1, threads.size());
               }
       ).get();
       forkJoinPool.shutdownNow();
