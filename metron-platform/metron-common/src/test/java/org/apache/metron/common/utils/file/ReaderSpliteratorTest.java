@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -120,31 +121,14 @@ public class ReaderSpliteratorTest {
   private int getNumberOfBatches(final ReaderSpliterator spliterator) throws ExecutionException, InterruptedException {
     final AtomicInteger numSplits = new AtomicInteger(0);
     //we want to wrap the spliterator and count the (valid) splits
-    Spliterator<String> delegatingSpliterator = new Spliterator<String>() {
-      @Override
-      public boolean tryAdvance(Consumer<? super String> action) {
-        return spliterator.tryAdvance(action);
+    Spliterator<String> delegatingSpliterator = spy(spliterator);
+    doAnswer(invocationOnMock -> {
+      Spliterator<String> ret = spliterator.trySplit();
+      if(ret != null) {
+        numSplits.incrementAndGet();
       }
-
-      @Override
-      public Spliterator<String> trySplit() {
-        Spliterator<String> ret = spliterator.trySplit();
-        if(ret != null) {
-          numSplits.incrementAndGet();
-        }
-        return ret;
-      }
-
-      @Override
-      public long estimateSize() {
-        return spliterator.estimateSize();
-      }
-
-      @Override
-      public int characteristics() {
-        return spliterator.characteristics();
-      }
-    };
+      return ret;
+    }).when(delegatingSpliterator).trySplit();
 
     Stream<String> stream = StreamSupport.stream(delegatingSpliterator, true);
 
