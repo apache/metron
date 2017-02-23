@@ -17,20 +17,19 @@
  */
 import {async, inject, TestBed} from '@angular/core/testing';
 import {MockBackend, MockConnection} from '@angular/http/testing';
-import {GrokValidationService} from './grok-validation.service';
-import {GrokValidation} from '../model/grok-validation';
 import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
 import '../rxjs-operators';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
 import {IAppConfig} from '../app.config.interface';
+import {HdfsService} from './hdfs.service';
 
-describe('GrokValidationService', () => {
+describe('HdfsService', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [HttpModule],
       providers: [
-        GrokValidationService,
+        HdfsService,
         {provide: XHRBackend, useClass: MockBackend},
         {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
       ]
@@ -39,14 +38,14 @@ describe('GrokValidationService', () => {
   }));
 
   it('can instantiate service when inject service',
-    inject([GrokValidationService], (service: GrokValidationService) => {
-      expect(service instanceof GrokValidationService).toBe(true);
+    inject([HdfsService], (service: HdfsService) => {
+      expect(service instanceof HdfsService).toBe(true);
     }));
 
   it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
     expect(http).not.toBeNull('http should be provided');
-    let service = new GrokValidationService(http, config);
-    expect(service instanceof GrokValidationService).toBe(true, 'new service should be ok');
+    let service = new HdfsService(http, config);
+    expect(service instanceof HdfsService).toBe(true, 'new service should be ok');
   }));
 
 
@@ -56,48 +55,53 @@ describe('GrokValidationService', () => {
     }));
 
   describe('when service functions', () => {
-    let grokValidationService: GrokValidationService;
+    let hdfsService: HdfsService;
     let mockBackend: MockBackend;
-    let grokValidation = new GrokValidation();
-    grokValidation.statement = 'statement';
-    grokValidation.sampleData = 'sampleData';
-    grokValidation.results = {'results': 'results'};
-    let grokList = ['pattern'];
-    let grokStatement = 'grok statement';
-    let grokValidationResponse: Response;
-    let grokListResponse: Response;
-    let grokGetStatementResponse: Response;
+    let fileList = ['file1', 'file2'];
+    let contents = 'file contents';
+    let listResponse: Response;
+    let readResponse: Response;
+    let postResponse: Response;
+    let deleteResponse: Response;
 
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
-      grokValidationService = new GrokValidationService(http, config);
-      grokValidationResponse = new Response(new ResponseOptions({status: 200, body: grokValidation}));
-      grokListResponse = new Response(new ResponseOptions({status: 200, body: grokList}));
-      grokGetStatementResponse = new Response(new ResponseOptions({status: 200, body: grokStatement}));
+      hdfsService = new HdfsService(http, config);
+      listResponse = new Response(new ResponseOptions({status: 200, body: fileList}));
+      readResponse = new Response(new ResponseOptions({status: 200, body: contents}));
+      postResponse = new Response(new ResponseOptions({status: 200}));
+      deleteResponse = new Response(new ResponseOptions({status: 200}));
     }));
 
-    it('validate', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(grokValidationResponse));
-
-      grokValidationService.validate(grokValidation).subscribe(
-        result => {
-          expect(result).toEqual(grokValidation);
-        }, error => console.log(error));
-    })));
-
     it('list', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(grokListResponse));
-      grokValidationService.list().subscribe(
-        results => {
-          expect(results).toEqual(grokList);
+      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(listResponse));
+      hdfsService.list('/path').subscribe(
+        result => {
+          expect(result).toEqual(fileList);
         }, error => console.log(error));
     })));
 
-    it('getStatement', async(inject([], () => {
-      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(grokGetStatementResponse));
-      grokValidationService.getStatement('/path').subscribe(
-          results => {
-            expect(results).toEqual(grokStatement);
+    it('read', async(inject([], () => {
+      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(readResponse));
+      hdfsService.read('/path').subscribe(
+        result => {
+          expect(result).toEqual(contents);
+        }, error => console.log(error));
+    })));
+
+    it('post', async(inject([], () => {
+      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(postResponse));
+      hdfsService.post('/path', contents).subscribe(
+          result => {
+            expect(result.status).toEqual(200);
+          }, error => console.log(error));
+    })));
+
+    it('deleteFile', async(inject([], () => {
+      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
+      hdfsService.deleteFile('/path').subscribe(
+          result => {
+            expect(result.status).toEqual(200);
           }, error => console.log(error));
     })));
   });

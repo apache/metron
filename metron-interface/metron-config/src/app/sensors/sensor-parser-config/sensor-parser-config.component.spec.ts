@@ -42,7 +42,7 @@ import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.
 import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 import '../../rxjs-operators';
 import 'rxjs/add/observable/of';
-import {HdfsService} from "../../service/hdfs.service";
+import {HdfsService} from '../../service/hdfs.service';
 
 
 class MockRouter {
@@ -554,7 +554,7 @@ describe('Component: SensorParserConfig', () => {
           observer.complete();
         });
       } else {
-        return Observable.throw('Error');
+        return Observable.throw({message: 'Error'});
       }
 
     });
@@ -567,7 +567,7 @@ describe('Component: SensorParserConfig', () => {
           observer.complete();
         });
       } else {
-        return Observable.throw('Error');
+        return Observable.throw({message: 'Error'});
       }
     });
 

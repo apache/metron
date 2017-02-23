@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Component, Input, EventEmitter, Output, OnInit} from '@angular/core';
-import {RiskLevelRule} from "../../../model/risk-level-rule";
+import {RiskLevelRule} from '../../../model/risk-level-rule';
 
 @Component({
   selector: 'metron-config-sensor-rule-editor',
@@ -30,7 +30,6 @@ export class SensorRuleEditorComponent implements OnInit {
 
   @Output() onCancelTextEditor: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onSubmitTextEditor: EventEmitter<RiskLevelRule> = new EventEmitter<RiskLevelRule>();
-  
   newRiskLevelRule = new RiskLevelRule();
 
   constructor() { }

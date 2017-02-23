@@ -18,7 +18,7 @@
 /* tslint:disable:triple-equals */
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
-import {RiskLevelRule} from "../../model/risk-level-rule";
+import {RiskLevelRule} from '../../model/risk-level-rule';
 
 export enum SortOrderOption {
   Lowest_Score, Highest_Score, Lowest_Name, Highest_Name
@@ -198,7 +198,7 @@ export class SensorThreatTriageComponent implements OnChanges {
       return riskLevelRule.name;
     } else {
       let rule = riskLevelRule.rule ? riskLevelRule.rule : '';
-      return rule.length < 20 ? rule : rule.substr(0,19) + '...';
+      return rule.length < 20 ? rule : rule.substr(0, 19) + '...';
     }
   }
 

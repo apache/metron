@@ -22,7 +22,7 @@ import {SharedModule} from '../../shared/shared.module';
 import {SensorEnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {SensorRuleEditorComponent} from './rule-editor/sensor-rule-editor.component';
 import {NumberSpinnerComponent} from '../../shared/number-spinner/number-spinner.component';
-import {RiskLevelRule} from "../../model/risk-level-rule";
+import {RiskLevelRule} from '../../model/risk-level-rule';
 
 describe('Component: SensorThreatTriageComponent', () => {
 
@@ -88,9 +88,9 @@ describe('Component: SensorThreatTriageComponent', () => {
     });
     component.sensorEnrichmentConfig = sensorEnrichmentConfig;
 
-    let ruleA = {name:'ruleA', rule:'rule A', score:15, comment:''};
-    let ruleB = {name:'ruleB', rule:'rule B', score:95, comment:''};
-    let ruleC = {name:'ruleC', rule:'rule C', score:50, comment:''};
+    let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
+    let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
+    let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
 
     expect(component.getRuleColor(ruleA)).toEqual('khaki');
     expect(component.getRuleColor(ruleB)).toEqual('red');
@@ -100,13 +100,13 @@ describe('Component: SensorThreatTriageComponent', () => {
   });
 
   it('should edit rules', () => {
-    let ruleA = {name:'ruleA', rule:'rule A', score:15, comment:''};
-    let ruleB = {name:'ruleB', rule:'rule B', score:95, comment:''};
-    let ruleC = {name:'ruleC', rule:'rule C', score:50, comment:''};
-    let ruleD = {name:'ruleD', rule:'rule D', score:85, comment:''};
-    let ruleE = {name:'ruleE', rule:'rule E', score:5, comment:''};
-    let ruleF = {name:'ruleF', rule:'rule F', score:21, comment:''};
-    let ruleG = {name:'ruleG', rule:'rule G', score:100, comment:''};
+    let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
+    let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
+    let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
+    let ruleD = {name: 'ruleD', rule: 'rule D', score: 85, comment: ''};
+    let ruleE = {name: 'ruleE', rule: 'rule E', score: 5, comment: ''};
+    let ruleF = {name: 'ruleF', rule: 'rule F', score: 21, comment: ''};
+    let ruleG = {name: 'ruleG', rule: 'rule G', score: 100, comment: ''};
 
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
     sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
@@ -162,33 +162,33 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(component.highAlerts).toEqual(2);
     expect(component.showTextEditor).toEqual(false);
 
-    // component.onDeleteRule(ruleE);
-    // expect(component.visibleRules).toEqual([ruleA, ruleF, ruleC, ruleD, ruleB]);
-    // expect(component.lowAlerts).toEqual(1);
-    // expect(component.mediumAlerts).toEqual(2);
-    // expect(component.highAlerts).toEqual(2);
-    //
-    // component.onFilterChange(ThreatTriageFilter.LOW);
-    // expect(component.visibleRules).toEqual([ruleA]);
-    //
-    // component.onFilterChange(ThreatTriageFilter.MEDIUM);
-    // expect(component.visibleRules).toEqual([ruleF, ruleC]);
-    //
-    // component.onFilterChange(ThreatTriageFilter.HIGH);
-    // expect(component.visibleRules).toEqual([ruleD, ruleB]);
-    //
-    // component.onFilterChange(ThreatTriageFilter.HIGH);
-    // expect(component.visibleRules).toEqual([ruleA, ruleF, ruleC, ruleD, ruleB]);
-    //
-    // component.onEditRule(ruleC);
-    // expect(component.currentRiskLevelRule).toEqual(ruleC);
-    // expect(component.showTextEditor).toEqual(true);
-    // component.onSubmitTextEditor(ruleG);
-    // expect(component.visibleRules).toEqual([ruleA, ruleF, ruleD, ruleB, ruleG]);
-    // expect(component.lowAlerts).toEqual(1);
-    // expect(component.mediumAlerts).toEqual(1);
-    // expect(component.highAlerts).toEqual(3);
-    // expect(component.showTextEditor).toEqual(false);
+    component.onDeleteRule(ruleE);
+    expect(component.visibleRules).toEqual([ruleA, ruleF, ruleC, ruleD, ruleB]);
+    expect(component.lowAlerts).toEqual(1);
+    expect(component.mediumAlerts).toEqual(2);
+    expect(component.highAlerts).toEqual(2);
+
+    component.onFilterChange(ThreatTriageFilter.LOW);
+    expect(component.visibleRules).toEqual([ruleA]);
+
+    component.onFilterChange(ThreatTriageFilter.MEDIUM);
+    expect(component.visibleRules).toEqual([ruleF, ruleC]);
+
+    component.onFilterChange(ThreatTriageFilter.HIGH);
+    expect(component.visibleRules).toEqual([ruleD, ruleB]);
+
+    component.onFilterChange(ThreatTriageFilter.HIGH);
+    expect(component.visibleRules).toEqual([ruleA, ruleF, ruleC, ruleD, ruleB]);
+
+    component.onEditRule(ruleC);
+    expect(component.currentRiskLevelRule).toEqual(ruleC);
+    expect(component.showTextEditor).toEqual(true);
+    component.onSubmitTextEditor(ruleG);
+    expect(component.visibleRules).toEqual([ruleA, ruleF, ruleD, ruleB, ruleG]);
+    expect(component.lowAlerts).toEqual(1);
+    expect(component.mediumAlerts).toEqual(1);
+    expect(component.highAlerts).toEqual(3);
+    expect(component.showTextEditor).toEqual(false);
 
     fixture.destroy();
   });

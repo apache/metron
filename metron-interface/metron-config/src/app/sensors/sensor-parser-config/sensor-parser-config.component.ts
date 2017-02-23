@@ -26,13 +26,12 @@ import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-con
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
 import {SensorRawJsonComponent} from '../sensor-raw-json/sensor-raw-json.component';
-import {HttpUtil} from '../../util/httpUtil';
 import {KafkaService} from '../../service/kafka.service';
 import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
 import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
-import {RestError} from "../../model/rest-error";
-import {HdfsService} from "../../service/hdfs.service";
-import {GrokValidationService} from "../../service/grok-validation.service";
+import {RestError} from '../../model/rest-error';
+import {HdfsService} from '../../service/hdfs.service';
+import {GrokValidationService} from '../../service/grok-validation.service';
 
 export enum Pane {
   GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE
@@ -111,20 +110,20 @@ export class SensorParserConfigComponent implements OnInit {
           if (path) {
             this.hdfsService.read(path).subscribe(contents => {
               this.grokStatement = contents;
-            }, (error: RestError) => {
+            }, (hdfsError: RestError) => {
               this.grokValidationService.getStatement(path).subscribe(contents => {
                 this.grokStatement = contents;
-              }, (error: RestError) => {
+              }, (grokError: RestError) => {
                 this.metronAlerts.showErrorMessage('Could not find grok statement in HDFS or classpath at ' + path);
               });
-          })
+          });
         }
       }});
 
       this.sensorEnrichmentConfigService.get(id).subscribe((result: SensorEnrichmentConfig) => {
         this.sensorEnrichmentConfig = result;
       }, (error: RestError) => {
-        if (error.responseCode != 404) {
+        if (error.responseCode !== 404) {
           this.metronAlerts.showErrorMessage(error.message);
         }
       });
@@ -132,7 +131,7 @@ export class SensorParserConfigComponent implements OnInit {
       this.sensorIndexingConfigService.get(id).subscribe((result: SensorIndexingConfig) => {
             this.sensorIndexingConfig = result;
       }, (error: RestError) => {
-        if (error.responseCode != 404) {
+        if (error.responseCode !== 404) {
           this.metronAlerts.showErrorMessage(error.message);
         }
       });
@@ -293,14 +292,12 @@ export class SensorParserConfigComponent implements OnInit {
               this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
               this.sensorParserConfigService.dataChangedSource.next([sensorParserConfigSave]);
               this.goBack();
-        },
-        error => {
+        }, (error: RestError) => {
             let msg = ' Sensor parser config but unable to save enrichment configuration: ';
-            this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + HttpUtil.getErrorMessageFromBody(error));
+            this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
-      },
-      error => {
-        this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + HttpUtil.getErrorMessageFromBody(error));
+      }, (error: RestError) => {
+        this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + error.message);
       });
   }
 

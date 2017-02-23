@@ -46,11 +46,10 @@ export class HdfsService {
       .catch(HttpUtil.handleError);
   }
 
-  public post(path: string, contents: string): Observable<{}> {
+  public post(path: string, contents: string): Observable<Response> {
     let params: URLSearchParams = new URLSearchParams();
     params.set('path', path);
     return this.http.post(this.url, contents, new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
-        .map(HttpUtil.extractString)
         .catch(HttpUtil.handleError);
   }
 

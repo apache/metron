@@ -27,10 +27,10 @@ import {SensorParserConfigHistoryService} from '../../service/sensor-parser-conf
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
-import {RiskLevelRule} from "../../model/risk-level-rule";
-import {HdfsService} from "../../service/hdfs.service";
-import {RestError} from "../../model/rest-error";
-import {GrokValidationService} from "../../service/grok-validation.service";
+import {RiskLevelRule} from '../../model/risk-level-rule';
+import {HdfsService} from '../../service/hdfs.service';
+import {RestError} from '../../model/rest-error';
+import {GrokValidationService} from '../../service/grok-validation.service';
 
 @Component({
   selector: 'metron-config-sensor-parser-readonly',
@@ -115,8 +115,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       (results: TopologyStatus) => {
         this.topologyStatus = results;
         this.topologyStatus.latency = (this.topologyStatus.latency ? this.topologyStatus.latency : '0') + 's';
-        this.topologyStatus.throughput = (this.topologyStatus.throughput ? (Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) : '0') + 'kb/s';
-
+        this.topologyStatus.throughput = (this.topologyStatus.throughput ?
+                (Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) : '0') + 'kb/s';
 
         this.topologyStatus['sensorStatus'] = '-';
 
@@ -180,13 +180,13 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       if (path) {
         this.hdfsService.read(path).subscribe(contents => {
           this.grokStatement = contents;
-        }, (error: RestError) => {
+        }, (hdfsError: RestError) => {
           this.grokValidationService.getStatement(path).subscribe(contents => {
             this.grokStatement = contents;
-          }, (error: RestError) => {
+          }, (grokError: RestError) => {
             this.metronAlerts.showErrorMessage('Could not find grok statement in HDFS or classpath at ' + path);
           });
-        })
+        });
       }
     }
   }

@@ -4,12 +4,9 @@ import {ParseMessageRequest} from '../../model/parse-message-request';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {AutocompleteOption} from '../../model/autocomplete-option';
 import {GrokValidationService} from '../../service/grok-validation.service';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
 import {AutocompleteGrokStatement} from '../../shared/autocomplete/autocomplete-grok-statement';
-import {MetronAlerts} from "../../shared/metron-alerts";
-import {HdfsService} from "../../service/hdfs.service";
-import {RestError} from "../../model/rest-error";
+import {MetronAlerts} from '../../shared/metron-alerts';
 
 @Component({
   selector: 'metron-config-sensor-grok',
@@ -34,7 +31,8 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   autocompleteStatementGenerator = new AutocompleteGrokStatement();
   parseMessageRequest: ParseMessageRequest = new ParseMessageRequest();
 
-  constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService, private metronAlerts: MetronAlerts, private hdfsService: HdfsService) {
+  constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService,
+              private metronAlerts: MetronAlerts) {
     this.parseMessageRequest.sampleData = '';
   }
 
@@ -98,7 +96,6 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   }
 
   onSaveGrok(): void {
-    //this.showGrok = false;
     this.onSaveGrokStatement.emit(this.newGrokStatement);
     this.hideGrok.emit();
   }

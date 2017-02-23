@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 import {HttpUtil} from './httpUtil';
-import {Response} from '@angular/http';
+import {Response, ResponseOptions, ResponseType} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import {RestError} from "../model/rest-error";
+import {RestError} from '../model/rest-error';
 
 describe('HttpUtil', () => {
 
@@ -26,26 +26,22 @@ describe('HttpUtil', () => {
     expect(HttpUtil.handleError).toBeTruthy();
     expect(HttpUtil.extractString).toBeTruthy();
     expect(HttpUtil.extractData).toBeTruthy();
-    expect(HttpUtil.getErrorMessageFromBody).toBeTruthy();
   });
 
-  // it('should handleError', () => {
-  //   spyOn(console, 'error');
-  //   let error: RestError = {message: 'This is error', responseCode: 500, fullMessage: 'This is error'};
-  //   let response = {'_body': JSON.stringify({'message': 'This is error'})};
-  //   expect(HttpUtil.handleError(response)).toEqual(Observable.throw(error));
-  //   expect(console.error).toHaveBeenCalledWith('This is error');
-  //
-  //   expect(HttpUtil.handleError({})).toEqual(Observable.throw({}));
-  //   expect(console.error).toHaveBeenCalledWith('Server error');
-  // });
-  //
-  // it('should getErrorMessageFromBody', () => {
-  //   let error = {'_body': JSON.stringify({'message': 'This is error'})};
-  //   expect(HttpUtil.getErrorMessageFromBody(error)).toEqual('This is error');
-  //
-  //   error = {'_body': 'abc'};
-  //   expect(HttpUtil.getErrorMessageFromBody(error)).toEqual({ _body: 'abc' });
-  // });
+  it('should handleError', () => {
+    let error500: RestError = {message: 'This is error', responseCode: 500, fullMessage: 'This is error'};
+    let responseOptions = new ResponseOptions();
+    responseOptions.body = error500;
+    let response = new Response(responseOptions);
+    response.type = ResponseType.Basic;
+    expect(HttpUtil.handleError(response)).toEqual(Observable.throw(error500));
+
+    let error404 = new RestError();
+    error404.responseCode = 404;
+    response = new Response(new ResponseOptions());
+    response.type = ResponseType.Basic;
+    response.status = 404;
+    expect(HttpUtil.handleError(response)).toEqual(Observable.throw(error404));
+  });
 
 });

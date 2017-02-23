@@ -43,7 +43,7 @@ import {APP_CONFIG, METRON_REST_CONFIG} from './app.config';
 import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
-import {HdfsService} from "./service/hdfs.service";
+import {HdfsService} from './service/hdfs.service';
 
 
 @NgModule({
