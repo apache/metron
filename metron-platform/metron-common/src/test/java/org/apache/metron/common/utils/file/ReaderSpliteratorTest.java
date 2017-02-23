@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +40,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class ReaderSpliteratorTest {
   /**
@@ -118,77 +120,70 @@ public class ReaderSpliteratorTest {
 
 
 
-  private void actuallyParallel(Supplier<Stream<String>> streamCreator, Predicate<Integer> condition) throws ExecutionException, InterruptedException {
-    final AtomicBoolean passed = new AtomicBoolean(false);
-    long start = System.currentTimeMillis();
-    //Sporadically this will not parallelize due to choices of the JVM.
-    //We want to ensure that it CAN parallelize, not that it always parallelizes,
-    //so we'll run it for a minute at most and ensure at least one of those times we get multiple threads,
-    //but not more than expected.
-    while(!passed.get() && (System.currentTimeMillis() - start) < TimeUnit.MINUTES.toMillis(1)) {
-      try (Stream<String> stream = streamCreator.get()) {
-        ForkJoinPool forkJoinPool = new ForkJoinPool(10);
-        forkJoinPool.submit(() -> {
-                  Map<String, Integer> threads =
-                          stream.parallel().map(s -> Thread.currentThread().getName())
-                                  .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                  passed.set(condition.test(threads.size()));
-                }
-        ).get();
-        forkJoinPool.shutdownNow();
+
+  private int getNumberOfBatches(final ReaderSpliterator spliterator) throws ExecutionException, InterruptedException {
+    final AtomicInteger numSplits = new AtomicInteger(0);
+    //we want to wrap the spliterator and count the (valid) splits
+    Spliterator<String> delegatingSpliterator = new Spliterator<String>() {
+      @Override
+      public boolean tryAdvance(Consumer<? super String> action) {
+        return spliterator.tryAdvance(action);
       }
+
+      @Override
+      public Spliterator<String> trySplit() {
+        Spliterator<String> ret = spliterator.trySplit();
+        if(ret != null) {
+          numSplits.incrementAndGet();
+        }
+        return ret;
+      }
+
+      @Override
+      public long estimateSize() {
+        return spliterator.estimateSize();
+      }
+
+      @Override
+      public int characteristics() {
+        return spliterator.characteristics();
+      }
+    };
+
+    Stream<String> stream = StreamSupport.stream(delegatingSpliterator, true);
+
+    //now run it in a parallel pool and do some calculation that doesn't really matter.
+    ForkJoinPool forkJoinPool = new ForkJoinPool(10);
+    forkJoinPool.submit(() -> {
+                      stream.parallel().map(s -> Thread.currentThread().getName())
+                              .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
+            }
+    ).get();
+    forkJoinPool.shutdownNow();
+    return numSplits.get();
+  }
+
+  @Test
+  public void testSmallBatch() throws ExecutionException, InterruptedException, IOException {
+    //With 9 elements and a batch of 1, we should have ceil(9/1) = 9 batches
+    try(BufferedReader reader = getReader()) {
+      Assert.assertEquals(9, getNumberOfBatches(new ReaderSpliterator(reader, 1)));
     }
-    Assert.assertTrue("Medium batch did not actually parallelize.", passed.get());
   }
 
   @Test
-  public void testActuallyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
-    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most min(5, 2) = 2 threads will be used
-    actuallyParallel(() -> ReaderSpliterator.lineStream(getReader(), 2), n -> n > 0 && n <= 2);
-  }
-
-  @Test
-  public void testActuallyParallel_mediumBatch() throws ExecutionException, InterruptedException, FileNotFoundException {
-    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most 5 threads of the pool of 10 will be used
-    actuallyParallel(() -> ReaderSpliterator.lineStream(getReader(), 2), n -> (n <= (int) Math.ceil(9.0 / 2) && n > 1));
-  }
-
-  @Test
-  public void testActuallyParallel_mediumBatchImplicitlyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
-    //With 9 elements and a batch of 2, we should only ceil(9/2) = 5 batches, so at most 5 threads of the pool of 10 will be used
-    actuallyParallel(() -> ReaderSpliterator.lineStream(getReader(), 2, true), n -> (n <= (int) Math.ceil(9.0 / 2) && n > 1));
-  }
-
-  @Test
-  public void testActuallyParallel_mediumBatchNotImplicitlyParallel() throws ExecutionException, InterruptedException, FileNotFoundException {
-    //Since this is not parallel and we're not making the stream itself parallel, we should only use one thread from the thread pool.
-    try( Stream<String> stream = ReaderSpliterator.lineStream(getReader(), 2, false)) {
-      ForkJoinPool forkJoinPool = new ForkJoinPool(10);
-      forkJoinPool.submit(() -> {
-                Map<String, Integer> threads =
-                        stream.map(s -> Thread.currentThread().getName())
-                                .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                Assert.assertEquals(1, threads.size());
-              }
-      ).get();
-      forkJoinPool.shutdownNow();
+  public void testMediumBatch() throws ExecutionException, InterruptedException, IOException {
+    //With 9 elements and a batch of 2, we should have ceil(9/2) = 5 batches
+    try(BufferedReader reader = getReader()) {
+      Assert.assertEquals(5, getNumberOfBatches(new ReaderSpliterator(reader, 2)));
     }
   }
 
   @Test
-  public void testActuallyParallel_bigBatch() throws ExecutionException, InterruptedException, FileNotFoundException {
-    //With 9 elements and a batch of 10, we should only have one batch, so only one thread will be used
-    //despite the thread pool size of 2.
-    try( Stream<String> stream = ReaderSpliterator.lineStream(getReader(), 10)) {
-      ForkJoinPool forkJoinPool = new ForkJoinPool(2);
-      forkJoinPool.submit(() -> {
-                Map<String, Integer> threads =
-                        stream.parallel().map(s -> Thread.currentThread().getName())
-                                .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                Assert.assertEquals(1, threads.size());
-              }
-      ).get();
-      forkJoinPool.shutdownNow();
+  public void testOneBigBatch() throws ExecutionException, InterruptedException, IOException {
+    //With 9 elements and a batch of 10, we should only have one batch
+    try(BufferedReader reader = getReader()) {
+      Assert.assertEquals(1, getNumberOfBatches(new ReaderSpliterator(reader, 10)));
     }
   }
 
