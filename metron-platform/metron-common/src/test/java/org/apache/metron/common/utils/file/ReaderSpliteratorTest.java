@@ -75,6 +75,14 @@ public class ReaderSpliteratorTest {
     }
   }
 
+  private static void validateMapCount(Map<String, Integer> count) {
+    Assert.assertEquals(5, count.size());
+    Assert.assertEquals(3, (int)count.get("foo"));
+    Assert.assertEquals(2, (int)count.get("bar"));
+    Assert.assertEquals(1, (int)count.get("and"));
+    Assert.assertEquals(1, (int)count.get("the"));
+  }
+
   @Test
   public void testParallelStreamSmallBatch() throws FileNotFoundException {
     try( Stream<String> stream = ReaderSpliterator.lineStream(getReader(), 2)) {
@@ -82,11 +90,7 @@ public class ReaderSpliteratorTest {
       Map<String, Integer> count =
               stream.parallel().map( s -> s.trim())
                       .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-      Assert.assertEquals(5, count.size());
-      Assert.assertEquals(3, (int)count.get("foo"));
-      Assert.assertEquals(2, (int)count.get("bar"));
-      Assert.assertEquals(1, (int)count.get("and"));
-      Assert.assertEquals(1, (int)count.get("the"));
+      validateMapCount(count);
     }
   }
 
@@ -96,11 +100,7 @@ public class ReaderSpliteratorTest {
       Map<String, Integer> count =
               stream.parallel().map(s -> s.trim())
                       .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-      Assert.assertEquals(5, count.size());
-      Assert.assertEquals(3, (int) count.get("foo"));
-      Assert.assertEquals(2, (int) count.get("bar"));
-      Assert.assertEquals(1, (int) count.get("and"));
-      Assert.assertEquals(1, (int) count.get("the"));
+      validateMapCount(count);
     }
   }
 
@@ -110,16 +110,9 @@ public class ReaderSpliteratorTest {
       Map<String, Integer> count =
               stream.map(s -> s.trim())
                       .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-      Assert.assertEquals(5, count.size());
-      Assert.assertEquals(3, (int) count.get("foo"));
-      Assert.assertEquals(2, (int) count.get("bar"));
-      Assert.assertEquals(1, (int) count.get("and"));
-      Assert.assertEquals(1, (int) count.get("the"));
+      validateMapCount(count);
     }
   }
-
-
-
 
   private int getNumberOfBatches(final ReaderSpliterator spliterator) throws ExecutionException, InterruptedException {
     final AtomicInteger numSplits = new AtomicInteger(0);
