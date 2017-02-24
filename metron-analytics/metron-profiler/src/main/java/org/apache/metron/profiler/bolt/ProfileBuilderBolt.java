@@ -61,13 +61,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private OutputCollector collector;
 
   /**
-   * The key containing a value within each message of a 'time to live' for the message.  This
-   * value is embedded in each message that is produced, then checked and decremented
-   * to prevent unintentional looping.
-   */
-  protected static final String MESSAGE_TTL_KEY = "metron.profiler.message.ttl";
-
-  /**
    * The duration of each profile period in milliseconds.
    */
   private long periodDurationMillis;
@@ -182,12 +175,14 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * Handles a tick tuple.
    */
   private void handleTick() {
-    // when a 'tick' is received...
     profileCache.asMap().forEach((key, profileBuilder) -> {
       if(profileBuilder.isInitialized()) {
 
         // flush the profile
         ProfileMeasurement measurement = profileBuilder.flush();
+
+        // TODO send triage to kafka
+        // TODO send profile to hbase
 
         // emit the measurement to each profile destination
         for(String dest : profileBuilder.getDefinition().getDestination()) {
