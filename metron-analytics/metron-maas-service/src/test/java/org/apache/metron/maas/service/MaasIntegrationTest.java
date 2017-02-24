@@ -209,6 +209,7 @@ public class MaasIntegrationTest {
                       "--num_instances", "1",
                       "--memory", "100",
                       "--mode", "ADD",
+                      "--log4j", "src/test/resources/log4j.properties"
 
               });
       ServiceDiscoverer discoverer = new ServiceDiscoverer(this.client, config.getServiceRoot());
