@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -73,8 +72,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
-    String hdfsFile = (String) getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE);
-    GeoLiteDatabase.INSTANCE.update(hdfsFile);
     this.collector = collector;
     initializeStellar();
     if(getSensorParserConfig() != null && filter == null) {
