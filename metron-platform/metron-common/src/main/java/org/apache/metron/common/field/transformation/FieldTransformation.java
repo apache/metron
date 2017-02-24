@@ -21,13 +21,14 @@ package org.apache.metron.common.field.transformation;
 import org.apache.metron.common.dsl.Context;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public interface FieldTransformation extends Serializable {
   Map<String, Object> map( Map<String, Object> input
                          , List<String> outputField
-                         , Map<String, Object> fieldMappingConfig
+                         , LinkedHashMap<String, Object> fieldMappingConfig
                          , Map<String, Object> sensorConfig
                          , Context context
                          );

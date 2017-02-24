@@ -26,17 +26,14 @@ import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FieldTransformer implements Serializable {
   private List<String> input = new ArrayList<>();
   private List<String> output;
   private FieldTransformation transformation;
   private String transformationName;
-  private Map<String, Object> config = new HashMap<>();
+  private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
   private boolean initialized = false;
   public FieldTransformer() {
   }
@@ -71,7 +68,7 @@ public class FieldTransformer implements Serializable {
     return config;
   }
 
-  public void setConfig(Map<String, Object> config) {
+  public void setConfig(LinkedHashMap<String, Object> config) {
     this.config = config;
   }
 
