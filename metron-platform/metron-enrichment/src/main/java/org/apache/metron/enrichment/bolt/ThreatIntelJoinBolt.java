@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.bolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
@@ -147,13 +149,12 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
         // attach the triage threat score to the message
         if(score.getRuleScores().size() > 0) {
-          ret.put("threat.triage.level", toMap(score));
+          appendThreatScore(score, ret);
         }
       }
       else {
         LOG.debug(sourceType + ": Unable to find threat triage config!");
       }
-
     }
 
     return ret;
@@ -167,19 +168,24 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     }
   }
 
-  private Map<String, Object> toMap(ThreatScore threatScore) {
-    Map<String, Object> map = new HashMap();
-    map.put("score", threatScore.getScore());
-    map.put("rules", threatScore.getRuleScores().stream().map(score -> toMap(score)).collect(Collectors.toList()));
-    return map;
-  }
+  /**
+   * Appends the threat score to the telemetry message.
+   * @param threatScore The threat triage score
+   * @param message The telemetry message being triaged.
+   */
+  private void appendThreatScore(ThreatScore threatScore, JSONObject message) {
 
-  private Map<String, Object> toMap(RuleScore score) {
-    Map<String, Object> map = new HashMap();
-    map.put("name", score.getRule().getName());
-    map.put("comment", score.getRule().getComment());
-    map.put("score", score.getRule().getScore());
-    map.put("reason", score.getReason());
-    return map;
+    // append the overall threat score
+    message.put("threat.triage.score", threatScore.getScore());
+
+    // append each of the rules - each rule is 'flat'
+    final String prefix = "threat.triage.rules";
+    int i = 0;
+    for(RuleScore score: threatScore.getRuleScores()) {
+      message.put(Joiner.on(".").join(prefix, i,"name"), score.getRule().getName());
+      message.put(Joiner.on(".").join(prefix, i,"comment"), score.getRule().getComment());
+      message.put(Joiner.on(".").join(prefix, i,"score"), score.getRule().getScore());
+      message.put(Joiner.on(".").join(prefix, i++,"reason"), score.getReason());
+    }
   }
 }

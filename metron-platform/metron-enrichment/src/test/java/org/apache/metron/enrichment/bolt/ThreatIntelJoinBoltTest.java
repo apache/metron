@@ -201,12 +201,12 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     Assert.assertTrue(joinedMessage.containsKey("is_alert") && "true".equals(joinedMessage.get("is_alert")));
 
     if(withThreatTriage && !badConfig) {
-      Assert.assertTrue(joinedMessage.containsKey("threat.triage.level"));
-      Double score = (Double) ((Map) joinedMessage.get("threat.triage.level")).get("score");
+      Assert.assertTrue(joinedMessage.containsKey("threat.triage.score"));
+      Double score = (Double) joinedMessage.get("threat.triage.score");
       Assert.assertTrue(Math.abs(10d - score) < 1e-10);
     }
     else {
-      Assert.assertFalse(joinedMessage.containsKey("threat.triage.level"));
+      Assert.assertFalse(joinedMessage.containsKey("threat.triage.score"));
     }
   }
 }
