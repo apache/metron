@@ -18,6 +18,7 @@
 import {SensorParserConfig} from './sensor-parser-config';
 export class ParseMessageRequest {
   sensorParserConfig: SensorParserConfig;
+  grokStatement: string;
   sampleData: string;
   grokStatement: string;
 }

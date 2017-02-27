@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions} from '@angular/http';
+import {Http, Headers, RequestOptions, URLSearchParams} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import {GrokValidation} from '../model/grok-validation';
 import {HttpUtil} from '../util/httpUtil';
@@ -43,6 +43,14 @@ export class GrokValidationService {
     return this.http.get(this.url + '/list', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
+  }
+
+  public getStatement(path: string): Observable<string> {
+    let params: URLSearchParams = new URLSearchParams();
+    params.set('path', path);
+    return this.http.get(this.url + '/get/statement', new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
+        .map(HttpUtil.extractString)
+        .catch(HttpUtil.handleError);
   }
 
 }

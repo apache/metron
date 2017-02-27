@@ -68,18 +68,18 @@
               <a *ngIf="transformsConfigKeys.length>0"  class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseTransform" aria-expanded="false" aria-controls="collapseTransform" #transformLink (click)="transformLink.text=(transformLink.text==='show more')?'show less':'show more'">show more</a>
             </div>
             <div *ngIf="item.model == 'threatTriageRules'">
-              <div class="col-xs-12 form-sub-sub-title">Risk Levels</div>
               <div class="col-xs-6 form-label">AGGREGATOR</div><div class="col-xs-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
               <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
                 <div>
-                  <div *ngFor="let results of aggregationConfigKeys" >
-                    <div class="form-label">{{ results }}</div>
-                    <div class="form-value">{{ sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[results] }}</div>
+                  <div class="col-xs-6 form-label">NAME</div><div class="col-xs-6 form-label">SCORE</div>
+                  <div *ngFor="let riskLevelRule of rules" >
+                    <div class="col-xs-6 form-label">{{ riskLevelRule.name }}</div>
+                    <div class="col-xs-6 form-value">{{ riskLevelRule.score }}</div>
                   </div>
                 </div>
               </div>
-              <div  class="col-xs-12 form-label threatIntel">{{aggregationConfigKeys}}</div>
-              <a *ngIf="aggregationConfigKeys.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseThreatTriage" aria-expanded="false" aria-controls="collapseThreatTriage"  #threatTriageLink (click)="threatTriageLink.text=(threatTriageLink.text==='show more')?'show less':'show more'">show more</a>
+              <div  class="col-xs-12 form-label threatIntel">{{ getRuleDisplayName() }}</div>
+              <a *ngIf="rules.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseThreatTriage" aria-expanded="false" aria-controls="collapseThreatTriage"  #threatTriageLink (click)="threatTriageLink.text=(threatTriageLink.text==='show more')?'show less':'show more'">show more</a>
             </div>
           </div>
         </div>

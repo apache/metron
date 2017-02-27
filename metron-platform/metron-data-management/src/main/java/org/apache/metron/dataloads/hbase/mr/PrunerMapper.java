@@ -72,6 +72,16 @@ public class PrunerMapper extends TableMapper<ImmutableBytesWritable, Delete> {
             public void fromBytes(byte[] in) {
 
             }
+
+            @Override
+            public String getIndicator() {
+                return null;
+            }
+
+            @Override
+            public void setIndicator(String indicator) {
+
+            }
         };
     }
 

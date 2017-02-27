@@ -16,7 +16,7 @@ The host used to deploy Apache Metron will need the following software tools ins
   - Python 2.7.11
   - Maven 3.3.9  
 
-Any platform that supports these tools is suitable, but the following instructions cover only Mac OS X.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+Any platform that supports these tools is suitable, but the following instructions cover only macOS.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
 1. Install Homebrew by running the following command in a terminal.  Refer to the  [Homebrew](http://brew.sh/) home page for the latest installation instructions.
 
@@ -27,6 +27,7 @@ Any platform that supports these tools is suitable, but the following instructio
 2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
 
   ```  
+  brew cask install java
   brew install maven git
   brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
   brew switch ansible 2.0.0.2
@@ -263,7 +264,7 @@ to retry, use: --limit @playbook.retry
 
 This will occur if Apache Metron attempts to deploy more host instances than allowed by your account.  The total number of instances required for Apache Metron can be reduced by editing `deployment/amazon-ec/playbook.yml`.  Perhaps a better alternative is to request of Amazon that this limit be increased.  Amazon has some additional [advice for dealing with this error and more](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html).
 
-> You've reached the limit on the number of instances you can run concurrently. The limit depends on the instance type. For more information, see [How many instances can I run in Amazon EC2](http://aws.amazon.com/ec2/faqs/#How_many_instances_can_I_run_in_Amazon_EC2). If you need additional instances, complete the [Amazon EC2 Instance Request Form](https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&limitType=service-code-ec2-instances).
+> You've reached the limit on the number of instances you can run concurrently. The limit depends on the instance type. For more information, see [How many instances can I run in Amazon EC2](http://aws.amazon.com/ec2/faqs/#How_many_instances_can_I_run_in_Amazon_EC2). If you need additional instances, complete the [Amazon EC2 Instance Request Form](https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&amp;limitType=service-code-ec2-instances).
 
 ### Error: 'SSH encountered an unknown error during the connection'
 

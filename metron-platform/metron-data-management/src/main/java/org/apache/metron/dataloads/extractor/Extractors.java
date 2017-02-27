@@ -21,7 +21,6 @@ import org.apache.metron.dataloads.extractor.csv.CSVExtractor;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 public enum Extractors implements ExtractorCreator {
     CSV(new ExtractorCreator() {
@@ -49,11 +48,11 @@ public enum Extractors implements ExtractorCreator {
     public static Extractor create(String extractorName) throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         try {
             ExtractorCreator ec = Extractors.valueOf(extractorName);
-            return ec.create();
+            return new TransformFilterExtractorDecorator(ec.create());
         }
         catch(IllegalArgumentException iae) {
             Extractor ex = (Extractor) Class.forName(extractorName).getConstructor().newInstance();
-            return ex;
+            return new TransformFilterExtractorDecorator(ex);
         }
     }
 }

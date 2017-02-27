@@ -22,7 +22,7 @@ import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {TransformationValidationService} from '../../service/transformation-validation.service';
+import {StellarService} from '../../service/stellar.service';
 import {MetronAlerts} from '../../shared/metron-alerts';
 import {SensorFieldSchemaModule} from './sensor-field-schema.module';
 import {SensorFieldSchemaComponent, FieldSchemaRow} from './sensor-field-schema.component';
@@ -90,7 +90,7 @@ describe('Component: SensorFieldSchema', () => {
     let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
     let sensorParserConfigService: SensorParserConfigService;
     let fixture: ComponentFixture<SensorFieldSchemaComponent>;
-    let transformationValidationService: TransformationValidationService;
+    let transformationValidationService: StellarService;
 
     let squidSensorConfigJson = {
         'parserClassName': 'org.apache.metron.parsers.GrokParser',
@@ -166,7 +166,7 @@ describe('Component: SensorFieldSchema', () => {
           {provide: KafkaService, useClass: MockKafkaService},
           {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
           {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-          {provide: TransformationValidationService, useClass: MockTransformationValidationService},
+          {provide: StellarService, useClass: MockTransformationValidationService},
 
         ]
       }).compileComponents()
@@ -174,7 +174,7 @@ describe('Component: SensorFieldSchema', () => {
             fixture = TestBed.createComponent(SensorFieldSchemaComponent);
             component = fixture.componentInstance;
             sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
-            transformationValidationService = fixture.debugElement.injector.get(TransformationValidationService);
+            transformationValidationService = fixture.debugElement.injector.get(StellarService);
             sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
           });
     }));

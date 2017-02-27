@@ -175,8 +175,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withComponent("config", configUploadComponent)
             .withComponent("storm", fluxComponent)
             .withComponent("search", getSearchComponent(topologyProperties))
-            .withMillisecondsBetweenAttempts(15000)
-            .withNumRetries(10)
+            .withMillisecondsBetweenAttempts(1500)
+            .withNumRetries(100)
             .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
@@ -205,6 +205,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   private void waitForIndex(String zookeeperQuorum) throws Exception {
     try(CuratorFramework client = getClient(zookeeperQuorum)) {
       client.start();
+      System.out.println("Waiting for zookeeper...");
       byte[] bytes = null;
       do {
         try {
@@ -216,6 +217,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
         }
       }
       while(bytes == null || bytes.length == 0);
+      System.out.println("Found index config in zookeeper...");
     }
   }
 

@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
+import org.apache.commons.io.IOUtils;
 import org.apache.directory.api.util.Strings;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
@@ -61,20 +62,21 @@ public class GrokServiceImpl implements GrokService {
     public GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException {
         Map<String, Object> results;
         try {
-            String statement = Strings.isEmpty(grokValidation.getStatement()) ? "" : grokValidation.getStatement();
-
+            if (grokValidation.getPatternLabel() == null) {
+              throw new RestException("Pattern label is required");
+            }
+            if (Strings.isEmpty(grokValidation.getStatement())) {
+              throw new RestException("Grok statement is required");
+            }
             Grok grok = new Grok();
             grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
-            grok.addPatternFromReader(new StringReader(statement));
-            String patternLabel = statement.substring(0, statement.indexOf(" "));
-            String grokPattern = "%{" + patternLabel + "}";
+            grok.addPatternFromReader(new StringReader(grokValidation.getStatement()));
+            String grokPattern = "%{" + grokValidation.getPatternLabel() + "}";
             grok.compile(grokPattern);
             Match gm = grok.match(grokValidation.getSampleData());
             gm.captures();
             results = gm.toMap();
-            results.remove(patternLabel);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new RestException("A pattern label must be included (eg. PATTERN_LABEL %{PATTERN:field} ...)", e.getCause());
+            results.remove(grokValidation.getPatternLabel());
         } catch (Exception e) {
             throw new RestException(e);
         }
@@ -107,6 +109,14 @@ public class GrokServiceImpl implements GrokService {
       String grokTempPath = environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY);
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       return new Path(grokTempPath, authentication.getName()).toString();
+    }
+
+    public String getStatementFromClasspath(String path) throws RestException {
+      try {
+        return IOUtils.toString(getClass().getResourceAsStream(path));
+      } catch (IOException e) {
+        throw new RestException(e);
+      }
     }
 
 }

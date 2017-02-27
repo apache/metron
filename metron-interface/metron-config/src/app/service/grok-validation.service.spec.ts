@@ -63,14 +63,17 @@ describe('GrokValidationService', () => {
     grokValidation.sampleData = 'sampleData';
     grokValidation.results = {'results': 'results'};
     let grokList = ['pattern'];
+    let grokStatement = 'grok statement';
     let grokValidationResponse: Response;
     let grokListResponse: Response;
+    let grokGetStatementResponse: Response;
 
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       grokValidationService = new GrokValidationService(http, config);
       grokValidationResponse = new Response(new ResponseOptions({status: 200, body: grokValidation}));
       grokListResponse = new Response(new ResponseOptions({status: 200, body: grokList}));
+      grokGetStatementResponse = new Response(new ResponseOptions({status: 200, body: grokStatement}));
     }));
 
     it('validate', async(inject([], () => {
@@ -88,6 +91,14 @@ describe('GrokValidationService', () => {
         results => {
           expect(results).toEqual(grokList);
         }, error => console.log(error));
+    })));
+
+    it('getStatement', async(inject([], () => {
+      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(grokGetStatementResponse));
+      grokValidationService.getStatement('/path').subscribe(
+          results => {
+            expect(results).toEqual(grokStatement);
+          }, error => console.log(error));
     })));
   });
 
