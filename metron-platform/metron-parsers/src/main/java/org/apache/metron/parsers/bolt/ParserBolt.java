@@ -18,6 +18,9 @@
 package org.apache.metron.parsers.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
+import org.apache.metron.common.utils.ClassloaderUtil;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -102,6 +105,19 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
                                 .build();
+    Map<String, Object> globalConfig = getConfigurations().getGlobalConfig();
+    if(globalConfig != null) {
+      try {
+        Optional<ClassLoader> vfsLoader = ClassloaderUtil.configureClassloader(globalConfig);
+        if(vfsLoader.isPresent()) {
+          ClasspathFunctionResolver resolver = new ClasspathFunctionResolver();
+          resolver.classLoaders(vfsLoader.get());
+          StellarFunctions.setResolver(resolver, stellarContext);
+        }
+      } catch (FileSystemException e) {
+        LOG.error("Unable to set up VFS loader: " + e.getMessage(), e);
+      }
+    }
     StellarFunctions.initialize(stellarContext);
   }
 

@@ -27,12 +27,7 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
 
@@ -96,9 +91,24 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    */
   private List<String> excludes;
 
+  /**
+   * Classloaders to try to load from
+   */
+  private List<ClassLoader> classLoaders;
+
   public ClasspathFunctionResolver() {
     this.includes = new ArrayList<>();
     this.excludes = new ArrayList<>();
+    this.classLoaders = new ArrayList<>();
+  }
+
+  /**
+   * Use one or more classloaders
+   * @param classloaders
+   */
+  public void classLoaders(ClassLoader... classloaders) {
+    classLoaders.clear();
+    Arrays.stream(classloaders).forEach(c -> classLoaders.add(c));
   }
 
   /**
@@ -153,9 +163,12 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    */
   @Override
   protected Set<Class<? extends StellarFunction>> resolvables() {
-
-    ClassLoader classLoader = getClass().getClassLoader();
-    Collection<URL> searchPath = effectiveClassPathUrls(classLoader);
+    ClassLoader[] cls = new ClassLoader[this.classLoaders.size() + 1];
+    cls[0] = getClass().getClassLoader();
+    for(int i = 0;i < this.classLoaders.size();++i) {
+      cls[i+1] = this.classLoaders.get(i);
+    }
+    Collection<URL> searchPath = effectiveClassPathUrls(cls);
 
     FilterBuilder filterBuilder = new FilterBuilder();
     excludes.forEach(excl -> filterBuilder.exclude(excl));
@@ -163,6 +176,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
 
     Reflections reflections = new Reflections(
             new ConfigurationBuilder()
+                    .addClassLoaders(cls)
                     .setUrls(searchPath)
                     .filterInputsBy(filterBuilder));
     return reflections.getSubTypesOf(StellarFunction.class);
@@ -176,5 +190,19 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    */
   public static Collection<URL> effectiveClassPathUrls(ClassLoader... classLoaders) {
     return ClasspathHelper.forManifest(ClasspathHelper.forClassLoader(classLoaders));
+  }
+
+  /**
+   * To handle the situation where classpath is specified in the manifest of the
+   * jar, we have to augment the URLs.  This happens as part of the surefire plugin
+   * as well as elsewhere in the wild.
+   * @param classLoaders
+   */
+  public static Collection<URL> effectiveClassPathUrls(List<ClassLoader> classLoaders) {
+    ClassLoader loaders[] = new ClassLoader[classLoaders.size()];
+    for(int i = 0;i < classLoaders.size();++i) {
+      loaders[i] = classLoaders.get(i);
+    }
+    return effectiveClassPathUrls(loaders);
   }
 }
