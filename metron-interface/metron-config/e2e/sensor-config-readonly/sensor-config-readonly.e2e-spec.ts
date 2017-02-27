@@ -105,6 +105,8 @@ describe('Sensor Details View', function () {
         expect(page.stopParser()).toEqual(true);
         expect(page.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);
 
+        page.closePane('squid');
+
         done();
 
     }, 300000);

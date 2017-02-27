@@ -23,15 +23,15 @@ export class LoginPage {
     }
 
     login() {
+        browser.wait(function() {return element(by.css('input.form-control')).isPresent();});
         this.setUserNameAndPassword('admin', 'password');
         this.submitLoginForm();
-        browser.wait(function() {
-            return element(by.css('.logout')).isPresent();
-        });
+        browser.wait(function() {return element(by.css('.logout')).isPresent();});
     }
 
     logout() {
         browser.ignoreSynchronization = true;
+        element.all(by.css('.alert .close')).click();
         element.all(by.css('.logout-link')).click();
         browser.sleep(2000);
     }

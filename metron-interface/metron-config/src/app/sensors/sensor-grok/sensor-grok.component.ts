@@ -60,11 +60,13 @@ export class SensorGrokComponent implements OnInit, OnChanges {
       return;
     }
 
+    let topicUpperCase = this.sensorParserConfig.sensorTopic.toUpperCase();
+
+    this.parseMessageRequest.grokStatement = topicUpperCase + ' ' + this.grokStatement;
     this.parseMessageRequest.sensorParserConfig = JSON.parse(JSON.stringify(this.sensorParserConfig));
     this.parseMessageRequest.sensorParserConfig.parserConfig['grokStatement'] = this.grokStatement;
     if (this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] == null) {
-      this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] =
-          this.parseMessageRequest.sensorParserConfig.sensorTopic.toUpperCase();
+        this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] = topicUpperCase;
     }
     this.parseMessageRequest.sensorParserConfig.parserConfig['grokPath'] = './' + this.parseMessageRequest.sensorParserConfig.sensorTopic;
 

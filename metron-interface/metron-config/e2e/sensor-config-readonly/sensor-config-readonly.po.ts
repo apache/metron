@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { browser, element, by, protractor } from 'protractor/globals';
-import {changeURL, waitForElement} from '../utils/e2e_util';
+import {changeURL, waitForElementVisibility} from '../utils/e2e_util';
 
 export class SensorDetailsPage {
 
@@ -32,10 +32,23 @@ export class SensorDetailsPage {
         this.stopButton = element(by.cssContainingText('metron-config-sensor-parser-readonly .btn', 'STOP'));
     }
 
+    clickToggleShowMoreLess(text: string, index: number) {
+        return element.all(by.linkText(text)).get(index).click().then(() => {
+            browser.sleep(1000);
+            return true;
+        })
+    }
+
+    closePane(name: string) {
+        return element(by.css('metron-config-sensor-parser-readonly .fa-times')).click().then(() => {
+            return true;
+        });
+    }
+
     disableParser() {
-        return waitForElement(this.disableButton).then(() => {
+        return waitForElementVisibility(this.disableButton).then(() => {
             return this.disableButton.click().then(() => {
-                return waitForElement(this.enableButton).then(() => {
+                return waitForElementVisibility(this.enableButton).then(() => {
                     return true;
                 })
             });
@@ -43,9 +56,9 @@ export class SensorDetailsPage {
     }
 
     enableParser() {
-        return waitForElement(this.enableButton).then(() => {
+        return waitForElementVisibility(this.enableButton).then(() => {
             return this.enableButton.click().then(() => {
-                return waitForElement(this.disableButton).then(() => {
+                return waitForElementVisibility(this.disableButton).then(() => {
                     return true;
                 })
             });
@@ -53,9 +66,9 @@ export class SensorDetailsPage {
     }
 
     startParser() {
-        return waitForElement(this.startButton).then(() => {
+        return waitForElementVisibility(this.startButton).then(() => {
             return this.startButton.click().then(() => {
-                return waitForElement(this.stopButton).then(() => {
+                return waitForElementVisibility(this.stopButton).then(() => {
                     return true;
                 })
             });
@@ -63,9 +76,9 @@ export class SensorDetailsPage {
     }
 
     stopParser() {
-        return waitForElement(this.stopButton).then(() => {
+        return waitForElementVisibility(this.stopButton).then(() => {
             return this.stopButton.click().then(() => {
-                return waitForElement(this.startButton).then(() => {
+                return waitForElementVisibility(this.startButton).then(() => {
                     return true;
                 })
             });
@@ -76,14 +89,33 @@ export class SensorDetailsPage {
         return element.all(by.css('metron-config-sensor-parser-readonly button:not([hidden=""])')).getText();
     }
 
+    getGrokStatement() {
+        return element(by.css('.form-value.grok')).getText();
+    }
+
     getParserConfig() {
         return element.all(by.css('metron-config-sensor-parser-readonly .row')).getText().then(data => {
             return data.slice(1, 19);
         });
     }
 
+    getSchemaSummary() {
+        return element.all(by.css('.transforms')).getText();
+    }
+
+    getSchemaFullSummary() {
+        return element.all(by.css('.collapse.in')).getText();
+    }
+
+    getThreatTriageSummary() {
+        return element(by.cssContainingText('.form-sub-sub-title', 'Risk Levels')).element(by.xpath('..')).getText();
+    }
+
     getTitle() {
-        return element(by.css('metron-config-sensor-parser-readonly .form-title')).getText();
+        let title = element(by.css('metron-config-sensor-parser-readonly .form-title'));
+        return waitForElementVisibility(title).then(() => {
+            return title.getText();
+        });
     }
 
     navigateTo(parserName: string) {
