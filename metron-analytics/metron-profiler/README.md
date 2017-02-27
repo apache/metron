@@ -209,7 +209,7 @@ The values can be changed on disk and then the Profiler topology must be restart
 | profiler.workers | The number of worker processes to create for the topology.   |
 | profiler.executors | The number of executors to spawn per component.  |
 | profiler.input.topic | The name of the Kafka topic from which to consume data.  |
-| profiler.output.topic | The name of the Kafka topic to which profile data is written.  Only used with the 'kafka' destination.  |
+| profiler.output.topic | The name of the Kafka topic to which profile data is written.  Only used with profiles that use the [`triage` result field](#result).  |
 | profiler.period.duration | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.  |
 | profiler.period.duration.units | The units used to specify the `profiler.period.duration`. |
 | profiler.ttl | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with `profiler.ttl.units`. |
