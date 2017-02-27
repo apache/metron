@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
@@ -200,11 +201,12 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     Assert.assertTrue(joinedMessage.containsKey("is_alert") && "true".equals(joinedMessage.get("is_alert")));
 
     if(withThreatTriage && !badConfig) {
-      Assert.assertTrue(joinedMessage.containsKey("threat.triage.level") &&
-              Math.abs(10d - (Double) joinedMessage.get("threat.triage.level")) < 1e-10);
+      Assert.assertTrue(joinedMessage.containsKey("threat.triage.score"));
+      Double score = (Double) joinedMessage.get("threat.triage.score");
+      Assert.assertTrue(Math.abs(10d - score) < 1e-10);
     }
     else {
-      Assert.assertFalse(joinedMessage.containsKey("threat.triage.level"));
+      Assert.assertFalse(joinedMessage.containsKey("threat.triage.score"));
     }
   }
 }
