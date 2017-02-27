@@ -43,7 +43,7 @@ usage: MaaSClient
  -h,--help                            This screen
  -j,--jar <arg>                       Jar file containing the application
                                       master
- -l4j,--log_properties <arg>          log4j.properties file
+ -l,--log4j <arg>                     The log4j properties file to load
  -ma,--modify_acls <arg>              Users and groups that allowed to
                                       modify the timeline entities in the
                                       given domain
@@ -85,6 +85,7 @@ usage: ModelSubmission
  -h,--help                       This screen
  -hmp,--hdfs_model_path <arg>    Model Path (HDFS)
  -lmp,--local_model_path <arg>   Model Path (local)
+ -l,--log4j <arg>                The log4j properties file to load
  -m,--memory <arg>               Memory for container
  -mo,--mode <arg>                ADD, LIST or REMOVE
  -n,--name <arg>                 Model Name

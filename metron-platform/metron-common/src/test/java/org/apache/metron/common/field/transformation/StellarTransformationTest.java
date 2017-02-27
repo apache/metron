@@ -115,16 +115,48 @@ public class StellarTransformationTest {
 
   /**
    {
-   "fieldTransformations" : [
+    "fieldTransformations" : [
+          {
+           "transformation" : "STELLAR"
+          ,"output" : "final_value"
+          ,"config" : {
+            "value1" : "1"
+           ,"value2" : "value1 + 1"
+           ,"final_value" : "value2 + 1"
+                      }
+          }
+                      ]
+   }
+   */
+  @Multiline
+  public static String intermediateValuesConfig;
+
+  @Test
+  public void testIntermediateValues() throws Exception {
+
+    SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(intermediateValuesConfig));
+    FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
+    JSONObject input = new JSONObject(new HashMap<String, Object>() {{
+    }});
+    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    int expected = 3;
+    Assert.assertEquals(expected, input.get("final_value"));
+    Assert.assertFalse(input.containsKey("value1"));
+    Assert.assertFalse(input.containsKey("value2"));
+  }
+
+  /**
    {
-   "transformation" : "STELLAR"
-   ,"output" : ["newStellarField","utc_timestamp"]
-   ,"config" : {
-   "newStellarField" : "'<<??>>'",
-   "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', 'UTC')"
-   }
-   }
-   ]
+    "fieldTransformations" : [
+          {
+            "transformation" : "STELLAR"
+          ,"output" : ["newStellarField","utc_timestamp"]
+          ,"config" : {
+            "newStellarField" : "'<<??>>'",
+            "utc_timestamp" : "TO_EPOCH_TIMESTAMP(timestamp, 'yyyy-MM-dd HH:mm:ss', 'UTC')"
+                      }
+          }
+                             ]
    }
    */
   @Multiline
@@ -163,6 +195,7 @@ public class StellarTransformationTest {
     Assert.assertEquals(expected, input.get("utc_timestamp"));
     Assert.assertTrue(input.containsKey("timestamp"));
   }
+
   /**
    * Ensures that if we try to transform with a field which does not exist, it does not
    * 1. throw an exception

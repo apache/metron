@@ -34,7 +34,7 @@ public class Token<T> {
 
   @Override
   public String toString() {
-    return value.toString();
+    return "" + value;
   }
 
   @Override

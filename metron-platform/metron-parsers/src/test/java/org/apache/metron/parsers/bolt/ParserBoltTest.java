@@ -19,7 +19,6 @@ package org.apache.metron.parsers.bolt;
 
 import org.apache.metron.common.configuration.*;
 
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -139,8 +138,6 @@ public class ParserBoltTest extends BaseBoltTest {
 
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -178,8 +175,6 @@ public class ParserBoltTest extends BaseBoltTest {
       }
 
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -238,8 +233,6 @@ public void testImplicitBatchOfOne() throws Exception {
     }
   };
 
-  buildGlobalConfig(parserBolt);
-
   parserBolt.setCuratorFramework(client);
   parserBolt.setTreeCache(cache);
   parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -286,8 +279,6 @@ public void testImplicitBatchOfOne() throws Exception {
       }
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -324,8 +315,6 @@ public void testImplicitBatchOfOne() throws Exception {
         }
       }
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -396,8 +385,6 @@ public void testImplicitBatchOfOne() throws Exception {
       }
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -431,8 +418,6 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -472,8 +457,6 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -524,8 +507,6 @@ public void testImplicitBatchOfOne() throws Exception {
       }
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -548,14 +529,6 @@ public void testImplicitBatchOfOne() throws Exception {
     verify(outputCollector, times(1)).ack(t4);
     verify(outputCollector, times(1)).ack(t5);
 
-  }
-
-  protected void buildGlobalConfig(ParserBolt parserBolt) {
-    HashMap<String, Object> globalConfig = new HashMap<>();
-    String baseDir = UnitTestHelper.findDir("GeoLite");
-    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
-    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
-    parserBolt.getConfigurations().updateGlobalConfig(globalConfig);
   }
 
   private static void writeNonBatch(OutputCollector collector, ParserBolt bolt, Tuple t) {

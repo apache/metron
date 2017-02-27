@@ -23,6 +23,7 @@ import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,7 +67,7 @@ public class RemoveTransformation implements FieldTransformation {
   @Override
   public Map<String, Object> map( Map<String, Object> input
                                 , final List<String> outputFields
-                                , Map<String, Object> fieldMappingConfig
+                                , LinkedHashMap<String, Object> fieldMappingConfig
                                 , Map<String, Object> sensorConfig
                                 , Context context
                                 ) {

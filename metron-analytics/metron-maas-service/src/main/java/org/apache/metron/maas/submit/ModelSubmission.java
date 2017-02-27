@@ -30,8 +30,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.maas.config.*;
 import org.apache.metron.maas.discovery.ServiceDiscoverer;
+import org.apache.metron.maas.service.Log4jPropertyHelper;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.maas.queue.Queue;
 import org.apache.metron.maas.queue.ZKQueue;
@@ -96,6 +98,12 @@ public class ModelSubmission {
     ,MODE("mo", code -> {
       Option o = new Option(code, "mode", true, "ADD, LIST or REMOVE");
       o.setRequired(true);
+      return o;
+    })
+    ,LOG4J_PROPERTIES("l", code -> {
+      Option o = new Option(code, "log4j", true, "The log4j properties file to load");
+      o.setArgName("FILE");
+      o.setRequired(false);
       return o;
     })
     ;
@@ -168,6 +176,9 @@ public class ModelSubmission {
 
   public void execute(FileSystem fs, String... argv) throws Exception {
     CommandLine cli = ModelSubmissionOptions.parse(new PosixParser(), argv);
+    if(ModelSubmissionOptions.LOG4J_PROPERTIES.has(cli)) {
+      Log4jPropertyHelper.updateLog4jConfiguration(ModelSubmission.class, ModelSubmissionOptions.LOG4J_PROPERTIES.get(cli));
+    }
     ModelRequest request = null;
     CuratorFramework client = null;
     try {

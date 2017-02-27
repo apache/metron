@@ -24,29 +24,35 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StellarTransformation implements FieldTransformation {
   @Override
   public Map<String, Object> map( Map<String, Object> input
                                 , List<String> outputField
-                                , Map<String, Object> fieldMappingConfig
+                                , LinkedHashMap<String, Object> fieldMappingConfig
                                 , Map<String, Object> sensorConfig
                                 , Context context
                                 )
   {
     Map<String, Object> ret = new HashMap<>();
-    VariableResolver resolver = new MapVariableResolver(ret, input, sensorConfig);
+    Map<String, Object> intermediateVariables = new HashMap<>();
+    Set<String> outputs = new HashSet<>(outputField);
+    VariableResolver resolver = new MapVariableResolver(ret, intermediateVariables, input, sensorConfig);
     StellarProcessor processor = new StellarProcessor();
-    for(String oField : outputField) {
-      Object transformObj = fieldMappingConfig.get(oField);
+    for(Map.Entry<String, Object> kv : fieldMappingConfig.entrySet()) {
+      String oField = kv.getKey();
+      Object transformObj = kv.getValue();
       if(transformObj != null) {
         try {
           Object o = processor.parse(transformObj.toString(), resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
           if (o != null) {
-            ret.put(oField, o);
+            if(outputs.contains(oField)) {
+              ret.put(oField, o);
+            }
+            else {
+              intermediateVariables.put(oField, o);
+            }
           }
         }
         catch(Exception ex) {
