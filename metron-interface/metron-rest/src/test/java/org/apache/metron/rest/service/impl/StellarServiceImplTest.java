@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class StellarServiceImplTest {
     FieldTransformer fieldTransformater = new FieldTransformer();
     fieldTransformater.setOutput("url_host");
     fieldTransformater.setTransformation("STELLAR");
-    fieldTransformater.setConfig(new HashMap<String, Object>() {{
+    fieldTransformater.setConfig(new LinkedHashMap<String, Object>() {{
       put("url_host", "TO_LOWER(URL_TO_HOST(url))");
     }});
     sensorParserConfig.setFieldTransformations(ImmutableList.of(fieldTransformater));
