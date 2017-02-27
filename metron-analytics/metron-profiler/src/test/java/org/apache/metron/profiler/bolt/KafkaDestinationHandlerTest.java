@@ -94,8 +94,11 @@ public class KafkaDestinationHandlerTest {
     assertEquals(measurement.getDefinition().getProfile(), actual.get("profile"));
     assertEquals(measurement.getEntity(), actual.get("entity"));
     assertEquals(measurement.getPeriod().getPeriod(), actual.get("period"));
-    assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("periodStartTime"));
+    assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("period.start"));
+    assertEquals(measurement.getPeriod().getEndTimeMillis(), actual.get("period.end"));
     assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
+    assertNotNull(actual.get("timestamp"));
+    assertEquals(KafkaDestinationHandler.PROFILER_SOURCE_TYPE, actual.get("source.type"));
   }
 
   /**

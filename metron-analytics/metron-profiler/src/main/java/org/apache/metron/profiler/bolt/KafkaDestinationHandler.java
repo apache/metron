@@ -40,6 +40,11 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
    */
   private String streamId = "kafka";
 
+  /**
+   * The 'source.type' of messages originating from the Profiler.
+   */
+  private String sourceType = "profiler";
+
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     // the kafka writer expects a field named 'message'
@@ -53,7 +58,11 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
     message.put("profile", measurement.getDefinition().getProfile());
     message.put("entity", measurement.getEntity());
     message.put("period", measurement.getPeriod().getPeriod());
-    message.put("periodStartTime", measurement.getPeriod().getStartTimeMillis());
+    message.put("period.start", measurement.getPeriod().getStartTimeMillis());
+    message.put("period.end", measurement.getPeriod().getEndTimeMillis());
+    message.put("timestamp", System.currentTimeMillis());
+    message.put("source.type", sourceType);
+    message.put("is_alert", "true");
 
     // append each of the triage values to the message
     measurement.getTriageValues().forEach((key, value) -> {
@@ -89,5 +98,9 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
 
   public void setStreamId(String streamId) {
     this.streamId = streamId;
+  }
+
+  public void setSourceType(String sourceType) {
+    this.sourceType = sourceType;
   }
 }
