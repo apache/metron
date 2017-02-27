@@ -73,6 +73,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.*;
+
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
@@ -379,17 +381,17 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
 
       // validate threat triage score
-      Assert.assertTrue(indexedDoc.containsKey(ThreatIntelJoinBolt.THREAT_TRIAGE_SCORE_KEY));
-      Double score = (Double) indexedDoc.get(ThreatIntelJoinBolt.THREAT_TRIAGE_SCORE_KEY);
+      Assert.assertTrue(indexedDoc.containsKey(THREAT_TRIAGE_SCORE_KEY));
+      Double score = (Double) indexedDoc.get(THREAT_TRIAGE_SCORE_KEY);
       Assert.assertEquals(score, 10d, 1e-7);
 
       // validate threat triage rules
       Joiner joiner = Joiner.on(".");
       Stream.of(
-              joiner.join(ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY, 0, "name"),
-              joiner.join(ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY, 0, "comment"),
-              joiner.join(ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY, 0, "reason"),
-              joiner.join(ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY, 0, "score"))
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_NAME),
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_COMMENT),
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_REASON),
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_SCORE))
               .forEach(key ->
                       Assert.assertTrue(String.format("Missing expected key: '%s'", key), indexedDoc.containsKey(key)));
     }
