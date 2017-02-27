@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.configuration.profiler;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -39,15 +40,27 @@ public class ProfileResult {
   @JsonProperty("triage")
   private ProfileTriageExpressions triageExpressions;
 
+  @JsonCreator
   public ProfileResult(
           @JsonProperty(value = "profile", required = true) ProfileResultExpressions profileExpressions,
           @JsonProperty(value = "triage") ProfileTriageExpressions triageExpressions) {
     this.profileExpressions = profileExpressions;
-    this.triageExpressions = triageExpressions;
+    this.triageExpressions = triageExpressions != null ? triageExpressions : new ProfileTriageExpressions();
   }
 
+  /**
+   * Allows a single result expression to be interpreted as a 'profile' expression.
+   *
+   * The profile definition
+   *    <pre>{@code {..., "result": "2 + 2" }}</pre>
+   * is equivalent to
+   *    <pre>{@code {..., "result": { "profile": "2 + 2" }}}</pre>
+   *
+   * @param expression The result expression.
+   */
   public ProfileResult(String expression) {
     this.profileExpressions = new ProfileResultExpressions(expression);
+    this.triageExpressions = new ProfileTriageExpressions();
   }
 
   public ProfileResultExpressions getProfileExpressions() {
@@ -72,7 +85,6 @@ public class ProfileResult {
     if (o == null || getClass() != o.getClass()) return false;
 
     ProfileResult that = (ProfileResult) o;
-
     if (profileExpressions != null ? !profileExpressions.equals(that.profileExpressions) : that.profileExpressions != null)
       return false;
     return triageExpressions != null ? triageExpressions.equals(that.triageExpressions) : that.triageExpressions == null;

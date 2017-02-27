@@ -19,7 +19,7 @@
 
 package org.apache.metron.profiler.bolt;
 
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -49,22 +49,37 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
   @Override
   public void emit(ProfileMeasurement measurement, OutputCollector collector) {
 
-    try {
-      JSONObject message = new JSONObject();
-      message.put("profile", measurement.getDefinition().getProfile());
-      message.put("entity", measurement.getEntity());
-      message.put("period", measurement.getPeriod().getPeriod());
-      message.put("periodStartTime", measurement.getPeriod().getStartTimeMillis());
+    JSONObject message = new JSONObject();
+    message.put("profile", measurement.getDefinition().getProfile());
+    message.put("entity", measurement.getEntity());
+    message.put("period", measurement.getPeriod().getPeriod());
+    message.put("periodStartTime", measurement.getPeriod().getStartTimeMillis());
 
-      // TODO How to serialize an object (like a StatisticsProvider) in a form that can be used on the other side? (Threat Triage)
-      // TODO How to embed binary in JSON?
-      message.put("value", measurement.getValue());
+    // append each of the triage values to the message
+    measurement.getTriageValues().forEach((key, value) -> {
 
-      collector.emit(getStreamId(), new Values(message));
+      if(isValidType(value)) {
+        message.put(key, value);
 
-    } catch(Exception e) {
-      throw new IllegalStateException("unable to serialize a profile measurement", e);
-    }
+      } else {
+        throw new IllegalArgumentException(String.format("invalid type for triage value: profile=%s, entity=%s, key=%s, value=%s",
+                        measurement.getDefinition().getProfile(), measurement.getEntity(), key, ClassUtils.getSimpleName(value, "null")));
+      }
+    });
+
+    collector.emit(getStreamId(), new Values(message));
+  }
+
+  /**
+   * The result of a profile's triage expressions must be a string or primitive type.
+   *
+   * This ensures that the value can be easily serialized and appended to a message destined for Kafka.
+   *
+   * @param value The value of a triage expression.
+   * @return True, if the type of the value is valid.
+   */
+  private boolean isValidType(Object value) {
+    return value != null && (value instanceof String || ClassUtils.isPrimitiveOrWrapper(value.getClass()));
   }
 
   @Override

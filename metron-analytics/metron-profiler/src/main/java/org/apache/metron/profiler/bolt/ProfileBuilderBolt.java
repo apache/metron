@@ -39,7 +39,9 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -87,14 +89,14 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * The measurements produced by a profile can be written to multiple destinations.  Each
    * destination is handled by a separate `DestinationHandler`.
    */
-  private Map<String, DestinationHandler> destinationHandlers;
+  private List<DestinationHandler> destinationHandlers;
 
   /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration data.
    */
   public ProfileBuilderBolt(String zookeeperUrl) {
     super(zookeeperUrl);
-    this.destinationHandlers = new HashMap<>();
+    this.destinationHandlers = new ArrayList<>();
   }
 
   /**
@@ -134,7 +136,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     }
 
     // each destination will define its own stream
-    destinationHandlers.values().forEach(dest -> dest.declareOutputFields(declarer));
+    destinationHandlers.forEach(dest -> dest.declareOutputFields(declarer));
   }
 
   /**
@@ -181,18 +183,8 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
         // flush the profile
         ProfileMeasurement measurement = profileBuilder.flush();
 
-        // TODO send triage to kafka
-        // TODO send profile to hbase
-
-        // emit the measurement to each profile destination
-        for(String dest : profileBuilder.getDefinition().getDestination()) {
-          DestinationHandler handler = destinationHandlers.get(dest);
-
-          // ensure the destination is valid
-          if(handler != null) {
-            handler.emit(measurement, collector);
-          }
-        }
+        // forward the measurement to each destination handler
+        destinationHandlers.forEach(handler -> handler.emit(measurement, collector));
       }
     });
   }
@@ -261,7 +253,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   }
 
   public ProfileBuilderBolt withDestinationHandler(DestinationHandler handler) {
-    this.destinationHandlers.put(handler.getStreamId(), handler);
+    this.destinationHandlers.add(handler);
     return this;
   }
 }

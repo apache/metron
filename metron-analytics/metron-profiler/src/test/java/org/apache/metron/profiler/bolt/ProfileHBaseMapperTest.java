@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.apache.metron.common.configuration.profiler.ProfileResult;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -59,13 +60,13 @@ public class ProfileHBaseMapperTest {
     mapper = new ProfileHBaseMapper();
     mapper.setRowKeyBuilder(rowKeyBuilder);
 
-    profile = new ProfileConfig();
+    profile = new ProfileConfig("profile", "ip_src_addr", new ProfileResult("2 + 2"));
 
     measurement = new ProfileMeasurement()
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withValue(22)
+            .withProfileValue(22)
             .withDefinition(profile);
 
     // the tuple will contain the original message

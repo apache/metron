@@ -90,7 +90,6 @@ The values can be changed on disk and then uploaded to Zookeeper using `$METRON_
 | [update](#update)  	        | Required  	| One or more expressions executed when a message is applied to the profile.
 | [result](#result)   	        | Required  	| A Stellar expression that is executed when the window period expires.
 | [expires](#expires)           | Optional      | Profile data is purged after this period of time, specified in milliseconds.
-| [destination](#destination)   | Optional      | Destinations to which the profile measurements are written.  
 
 ### `profile` 
 
@@ -161,24 +160,6 @@ A Stellar expression that is executed when the window period expires.  The expre
 *Optional*
 
 A numeric value that defines how many days the profile data is retained.  After this time, the data expires and is no longer accessible.  If no value is defined, the data does not expire.
-
-### `destination`
-
-*Optional*
-
-A list of one or more destinations to which the profile measurements are written.  The default destination includes both HBase and Kafka.  
-
-```
-"destination": ["hbase"]
-```
-
-Valid valies including the following.
-* `hbase`
-* `kafka`
-
-This is intentionally only an on/off switch for each destination.  The detailed configuration for each destination, like the Kafka topic or HBase table, is configured globally as part of the topology properties. This ensures that all profiles are treated consistently at each destination.
-
-
 
 ## Configuring the Profiler
 

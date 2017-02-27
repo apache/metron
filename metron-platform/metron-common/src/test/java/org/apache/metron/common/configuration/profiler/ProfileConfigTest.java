@@ -128,7 +128,9 @@ public class ProfileConfigTest {
   public void testResultWithExpression() throws IOException {
     ProfileConfig profile = JSONUtils.INSTANCE.load(resultWithExpression, ProfileConfig.class);
     assertEquals("2 + 2", profile.getResult().getProfileExpressions().getExpression());
-    assertNull(profile.getResult().getTriageExpressions());
+
+    // no triage expressions expected
+    assertEquals(0, profile.getResult().getTriageExpressions().getExpressions().size());
   }
 
   /**
@@ -151,6 +153,9 @@ public class ProfileConfigTest {
   public void testResultWithProfileOnly() throws IOException {
     ProfileConfig profile = JSONUtils.INSTANCE.load(resultWithProfileOnly, ProfileConfig.class);
     assertEquals("2 + 2", profile.getResult().getProfileExpressions().getExpression());
+
+    // no triage expressions expected
+    assertEquals(0, profile.getResult().getTriageExpressions().getExpressions().size());
   }
 
   /**
@@ -176,6 +181,7 @@ public class ProfileConfigTest {
   @Test
   public void testResultWithTriage() throws IOException {
     ProfileConfig profile = JSONUtils.INSTANCE.load(resultWithTriage, ProfileConfig.class);
+
     assertEquals("4 + 4", profile.getResult().getTriageExpressions().getExpression("eight"));
     assertEquals("8 + 8", profile.getResult().getTriageExpressions().getExpression("sixteen"));
   }

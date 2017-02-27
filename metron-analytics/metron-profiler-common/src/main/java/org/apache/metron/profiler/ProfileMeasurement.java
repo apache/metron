@@ -68,6 +68,9 @@ public class ProfileMeasurement {
 
   /**
    * The result of evaluating the triage expression(s).
+   *
+   * A profile can generate one or more values that can be used during the
+   * threat triage process.  Each value is given a unique name.
    */
   private Map<String, Object> triageValues;
 

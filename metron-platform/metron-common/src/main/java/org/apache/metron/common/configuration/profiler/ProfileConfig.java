@@ -90,22 +90,6 @@ public class ProfileConfig implements Serializable {
   private Long expires;
 
   /**
-   * The destination to which the profile measurements are written.  Default destination
-   * includes both HBase and Kafka.
-   */
-  private List<String> destination = Arrays.asList(HBASE_DESTINATION, KAFKA_DESTINATION);
-
-  /**
-   * The destination used to write a Profile's measurements to Kafka.
-   */
-  public static final String KAFKA_DESTINATION = "kafka";
-
-  /**
-   * The destination used to write a Profile's measurements to HBase.
-   */
-  public static final String HBASE_DESTINATION = "hbase";
-
-  /**
    * A profile definition requires at the very least the profile name, the foreach, and result
    * expressions.
    * @param profile The name of the profile.
@@ -186,14 +170,6 @@ public class ProfileConfig implements Serializable {
     this.expires = TimeUnit.DAYS.toMillis(expiresDays);
   }
 
-  public List<String> getDestination() {
-    return destination;
-  }
-
-  public void setDestination(List<String> destination) {
-    this.destination = destination;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -208,8 +184,7 @@ public class ProfileConfig implements Serializable {
     if (update != null ? !update.equals(that.update) : that.update != null) return false;
     if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
     if (result != null ? !result.equals(that.result) : that.result != null) return false;
-    if (expires != null ? !expires.equals(that.expires) : that.expires != null) return false;
-    return destination != null ? destination.equals(that.destination) : that.destination == null;
+    return expires != null ? expires.equals(that.expires) : that.expires == null;
   }
 
   @Override
@@ -222,7 +197,6 @@ public class ProfileConfig implements Serializable {
     result1 = 31 * result1 + (groupBy != null ? groupBy.hashCode() : 0);
     result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
     result1 = 31 * result1 + (expires != null ? expires.hashCode() : 0);
-    result1 = 31 * result1 + (destination != null ? destination.hashCode() : 0);
     return result1;
   }
 
@@ -235,9 +209,8 @@ public class ProfileConfig implements Serializable {
             ", init=" + init +
             ", update=" + update +
             ", groupBy=" + groupBy +
-            ", result='" + result + '\'' +
+            ", result=" + result +
             ", expires=" + expires +
-            ", destination=" + destination +
             '}';
   }
 }

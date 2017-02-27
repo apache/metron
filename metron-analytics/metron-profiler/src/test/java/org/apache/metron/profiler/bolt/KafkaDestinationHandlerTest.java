@@ -33,6 +33,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.*;
@@ -49,8 +50,7 @@ public class KafkaDestinationHandlerTest {
    *   "foreach": "ip_src_addr",
    *   "init":   { "x": "0" },
    *   "update": { "x": "x + 1" },
-   *   "result": "x",
-   *   "destination": ["hbase"]
+   *   "result": "x"
    * }
    */
   @Multiline
@@ -71,7 +71,7 @@ public class KafkaDestinationHandlerTest {
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withValue(22)
+            .withTriageValues(Collections.singletonMap("triage-key", "triage-value"))
             .withDefinition(profile);
 
     collector = Mockito.mock(OutputCollector.class);
@@ -98,6 +98,7 @@ public class KafkaDestinationHandlerTest {
     assertEquals(measurement.getEntity(), actual.get("entity"));
     assertEquals(measurement.getPeriod().getPeriod(), actual.get("period"));
     assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("periodStartTime"));
+    assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
   }
 
   /**

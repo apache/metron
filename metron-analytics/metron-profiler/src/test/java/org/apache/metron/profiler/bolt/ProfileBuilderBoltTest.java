@@ -276,7 +276,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
     // validate emitted measurements for hbase
-    verify(outputCollector, atLeastOnce()).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
+    verify(outputCollector, atLeastOnce()).emit(eq("hbase"), arg.capture());
     for (Values value : arg.getAllValues()) {
 
       ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
@@ -288,7 +288,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
         assertEquals(definitionTwo, definition);
         assertEquals(entity, measurement.getEntity());
         assertEquals(definitionTwo.getProfile(), measurement.getProfileName());
-        assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
+        assertEquals(1, (int) convert(measurement.getProfileValue(), Integer.class));
 
       } else if (StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
 
@@ -296,7 +296,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
         assertEquals(definitionOne, definition);
         assertEquals(entity, measurement.getEntity());
         assertEquals(definitionOne.getProfile(), measurement.getProfileName());
-        assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
+        assertEquals(1, (int) convert(measurement.getProfileValue(), Integer.class));
 
       } else {
         fail();
@@ -309,7 +309,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
    * destination defined by the profile. By default, a profile uses both Kafka and HBase as destinations.
    */
   @Test
-  public void testDefaultDestinations() throws Exception {
+  public void testDestinationHandlers() throws Exception {
 
     // setup
     ProfileBuilderBolt bolt = createBolt();
@@ -327,149 +327,11 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
 
     // validate measurements emitted to HBase
-    verify(outputCollector, times(1)).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
+    verify(outputCollector, times(1)).emit(eq("hbase"), arg.capture());
     assertTrue(arg.getValue().get(0) instanceof ProfileMeasurement);
 
     // validate measurements emitted to Kafka
-    verify(outputCollector, times(1)).emit(eq(ProfileConfig.KAFKA_DESTINATION), arg.capture());
+    verify(outputCollector, times(1)).emit(eq("kafka"), arg.capture());
     assertTrue(arg.getValue().get(0) instanceof JSONObject);
-  }
-
-
-  /**
-   * {
-   *   "profile": "profile-one-destination",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x",
-   *   "destination": ["hbase"]
-   * }
-   */
-  @Multiline
-  private String profileWithOneDestination;
-
-  /**
-   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to only the
-   * destination specified by the profile.
-   */
-  @Test
-  public void testOneDestination() throws Exception {
-
-    // setup
-    ProfileBuilderBolt bolt = createBolt();
-    final String entity = (String) messageOne.get("ip_src_addr");
-
-    // create a profile with one destination
-    ProfileConfig definitionOne = createDefinition(profileWithOneDestination);
-
-    // apply the message to the profile
-    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
-    bolt.execute(tupleOne);
-
-    // trigger a flush of the profile
-    bolt.execute(mockTickTuple());
-
-    // capture any ProfileMeasurements that are emitted
-    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-
-    // a measurement should be emitted for HBase
-    verify(outputCollector, times(1)).emit(eq(ProfileConfig.HBASE_DESTINATION), arg.capture());
-    assertTrue(arg.getValue().get(0) instanceof ProfileMeasurement);
-
-    // no measurement should be emitted for Kafka
-    verify(outputCollector, times(0)).emit(eq(ProfileConfig.KAFKA_DESTINATION), any());
-  }
-
-  /**
-   * {
-   *   "profile": "profile-no-destination",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x",
-   *   "destination": []
-   * }
-   */
-  @Multiline
-  private String profileWithNoDestination;
-
-  @Test
-  public void testNoDestinations() throws Exception {
-
-    // setup
-    ProfileBuilderBolt bolt = createBolt();
-    OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
-    bolt.declareOutputFields(declarer);
-
-    // create profile with no destination
-    ProfileConfig definitionOne = createDefinition(profileWithNoDestination);
-
-    // apply the message to the profile
-    final String entity = (String) messageOne.get("ip_src_addr");
-    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
-    bolt.execute(tupleOne);
-
-    // trigger a flush of the profile
-    bolt.execute(mockTickTuple());
-
-    // no destinations for this profile - do not emit
-    verify(outputCollector, times(0)).emit(any(String.class), any());
-  }
-
-  /**
-   * {
-   *   "profile": "profile-no-destination",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x",
-   *   "destination": ["invalid", "hbase"]
-   * }
-   */
-  @Multiline
-  private String profileWithInvalidDestination;
-
-  @Test
-  public void testInvalidDestinations() throws Exception {
-
-    // setup
-    ProfileBuilderBolt bolt = createBolt();
-    OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
-    bolt.declareOutputFields(declarer);
-
-    final String entity = (String) messageOne.get("ip_src_addr");
-
-    // profile with invalid destination
-    ProfileConfig definitionOne = createDefinition(profileWithInvalidDestination);
-
-    // apply the message to the profile
-    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
-    bolt.execute(tupleOne);
-
-    // trigger a flush of the profile
-    bolt.execute(mockTickTuple());
-
-    // the invalid destination should be ignored
-    verify(outputCollector, times(0)).emit(eq("invalid"), any());
-    verify(outputCollector, times(1)).emit(eq("hbase"), any());
-  }
-
-  /**
-   * The bolt must be initialized with at least 1 DestinationHandler.
-   */
-  @Test(expected = IllegalStateException.class)
-  public void testNoDestinationHandlers() throws Exception {
-
-    // create a bolt with no destination handlers
-    ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
-    bolt.setCuratorFramework(client);
-    bolt.setTreeCache(cache);
-    bolt.withPeriodDuration(10, TimeUnit.MINUTES);
-    bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
-
-    // expect an exception as their are no destinations
-    OutputFieldsDeclarer declarer = mock(OutputFieldsDeclarer.class);
-    bolt.declareOutputFields(declarer);
   }
 }

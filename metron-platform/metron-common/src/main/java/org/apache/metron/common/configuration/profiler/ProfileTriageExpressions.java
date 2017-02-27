@@ -20,6 +20,7 @@ package org.apache.metron.common.configuration.profiler;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -44,6 +45,11 @@ public class ProfileTriageExpressions {
   @JsonCreator
   public ProfileTriageExpressions(Map<String, String> expressions) {
     this.expressions = expressions;
+  }
+
+  @JsonCreator
+  public ProfileTriageExpressions() {
+    this.expressions = new HashMap<>();
   }
 
   /**
