@@ -24,6 +24,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
@@ -58,22 +59,12 @@ public class KafkaDestinationHandlerTest {
 
   private KafkaDestinationHandler handler;
   private ProfileConfig profile;
-  private ProfileMeasurement measurement;
   private OutputCollector collector;
 
   @Before
   public void setup() throws Exception {
     handler = new KafkaDestinationHandler();
-
     profile = createDefinition(profileDefinition);
-
-    measurement = new ProfileMeasurement()
-            .withProfileName("profile")
-            .withEntity("entity")
-            .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withTriageValues(Collections.singletonMap("triage-key", "triage-value"))
-            .withDefinition(profile);
-
     collector = Mockito.mock(OutputCollector.class);
   }
 
@@ -81,8 +72,14 @@ public class KafkaDestinationHandlerTest {
    * The handler must serialize the ProfileMeasurement into a JSONObject.
    */
   @Test
-  public void testJSONSerialization() throws Exception {
+  public void testSerialization() throws Exception {
 
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withTriageValues(Collections.singletonMap("triage-key", "triage-value"))
+            .withDefinition(profile);
     handler.emit(measurement, collector);
 
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
@@ -99,6 +96,55 @@ public class KafkaDestinationHandlerTest {
     assertEquals(measurement.getPeriod().getPeriod(), actual.get("period"));
     assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("periodStartTime"));
     assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
+  }
+
+  /**
+   * Values destined for Kafka can only be serialized into text, which limits the types of values
+   * that can result from a triage expression.  Only primitive types and Strings are allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidType() throws Exception {
+
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withTriageValues(Collections.singletonMap("triage-key", new OnlineStatisticsProvider()))
+            .withDefinition(profile);
+
+    handler.emit(measurement, collector);
+  }
+
+  /**
+   * Values destined for Kafka can only be serialized into text, which limits the types of values
+   * that can result from a triage expression.  Only primitive types and Strings are allowed.
+   */
+  @Test
+  public void testIntegerIsValidType() throws Exception {
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withTriageValues(Collections.singletonMap("triage-key", 123))
+            .withDefinition(profile);
+    handler.emit(measurement, collector);
+    verify(collector, times(1)).emit(eq(handler.getStreamId()), any());
+  }
+
+  /**
+   * Values destined for Kafka can only be serialized into text, which limits the types of values
+   * that can result from a triage expression.  Only primitive types and Strings are allowed.
+   */
+  @Test
+  public void testStringIsValidType() throws Exception {
+    ProfileMeasurement measurement = new ProfileMeasurement()
+            .withProfileName("profile")
+            .withEntity("entity")
+            .withPeriod(20000, 15, TimeUnit.MINUTES)
+            .withTriageValues(Collections.singletonMap("triage-key", "value"))
+            .withDefinition(profile);
+    handler.emit(measurement, collector);
+    verify(collector, times(1)).emit(eq(handler.getStreamId()), any());
   }
 
   /**
