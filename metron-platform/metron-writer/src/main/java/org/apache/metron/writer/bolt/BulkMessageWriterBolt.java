@@ -50,7 +50,6 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private transient MessageGetter messageGetter = null;
   private transient OutputCollector collector;
   private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation;
-
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
