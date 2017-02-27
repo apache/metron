@@ -17,36 +17,71 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
+import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
+import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   protected static final Logger LOG = LoggerFactory.getLogger(ThreatIntelJoinBolt.class);
+
+  /**
+   * The message key under which the overall threat triage score is stored.
+   */
+  public static final String THREAT_TRIAGE_SCORE_KEY = "threat.triage.score";
+
+  /**
+   * The prefix of the message keys that record the threat triage rules that fired.
+   */
+  public static final String THREAT_TRIAGE_RULES_KEY = "threat.triage.rules";
+
+  /**
+   * The portion of the message key used to record the 'name' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_NAME = "name";
+
+  /**
+   * The portion of the message key used to record the 'comment' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_COMMENT = "comment";
+
+  /**
+   * The portion of the message key used to record the 'score' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_SCORE = "score";
+
+  /**
+   * The portion of the message key used to record the 'reason' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_REASON = "reason";
+
+  /**
+   * The Stellar function resolver.
+   */
   private FunctionResolver functionResolver;
-  private org.apache.metron.common.dsl.Context stellarContext;
+
+  /**
+   * The execution context for Stellar.
+   */
+  private Context stellarContext;
 
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -176,16 +211,16 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   private void appendThreatScore(ThreatScore threatScore, JSONObject message) {
 
     // append the overall threat score
-    message.put("threat.triage.score", threatScore.getScore());
+    message.put(THREAT_TRIAGE_SCORE_KEY, threatScore.getScore());
 
     // append each of the rules - each rule is 'flat'
-    final String prefix = "threat.triage.rules";
+    Joiner joiner = Joiner.on(".");
     int i = 0;
     for(RuleScore score: threatScore.getRuleScores()) {
-      message.put(Joiner.on(".").join(prefix, i,"name"), score.getRule().getName());
-      message.put(Joiner.on(".").join(prefix, i,"comment"), score.getRule().getComment());
-      message.put(Joiner.on(".").join(prefix, i,"score"), score.getRule().getScore());
-      message.put(Joiner.on(".").join(prefix, i++,"reason"), score.getReason());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_NAME), score.getRule().getName());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_COMMENT), score.getRule().getComment());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_SCORE), score.getRule().getScore());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i++, THREAT_TRIAGE_RULE_REASON), score.getReason());
     }
   }
 }
