@@ -122,7 +122,7 @@
     "ks_path": "centos-6.7/ks.cfg",
     "memory": "8192",
     "metadata": "floppy/dummy_metadata.json",
-    "mirror": "http://mirrors.kernel.org/centos",
+    "mirror": "http://archive.kernel.org/centos-vault",
     "mirror_directory": "6.7/isos/x86_64",
     "name": "hdp-centos-6.7",
     "no_proxy": "{{env `no_proxy`}}",
