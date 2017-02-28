@@ -26,42 +26,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class StellarFunctions {
 
-  private static FunctionResolver resolver = SingletonFunctionResolver.getInstance();
-  private static boolean initialized = false;
-  private static ReadWriteLock lock = new ReentrantReadWriteLock();
-
   public static FunctionResolver FUNCTION_RESOLVER() {
-    try {
-      lock.readLock().lock();
-      return resolver;
-    }
-    finally{
-      lock.readLock().unlock();
-    }
-  }
-
-  public static void setResolver(FunctionResolver r, Context context) {
-    try {
-      lock.writeLock().lock();
-      resolver = r;
-      if(initialized) {
-        resolver.initialize(context);
-      }
-    }
-    finally {
-      lock.writeLock().unlock();
-    }
+    return SingletonFunctionResolver.getInstance();
   }
 
 
   public static void initialize(Context context) {
-    try {
-      lock.readLock().lock();
-      initialized = true;
-      resolver.initialize(context);
-    }
-    finally {
-      lock.readLock().unlock();
-    }
+    SingletonFunctionResolver.getInstance().initialize(context);
   }
 }

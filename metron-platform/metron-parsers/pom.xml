@@ -295,6 +295,7 @@
                                 </excludes>
                             </artifactSet>
                             <transformers>
+                                <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                                 <transformer
                                   implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                      <resources>

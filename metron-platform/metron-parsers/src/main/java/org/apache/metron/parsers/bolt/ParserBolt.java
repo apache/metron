@@ -104,20 +104,8 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+                                .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
                                 .build();
-    Map<String, Object> globalConfig = getConfigurations().getGlobalConfig();
-    if(globalConfig != null) {
-      try {
-        Optional<ClassLoader> vfsLoader = ClassloaderUtil.configureClassloader(globalConfig);
-        if(vfsLoader.isPresent()) {
-          ClasspathFunctionResolver resolver = new ClasspathFunctionResolver();
-          resolver.classLoaders(vfsLoader.get());
-          StellarFunctions.setResolver(resolver, stellarContext);
-        }
-      } catch (FileSystemException e) {
-        LOG.error("Unable to set up VFS loader: " + e.getMessage(), e);
-      }
-    }
     StellarFunctions.initialize(stellarContext);
   }
 

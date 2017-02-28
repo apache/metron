@@ -43,6 +43,10 @@ public class ClassloaderUtil {
       this.defaultValue = defaultValue;
     }
 
+    public String param() {
+      return param;
+    }
+
     public Object get(Map<String, Object> config) {
       return config.getOrDefault(param, defaultValue);
     }
@@ -52,7 +56,7 @@ public class ClassloaderUtil {
     }
   }
 
-  public static FileSystemManager generateVfs(Map<String, Object> config) throws FileSystemException {
+  public static FileSystemManager generateVfs() throws FileSystemException {
     DefaultFileSystemManager vfs = new DefaultFileSystemManager();
     vfs.addProvider("res", new org.apache.commons.vfs2.provider.res.ResourceFileProvider());
     vfs.addProvider("zip", new org.apache.commons.vfs2.provider.zip.ZipFileProvider());
@@ -92,21 +96,20 @@ public class ClassloaderUtil {
     return vfs;
   }
 
-  public static Optional<ClassLoader> configureClassloader(Map<String, Object> config) throws FileSystemException {
-    String paths = Config.VFS_PATHS.get(config, String.class);
+  public static Optional<ClassLoader> configureClassloader(String paths) throws FileSystemException {
     if(paths.trim().isEmpty()) {
       return Optional.empty();
     }
-    FileSystemManager vfs = generateVfs(config);
+    FileSystemManager vfs = generateVfs();
     FileObject[] objects = resolve(vfs, paths);
     if(objects == null || objects.length == 0) {
       return Optional.empty();
     }
-    return Optional.of(new VFSClassLoader(objects, vfs));
+    return Optional.of(new VFSClassLoader(objects, vfs, ClassLoader.getSystemClassLoader()));
   }
 
   static FileObject[] resolve(FileSystemManager vfs, String uris) throws FileSystemException {
-    return resolve(vfs, uris, new ArrayList<FileObject>());
+    return resolve(vfs, uris, new ArrayList<>());
   }
 
   static FileObject[] resolve(FileSystemManager vfs, String uris, ArrayList<FileObject> pathsToMonitor) throws FileSystemException {
