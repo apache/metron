@@ -63,10 +63,7 @@ public class ClasspathFunctionResolverIntegrationTest {
     component.stop();
   }
 
-  /**
-   * Create a function resolver to test.
-   * @param config The configuration for Stellar.
-   */
+
   public static ClasspathFunctionResolver create(Properties config) {
     ClasspathFunctionResolver resolver = new ClasspathFunctionResolver();
 
