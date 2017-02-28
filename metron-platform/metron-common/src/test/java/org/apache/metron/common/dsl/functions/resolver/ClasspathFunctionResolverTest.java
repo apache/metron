@@ -120,7 +120,7 @@ public class ClasspathFunctionResolverTest {
   }
 
   @Test
-  public void testExternalInclude() throws FileSystemException, ClassNotFoundException {
+  public void testExternalLocal() throws FileSystemException, ClassNotFoundException {
     File jar = new File("src/test/classpath-resources");
     Assert.assertTrue(jar.exists());
     Properties config = new Properties();
@@ -131,4 +131,16 @@ public class ClasspathFunctionResolverTest {
     Assert.assertTrue(functions.contains("NOW"));
   }
 
+
+  @Test
+  public void testExternalHDFS() throws FileSystemException, ClassNotFoundException {
+    File jar = new File("src/test/classpath-resources");
+    Assert.assertTrue(jar.exists());
+    Properties config = new Properties();
+    config.put(STELLAR_VFS_PATHS.param(), jar.toURI() + "/.*.jar");
+
+    ClasspathFunctionResolver resolver = create(config);
+    HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
+    Assert.assertTrue(functions.contains("NOW"));
+  }
 }

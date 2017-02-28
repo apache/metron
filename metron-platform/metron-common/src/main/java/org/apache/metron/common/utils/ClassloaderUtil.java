@@ -17,18 +17,23 @@
  */
 package org.apache.metron.common.utils;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.cache.SoftRefFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.impl.FileContentInfoFilenameFactory;
 import org.apache.commons.vfs2.impl.VFSClassLoader;
+import org.apache.commons.vfs2.provider.FileReplicator;
+import org.apache.commons.vfs2.provider.UriParser;
+import org.apache.commons.vfs2.provider.VfsComponent;
+import org.apache.commons.vfs2.provider.VfsComponentContext;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Optional;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class ClassloaderUtil {
   private static final Logger LOG = LoggerFactory.getLogger(ClassloaderUtil.class);
@@ -91,6 +96,7 @@ public class ClassloaderUtil {
     vfs.addMimeTypeMap("application/zip", "zip");
     vfs.setFileContentInfoFactory(new FileContentInfoFilenameFactory());
     vfs.setFilesCache(new SoftRefFilesCache());
+    vfs.setReplicator(new UniqueFileReplicator(new File(System.getProperty("java.io.tmpdir"))));
     vfs.setCacheStrategy(CacheStrategy.ON_RESOLVE);
     vfs.init();
     return vfs;
@@ -159,5 +165,73 @@ public class ClassloaderUtil {
 
     return classpath.toArray(new FileObject[classpath.size()]);
   }
+  /**
+   *
+   */
+  public static class UniqueFileReplicator implements VfsComponent, FileReplicator {
 
+    private static final char[] TMP_RESERVED_CHARS = new char[] {'?', '/', '\\', ' ', '&', '"', '\'', '*', '#', ';', ':', '<', '>', '|'};
+    private static final Logger log = LoggerFactory.getLogger(UniqueFileReplicator.class);
+
+    private File tempDir;
+    private VfsComponentContext context;
+    private List<File> tmpFiles = Collections.synchronizedList(new ArrayList<File>());
+
+    public UniqueFileReplicator(File tempDir) {
+      this.tempDir = tempDir;
+      if (!tempDir.exists() && !tempDir.mkdirs())
+        log.warn("Unexpected error creating directory " + tempDir);
+    }
+
+    @Override
+    public File replicateFile(FileObject srcFile, FileSelector selector) throws FileSystemException {
+      String baseName = srcFile.getName().getBaseName();
+
+      try {
+        String safeBasename = UriParser.encode(baseName, TMP_RESERVED_CHARS).replace('%', '_');
+        File file = File.createTempFile("vfsr_", "_" + safeBasename, tempDir);
+        file.deleteOnExit();
+
+        final FileObject destFile = context.toFileObject(file);
+        destFile.copyFrom(srcFile, selector);
+
+        return file;
+      } catch (IOException e) {
+        throw new FileSystemException(e);
+      }
+    }
+
+    @Override
+    public void setLogger(Log logger) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void setContext(VfsComponentContext context) {
+      this.context = context;
+    }
+
+    @Override
+    public void init() throws FileSystemException {
+
+    }
+
+    @Override
+    public void close() {
+      synchronized (tmpFiles) {
+        for (File tmpFile : tmpFiles) {
+          if (!tmpFile.delete())
+            log.warn("File does not exist: " + tmpFile);
+        }
+      }
+
+      if (tempDir.exists()) {
+        String[] list = tempDir.list();
+        int numChildren = list == null ? 0 : list.length;
+        if (0 == numChildren && !tempDir.delete())
+          log.warn("Cannot delete empty directory: " + tempDir);
+      }
+    }
+  }
 }

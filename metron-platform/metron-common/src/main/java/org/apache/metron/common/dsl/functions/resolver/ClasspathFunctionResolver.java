@@ -210,7 +210,6 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
         cls[i] = this.classLoaders.get(i);
       }
     }
-    Collection<URL> searchPath = effectiveClassPathUrls(cls);
 
     FilterBuilder filterBuilder = new FilterBuilder();
     excludes.forEach(excl -> filterBuilder.exclude(excl));
