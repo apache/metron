@@ -32,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class FieldTransformationTest {
     @Override
     public Map<String, Object> map( Map<String, Object> input
                                   , List<String> outputField
-                                  , Map<String, Object> fieldMappingConfig
+                                  , LinkedHashMap<String, Object> fieldMappingConfig
                                   , Map<String, Object> sensorConfig
                                   , Context context
                                   )
