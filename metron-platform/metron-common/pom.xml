@@ -151,9 +151,9 @@
             <version>${global_classindex_version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-vfs2</artifactId>
-            <version>2.1</version>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-start</artifactId>
+            <version>${global_accumulo_version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
