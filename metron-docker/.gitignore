@@ -1,5 +1,4 @@
 /compose/.env
-/compose/elasticsearch/es_templates
 /compose/kafkazk/common
 /compose/kafkazk/parser
 /compose/kafkazk/enrichment
