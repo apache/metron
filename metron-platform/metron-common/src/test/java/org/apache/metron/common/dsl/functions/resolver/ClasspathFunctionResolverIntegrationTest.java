@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron;
+package org.apache.metron.common.dsl.functions.resolver;
 
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
@@ -41,23 +41,18 @@ import java.util.Properties;
 import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 public class ClasspathFunctionResolverIntegrationTest {
-  static MiniDFSCluster cluster;
+  static MRComponent component;
   static Configuration configuration;
   @BeforeClass
   public static void setup() {
-    configuration = new Configuration();
-    System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA);
-    configuration.set(YarnConfiguration.YARN_MINICLUSTER_FIXED_PORTS, "true");
-    configuration.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, "target");
+    component = new MRComponent().withBasePath("target");
+    component.start();
+    configuration = component.getConfiguration();
+
     try {
-      cluster = new MiniDFSCluster.Builder(configuration)
-              .build();
       FileSystem fs = FileSystem.newInstance(configuration);
       fs.mkdirs(new Path("/classpath-resources"));
-      fs.copyFromLocalFile(new Path("../metron-common/src/test/classpath-resources/custom-1.0-SNAPSHOT.jar"), new Path("/classpath-resources"));
-      for(FileStatus s : FileSystem.newInstance(configuration).listStatus(new Path("/"))) {
-        System.out.println(s.getPath().getName());
-      }
+      fs.copyFromLocalFile(new Path("src/test/classpath-resources/custom-1.0-SNAPSHOT.jar"), new Path("/classpath-resources"));
     } catch (IOException e) {
       throw new RuntimeException("Unable to start cluster", e);
     }
@@ -65,7 +60,7 @@ public class ClasspathFunctionResolverIntegrationTest {
 
   @AfterClass
   public static void teardown() {
-    cluster.shutdown();
+    component.stop();
   }
 
   /**
