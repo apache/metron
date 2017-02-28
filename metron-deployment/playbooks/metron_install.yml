@@ -82,3 +82,8 @@
   become: false
   roles:
     - { role: deployment-report,      tags: ['report'] }
+
+- hosts: metron
+  become: true
+  roles:
+    - { role: quick_dev,              tags: ['quick_dev']}
