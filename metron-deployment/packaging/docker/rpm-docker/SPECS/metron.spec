@@ -157,9 +157,7 @@ This package installs the Metron Elasticsearch files
 %dir %{metron_home}/config
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_elasticsearch_topology.sh
-%{metron_home}/bin/start_elasticsearch_error_topology.sh
 %{metron_home}/config/elasticsearch.properties
-%{metron_home}/config/elasticsearch_error.properties
 %attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -257,7 +255,6 @@ This package installs the Metron Indexing files
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
 %{metron_home}/flux/indexing/remote.yaml
-%{metron_home}/flux/error/remote.yaml
 %{metron_home}/config/zookeeper/indexing/bro.json
 %{metron_home}/config/zookeeper/indexing/snort.json
 %{metron_home}/config/zookeeper/indexing/websphere.json

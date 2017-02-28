@@ -162,7 +162,7 @@ public class ParserTopologyBuilder {
 
     // create writer - if not configured uses a sensible default
     AbstractWriter writer = parserConfig.getErrorWriterClassName() == null
-            ? new KafkaWriter(brokerUrl).withTopic(Constants.ERROR_TOPIC).withConfigPrefix("error")
+            ? new KafkaWriter(brokerUrl).withTopic((String) configs.getGlobalConfig().get("parser.error.topic")).withConfigPrefix("error")
             : ReflectionUtils.createInstance(parserConfig.getWriterClassName());
     writer.configure(sensorType, new ParserWriterConfiguration(configs));
 

@@ -34,6 +34,8 @@ parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parser
 # Enrichment
 metron_enrichment_topology = 'enrichment'
 metron_enrichment_topic = 'enrichments'
+metron_enrichment_error_topic = 'indexing'
+metron_threat_intel_error_topic = 'indexing'
 
 enrichment_table = 'enrichment'
 enrichment_cf = 't'
@@ -43,10 +45,6 @@ threatintel_cf = 't'
 # Indexing
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
-
-# Error
-metron_error_topology = config['configurations']['metron-env']['metron_error_topology']
-error_configured_flag_file = metron_zookeeper_config_path + '/../metron_error_configured'
 
 # Enrichment
 enrichment_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_configured'

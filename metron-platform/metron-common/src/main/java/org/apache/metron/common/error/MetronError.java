@@ -17,11 +17,11 @@
  */
 package org.apache.metron.common.error;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.ErrorType;
+import org.apache.metron.common.utils.HashUtils;
 import org.json.simple.JSONObject;
 
 import java.net.InetAddress;
@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.metron.common.Constants.ErrorFields;
@@ -93,23 +92,54 @@ public class MetronError {
   public JSONObject getJSONObject() {
     JSONObject errorMessage = new JSONObject();
     errorMessage.put(Constants.SENSOR_TYPE, "error");
+    errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorType);
+    errorMessage.put(ErrorFields.ERROR_TYPE.getName(), errorType.getType());
 
-		/*
-     * Save full stack trace in object.
-		 */
+    addMessageString(errorMessage);
+		addStacktrace(errorMessage);
+    addTimestamp(errorMessage);
+    addHostname(errorMessage);
+    addRawMessages(errorMessage);
+    addErrorHash(errorMessage);
+
+    return errorMessage;
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private void addMessageString(JSONObject errorMessage) {
+    if (message != null) {
+      errorMessage.put(ErrorFields.MESSAGE.getName(), message);
+    } else if (throwable != null) {
+      errorMessage.put(ErrorFields.MESSAGE.getName(), throwable.getMessage());
+    }
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private void addStacktrace(JSONObject errorMessage) {
     if (throwable != null) {
       String stackTrace = ExceptionUtils.getStackTrace(throwable);
       String exception = throwable.toString();
       errorMessage.put(ErrorFields.EXCEPTION.getName(), exception);
       errorMessage.put(ErrorFields.STACK.getName(), stackTrace);
     }
+  }
 
+  @SuppressWarnings({"unchecked"})
+  private void addTimestamp(JSONObject errorMessage) {
     errorMessage.put(ErrorFields.TIMESTAMP.getName(), System.currentTimeMillis());
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private void addHostname(JSONObject errorMessage) {
     try {
       errorMessage.put(ErrorFields.HOSTNAME.getName(), InetAddress.getLocalHost().getHostName());
     } catch (UnknownHostException ex) {
-
+      // Leave the hostname field off if it cannot be found
     }
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private void addRawMessages(JSONObject errorMessage) {
     if(rawMessages != null) {
       for(int i = 0; i < rawMessages.size(); i++) {
         Object rawMessage = rawMessages.get(i);
@@ -118,51 +148,38 @@ public class MetronError {
         String rawMessageBytesField = rawMessages.size() == 1 ? ErrorFields.RAW_MESSAGE_BYTES.getName() : ErrorFields.RAW_MESSAGE_BYTES.getName() + "_" + i;
         if(rawMessage instanceof byte[]) {
           errorMessage.put(rawMessageField, Bytes.toString((byte[])rawMessage));
-          errorMessage.put(rawMessageBytesField, toByteArrayList((byte[])rawMessage));
+          errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList((byte[])rawMessage));
+        } else if (rawMessage instanceof JSONObject) {
+          JSONObject rawMessageJSON = (JSONObject) rawMessage;
+          String rawMessageJSONString = rawMessageJSON.toJSONString();
+          errorMessage.put(rawMessageField, rawMessageJSONString);
+          errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList(rawMessageJSONString.getBytes(UTF_8)));
         } else {
-          errorMessage.put(rawMessageField, rawMessage);
+          errorMessage.put(rawMessageField, rawMessage.toString());
+          errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList(rawMessage.toString().getBytes(UTF_8)));
         }
       }
     }
+  }
 
+  @SuppressWarnings({"unchecked"})
+  private void addErrorHash(JSONObject errorMessage) {
     if (rawMessages != null && rawMessages.size() == 1) {
       Object rawMessage = rawMessages.get(0);
       if (rawMessage instanceof JSONObject) {
         JSONObject rawJSON = (JSONObject) rawMessage;
         if (errorFields != null) {
-          String errorFieldString = String.join(",", errorFields);
-          errorMessage.put(ErrorFields.ERROR_FIELDS.getName(), errorFieldString);
-          List<String> hashElements = errorFields.stream().map(errorField ->
-                  String.format("%s-%s", errorField, rawJSON.get(errorField))).collect(Collectors.toList());
-          errorMessage.put(ErrorFields.ERROR_HASH.getName(), DigestUtils.sha256Hex(String.join("|", hashElements).getBytes(UTF_8)));
+          errorMessage.put(ErrorFields.ERROR_FIELDS.getName(), String.join(",", errorFields));
+          errorMessage.put(ErrorFields.ERROR_HASH.getName(), HashUtils.getMessageHash(rawJSON, errorFields));
         } else {
-          errorMessage.put(ErrorFields.ERROR_HASH.getName(), DigestUtils.sha256Hex(rawJSON.toJSONString().getBytes(UTF_8)));
+          errorMessage.put(ErrorFields.ERROR_HASH.getName(), HashUtils.getMessageHash(rawJSON));
         }
       } else if (rawMessage instanceof byte[]) {
-        errorMessage.put(ErrorFields.ERROR_HASH.getName(), DigestUtils.sha256Hex((byte[])rawMessage));
+        errorMessage.put(ErrorFields.ERROR_HASH.getName(), HashUtils.getMessageHash((byte[])rawMessage));
       } else {
-        errorMessage.put(ErrorFields.ERROR_HASH.getName(), DigestUtils.sha256Hex(rawMessage.toString().getBytes(UTF_8)));
+        errorMessage.put(ErrorFields.ERROR_HASH.getName(), HashUtils.getMessageHash(rawMessage.toString().getBytes(UTF_8)));
       }
     }
-
-    if (message != null) {
-      errorMessage.put(ErrorFields.MESSAGE.getName(), message);
-    } else if (throwable != null) {
-      errorMessage.put(ErrorFields.MESSAGE.getName(), throwable.getMessage());
-    }
-
-    errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorType);
-    errorMessage.put(ErrorFields.ERROR_TYPE.getName(), errorType.getType());
-
-    return errorMessage;
-  }
-
-  protected List<Byte> toByteArrayList(byte[] list) {
-    List<Byte> ret = new ArrayList<>();
-    for(byte b : list) {
-      ret.add(b);
-    }
-    return ret;
   }
 
   @Override

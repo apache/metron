@@ -19,13 +19,13 @@ package org.apache.metron.common.message;
 
 import org.apache.storm.tuple.Tuple;
 
-public class ValueFromField implements MessageGetStrategy {
+public class ObjectFromField implements MessageGetStrategy {
 
   private String fieldValue = "message";
 
-  public ValueFromField() {};
+  public ObjectFromField() {};
 
-  public ValueFromField(String fieldValue) {
+  public ObjectFromField(String fieldValue) {
     this.fieldValue = fieldValue;
   }
 

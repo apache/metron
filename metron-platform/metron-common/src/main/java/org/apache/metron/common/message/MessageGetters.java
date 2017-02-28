@@ -17,16 +17,34 @@
  */
 package org.apache.metron.common.message;
 
+import org.apache.metron.common.utils.ConversionUtils;
+
+import java.util.function.Function;
+
 public enum MessageGetters {
 
-  BYTES_FROM_POSITION(new BytesFromPosition()),
-  JSON_FROM_POSITION(new JSONFromPosition()),
-  JSON_FROM_FIELD(new JSONFromField());
+  BYTES_FROM_POSITION((String arg) -> new BytesFromPosition(ConversionUtils.convert(arg, Integer.class))),
+  JSON_FROM_POSITION((String arg) -> new JSONFromPosition(ConversionUtils.convert(arg, Integer.class))),
+  JSON_FROM_FIELD((String arg) -> new JSONFromField(arg)),
+  OBJECT_FROM_FIELD((String arg) -> new ObjectFromField(arg)),
+  DEFAULT_BYTES_FROM_POSITION(new BytesFromPosition()),
+  DEFAULT_JSON_FROM_POSITION(new JSONFromPosition()),
+  DEFAULT_JSON_FROM_FIELD(new JSONFromField()),
+  DEFAULT_OBJECT_FROM_FIELD(new ObjectFromField());
 
+  Function<String, MessageGetStrategy> messageGetStrategyFunction;
   MessageGetStrategy messageGetStrategy;
 
   MessageGetters(MessageGetStrategy messageGetStrategy) {
     this.messageGetStrategy = messageGetStrategy;
+  }
+
+  MessageGetters(Function<String, MessageGetStrategy> messageGetStrategy) {
+    this.messageGetStrategyFunction = messageGetStrategy;
+  }
+
+  public MessageGetStrategy get(String arg) {
+    return messageGetStrategyFunction.apply(arg);
   }
 
   public MessageGetStrategy get() {

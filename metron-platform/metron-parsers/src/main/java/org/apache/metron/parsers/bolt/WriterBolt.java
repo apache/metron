@@ -18,22 +18,20 @@
 
 package org.apache.metron.parsers.bolt;
 
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.JSONFromField;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.json.simple.JSONObject;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class WriterBolt extends BaseRichBolt {
   private WriterHandler handler;
@@ -56,7 +54,7 @@ public class WriterBolt extends BaseRichBolt {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
-    messageGetStrategy = MessageGetters.JSON_FROM_FIELD.get();
+    messageGetStrategy = MessageGetters.DEFAULT_JSON_FROM_FIELD.get();
     handler.init(stormConf, collector, configuration);
   }
 

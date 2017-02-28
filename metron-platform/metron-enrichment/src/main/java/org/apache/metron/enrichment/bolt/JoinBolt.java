@@ -26,7 +26,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.ValueFromField;
+import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -73,9 +73,9 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
   @Override
   public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
     super.prepare(map, topologyContext, outputCollector);
-    keyGetStrategy = new ValueFromField("key");
-    subgroupGetStrategy = new ValueFromField("subgroup");
-    messageGetStrategy = new ValueFromField("message");
+    keyGetStrategy = MessageGetters.OBJECT_FROM_FIELD.get("key");
+    subgroupGetStrategy = MessageGetters.OBJECT_FROM_FIELD.get("subgroup");
+    messageGetStrategy = MessageGetters.OBJECT_FROM_FIELD.get("message");
     this.collector = outputCollector;
     if (this.maxCacheSize == null) {
       throw new IllegalStateException("maxCacheSize must be specified");

@@ -26,7 +26,6 @@ public class Constants {
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
   public static final String SENSOR_TYPE = "source.type";
-  public static final String ERROR_TOPIC = "error";
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String INDEXING_TOPIC = "indexing";
   public static final String ERROR_STREAM = "error";

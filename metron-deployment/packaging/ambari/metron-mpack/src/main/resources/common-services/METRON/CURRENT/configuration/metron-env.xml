@@ -37,12 +37,6 @@
         <display-name>Metron apps indexed HDFS dir</display-name>
     </property>
     <property>
-        <name>metron_apps_error_hdfs_dir</name>
-        <value>{{metron_apps_hdfs_dir}}/error/indexed</value>
-        <description>Error indexing bolts will write to this HDFS directory</description>
-        <display-name>Metron apps error indexed HDFS dir</display-name>
-    </property>
-    <property>
         <name>metron_zookeeper_config_dir</name>
         <value>config/zookeeper</value>
         <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
@@ -79,12 +73,6 @@
         <value>indexing</value>
         <description>The Storm topology name for Indexing</description>
         <display-name>Indexing Topology Name</display-name>
-    </property>
-    <property>
-        <name>metron_error_topology</name>
-        <value>error</value>
-        <description>The Storm topology name for Error</description>
-        <display-name>Error Topology Name</display-name>
     </property>
     <property>
         <name>es_cluster_name</name>
@@ -162,7 +150,8 @@
 {
 "es.clustername": "{{ es_cluster_name }}",
 "es.ip": "{{ es_url }}",
-"es.date.format": "yyyy.MM.dd.HH"
+"es.date.format": "yyyy.MM.dd.HH",
+"parser.error.topic": "indexing"
 }
         </value>
         <value-attributes>
@@ -209,51 +198,6 @@ bolt.hdfs.wip.file.path=/paloalto/wip
 bolt.hdfs.finished.file.path=/paloalto/rotated
 bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
 index.hdfs.output={{ metron_apps_indexed_hdfs_dir }}
-        </value>
-        <value-attributes>
-            <type>content</type>
-        </value-attributes>
-        <on-ambari-upgrade add="true"/>
-    </property>
-    <property>
-        <name>elasticsearch-error-properties</name>
-        <description>The template for the elasticsearch_error.properties file.</description>
-        <display-name>elasticsearch_error.properties template</display-name>
-        <value>
-##### Storm #####
-indexing.workers=1
-indexing.executors=0
-##### Kafka #####
-kafka.zk={{ zookeeper_quorum }}
-kafka.broker={{ kafka_brokers }}
-kafka.start=WHERE_I_LEFT_OFF
-##### Indexing #####
-index.input.topic=error
-writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
-##### Metrics #####
-#reporters
-org.apache.metron.metrics.reporter.graphite=true
-org.apache.metron.metrics.reporter.console=false
-org.apache.metron.metrics.reporter.jmx=false
-#Graphite Addresses
-org.apache.metron.metrics.graphite.address=localhost
-org.apache.metron.metrics.graphite.port=2023
-#TelemetryParserBolt
-org.apache.metron.metrics.TelemetryParserBolt.acks=true
-org.apache.metron.metrics.TelemetryParserBolt.emits=true
-org.apache.metron.metrics.TelemetryParserBolt.fails=true
-##### HDFS #####
-bolt.hdfs.batch.size=5000
-bolt.hdfs.field.delimiter=|
-bolt.hdfs.rotation.policy=org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
-bolt.hdfs.rotation.policy.units=DAYS
-bolt.hdfs.rotation.policy.count=1
-bolt.hdfs.file.rotation.size.in.mb=5
-bolt.hdfs.file.system.url={{ default_fs }}
-bolt.hdfs.wip.file.path=/paloalto/wip
-bolt.hdfs.finished.file.path=/paloalto/rotated
-bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output={{ metron_apps_error_hdfs_dir }}
         </value>
         <value-attributes>
             <type>content</type>

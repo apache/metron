@@ -18,6 +18,7 @@
 package org.apache.metron.common.error;
 
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -76,22 +77,19 @@ public class MetronErrorTest {
     MetronError error = new MetronError().withRawMessages(Arrays.asList(message1, message2));
 
     JSONObject errorJSON = error.getJSONObject();
-    JSONObject expected1 = new JSONObject();
-    JSONObject expected2 = new JSONObject();
-    expected1.put("value", "message1");
-    expected2.put("value", "message2");
-    assertEquals(expected1, errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName() + "_0"));
-    assertEquals(expected2, errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName() + "_1"));
+
+    assertEquals("{\"value\":\"message1\"}", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName() + "_0"));
+    assertEquals("{\"value\":\"message2\"}", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName() + "_1"));
 
     error = new MetronError().addRawMessage("raw message".getBytes());
     errorJSON = error.getJSONObject();
     assertEquals("raw message", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
-    assertEquals(error.toByteArrayList("raw message".getBytes()), errorJSON.get(Constants.ErrorFields.RAW_MESSAGE_BYTES.getName()));
+    assertEquals(Bytes.asList("raw message".getBytes()), errorJSON.get(Constants.ErrorFields.RAW_MESSAGE_BYTES.getName()));
     assertEquals("3b02cb29676bc448c69da1ec5eef7c89f4d6dc6a5a7ce0296ea25b207eea36be", errorJSON.get(Constants.ErrorFields.ERROR_HASH.getName()));
 
     error = new MetronError().addRawMessage(message1);
     errorJSON = error.getJSONObject();
-    assertEquals(expected1, errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
+    assertEquals("{\"value\":\"message1\"}", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     assertEquals("e8aaf87c8494d345aac2d612ffd94fcf0b98c975fe6c4b991e2f8280a3a0bd10", errorJSON.get(Constants.ErrorFields.ERROR_HASH.getName()));
   }
 

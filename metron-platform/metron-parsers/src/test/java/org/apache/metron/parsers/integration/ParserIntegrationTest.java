@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
+  protected static final String ERROR_TOPIC = "parser_error";
   protected List<byte[]> inputMessages;
   @Test
   public void test() throws Exception {
@@ -47,7 +48,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(sensorType, 1));
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
-      add(new KafkaComponent.Topic(Constants.ERROR_TOPIC,1));
+      add(new KafkaComponent.Topic(ERROR_TOPIC,1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
@@ -114,7 +115,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     return new KafkaProcessor<>()
             .withKafkaComponentName("kafka")
             .withReadTopic(Constants.ENRICHMENT_TOPIC)
-            .withErrorTopic(Constants.ERROR_STREAM)
+            .withErrorTopic(ERROR_TOPIC)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override

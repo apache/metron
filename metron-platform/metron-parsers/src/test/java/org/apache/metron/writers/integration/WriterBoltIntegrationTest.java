@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.writers.integration;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -37,6 +37,8 @@ import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,6 +47,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class WriterBoltIntegrationTest extends BaseIntegrationTest {
+  private static final String ERROR_TOPIC = "parser_error";
+
   public static class MockValidator implements FieldValidation{
 
     @Override
@@ -66,7 +70,8 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
         {
           "validation" : "org.apache.metron.writers.integration.WriterBoltIntegrationTest$MockValidator"
         }
-                         ]
+                         ],
+   "parser.error.topic":"parser_error"
    }
     */
   @Multiline
@@ -89,7 +94,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   public static String parserConfig;
 
   @Test
-  public void test() throws UnableToStartException, IOException {
+  public void test() throws UnableToStartException, IOException, ParseException {
     UnitTestHelper.setLog4jLevel(CSVParser.class, org.apache.log4j.Level.FATAL);
     final String sensorType = "dummy";
     final List<byte[]> inputMessages = new ArrayList<byte[]>() {{
@@ -101,7 +106,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(sensorType, 1));
-      add(new KafkaComponent.Topic(Constants.ERROR_TOPIC, 1));
+      add(new KafkaComponent.Topic(ERROR_TOPIC, 1));
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
@@ -134,12 +139,13 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals(2, outputMessages.size());
       Assert.assertEquals(1, outputMessages.get(Constants.ENRICHMENT_TOPIC).size());
       Assert.assertEquals("valid", outputMessages.get(Constants.ENRICHMENT_TOPIC).get(0).get("action"));
-      Assert.assertEquals(2, outputMessages.get(Constants.ERROR_TOPIC).size());
-      JSONObject invalidMessage = outputMessages.get(Constants.ERROR_TOPIC).get(0);
+      Assert.assertEquals(2, outputMessages.get(ERROR_TOPIC).size());
+      JSONObject invalidMessage = outputMessages.get(ERROR_TOPIC).get(0);
       Assert.assertEquals(Constants.ErrorType.PARSER_INVALID.getType(), invalidMessage.get(Constants.ErrorFields.ERROR_TYPE.getName()));
-      Assert.assertEquals("foo", ((Map) invalidMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName())).get("dummy"));
-      Assert.assertEquals("invalid", ((Map) invalidMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName())).get("action"));
-      JSONObject errorMessage = outputMessages.get(Constants.ERROR_TOPIC).get(1);
+      JSONObject rawMessage = JSONUtils.INSTANCE.load((String) invalidMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName()), JSONObject.class);
+      Assert.assertEquals("foo", rawMessage.get("dummy"));
+      Assert.assertEquals("invalid", rawMessage.get("action"));
+      JSONObject errorMessage = outputMessages.get(ERROR_TOPIC).get(1);
       Assert.assertEquals(Constants.ErrorType.PARSER_ERROR.getType(), errorMessage.get(Constants.ErrorFields.ERROR_TYPE.getName()));
       Assert.assertEquals("error", errorMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
       Assert.assertTrue(Arrays.equals(listToBytes(errorMessage.get(Constants.ErrorFields.RAW_MESSAGE_BYTES.getName())), "error".getBytes()));
@@ -183,7 +189,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     return new KafkaProcessor<>()
             .withKafkaComponentName("kafka")
             .withReadTopic(Constants.ENRICHMENT_TOPIC)
-            .withErrorTopic(Constants.ERROR_TOPIC)
+            .withErrorTopic(ERROR_TOPIC)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
@@ -197,7 +203,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
               public Map<String,List<JSONObject>> apply(@Nullable KafkaMessageSet messageSet) {
                 return new HashMap<String, List<JSONObject>>() {{
                   put(Constants.ENRICHMENT_TOPIC, loadMessages(messageSet.getMessages()));
-                  put(Constants.ERROR_TOPIC, loadMessages(messageSet.getErrors()));
+                  put(ERROR_TOPIC, loadMessages(messageSet.getErrors()));
                 }};
               }
             });

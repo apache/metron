@@ -55,6 +55,7 @@ import java.io.Serializable;
 import java.util.*;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
+  private static final String ERROR_TOPIC = "enrichment_error";
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
@@ -118,13 +119,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
-      setProperty("enrichment.error.topic", Constants.ERROR_TOPIC);
+      setProperty("enrichment.error.topic", ERROR_TOPIC);
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
-      add(new KafkaComponent.Topic(Constants.ERROR_TOPIC, 1));
+      add(new KafkaComponent.Topic(ERROR_TOPIC, 1));
     }});
     String globalConfigStr = null;
     {
@@ -185,7 +186,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<Map<String, Object>> docs = outputMessages.get(Constants.INDEXING_TOPIC);
       Assert.assertEquals(inputMessages.size(), docs.size());
       validateAll(docs);
-      List<Map<String, Object>> errors = outputMessages.get(Constants.ERROR_TOPIC);
+      List<Map<String, Object>> errors = outputMessages.get(ERROR_TOPIC);
       Assert.assertEquals(inputMessages.size(), errors.size());
       validateErrors(errors);
     } finally {
@@ -217,7 +218,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Assert.assertEquals("Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.MESSAGE.getName()));
       Assert.assertEquals("java.lang.IllegalStateException: Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.EXCEPTION.getName()));
       Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
-      Assert.assertEquals(new HashMap<String, String>() {{ put("rawMessage", "Error Test Raw Message String" ); }}, error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
+      Assert.assertEquals("{\"rawMessage\":\"Error Test Raw Message String\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
   }
 
@@ -490,7 +491,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return new KafkaProcessor<>()
             .withKafkaComponentName("kafka")
             .withReadTopic(Constants.INDEXING_TOPIC)
-            .withErrorTopic(Constants.ERROR_TOPIC)
+            .withErrorTopic(ERROR_TOPIC)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
@@ -504,7 +505,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
               public Map<String,List<Map<String, Object>>> apply(@Nullable KafkaMessageSet messageSet) {
                 return new HashMap<String, List<Map<String, Object>>>() {{
                   put(Constants.INDEXING_TOPIC, loadMessages(messageSet.getMessages()));
-                  put(Constants.ERROR_TOPIC, loadMessages(messageSet.getErrors()));
+                  put(ERROR_TOPIC, loadMessages(messageSet.getErrors()));
                 }};
               }
             });
