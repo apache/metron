@@ -26,6 +26,8 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
@@ -34,6 +36,8 @@ import java.io.Serializable;
  * profile measurements to Kafka.
  */
 public class KafkaDestinationHandler implements DestinationHandler, Serializable {
+
+  protected static final Logger LOG = LoggerFactory.getLogger(KafkaDestinationHandler.class);
 
   /**
    * The stream identifier used for this destination;
@@ -71,8 +75,8 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
         message.put(key, value);
 
       } else {
-        throw new IllegalArgumentException(String.format("invalid type for triage value: profile=%s, entity=%s, key=%s, value=%s",
-                        measurement.getDefinition().getProfile(), measurement.getEntity(), key, ClassUtils.getSimpleName(value, "null")));
+        LOG.error(String.format("triage expression has invalid type. expect primitive types only. skipping: profile=%s, entity=%s, expression=%s, type=%s",
+                measurement.getDefinition().getProfile(), measurement.getEntity(), key, ClassUtils.getShortClassName(value, "null")));
       }
     });
 

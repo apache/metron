@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -35,6 +36,7 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.*;
@@ -105,17 +107,42 @@ public class KafkaDestinationHandlerTest {
    * Values destined for Kafka can only be serialized into text, which limits the types of values
    * that can result from a triage expression.  Only primitive types and Strings are allowed.
    */
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testInvalidType() throws Exception {
+
+    // create one invalid expression and one valid expression
+    Map<String, Object> triageValues = ImmutableMap.of(
+            "invalid", new OnlineStatisticsProvider(),
+            "valid", 4);
 
     ProfileMeasurement measurement = new ProfileMeasurement()
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withTriageValues(Collections.singletonMap("triage-key", new OnlineStatisticsProvider()))
+            .withTriageValues(triageValues)
             .withDefinition(profile);
-
     handler.emit(measurement, collector);
+
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
+    Values values = arg.getValue();
+    assertTrue(values.get(0) instanceof JSONObject);
+
+    // only the triage expression value itself should have been skipped, all others should be there
+    JSONObject actual = (JSONObject) values.get(0);
+    assertEquals(measurement.getDefinition().getProfile(), actual.get("profile"));
+    assertEquals(measurement.getEntity(), actual.get("entity"));
+    assertEquals(measurement.getPeriod().getPeriod(), actual.get("period"));
+    assertEquals(measurement.getPeriod().getStartTimeMillis(), actual.get("period.start"));
+    assertEquals(measurement.getPeriod().getEndTimeMillis(), actual.get("period.end"));
+    assertNotNull(actual.get("timestamp"));
+    assertEquals("profiler", actual.get("source.type"));
+
+    // the invalid expression should be skipped due to invalid type
+    assertFalse(actual.containsKey("invalid"));
+
+    // but the valid expression should still be there
+    assertEquals(triageValues.get("valid"), actual.get("valid"));
   }
 
   /**
@@ -131,7 +158,15 @@ public class KafkaDestinationHandlerTest {
             .withTriageValues(Collections.singletonMap("triage-key", 123))
             .withDefinition(profile);
     handler.emit(measurement, collector);
-    verify(collector, times(1)).emit(eq(handler.getStreamId()), any());
+
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
+    Values values = arg.getValue();
+    assertTrue(values.get(0) instanceof JSONObject);
+    JSONObject actual = (JSONObject) values.get(0);
+
+    // the triage expression is valid
+    assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
   }
 
   /**
@@ -147,7 +182,15 @@ public class KafkaDestinationHandlerTest {
             .withTriageValues(Collections.singletonMap("triage-key", "value"))
             .withDefinition(profile);
     handler.emit(measurement, collector);
-    verify(collector, times(1)).emit(eq(handler.getStreamId()), any());
+
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+    verify(collector, times(1)).emit(eq(handler.getStreamId()), arg.capture());
+    Values values = arg.getValue();
+    assertTrue(values.get(0) instanceof JSONObject);
+    JSONObject actual = (JSONObject) values.get(0);
+
+    // the triage expression is valid
+    assertEquals(measurement.getTriageValues().get("triage-key"), actual.get("triage-key"));
   }
 
   /**
