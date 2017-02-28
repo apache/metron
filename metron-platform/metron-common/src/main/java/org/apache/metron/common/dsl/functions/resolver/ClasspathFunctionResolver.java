@@ -73,7 +73,7 @@ import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionR
  */
 public class ClasspathFunctionResolver extends BaseFunctionResolver {
   public enum Config {
-    STELLAR_VFS_PATHS("classloader.paths", ""),
+    STELLAR_VFS_PATHS("stellar.function.paths", ""),
     /**
      * The key for a global property that defines one or more regular expressions
      * that specify what should be included when searching for Stellar functions.

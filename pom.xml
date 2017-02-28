@@ -74,6 +74,7 @@
         <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_curator_version>2.7.1</global_curator_version>
+        <global_classindex_version>3.3</global_classindex_version>
         <global_storm_version>${base_storm_version}</global_storm_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
