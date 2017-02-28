@@ -39,29 +39,6 @@ import java.util.*;
 public class ClassloaderUtil {
   private static final Logger LOG = LoggerFactory.getLogger(ClassloaderUtil.class);
 
-  public enum Config {
-    VFS_PATHS("classloader.paths", "")
-    ;
-    String param;
-    Object defaultValue;
-    Config(String param, String defaultValue) {
-      this.param = param;
-      this.defaultValue = defaultValue;
-    }
-
-    public String param() {
-      return param;
-    }
-
-    public Object get(Map<String, Object> config) {
-      return config.getOrDefault(param, defaultValue);
-    }
-
-    public <T> T get(Map<String, Object> config, Class<T> clazz) {
-      return ConversionUtils.convert(get(config), clazz);
-    }
-  }
-
   public static FileSystemManager generateVfs() throws FileSystemException {
     DefaultFileSystemManager vfs = new DefaultFileSystemManager();
     vfs.addProvider("res", new org.apache.commons.vfs2.provider.res.ResourceFileProvider());
