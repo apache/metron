@@ -237,14 +237,16 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     FilterBuilder filterBuilder = new FilterBuilder();
     excludes.forEach(excl -> filterBuilder.exclude(excl));
     includes.forEach(incl -> filterBuilder.include(incl));
-
+    Set<String> classes = new HashSet<>();
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {
       for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
-        if(c.getName().toLowerCase().contains("now")) {
-        }
         if(StellarFunction.class.isAssignableFrom(c) && filterBuilder.apply(c.getCanonicalName())) {
-          ret.add((Class<? extends StellarFunction>)c);
+          String className = c.getName();
+          if(!classes.contains(className)) {
+            ret.add((Class<? extends StellarFunction>) c);
+            classes.add(className);
+          }
         }
       }
     }
