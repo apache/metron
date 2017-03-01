@@ -62,7 +62,7 @@ public class NetworkFunctionsTest {
 
   @Test
   public void toTldTest() {
-    runWithArguments("DOMAIN_TO_TLD", "www.google.co.uk", "co.uk");
+    runWithArguments("DOMAIN_TO_TLD", "www.google.co.uk", "CO.uk");
     runWithArguments("DOMAIN_TO_TLD", "www.google.com", "com");
     runWithArguments("DOMAIN_TO_TLD", "com", "com");
   }

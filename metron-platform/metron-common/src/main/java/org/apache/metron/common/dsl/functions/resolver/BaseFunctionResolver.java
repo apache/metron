@@ -67,7 +67,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    * Returns a set of classes that should undergo further interrogation for resolution
    * (aka discovery) of Stellar functions.
    */
-  protected abstract Set<Class<? extends StellarFunction>> resolvables();
+  public abstract Set<Class<? extends StellarFunction>> resolvables();
 
   /**
    * Provides metadata about each Stellar function that is resolvable.

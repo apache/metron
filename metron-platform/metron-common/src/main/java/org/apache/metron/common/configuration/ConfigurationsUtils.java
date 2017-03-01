@@ -18,12 +18,15 @@
 package org.apache.metron.common.configuration;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.zookeeper.KeeperException;
 
@@ -229,8 +232,9 @@ public class ConfigurationsUtils {
 
     // global
     if (globalConfigPath != null) {
-      byte[] globalConfig = readGlobalConfigFromFile(globalConfigPath);
+      final byte[] globalConfig = readGlobalConfigFromFile(globalConfigPath);
       if (globalConfig.length > 0) {
+        setupStellarStatically(client, new String(globalConfig));
         ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfigPath), client);
       }
     }
@@ -261,11 +265,32 @@ public class ConfigurationsUtils {
 
     // profiler
     if (profilerConfigPath != null) {
-      byte[] globalConfig = readProfilerConfigFromFile(profilerConfigPath);
-      if (globalConfig.length > 0) {
-        ConfigurationsUtils.writeProfilerConfigToZookeeper(readProfilerConfigFromFile(profilerConfigPath), client);
+      byte[] profilerConfig = readProfilerConfigFromFile(profilerConfigPath);
+      if (profilerConfig.length > 0) {
+        ConfigurationsUtils.writeProfilerConfigToZookeeper(profilerConfig, client);
       }
     }
+  }
+
+  public static void setupStellarStatically(CuratorFramework client) throws Exception {
+    byte[] ret = readGlobalConfigBytesFromZookeeper(client);
+    if(ret == null || ret.length == 0) {
+      setupStellarStatically(client, "{}");
+    }
+    setupStellarStatically(client, new String(ret));
+  }
+
+  public static void setupStellarStatically(CuratorFramework client, String globalConfig) {
+    /*
+        In order to validate stellar functions, the function resolver must be initialized.  Otherwise,
+        those utilities that require validation cannot validate the stellar expressions necessarily.
+         */
+    Context stellarContext = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig))
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> GLOBAL.deserialize(globalConfig))
+            .build();
+    StellarFunctions.FUNCTION_RESOLVER().initialize(stellarContext);
   }
 
   public static byte[] readGlobalConfigFromFile(String rootPath) throws IOException {
@@ -323,8 +348,11 @@ public class ConfigurationsUtils {
     void visit(ConfigurationType configurationType, String name, String data);
   }
 
-  public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback) throws Exception {
-    visitConfigs(client, callback, GLOBAL);
+  public static void visitConfigs(CuratorFramework client, final ConfigurationVisitor callback) throws Exception {
+    visitConfigs(client, (type, name, data) -> {
+      setupStellarStatically(client, data);
+      callback.visit(type, name, data);
+    }, GLOBAL);
     visitConfigs(client, callback, PARSER);
     visitConfigs(client, callback, INDEXING);
     visitConfigs(client, callback, ENRICHMENT);
@@ -338,8 +366,12 @@ public class ConfigurationsUtils {
       if (configType.equals(GLOBAL)) {
         byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
         callback.visit(configType, "global", new String(globalConfigData));
-
-      } else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(PROFILER) || configType.equals(INDEXING)) {
+      }
+      else if(configType.equals(PROFILER)) {
+        byte[] profilerConfigData = client.getData().forPath(configType.getZookeeperRoot());
+        callback.visit(configType, "profiler", new String(profilerConfigData));
+      }
+      else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(INDEXING)) {
         List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
         for (String child : children) {
 

@@ -18,25 +18,14 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.*;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.ClassloaderUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.vfs.CommonsVfs2UrlType;
-import org.reflections.vfs.Vfs;
 
 import java.io.File;
-import java.net.URL;
 import java.util.*;
 
 import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;

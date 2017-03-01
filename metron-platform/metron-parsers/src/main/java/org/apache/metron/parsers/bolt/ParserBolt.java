@@ -18,9 +18,6 @@
 package org.apache.metron.parsers.bolt;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
-import org.apache.metron.common.utils.ClassloaderUtil;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;

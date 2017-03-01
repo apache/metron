@@ -18,21 +18,16 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.impl.VFSClassLoader;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.ClassloaderUtil;
+import org.apache.metron.common.utils.VFSClassloaderUtil;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.atteo.classindex.ClassIndex;
-import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
 import java.net.URL;
@@ -73,6 +68,11 @@ import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionR
  */
 public class ClasspathFunctionResolver extends BaseFunctionResolver {
   public enum Config {
+    /**
+     * The set of paths.  These paths are comma separated URLs with optional regex patterns at the end.
+     * e.g. hdfs://node1:8020/apps/metron/stellar/.*.jar,hdfs://node1:8020/apps/metron/my_org/.*.jar
+     * would signify all the jars under /apps/metron/stellar and /apps/metron/my_org in HDFS.
+     */
     STELLAR_VFS_PATHS("stellar.function.paths", ""),
     /**
      * The key for a global property that defines one or more regular expressions
@@ -80,10 +80,10 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
      */
     STELLAR_SEARCH_INCLUDES_KEY("stellar.function.resolver.includes", ""),
     /**
-   * The key for a global property that defines one or more regular expressions
-   * that specify what should be excluded when searching for Stellar functions.
-   */
-  STELLAR_SEARCH_EXCLUDES_KEY("stellar.function.resolver.excludes", ""),
+     * The key for a global property that defines one or more regular expressions
+     * that specify what should be excluded when searching for Stellar functions.
+     */
+    STELLAR_SEARCH_EXCLUDES_KEY("stellar.function.resolver.excludes", ""),
 
 
     ;
@@ -177,19 +177,41 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
       Optional<Object> optional = context.getCapability(STELLAR_CONFIG, false);
       if (optional.isPresent()) {
         Map<String, Object> stellarConfig = (Map<String, Object>) optional.get();
+        if(LOG.isDebugEnabled()) {
+          LOG.debug("Setting up classloader using the following config: " + stellarConfig);
+        }
 
         include(STELLAR_SEARCH_INCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
         exclude(STELLAR_SEARCH_EXCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
         Optional<ClassLoader> vfsLoader = null;
         try {
-          vfsLoader = ClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
+          vfsLoader = VFSClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
           if(vfsLoader.isPresent()) {
+            LOG.debug("CLASSLOADER LOADED WITH: " + STELLAR_VFS_PATHS.get(stellarConfig, String.class));
+            if(LOG.isDebugEnabled()) {
+              for (FileObject fo : ((VFSClassLoader) vfsLoader.get()).getFileObjects()) {
+                LOG.error(fo.getURL() + " - " + fo.exists());
+              }
+            }
             classLoaders(vfsLoader.get());
           }
         } catch (FileSystemException e) {
           LOG.error("Unable to process filesystem: " + e.getMessage(), e);
         }
       }
+      else {
+        LOG.error("No stellar config set; I'm reverting to the system classpath with no restrictions.");
+        if(LOG.isDebugEnabled()) {
+          try {
+            throw new IllegalStateException("No config set, stacktrace follows.");
+          } catch (IllegalStateException ise) {
+            LOG.error(ise.getMessage(), ise);
+          }
+        }
+      }
+    }
+    else {
+      throw new IllegalStateException("CONTEXT IS NULL!");
     }
   }
 
@@ -198,10 +220,11 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    * (aka discovery) of Stellar functions.
    */
   @Override
-  protected Set<Class<? extends StellarFunction>> resolvables() {
+  public Set<Class<? extends StellarFunction>> resolvables() {
 
     ClassLoader[] cls = null;
     if(this.classLoaders.size() == 0) {
+      LOG.warn("Using System classloader");
       cls = new ClassLoader[] { getClass().getClassLoader() };
     }
     else {
@@ -218,6 +241,8 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {
       for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
+        if(c.getName().toLowerCase().contains("now")) {
+        }
         if(StellarFunction.class.isAssignableFrom(c) && filterBuilder.apply(c.getCanonicalName())) {
           ret.add((Class<? extends StellarFunction>)c);
         }
@@ -226,28 +251,4 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     return ret;
   }
 
-  /**
-   * To handle the situation where classpath is specified in the manifest of the
-   * jar, we have to augment the URLs.  This happens as part of the surefire plugin
-   * as well as elsewhere in the wild.
-   * @param classLoaders
-   */
-  public static Collection<URL> effectiveClassPathUrls(ClassLoader... classLoaders) {
-    List<URL> ret = new ArrayList<>(ClasspathHelper.forManifest(ClasspathHelper.forClassLoader(classLoaders)));
-    return ret;
-  }
-
-  /**
-   * To handle the situation where classpath is specified in the manifest of the
-   * jar, we have to augment the URLs.  This happens as part of the surefire plugin
-   * as well as elsewhere in the wild.
-   * @param classLoaders
-   */
-  public static Collection<URL> effectiveClassPathUrls(List<ClassLoader> classLoaders) {
-    ClassLoader loaders[] = new ClassLoader[classLoaders.size()];
-    for(int i = 0;i < classLoaders.size();++i) {
-      loaders[i] = classLoaders.get(i);
-    }
-    return effectiveClassPathUrls(loaders);
-  }
 }

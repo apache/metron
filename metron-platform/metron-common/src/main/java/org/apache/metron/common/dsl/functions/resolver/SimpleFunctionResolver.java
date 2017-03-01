@@ -44,7 +44,7 @@ public class SimpleFunctionResolver extends BaseFunctionResolver {
   Set<Class<? extends StellarFunction>> classesToResolve = new HashSet<>();
 
   @Override
-  protected Set<Class<? extends StellarFunction>> resolvables() {
+  public Set<Class<? extends StellarFunction>> resolvables() {
     return classesToResolve;
   }
 

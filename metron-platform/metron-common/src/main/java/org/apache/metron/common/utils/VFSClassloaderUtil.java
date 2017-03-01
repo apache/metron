@@ -18,27 +18,37 @@
 package org.apache.metron.common.utils;
 
 import org.apache.accumulo.start.classloader.vfs.UniqueFileReplicator;
-import org.apache.commons.logging.Log;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.cache.SoftRefFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.impl.FileContentInfoFilenameFactory;
 import org.apache.commons.vfs2.impl.VFSClassLoader;
-import org.apache.commons.vfs2.provider.FileReplicator;
-import org.apache.commons.vfs2.provider.UriParser;
-import org.apache.commons.vfs2.provider.VfsComponent;
-import org.apache.commons.vfs2.provider.VfsComponentContext;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
-public class ClassloaderUtil {
-  private static final Logger LOG = LoggerFactory.getLogger(ClassloaderUtil.class);
+public class VFSClassloaderUtil {
+  private static final Logger LOG = LoggerFactory.getLogger(VFSClassloaderUtil.class);
 
+  /**
+   * Create a FileSystem manager suitable for our purposes.
+   * This manager supports files of the following types:
+   * * res - resource files
+   * * jar
+   * * tar
+   * * bz2
+   * * tgz
+   * * zip
+   * * HDFS
+   * * FTP
+   * * HTTP/S
+   * * file
+   * @return
+   * @throws FileSystemException
+   */
   public static FileSystemManager generateVfs() throws FileSystemException {
     DefaultFileSystemManager vfs = new DefaultFileSystemManager();
     vfs.addProvider("res", new org.apache.commons.vfs2.provider.res.ResourceFileProvider());
@@ -80,6 +90,22 @@ public class ClassloaderUtil {
     return vfs;
   }
 
+  /**
+   * Create a classloader backed by a virtual filesystem which can handle the following URI types:
+   * * res - resource files
+   * * jar
+   * * tar
+   * * bz2
+   * * tgz
+   * * zip
+   * * HDFS
+   * * FTP
+   * * HTTP/S
+   * * file
+   * @param paths A set of comma separated paths.  The paths are URIs or URIs with a regex pattern at the end.
+   * @return A classloader object if it can create it
+   * @throws FileSystemException
+   */
   public static Optional<ClassLoader> configureClassloader(String paths) throws FileSystemException {
     if(paths.trim().isEmpty()) {
       return Optional.empty();
@@ -92,38 +118,36 @@ public class ClassloaderUtil {
     return Optional.of(new VFSClassLoader(objects, vfs, ClassLoader.getSystemClassLoader()));
   }
 
+  /**
+   * Resolve a set of URIs into FileObject objects.
+   * This is not recursive. The URIs can refer directly to a file or directory or an optional regex at the end.
+   * (NOTE: This is NOT a glob).
+   * @param vfs The file system manager to use to resolve URIs
+   * @param uris comma separated URIs and URI + globs
+   * @return
+   * @throws FileSystemException
+   */
   static FileObject[] resolve(FileSystemManager vfs, String uris) throws FileSystemException {
-    return resolve(vfs, uris, new ArrayList<>());
-  }
-
-  static FileObject[] resolve(FileSystemManager vfs, String uris, ArrayList<FileObject> pathsToMonitor) throws FileSystemException {
-    if (uris == null)
+    if (uris == null) {
       return new FileObject[0];
+    }
 
     ArrayList<FileObject> classpath = new ArrayList<>();
-
-    pathsToMonitor.clear();
-
     for (String path : uris.split(",")) {
-
       path = path.trim();
-
-      if (path.equals(""))
+      if (path.equals("")) {
         continue;
-
+      }
       FileObject fo = vfs.resolveFile(path);
-
       switch (fo.getType()) {
         case FILE:
         case FOLDER:
           classpath.add(fo);
-          pathsToMonitor.add(fo);
           break;
         case IMAGINARY:
           // assume its a pattern
           String pattern = fo.getName().getBaseName();
           if (fo.getParent() != null && fo.getParent().getType() == FileType.FOLDER) {
-            pathsToMonitor.add(fo.getParent());
             FileObject[] children = fo.getParent().getChildren();
             for (FileObject child : children) {
               if (child.getType() == FileType.FILE && child.getName().getBaseName().matches(pattern)) {
@@ -138,9 +162,7 @@ public class ClassloaderUtil {
           LOG.warn("ignoring classpath entry " + fo);
           break;
       }
-
     }
-
     return classpath.toArray(new FileObject[classpath.size()]);
   }
 }
