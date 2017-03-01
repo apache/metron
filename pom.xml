@@ -29,6 +29,7 @@
             <module>metron-platform</module>
             <module>metron-deployment</module>
             <module>metron-docker</module>
+            <module>metron-interface</module>
     </modules>
 
     <repositories>
