@@ -115,7 +115,7 @@ public class VFSClassloaderUtil {
     if(objects == null || objects.length == 0) {
       return Optional.empty();
     }
-    return Optional.of(new VFSClassLoader(objects, vfs, ClassLoader.getSystemClassLoader()));
+    return Optional.of(new VFSClassLoader(objects, vfs, vfs.getClass().getClassLoader()));
   }
 
   /**
