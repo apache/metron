@@ -277,7 +277,13 @@ public class ConfigurationsUtils {
   }
 
   public static void setupStellarStatically(CuratorFramework client) throws Exception {
-    byte[] ret = readGlobalConfigBytesFromZookeeper(client);
+    byte[] ret = null;
+    try {
+      ret = readGlobalConfigBytesFromZookeeper(client);
+    }
+    catch(KeeperException.NoNodeException nne) {
+      //can't find the node
+    }
     if(ret == null || ret.length == 0) {
       setupStellarStatically(client, Optional.empty());
     }
