@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.metron.common.configuration.ConfigurationType.*;
 
@@ -204,7 +205,10 @@ public class ConfigurationsUtils {
   }
 
   public static byte[] readFromZookeeper(String path, CuratorFramework client) throws Exception {
-    return client.getData().forPath(path);
+    if(client != null && client.getData() != null) {
+      return client.getData().forPath(path);
+    }
+    return new byte[]{};
   }
 
   public static void uploadConfigsToZookeeper(String globalConfigPath,
@@ -234,7 +238,7 @@ public class ConfigurationsUtils {
     if (globalConfigPath != null) {
       final byte[] globalConfig = readGlobalConfigFromFile(globalConfigPath);
       if (globalConfig.length > 0) {
-        setupStellarStatically(client, new String(globalConfig));
+        setupStellarStatically(client, Optional.of(new String(globalConfig)));
         ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfigPath), client);
       }
     }
@@ -275,21 +279,28 @@ public class ConfigurationsUtils {
   public static void setupStellarStatically(CuratorFramework client) throws Exception {
     byte[] ret = readGlobalConfigBytesFromZookeeper(client);
     if(ret == null || ret.length == 0) {
-      setupStellarStatically(client, "{}");
+      setupStellarStatically(client, Optional.empty());
     }
-    setupStellarStatically(client, new String(ret));
+    else {
+      setupStellarStatically(client, Optional.of(new String(ret)));
+    }
   }
 
-  public static void setupStellarStatically(CuratorFramework client, String globalConfig) {
+  public static void setupStellarStatically(CuratorFramework client, Optional<String> globalConfig) {
     /*
-        In order to validate stellar functions, the function resolver must be initialized.  Otherwise,
-        those utilities that require validation cannot validate the stellar expressions necessarily.
-         */
-    Context stellarContext = new Context.Builder()
-            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig))
-            .with(Context.Capabilities.STELLAR_CONFIG, () -> GLOBAL.deserialize(globalConfig))
-            .build();
+      In order to validate stellar functions, the function resolver must be initialized.  Otherwise,
+      those utilities that require validation cannot validate the stellar expressions necessarily.
+    */
+    Context.Builder builder = new Context.Builder().with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            ;
+    if(globalConfig.isPresent()) {
+      builder = builder.with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()))
+              .with(Context.Capabilities.STELLAR_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()));
+    }
+    else {
+      builder = builder.with(Context.Capabilities.STELLAR_CONFIG, () -> new HashMap<>());
+    }
+    Context stellarContext = builder.build();
     StellarFunctions.FUNCTION_RESOLVER().initialize(stellarContext);
   }
 
@@ -350,7 +361,7 @@ public class ConfigurationsUtils {
 
   public static void visitConfigs(CuratorFramework client, final ConfigurationVisitor callback) throws Exception {
     visitConfigs(client, (type, name, data) -> {
-      setupStellarStatically(client, data);
+      setupStellarStatically(client, Optional.ofNullable(data));
       callback.visit(type, name, data);
     }, GLOBAL);
     visitConfigs(client, callback, PARSER);

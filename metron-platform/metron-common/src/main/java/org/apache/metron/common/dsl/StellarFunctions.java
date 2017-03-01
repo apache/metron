@@ -21,15 +21,11 @@ package org.apache.metron.common.dsl;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
 
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 public class StellarFunctions {
 
   public static FunctionResolver FUNCTION_RESOLVER() {
     return SingletonFunctionResolver.getInstance();
   }
-
 
   public static void initialize(Context context) {
     SingletonFunctionResolver.getInstance().initialize(context);

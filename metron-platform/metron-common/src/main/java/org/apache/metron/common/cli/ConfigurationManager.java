@@ -165,7 +165,6 @@ public class ConfigurationManager {
     final boolean force = ConfigurationOptions.FORCE.has(cli);
     String mode = ConfigurationOptions.MODE.get(cli);
 
-
     if (mode.toLowerCase().equals("push")) {
       String inputDirStr = ConfigurationOptions.INPUT.get(cli);
       push(inputDirStr, client);
