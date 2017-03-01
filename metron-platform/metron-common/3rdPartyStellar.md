@@ -136,4 +136,25 @@ Also, note path is prefaced by the HDFS default name, which, if you do not know,
 [root@node1 ~]# hdfs getconf -confKey fs.default.name
 hdfs://node1:8020
 ```
+### Use the Function
 
+Now that we have deployed the function, if we want to use it,
+any running topologies that use Stellar will need to be restarted.
+
+Beyond that, let's take a look at it in the REPL:
+```
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH, stellar.function.paths=hdfs://node1:8020/apps/metron/stellar/.*.jar, profiler.client.period.duration=1, profiler.client.period.duration.units=MINUTES}
+[Stellar]>>> # Get the help for NOW
+[Stellar]>>> ?NOW
+Functions loaded, you may refer to functions now...
+NOW
+Description: Right now!
+     
+Returns: Timestamp
+[Stellar]>>> # Try to run the NOW function, which we added:
+[Stellar]>>> NOW()
+1488400515655
+[Stellar]>>> # Looks like I got a timestamp, success!
+```

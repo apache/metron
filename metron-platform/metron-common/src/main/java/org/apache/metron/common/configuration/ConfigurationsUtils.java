@@ -205,7 +205,7 @@ public class ConfigurationsUtils {
   }
 
   public static byte[] readFromZookeeper(String path, CuratorFramework client) throws Exception {
-    if(client != null && client.getData() != null) {
+    if(client != null && client.getData() != null && path != null) {
       return client.getData().forPath(path);
     }
     return new byte[]{};

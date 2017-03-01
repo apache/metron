@@ -200,7 +200,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
         }
       }
       else {
-        LOG.error("No stellar config set; I'm reverting to the system classpath with no restrictions.");
+        LOG.info("No stellar config set; I'm reverting to the context classpath with no restrictions.");
         if(LOG.isDebugEnabled()) {
           try {
             throw new IllegalStateException("No config set, stacktrace follows.");
