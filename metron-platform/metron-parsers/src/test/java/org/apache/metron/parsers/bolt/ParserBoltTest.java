@@ -187,6 +187,8 @@ public class ParserBoltTest extends BaseBoltTest {
 
     };
 
+    buildGlobalConfig(parserBolt);
+
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
