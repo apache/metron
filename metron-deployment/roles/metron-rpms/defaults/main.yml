@@ -15,16 +15,4 @@
 #  limitations under the License.
 #
 ---
-#TODO: Delete the control files too
-- name: "Delete topics"
-  shell: "/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper {{ zookeeper_url }} --delete --topic {{ item }}"
-  register: result
-  with_items:
-    - bro
-    - yaf
-    - snort
-    - enrichments
-    - pcap
-  failed_when: result.rc != 0 and ("does not exist" not in result.stderr)
-  changed_when: result.rc == 0
-
+metron_rpm_glob: "{{ playbook_dir }}/../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm"

@@ -15,18 +15,12 @@
 #  limitations under the License.
 #
 ---
-- include: ../../roles/ambari_config/tasks/start_hdp.yml
-
 - name: Stop Monit
   service:
     name: monit
     state: stopped
   register: command_result
   failed_when: "command_result|failed and 'no service or tool found for: monit' not in command_result.msg"
-
-- include: stop_storm.yml
-
-- include: clear_topics.yml
 
 - name: Delete ES Indices
   uri:
@@ -45,5 +39,4 @@
 
 - include: remove_services.yml
 
-- include: ../../roles/ambari_config/tasks/start_hdp.yml
 

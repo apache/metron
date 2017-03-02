@@ -50,9 +50,11 @@ class Enrichment(Script):
         commands = EnrichmentCommands(params)
         metron_service.load_global_config(params)
 
-        if not commands.is_configured():
+        if not commands.is_kafka_configured():
             commands.init_kafka_topics()
+        if not commands.is_hbase_configured():
             commands.create_hbase_tables()
+        if not commands.is_geo_configured():
             commands.init_geo()
 
         commands.start_enrichment_topology()

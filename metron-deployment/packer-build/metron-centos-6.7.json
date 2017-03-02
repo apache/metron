@@ -89,7 +89,8 @@
       "sftp_command": "/usr/libexec/openssh/sftp-server",
       "user" : "vagrant",
       "host_alias" : "node1",
-      "groups" : ["packer","ambari_master","ambari_slave","metron_kafka_topics","metron_hbase_tables","enrichment","search","web","sensors","pcap_server","metron"]
+      "groups" : ["packer","ambari_master","ambari_slave","metron","search","web","sensors","pcap_server","zeppelin"],
+      "extra_arguments": [ "--extra-vars","metron_rpm_glob=../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm metron_build_dir=../..","--skip-tags","build,sensors,quick_dev" ]
     },
     {
       "type": "shell",
@@ -121,7 +122,7 @@
     "ks_path": "centos-6.7/ks.cfg",
     "memory": "8192",
     "metadata": "floppy/dummy_metadata.json",
-    "mirror": "http://mirrors.kernel.org/centos",
+    "mirror": "http://archive.kernel.org/centos-vault",
     "mirror_directory": "6.7/isos/x86_64",
     "name": "metron-centos-6.7",
     "no_proxy": "{{env `no_proxy`}}",

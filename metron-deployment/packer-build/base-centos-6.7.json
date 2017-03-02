@@ -83,17 +83,8 @@
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'"
     },
     {
-      "type" : "ansible",
-      "pause_before" : "2m",
-      "playbook_file" : "./ansible/playbook.yml",
-      "sftp_command": "/usr/libexec/openssh/sftp-server",
-      "user" : "vagrant",
-      "host_alias" : "node1",
-      "groups" : ["packer","ambari_master","ambari_slave"],
-      "extra_arguments": [ "--tags", "ambari", "--skip-tags","packer-cleanup" ]
-    },
-    {
       "type": "shell",
+      "pause_before" : "2m",
       "scripts": [
         "scripts/common/vmtools.sh",
         "scripts/centos/cleanup.sh",
@@ -109,7 +100,7 @@
     }
   ],
   "variables": {
-    "box_basename": "hdp-centos-6.7",
+    "box_basename": "base-centos-6.7",
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "cpus": "1",
     "git_revision": "__unknown_git_revision__",
@@ -124,9 +115,9 @@
     "metadata": "floppy/dummy_metadata.json",
     "mirror": "http://archive.kernel.org/centos-vault",
     "mirror_directory": "6.7/isos/x86_64",
-    "name": "hdp-centos-6.7",
+    "name": "base-centos-6.7",
     "no_proxy": "{{env `no_proxy`}}",
-    "template": "hdp-centos-6.7",
+    "template": "base-centos-6.7",
     "version": "2.1.TIMESTAMP"
   }
 }

@@ -66,6 +66,10 @@ class Options
             options.debug = opt
           end
 
+          opts.on("-a", "--ask", "Run packer with on-error=ask") do |opt|
+            options.ask = opt
+          end
+
           opts.on("-o BUILDS", "--only BUILDS", "Only build some Packer builds") do |opt|
             options.builds = opt
           end
@@ -186,12 +190,13 @@ class BuildRunner
   include Common
   include PackerExec
 
-  attr_reader :templates, :dry_run, :debug, :builds, :except, :mirror, :override_version, :build_timestamp
+  attr_reader :templates, :dry_run, :debug, :ask, :builds, :except, :mirror, :override_version, :build_timestamp
 
   def initialize(opts)
     @templates = opts.templates
     @dry_run = opts.dry_run
     @debug = opts.debug
+    @ask = opts.ask
     @builds = opts.builds
     @except = opts.except
     @mirror = opts.mirror
@@ -234,6 +239,7 @@ class BuildRunner
     cmd.insert(2, "headless=true") if headless
     cmd.insert(2, "-var") if headless
     cmd.insert(2, "-debug") if debug
+    cmd.insert(2, "-on-error=ask") if ask
     cmd.insert(0, "echo") if dry_run
     cmd
   end

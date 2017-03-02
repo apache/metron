@@ -15,14 +15,4 @@
 #  limitations under the License.
 #
 ---
-- name: "List Storm Topologies"
-  shell: storm list | grep ACTIVE | awk '{print $1}'
-  register: topologies
-
-- name: "Kill Storm Topologies"
-  shell: "storm kill {{ item }}"
-  register: result
-  with_items:
-    - "{{ topologies.stdout_lines }}"
-  failed_when: result.rc != 0 and ("NotAliveException" not in result.stdout)
-  changed_when: result.rc == 0
+metron_build_dir: "{{ playbook_dir }}/../.."

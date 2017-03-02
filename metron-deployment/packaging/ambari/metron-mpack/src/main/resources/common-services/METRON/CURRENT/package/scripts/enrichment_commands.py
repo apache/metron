@@ -56,12 +56,18 @@ class EnrichmentCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
+    def is_hbase_configured(self):
+        return self.__hbase_configured
+
     def set_hbase_configured(self):
         Logger.info("Setting HBase Configured to True")
         File(self.__params.enrichment_hbase_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
+
+    def is_geo_configured(self):
+        return self.__geo_configured
 
     def set_geo_configured(self):
         Logger.info("Setting GEO Configured to True")
