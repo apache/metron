@@ -24,7 +24,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,12 +60,7 @@ public class DockerStormCLIWrapperTest {
     when(processBuilder.command()).thenReturn(new ArrayList<>());
 
     Process process = mock(Process.class);
-    InputStream inputStream = new InputStream() {
-      @Override
-      public int read() throws IOException {
-        return -1;
-      }
-    };
+    InputStream inputStream = new ByteArrayInputStream("export DOCKER_HOST=\"tcp://192.168.99.100:2376\"".getBytes());
 
     when(processBuilder.start()).thenReturn(process);
     when(process.getInputStream()).thenReturn(inputStream);
@@ -75,7 +70,10 @@ public class DockerStormCLIWrapperTest {
 
     ProcessBuilder actualBuilder = dockerStormCLIWrapper.getProcessBuilder("oo", "ooo");
 
-    assertEquals(new HashMap<String, String>() {{ put("METRON_VERSION", "1"); }}, actualBuilder.environment());
+    assertEquals(new HashMap<String, String>() {{
+      put("METRON_VERSION", "1");
+      put("DOCKER_HOST", "tcp://192.168.99.100:2376");
+    }}, actualBuilder.environment());
     assertEquals(new ArrayList<>(), actualBuilder.command());
 
     verify(process).waitFor();

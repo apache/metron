@@ -13,30 +13,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-metron:
-  version: 0.3.1
-
-logging:
-  level:
-    root: ERROR
-
 spring:
-  jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
+  datasource:
+      driverClassName: org.h2.Driver
+      url: jdbc:h2:file:./metrondb
+      username: root
+      password: root
+      platform: h2
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+zookeeper:
+  url:  node1:2181
+
+kafka:
+  broker:
+    url: node1:6667
+
+hdfs:
+  namenode:
+    url: hdfs://node1:8020
 
 grok:
   path:
-    temp: ./
+    temp: ./patterns/temp
     default: /apps/metron/patterns
 
-zookeeper:
-  client:
-    timeout:
-      session: 10000
-      connection: 10000
-
-curator:
-  sleep:
-    time: 1000
-  max:
-    retries: 3
+storm:
+  ui:
+    url:   node1:8744
+  parser:
+    script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
+  enrichment:
+    script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
+  indexing:
+    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh

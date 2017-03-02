@@ -213,7 +213,9 @@ public class KafkaServiceImplTest {
     when(kafkaConsumer.listTopics()).thenReturn(topics);
     when(kafkaConsumer.partitionsFor("t")).thenReturn(Lists.newArrayList(partitionInfo));
 
-    assertEquals(expected, kafkaService.getTopic("t"));
+    KafkaTopic actual = kafkaService.getTopic("t");
+    assertEquals(expected, actual);
+    assertEquals(expected.hashCode(), actual.hashCode());
   }
 
   @Test

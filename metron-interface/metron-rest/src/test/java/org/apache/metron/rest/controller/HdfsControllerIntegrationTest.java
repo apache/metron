@@ -17,8 +17,8 @@
  */
 package org.apache.metron.rest.controller;
 
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.rest.service.GlobalConfigService;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.rest.service.HdfsService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,30 +44,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
-public class GlobalConfigControllerIntegrationTest {
-
-    /**
-     {
-     "solr.zookeeper": "solr:2181",
-     "solr.collection": "metron",
-     "solr.numShards": 1,
-     "solr.replicationFactor": 1
-     }
-     */
-    @Multiline
-    public static String globalJson;
+public class HdfsControllerIntegrationTest {
 
     @Autowired
-    private GlobalConfigService globalConfigService;
+    private HdfsService hdfsService;
 
     @Autowired
     private WebApplicationContext wac;
 
     private MockMvc mockMvc;
 
-    private String globalConfigUrl = "/api/v1/global/config";
+    private String hdfsUrl = "/api/v1/hdfs";
     private String user = "user";
     private String password = "password";
+    private String path = "./target/hdfsTest.txt";
+    private String fileContents = "file contents";
 
     @Before
     public void setup() throws Exception {
@@ -76,40 +67,35 @@ public class GlobalConfigControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post(globalConfigUrl).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
+        this.mockMvc.perform(post(hdfsUrl).with(csrf()).contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")).content(fileContents))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get(globalConfigUrl))
+        this.mockMvc.perform(get(hdfsUrl))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(delete(globalConfigUrl).with(csrf()))
+        this.mockMvc.perform(delete(hdfsUrl).with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void test() throws Exception {
-        this.globalConfigService.delete();
+        this.hdfsService.delete(new Path(path), false);
 
-        this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
+        this.mockMvc.perform(get(hdfsUrl + "?path=" + path).with(httpBasic(user,password)))
                 .andExpect(status().isNotFound());
 
-        this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+        this.mockMvc.perform(post(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")).content(fileContents))
+                .andExpect(status().isOk());
 
-        this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
+        this.mockMvc.perform(get(hdfsUrl + "?path=" + path).with(httpBasic(user,password)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+                .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
+                .andExpect(content().bytes(fileContents.getBytes()));
 
-        this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
+        this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isOk());
 
-        this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
-                .andExpect(status().isOk());
-
-        this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
+        this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isNotFound());
-
-        this.globalConfigService.delete();
     }
 }

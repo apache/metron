@@ -38,11 +38,15 @@ import java.util.Map;
 @Service
 public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigService {
 
-  @Autowired
   private ObjectMapper objectMapper;
 
-  @Autowired
   private CuratorFramework client;
+
+  @Autowired
+  public SensorIndexingConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client) {
+    this.objectMapper = objectMapper;
+    this.client = client;
+  }
 
   @Override
   public Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException {

@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
-public class TransformationControllerIntegrationTest {
+public class StellarControllerIntegrationTest {
 
     private String valid = "TO_LOWER(test)";
     private String invalid = "BAD_FUNCTION(test)";
@@ -58,7 +58,7 @@ public class TransformationControllerIntegrationTest {
      }
      */
     @Multiline
-    public static String sensorParseConfigJson;
+    public static String sensorParseContext;
 
 
     @Autowired
@@ -66,7 +66,7 @@ public class TransformationControllerIntegrationTest {
 
     private MockMvc mockMvc;
 
-    private String transformationUrl = "/api/v1/transformation";
+    private String stellarUrl = "/api/v1/stellar";
     private String user = "user";
     private String password = "password";
 
@@ -77,44 +77,44 @@ public class TransformationControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post(transformationUrl + "/validate/rules").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
+        this.mockMvc.perform(post(stellarUrl + "/validate/rules").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(post(transformationUrl + "/validate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseConfigJson))
+        this.mockMvc.perform(post(stellarUrl + "/apply/transformations").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseContext))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get(transformationUrl + "/list"))
+        this.mockMvc.perform(get(stellarUrl + "/list"))
                 .andExpect(status().isUnauthorized());
 
-        this.mockMvc.perform(get(transformationUrl + "/list/functions"))
+        this.mockMvc.perform(get(stellarUrl + "/list/functions"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void test() throws Exception {
-        this.mockMvc.perform(post(transformationUrl + "/validate/rules").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
+        this.mockMvc.perform(post(stellarUrl + "/validate/rules").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(rulesJson))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.['" + valid + "']").value(Boolean.TRUE))
                 .andExpect(jsonPath("$.['" + invalid + "']").value(Boolean.FALSE));
 
-        this.mockMvc.perform(post(transformationUrl + "/validate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseConfigJson))
+        this.mockMvc.perform(post(stellarUrl + "/apply/transformations").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sensorParseContext))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$.url").value("https://caseystella.com/blog"))
                 .andExpect(jsonPath("$.url_host").value("caseystella.com"));
 
-        this.mockMvc.perform(get(transformationUrl + "/list").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(stellarUrl + "/list").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))));
 
-        this.mockMvc.perform(get(transformationUrl + "/list/functions").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(stellarUrl + "/list/functions").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))));
 
-        this.mockMvc.perform(get(transformationUrl + "/list/simple/functions").with(httpBasic(user,password)))
+        this.mockMvc.perform(get(stellarUrl + "/list/simple/functions").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))));
