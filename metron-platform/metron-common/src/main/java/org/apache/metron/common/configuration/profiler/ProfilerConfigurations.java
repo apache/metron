@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by nallen on 7/28/16.
+ * Used to manage configurations for the Profiler.
  */
 public class ProfilerConfigurations extends Configurations {
 

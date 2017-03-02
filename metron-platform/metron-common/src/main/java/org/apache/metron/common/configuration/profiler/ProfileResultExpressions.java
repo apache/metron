@@ -17,39 +17,41 @@
  */
 package org.apache.metron.common.configuration.profiler;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * The definition for entire Profiler, which may contain many Profile definitions.
+ * A Stellar expression that is executed to produce a single
+ * measurement that is persisted within the profile store.
  */
-public class ProfilerConfig implements Serializable {
+public class ProfileResultExpressions {
 
-  /**
-   * One or more profile definitions.
-   */
-  private List<ProfileConfig> profiles = new ArrayList<>();
+  @JsonIgnore
+  private String expression;
 
-  public List<ProfileConfig> getProfiles() {
-    return profiles;
+  @JsonCreator
+  public ProfileResultExpressions(String expression) {
+    this.expression = expression;
   }
 
-  public void setProfiles(List<ProfileConfig> profiles) {
-    this.profiles = profiles;
+  public String getExpression() {
+    return expression;
+  }
+
+  public void setExpression(String expression) {
+    this.expression = expression;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
-    ProfilerConfig that = (ProfilerConfig) o;
-    return profiles != null ? profiles.equals(that.profiles) : that.profiles == null;
+    ProfileResultExpressions that = (ProfileResultExpressions) o;
+    return expression != null ? expression.equals(that.expression) : that.expression == null;
   }
 
   @Override
   public int hashCode() {
-    return profiles != null ? profiles.hashCode() : 0;
+    return expression != null ? expression.hashCode() : 0;
   }
 }

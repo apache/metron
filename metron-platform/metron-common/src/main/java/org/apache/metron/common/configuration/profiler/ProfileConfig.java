@@ -17,12 +17,18 @@
  */
 package org.apache.metron.common.configuration.profiler;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The user defined configuration values required to generate a Profile.
+ * The definition of a single Profile.
  */
 public class ProfileConfig implements Serializable {
 
@@ -46,7 +52,7 @@ public class ProfileConfig implements Serializable {
    * is only applied to a profile if this condition is true. This allows a profile
    * to filter the messages that it receives.
    */
-  private String onlyif;
+  private String onlyif = "true";
 
   /**
    * A set of expressions that is executed at the start of a window period.  A map is
@@ -71,18 +77,34 @@ public class ProfileConfig implements Serializable {
   private List<String> groupBy = new ArrayList<>();
 
   /**
-   * A Stellar expression that is executed when the window period expires.  The
-   * expression is expected to in some way summarize the messages that were applied
-   * to the profile over the window period.  The expression must result in a numeric
-   * value such as a Double, Long, Float, Short, or Integer.
+   * Stellar expression(s) that are executed when the window period expires.  The
+   * expression(s) are expected to in some way summarize the messages that were applied
+   * to the profile over the window period.
    */
-  private String result;
+  private ProfileResult result;
 
   /**
    * How long the data created by this Profile will be retained.  After this period of time the
    * profile data will be purged and no longer accessible.
    */
   private Long expires;
+
+  /**
+   * A profile definition requires at the very least the profile name, the foreach, and result
+   * expressions.
+   * @param profile The name of the profile.
+   * @param foreach The foreach expression of the profile.
+   * @param result The result expression of the profile.
+   */
+  public ProfileConfig(
+          @JsonProperty(value = "profile", required = true) String profile,
+          @JsonProperty(value = "foreach", required = true) String foreach,
+          @JsonProperty(value = "result",  required = true) ProfileResult result) {
+
+    this.profile = profile;
+    this.foreach = foreach;
+    this.result = result;
+  }
 
   public String getProfile() {
     return profile;
@@ -132,11 +154,11 @@ public class ProfileConfig implements Serializable {
     this.groupBy = groupBy;
   }
 
-  public String getResult() {
+  public ProfileResult getResult() {
     return result;
   }
 
-  public void setResult(String result) {
+  public void setResult(ProfileResult result) {
     this.result = result;
   }
 
@@ -146,20 +168,6 @@ public class ProfileConfig implements Serializable {
 
   public void setExpires(Long expiresDays) {
     this.expires = TimeUnit.DAYS.toMillis(expiresDays);
-  }
-
-  @Override
-  public String toString() {
-    return "ProfileConfig{" +
-            "profile='" + profile + '\'' +
-            ", foreach='" + foreach + '\'' +
-            ", onlyif='" + onlyif + '\'' +
-            ", init=" + init +
-            ", update=" + update +
-            ", groupBy=" + groupBy +
-            ", result='" + result + '\'' +
-            ", expires=" + expires +
-            '}';
   }
 
   @Override
@@ -177,7 +185,6 @@ public class ProfileConfig implements Serializable {
     if (groupBy != null ? !groupBy.equals(that.groupBy) : that.groupBy != null) return false;
     if (result != null ? !result.equals(that.result) : that.result != null) return false;
     return expires != null ? expires.equals(that.expires) : that.expires == null;
-
   }
 
   @Override
@@ -191,5 +198,19 @@ public class ProfileConfig implements Serializable {
     result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
     result1 = 31 * result1 + (expires != null ? expires.hashCode() : 0);
     return result1;
+  }
+
+  @Override
+  public String toString() {
+    return "ProfileConfig{" +
+            "profile='" + profile + '\'' +
+            ", foreach='" + foreach + '\'' +
+            ", onlyif='" + onlyif + '\'' +
+            ", init=" + init +
+            ", update=" + update +
+            ", groupBy=" + groupBy +
+            ", result=" + result +
+            ", expires=" + expires +
+            '}';
   }
 }

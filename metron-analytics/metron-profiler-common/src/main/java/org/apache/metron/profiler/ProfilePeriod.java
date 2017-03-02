@@ -69,6 +69,13 @@ public class ProfilePeriod {
   }
 
   /**
+   * When this period ended in milliseconds since the epoch.
+   */
+  public long getEndTimeMillis() {
+    return getStartTimeMillis() + getDurationMillis();
+  }
+
+  /**
    * Returns the next ProfilePeriod in time.
    */
   public ProfilePeriod next() {

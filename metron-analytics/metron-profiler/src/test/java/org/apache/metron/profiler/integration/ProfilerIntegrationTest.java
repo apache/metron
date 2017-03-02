@@ -21,7 +21,6 @@
 package org.apache.metron.profiler.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
@@ -39,6 +38,8 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.statistics.OnlineStatisticsProvider;
+import org.apache.metron.statistics.StatisticsProvider;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.Assert;
@@ -111,6 +112,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
   private static final double epsilon = 0.001;
+  private static final String inputTopic = Constants.INDEXING_TOPIC;
+  private static final String outputTopic = "profiles";
 
   /**
    * A TableProvider that allows us to mock HBase.
@@ -135,7 +138,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+    kafkaComponent.writeMessages(inputTopic, input);
 
     // verify - ensure the profile is being persisted
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
@@ -160,7 +163,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+    kafkaComponent.writeMessages(inputTopic, input);
 
     // expect 2 values written by the profile; one for 10.0.0.2 and another for 10.0.0.3
     final int expected = 2;
@@ -193,7 +196,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+    kafkaComponent.writeMessages(inputTopic, input);
 
     // verify - ensure the profile is being persisted
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
@@ -208,29 +211,29 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     ));
   }
 
+  /**
+   * Tests the fourth example contained within the README.
+   */
   @Test
-  public void testWriteInteger() throws Exception {
+  public void testExample4() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/write-integer");
+    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-4");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
-
-    // expect 3 values written by the profile; one for each host
-    final int expected = 3;
+    kafkaComponent.writeMessages(inputTopic, input);
 
     // verify - ensure the profile is being persisted
-    waitOrTimeout(() -> profilerTable.getPutLog().size() >= expected,
+    waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
             timeout(seconds(90)));
 
-    // verify - the profile sees messages from 3 hosts; 10.0.0.[1-3]
-    List<Integer> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Integer.class);
-    Assert.assertEquals(3, actuals.size());
+    // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
+    byte[] column = columnBuilder.getColumnQualifier("value");
+    List<OnlineStatisticsProvider> actuals = read(profilerTable.getPutLog(), columnFamily, column, OnlineStatisticsProvider.class);
 
-    // verify - the profile writes 10 as an integer
+    // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
     Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 10.0, epsilon)
+            MathUtils.equals(val.getMean(), 20.0, epsilon)
     ));
   }
 
@@ -241,7 +244,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
-    kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, input);
+    kafkaComponent.writeMessages(inputTopic, input);
 
     // verify - ensure the profile is being persisted
     waitOrTimeout(() -> profilerTable.getPutLog().size() > 0,
@@ -290,7 +293,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
-      setProperty("profiler.input.topic", Constants.INDEXING_TOPIC);
+      setProperty("profiler.input.topic", inputTopic);
+      setProperty("profiler.output.topic", outputTopic);
       setProperty("profiler.period.duration", "20");
       setProperty("profiler.period.duration.units", "SECONDS");
       setProperty("profiler.ttl", "30");
@@ -310,8 +314,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     zkComponent = getZKServerComponent(topologyProperties);
 
     // create the input topic
-    kafkaComponent = getKafkaComponent(topologyProperties,
-            Arrays.asList(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1)));
+    kafkaComponent = getKafkaComponent(topologyProperties, Arrays.asList(
+            new KafkaComponent.Topic(inputTopic, 1),
+            new KafkaComponent.Topic(outputTopic, 1)));
 
     // upload profiler configuration to zookeeper
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
