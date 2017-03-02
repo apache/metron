@@ -254,8 +254,8 @@ public class Client {
       o.setRequired(false);
       return o;
     })
-    ,LOG4J_PROPERTIES("l4j", code -> {
-      Option o = new Option(code, "log_properties", true,"log4j.properties file");
+    ,LOG4J_PROPERTIES("l", code -> {
+      Option o = new Option(code, "log4j", true, "The log4j properties file to load");
       o.setRequired(false);
       return o;
     })

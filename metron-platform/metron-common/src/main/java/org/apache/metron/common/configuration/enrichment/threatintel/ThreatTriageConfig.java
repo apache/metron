@@ -19,14 +19,19 @@
 package org.apache.metron.common.configuration.enrichment.threatintel;
 
 import com.google.common.base.Joiner;
-import org.apache.metron.common.aggregator.Aggregator;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.metron.common.stellar.StellarProcessor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ThreatTriageConfig {
+
   private List<RiskLevelRule> riskLevelRules = new ArrayList<>();
   private Aggregators aggregator = Aggregators.MAX;
   private Map<String, Object> aggregationConfig = new HashMap<>();
@@ -38,7 +43,9 @@ public class ThreatTriageConfig {
   public void setRiskLevelRules(List<RiskLevelRule> riskLevelRules) {
     List<RiskLevelRule> rules = new ArrayList<>();
     Set<String> ruleIndex = new HashSet<>();
-    StellarPredicateProcessor processor = new StellarPredicateProcessor();
+    StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
+    StellarProcessor processor = new StellarProcessor();
+
     for(RiskLevelRule rule : riskLevelRules) {
       if(rule.getRule() == null || rule.getScore() == null) {
         throw new IllegalStateException("Risk level rules must contain both a rule and a score.");
@@ -49,7 +56,13 @@ public class ThreatTriageConfig {
       else {
         ruleIndex.add(rule.getRule());
       }
-      processor.validate(rule.getRule());
+
+      // validate the fields which are expected to be valid Stellar expressions
+      predicateProcessor.validate(rule.getRule());
+      if(rule.getReason() != null) {
+        processor.validate(rule.getReason());
+      }
+
       rules.add(rule);
     }
     this.riskLevelRules = rules;
@@ -58,8 +71,6 @@ public class ThreatTriageConfig {
   public Aggregators getAggregator() {
     return aggregator;
   }
-
-
 
   public void setAggregator(String aggregator) {
     try {

@@ -57,10 +57,12 @@ services:
       - elasticsearch
     command: --daemon nimbus supervisor ui logviewer
   elasticsearch:
-    image: elasticsearch:2.3
+    build:
+      context: ./elasticsearch
     ports:
       - "9200:9200"
       - "9300:9300"
+    command: tail -f /dev/null
   kibana:
     build: ./kibana
     ports:

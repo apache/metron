@@ -99,7 +99,7 @@ public class ThreatTriageFunctionsTest {
   public void testAddHasExisting() {
 
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 } )"
+            "THREAT_TRIAGE_ADD(config, { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10, 'reason' : '2 + 2' } )"
             , toMap("config", configStr
             )
     );
@@ -217,13 +217,13 @@ public class ThreatTriageFunctionsTest {
   }
 
   /**
-╔══════╤═════════╤═════════════╤═══════╗
-║ Name │ Comment │ Triage Rule │ Score ║
-╠══════╪═════════╪═════════════╪═══════╣
-║      │         │ 1 < 2       │ 10    ║
-╟──────┼─────────┼─────────────┼───────╢
-║      │         │ 1 > 2       │ 20    ║
-╚══════╧═════════╧═════════════╧═══════╝
+╔══════╤═════════╤═════════════╤═══════╤════════╗
+║ Name │ Comment │ Triage Rule │ Score │ Reason ║
+╠══════╪═════════╪═════════════╪═══════╪════════╣
+║      │         │ 1 < 2       │ 10    │ 2 + 2  ║
+╟──────┼─────────┼─────────────┼───────┼────────╢
+║      │         │ 1 > 2       │ 20    │        ║
+╚══════╧═════════╧═════════════╧═══════╧════════╝
 
 
 Aggregation: MAX*/
@@ -234,7 +234,7 @@ Aggregation: MAX*/
   public void testPrint() {
 
     String newConfig = (String) run(
-            "THREAT_TRIAGE_ADD(config, [ { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10 }, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } ] )"
+            "THREAT_TRIAGE_ADD(config, [ { 'rule' : SHELL_GET_EXPRESSION('less'), 'score' : 10, 'reason' : '2 + 2' }, { 'rule' : SHELL_GET_EXPRESSION('greater'), 'score' : 20 } ] )"
             , toMap("config", configStr
             )
     );
@@ -248,11 +248,11 @@ Aggregation: MAX*/
   }
 
   /**
-╔══════╤═════════╤═════════════╤═══════╗
-║ Name │ Comment │ Triage Rule │ Score ║
-╠══════╧═════════╧═════════════╧═══════╣
-║ (empty)                              ║
-╚══════════════════════════════════════╝
+╔══════╤═════════╤═════════════╤═══════╤════════╗
+║ Name │ Comment │ Triage Rule │ Score │ Reason ║
+╠══════╧═════════╧═════════════╧═══════╧════════╣
+║ (empty)                                       ║
+╚═══════════════════════════════════════════════╝
    */
   @Multiline
   static String testPrintEmptyExpected;

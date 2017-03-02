@@ -65,7 +65,7 @@ def report_error(s) :
     print >>sys.stderr, "ERROR: " + s 
     print >>sys.stderr, "on line: " + str(FNR) + " in file: " + FILENAME  
     print >>sys.stderr, inputline
-    exit -1
+    exit(1)
 
 
 def trace(msg) :

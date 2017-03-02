@@ -111,12 +111,12 @@ public class ProfilePeriod {
   }
 
   public static <T> List<T> visitPeriods(long startEpochMillis
-                                           , long endEpochMillis
-                                           , long duration
-                                           , TimeUnit units
-                                           , Optional<Predicate<ProfilePeriod>> inclusionPredicate
-                                           , Function<ProfilePeriod,T> transformation
-                                           )
+                                        , long endEpochMillis
+                                        , long duration
+                                        , TimeUnit units
+                                        , Optional<Predicate<ProfilePeriod>> inclusionPredicate
+                                        , Function<ProfilePeriod,T> transformation
+                                        )
   {
     ProfilePeriod period = new ProfilePeriod(startEpochMillis, duration, units);
     List<T> ret = new ArrayList<>();

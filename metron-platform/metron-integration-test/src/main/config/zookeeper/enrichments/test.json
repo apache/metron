@@ -61,8 +61,11 @@
     "triageConfig" : {
       "riskLevelRules" : [
         {
+          "name" : "The name of the triage rule",
+          "comment" : "A description of the triage rule",
           "rule" : "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'",
-          "score": 10
+          "score": 10,
+          "reason": "'Reason field'"
         }
       ],
       "aggregator" : "MAX"

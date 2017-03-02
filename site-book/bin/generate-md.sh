@@ -32,6 +32,10 @@
 # into a book-like collection.  It should perhaps be viewed as a collection of essays,
 # since each README.md file is written independently.
 
+
+## fail fast in the event of a failure of any command in this script
+set -e
+
 ## This script assumes it is running at $METRON_SOURCE/site-book/bin/
 METRON_SOURCE=`cd $(dirname $0); cd ../..; pwd`
 
@@ -49,7 +53,7 @@ EXCLUSION_LIST=(
 
 ## This is a list of resources (eg .png files) needed to render the markdown files.
 ## Each entry is a file path, relative to $METRON_SOURCE.
-## Note: any images in site-book/src/site/resources/image-archive/ will also be included.
+## Note: any images in site-book/src/site/src-resources/images/ will also be included.
 RESOURCE_LIST=(
     metron-platform/metron-parsers/parser_arch.png
     metron-platform/metron-indexing/indexing_arch.png
@@ -67,6 +71,8 @@ HREF_REWRITE_LIST=(
     metron-analytics/metron-maas-service/README.md 's#(maas_arch.png)#(../../images/maas_arch.png)#g'
 )
 
+TEMPLATES_DIR="$METRON_SOURCE/site-book/src/site/src-resources/templates"
+
 
 ######################
 ######################
@@ -77,18 +83,21 @@ HREF_REWRITE_LIST=(
 TRACE_ENABLE=0
 function trace () {
     if (( $TRACE_ENABLE == 1 )) ; then
-	echo "$*"
+        echo "$*"
     fi  # else do nothing
 }
 TREE_TRACE_ENABLE=0
 function tree_trace () {
     if (( $TREE_TRACE_ENABLE == 1 )) ; then
-	echo "$*"
+        echo "$*"
     fi  # else do nothing
 }
 
+# file used for storing error messages during re-write routine
+SCRATCH_ERR_FILE_NAME="$METRON_SOURCE/site-book/src/site/errout.dat"
+
 # input: cumulative directory_path, indent_level
-# output: items to site.tmp, as lines of text
+# output: items to site.xml, as lines of text
 # This function is called recursively as we descend the directory tree
 # The cum_dir_path must not have a terminal "/".
 function descend () {
@@ -100,38 +109,39 @@ function descend () {
     indent=$2
 
     if [ -e "${cum_dir_path}"/index.md ] ; then
-	dir_name=`basename "$cum_dir_path"`
-	dir_name="${dir_name#metron-}"  #remove the "metron-" prefix if present
-	dir_name=`get_prettyname "$dir_name"`  #capitalize the remainder
-	# Is it a leaf node?
-	num_peers=`ls -d "${cum_dir_path}"/* |wc -l`
-	if (( $num_peers == 1 )) ; then #yes, it's a leaf node, do a closed item
-	    echo "${INDENTS[$indent]}<item name='${dir_name}' href='${cum_dir_path}/index.html'/>" >> ../site.tmp
-	    tree_trace "exit descend due to leaf node"
-	    return  #nothing else to process in this directory path
-	fi  #otherwise carry on with open item and child items at deeper indent
-	echo "${INDENTS[$indent]}<item name='${dir_name}' href='${cum_dir_path}/index.html' collapse='true'>" >> ../site.tmp
-	open_item_exists=1
-	indent=$(( indent + 1 ))
+        dir_name=`basename "$cum_dir_path"`
+        dir_name="${dir_name#metron-}"  #remove the "metron-" prefix if present
+        dir_name=`get_prettyname "$dir_name"`  #capitalize the remainder
+        # Is it a leaf node?
+        num_peers=`ls -d "${cum_dir_path}"/* |wc -l`
+        if (( $num_peers == 1 )) ; then #yes, it's a leaf node, do a closed item
+            echo "${INDENTS[$indent]}<item name='${dir_name}' href='${cum_dir_path}/index.html'/>" >> ../site.xml
+            tree_trace "exit descend due to leaf node"
+            return  #nothing else to process in this directory path
+        fi  #otherwise carry on with open item and child items at deeper indent
+        echo "${INDENTS[$indent]}<item name='${dir_name}' href='${cum_dir_path}/index.html' collapse='true'>" >> ../site.xml
+        open_item_exists=1
+        indent=$(( indent + 1 ))
     else
-	open_item_exists=0
+        open_item_exists=0
     fi
     for md in "${cum_dir_path}"/*.md ; do
-	if [ ! -e "$md" ] ; then continue ; fi  #globbing sometimes gives spurious results
-	item_name=`basename -s ".md" "$md"`  #strip the suffix
-	if [ "$item_name" != "index" ] ; then
-	    echo "${INDENTS[$indent]}<item name='${item_name}' href='${cum_dir_path}/${item_name}.html'/>" >> ../site.tmp
-	fi
+        if [ ! -e "$md" ] ; then continue ; fi  #globbing sometimes gives spurious results
+        item_name=`basename "$md"`
+	item_name="${item_name%.md}"  #strip the extension
+        if [ "$item_name" != "index" ] ; then
+            echo "${INDENTS[$indent]}<item name='${item_name}' href='${cum_dir_path}/${item_name}.html'/>" >> ../site.xml
+        fi
     done
     for dir in "${cum_dir_path}"/* ; do
-	if [ ! -e "$dir" ] ; then continue ; fi  #globbing sometimes gives spurious results
-	if [ -d "$dir" ] ; then
-	    descend "$dir" $indent
-	fi
+        if [ ! -e "$dir" ] ; then continue ; fi  #globbing sometimes gives spurious results
+        if [ -d "$dir" ] ; then
+            descend "$dir" $indent
+        fi
     done
     if (( open_item_exists == 1 )) ; then
-	indent=$(( indent - 1 ))  #close the item
-	echo "${INDENTS[$indent]}</item>" >> ../site.tmp
+        indent=$(( indent - 1 ))  #close the item
+        echo "${INDENTS[$indent]}</item>" >> ../site.xml
     fi
     tree_trace "exit descend with indent = $indent"
 }
@@ -144,17 +154,37 @@ function get_prettyname () {
     echo "$(tr '[:lower:]' '[:upper:]' <<< ${1:0:1})${1:1}"
 }
 
+# This function, with the following traps, cleans up before exiting, if interrupted during the re-write routine
+function sig_handle () {
+    exitCode=${1:-0}
+    rm -f "$SCRATCH_ERR_FILE_NAME"
+    echo "ERROR: EARLY TERMINATION with error code $exitCode" ${2:+"due to $2"}
+    exit $exitCode
+}
+trap 'sig_handle 129 SIGHUP'  SIGHUP
+trap 'sig_handle 130 SIGINT'  SIGINT
+trap 'sig_handle 143 SIGTERM' SIGTERM
+trap 'sig_handle $? ERR'      ERR
+
 
 ######################
 ## Proceed
 
 cd "$METRON_SOURCE"
 
-# Clean up generated directories
-if [ -d "$METRON_SOURCE"/site-book/src/site/markdown ] ; then
+# Validate that the src/site directory is writable for generated content
+if [ ! -w "site-book/src/site" ]; then
+    echo "ERROR: 'site-book/src/site' is not writable" > /dev/stderr
+    exit 126
+fi
+
+# Clean up generated directories and files in src/site/
+if [ -e "$METRON_SOURCE"/site-book/src/site/markdown ] ; then
     rm -rf "$METRON_SOURCE"/site-book/src/site/markdown ; fi
-if [ -d "$METRON_SOURCE"/site-book/src/site/resources/images ] ; then
+if [ -e "$METRON_SOURCE"/site-book/src/site/resources/images ] ; then
     rm -rf "$METRON_SOURCE"/site-book/src/site/resources/images ; fi
+if [ -e "$METRON_SOURCE"/site-book/src/site/site.xml ] ; then
+    rm -f "$METRON_SOURCE"/site-book/src/site/site.xml; fi
 mkdir -p "$METRON_SOURCE"/site-book/src/site/markdown \
     "$METRON_SOURCE"/site-book/src/site/resources/images
 
@@ -178,7 +208,7 @@ tar cvf - "${MD_FILE_LIST[@]}" | ( cd "$METRON_SOURCE"/site-book/src/site/markdo
 # Grab the other resources needed
 echo " "
 echo Collecting additional resource files:
-for r in "${RESOURCE_LIST[@]}" site-book/src/site/resources/image-archive/* ; do
+for r in "${RESOURCE_LIST[@]}" site-book/src/site/src-resources/images/* ; do
     if [ ! -e "$r" ] ; then continue ; fi  #globbing sometimes gives spurious results
     echo ./"$r"
     cp "$r" "$METRON_SOURCE"/site-book/src/site/resources/images/
@@ -191,18 +221,18 @@ cd site-book/src/site/markdown
 for (( i=0; i<${#HREF_REWRITE_LIST[@]} ; i+=2 )) ; do
     echo rewriting href in "${HREF_REWRITE_LIST[$i]}" : "${HREF_REWRITE_LIST[ $(( i + 1 )) ]}"
     case "${OSTYPE}" in
-	linux*)
-	    # Linux sed correctly parses lack of argument after -i option
+        linux*)
+            # Linux sed correctly parses lack of argument after -i option
             sed -i -e "${HREF_REWRITE_LIST[ $(( i + 1 )) ]}" "${HREF_REWRITE_LIST[$i]}"
-	    ;;
-	darwin*)
+            ;;
+        darwin*)
             # MacOS sed needs an empty-string argument after -i option to get the same result
             sed -i '' -e "${HREF_REWRITE_LIST[ $(( i + 1 )) ]}" "${HREF_REWRITE_LIST[$i]}"
-	    ;;
-	*)
-	    echo "ERROR: Unable to determine 'sed' argument list for OS ${OSTYPE}" > /dev/stderr
-	    exit -1
-	    ;;
+            ;;
+        *)
+            echo "ERROR: Unable to determine 'sed' argument list for OS ${OSTYPE}" > /dev/stderr
+            exit 126
+            ;;
     esac
 done
 echo " "
@@ -213,15 +243,15 @@ echo " "
 echo Renaming \"README\" files to \"index\" files.
 if (( `ls -R |grep -c 'index.md'` > 0 )) ; then
     echo "ERROR: index.md file exists in tree already, we currently don't handle that"
-    exit -1
+    exit 1
 fi
 find . -name README.md -execdir mv README.md index.md \;
 echo " "
 
-# Insert the tree of generated html files in the LHS menu of the site.xml
+# Insert the tree of generated html files in the LHS nav menu of the site.xml
 # The problem is that we want a depth-first listing, with files before subdirectories, and "index" always first.
-# So the following logic is a little complex, but we avoid having to hardwire the tree structure -- which we
-# may go back to in the long run.
+# And we synthesize the page labels in the nav tree from the directory paths.
+# So the following logic is a little complex, but we avoid having to hardwire the tree structure.
 
 BEGIN_TAG="BEGIN_MENU_TREE"
 END_TAG="END_MENU_TREE"
@@ -231,12 +261,12 @@ echo "Generating menu tree from directory tree structure"
 echo " "
 
 # Copy the first part of the file, up to where the menu tree goes.
-sed -n -e "1,/${BEGIN_TAG}/ p" ../site.xml > ../site.tmp
+sed -n -e "1,/${BEGIN_TAG}/ p" "$TEMPLATES_DIR"/site.xml.template > ../site.xml
 
 # Now start inserting menu tree items
 # top level of markdown tree is special
 if [ -e index.md ] ; then
-    echo "<item name='Metron' href='index.html' title='Apache Metron - Incubating' collapse='false'>" >> ../site.tmp
+    echo "<item name='Metron' href='index.html' title='Apache Metron - Incubating' collapse='false'>" >> ../site.xml
     item0_exists=1
 else
     item0_exists=0
@@ -245,33 +275,40 @@ indent_level=1
 for md in *.md ; do
     if [ ! -e "$md" ] ; then continue ; fi  #globbing sometimes gives spurious results
     if [ "$md" != "index.md" ] ; then
-	item_name="${md%.*}"  #strip the suffix
-	echo "${INDENTS[$indent_level]}<item name='${item_name}' href='${item_name}.html' />" >> ../site.tmp
+        item_name="${md%.md}"  #strip the extension
+        echo "${INDENTS[$indent_level]}<item name='${item_name}' href='${item_name}.html' />" >> ../site.xml
     fi
 done
 for dir in * ; do
     if [ ! -e "$dir" ] ; then continue ; fi  #globbing sometimes gives spurious results
     if [ -d "$dir" ] ; then
-	descend "$dir" $indent_level
+        descend "$dir" $indent_level
     fi
 done
 if (( item0_exists == 1 )) ; then
-    echo "</item>" >> ../site.tmp
+    echo "</item>" >> ../site.xml
 fi
 
 # Copy the last part of the file, from the end of the menu tree.
-sed -n -e "/${END_TAG}/,"'$ p' ../site.xml >> ../site.tmp
-
-mv ../site.xml ../site.xml.bak
-mv ../site.tmp ../site.xml
+sed -n -e "/${END_TAG}/,"'$ p' "$TEMPLATES_DIR"/site.xml.template >> ../site.xml
 
 echo "Done."
 echo " "
 
 echo "Fixing up markdown dialect problems between Github-MD and doxia-markdown:"
-find . -name '*.md' -print -exec python "$METRON_SOURCE"/site-book/bin/fix-md-dialect.py '{}' \;
-echo "Done."
-echo " "
+# Detecting errors from a `find -exec` command is difficult.  We do it using an intermediary file.
+rm -f "$SCRATCH_ERR_FILE_NAME"
+find . -name '*.md' -print -exec python "$METRON_SOURCE"/site-book/bin/fix-md-dialect.py '{}' \; 2> "$SCRATCH_ERR_FILE_NAME"
+errlines=`wc -l "$SCRATCH_ERR_FILE_NAME"`
+if (( ${errlines% *} > 0 )) ; then
+    echo "ERROR OR ERRORS DETECTED:"
+    cat "$SCRATCH_ERR_FILE_NAME"
+    rm -f "$SCRATCH_ERR_FILE_NAME"
+    exit 1
+else
+    rm -f "$SCRATCH_ERR_FILE_NAME"
+    echo "Done."
+    echo " "
+    exit 0
+fi
 
-
-exit 0
