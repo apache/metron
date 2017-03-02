@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The user defined configuration values required for the Profiler.
+ * The definition for entire Profiler, which may contain many Profile definitions.
  */
 public class ProfilerConfig implements Serializable {
 

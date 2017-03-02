@@ -80,16 +80,16 @@ The Profiler specification requires a JSON-formatted set of elements, many of wh
 The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`. 
 The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
 
-| Name                  | Required | Description                                                                             |
-| --------------------- | -------- | --------------------------------------------------------------------------------------- |
-| [profile](#profile)   | Required | Unique name identifying the profile.                                                    |
-| [foreach](#foreach)   | Required | A separate profile is maintained "for each" of these.                                   |
-| [onlyif](#onlyif)     | Optional | Boolean expression that determines if a message should be applied to the profile.       |
-| [groupBy](#groupby)   | Optional | One or more Stellar expressions used to group the profile measurements when persisted.  |
-| [init](#init)         | Optional | One or more expressions executed at the start of a window period.                       |
-| [update](#update)     | Required | One or more expressions executed when a message is applied to the profile.              |
-| [result](#result)     | Required | A Stellar expression that is executed when the window period expires.                   |
-| [expires](#expires)   | Optional | Profile data is purged after this period of time, specified in milliseconds.            |
+| Name 	                        |               | Description 	
+|---	                        |---	        |---
+| [profile](#profile)           | Required   	| Unique name identifying the profile. 
+| [foreach](#foreach)           | Required  	| A separate profile is maintained "for each" of these. 
+| [onlyif](#onlyif)  	        | Optional  	| Boolean expression that determines if a message should be applied to the profile.
+| [groupBy](#groupby)           | Optional      | One or more Stellar expressions used to group the profile measurements when persisted.
+| [init](#init)  	            | Optional  	| One or more expressions executed at the start of a window period.
+| [update](#update)  	        | Required  	| One or more expressions executed when a message is applied to the profile.
+| [result](#result)   	        | Required  	| Stellar expressions that are executed when the window period expires.
+| [expires](#expires)           | Optional      | Profile data is purged after this period of time, specified in milliseconds.
 
 ### `profile` 
 
@@ -153,7 +153,44 @@ One or more expressions executed when a message is applied to the profile.  A ma
 
 *Required*
 
-A Stellar expression that is executed when the window period expires.  The expression is expected to summarize the messages that were applied to the profile over the window period, using the state accumulated by the updates.  The result will typically be a single numeric value, but it may be any serializable object, as shown in Example 4 below.  	   
+Stellar expressions that are executed when the window period expires.  The expressions are expected to summarize the messages that were applied to the profile over the window period.  In the most basic form a single result is persisted for later retrieval.
+```
+"result": "var1 + var2"
+```
+
+For more advanced use cases, a profile can generate two types of results.  A profile can define one or both of these result types at the same time. 
+* `profile`:  A required expression that defines a value that is persisted for later retrieval.
+* `triage`: An optional expression that defines values that are accessible within the Threat Triage process.
+
+**profile**
+
+A required Stellar expression that results in a value that is persisted in the profile store for later retrieval.  The expression can result in any object that is Kryo serializable.  These values can be retrieved for later use with the [Profiler Client](../metron-profiler-client). 
+```
+"result": {
+    "profile": "2 + 2"
+}
+```
+
+An alternative, simplified form is also acceptable.
+```
+"result": "2 + 2"
+
+```
+
+**triage**
+
+An optional map of one or more Stellar expressions. The value of each expression is made available to the Threat Triage process under the given name.  Each expression must result in a either a primitive type, like an integer, long, or short, or a String.  All other types will result in an error.
+
+In the following example, three values, the minimum, the maximum and the mean are appended to a message.  This message is consumed by Metron, like other sources of telemetry, and each of these values are accessible from within the Threat Triage process using the given field names; `min`, `max`, and `mean`.
+```
+"result": {
+    "triage": {
+        "min": "STATS_MIN(stats)",
+        "max": "STATS_MAX(stats)",
+        "mean": "STATS_MEAN(stats)"
+    }
+}
+```
 
 ### `expires`
 
@@ -166,21 +203,22 @@ A numeric value that defines how many days the profile data is retained.  After 
 The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`. 
 The values can be changed on disk and then the Profiler topology must be restarted.
 
-| Setting                               | Description                                                                                                                                                                                                 |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| profiler.workers                      | The number of worker processes to create for the topology.                                                                                                                                                  |
-| profiler.executors                    | The number of executors to spawn per component.                                                                                                                                                             |
-| profiler.input.topic                  | The name of the Kafka topic from which to consume data.                                                                                                                                                     |
-| profiler.period.duration              | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.                                                                                             |
-| profiler.period.duration.units        | The units used to specify the `profiler.period.duration`.                                                                                                                                                   |
-| profiler.ttl                          | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with `profiler.ttl.units`.    |
-| profiler.ttl.units                    | The units used to specify the `profiler.ttl`.                                                                                                                                                               |
-| profiler.hbase.salt.divisor           |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
-| profiler.hbase.table                  | The name of the HBase table that profiles are written to.                                                                                                                                                   |
-| profiler.hbase.column.family          | The column family used to store profiles.                                                                                                                                                                   |
-| profiler.hbase.batch                  | The number of puts that are written in a single batch.                                                                                                                                                      |
-| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase.                                                                                                                                                |
 
+| Setting   | Description   |
+|---        |---            |
+| profiler.workers | The number of worker processes to create for the topology.   |
+| profiler.executors | The number of executors to spawn per component.  |
+| profiler.input.topic | The name of the Kafka topic from which to consume data.  |
+| profiler.output.topic | The name of the Kafka topic to which profile data is written.  Only used with profiles that use the [`triage` result field](#result).  |
+| profiler.period.duration | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.  |
+| profiler.period.duration.units | The units used to specify the `profiler.period.duration`. |
+| profiler.ttl | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with `profiler.ttl.units`. |
+| profiler.ttl.units | The units used to specify the `profiler.ttl`. |
+| profiler.hbase.salt.divisor  |  A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.  |
+| profiler.hbase.table | The name of the HBase table that profiles are written to.  |
+| profiler.hbase.column.family | The column family used to store profiles. |
+| profiler.hbase.batch | The number of puts that are written in a single batch.  |
+| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase. |
 
 After altering the configuration, start the Profiler.
 

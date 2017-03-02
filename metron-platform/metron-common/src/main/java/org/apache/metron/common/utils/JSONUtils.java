@@ -22,37 +22,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.*;
 
 public enum JSONUtils {
   INSTANCE;
-  private static ThreadLocal<ObjectMapper> _mapper = new ThreadLocal<ObjectMapper>() {
-    /**
-     * Returns the current thread's "initial value" for this
-     * thread-local variable.  This method will be invoked the first
-     * time a thread accesses the variable with the {@link #get}
-     * method, unless the thread previously invoked the {@link #set}
-     * method, in which case the {@code initialValue} method will not
-     * be invoked for the thread.  Normally, this method is invoked at
-     * most once per thread, but it may be invoked again in case of
-     * subsequent invocations of {@link #remove} followed by {@link #get}.
-     * <p>
-     * <p>This implementation simply returns {@code null}; if the
-     * programmer desires thread-local variables to have an initial
-     * value other than {@code null}, {@code ThreadLocal} must be
-     * subclassed, and this method overridden.  Typically, an
-     * anonymous inner class will be used.
-     *
-     * @return the initial value for this thread-local
-     */
-    @Override
-    protected ObjectMapper initialValue() {
-      ObjectMapper ret = new ObjectMapper();
-      ret.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-      return ret;
-    }
-  };
+
+  private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
+          new JSONParser());
+
+  private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
+          new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
   public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
     return _mapper.get().readValue(is, ref);
@@ -92,5 +75,12 @@ public enum JSONUtils {
 
   public byte[] toJSON(Object config) throws JsonProcessingException {
     return _mapper.get().writeValueAsBytes(config);
+  }
+
+  /**
+   * Transforms a bean (aka POJO) to a JSONObject.
+   */
+  public JSONObject toJSONObject(Object o) throws JsonProcessingException, ParseException {
+    return (JSONObject) _parser.get().parse(toJSON(o, false));
   }
 }

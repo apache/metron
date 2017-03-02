@@ -17,10 +17,12 @@
 name: "profiler"
 
 config:
+
     topology.workers: ${profiler.workers}
     topology.acker.executors: ${profiler.executors}
 
 components:
+
     -   id: "rowKeyBuilder"
         className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
         properties:
@@ -61,8 +63,21 @@ components:
             - "indexing"
         configMethods:
             -   name: "from"
-                args:
-                    - "${kafka.start}"
+                args: ["${kafka.start}"]
+
+    -   id: "kafkaWriter"
+        className: "org.apache.metron.writer.kafka.KafkaWriter"
+        configMethods:
+            -   name: "withTopic"
+                args: ["${profiler.output.topic}"]
+            -   name: "withZkQuorum"
+                args: ["${kafka.zk}"]
+
+    -   id: "kafkaDestinationHandler"
+        className: "org.apache.metron.profiler.bolt.KafkaDestinationHandler"
+
+    -   id: "hbaseDestinationHandler"
+        className: "org.apache.metron.profiler.bolt.HBaseDestinationHandler"
 
 spouts:
 
@@ -85,8 +100,12 @@ bolts:
         configMethods:
             - name: "withPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
-            - name: "withTimeToLive"
+            - name: "withProfileTimeToLive"
               args: [${profiler.ttl}, "${profiler.ttl.units}"]
+            - name: "withDestinationHandler"
+              args: [ref: "kafkaDestinationHandler"]
+            - name: "withDestinationHandler"
+              args: [ref: "hbaseDestinationHandler"]
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
@@ -101,6 +120,16 @@ bolts:
             - name: "withFlushIntervalSecs"
               args: [${profiler.hbase.flush.interval.seconds}]
 
+    -   id: "kafkaBolt"
+        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
+        constructorArgs:
+            - "${kafka.zk}"
+        configMethods:
+            -   name: "withMessageWriter"
+                args: [ref: "kafkaWriter"]
+            -   name: "withMessageGetter"
+                args: ["NAMED"]
+
 streams:
 
     -   name: "spout -> splitter"
@@ -114,10 +143,18 @@ streams:
         to: "builderBolt"
         grouping:
             type: FIELDS
-            args: ["entity", "profile", "message"]
+            args: ["entity", "profile"]
 
     -   name: "builder -> hbase"
         from: "builderBolt"
         to: "hbaseBolt"
         grouping:
+            streamId: "hbase"
+            type: SHUFFLE
+
+    -   name: "builder -> kafka"
+        from: "builderBolt"
+        to: "kafkaBolt"
+        grouping:
+            streamId: "kafka"
             type: SHUFFLE

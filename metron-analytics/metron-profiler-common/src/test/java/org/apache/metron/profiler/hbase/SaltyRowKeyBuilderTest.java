@@ -226,7 +226,7 @@ public class SaltyRowKeyBuilderTest {
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(oldest, periodDuration, periodUnits)
-            .withValue(22);
+            .withProfileValue(22);
 
     // generate a list of expected keys
     List<byte[]> expectedKeys = new ArrayList<>();

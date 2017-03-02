@@ -90,7 +90,7 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate that x = 100, y = 200
-    assertEquals(100 + 200, (int) convert(m.getValue(), Integer.class));
+    assertEquals(100 + 200, (int) convert(m.getProfileValue(), Integer.class));
   }
 
   /**
@@ -111,7 +111,7 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate that x = 0 and y = 0 as no initialization occurred
-    assertEquals(0, (int) convert(m.getValue(), Integer.class));
+    assertEquals(0, (int) convert(m.getProfileValue(), Integer.class));
   }
 
   /**
@@ -153,7 +153,7 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate that x=0, y=0 then x+=1, y+=2 for each message
-    assertEquals(count*1 + count*2, (int) convert(m.getValue(), Integer.class));
+    assertEquals(count*1 + count*2, (int) convert(m.getProfileValue(), Integer.class));
   }
 
   /**
@@ -185,7 +185,7 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate
-    assertEquals(100, (int) convert(m.getValue(), Integer.class));
+    assertEquals(100, (int) convert(m.getProfileValue(), Integer.class));
   }
 
   /**
@@ -260,8 +260,8 @@ public class ProfileBuilderTest {
 
     // validate
     assertEquals(2, m.getGroups().size());
-    assertEquals(100, (int) convert(m.getGroups().get(0), Integer.class));
-    assertEquals(200, (int) convert(m.getGroups().get(1), Integer.class));
+    assertEquals(100, m.getGroups().get(0));
+    assertEquals(200, m.getGroups().get(1));
   }
 
   /**
@@ -304,7 +304,7 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate
-    assertEquals(33, (int) convert(m.getValue(), Integer.class));
+    assertEquals(33, m.getProfileValue());
   }
 
   /**
@@ -347,7 +347,7 @@ public class ProfileBuilderTest {
     ProfileMeasurement m = builder.flush();
 
     // validate
-    assertEquals(3, (int) convert(m.getValue(), Integer.class));
+    assertEquals(3, m.getProfileValue());
   }
   /**
    * {
@@ -381,4 +381,81 @@ public class ProfileBuilderTest {
     assertEquals(entity, m.getEntity());
   }
 
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "init": {
+   *      "x": "100"
+   *   },
+   *   "result": {
+   *      "profile": "x"
+   *   }
+   * }
+   */
+  @Multiline
+  private String testResultWithProfileExpression;
+
+  /**
+   * Ensure that the result expression is executed on a flush.
+   */
+  @Test
+  public void testResultWithProfileExpression() throws Exception {
+    // setup
+    definition = JSONUtils.INSTANCE.load(testResultWithProfileExpression, ProfileConfig.class);
+    builder = new ProfileBuilder.Builder()
+            .withDefinition(definition)
+            .withEntity("10.0.0.1")
+            .withPeriodDuration(10, TimeUnit.MINUTES)
+            .build();
+
+    // execute
+    builder.apply(message);
+    ProfileMeasurement m = builder.flush();
+
+    // validate
+    assertEquals(100, m.getProfileValue());
+  }
+
+  /**
+   * {
+   *   "profile": "test",
+   *   "foreach": "ip_src_addr",
+   *   "init": {
+   *      "x": "100"
+   *   },
+   *   "result": {
+   *      "profile": "x",
+   *      "triage": {
+   *        "zero": "x - 100",
+   *        "hundred": "x"
+   *      }
+   *   }
+   * }
+   */
+  @Multiline
+  private String testResultWithTriageExpression;
+
+  /**
+   * Ensure that the result expression is executed on a flush.
+   */
+  @Test
+  public void testResultWithTriageExpression() throws Exception {
+    // setup
+    definition = JSONUtils.INSTANCE.load(testResultWithTriageExpression, ProfileConfig.class);
+    builder = new ProfileBuilder.Builder()
+            .withDefinition(definition)
+            .withEntity("10.0.0.1")
+            .withPeriodDuration(10, TimeUnit.MINUTES)
+            .build();
+
+    // execute
+    builder.apply(message);
+    ProfileMeasurement m = builder.flush();
+
+    // validate
+    assertEquals(0, m.getTriageValues().get("zero"));
+    assertEquals(100, m.getTriageValues().get("hundred"));
+    assertEquals(100, m.getProfileValue());
+  }
 }

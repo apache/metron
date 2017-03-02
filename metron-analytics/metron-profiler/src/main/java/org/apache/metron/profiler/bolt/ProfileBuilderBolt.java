@@ -32,15 +32,15 @@ import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.TupleUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -70,9 +70,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    * If a message has not been applied to a Profile in this number of milliseconds,
    * the Profile will be forgotten and its resources will be cleaned up.
    *
-   * The TTL must be at least greater than the period duration.
+   * WARNING: The TTL must be at least greater than the period duration.
    */
-  private long timeToLiveMillis;
+  private long profileTimeToLiveMillis;
 
   /**
    * Maintains the state of a profile which is unique to a profile/entity pair.
@@ -85,10 +85,17 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private transient JSONParser parser;
 
   /**
+   * The measurements produced by a profile can be written to multiple destinations.  Each
+   * destination is handled by a separate `DestinationHandler`.
+   */
+  private List<DestinationHandler> destinationHandlers;
+
+  /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration data.
    */
   public ProfileBuilderBolt(String zookeeperUrl) {
     super(zookeeperUrl);
+    this.destinationHandlers = new ArrayList<>();
   }
 
   /**
@@ -107,34 +114,45 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
 
-    if(timeToLiveMillis < periodDurationMillis) {
+    if(profileTimeToLiveMillis < periodDurationMillis) {
       throw new IllegalStateException(format(
               "invalid configuration: expect profile TTL (%d) to be greater than period duration (%d)",
-              timeToLiveMillis,
+              profileTimeToLiveMillis,
               periodDurationMillis));
     }
     this.collector = collector;
     this.parser = new JSONParser();
     this.profileCache = CacheBuilder
             .newBuilder()
-            .expireAfterAccess(timeToLiveMillis, TimeUnit.MILLISECONDS)
+            .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
             .build();
   }
 
-  /**
-   * The builder emits a single field, 'measurement', which contains a ProfileMeasurement. A
-   * ProfileMeasurement is emitted when a time window expires and a flush occurs.
-   */
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    // once the time window expires, a complete ProfileMeasurement is emitted
-    declarer.declare(new Fields("measurement", "profile"));
+    if(destinationHandlers.size() == 0) {
+      throw new IllegalStateException("At least one destination handler must be defined.");
+    }
+
+    // each destination will define its own stream
+    destinationHandlers.forEach(dest -> dest.declareOutputFields(declarer));
   }
 
+  /**
+   * Expect to receive either a tick tuple or a telemetry message that needs applied
+   * to a profile.
+   * @param input The tuple.
+   */
   @Override
   public void execute(Tuple input) {
     try {
-      doExecute(input);
+      if(TupleUtils.isTick(input)) {
+        handleTick();
+        profileCache.cleanUp();
+
+      } else {
+        handleMessage(input);
+      }
 
     } catch (Throwable e) {
       LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
@@ -146,32 +164,28 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   }
 
   /**
-   * Update the execution environment based on data contained in the
-   * message.  If the tuple is a tick tuple, then flush the profile
-   * and reset the execution environment.
-   * @param input The tuple to execute.
+   * Handles a telemetry message
+   * @param input The tuple.
    */
-  private void doExecute(Tuple input) throws ExecutionException {
+  private void handleMessage(Tuple input) throws ExecutionException {
+    JSONObject message = getField("message", input, JSONObject.class);
+    getBuilder(input).apply(message);
+  }
 
-    if(TupleUtils.isTick(input)) {
+  /**
+   * Handles a tick tuple.
+   */
+  private void handleTick() {
+    profileCache.asMap().forEach((key, profileBuilder) -> {
+      if(profileBuilder.isInitialized()) {
 
-      // when a 'tick' is received, flush the profile and emit the completed profile measurement
-      profileCache.asMap().forEach((key, profileBuilder) -> {
-        if(profileBuilder.isInitialized()) {
-          ProfileMeasurement measurement = profileBuilder.flush();
-          collector.emit(new Values(measurement, profileBuilder.getDefinition()));
-        }
-      });
+        // flush the profile
+        ProfileMeasurement measurement = profileBuilder.flush();
 
-      // cache maintenance
-      profileCache.cleanUp();
-
-    } else {
-
-      // telemetry message provides additional context for 'init' and 'update' expressions
-      JSONObject message = getField("message", input, JSONObject.class);
-      getBuilder(input).apply(message);
-    }
+        // forward the measurement to each destination handler
+        destinationHandlers.forEach(handler -> handler.emit(measurement, collector));
+      }
+    });
   }
 
   /**
@@ -213,7 +227,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private <T> T getField(String fieldName, Tuple tuple, Class<T> clazz) {
     T value = ConversionUtils.convert(tuple.getValueByField(fieldName), clazz);
     if(value == null) {
-      throw new IllegalStateException(format("invalid tuple received: missing field '%s'", fieldName));
+      throw new IllegalStateException(format("invalid tuple received: missing or invalid field '%s'", fieldName));
     }
 
     return value;
@@ -228,13 +242,17 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     return withPeriodDurationMillis(units.toMillis(duration));
   }
 
-  public ProfileBuilderBolt withTimeToLiveMillis(long timeToLiveMillis) {
-    this.timeToLiveMillis = timeToLiveMillis;
+  public ProfileBuilderBolt withProfileTimeToLiveMillis(long timeToLiveMillis) {
+    this.profileTimeToLiveMillis = timeToLiveMillis;
     return this;
   }
 
-  public ProfileBuilderBolt withTimeToLive(int duration, TimeUnit units) {
-    return withTimeToLiveMillis(units.toMillis(duration));
+  public ProfileBuilderBolt withProfileTimeToLive(int duration, TimeUnit units) {
+    return withProfileTimeToLiveMillis(units.toMillis(duration));
   }
 
+  public ProfileBuilderBolt withDestinationHandler(DestinationHandler handler) {
+    this.destinationHandlers.add(handler);
+    return this;
+  }
 }
