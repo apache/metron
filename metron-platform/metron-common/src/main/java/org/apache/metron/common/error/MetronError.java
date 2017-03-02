@@ -145,18 +145,19 @@ public class MetronError {
         Object rawMessage = rawMessages.get(i);
         // If multiple messages are included add an index to the field name, otherwise leave it off
         String rawMessageField = rawMessages.size() == 1 ? ErrorFields.RAW_MESSAGE.getName() : ErrorFields.RAW_MESSAGE.getName() + "_" + i;
-        String rawMessageBytesField = rawMessages.size() == 1 ? ErrorFields.RAW_MESSAGE_BYTES.getName() : ErrorFields.RAW_MESSAGE_BYTES.getName() + "_" + i;
+        // It's unclear if we need a rawMessageBytes field so commenting out for now
+        //String rawMessageBytesField = rawMessages.size() == 1 ? ErrorFields.RAW_MESSAGE_BYTES.getName() : ErrorFields.RAW_MESSAGE_BYTES.getName() + "_" + i;
         if(rawMessage instanceof byte[]) {
           errorMessage.put(rawMessageField, Bytes.toString((byte[])rawMessage));
-          errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList((byte[])rawMessage));
+          //errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList((byte[])rawMessage));
         } else if (rawMessage instanceof JSONObject) {
           JSONObject rawMessageJSON = (JSONObject) rawMessage;
           String rawMessageJSONString = rawMessageJSON.toJSONString();
           errorMessage.put(rawMessageField, rawMessageJSONString);
-          errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList(rawMessageJSONString.getBytes(UTF_8)));
+          //errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList(rawMessageJSONString.getBytes(UTF_8)));
         } else {
           errorMessage.put(rawMessageField, rawMessage.toString());
-          errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList(rawMessage.toString().getBytes(UTF_8)));
+          //errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList(rawMessage.toString().getBytes(UTF_8)));
         }
       }
     }

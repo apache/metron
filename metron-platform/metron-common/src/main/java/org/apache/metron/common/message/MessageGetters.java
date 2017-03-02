@@ -21,6 +21,21 @@ import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.function.Function;
 
+/**
+ * MessageGetters is a convenience enum for looking up the various implementations of MessageGetStrategy. The MessageGetStrategy
+ * abstraction returns a value from a tuple.  The implementations include:
+ * <ul>
+ *   <li>BYTES_FROM_POSITION - gets a byte array from the provided position</li>
+ *   <li>JSON_FROM_POSITION - gets a byte array from the provided position then converts to a string and parses the string to JSON</li>
+ *   <li>JSON_FROM_FIELD - gets a JSONObject from the provided field</li>
+ *   <li>OBJECT_FROM_FIELD - gets an Object from the provided field</li>
+ *   <li>DEFAULT_BYTES_FROM_POSITION - gets a byte array from position 0</li>
+ *   <li>DEFAULT_JSON_FROM_POSITION - gets a byte array from position 0 then converts to a string and parses the string to JSON</li>
+ *   <li>DEFAULT_JSON_FROM_FIELD - gets a JSONObject from the "message" field</li>
+ *   <li>DEFAULT_OBJECT_FROM_FIELD - gets an Object from the "message" field</li>
+ * </ul>
+ *
+ */
 public enum MessageGetters {
 
   BYTES_FROM_POSITION((String arg) -> new BytesFromPosition(ConversionUtils.convert(arg, Integer.class))),

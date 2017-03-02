@@ -172,7 +172,7 @@ kafka.broker={{ kafka_brokers }}
 kafka.start=WHERE_I_LEFT_OFF
 ##### Indexing #####
 index.input.topic=indexing
-index.error.topic=indexing_error
+index.error.topic=indexing
 writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
 ##### Metrics #####
 #reporters
