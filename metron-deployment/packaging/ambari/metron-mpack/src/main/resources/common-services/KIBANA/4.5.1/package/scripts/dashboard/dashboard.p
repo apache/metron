@@ -333,7 +333,7 @@ p168
 (dp169
 VvisState
 p170
-V{"title":"Errors By Error Type","type":"histogram","params":{"addLegend":true,"addTimeMarker":false,"addTooltip":true,"defaultYExtents":false,"mode":"grouped","scale":"linear","setYExtents":false,"shareYAxis":true,"times":[],"yAxis":{}},"aggs":[{"id":"1","type":"count","schema":"metric","params":{"customLabel":"Count"}},{"id":"2","type":"terms","schema":"segment","params":{"field":"hostname","size":5,"order":"desc","orderBy":"1"}},{"id":"4","type":"cardinality","schema":"metric","params":{"field":"raw_message_hash","customLabel":"Unique Datapoint Count"}}],"listeners":{}}
+V{\u000a  "title": "Errors By Error Type",\u000a  "type": "histogram",\u000a  "params": {\u000a    "addLegend": true,\u000a    "addTimeMarker": false,\u000a    "addTooltip": true,\u000a    "defaultYExtents": false,\u000a    "mode": "grouped",\u000a    "scale": "linear",\u000a    "setYExtents": false,\u000a    "shareYAxis": true,\u000a    "times": [],\u000a    "yAxis": {}\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {\u000a        "customLabel": "Count"\u000a      }\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "hostname",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1"\u000a      }\u000a    },\u000a    {\u000a      "id": "4",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "error_hash",\u000a        "customLabel": "Unique Datapoint Count"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
 p171
 sVdescription
 p172
@@ -344,7 +344,7 @@ VErrors By Hostname
 p174
 sVuiStateJSON
 p175
-V{"vis":{"colors":{"Unique Datapoint Count":"#9AC48A","Count":"#629E51"}}}
+V{\u000a  "vis": {\u000a    "colors": {\u000a      "Unique Datapoint Count": "#9AC48A",\u000a      "Count": "#629E51"\u000a    }\u000a  }\u000a}
 p176
 sVversion
 p177
@@ -354,7 +354,7 @@ p178
 (dp179
 VsearchSourceJSON
 p180
-V{"index":"error*","query":{"query_string":{"analyze_wildcard":true,"query":"*"}},"filter":[]}
+V{\u000a  "index": "error*",\u000a  "query": {\u000a    "query_string": {\u000a      "analyze_wildcard": true,\u000a      "query": "*"\u000a    }\u000a  },\u000a  "filter": []\u000a}
 p181
 sssV_index
 p182
@@ -590,25 +590,25 @@ Vvisualization
 p297
 sV_id
 p298
-VUnique-Error-Messages
+VError-Hostname-Proportion
 p299
 sV_source
 p300
 (dp301
 VvisState
 p302
-V{\u000a  "title": "Total Unique Error Messages",\u000a  "type": "metric",\u000a  "params": {\u000a    "handleNoResults": true,\u000a    "fontSize": 60\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "raw_message_hash",\u000a        "customLabel": "Unique Error Messages"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
+V{"aggs":[{"id":"1","params":{},"schema":"metric","type":"count"},{"id":"2","params":{"customLabel":"Sensor","field":"hostname","order":"desc","orderBy":"1","size":5},"schema":"segment","type":"terms"}],"listeners":{},"params":{"addLegend":true,"addTooltip":true,"isDonut":false,"shareYAxis":true},"title":"Error Source Proportion","type":"pie"}
 p303
 sVdescription
 p304
 V
 sVtitle
 p305
-VUnique Error Messages
+VError Hostname Proportion
 p306
 sVuiStateJSON
 p307
-V{}
+V{"vis":{"colors":{"host":"#629E51","host2":"#9AC48A","hostAnother":"#7EB26D","hostNew":"#B7DBAB"}}}
 p308
 sVversion
 p309
@@ -618,7 +618,7 @@ p310
 (dp311
 VsearchSourceJSON
 p312
-V{\u000a  "index": "error*",\u000a  "query": {\u000a    "query_string": {\u000a      "query": "*",\u000a      "analyze_wildcard": true\u000a    }\u000a  },\u000a  "filter": []\u000a}
+V{"index":"error*","query":{"query_string":{"analyze_wildcard":true,"query":"*"}},"filter":[]}
 p313
 sssV_index
 p314
@@ -634,25 +634,25 @@ Vvisualization
 p319
 sV_id
 p320
-VErrors-By-Error-Type
+VUnique-Error-Messages
 p321
 sV_source
 p322
 (dp323
 VvisState
 p324
-V{\u000a  "title": "Errors By Error Type",\u000a  "type": "histogram",\u000a  "params": {\u000a    "addLegend": true,\u000a    "addTimeMarker": false,\u000a    "addTooltip": true,\u000a    "defaultYExtents": false,\u000a    "mode": "grouped",\u000a    "scale": "linear",\u000a    "setYExtents": false,\u000a    "shareYAxis": true,\u000a    "times": [],\u000a    "yAxis": {}\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {\u000a        "customLabel": "Count"\u000a      }\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "error_type",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1"\u000a      }\u000a    },\u000a    {\u000a      "id": "4",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "raw_message_hash",\u000a        "customLabel": "Unique Datapoint Count"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
+V{\u000a  "title": "Total Unique Error Messages",\u000a  "type": "metric",\u000a  "params": {\u000a    "handleNoResults": true,\u000a    "fontSize": 60\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "error_hash",\u000a        "customLabel": "Unique Error Messages"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
 p325
 sVdescription
 p326
 V
 sVtitle
 p327
-VErrors By Error Type
+VUnique Error Messages
 p328
 sVuiStateJSON
 p329
-V{\u000a  "vis": {\u000a    "colors": {\u000a      "Unique Datapoint Count": "#806EB7",\u000a      "Count": "#614D93"\u000a    }\u000a  }\u000a}
+V{}
 p330
 sVversion
 p331
@@ -662,7 +662,7 @@ p332
 (dp333
 VsearchSourceJSON
 p334
-V{\u000a  "index": "error*",\u000a  "query": {\u000a    "query_string": {\u000a      "analyze_wildcard": true,\u000a      "query": "*"\u000a    }\u000a  },\u000a  "filter": []\u000a}
+V{\u000a  "index": "error*",\u000a  "query": {\u000a    "query_string": {\u000a      "query": "*",\u000a      "analyze_wildcard": true\u000a    }\u000a  },\u000a  "filter": []\u000a}
 p335
 sssV_index
 p336
@@ -678,25 +678,25 @@ Vvisualization
 p341
 sV_id
 p342
-VError-Hostname-Proportion
+VErrors-By-Error-Type
 p343
 sV_source
 p344
 (dp345
 VvisState
 p346
-V{"aggs":[{"id":"1","params":{},"schema":"metric","type":"count"},{"id":"2","params":{"customLabel":"Sensor","field":"hostname","order":"desc","orderBy":"1","size":5},"schema":"segment","type":"terms"}],"listeners":{},"params":{"addLegend":true,"addTooltip":true,"isDonut":false,"shareYAxis":true},"title":"Error Source Proportion","type":"pie"}
+V{\u000a  "title": "Errors By Error Type",\u000a  "type": "histogram",\u000a  "params": {\u000a    "addLegend": true,\u000a    "addTimeMarker": false,\u000a    "addTooltip": true,\u000a    "defaultYExtents": false,\u000a    "mode": "grouped",\u000a    "scale": "linear",\u000a    "setYExtents": false,\u000a    "shareYAxis": true,\u000a    "times": [],\u000a    "yAxis": {}\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {\u000a        "customLabel": "Count"\u000a      }\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "error_type",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1"\u000a      }\u000a    },\u000a    {\u000a      "id": "4",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "error_hash",\u000a        "customLabel": "Unique Datapoint Count"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
 p347
 sVdescription
 p348
 V
 sVtitle
 p349
-VError Hostname Proportion
+VErrors By Error Type
 p350
 sVuiStateJSON
 p351
-V{"vis":{"colors":{"host":"#629E51","host2":"#9AC48A","hostAnother":"#7EB26D","hostNew":"#B7DBAB"}}}
+V{\u000a  "vis": {\u000a    "colors": {\u000a      "Unique Datapoint Count": "#806EB7",\u000a      "Count": "#614D93"\u000a    }\u000a  }\u000a}
 p352
 sVversion
 p353
@@ -706,7 +706,7 @@ p354
 (dp355
 VsearchSourceJSON
 p356
-V{"index":"error*","query":{"query_string":{"analyze_wildcard":true,"query":"*"}},"filter":[]}
+V{\u000a  "index": "error*",\u000a  "query": {\u000a    "query_string": {\u000a      "analyze_wildcard": true,\u000a      "query": "*"\u000a    }\u000a  },\u000a  "filter": []\u000a}
 p357
 sssV_index
 p358
@@ -730,7 +730,7 @@ p366
 Vsort
 p368
 (lp369
-Vtime
+Vtimestamp
 p370
 aVdesc
 p371
@@ -757,7 +757,7 @@ p380
 ssVcolumns
 p381
 (lp382
-Vsource_type
+Vfailed_sensor_type
 p383
 aVerror_type
 p384
@@ -769,7 +769,7 @@ aVmessage
 p387
 aVraw_message
 p388
-aVraw_message_hash
+aVerror_hash
 p389
 assV_index
 p390
@@ -1202,7 +1202,7 @@ p602
 (dp603
 VvisState
 p604
-V{\u000a  "title": "Errors By Source Type",\u000a  "type": "histogram",\u000a  "params": {\u000a    "shareYAxis": true,\u000a    "addTooltip": true,\u000a    "addLegend": true,\u000a    "scale": "linear",\u000a    "mode": "grouped",\u000a    "times": [],\u000a    "addTimeMarker": false,\u000a    "defaultYExtents": false,\u000a    "setYExtents": false,\u000a    "yAxis": {}\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {\u000a        "customLabel": "Count"\u000a      }\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "source_type",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1"\u000a      }\u000a    },\u000a    {\u000a      "id": "4",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "raw_message_hash",\u000a        "customLabel": "Unique Datapoint Count"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
+V{\u000a  "title": "Errors By Source Type",\u000a  "type": "histogram",\u000a  "params": {\u000a    "shareYAxis": true,\u000a    "addTooltip": true,\u000a    "addLegend": true,\u000a    "scale": "linear",\u000a    "mode": "grouped",\u000a    "times": [],\u000a    "addTimeMarker": false,\u000a    "defaultYExtents": false,\u000a    "setYExtents": false,\u000a    "yAxis": {}\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {\u000a        "customLabel": "Count"\u000a      }\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "failed_sensor_type",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1"\u000a      }\u000a    },\u000a    {\u000a      "id": "4",\u000a      "type": "cardinality",\u000a      "schema": "metric",\u000a      "params": {\u000a        "field": "error_hash",\u000a        "customLabel": "Unique Datapoint Count"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
 p605
 sVdescription
 p606
@@ -1590,21 +1590,21 @@ Vvisualization
 p798
 sV_id
 p799
-VError-Source-Proportion
+VErrors-Over-Time
 p800
 sV_source
 p801
 (dp802
 VvisState
 p803
-V{\u000a  "title": "Sensor Type Proportion",\u000a  "type": "pie",\u000a  "params": {\u000a    "shareYAxis": true,\u000a    "addTooltip": true,\u000a    "addLegend": true,\u000a    "isDonut": false\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {}\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "source_type",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1",\u000a        "customLabel": "Sensor"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
+V{\u000a  "title": "Error Over Time",\u000a  "type": "line",\u000a  "params": {\u000a    "shareYAxis": true,\u000a    "addTooltip": true,\u000a    "addLegend": true,\u000a    "showCircles": true,\u000a    "smoothLines": false,\u000a    "interpolate": "linear",\u000a    "scale": "linear",\u000a    "drawLinesBetweenPoints": true,\u000a    "radiusRatio": 9,\u000a    "times": [],\u000a    "addTimeMarker": true,\u000a    "defaultYExtents": false,\u000a    "setYExtents": false,\u000a    "yAxis": {\u000a      "min": 0\u000a    }\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {}\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "date_histogram",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "timestamp",\u000a        "interval": "auto",\u000a        "customInterval": "2h",\u000a        "min_doc_count": 1,\u000a        "extended_bounds": {}\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
 p804
 sVdescription
 p805
 V
 sVtitle
 p806
-VError Source Proportion
+VErrors Over Time
 p807
 sVuiStateJSON
 p808
@@ -1634,21 +1634,21 @@ Vvisualization
 p820
 sV_id
 p821
-VErrors-Over-Time
+VError-Source-Proportion
 p822
 sV_source
 p823
 (dp824
 VvisState
 p825
-V{\u000a  "title": "Error Over Time",\u000a  "type": "line",\u000a  "params": {\u000a    "shareYAxis": true,\u000a    "addTooltip": true,\u000a    "addLegend": true,\u000a    "showCircles": true,\u000a    "smoothLines": false,\u000a    "interpolate": "linear",\u000a    "scale": "linear",\u000a    "drawLinesBetweenPoints": true,\u000a    "radiusRatio": 9,\u000a    "times": [],\u000a    "addTimeMarker": true,\u000a    "defaultYExtents": false,\u000a    "setYExtents": false,\u000a    "yAxis": {\u000a      "min": 0\u000a    }\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {}\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "date_histogram",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "time",\u000a        "interval": "auto",\u000a        "customInterval": "2h",\u000a        "min_doc_count": 1,\u000a        "extended_bounds": {}\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
+V{\u000a  "title": "Sensor Type Proportion",\u000a  "type": "pie",\u000a  "params": {\u000a    "shareYAxis": true,\u000a    "addTooltip": true,\u000a    "addLegend": true,\u000a    "isDonut": false\u000a  },\u000a  "aggs": [\u000a    {\u000a      "id": "1",\u000a      "type": "count",\u000a      "schema": "metric",\u000a      "params": {}\u000a    },\u000a    {\u000a      "id": "2",\u000a      "type": "terms",\u000a      "schema": "segment",\u000a      "params": {\u000a        "field": "failed_sensor_type",\u000a        "size": 5,\u000a        "order": "desc",\u000a        "orderBy": "1",\u000a        "customLabel": "Sensor"\u000a      }\u000a    }\u000a  ],\u000a  "listeners": {}\u000a}
 p826
 sVdescription
 p827
 V
 sVtitle
 p828
-VErrors Over Time
+VError Source Proportion
 p829
 sVuiStateJSON
 p830
@@ -1685,11 +1685,11 @@ p845
 (dp846
 Vfields
 p847
-V[{"name":"exception","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"stack","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"_index","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"raw_message","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"source_type","type":"string","count":2,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"message","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"hostname","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"error_type","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"_source","type":"_source","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"raw_message_bytes","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"time","type":"date","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"raw_message_hash","type":"string","count":1,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"_id","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"_type","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"_score","type":"number","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false}]
+V[{"name":"exception","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"stack","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"_index","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"error_hash","type":"string","count":1,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"raw_message","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"message","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"failed_sensor_type","type":"string","count":1,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"hostname","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"source:type","type":"string","count":1,"scripted":false,"indexed":true,"analyzed":true,"doc_values":false},{"name":"error_type","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"error_fields","type":"string","count":0,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"_source","type":"_source","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"raw_message_bytes","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"timestamp","type":"date","count":1,"scripted":false,"indexed":true,"analyzed":false,"doc_values":true},{"name":"_id","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"_type","type":"string","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false},{"name":"_score","type":"number","count":0,"scripted":false,"indexed":false,"analyzed":false,"doc_values":false}]
 p848
 sVtimeFieldName
 p849
-Vtime
+Vtimestamp
 p850
 sVtitle
 p851
@@ -1729,11 +1729,11 @@ VMetron Error Dashboard
 p867
 sVuiStateJSON
 p868
-V{"P-2":{"vis":{"legendOpen":true}},"P-5":{"vis":{"colors":{"another_new_parser_error":"#806EB7","new_parser_error":"#AEA2E0","parser_error":"#614D93"}}},"P-3":{"vis":{"colors":{"fourth":"#1F78C1","test_error":"#82B5D8","new_error":"#BADFF4"}}}}
+V{"P-2":{"vis":{"legendOpen":true}},"P-23":{"vis":{"colors":{"amb3.service.consul":"#629E51","host":"#629E51","host2":"#9AC48A","hostAnother":"#7EB26D","hostNew":"#B7DBAB"}}},"P-3":{"vis":{"colors":{"fourth":"#1F78C1","new_error":"#BADFF4","test_error":"#82B5D8"}}},"P-5":{"vis":{"colors":{"another_new_parser_error":"#806EB7","new_parser_error":"#AEA2E0","parser_error":"#614D93"}}}}
 p869
 sVpanelsJSON
 p870
-V[{"col":5,"id":"Errors-By-Error-Type","panelIndex":2,"row":10,"size_x":8,"size_y":3,"type":"visualization"},{"col":1,"id":"Error-Source-Proportion","panelIndex":3,"row":7,"size_x":4,"size_y":3,"type":"visualization"},{"col":5,"id":"Errors-By-Source-Type","panelIndex":4,"row":7,"size_x":8,"size_y":3,"type":"visualization"},{"col":1,"id":"Error-Type-Proportion","panelIndex":5,"row":10,"size_x":4,"size_y":3,"type":"visualization"},{"col":1,"id":"Errors-Over-Time","panelIndex":14,"row":3,"size_x":12,"size_y":4,"type":"visualization"},{"col":8,"id":"Unique-Error-Messages","panelIndex":19,"row":1,"size_x":4,"size_y":2,"type":"visualization"},{"col":3,"id":"Total-Error-Messages","panelIndex":20,"row":1,"size_x":4,"size_y":2,"type":"visualization"},{"col":5,"id":"Errors-By-Hostname","panelIndex":22,"row":13,"size_x":8,"size_y":3,"type":"visualization"},{"col":1,"id":"Error-Hostname-Proportion","panelIndex":23,"row":13,"size_x":4,"size_y":3,"type":"visualization"},{"col":1,"columns":["source_type","error_type","exception","hostname","message","raw_message","raw_message_hash"],"id":"Errors","panelIndex":24,"row":16,"size_x":12,"size_y":7,"sort":["time","desc"],"type":"search"}]
+V[{"col":5,"id":"Errors-By-Error-Type","panelIndex":2,"row":7,"size_x":8,"size_y":3,"type":"visualization"},{"col":1,"id":"Error-Source-Proportion","panelIndex":3,"row":7,"size_x":4,"size_y":3,"type":"visualization"},{"col":5,"id":"Errors-By-Source-Type","panelIndex":4,"row":10,"size_x":8,"size_y":3,"type":"visualization"},{"col":1,"id":"Error-Type-Proportion","panelIndex":5,"row":10,"size_x":4,"size_y":3,"type":"visualization"},{"col":1,"id":"Errors-Over-Time","panelIndex":14,"row":3,"size_x":12,"size_y":4,"type":"visualization"},{"col":8,"id":"Unique-Error-Messages","panelIndex":19,"row":1,"size_x":4,"size_y":2,"type":"visualization"},{"col":3,"id":"Total-Error-Messages","panelIndex":20,"row":1,"size_x":4,"size_y":2,"type":"visualization"},{"col":5,"id":"Errors-By-Hostname","panelIndex":22,"row":13,"size_x":8,"size_y":3,"type":"visualization"},{"col":1,"id":"Error-Hostname-Proportion","panelIndex":23,"row":13,"size_x":4,"size_y":3,"type":"visualization"},{"col":1,"columns":["failed_sensor_type","error_type","exception","hostname","message","raw_message","error_hash"],"id":"Errors","panelIndex":25,"row":23,"size_x":12,"size_y":7,"sort":["timestamp","desc"],"type":"search"}]
 p871
 sVoptionsJSON
 p872
