@@ -20,6 +20,7 @@ package org.apache.metron.rest.service.impl;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.common.stellar.StellarProcessor;
@@ -71,7 +72,7 @@ public class StellarServiceImpl implements StellarService {
     @Override
     public List<StellarFunctionDescription> getStellarFunctions() {
         List<StellarFunctionDescription> stellarFunctionDescriptions = new ArrayList<>();
-        Iterable<StellarFunctionInfo> stellarFunctionsInfo = SingletonFunctionResolver.getInstance().getFunctionInfo();
+        Iterable<StellarFunctionInfo> stellarFunctionsInfo = StellarFunctions.FUNCTION_RESOLVER().getFunctionInfo();
         stellarFunctionsInfo.forEach(stellarFunctionInfo -> {
             stellarFunctionDescriptions.add(new StellarFunctionDescription(
                     stellarFunctionInfo.getName(),
