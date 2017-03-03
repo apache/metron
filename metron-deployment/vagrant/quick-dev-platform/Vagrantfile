@@ -16,7 +16,7 @@
 #
 require 'getoptlong'
 
-ansibleTags='quick_dev'
+ansibleTags='quick_dev,report'
 ansibleSkipTags=''
 
 begin
@@ -53,7 +53,7 @@ hosts = [{
 Vagrant.configure(2) do |config|
 
   # all hosts built on centos 6
-  config.vm.box_url = "file:///Users/dlyle/projects/metron-dlyle/metron-deployment/packer-build/builds/quick-dev-centos-6.7-2.1.20170302201505.git.c49b2af13ff4f061dfdb5620f01ef5b3337c612b_dirty.virtualbox.box"
+  config.vm.box_url = "file:///Users/dml/projects/metron-dlyle/metron-deployment/packer-build/builds/quick-dev-centos-6.7-2.1.20170303191109.git.33abe8cf13c347a2dfdece145a7b8c17f2a423c0_dirty.virtualbox.box"
   config.vm.box = "test-hdp-box"
   config.ssh.insert_key = true
 

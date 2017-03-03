@@ -90,7 +90,7 @@
       "user" : "vagrant",
       "host_alias" : "node1",
       "groups" : ["packer","ambari_master","ambari_slave","metron","search","web","sensors","pcap_server","zeppelin","monit"],
-      "extra_arguments": [ "--extra-vars","metron_rpm_glob=../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm metron_build_dir=../..","--skip-tags","sensors,quick_dev" ]
+      "extra_arguments": [ "--extra-vars","metron_rpm_glob=../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm metron_build_dir=../..","--skip-tags","report,sensors,quick_dev" ]
     },
     {
       "type": "shell",

@@ -53,7 +53,8 @@ hosts = [{
 Vagrant.configure(2) do |config|
 
   # all hosts built on centos 6
-  config.vm.box = "bento/centos-6.7"
+  config.vm.box = "new_base"
+  config.vm.box_url = "/Users/dml/projects/metron-dlyle/metron-deployment/packer-build/builds/base-centos-6.7-2.1.20170303223924.git.33abe8cf13c347a2dfdece145a7b8c17f2a423c0_dirty.virtualbox.box"
   config.ssh.insert_key = true
 
   # enable the hostmanager plugin
