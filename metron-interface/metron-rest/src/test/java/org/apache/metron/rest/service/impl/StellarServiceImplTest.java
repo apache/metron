@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.model.SensorParserContext;
@@ -33,14 +34,17 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class StellarServiceImplTest {
 
   private StellarService stellarService;
+  CuratorFramework curatorFramework;
 
   @Before
   public void setUp() throws Exception {
-    stellarService = new StellarServiceImpl();
+    curatorFramework = mock(CuratorFramework.class);
+    stellarService = new StellarServiceImpl(curatorFramework);
   }
 
   @Test

@@ -42,11 +42,6 @@ public class ZookeeperConfig {
     int maxRetries = Integer.parseInt(environment.getProperty(MetronRestConstants.CURATOR_MAX_RETRIES));
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(sleepTime, maxRetries);
     CuratorFramework ret = CuratorFrameworkFactory.newClient(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY), retryPolicy);
-    try {
-      ConfigurationsUtils.setupStellarStatically(ret);
-    } catch (Exception e) {
-      throw new IllegalStateException("Unable to setup the stellar context with zookeeper.");
-    }
     return ret;
   }
 
