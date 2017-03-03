@@ -125,5 +125,8 @@ textarea
 {
   width: 64%;
   padding-right: 10px;
-  font-size: small
+  font-size: small;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

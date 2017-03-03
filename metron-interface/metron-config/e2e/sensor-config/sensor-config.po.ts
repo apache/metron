@@ -34,7 +34,10 @@ export class SensorConfigPage {
 
   clickAddButton() {
     changeURL(browser.baseUrl + '/sensors');
-    element(by.css('.metron-add-button.hexa-button')).click();
+    let addButton = element(by.css('.metron-add-button.hexa-button'));
+    return waitForElementPresence(addButton).then(() => {
+      addButton.click();
+    });
   }
 
   clickAddThreatTriageRule() {
@@ -150,6 +153,13 @@ export class SensorConfigPage {
   navigateTo(parserName: string) {
     let url = browser.baseUrl + '/sensors(dialog:sensors-readonly/'+ parserName + ')';
     return changeURL(url);
+  }
+
+  setAdvancedConfig(key: string, value: string) {
+    return element.all(by.css('.advanced-link')).click().then(() => {
+      element(by.css('input[formcontrolname="newConfigKey"]')).sendKeys(key);
+      element(by.css('input[ng-reflect-name="newConfigValue"]')).sendKeys(value);
+    });
   }
 
   saveFieldSchemaConfig() {

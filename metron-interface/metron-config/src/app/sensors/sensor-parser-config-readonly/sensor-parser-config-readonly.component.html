@@ -67,13 +67,13 @@
               </div>
               <a *ngIf="transformsConfigKeys.length>0"  class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseTransform" aria-expanded="false" aria-controls="collapseTransform" #transformLink (click)="transformLink.text=(transformLink.text==='show more')?'show less':'show more'">show more</a>
             </div>
-            <div *ngIf="item.model == 'threatTriageRules'">
+            <div *ngIf="item.model == 'threatTriageRules'" class="threat-triage-rules">
               <div class="col-xs-6 form-label">AGGREGATOR</div><div class="col-xs-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
               <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
                 <div>
-                  <div class="col-xs-6 form-label">NAME</div><div class="col-xs-6 form-label">SCORE</div>
+                  <div class="col-xs-6 form-sub-sub-title">NAME</div><div class="col-xs-6 form-sub-sub-title">SCORE</div>
                   <div *ngFor="let riskLevelRule of rules" >
-                    <div class="col-xs-6 form-label">{{ riskLevelRule.name }}</div>
+                    <div class="col-xs-6 form-label">{{ getDisplayName(riskLevelRule) }}</div>
                     <div class="col-xs-6 form-value">{{ riskLevelRule.score }}</div>
                   </div>
                 </div>

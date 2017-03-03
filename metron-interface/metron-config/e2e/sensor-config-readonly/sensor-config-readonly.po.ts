@@ -108,7 +108,7 @@ export class SensorDetailsPage {
     }
 
     getThreatTriageSummary() {
-        return element(by.cssContainingText('.form-sub-sub-title', 'Risk Levels')).element(by.xpath('..')).getText();
+        return element.all(by.css('.threat-triage-rules')).getText();
     }
 
     getTitle() {

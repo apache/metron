@@ -310,6 +310,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   }
 
   getRuleDisplayName(): string {
-    return this.rules.map(x => x.name).join(', ');
+    return this.rules.map(x => this.getDisplayName(x)).join(', ');
+  }
+
+  getDisplayName(riskLevelRule: RiskLevelRule): string {
+    if (riskLevelRule.name) {
+      return riskLevelRule.name;
+    } else {
+      return riskLevelRule.rule ? riskLevelRule.rule : '';
+    }
   }
 }

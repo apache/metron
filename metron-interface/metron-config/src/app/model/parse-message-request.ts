@@ -20,5 +20,4 @@ export class ParseMessageRequest {
   sensorParserConfig: SensorParserConfig;
   grokStatement: string;
   sampleData: string;
-  grokStatement: string;
 }

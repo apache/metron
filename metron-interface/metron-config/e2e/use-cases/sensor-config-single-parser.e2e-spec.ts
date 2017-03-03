@@ -59,6 +59,7 @@ describe('Sensor Config for parser e2e1', function() {
     expect(page.getGrokResponse()).toEqual(expectedGrokResponse);
     page.saveGrokStatement();
     expect(page.getGrokStatementFromMainPane()).toEqual([grokStatement]);
+    page.setAdvancedConfig('grokPath', 'target/patterns/e2e1');
 
 
     page.clickSchema();
@@ -98,7 +99,7 @@ describe('Sensor Config for parser e2e1', function() {
       threatTriageSummary: [ 'RULES 1' ],
       indexName: 'e2e1',
       batchSize: '1',
-      advancedConfig: [ 'patternLabel', 'E2E1', 'grokStatement', grokStatement, 'enter field', 'enter value' ]
+      advancedConfig: [ 'patternLabel', 'E2E1', 'grokPath', 'target/patterns/e2e1', 'enter field', 'enter value' ]
     };
     expect(sensorListPage.openEditPane('e2e1')).toEqual('http://localhost:4200/sensors(dialog:sensors-config/e2e1)');
     expect(page.getFormData()).toEqual(expectedFormData);
@@ -138,9 +139,9 @@ describe('Sensor Config for parser e2e1', function() {
     sensorDetailsPage.clickToggleShowMoreLess('show more', 1);
     expect(sensorDetailsPage.getSchemaFullSummary()).toEqual([ 'Transforms\nelapsed\nTO_INTEGER(TRIM(elapsed))' ]);
     sensorDetailsPage.clickToggleShowMoreLess('show less', 0);
-    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual('Risk Levels\nAGGREGATOR\nMAX\nIN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')\nshow more');
+    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual(['AGGREGATOR\nMAX\nIN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')\nshow more']);
     sensorDetailsPage.clickToggleShowMoreLess('show more', 2);
-    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual('Risk Levels\nAGGREGATOR\nMAX\nIN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')\n0\nshow less');
+    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual(['AGGREGATOR\nMAX\nNAME\nSCORE\nIN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')\n0\nshow less']);
     sensorDetailsPage.clickToggleShowMoreLess('show less', 0);
 
     sensorDetailsPage.closePane('e2e1');
