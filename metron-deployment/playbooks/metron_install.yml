@@ -15,6 +15,16 @@
 #  limitations under the License.
 #
 ---
+- hosts: metron
+  become: true
+  roles:
+    - role: ambari_slave
+    - role: metron-builder
+    - role: metron-rpms
+    - role: quick_dev
+  tags:
+    - quick_dev
+    -
 - hosts: ec2
   become: true
   tasks:
@@ -82,8 +92,3 @@
   become: false
   roles:
     - { role: deployment-report,      tags: ['report'] }
-
-- hosts: metron
-  become: true
-  roles:
-    - { role: quick_dev,              tags: ['quick_dev']}

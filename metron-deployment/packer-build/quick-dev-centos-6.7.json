@@ -89,8 +89,8 @@
       "sftp_command": "/usr/libexec/openssh/sftp-server",
       "user" : "vagrant",
       "host_alias" : "node1",
-      "groups" : ["packer","ambari_master","ambari_slave","metron","search","web","sensors","pcap_server","zeppelin"],
-      "extra_arguments": [ "--extra-vars","metron_rpm_glob=../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm metron_build_dir=../..","--skip-tags","build,sensors,quick_dev" ]
+      "groups" : ["packer","ambari_master","ambari_slave","metron","search","web","sensors","pcap_server","zeppelin","monit"],
+      "extra_arguments": [ "--extra-vars","metron_rpm_glob=../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm metron_build_dir=../..","--skip-tags","sensors,quick_dev" ]
     },
     {
       "type": "shell",
@@ -109,7 +109,7 @@
     }
   ],
   "variables": {
-    "box_basename": "metron-centos-6.7",
+    "box_basename": "quick-dev-centos-6.7",
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "cpus": "1",
     "git_revision": "__unknown_git_revision__",
@@ -124,9 +124,9 @@
     "metadata": "floppy/dummy_metadata.json",
     "mirror": "http://archive.kernel.org/centos-vault",
     "mirror_directory": "6.7/isos/x86_64",
-    "name": "metron-centos-6.7",
+    "name": "quick-dev-centos-6.7",
     "no_proxy": "{{env `no_proxy`}}",
-    "template": "metron-centos-6.7",
+    "template": "quick-dev-centos-6.7",
     "version": "2.1.TIMESTAMP"
   }
 }
