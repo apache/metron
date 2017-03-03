@@ -159,12 +159,12 @@ As an example, we will be providing a CSV list of top domains as an enrichment a
 
 There are 2 property maps that work with full Stellar expressions, and 2 properties that will work with Stellar predicates.
 
-| Property            | Description |
-|---------------------|-------------|
-| value_transform     | Transform fields defined in the "columns" mapping with Stellar transformations. New keys introduced in the transform will be added to the key metadata. |
-| value_filter        | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose domain property is empty after removing the TLD will be omitted. |
-| indicator_transform | Transform the indicator column independent of the value transformations. You can refer to the original indicator value by using "indicator" as the variable name, as shown in the example above. In addition, if you prefer to piggyback your transformations, you can refer to the variable "domain", which will allow your indicator transforms to inherit transformations done to this value during the value transformations. |
-| indicator_filter    | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose indicator value is empty after removing the TLD will be omitted. |
+| Property            | Description
+|---------------------|---
+| value_transform     | Transform fields defined in the "columns" mapping with Stellar transformations. New keys introduced in the transform will be added to the key metadata.
+| value_filter        | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose domain property is empty after removing the TLD will be omitted.
+| indicator_transform | Transform the indicator column independent of the value transformations. You can refer to the original indicator value by using "indicator" as the variable name, as shown in the example above. In addition, if you prefer to piggyback your transformations, you can refer to the variable "domain", which will allow your indicator transforms to inherit transformations done to this value during the value transformations.
+| indicator_filter    | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose indicator value is empty after removing the TLD will be omitted. 
 
 top-list.csv
 ```
@@ -175,10 +175,10 @@ top-list.csv
 
 Running a file import with the above data and extractor configuration would result in the following 2 extracted data records:
 
-| Indicator | Type | Value |
-|-----------|------|-------|
+| Indicator | Type        | Value                                 |
+|-----------|-------------|---------------------------------------|
 | google    | top_domains | { "rank" : "1", "domain" : "google" } |
-| yahoo     | top_domains | { "rank" : "2", "domain" : "yahoo" } |
+| yahoo     | top_domains | { "rank" : "2", "domain" : "yahoo" }  |
 
 Similar to the parser framework, providing a Zookeeper quorum via the zk_quorum property will enable Stellar to access properties that reside in the global config.
 Expanding on our example above, if the global config looks as follows:
@@ -196,15 +196,14 @@ And we expand our value_tranform:
        "a-new-prop" : "global_property"
     },
 ...
-
 ```
 
 The resulting value data would look like the following:
 
-| Indicator | Type | Value |
-|-----------|------|-------|
+| Indicator | Type        | Value                                                              |
+|-----------|-------------|--------------------------------------------------------------------|
 | google    | top_domains | { "rank" : "1", "domain" : "google", "a-new-prop" : "metron-ftw" } |
-| yahoo     | top_domains | { "rank" : "2", "domain" : "yahoo", "a-new-prop" : "metron-ftw" } |
+| yahoo     | top_domains | { "rank" : "2", "domain" : "yahoo", "a-new-prop" : "metron-ftw" }  |
 
 ## Enrichment Config
 
@@ -303,19 +302,20 @@ each document to be considered as input to the Extractor.
 
 The parameters for the utility are as follows:
 
-| Short Code | Long Code           | Is Required? | Description                                                                                                                                                                         |   |
-|------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
-| -h         |                     | No           | Generate the help screen/set of options                                                                                                                                             |   |
-| -q         | --quiet             | No           | Do not update progress
-| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                   |   |
-| -m         | --import_mode       | No           | The Import mode to use: LOCAL, MR.  Default: LOCAL                                                                                                                  |   |
-| -t         | --hbase_table       | Yes          | The HBase table to import into                                                                                                                                                      |   |
-| -c         | --hbase_cf          | Yes          | The HBase table column family to import into                                                                                                                                        |   |
-| -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory. |   |
-| -l         | --log4j             | No           | The log4j properties file to load                                                                                                                                                   |   |
-| -n         | --enrichment_config | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified.                                                                   |   |
-| -p         | --threads           | No           | The number of threads to use when extracting data.  The default is the number of cores.                                                                                             |   |
-| -b         | --batchSize         | No           | The batch size to use for HBase puts                                                                                                                                                |   |
+| Short Code | Long Code           | Is Required? | Description                                                                                                                                                                         |
+|------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -h         |                     | No           | Generate the help screen/set of options                                                                                                                                             |
+| -q         | --quiet             | No           | Do not update progress                                                                                                                                                              |
+| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                   |
+| -m         | --import_mode       | No           | The Import mode to use: LOCAL, MR.  Default: LOCAL                                                                                                                                  |
+| -t         | --hbase_table       | Yes          | The HBase table to import into                                                                                                                                                      |
+| -c         | --hbase_cf          | Yes          | The HBase table column family to import into                                                                                                                                        |
+| -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory.  |
+| -l         | --log4j             | No           | The log4j properties file to load                                                                                                                                                   |
+| -n         | --enrichment_config | No           | The JSON document describing the enrichments to configure.  Unlike other loaders, this is run first if specified.                                                                   |
+| -p         | --threads           | No           | The number of threads to use when extracting data.  The default is the number of cores.                                                                                             |
+| -b         | --batchSize         | No           | The batch size to use for HBase puts                                                                                                                                                |
+
 ### GeoLite2 Loader
 
 The shell script `$METRON_HOME/bin/geo_enrichment_load.sh` will retrieve MaxMind GeoLite2 data and load data into HDFS, and update the configuration.
@@ -324,10 +324,10 @@ THIS SCRIPT WILL NOT UPDATE AMBARI'S GLOBAL.JSON, JUST THE ZK CONFIGS.  CHANGES 
 
 The parameters for the utility are as follows:
 
-| Short Code | Long Code           | Is Required? | Description                                                                                                                                                                          |
-|------------|---------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| -h         |                     | No           | Generate the help screen/set of options                                                                                                                                              |
-| -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
-| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/
-| -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp
-| -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)
+| Short Code | Long Code           | Is Required? | Description                                                                                      |
+|------------|---------------------|--------------|--------------------------------------------------------------------------------------------------|
+| -h         |                     | No           | Generate the help screen/set of options                                                          |
+| -g         | --geo_url           | No           | GeoIP URL - defaults to http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz |
+| -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/     |
+| -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp                                |
+| -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)                                                     |
