@@ -5,14 +5,13 @@ Based on the fantastic [Bento](https://github.com/chef/bento) project developed 
 
 Images Provided
 ---------------------
-- hdp-centos-6.7: Centos 6.7 + HDP. Used in the quick-dev-platform Vagrant image
-- metron-centos-6.7: Centos 6.7 + HDP + Metron. Used for the codelab-platform Vagrant image.
+- base-centos-6.7: Centos 6.7 + HDP. Used in the full-dev-platform Vagrant image
+- quick-dev-centos-6.7: Centos 6.7 + HDP + Metron. Used for the quick-dev-platform Vagrant image.
 
 Prerequisites
 ---------------------
-- [Packer](https://www.packer.io/) 0.10.1
-- [Virtualbox](https://www.virtualbox.org/) 5.0.16
-- Be sure to build Metron prior to building the images (cd *your-project-directory*/metron-platform && mvn clean package -DskipTests)
+- [Packer](https://www.packer.io/) 0.12.2
+- [Virtualbox](https://www.virtualbox.org/) 5.0.16+ (Tested with 5.0.20)
 
 Build Both Images
 ---------------------- 
@@ -24,18 +23,18 @@ Build Both Images
 Build Single Images
 ---------------------- 
  Navigate to *your-project-directory*/metron-deployment/packer-build
- * HDP Centos 
+ * Base Centos (full-dev)
  ```
-bin/bento build hdp-centos-6.7.json
+bin/bento build base-centos-6.7.json
 ```
- * Full Metron
+ * Quick Dev
  ```
-bin/bento build metron-centos-6.7.json
+bin/bento build quick-dev-centos-6.7.json
 ```
 
 Using Your New Box File
 ---------------------- 
-Modify the relevant Vagrantfile (codelab-platform or quick-dev-platform) replacing the lines:
+Modify the relevant Vagrantfile (full-dev-platform or quick-dev-platform) replacing the lines:
 ```
 <pre><code>config.vm.box = "<i>box_name</i>"
 config.ssh.insert_key = true</code></pre>

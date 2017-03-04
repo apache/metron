@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 ---
-- include: ../../playbooks/metron_full_install.yml
+- include: ../../../playbooks/metron_full_install.yml
 
 - hosts: packer
   become: true
