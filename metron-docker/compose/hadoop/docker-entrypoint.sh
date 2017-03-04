@@ -25,8 +25,14 @@ $HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_PREFIX/etc/hadoop --script
 # start datanode
 $HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_PREFIX/etc/hadoop --script hdfs start datanode
 
-# create metron directory
-$HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /app/metron
+# create metron base directory
+$HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /apps/metron
+
+# create directory for geo database
+$HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /apps/metron/geo/default
+
+# download geo database to hdfs
+curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz | $HADOOP_PREFIX/bin/hdfs dfs -put - /apps/metron/geo/default/GeoLite2-City.mmdb.gz
 
 # pass through CMD as PID 1
 exec "$@"
