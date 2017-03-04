@@ -15,27 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Start the ambari cluster
-  ambari_cluster_state:
-    host: "{{ groups.ambari_master[0] }}"
-    port: "{{ ambari_port }}"
-    username: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    cluster_name: "{{ cluster_name }}"
-    cluster_state: started
-    wait_for_complete: True
-
-- name: Shut Down Metron
-  ambari_service_state:
-    host: "{{ groups.ambari_master[0] }}"
-    port: "{{ ambari_port }}"
-    username: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    cluster_name: "{{ cluster_name }}"
-    state: stopped
-    service_name: METRON
-    wait_for_complete: True
-
 - name: Delete the Metron Components from Ambari
   ambari_service_state:
     host: "{{ groups.ambari_master[0] }}"
@@ -79,14 +58,13 @@
     - METRON_INDEXING
     - METRON_PARSERS
 
-- name: Start Metron
-  ambari_service_state:
+- name: Start the ambari cluster
+  ambari_cluster_state:
     host: "{{ groups.ambari_master[0] }}"
     port: "{{ ambari_port }}"
     username: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     cluster_name: "{{ cluster_name }}"
-    state: started
-    service_name: METRON
+    cluster_state: started
     wait_for_complete: True
 
