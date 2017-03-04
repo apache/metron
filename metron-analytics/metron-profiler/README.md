@@ -69,11 +69,9 @@ More information on configuring and using the client can be found [here](../metr
 It is assumed that the `PROFILE_GET` client is correctly configured before using it.
     ```
     $ bin/stellar -z node1:2181
-
     [Stellar]>>> PROFILE_GET( "test", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [451, 448]
     ```
-
 
 ## Creating Profiles
 
