@@ -118,6 +118,7 @@ public class ProfileBuilder implements Serializable {
     Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> global)
             .build();
     StellarFunctions.initialize(context);
     this.executor.setContext(context);

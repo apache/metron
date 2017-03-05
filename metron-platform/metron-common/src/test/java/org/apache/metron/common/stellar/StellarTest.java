@@ -24,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +40,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.effectiveClassPathUrls;
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
@@ -48,9 +49,10 @@ public class StellarTest {
   @Test
   public void ensureDocumentation() {
     ClassLoader classLoader = getClass().getClassLoader();
-    Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
-    for (Class<?> clazz : reflections.getSubTypesOf(StellarFunction.class)) {
+    int numFound = 0;
+    for (Class<?> clazz : new ClasspathFunctionResolver().resolvables()) {
       if (clazz.isAnnotationPresent(Stellar.class)) {
+        numFound++;
         Stellar annotation = clazz.getAnnotation(Stellar.class);
         Assert.assertFalse("Must specify a name for " + clazz.getName(),StringUtils.isEmpty(annotation.name()));
         Assert.assertFalse("Must specify a description annotation for " + clazz.getName(),StringUtils.isEmpty(annotation.description()));
@@ -59,6 +61,7 @@ public class StellarTest {
         Assert.assertFalse("Must specify a returns annotation for " + clazz.getName(), StringUtils.isEmpty(annotation.returns()));
       }
     }
+    Assert.assertTrue(numFound > 0);
   }
 
   @Test

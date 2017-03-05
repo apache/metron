@@ -28,7 +28,10 @@ elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
 fi
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-export PARSERS_JAR=${project.artifactId}-$METRON_VERSION.jar
-export ZK_HOME=${ZK_HOME:-/usr/hdp/current/zookeeper-client}
-export ZK_CLIENT_JARS=${ZK_CLIENT_JARS:-$ZK_HOME/lib}
-java -cp $METRON_HOME/lib/$PARSERS_JAR:$ZK_CLIENT_JARS/* org.apache.metron.common.cli.ConfigurationManager "$@"
+export CLASSNAME="org.apache.metron.common.cli.ConfigurationManager"
+export JAR=metron-parsers-$METRON_VERSION-uber.jar
+export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
+
+CP=$METRON_HOME/lib/$JAR:${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`
+java -cp $CP $CLASSNAME "$@"
+

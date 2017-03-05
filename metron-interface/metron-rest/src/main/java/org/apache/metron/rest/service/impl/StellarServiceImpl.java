@@ -17,9 +17,12 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.common.stellar.StellarProcessor;
@@ -27,6 +30,7 @@ import org.apache.metron.rest.model.StellarFunctionDescription;
 import org.apache.metron.rest.model.SensorParserContext;
 import org.apache.metron.rest.service.StellarService;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -38,55 +42,67 @@ import java.util.stream.Collectors;
 @Service
 public class StellarServiceImpl implements StellarService {
 
-    @Override
-    public Map<String, Boolean> validateRules(List<String> rules) {
-        Map<String, Boolean> results = new HashMap<>();
-        StellarProcessor stellarProcessor = new StellarProcessor();
-        for(String rule: rules) {
-            try {
-                boolean result = stellarProcessor.validate(rule, Context.EMPTY_CONTEXT());
-                results.put(rule, result);
-            } catch (ParseException e) {
-                results.put(rule, false);
+  private CuratorFramework client;
+
+  @Autowired
+  public StellarServiceImpl(CuratorFramework client) {
+    this.client = client;
+    try {
+      ConfigurationsUtils.setupStellarStatically(this.client);
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to setup stellar statically: " + e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public Map<String, Boolean> validateRules(List<String> rules) {
+    Map<String, Boolean> results = new HashMap<>();
+    StellarProcessor stellarProcessor = new StellarProcessor();
+    for(String rule: rules) {
+      try {
+        boolean result = stellarProcessor.validate(rule, Context.EMPTY_CONTEXT());
+        results.put(rule, result);
+      } catch (ParseException e) {
+        results.put(rule, false);
+      }
+    }
+    return results;
+  }
+
+  @Override
+  public Map<String, Object> applyTransformations(SensorParserContext sensorParserContext) {
+    JSONObject sampleJson = new JSONObject(sensorParserContext.getSampleData());
+    sensorParserContext.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
+              fieldTransformer.transformAndUpdate(sampleJson, sensorParserContext.getSensorParserConfig().getParserConfig(), Context.EMPTY_CONTEXT());
             }
-        }
-        return results;
-    }
+    );
+    return sampleJson;
+  }
 
-    @Override
-    public Map<String, Object> applyTransformations(SensorParserContext sensorParserContext) {
-        JSONObject sampleJson = new JSONObject(sensorParserContext.getSampleData());
-        sensorParserContext.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
-                    fieldTransformer.transformAndUpdate(sampleJson, sensorParserContext.getSensorParserConfig().getParserConfig(), Context.EMPTY_CONTEXT());
-                }
-        );
-        return sampleJson;
-    }
+  @Override
+  public FieldTransformations[] getTransformations() {
+    return FieldTransformations.values();
+  }
 
-    @Override
-    public FieldTransformations[] getTransformations() {
-        return FieldTransformations.values();
-    }
+  @Override
+  public List<StellarFunctionDescription> getStellarFunctions() {
+    List<StellarFunctionDescription> stellarFunctionDescriptions = new ArrayList<>();
+    Iterable<StellarFunctionInfo> stellarFunctionsInfo = StellarFunctions.FUNCTION_RESOLVER().getFunctionInfo();
+    stellarFunctionsInfo.forEach(stellarFunctionInfo -> {
+      stellarFunctionDescriptions.add(new StellarFunctionDescription(
+              stellarFunctionInfo.getName(),
+              stellarFunctionInfo.getDescription(),
+              stellarFunctionInfo.getParams(),
+              stellarFunctionInfo.getReturns()));
+    });
+    return stellarFunctionDescriptions;
+  }
 
-    @Override
-    public List<StellarFunctionDescription> getStellarFunctions() {
-        List<StellarFunctionDescription> stellarFunctionDescriptions = new ArrayList<>();
-        Iterable<StellarFunctionInfo> stellarFunctionsInfo = SingletonFunctionResolver.getInstance().getFunctionInfo();
-        stellarFunctionsInfo.forEach(stellarFunctionInfo -> {
-            stellarFunctionDescriptions.add(new StellarFunctionDescription(
-                    stellarFunctionInfo.getName(),
-                    stellarFunctionInfo.getDescription(),
-                    stellarFunctionInfo.getParams(),
-                    stellarFunctionInfo.getReturns()));
-        });
-        return stellarFunctionDescriptions;
-    }
-
-    @Override
-    public List<StellarFunctionDescription> getSimpleStellarFunctions() {
-      List<StellarFunctionDescription> stellarFunctionDescriptions = getStellarFunctions();
-      return stellarFunctionDescriptions.stream().filter(stellarFunctionDescription ->
-              stellarFunctionDescription.getParams().length == 1).sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
-    }
+  @Override
+  public List<StellarFunctionDescription> getSimpleStellarFunctions() {
+    List<StellarFunctionDescription> stellarFunctionDescriptions = getStellarFunctions();
+    return stellarFunctionDescriptions.stream().filter(stellarFunctionDescription ->
+            stellarFunctionDescription.getParams().length == 1).sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
+  }
 
 }

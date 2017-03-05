@@ -21,6 +21,8 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
 
 import java.io.IOException;
 
@@ -40,6 +42,7 @@ public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt<Enrichment
   @Override
   public void loadConfig() {
     try {
+
       ConfigurationsUtils.updateEnrichmentConfigsFromZookeeper(getConfigurations(), client);
     } catch (Exception e) {
       LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
