@@ -18,6 +18,9 @@
 
 package org.apache.metron.common.stellar;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -25,6 +28,8 @@ import org.antlr.v4.runtime.TokenStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ErrorListener;
@@ -57,8 +62,20 @@ public class BaseStellarProcessor<T> {
   /**
    * @param clazz The class containing the type that the Stellar expression being processed will evaluate to.
    */
+  Cache<String, StellarCompiler.Expression> expressionCache;
+
   BaseStellarProcessor(final Class<T> clazz) {
     this.clazz = clazz;
+    CacheLoader<String, StellarCompiler.Expression> loader = new CacheLoader<String, StellarCompiler.Expression>() {
+      @Override
+      public StellarCompiler.Expression load(String key) throws Exception {
+        return compile(key);
+      }
+    };
+    expressionCache = CacheBuilder.newBuilder()
+                              .maximumSize(200)
+                              .expireAfterAccess(10, TimeUnit.MINUTES)
+                              .build(loader);
   }
 
   /**
@@ -71,28 +88,13 @@ public class BaseStellarProcessor<T> {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
-    ANTLRInputStream input = new ANTLRInputStream(rule);
-    StellarLexer lexer = new StellarLexer(input);
-    lexer.removeErrorListeners();
-    lexer.addErrorListener(new ErrorListener());
-    TokenStream tokens = new CommonTokenStream(lexer);
-    StellarParser parser = new StellarParser(tokens);
-    final Set<String> ret = new HashSet<>();
-    parser.addParseListener(new StellarBaseListener() {
-      @Override
-      public void exitVariable(final StellarParser.VariableContext ctx) {
-        ret.add(ctx.getText());
-      }
-      @Override
-      public void exitExistsFunc(final StellarParser.ExistsFuncContext ctx) {
-        String variable = ctx.getChild(2).getText();
-        ret.add(variable);
-      }
-    });
-    parser.removeErrorListeners();
-    parser.addErrorListener(new ErrorListener());
-    parser.transformation();
-    return ret;
+    StellarCompiler.Expression expression = null;
+    try {
+      expression = expressionCache.get(rule, () -> compile(rule));
+    } catch (ExecutionException e) {
+      throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
+    }
+    return expression.variablesUsed;
   }
 
   /**
@@ -104,6 +106,24 @@ public class BaseStellarProcessor<T> {
    * @return The value of the evaluated Stellar expression, {@code rule}.
    */
   public T parse(final String rule, final VariableResolver variableResolver, final FunctionResolver functionResolver, final Context context) {
+    StellarCompiler.Expression expression = null;
+    if (rule == null || isEmpty(rule.trim())) {
+      return null;
+    }
+    try {
+      expression = expressionCache.get(rule, () -> compile(rule));
+    } catch (ExecutionException e) {
+      throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
+    }
+    return clazz.cast(expression.apply(new StellarCompiler.ExpressionState(context, functionResolver, variableResolver)));
+  }
+
+  /**
+   * Parses and evaluates the given Stellar expression, {@code rule}.
+   * @param rule The Stellar expression to parse and evaluate.
+   * @return The Expression, which can be reevaluated without reparsing in different Contexts and Resolvers.
+   */
+  public StellarCompiler.Expression compile(final String rule) {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
@@ -115,7 +135,7 @@ public class BaseStellarProcessor<T> {
     TokenStream tokens = new CommonTokenStream(lexer);
     StellarParser parser = new StellarParser(tokens);
 
-    StellarInterpreter treeBuilder = new StellarInterpreter(variableResolver, functionResolver, context, new Stack<>(),
+    StellarCompiler treeBuilder = new StellarCompiler(
         ArithmeticEvaluator.INSTANCE,
         NumberLiteralEvaluator.INSTANCE,
         ComparisonExpressionWithOperatorEvaluator.INSTANCE
@@ -124,7 +144,7 @@ public class BaseStellarProcessor<T> {
     parser.removeErrorListeners();
     parser.addErrorListener(new ErrorListener());
     parser.transformation();
-    return clazz.cast(treeBuilder.getResult());
+    return treeBuilder.getExpression();
   }
 
   /**
