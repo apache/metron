@@ -64,7 +64,15 @@ public class BaseStellarProcessor<T> {
    */
   Cache<String, StellarCompiler.Expression> expressionCache;
 
+  public static final int DEFAULT_CACHE_SIZE = 500;
+  public static final int DEFAULT_EXPIRY_TIME = 10;
+  public static final TimeUnit DEFAULT_EXPIRY_TIME_UNITS = TimeUnit.MINUTES;
+
   BaseStellarProcessor(final Class<T> clazz) {
+    this(clazz, DEFAULT_CACHE_SIZE, DEFAULT_EXPIRY_TIME, DEFAULT_EXPIRY_TIME_UNITS);
+  }
+
+  BaseStellarProcessor(final Class<T> clazz, int cacheSize, int expiryTime, TimeUnit expiryUnit) {
     this.clazz = clazz;
     CacheLoader<String, StellarCompiler.Expression> loader = new CacheLoader<String, StellarCompiler.Expression>() {
       @Override
@@ -73,8 +81,8 @@ public class BaseStellarProcessor<T> {
       }
     };
     expressionCache = CacheBuilder.newBuilder()
-                              .maximumSize(200)
-                              .expireAfterAccess(10, TimeUnit.MINUTES)
+                              .maximumSize(cacheSize)
+                              .expireAfterAccess(expiryTime, expiryUnit)
                               .build(loader);
   }
 
