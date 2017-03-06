@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.stellar.microbenchmark;
+package org.apache.metron.common.stellar.benchmark;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
@@ -52,7 +52,7 @@ public class Microbenchmark {
     }
   }
 
-  public static String describe(DescriptiveStatistics stats, double[] percentiles){
+  public static String describe(DescriptiveStatistics stats, Double[] percentiles){
     StringBuilder sb = new StringBuilder();
     sb.append(String.format("round: mean of %dms [+-%d], measured %d rounds;\n",
             (long)stats.getMean(),
