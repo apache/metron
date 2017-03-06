@@ -45,7 +45,7 @@ public class StellarMicrobenchmark {
       out = new PrintWriter(new File(argv[2]));
     }
     for(String statement : lines) {
-      if(statement.trim().startsWith("#")) {
+      if(statement.trim().startsWith("#") || statement.trim().isEmpty()) {
         continue;
       }
       Microbenchmark.StellarStatement s = new Microbenchmark.StellarStatement();
