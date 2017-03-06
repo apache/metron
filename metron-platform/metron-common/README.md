@@ -781,6 +781,7 @@ This configuration is stored in zookeeper, but looks something like
   "es.ip": "node1",
   "es.port": "9300",
   "es.date.format": "yyyy.MM.dd.HH",
+  "parser.error.topic": "indexing"
   "fieldValidations" : [
               {
                 "input" : [ "ip_src_addr", "ip_dst_addr" ],
@@ -850,3 +851,39 @@ Usage examples:
 * To dump the existing configs from zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m DUMP`
 * To push the configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper`
 * To pull the configs from zookeeper to the singlenode vagrant machine disk: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PULL -o $METRON_HOME/config/zookeeper -f`
+
+# Topology Errors
+
+Errors generated in Metron topologies are transformed into JSON format and follow this structure:
+
+```
+{
+  "exception": "java.lang.IllegalStateException: Unable to parse Message: ...",
+  "failed_sensor_type": "bro",
+  "stack": "java.lang.IllegalStateException: Unable to parse Message: ...",
+  "hostname": "node1",
+  "source:type": "error",
+  "raw_message": "{\"http\": {\"ts\":1488809627.000000.31915,\"uid\":\"C9JpSd2vFAWo3mXKz1\", ...",
+  "error_hash": "f7baf053f2d3c801a01d196f40f3468e87eea81788b2567423030100865c5061",
+  "error_type": "parser_error",
+  "message": "Unable to parse Message: {\"http\": {\"ts\":1488809627.000000.31915,\"uid\":\"C9JpSd2vFAWo3mXKz1\", ...",
+  "timestamp": 1488809630698
+}
+```
+
+Each topology can be configured to send error messages to a specific Kafka topic.  The parser topologies retrieve this setting from the the `parser.error.topic` setting in the global config:
+```
+{
+  "es.clustername": "metron",
+  "es.ip": "node1",
+  "es.port": "9300",
+  "es.date.format": "yyyy.MM.dd.HH",
+  "parser.error.topic": "indexing"
+}
+```
+
+Error topics for enrichment and threat intel errors are passed into the enrichment topology as flux properties named `enrichment.error.topic` and `threat.intel.error.topic`.  These properties can be found in `$METRON_HOME/config/enrichment.properties`.
+  
+The error topic for indexing errors is passed into the indexing topology as a flux property named `index.error.topic`.  This property can be found in either `$METRON_HOME/config/elasticsearch.properties` or `$METRON_HOME/config/solr.properties` depending on the search engine selected.
+
+By default all error messages are sent to the `indexing` topic so that they are indexed and archived, just like other messages.  The indexing config for error messages can be found at `$METRON_HOME/config/zookeeper/indexing/error.json`.
