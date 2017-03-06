@@ -127,8 +127,6 @@ bolts:
         configMethods:
             -   name: "withMessageWriter"
                 args: [ref: "kafkaWriter"]
-            -   name: "withMessageGetter"
-                args: ["NAMED"]
 
 streams:
 
