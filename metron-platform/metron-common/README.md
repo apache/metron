@@ -640,6 +640,8 @@ Shell-like operations are supported such as
     happens in the background.  Until that happens, autocomplete will not include function names. 
 * emacs or vi keybindings for edit mode
 
+Note: Stellar classpath configuration from the global config is honored here if the REPL knows about zookeeper.
+
 ### Getting Started
 
 ```
@@ -688,6 +690,7 @@ work on it via the REPL.
 *Optional*
 
 Attempts to connect to Zookeeper and read the Metron global configuration.  Stellar functions may require the global configuration to work properly.  If found, the global configuration values are printed to the console.
+If specified, then the classpath may be augmented by the paths specified in the stellar config in the global config.
 
 ```
 $ $METRON_HOME/bin/stellar -z node1:2181
@@ -794,7 +797,55 @@ This configuration is stored in zookeeper, but looks something like
 }
 ```
 
-## Validation Framework
+# Stellar Configuration
+
+Stellar can be configured in a variety of ways from the global config.
+In particular, there are three main configuration parameters around configuring Stellar:
+* `stellar.function.paths`
+* `stellar.function.resolver.includes`
+* `stellar.function.resolver.excludes`
+
+## `stellar.function.paths`
+
+If specified, Stellar will use a custom classloader which will wrap the
+context classloader and allow for the resolution of classes stored in jars
+not shipped with Metron and stored in a variety of mediums:
+* On HDFS
+* In tar.gz files
+* At http/s locations
+* At ftp locations
+
+This path is a comma separated list of 
+* URIs
+* URIs with a regex pattern ending it for matching within a directory
+
+```json
+{
+ ...
+  "stellar.function.paths" : "hdfs://node1:8020/apps/metron/stellar/metron-management-0.3.1.jar, hdfs://node1:8020/apps/metron/3rdparty/.*.jar"
+}
+```
+
+Please be aware that this classloader does not reload functions dynamically
+and the classpath specified here in the global config is read on topology start.
+  A change in classpath, to be picked up, would necessitate a topology restart
+at the moment
+
+## `stellar.function.resolver.{includes,excludes}`
+
+If specified, this defines one or more regular expressions applied to the classes implementing the Stellar function
+that specify what should be included when searching for Stellar functions.
+* `stellar.function.resolver.includes` defines the list of classes to include.
+* `stellar.function.resolver.excludes` defines the list of classes to exclude.
+
+```json
+{
+ ...
+  "stellar.function.resolver.includes" : "org.apache.metron.*,com.myorg.stellar.*"
+}
+```
+
+# Validation Framework
 
 Inside of the global configuration, there is a validation framework in
 place that enables the validation that messages coming from all parsers

@@ -19,13 +19,18 @@
 package org.apache.metron.common.dsl.functions.resolver;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.vfs2.*;
 import org.apache.metron.common.dsl.Context;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Properties;
+import java.io.File;
+import java.util.*;
+
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 public class ClasspathFunctionResolverTest {
 
@@ -36,9 +41,6 @@ public class ClasspathFunctionResolverTest {
 
     // search the entire classpath for functions - provides a baseline to test against
     Properties config = new Properties();
-    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "");
-    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_EXCLUDES_KEY, "");
-
     // use a permissive regex that should not filter anything
     ClasspathFunctionResolver resolver = create(config);
 
@@ -65,7 +67,7 @@ public class ClasspathFunctionResolverTest {
 
     // setup - include all `org.apache.metron.*` functions
     Properties config = new Properties();
-    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.*");
+    config.put(STELLAR_SEARCH_INCLUDES_KEY.param(), "org.apache.metron.*");
 
     // execute
     ClasspathFunctionResolver resolver = create(config);
@@ -80,7 +82,7 @@ public class ClasspathFunctionResolverTest {
 
     // setup - include all of the common and management functions, which is most of them
     Properties config = new Properties();
-    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.common.*, org.apache.metron.management.*");
+    config.put(STELLAR_SEARCH_INCLUDES_KEY.param(), "org.apache.metron.common.*, org.apache.metron.management.*");
 
     // execute
     ClasspathFunctionResolver resolver = create(config);
@@ -96,7 +98,7 @@ public class ClasspathFunctionResolverTest {
 
     // setup - exclude all `org.apache.metron.*` functions
     Properties config = new Properties();
-    config.put(ClasspathFunctionResolver.STELLAR_SEARCH_EXCLUDES_KEY, "org.apache.metron.*");
+    config.put(STELLAR_SEARCH_EXCLUDES_KEY.param(), "org.apache.metron.*");
 
     // use a permissive regex that should not filter anything
     ClasspathFunctionResolver resolver = create(config);
@@ -106,4 +108,28 @@ public class ClasspathFunctionResolverTest {
     Assert.assertEquals(0, actual.size());
   }
 
+  @Test
+  public void testExternalLocal() throws FileSystemException, ClassNotFoundException {
+    File jar = new File("src/test/classpath-resources");
+    Assert.assertTrue(jar.exists());
+    Properties config = new Properties();
+    config.put(STELLAR_VFS_PATHS.param(), jar.toURI() + "/.*.jar");
+
+    ClasspathFunctionResolver resolver = create(config);
+    HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
+    Assert.assertTrue(functions.contains("NOW"));
+  }
+
+
+  @Test
+  public void testExternalHDFS() throws FileSystemException, ClassNotFoundException {
+    File jar = new File("src/test/classpath-resources");
+    Assert.assertTrue(jar.exists());
+    Properties config = new Properties();
+    config.put(STELLAR_VFS_PATHS.param(), jar.toURI() + "/.*.jar");
+
+    ClasspathFunctionResolver resolver = create(config);
+    HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
+    Assert.assertTrue(functions.contains("NOW"));
+  }
 }
