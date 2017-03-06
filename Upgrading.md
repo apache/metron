@@ -152,3 +152,11 @@ into a separate function.  The consequence is that existing calls to
 
 Existing calls to `PROFILE_GET` will need to change from `PROFILE_GET('profile', 'entity', duration, 'durationUnits')` to `PROFILE_GET('profile', 'entity', PROFILE_FIXED(duration, 'durationUnits'))`
 
+## 0.3.1 to PLACEHOLDER
+
+### [METRON-671: Refactor existing Ansible deployment to use Ambari MPack](https://issues.apache.org/jira/browse/METRON-671)
+
+#### Description
+Since the Ansible Deployment uses the MPack, RPMs must be built prior to deployment. As a result,
+[Docker](https://www.docker.com/) is required to perform a Quick-Dev, Full-Dev or Ansible deployment.
+This effectively limits the build environment to Docker supported [platforms](https://docs.docker.com/engine/installation/#platform-support-matrix).
