@@ -1,3 +1,9 @@
+## Contributor Comments
+[Please place any comments here.  A description of the problem/enhancement, how to reproduce the issue, your testing methodology, etc.]
+
+
+## Pull Request Checklist
+
 Thank you for submitting a contribution to Apache Metron (Incubating).  
 Please refer to our [Development Guidelines](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=61332235) for the complete guide to follow for contributions.  
 Please refer also to our [Build Verification Guidelines](https://cwiki.apache.org/confluence/display/METRON/Verifying+Builds?show-miniview) for complete smoke testing guides.  
@@ -35,7 +41,4 @@ In order to streamline the review of the contribution we ask you follow these gu
 #### Note:
 Please ensure that once the PR is submitted, you check travis-ci for build issues and submit an update to your PR as soon as possible.
 It is also recommened that [travis-ci](https://travis-ci.org) is set up for your personal repository such that your branches are built there before submitting a pull request.
-
-## Contributor Comments
-[Please place any additional comments here.]
 
