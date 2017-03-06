@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.bolt;
 
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.base.BaseRichBolt;
@@ -75,6 +76,10 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
       }
       client.start();
 
+      //this is temporary to ensure that any validation passes.
+      //The individual bolt will reinitialize stellar to dynamically pull from
+      //zookeeper.
+      ConfigurationsUtils.setupStellarStatically(client);
       if (cache == null) {
         cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
         TreeCacheListener listener = new TreeCacheListener() {

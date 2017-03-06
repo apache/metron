@@ -67,7 +67,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    * Returns a set of classes that should undergo further interrogation for resolution
    * (aka discovery) of Stellar functions.
    */
-  protected abstract Set<Class<? extends StellarFunction>> resolvables();
+  public abstract Set<Class<? extends StellarFunction>> resolvables();
 
   /**
    * Provides metadata about each Stellar function that is resolvable.
@@ -119,11 +119,10 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
     for(Class<? extends StellarFunction> clazz : resolvables()) {
       StellarFunctionInfo fn = resolveFunction(clazz);
       if(fn != null) {
-
         // check for duplicate function names
         StellarFunctionInfo fnSameName = functions.get(fn.getName());
         if (fnSameName != null && ObjectUtils.notEqual(fnSameName, fn)) {
-          throw new IllegalStateException(format(
+          LOG.warn(format(
                   "Namespace conflict: duplicate function names; `%s` implemented by [%s, %s]",
                   fn.getName(), fnSameName.getFunction(), fn.getFunction()));
         }
