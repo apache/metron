@@ -24,13 +24,14 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
+  public static final String BATCH_TIMEOUT_CONF = "batchTimeout";
   public static final String ENABLED_CONF = "enabled";
   public static final String INDEX_CONF = "index";
+  private static final String SENSOR_MARKER_STRING = "zzzxxxFOOzzzxxx";
 
   public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
     Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
@@ -73,7 +74,26 @@ public class IndexingConfigurations extends Configurations {
   }
 
   public int getBatchSize(String sensorName, String writerName ) {
-     return getBatchSize(getSensorIndexingConfig(sensorName, writerName));
+    return getBatchSize(getSensorIndexingConfig(sensorName, writerName));
+  }
+
+  public int getBatchTimeout(String sensorName, String writerName ) {
+    return getBatchTimeout(getSensorIndexingConfig(sensorName, writerName));
+  }
+
+  public List<Integer> getAllConfiguredTimeouts(String writerName) {
+    //The configuration infrastructure was not designed to enumerate sensors, so we synthesize.
+    String markerKeyString = getKey(SENSOR_MARKER_STRING);
+    int prefixStringLength = markerKeyString.indexOf(SENSOR_MARKER_STRING);
+    String keyPrefixString = markerKeyString.substring(0, prefixStringLength);
+    List<Integer> configuredBatchTimeouts = new ArrayList<>();
+    for (String sensorKeyString : configurations.keySet()) {
+      if (sensorKeyString.startsWith(keyPrefixString)) {
+        String configuredSensorName = sensorKeyString.substring(prefixStringLength);
+        configuredBatchTimeouts.add(getBatchTimeout(configuredSensorName, writerName));
+      }
+    }
+    return configuredBatchTimeouts;
   }
 
   public String getIndex(String sensorName, String writerName) {
@@ -100,6 +120,14 @@ public class IndexingConfigurations extends Configurations {
                 );
   }
 
+  public static int getBatchTimeout(Map<String, Object> conf) {
+    return getAs( BATCH_TIMEOUT_CONF
+                 ,conf
+                , 0
+                , Integer.class
+                );
+  }
+
   public static String getIndex(Map<String, Object> conf, String sensorName) {
     return getAs( INDEX_CONF
                  ,conf
@@ -116,6 +144,12 @@ public class IndexingConfigurations extends Configurations {
   public static Map<String, Object> setBatchSize(Map<String, Object> conf, int batchSize) {
     Map<String, Object> ret = conf == null?new HashMap<>():conf;
     ret.put(BATCH_SIZE_CONF, batchSize);
+    return ret;
+  }
+
+  public static Map<String, Object> setBatchTimeout(Map<String, Object> conf, int batchTimeout) {
+    Map<String, Object> ret = conf == null?new HashMap<>():conf;
+    ret.put(BATCH_TIMEOUT_CONF, batchTimeout);
     return ret;
   }
 

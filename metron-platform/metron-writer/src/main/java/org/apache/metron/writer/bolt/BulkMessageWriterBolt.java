@@ -18,11 +18,13 @@
 package org.apache.metron.writer.bolt;
 
 import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
+import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import static org.apache.storm.utils.TupleUtils.isTick;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -49,7 +51,10 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   private String messageGetterStr = MessageGetters.NAMED.name();
   private transient MessageGetter messageGetter = null;
   private transient OutputCollector collector;
-  private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation;
+  private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation = null;
+  private BatchTimeoutHelper timeoutHelper = null;
+  private int batchTimeoutDivisor = 1;
+
   public BulkMessageWriterBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
@@ -69,6 +74,55 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return this;
   }
 
+  /**
+   * If this BulkMessageWriterBolt is in a topology where it is daisy-chained with
+   * other queuing Writers, then the max amount of time it takes for a tuple
+   * to clear the whole topology is the sum of all the batchTimeouts for all the
+   * daisy-chained Writers.  In the common case where each Writer is using the default
+   * batchTimeout, it is then necessary to divide that batchTimeout by the number of
+   * daisy-chained Writers.  For example, the Enrichment and Threat Intel features
+   * both use a BulkMessageWriterBolt, but are in a single topology, so one would
+   * initialize those Bolts withBatchTimeoutDivisor(2).  Default value, if not set, is 1.
+   *
+   * If non-default batchTimeouts are configured for some components, the administrator
+   * will want to take this behavior into account.
+   *
+   * @param batchTimeoutDivisor
+   * @return
+   */
+  public BulkMessageWriterBolt withBatchTimeoutDivisor(int batchTimeoutDivisor) {
+    this.batchTimeoutDivisor = batchTimeoutDivisor;
+    return this;
+  }
+
+  @Override
+  public Map<String, Object> getComponentConfiguration() {
+    // configure how often a tick tuple will be sent to our bolt
+    if (timeoutHelper == null) {
+      // Not sure if called before or after prepare(), so do some of the same stuff as prepare() does,
+      // to get the valid WriterConfiguration:
+      if(bulkMessageWriter instanceof WriterToBulkWriter) {
+        configurationTransformation = WriterToBulkWriter.TRANSFORMATION;
+      }
+      else {
+        configurationTransformation = x -> x;
+      }
+      WriterConfiguration wrconf = configurationTransformation.apply(
+              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+
+      timeoutHelper = new BatchTimeoutHelper(wrconf::getAllConfiguredTimeouts, batchTimeoutDivisor);
+    }
+    int requestedTickFreqSecs = timeoutHelper.getRecommendedTickInterval();
+
+    Map<String, Object> conf = super.getComponentConfiguration();
+    if (conf == null) {
+      conf = new HashMap<String, Object>();
+    }
+    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, requestedTickFreqSecs);
+    LOG.info("Requesting " + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + " set to " + Integer.toString(requestedTickFreqSecs));
+    return conf;
+  }
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.writerComponent = new BulkWriterComponent<>(collector);
@@ -83,8 +137,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     }
     try {
       bulkMessageWriter.init(stormConf
-                            , configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
-                            );
+              , configurationTransformation.apply(
+                      new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations())));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -93,11 +147,23 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = messageGetter.getMessage(tuple);
-    String sensorType = MessageUtils.getSensorType(message);
     try
     {
-      WriterConfiguration writerConfiguration = configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
+      if (isTick(tuple)) {
+        if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
+          //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
+          LOG.debug("Flushing message queues older than their batchTimeouts");
+          writerComponent.flushTimeouts(bulkMessageWriter, configurationTransformation.apply(
+                  new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations())));
+        }
+        return;
+      }
+
+      JSONObject message = messageGetter.getMessage(tuple);
+      String sensorType = MessageUtils.getSensorType(message);
+      LOG.trace("Writing enrichment message: {}", message);
+      WriterConfiguration writerConfiguration = configurationTransformation.apply(
+              new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()));
       if(writerConfiguration.isDefault(sensorType)) {
         //want to warn, but not fail the tuple
         collector.reportError(new Exception("WARNING: Default and (likely) unoptimized writer config used for " + bulkMessageWriter.getName() + " writer and sensor " + sensorType));
@@ -108,7 +174,6 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
                            , bulkMessageWriter
                            , writerConfiguration
                            );
-      LOG.trace("Writing enrichment message: {}", message);
     }
     catch(Exception e) {
       throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);

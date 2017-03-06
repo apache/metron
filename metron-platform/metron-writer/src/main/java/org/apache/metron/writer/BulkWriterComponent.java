@@ -30,15 +30,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
             .getLogger(BulkWriterComponent.class);
   private Map<String, Collection<Tuple>> sensorTupleMap = new HashMap<>();
   private Map<String, List<MESSAGE_T>> sensorMessageMap = new HashMap<>();
+  private Map<String, Long> batchLastCreateTimeNs = new HashMap<>();
   private OutputCollector collector;
   private boolean handleCommit = true;
   private boolean handleError = true;
+
   public BulkWriterComponent(OutputCollector collector) {
     this.collector = collector;
   }
@@ -79,7 +82,6 @@ public class BulkWriterComponent<MESSAGE_T> {
     return new ArrayList<>();
   }
 
-
   public void errorAll(Throwable e) {
     for(Map.Entry<String, Collection<Tuple>> kv : sensorTupleMap.entrySet()) {
       error(e, kv.getValue());
@@ -93,6 +95,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     sensorTupleMap.remove(sensorType);
     sensorMessageMap.remove(sensorType);
   }
+
   public void write( String sensorType
                    , Tuple tuple
                    , MESSAGE_T message
@@ -100,54 +103,90 @@ public class BulkWriterComponent<MESSAGE_T> {
                    , WriterConfiguration configurations
                    ) throws Exception
   {
-    if(!configurations.isEnabled(sensorType)) {
+    if (!configurations.isEnabled(sensorType)) {
       return;
     }
     int batchSize = configurations.getBatchSize(sensorType);
     Collection<Tuple> tupleList = sensorTupleMap.get(sensorType);
     if (tupleList == null) {
       tupleList = createTupleCollection();
+      if (batchSize > 1) {
+        sensorTupleMap.put(sensorType, tupleList);
+        batchLastCreateTimeNs.put(sensorType, System.nanoTime());
+      }
     }
     tupleList.add(tuple);
     List<MESSAGE_T> messageList = sensorMessageMap.get(sensorType);
     if (messageList == null) {
       messageList = new ArrayList<>();
+      if (batchSize > 1) {
+        sensorMessageMap.put(sensorType, messageList);
+      }
     }
     messageList.add(message);
 
-    if (tupleList.size() < batchSize) {
-      sensorTupleMap.put(sensorType, tupleList);
-      sensorMessageMap.put(sensorType, messageList);
-    } else {
-      long startTime = System.nanoTime();
-      try {
-        BulkWriterResponse response = bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
+    if (tupleList.size() >= batchSize) {
+      flush(sensorType, bulkMessageWriter, configurations, tupleList, messageList);
+    }
+  }
 
-        // Commit or error piecemeal.
-        if(handleCommit) {
-          commit(response);
-        }
+  private void flush( String sensorType
+                    , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
+                    , WriterConfiguration configurations
+                    , Collection<Tuple> tupleList
+                    , List<MESSAGE_T> messageList
+                    ) throws Exception
+  {
+    long startTime = System.nanoTime();
+    try {
+      BulkWriterResponse response = bulkMessageWriter.write(sensorType, configurations, tupleList, messageList);
 
-        if(handleError) {
-          error(response);
-        } else if (response.hasErrors()) {
-          throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
-        }
-      } catch (Throwable e) {
-        if(handleError) {
-          error(e, tupleList);
-        }
-        else {
-          throw e;
-        }
+      // Commit or error piecemeal.
+      if(handleCommit) {
+        commit(response);
       }
-      finally {
-        sensorTupleMap.remove(sensorType);
-        sensorMessageMap.remove(sensorType);
+
+      if(handleError) {
+        error(response);
+      } else if (response.hasErrors()) {
+        throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
       }
-      long endTime = System.nanoTime();
-      long elapsed = endTime - startTime;
-      LOG.debug("Bulk batch completed in ~" + elapsed + " ns");
+    } catch (Throwable e) {
+      if(handleError) {
+        error(e, tupleList);
+      }
+      else {
+        throw e;
+      }
+    }
+    finally {
+      sensorTupleMap.remove(sensorType);
+      sensorMessageMap.remove(sensorType);
+    }
+    long endTime = System.nanoTime();
+    long elapsed = endTime - startTime;
+    LOG.debug("Bulk batch for sensor " + sensorType + " completed in ~" + elapsed + " ns");
+  }
+
+  public void flushTimeouts(
+            BulkMessageWriter<MESSAGE_T> bulkMessageWriter
+          , WriterConfiguration configurations
+          ) throws Exception
+  {
+    // Flushes all queues older than their batchTimeouts.
+    // This strategy does not guarantee each queue to be flushed at the exact batchTimeout.  Rather,
+    // the latency will be between the sensorType's batchTimeout and batchTimeout + tick.tuple.freq.secs.
+    // Note queues with batchSize == 1 don't get batched, so they never persist in the sensorTupleMap.
+    for (String sensorType : sensorTupleMap.keySet()) {
+      int batchTimeout = configurations.getBatchTimeout(sensorType);
+      Long batchCreateTime = batchLastCreateTimeNs.get(sensorType);
+      if (batchCreateTime == null) batchCreateTime = 0L; //shouldn't happen
+      long ageNs = System.nanoTime() - batchCreateTime;
+      if (ageNs >= TimeUnit.SECONDS.toNanos(batchTimeout)) {
+        LOG.debug("Flushing " + sensorType + " batch queue due to age " + ageNs + "ns > " + batchTimeout + " secs");
+        flush(sensorType, bulkMessageWriter, configurations,
+                sensorTupleMap.get(sensorType), sensorMessageMap.get(sensorType));
+      }
     }
   }
 }
