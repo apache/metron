@@ -43,7 +43,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ArithmeticEvaluator.class, NumberLiteralEvaluator.class, ComparisonExpressionWithOperatorEvaluator.class})
-public class StellarCompilerTest {
+public class StellarInterpreterTest {
   VariableResolver variableResolver;
   FunctionResolver functionResolver;
   Context context;
@@ -51,7 +51,7 @@ public class StellarCompilerTest {
   ArithmeticEvaluator arithmeticEvaluator;
   NumberLiteralEvaluator numberLiteralEvaluator;
   ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
-  StellarCompiler compiler;
+  StellarInterpreter compiler;
 
   @SuppressWarnings("unchecked")
   @Before
@@ -64,7 +64,7 @@ public class StellarCompilerTest {
     numberLiteralEvaluator = mock(NumberLiteralEvaluator.class);
     comparisonExpressionWithOperatorEvaluator = mock(ComparisonExpressionWithOperatorEvaluator.class);
 
-    compiler = new StellarCompiler(variableResolver, functionResolver, context, tokenStack, arithmeticEvaluator, numberLiteralEvaluator, comparisonExpressionWithOperatorEvaluator);
+    compiler = new StellarInterpreter(variableResolver, functionResolver, context, tokenStack, arithmeticEvaluator, numberLiteralEvaluator, comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test

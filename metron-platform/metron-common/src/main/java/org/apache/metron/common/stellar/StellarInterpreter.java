@@ -46,7 +46,7 @@ import java.util.Stack;
 
 import static java.lang.String.format;
 
-public class StellarCompiler extends StellarBaseListener {
+public class StellarInterpreter extends StellarBaseListener {
 
   private final Context context;
   private final Stack<Token<?>> tokenStack;
@@ -57,13 +57,13 @@ public class StellarCompiler extends StellarBaseListener {
   private final NumberLiteralEvaluator numberLiteralEvaluator;
   private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
-  public StellarCompiler(final VariableResolver variableResolver,
-                         final FunctionResolver functionResolver,
-                         final Context context,
-                         final Stack<Token<?>> tokenStack,
-                         final ArithmeticEvaluator arithmeticEvaluator,
-                         final NumberLiteralEvaluator numberLiteralEvaluator,
-                         final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator) {
+  public StellarInterpreter(final VariableResolver variableResolver,
+                            final FunctionResolver functionResolver,
+                            final Context context,
+                            final Stack<Token<?>> tokenStack,
+                            final ArithmeticEvaluator arithmeticEvaluator,
+                            final NumberLiteralEvaluator numberLiteralEvaluator,
+                            final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator) {
     this.variableResolver = variableResolver;
     this.functionResolver = functionResolver;
     this.context = context;

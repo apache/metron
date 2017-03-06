@@ -115,7 +115,7 @@ public class BaseStellarProcessor<T> {
     TokenStream tokens = new CommonTokenStream(lexer);
     StellarParser parser = new StellarParser(tokens);
 
-    StellarCompiler treeBuilder = new StellarCompiler(variableResolver, functionResolver, context, new Stack<>(),
+    StellarInterpreter treeBuilder = new StellarInterpreter(variableResolver, functionResolver, context, new Stack<>(),
         ArithmeticEvaluator.INSTANCE,
         NumberLiteralEvaluator.INSTANCE,
         ComparisonExpressionWithOperatorEvaluator.INSTANCE
