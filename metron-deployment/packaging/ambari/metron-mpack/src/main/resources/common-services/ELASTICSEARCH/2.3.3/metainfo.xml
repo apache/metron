@@ -39,7 +39,7 @@
                     <name>ES_SLAVE</name>
                     <displayName>Elasticsearch Data Node</displayName>
                     <category>SLAVE</category>
-                    <cardinality>3+</cardinality>
+                    <cardinality>0+</cardinality>
                     <commandScript>
                         <script>scripts/elastic_slave.py</script>
                         <scriptType>PYTHON</scriptType>
@@ -68,6 +68,12 @@
                 <config-type>elastic-sysconfig</config-type>
             </configuration-dependencies>
             <restartRequiredAfterChange>true</restartRequiredAfterChange>
+            <quickLinksConfigurations>
+                <quickLinksConfiguration>
+                    <fileName>quicklinks.json</fileName>
+                    <default>true</default>
+                </quickLinksConfiguration>
+            </quickLinksConfigurations>
         </service>
     </services>
 </metainfo>

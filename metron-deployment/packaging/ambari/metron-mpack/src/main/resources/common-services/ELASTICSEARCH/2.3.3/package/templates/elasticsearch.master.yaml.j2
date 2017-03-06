@@ -28,12 +28,12 @@ discovery:
   zen:
     ping:
       multicast:
-        enabled: {{discovery_zen_ping_multicast_enabled}}
+        enabled: {{discovery_zen_ping_multicast_enabled and not single_node_elasticsearch }}
       unicast:
-        hosts: "{{zen_discovery_ping_unicast_hosts}}"
+        hosts: [ {{zen_discovery_ping_unicast_hosts}} ]
 
 node:
-  data: false
+  data: {{ masters_also_are_datanodes or single_node_elasticsearch }}
   master: true
   name: {{hostname}}
 path:
@@ -54,11 +54,11 @@ gateway:
   
 index:
   number_of_shards: {{index_number_of_shards}}
+  number_of_replicas: {{index_number_of_replicas}}
   merge.scheduler.max_thread_count: {{index_merge_scheduler_max_thread_count}}
   translog.flush_threshold_size: {{index_translog_flush_threshold_size}}
   refresh_interval: {{index_refresh_interval}}
-  number_of_replicas: {{index_number_of_replicas}}
- 
+
 indices:
   memory:
    index_buffer_size: {{indices_memory_index_buffer_size}}
@@ -81,4 +81,4 @@ discovery.zen.fd.ping_interval: {{discovery_zen_fd_ping_interval}}
 discovery.zen.fd.ping_timeout: {{discovery_zen_fd_ping_timeout}}
 discovery.zen.fd.ping_retries: {{discovery_zen_fd_ping_retries}}
 
-network.host: {{network_host}}
+network.host: [ {{network_host}} ]

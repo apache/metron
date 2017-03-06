@@ -26,7 +26,7 @@ config = Script.get_config()
 elastic_home = config['configurations']['elastic-sysconfig']['elastic_home']
 data_dir = config['configurations']['elastic-sysconfig']['data_dir']
 work_dir = config['configurations']['elastic-sysconfig']['work_dir']
-conf_dir = config['configurations']['elastic-sysconfig']['conf_dir']
+conf_dir = config['configurations']['elastic-env']['conf_dir']
 heap_size = config['configurations']['elastic-sysconfig']['heap_size']
 max_open_files = config['configurations']['elastic-sysconfig']['max_open_files']
 max_map_count = config['configurations']['elastic-sysconfig']['max_map_count']
@@ -34,15 +34,17 @@ max_map_count = config['configurations']['elastic-sysconfig']['max_map_count']
 elastic_user = config['configurations']['elastic-env']['elastic_user']
 user_group = config['configurations']['elastic-env']['user_group']
 log_dir = config['configurations']['elastic-env']['elastic_log_dir']
-pid_dir = '/var/run/elasticsearch'
-pid_file = '/var/run/elasticsearch/elasticsearch.pid'
+pid_dir = config['configurations']['elastic-sysconfig']['elastic_pid_dir']
+
 hostname = config['hostname']
 java64_home = config['hostLevelParams']['java_home']
 elastic_env_sh_template = config['configurations']['elastic-env']['content']
 sysconfig_template = config['configurations']['elastic-sysconfig']['content']
 
-cluster_name = config['configurations']['elastic-site']['cluster_name']
-zen_discovery_ping_unicast_hosts = config['configurations']['elastic-site']['zen_discovery_ping_unicast_hosts']
+cluster_name = config['configurations']['elastic-site']['es_cluster_name']
+single_node_elasticsearch = config['configurations']['elastic-site']['single_node_elasticsearch']
+masters_also_are_datanodes = config['configurations']['elastic-site']['masters_also_are_datanodes']
+zen_discovery_ping_unicast_hosts = config['configurations']['elastic-site']['es_cluster_hosts']
 
 path_data = config['configurations']['elastic-site']['path_data']
 http_cors_enabled = config['configurations']['elastic-site']['http_cors_enabled']
@@ -75,4 +77,4 @@ discovery_zen_fd_ping_interval = config['configurations']['elastic-site']['disco
 discovery_zen_fd_ping_timeout = config['configurations']['elastic-site']['discovery_zen_fd_ping_timeout']
 discovery_zen_fd_ping_retries = config['configurations']['elastic-site']['discovery_zen_fd_ping_retries']
 
-network_host = config['configurations']['elastic-site']['network_host']
+network_host = config['configurations']['elastic-site']['network_bindings']
