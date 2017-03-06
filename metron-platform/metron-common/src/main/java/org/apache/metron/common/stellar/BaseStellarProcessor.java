@@ -21,6 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -120,7 +121,7 @@ public class BaseStellarProcessor<T> {
     }
     try {
       expression = expressionCache.get(rule, () -> compile(rule));
-    } catch (ExecutionException e) {
+    } catch (ExecutionException|UncheckedExecutionException e) {
       throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
     }
     return clazz.cast(expression.apply(new StellarCompiler.ExpressionState(context, functionResolver, variableResolver)));
