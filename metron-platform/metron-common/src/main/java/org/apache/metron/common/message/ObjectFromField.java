@@ -15,23 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.writer.message;
-
+package org.apache.metron.common.message;
 
 import org.apache.storm.tuple.Tuple;
-import org.json.simple.JSONObject;
 
-public enum MessageGetters implements MessageGetter{
-   RAW(RawMessageGetter.DEFAULT)
-  ,NAMED(NamedMessageGetter.DEFAULT)
-  ;
-  MessageGetter getter;
-  MessageGetters(MessageGetter getter) {
-    this.getter = getter;
+public class ObjectFromField implements MessageGetStrategy {
+
+  private String fieldValue = "message";
+
+  public ObjectFromField() {};
+
+  public ObjectFromField(String fieldValue) {
+    this.fieldValue = fieldValue;
   }
+
   @Override
-  public JSONObject getMessage(Tuple t) {
-    return getter.getMessage(t);
+  public Object get(Tuple tuple) {
+    return tuple.getValueByField(fieldValue);
   }
 }

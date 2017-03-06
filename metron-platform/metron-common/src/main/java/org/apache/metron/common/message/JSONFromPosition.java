@@ -15,20 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.writer.message;
+package org.apache.metron.common.message;
 
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-public class NamedMessageGetter implements MessageGetter {
-  public static NamedMessageGetter DEFAULT = new NamedMessageGetter("message");
-  private String messageName;
-  public NamedMessageGetter(String name) {
-    this.messageName = name;
+public class JSONFromPosition implements MessageGetStrategy {
+
+  private int position = 0;
+
+  private ThreadLocal<JSONParser> parser = new ThreadLocal<JSONParser>() {
+    @Override
+    protected JSONParser initialValue() {
+      return new JSONParser();
+    }
+  };
+
+  public JSONFromPosition() {};
+
+  public JSONFromPosition(int position) {
+    this.position = position;
   }
+
   @Override
-  public JSONObject getMessage(Tuple tuple) {
-    return (JSONObject)tuple.getValueByField(messageName);
+  public JSONObject get(Tuple tuple) {
+    try {
+      return (JSONObject) parser.get().parse(new String(tuple.getBinary(position), "UTF8"));
+    } catch (Exception e) {
+      throw new IllegalStateException(e.getMessage(), e);
+    }
   }
 }

@@ -17,30 +17,17 @@
  */
 package org.apache.metron.common.utils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Values;
-import org.apache.commons.beanutils.Converter;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.common.Constants;
-import org.json.simple.JSONObject;
+import org.apache.metron.common.error.MetronError;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -102,73 +89,15 @@ public class ErrorUtils {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static JSONObject generateErrorMessage(String message, Throwable t)
+  public static void handleError(OutputCollector collector, MetronError error)
   {
-    return generateErrorMessage(message, t, Optional.empty(), Optional.empty());
-  }
-  public static JSONObject generateErrorMessage(String message
-                                               , Throwable t
-                                               , Optional<String> sensorType
-                                               , Optional<Object> rawMessage
-                                               )
-  {
-    JSONObject error_message = new JSONObject();
-		
-		/*
-     * Save full stack trace in object.
-		 */
-    String stackTrace = ExceptionUtils.getStackTrace(t);
-
-    String exception = t.toString();
-
-
-    error_message.put("time", System.currentTimeMillis());
-    try {
-      error_message.put("hostname", InetAddress.getLocalHost().getHostName());
-    } catch (UnknownHostException ex) {
-
+    collector.emit(Constants.ERROR_STREAM, new Values(error.getJSONObject()));
+    Optional<Throwable> throwable = error.getThrowable();
+    if (throwable.isPresent()) {
+      collector.reportError(throwable.get());
     }
-    if(rawMessage.isPresent()) {
-      if(rawMessage.get() instanceof byte[]) {
-        error_message.put("rawMessage", Bytes.toString((byte[])rawMessage.get()));
-        error_message.put("rawMessage_bytes", toByteArrayList((byte[])rawMessage.get()));
-      }
-      else {
-        error_message.put("rawMessage", rawMessage.get());
-      }
-    }
-    error_message.put("message", message);
-    error_message.put(Constants.SENSOR_TYPE, StringUtils.join("_", sensorType, Optional.of("error")));
-    error_message.put("exception", exception);
-    error_message.put("stack", stackTrace);
 
-    return error_message;
   }
-
-  private static List<Byte> toByteArrayList(byte[] list) {
-    List<Byte> ret = new ArrayList<>();
-    for(byte b : list) {
-      ret.add(b);
-    }
-    return ret;
-  }
-
-  public static void handleError(OutputCollector collector, Throwable t, String errorStream) {
-    handleError(collector, t, errorStream, Optional.empty(), Optional.empty());
-  }
-  public static void handleError(OutputCollector collector
-                                , Throwable t
-                                , String errorStream
-                                , Optional<String> sensorType
-                                , Optional<Object> rawMessage
-                                )
-  {
-    JSONObject error = ErrorUtils.generateErrorMessage(t.getMessage(), t, sensorType, rawMessage);
-    collector.emit(errorStream, new Values(error));
-    collector.reportError(t);
-  }
-
 
 	public static String generateThreadDump() {
 		final StringBuilder dump = new StringBuilder();

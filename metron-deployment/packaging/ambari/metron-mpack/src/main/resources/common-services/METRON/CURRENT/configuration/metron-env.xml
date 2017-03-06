@@ -150,7 +150,8 @@
 {
 "es.clustername": "{{ es_cluster_name }}",
 "es.ip": "{{ es_url }}",
-"es.date.format": "yyyy.MM.dd.HH"
+"es.date.format": "yyyy.MM.dd.HH",
+"parser.error.topic": "indexing"
 }
         </value>
         <value-attributes>
@@ -171,7 +172,7 @@ kafka.broker={{ kafka_brokers }}
 kafka.start=WHERE_I_LEFT_OFF
 ##### Indexing #####
 index.input.topic=indexing
-index.error.topic=indexing_error
+index.error.topic=indexing
 writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
 ##### Metrics #####
 #reporters

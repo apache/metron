@@ -66,6 +66,8 @@ public class FieldValidator implements Serializable {
         for(Object inputO : (List<Object>)inputObj) {
           input.add(inputO.toString());
         }
+      } else {
+        input = new ArrayList<>();
       }
       config = Config.CONFIG.get(validatorConfig, Map.class);
       if(config == null) {

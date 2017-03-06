@@ -30,10 +30,8 @@ public class KafkaProcessor<T> implements Processor<T> {
     private String kafkaComponentName;
     private String readTopic;
     private String errorTopic;
-    private String invalidTopic;
     private List<byte[]> messages = new LinkedList<>();
     private List<byte[]> errors = new LinkedList<>();
-    private List<byte[]> invalids = new LinkedList<>();
 
     public KafkaProcessor(){}
     public KafkaProcessor withKafkaComponentName(String name){
@@ -46,10 +44,6 @@ public class KafkaProcessor<T> implements Processor<T> {
     }
     public KafkaProcessor withErrorTopic(String topicName){
         this.errorTopic = topicName;
-        return this;
-    }
-    public KafkaProcessor withInvalidTopic(String topicName){
-        this.invalidTopic = topicName;
         return this;
     }
     public KafkaProcessor withValidateReadMessages(Function<KafkaMessageSet, Boolean> validate){
@@ -68,25 +62,19 @@ public class KafkaProcessor<T> implements Processor<T> {
         KafkaComponent kafkaComponent = runner.getComponent(kafkaComponentName, KafkaComponent.class);
         LinkedList<byte[]> outputMessages = new LinkedList<>(kafkaComponent.readMessages(readTopic));
         LinkedList<byte[]> outputErrors = null;
-        LinkedList<byte[]> outputInvalids = null;
 
         if (errorTopic != null) {
             outputErrors = new LinkedList<>(kafkaComponent.readMessages(errorTopic));
         }
-        if (invalidTopic != null) {
-            outputInvalids = new LinkedList<>(kafkaComponent.readMessages(invalidTopic));
-        }
-        Boolean validated = validateReadMessages.apply(new KafkaMessageSet(outputMessages,outputErrors,outputInvalids));
+        Boolean validated = validateReadMessages.apply(new KafkaMessageSet(outputMessages,outputErrors));
         if(validated == null){
             validated = false;
         }
         if(validated){
             messages.addAll(outputMessages);
             errors.addAll(outputErrors);
-            invalids.addAll(outputInvalids);
             outputMessages.clear();
             outputErrors.clear();
-            outputInvalids.clear();
             return ReadinessState.READY;
         }
         return ReadinessState.NOT_READY;
@@ -94,7 +82,7 @@ public class KafkaProcessor<T> implements Processor<T> {
     @SuppressWarnings("unchecked")
     public ProcessorResult<T> getResult(){
         ProcessorResult.Builder<T> builder = new ProcessorResult.Builder();
-        return builder.withResult(provideResult.apply(new KafkaMessageSet(messages,errors,invalids))).withProcessErrors(errors).withProcessInvalids(invalids).build();
+        return builder.withResult(provideResult.apply(new KafkaMessageSet(messages,errors))).withProcessErrors(errors).build();
     }
 }
 

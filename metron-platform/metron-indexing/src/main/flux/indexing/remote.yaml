@@ -101,7 +101,8 @@ bolts:
                     - ref: "indexWriter"
             -   name: "withMessageGetter"
                 args:
-                    - "RAW"
+                    - "DEFAULT_JSON_FROM_POSITION"
+
     -   id: "hdfsIndexingBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
@@ -112,7 +113,7 @@ bolts:
                     - ref: "hdfsWriter"
             -   name: "withMessageGetter"
                 args:
-                    - "RAW"
+                    - "DEFAULT_JSON_FROM_POSITION"
 
     -   id: "indexingErrorBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"

@@ -24,7 +24,7 @@ and sent to
 * An indexing bolt configured to write to either elasticsearch or Solr
 * An indexing bolt configured to write to HDFS under `/apps/metron/enrichment/indexed`
 
-Errors during indexing are sent to a kafka queue called `index_errors`
+By default, errors during indexing are sent back into the `indexing` kafka queue so that they can be indexed and archived.
 
 ##Sensor Indexing Configuration
 The sensor specific configuration is intended to configure the

@@ -15,12 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.writer.message;
+package org.apache.metron.common.message;
 
 import org.apache.storm.tuple.Tuple;
-import org.json.simple.JSONObject;
 
-public interface MessageGetter {
-  JSONObject getMessage(Tuple t);
+public interface MessageGetStrategy {
+
+  Object get(Tuple tuple);
 }

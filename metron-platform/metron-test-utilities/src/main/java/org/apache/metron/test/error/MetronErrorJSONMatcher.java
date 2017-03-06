@@ -15,25 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.test.error;
 
-package org.apache.metron.integration.processors;
+import org.apache.storm.tuple.Values;
+import org.json.simple.JSONObject;
+import org.mockito.ArgumentMatcher;
 
-import java.util.List;
+public class MetronErrorJSONMatcher extends ArgumentMatcher<Values> {
 
-public class KafkaMessageSet{
-    public List<byte[]> messages;
-    public List<byte[]> errors;
+  private JSONObject expected;
 
-    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors) {
-        this.messages = messages;
-        this.errors = errors;
-    }
+  public MetronErrorJSONMatcher(JSONObject expected) {
+    this.expected = expected;
+  }
 
-
-    public List<byte[]> getMessages() {
-        return messages;
-    }
-    public List<byte[]> getErrors() {
-        return errors;
-    }
+  @Override
+  public boolean matches(Object o) {
+    Values values = (Values) o;
+    JSONObject actual = (JSONObject) values.get(0);
+    actual.remove("timestamp");
+    expected.remove("timestamp");
+    actual.remove("stack");
+    expected.remove("stack");
+    return actual.equals(expected);
+  }
 }

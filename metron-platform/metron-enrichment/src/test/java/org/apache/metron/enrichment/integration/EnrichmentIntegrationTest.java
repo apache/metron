@@ -76,6 +76,7 @@ import java.util.stream.Stream;
 import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.*;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
+  private static final String ERROR_TOPIC = "enrichment_error";
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
@@ -139,13 +140,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
-      setProperty("enrichment.error.topic", Constants.ENRICHMENT_ERROR_TOPIC);
+      setProperty("enrichment.error.topic", ERROR_TOPIC);
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
-      add(new KafkaComponent.Topic(Constants.ENRICHMENT_ERROR_TOPIC, 1));
+      add(new KafkaComponent.Topic(ERROR_TOPIC, 1));
     }});
     String globalConfigStr = null;
     {
@@ -201,15 +202,14 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor());
-      // We expect failures, so we don't care if result returned failure or not
-      List<Map<String, Object>> docs = result.getResult();
+      ProcessorResult<Map<String, List<Map<String, Object>>>> result = runner.process(getProcessor());
+      Map<String,List<Map<String, Object>>> outputMessages = result.getResult();
+      List<Map<String, Object>> docs = outputMessages.get(Constants.INDEXING_TOPIC);
       Assert.assertEquals(inputMessages.size(), docs.size());
       validateAll(docs);
-
-      List<byte[]> errors = result.getProcessErrors();
+      List<Map<String, Object>> errors = outputMessages.get(ERROR_TOPIC);
       Assert.assertEquals(inputMessages.size(), errors.size());
-      validateErrors(result.getProcessErrors());
+      validateErrors(errors);
     } finally {
       runner.stop();
     }
@@ -234,10 +234,12 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  protected void validateErrors(List<byte[]> errors) {
-    for(byte[] error : errors) {
-      // Don't reconstruct the entire message, just ensure it contains the known error message inside.
-      Assert.assertTrue(new String(error).contains(ErrorEnrichmentBolt.TEST_ERROR_MESSAGE));
+  protected void validateErrors(List<Map<String, Object>> errors) {
+    for(Map<String, Object> error : errors) {
+      Assert.assertEquals("Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.MESSAGE.getName()));
+      Assert.assertEquals("java.lang.IllegalStateException: Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.EXCEPTION.getName()));
+      Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
+      Assert.assertEquals("{\"rawMessage\":\"Error Test Raw Message String\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
   }
 
@@ -504,39 +506,47 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
+  private static List<Map<String, Object>> loadMessages(List<byte[]> outputMessages) {
+    List<Map<String, Object>> tmp = new ArrayList<>();
+    Iterables.addAll(tmp
+            , Iterables.transform(outputMessages
+                    , message -> {
+                      try {
+                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
+                                , new TypeReference<Map<String, Object>>() {}
+                        )
+                        );
+                      } catch (Exception ex) {
+                        throw new IllegalStateException(ex);
+                      }
+                    }
+            )
+    );
+    return tmp;
+  }
   @SuppressWarnings("unchecked")
-  private Processor<List<Map<String, Object>>> getProcessor() {
+  private KafkaProcessor<Map<String,List<Map<String, Object>>>> getProcessor(){
 
-    KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
+    return new KafkaProcessor<>()
+            .withKafkaComponentName("kafka")
             .withReadTopic(Constants.INDEXING_TOPIC)
-            .withErrorTopic(Constants.ENRICHMENT_ERROR_TOPIC)
-            .withInvalidTopic(Constants.INVALID_STREAM)
+            .withErrorTopic(ERROR_TOPIC)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
               public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-                // this test is written to return 10 errors and 10 messages
-                // we can just check when the messages match here
-                // if they do then we are good
-                return messageSet.getMessages().size() == inputMessages.size();
+                return (messageSet.getMessages().size() == inputMessages.size()) && (messageSet.getErrors().size() == inputMessages.size());
               }
             })
-            .withProvideResult(new Function<KafkaMessageSet , List<Map<String, Object>>>() {
+            .withProvideResult(new Function<KafkaMessageSet,Map<String,List<Map<String, Object>>>>(){
               @Nullable
               @Override
-              public List<Map<String, Object>> apply(@Nullable KafkaMessageSet messageSet) {
-                List<Map<String,Object>> docs = new ArrayList<>();
-                for (byte[] message : messageSet.getMessages()) {
-                  try {
-                    docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {
-                    }));
-                  } catch (IOException e) {
-                    throw new IllegalStateException(e.getMessage(), e);
-                  }
-                }
-                return docs;
+              public Map<String,List<Map<String, Object>>> apply(@Nullable KafkaMessageSet messageSet) {
+                return new HashMap<String, List<Map<String, Object>>>() {{
+                  put(Constants.INDEXING_TOPIC, loadMessages(messageSet.getMessages()));
+                  put(ERROR_TOPIC, loadMessages(messageSet.getErrors()));
+                }};
               }
             });
-    return kafkaProcessor;
   }
 }
