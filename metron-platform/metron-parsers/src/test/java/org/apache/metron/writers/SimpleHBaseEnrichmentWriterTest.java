@@ -158,6 +158,18 @@ public class SimpleHBaseEnrichmentWriterTest {
       }
 
       @Override
+      public int getBatchTimeout(String sensorName) {
+        //TODO - enable unit testing
+        return 0;
+      }
+
+      @Override
+      public List<Integer> getAllConfiguredTimeouts() {
+        //TODO - enable unit testing
+        return new ArrayList<>();
+      }
+
+      @Override
       public String getIndex(String sensorName) {
         return SENSOR_TYPE;
       }

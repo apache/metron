@@ -17,20 +17,21 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.log4j.Level;
-import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.MessageGetters;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.apache.metron.writer.BulkWriterComponent;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.bolt.BulkMessageWriterBolt;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -47,15 +48,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
@@ -92,23 +90,24 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
   private JSONObject sampleMessage;
   private List<JSONObject> messageList;
+  private List<JSONObject> fullMessageList;
   private List<Tuple> tupleList;
 
   @Before
   public void parseMessages() throws ParseException {
     JSONParser parser = new JSONParser();
+    fullMessageList = new ArrayList<>();
     sampleMessage = (JSONObject) parser.parse(sampleMessageString);
     sampleMessage.put("field", "value1");
-    messageList = new ArrayList<>();
-    messageList.add(((JSONObject) sampleMessage.clone()));
+    fullMessageList.add(((JSONObject) sampleMessage.clone()));
     sampleMessage.put("field", "value2");
-    messageList.add(((JSONObject) sampleMessage.clone()));
+    fullMessageList.add(((JSONObject) sampleMessage.clone()));
     sampleMessage.put("field", "value3");
-    messageList.add(((JSONObject) sampleMessage.clone()));
+    fullMessageList.add(((JSONObject) sampleMessage.clone()));
     sampleMessage.put("field", "value4");
-    messageList.add(((JSONObject) sampleMessage.clone()));
+    fullMessageList.add(((JSONObject) sampleMessage.clone()));
     sampleMessage.put("field", "value5");
-    messageList.add(((JSONObject) sampleMessage.clone()));
+    fullMessageList.add(((JSONObject) sampleMessage.clone()));
   }
 
   @Mock
@@ -137,23 +136,29 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
     verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
     tupleList = new ArrayList<>();
+    messageList = new ArrayList<>();
     for(int i = 0; i < 4; i++) {
-      when(tuple.getValueByField("message")).thenReturn(messageList.get(i));
+      when(tuple.getValueByField("message")).thenReturn(fullMessageList.get(i));
       tupleList.add(tuple);
+      messageList.add(fullMessageList.get(i));
       bulkMessageWriterBolt.execute(tuple);
       verify(bulkMessageWriter, times(0)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), eq(messageList));
     }
-    when(tuple.getValueByField("message")).thenReturn(messageList.get(4));
+    when(tuple.getValueByField("message")).thenReturn(fullMessageList.get(4));
     tupleList.add(tuple);
+    messageList.add(fullMessageList.get(4));
     BulkWriterResponse response = new BulkWriterResponse();
     response.addAllSuccesses(tupleList);
-    when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), argThat(new MessageListMatcher(messageList)))).thenReturn(response);
+    when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList)
+            , argThat(new MessageListMatcher(messageList)))).thenReturn(response);
     bulkMessageWriterBolt.execute(tuple);
-    verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), argThat(new MessageListMatcher(messageList)));
+    verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList)
+            , argThat(new MessageListMatcher(messageList)));
     verify(outputCollector, times(5)).ack(tuple);
     reset(outputCollector);
-    doThrow(new Exception()).when(bulkMessageWriter).write(eq(sensorType), any(WriterConfiguration.class), Matchers.anyListOf(Tuple.class), Matchers.anyListOf(JSONObject.class));
-    when(tuple.getValueByField("message")).thenReturn(messageList.get(0));
+    doThrow(new Exception()).when(bulkMessageWriter).write(eq(sensorType), any(WriterConfiguration.class), Matchers.anyListOf(Tuple.class)
+            , Matchers.anyListOf(JSONObject.class));
+    when(tuple.getValueByField("message")).thenReturn(fullMessageList.get(0));
     UnitTestHelper.setLog4jLevel(BulkWriterComponent.class, Level.FATAL);
     for(int i = 0; i < 5; i++) {
       bulkMessageWriterBolt.execute(tuple);
@@ -162,5 +167,91 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     verify(outputCollector, times(5)).ack(tuple);
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), any(Values.class));
     verify(outputCollector, times(1)).reportError(any(Throwable.class));
+  }
+
+  @Test
+  public void testFlushOnBatchTimeout() throws Exception {
+    FakeClock clock = new FakeClock();
+    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
+            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+            .withMessageGetterField("message").withBatchTimeoutDivisor(3);
+    bulkMessageWriterBolt.setCuratorFramework(client);
+    bulkMessageWriterBolt.setTreeCache(cache);
+    bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType, new FileInputStream(sampleSensorIndexingConfigPath));
+    bulkMessageWriterBolt.declareOutputFields(declarer);
+    verify(declarer, times(1)).declareStream(eq("error"), argThat(new FieldsMatcher("message")));
+    Map stormConf = new HashMap();
+    when(bulkMessageWriter.getName()).thenReturn("hdfs");
+    bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector, clock);
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
+    int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
+    assertEquals(4, batchTimeout);
+    tupleList = new ArrayList<>();
+    messageList = new ArrayList<>();
+    for(int i = 0; i < 3; i++) {
+      when(tuple.getValueByField("message")).thenReturn(fullMessageList.get(i));
+      tupleList.add(tuple);
+      messageList.add(fullMessageList.get(i));
+      bulkMessageWriterBolt.execute(tuple);
+      verify(bulkMessageWriter, times(0)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), eq(messageList));
+    }
+    clock.elapseSeconds(5);
+    when(tuple.getValueByField("message")).thenReturn(fullMessageList.get(3));
+    tupleList.add(tuple);
+    messageList.add(fullMessageList.get(3));
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tupleList);
+    when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList)
+            , argThat(new MessageListMatcher(messageList)))).thenReturn(response);
+    bulkMessageWriterBolt.execute(tuple);
+    verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class)
+            , eq(tupleList), argThat(new MessageListMatcher(messageList)));
+    verify(outputCollector, times(4)).ack(tuple);
+  }
+
+  @Test
+  public void testFlushOnTickTuple() throws Exception {
+    FakeClock clock = new FakeClock();
+    BulkMessageWriterBolt bulkMessageWriterBolt = new BulkMessageWriterBolt("zookeeperUrl")
+            .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
+            .withMessageGetterField("message").withBatchTimeoutDivisor(3);
+    bulkMessageWriterBolt.setCuratorFramework(client);
+    bulkMessageWriterBolt.setTreeCache(cache);
+    bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType, new FileInputStream(sampleSensorIndexingConfigPath));
+    bulkMessageWriterBolt.declareOutputFields(declarer);
+    verify(declarer, times(1)).declareStream(eq("error"), argThat(new FieldsMatcher("message")));
+    Map stormConf = new HashMap();
+    when(bulkMessageWriter.getName()).thenReturn("hdfs");
+    bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector, clock);
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
+    int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
+    assertEquals(4, batchTimeout);
+    tupleList = new ArrayList<>();
+    messageList = new ArrayList<>();
+    for(int i = 0; i < 3; i++) {
+      when(tuple.getValueByField("message")).thenReturn(fullMessageList.get(i));
+      tupleList.add(tuple);
+      messageList.add(fullMessageList.get(i));
+      bulkMessageWriterBolt.execute(tuple);
+      verify(bulkMessageWriter, times(0)).write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList), eq(messageList));
+    }
+    when(tuple.getValueByField("message")).thenReturn(null);
+    when(tuple.getSourceComponent()).thenReturn("__system"); //mark the tuple as a TickTuple, part 1 of 2
+    when(tuple.getSourceStreamId()).thenReturn("__tick");    //mark the tuple as a TickTuple, part 2 of 2
+    BulkWriterResponse response = new BulkWriterResponse();
+    response.addAllSuccesses(tupleList);
+    when(bulkMessageWriter.write(eq(sensorType), any(WriterConfiguration.class), eq(tupleList)
+            , argThat(new MessageListMatcher(messageList)))).thenReturn(response);
+    clock.advanceToSeconds(2);
+    bulkMessageWriterBolt.execute(tuple);
+    verify(bulkMessageWriter, times(0)).write(eq(sensorType), any(WriterConfiguration.class)
+            , eq(tupleList), argThat(new MessageListMatcher(messageList)));
+    verify(outputCollector, times(1)).ack(tuple);  // 1 tick
+    clock.advanceToSeconds(5);
+    bulkMessageWriterBolt.execute(tuple);
+    verify(bulkMessageWriter, times(1)).write(eq(sensorType), any(WriterConfiguration.class)
+            , eq(tupleList), argThat(new MessageListMatcher(messageList)));
+    assertEquals(3, tupleList.size());
+    verify(outputCollector, times(5)).ack(tuple);  // 3 messages + 2nd tick
   }
 }

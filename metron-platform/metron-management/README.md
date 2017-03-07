@@ -23,7 +23,7 @@ The functions are split roughly into a few sections:
 * File functions - Functions around interacting with local or HDFS files
 * Configuration functions - Functions surrounding pulling and pushing configs from zookeeper
 * Parser functions - Functions surrounding adding, viewing, and removing Parser functions.
-* Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size and index names for the enrichment topology configuration
+* Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size, batch timeout, and index names for the enrichment topology configuration
 * Threat Triage functions - Functions surrounding adding, viewing and removing threat triage functions.
 
 ### Grok Functions
@@ -169,11 +169,12 @@ The functions are split roughly into a few sections:
 ### Indexing Functions
 
 * `INDEXING_SET_BATCH`
-  * Description: Set batch size
+  * Description: Set batch size and timeout
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * writer - The writer to update (e.g. elasticsearch, solr or hdfs)
     * size - batch size (integer)
+    * timeout - (optional) batch timeout in seconds (integer), defaults to 0, meaning system default
   * Returns: The String representation of the config in zookeeper
 * `INDEXING_SET_ENABLED`
   * Description: Enable or disable an indexing writer for a sensor.

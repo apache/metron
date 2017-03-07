@@ -19,10 +19,13 @@
 package org.apache.metron.common.configuration.writer;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public interface WriterConfiguration extends Serializable {
   int getBatchSize(String sensorName);
+  int getBatchTimeout(String sensorName);
+  List<Integer> getAllConfiguredTimeouts();
   String getIndex(String sensorName);
   boolean isEnabled(String sensorName);
   Map<String, Object> getSensorConfig(String sensorName);
