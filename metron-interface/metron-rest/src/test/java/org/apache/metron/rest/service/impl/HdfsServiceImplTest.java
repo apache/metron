@@ -66,7 +66,7 @@ public class HdfsServiceImplTest {
         FileUtils.writeStringToFile(new File(testDir, "file2.txt"), "value2");
 
         List<String> paths = hdfsService.list(new Path(testDir));
-        Collections.sort(paths, String::compareTo);
+        Collections.sort(paths);
         assertEquals(2, paths.size());
         assertEquals("file1.txt", paths.get(0));
         assertEquals("file2.txt", paths.get(1));
