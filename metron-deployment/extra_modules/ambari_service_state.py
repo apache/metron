@@ -155,7 +155,7 @@ def main():
 
     host = p.get('host')
     port = p.get('port')
-    username = p.get('password')
+    username = p.get('username')
     password = p.get('password')
     cluster_name = p.get('cluster_name')
     state = p.get('state')

@@ -16,7 +16,7 @@
 #
 require 'getoptlong'
 
-ansibleTags='quick_dev'
+ansibleTags='quick_dev,report'
 ansibleSkipTags=''
 
 begin
