@@ -18,29 +18,38 @@
 package org.apache.metron.parsers.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.bolt.ConfiguredParserBolt;
+import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.FieldValidator;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.parsers.filters.Filters;
+import org.apache.metron.parsers.interfaces.MessageFilter;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredParserBolt;
-import org.apache.metron.common.configuration.FieldValidator;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.parsers.filters.Filters;
-import org.apache.metron.common.configuration.FieldTransformer;
-import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.parsers.interfaces.MessageFilter;
-import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
@@ -51,6 +60,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
   private org.apache.metron.common.dsl.Context stellarContext;
+  private transient MessageGetStrategy messageGetStrategy;
   public ParserBolt( String zookeeperUrl
                    , String sensorType
                    , MessageParser<JSONObject> parser
@@ -72,6 +82,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
+    messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
     initializeStellar();
     if(getSensorParserConfig() != null && filter == null) {
@@ -101,6 +112,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+                                .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
                                 .build();
     StellarFunctions.initialize(stellarContext);
   }
@@ -108,7 +120,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    byte[] originalMessage = tuple.getBinary(0);
+    byte[] originalMessage = (byte[]) messageGetStrategy.get(tuple);
     SensorParserConfig sensorParserConfig = getSensorParserConfig();
     try {
       //we want to ack the tuple in the situation where we have are not doing a bulk write
@@ -127,12 +139,22 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
           }
           if (parser.validate(message) && (filter == null || filter.emitTuple(message, stellarContext))) {
             numWritten++;
-            if(!isGloballyValid(message, fieldValidations)) {
-              message.put(Constants.SENSOR_TYPE, getSensorType()+ ".invalid");
-              collector.emit(Constants.INVALID_STREAM, new Values(message));
+            List<FieldValidator> failedValidators = getFailedValidators(message, fieldValidations);
+            if(failedValidators.size() > 0) {
+              MetronError error = new MetronError()
+                      .withErrorType(Constants.ErrorType.PARSER_INVALID)
+                      .withSensorType(getSensorType())
+                      .addRawMessage(message);
+              Set<String> errorFields = failedValidators.stream()
+                      .flatMap(fieldValidator -> fieldValidator.getInput().stream())
+                      .collect(Collectors.toSet());
+              if (!errorFields.isEmpty()) {
+                error.withErrorFields(errorFields);
+              }
+              ErrorUtils.handleError(collector, error);
             }
             else {
-              writer.write(getSensorType(), tuple, message, getConfigurations());
+              writer.write(getSensorType(), tuple, message, getConfigurations(), messageGetStrategy);
             }
           }
         }
@@ -144,28 +166,28 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         collector.ack(tuple);
       }
     } catch (Throwable ex) {
-      ErrorUtils.handleError( collector
-                            , ex
-                            , Constants.ERROR_STREAM
-                            , Optional.of(getSensorType())
-                            , Optional.ofNullable(originalMessage)
-                            );
+      MetronError error = new MetronError()
+              .withErrorType(Constants.ErrorType.PARSER_ERROR)
+              .withThrowable(ex)
+              .withSensorType(getSensorType())
+              .addRawMessage(originalMessage);
+      ErrorUtils.handleError(collector, error);
       collector.ack(tuple);
     }
   }
 
-  private boolean isGloballyValid(JSONObject input, List<FieldValidator> validators) {
+  private List<FieldValidator> getFailedValidators(JSONObject input, List<FieldValidator> validators) {
+    List<FieldValidator> failedValidators = new ArrayList<>();
     for(FieldValidator validator : validators) {
       if(!validator.isValid(input, getConfigurations().getGlobalConfig(), stellarContext)) {
-        return false;
+        failedValidators.add(validator);
       }
     }
-    return true;
+    return failedValidators;
   }
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declareStream(Constants.INVALID_STREAM, new Fields("message"));
     declarer.declareStream(Constants.ERROR_STREAM, new Fields("message"));
   }
 }

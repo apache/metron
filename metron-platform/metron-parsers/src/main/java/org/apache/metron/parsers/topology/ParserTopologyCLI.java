@@ -302,8 +302,6 @@ public class ParserTopologyCLI {
               spoutNumTasks,
               parserParallelism,
               parserNumTasks,
-              invalidParallelism,
-              invalidNumTasks,
               errorParallelism,
               errorNumTasks,
               spoutConfig

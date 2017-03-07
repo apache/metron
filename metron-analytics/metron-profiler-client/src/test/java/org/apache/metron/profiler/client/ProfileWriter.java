@@ -71,7 +71,7 @@ public class ProfileWriter {
     for(int i=0; i<count; i++) {
 
       // generate the next value that should be written
-      Object nextValue = valueGenerator.apply(m.getValue());
+      Object nextValue = valueGenerator.apply(m.getProfileValue());
 
       // create a measurement for the next profile period to be written
       ProfilePeriod next = m.getPeriod().next();
@@ -80,7 +80,7 @@ public class ProfileWriter {
               .withEntity(prototype.getEntity())
               .withPeriod(next.getStartTimeMillis(), prototype.getPeriod().getDurationMillis(), TimeUnit.MILLISECONDS)
               .withGroups(group)
-              .withValue(nextValue);
+              .withProfileValue(nextValue);
 
       write(m);
     }

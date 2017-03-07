@@ -17,27 +17,27 @@
  */
 package org.apache.metron.writer.bolt;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredIndexingBolt;
+import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.MessageWriter;
+import org.apache.metron.writer.BulkWriterComponent;
+import org.apache.metron.writer.WriterToBulkWriter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.common.utils.MessageUtils;
-import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.writer.BulkWriterComponent;
-import org.apache.metron.writer.WriterToBulkWriter;
-import org.apache.metron.writer.message.MessageGetter;
-import org.apache.metron.writer.message.MessageGetters;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Map;
 import java.util.function.Function;
 
 public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
@@ -46,8 +46,9 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
           .getLogger(BulkMessageWriterBolt.class);
   private BulkMessageWriter<JSONObject> bulkMessageWriter;
   private BulkWriterComponent<JSONObject> writerComponent;
-  private String messageGetterStr = MessageGetters.NAMED.name();
-  private transient MessageGetter messageGetter = null;
+  private String messageGetStrategyType = MessageGetters.DEFAULT_JSON_FROM_FIELD.name();
+  private String messageGetField;
+  private transient MessageGetStrategy messageGetStrategy;
   private transient OutputCollector collector;
   private transient Function<WriterConfiguration, WriterConfiguration> configurationTransformation;
   public BulkMessageWriterBolt(String zookeeperUrl) {
@@ -64,8 +65,13 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     return this;
   }
 
-  public BulkMessageWriterBolt withMessageGetter(String messageGetter) {
-    this.messageGetterStr = messageGetter;
+  public BulkMessageWriterBolt withMessageGetter(String messageGetStrategyType) {
+    this.messageGetStrategyType = messageGetStrategyType;
+    return this;
+  }
+
+  public BulkMessageWriterBolt withMessageGetterField(String messageGetField) {
+    this.messageGetField = messageGetField;
     return this;
   }
 
@@ -74,7 +80,11 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
     this.writerComponent = new BulkWriterComponent<>(collector);
     this.collector = collector;
     super.prepare(stormConf, context, collector);
-    messageGetter = MessageGetters.valueOf(messageGetterStr);
+    if (messageGetField != null) {
+      messageGetStrategy = MessageGetters.valueOf(messageGetStrategyType).get(messageGetField);
+    } else {
+      messageGetStrategy = MessageGetters.valueOf(messageGetStrategyType).get();
+    }
     if(bulkMessageWriter instanceof WriterToBulkWriter) {
       configurationTransformation = WriterToBulkWriter.TRANSFORMATION;
     }
@@ -93,7 +103,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    JSONObject message = messageGetter.getMessage(tuple);
+    JSONObject message = (JSONObject) messageGetStrategy.get(tuple);
     String sensorType = MessageUtils.getSensorType(message);
     try
     {
@@ -107,6 +117,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
                            , message
                            , bulkMessageWriter
                            , writerConfiguration
+                           , messageGetStrategy
                            );
       LOG.trace("Writing enrichment message: {}", message);
     }

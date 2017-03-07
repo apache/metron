@@ -23,12 +23,10 @@ import java.util.List;
 public class KafkaMessageSet{
     public List<byte[]> messages;
     public List<byte[]> errors;
-    public List<byte[]> invalids;
 
-    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors, List<byte[]> invalids) {
+    public KafkaMessageSet(List<byte[]> messages, List<byte[]> errors) {
         this.messages = messages;
         this.errors = errors;
-        this.invalids = invalids;
     }
 
 
@@ -37,8 +35,5 @@ public class KafkaMessageSet{
     }
     public List<byte[]> getErrors() {
         return errors;
-    }
-    public List<byte[]> getInvalids() {
-        return invalids;
     }
 }

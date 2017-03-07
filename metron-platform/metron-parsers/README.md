@@ -30,7 +30,7 @@ Data flows through the parser bolt via kafka and into the `enrichments`
 topology in kafka.  Errors are collected with the context of the error
 (e.g. stacktrace) and original message causing the error and sent to an
 `error` queue.  Invalid messages as determined by global validation
-functions are sent to an `invalid` queue. 
+functions are also treated as errors and sent to an `error` queue. 
  
 ##Message Format
 
@@ -277,9 +277,6 @@ usage: start_parser_topology.sh
  -ewp,--error_writer_p <PARALLELISM_HINT>       Error Writer Parallelism
                                                 Hint
  -h,--help                                      This screen
- -iwnt,--invalid_writer_num_tasks <NUM_TASKS>   Invalid Writer Num Tasks
- -iwp,--invalid_writer_p <PARALLELISM_HINT>     Invalid Message Writer
-                                                Parallelism Hint
  -k,--kafka <BROKER_URL>                        Kafka Broker URL
  -mt,--message_timeout <TIMEOUT_IN_SECS>        Message Timeout in Seconds
  -mtp,--max_task_parallelism <MAX_TASK>         Max task parallelism
@@ -365,9 +362,6 @@ be customized by modifying the arguments sent to this utility.
 * The Error Message Writer Bolt
   * `--error_writer_num_tasks` : The number of tasks for the error writer bolt
   * `--error_writer_p` : The parallelism hint for the error writer bolt
-* The Invalid Message Writer Bolt
-  * `--invalid_writer_num_tasks` : The number of tasks for the error writer bolt
-  * `--invalid_writer_p` : The parallelism hint for the error writer bolt
  
 Finally, if workers and executors are new to you, the following might be of use to you:
 * [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)

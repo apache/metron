@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.apache.metron.common.configuration.profiler.ProfileResult;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -59,18 +60,18 @@ public class ProfileHBaseMapperTest {
     mapper = new ProfileHBaseMapper();
     mapper.setRowKeyBuilder(rowKeyBuilder);
 
+    profile = new ProfileConfig("profile", "ip_src_addr", new ProfileResult("2 + 2"));
+
     measurement = new ProfileMeasurement()
             .withProfileName("profile")
             .withEntity("entity")
             .withPeriod(20000, 15, TimeUnit.MINUTES)
-            .withValue(22);
-
-    profile = new ProfileConfig();
+            .withProfileValue(22)
+            .withDefinition(profile);
 
     // the tuple will contain the original message
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
-    when(tuple.getValueByField(eq("profile"))).thenReturn(profile);
   }
 
   /**
@@ -91,16 +92,8 @@ public class ProfileHBaseMapperTest {
    */
   @Test
   public void testExpiresUndefined() throws Exception {
-
-    // do not set the TTL on the profile
-    ProfileConfig profileNoTTL = new ProfileConfig();
-
-    // the tuple references the profile with the missing TTL
-    Tuple tupleNoTTL = mock(Tuple.class);
-    when(tupleNoTTL.getValueByField(eq("profile"))).thenReturn(profileNoTTL);
-
     // the TTL should not be defined
-    Optional<Long> actual = mapper.getTTL(tupleNoTTL);
+    Optional<Long> actual = mapper.getTTL(tuple);
     Assert.assertFalse(actual.isPresent());
   }
 }

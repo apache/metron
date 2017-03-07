@@ -20,8 +20,11 @@
 
 package org.apache.metron.profiler;
 
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,11 +46,6 @@ public class ProfileMeasurement {
   private String entity;
 
   /**
-   * The actual measurement itself.
-   */
-  private Object value;
-
-  /**
    * The 'groups' used to sort the Profile data. The groups are the result of
    * executing the Profile's 'groupBy' expression.
    */
@@ -57,6 +55,24 @@ public class ProfileMeasurement {
    * The period in which the ProfileMeasurement was taken.
    */
   private ProfilePeriod period;
+
+  /**
+   * The profile definition that resulted in this measurement.
+   */
+  private ProfileConfig definition;
+
+  /**
+   * The result of evaluating the profile expression.
+   */
+  private Object profileValue;
+
+  /**
+   * The result of evaluating the triage expression(s).
+   *
+   * A profile can generate one or more values that can be used during the
+   * threat triage process.  Each value is given a unique name.
+   */
+  private Map<String, Object> triageValues;
 
   public ProfileMeasurement() {
     this.groups = Collections.emptyList();
@@ -72,11 +88,6 @@ public class ProfileMeasurement {
     return this;
   }
 
-  public ProfileMeasurement withValue(Object value) {
-    this.value = value;
-    return this;
-  }
-
   public ProfileMeasurement withGroups(List<Object> groups) {
     this.groups = groups;
     return this;
@@ -87,58 +98,74 @@ public class ProfileMeasurement {
     return this;
   }
 
+  public ProfileMeasurement withDefinition(ProfileConfig definition) {
+    this.definition = definition;
+    return this;
+  }
+
+  public ProfileMeasurement withProfileValue(Object profileValue) {
+    this.profileValue = profileValue;
+    return this;
+  }
+
+  public ProfileMeasurement withTriageValues(Map<String, Object> triageValues) {
+    this.triageValues = triageValues;
+    return this;
+  }
+
   public String getProfileName() {
     return profileName;
+  }
+
+  public void setProfileName(String profileName) {
+    this.profileName = profileName;
   }
 
   public String getEntity() {
     return entity;
   }
 
-  public Object getValue() {
-    return value;
-  }
-
-  public ProfilePeriod getPeriod() {
-    return period;
+  public void setEntity(String entity) {
+    this.entity = entity;
   }
 
   public List<Object> getGroups() {
     return groups;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    ProfileMeasurement that = (ProfileMeasurement) o;
-
-    if (profileName != null ? !profileName.equals(that.profileName) : that.profileName != null) return false;
-    if (entity != null ? !entity.equals(that.entity) : that.entity != null) return false;
-    if (value != null ? !value.equals(that.value) : that.value != null) return false;
-    if (groups != null ? !groups.equals(that.groups) : that.groups != null) return false;
-    return period != null ? period.equals(that.period) : that.period == null;
+  public void setGroups(List<Object> groups) {
+    this.groups = groups;
   }
 
-  @Override
-  public int hashCode() {
-    int result = profileName != null ? profileName.hashCode() : 0;
-    result = 31 * result + (entity != null ? entity.hashCode() : 0);
-    result = 31 * result + (value != null ? value.hashCode() : 0);
-    result = 31 * result + (groups != null ? groups.hashCode() : 0);
-    result = 31 * result + (period != null ? period.hashCode() : 0);
-    return result;
+  public ProfilePeriod getPeriod() {
+    return period;
   }
 
-  @Override
-  public String toString() {
-    return "ProfileMeasurement{" +
-            "profileName='" + profileName + '\'' +
-            ", entity='" + entity + '\'' +
-            ", value=" + value +
-            ", groups=" + groups +
-            ", period=" + period +
-            '}';
+  public void setPeriod(ProfilePeriod period) {
+    this.period = period;
+  }
+
+  public ProfileConfig getDefinition() {
+    return definition;
+  }
+
+  public void setDefinition(ProfileConfig definition) {
+    this.definition = definition;
+  }
+
+  public Object getProfileValue() {
+    return profileValue;
+  }
+
+  public void setProfileValue(Object profileValue) {
+    this.profileValue = profileValue;
+  }
+
+  public Map<String, Object> getTriageValues() {
+    return triageValues;
+  }
+
+  public void setTriageValues(Map<String, Object> triageValues) {
+    this.triageValues = triageValues;
   }
 }

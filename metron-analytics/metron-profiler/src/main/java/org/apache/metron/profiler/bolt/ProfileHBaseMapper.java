@@ -93,7 +93,8 @@ public class ProfileHBaseMapper implements HBaseMapper {
   public Optional<Long> getTTL(Tuple tuple) {
     Optional<Long> result = Optional.empty();
 
-    ProfileConfig profileConfig = (ProfileConfig) tuple.getValueByField("profile");
+    ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
+    ProfileConfig profileConfig = measurement.getDefinition();
     if(profileConfig.getExpires() != null) {
       result = Optional.of(profileConfig.getExpires());
     }

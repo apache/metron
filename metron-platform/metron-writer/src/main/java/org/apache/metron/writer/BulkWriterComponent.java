@@ -18,18 +18,26 @@
 
 package org.apache.metron.writer;
 
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
@@ -60,18 +68,23 @@ public class BulkWriterComponent<MESSAGE_T> {
     commit(response.getSuccesses());
   }
 
-  public void error(Throwable e, Iterable<Tuple> tuples) {
+  public void error(String sensorType, Throwable e, Iterable<Tuple> tuples, MessageGetStrategy messageGetStrategy) {
     tuples.forEach(t -> collector.ack(t));
+    MetronError error = new MetronError()
+            .withSensorType(sensorType)
+            .withErrorType(Constants.ErrorType.INDEXING_ERROR)
+            .withThrowable(e);
     if(!Iterables.isEmpty(tuples)) {
       LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
-      ErrorUtils.handleError(collector, e, Constants.ERROR_STREAM);
     }
+    tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
+    ErrorUtils.handleError(collector, error);
   }
 
-  public void error(BulkWriterResponse errors) {
+  public void error(String sensorType, BulkWriterResponse errors, MessageGetStrategy messageGetStrategy) {
     Map<Throwable, Collection<Tuple>> errorMap = errors.getErrors();
     for(Map.Entry<Throwable, Collection<Tuple>> entry : errorMap.entrySet()) {
-      error(entry.getKey(), entry.getValue());
+      error(sensorType, entry.getKey(), entry.getValue(), messageGetStrategy);
     }
   }
 
@@ -80,24 +93,25 @@ public class BulkWriterComponent<MESSAGE_T> {
   }
 
 
-  public void errorAll(Throwable e) {
-    for(Map.Entry<String, Collection<Tuple>> kv : sensorTupleMap.entrySet()) {
-      error(e, kv.getValue());
-      sensorTupleMap.remove(kv.getKey());
-      sensorMessageMap.remove(kv.getKey());
+  public void errorAll(Throwable e, MessageGetStrategy messageGetStrategy) {
+    for(String key : new HashSet<>(sensorTupleMap.keySet())) {
+      errorAll(key, e, messageGetStrategy);
     }
   }
 
-  public void errorAll(String sensorType, Throwable e) {
-    error(e, Optional.ofNullable(sensorTupleMap.get(sensorType)).orElse(new ArrayList<>()));
+  public void errorAll(String sensorType, Throwable e, MessageGetStrategy messageGetStrategy) {
+    Collection<Tuple> tuples = Optional.ofNullable(sensorTupleMap.get(sensorType)).orElse(new ArrayList<>());
+    error(sensorType, e, tuples, messageGetStrategy);
     sensorTupleMap.remove(sensorType);
     sensorMessageMap.remove(sensorType);
   }
+
   public void write( String sensorType
                    , Tuple tuple
                    , MESSAGE_T message
                    , BulkMessageWriter<MESSAGE_T> bulkMessageWriter
                    , WriterConfiguration configurations
+                   , MessageGetStrategy messageGetStrategy
                    ) throws Exception
   {
     if(!configurations.isEnabled(sensorType)) {
@@ -129,13 +143,13 @@ public class BulkWriterComponent<MESSAGE_T> {
         }
 
         if(handleError) {
-          error(response);
+          error(sensorType, response, messageGetStrategy);
         } else if (response.hasErrors()) {
           throw new IllegalStateException("Unhandled bulk errors in response: " + response.getErrors());
         }
       } catch (Throwable e) {
         if(handleError) {
-          error(e, tupleList);
+          error(sensorType, e, tupleList, messageGetStrategy);
         }
         else {
           throw e;

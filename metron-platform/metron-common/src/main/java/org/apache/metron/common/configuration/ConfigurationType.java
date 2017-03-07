@@ -61,7 +61,7 @@ public enum ConfigurationType implements Function<String, Object> {
       throw new RuntimeException("Unable to load " + s, e);
     }
   }),
-  PROFILER("profiler","profiler", s -> {
+  PROFILER("profiler",".", s -> {
     try {
       return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
     } catch (IOException e) {
