@@ -16,26 +16,20 @@
  * limitations under the License.
  */
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {routing} from './sensor-parser-config.routing';
-import {AdvancedConfigFormComponent} from '../../shared/advanced-config-form/advanced-config-form.component';
-import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
 import {SensorParserConfigComponent} from './sensor-parser-config.component';
 import {SharedModule} from '../../shared/shared.module';
-import {SensorRawJsonComponent} from '../sensor-raw-json/sensor-raw-json.component';
-import {NumberSpinnerComponent} from '../../shared/number-spinner/number-spinner.component';
-import {SensorFieldSchemaComponent} from '../sensor-field-schema/sensor-field-schema.component';
-import {MultipleInputComponent} from '../../shared/multiple-input/multiple-input.component';
-import {SensorGrokComponent} from '../sensor-grok/sensor-grok.component';
-import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
-import {SensorThreatTriageComponent} from '../sensor-threat-triage/sensor-threat-triage.component';
-import {SensorRuleEditorComponent} from '../sensor-threat-triage/rule-editor/sensor-rule-editor.component';
+import {NumberSpinnerModule} from '../../shared/number-spinner/number-spinner.module';
+import {AdvancedConfigFormModule} from '../../shared/advanced-config-form/advanced-config-form.module';
+import {SensorGrokModule} from '../sensor-grok/sensor-grok.module';
+import {SensorFieldSchemaModule} from '../sensor-field-schema/sensor-field-schema.module';
+import {SensorRawJsonModule} from '../sensor-raw-json/sensor-raw-json.module';
+import {SensorThreatTriageModule} from '../sensor-threat-triage/sensor-threat-triage.module';
 
 @NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, SharedModule, AceEditorModule ],
-  declarations: [ SensorParserConfigComponent, SensorGrokComponent, SensorFieldSchemaComponent, AdvancedConfigFormComponent,
-    SampleDataComponent, SensorRawJsonComponent, SensorThreatTriageComponent,
-    SensorRuleEditorComponent, MultipleInputComponent, NumberSpinnerComponent ]
+  imports: [ routing, ReactiveFormsModule, SharedModule, NumberSpinnerModule, AdvancedConfigFormModule,
+                SensorGrokModule, SensorFieldSchemaModule, SensorRawJsonModule, SensorThreatTriageModule ],
+  declarations: [ SensorParserConfigComponent ]
 })
 export class SensorParserConfigModule { }
