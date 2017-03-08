@@ -29,7 +29,7 @@
     <property>
         <name>masters_also_are_datanodes</name>
         <value>"false"</value>
-        <description>ES Masters and Slaves cannot be installed on the same nodes.  Set this to true if you want the ES master nodes to serve as combined master/datanodes.</description>
+        <description>ES Masters and Slaves cannot be installed on the same nodes.  Set this to "true" if you want the ES master nodes to serve as combined master/datanodes. Note: surround value in quotes.</description>
         <value-attributes>
             <type>string</type>
         </value-attributes>
