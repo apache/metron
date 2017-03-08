@@ -25,6 +25,7 @@ import {IAppConfig} from '../app.config.interface';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/operator/onErrorResumeNext';
 
 @Injectable()
 export class StormService {
@@ -39,8 +40,9 @@ export class StormService {
     return Observable.interval(8000).switchMap(() => {
       return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
           .map(HttpUtil.extractData)
-          .catch(HttpUtil.handleError);
-    });
+          .catch(HttpUtil.handleError)
+          .onErrorResumeNext()
+    })
   }
 
   public getAll(): Observable<TopologyStatus[]> {

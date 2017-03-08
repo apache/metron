@@ -133,29 +133,29 @@ export class SensorParserListComponent implements OnInit {
   }
 
   updateSensorStatus() {
-    for (let sensor of this.sensors) {
+      for (let sensor of this.sensors) {
 
-      let status: TopologyStatus = this.sensorsStatus.find(status => {
-        return status.name === sensor.config.sensorTopic;
-      });
+        let status: TopologyStatus = this.sensorsStatus.find(status => {
+          return status.name === sensor.config.sensorTopic;
+        });
 
-      if (status) {
-        if (status.status === 'ACTIVE') {
-          sensor['status'] = 'Running';
-        }
-        if (status.status === 'KILLED') {
+        if (status) {
+          if (status.status === 'ACTIVE') {
+            sensor['status'] = 'Running';
+          }
+          if (status.status === 'KILLED') {
+            sensor['status'] = 'Stopped';
+          }
+          if (status.status === 'INACTIVE') {
+            sensor['status'] = 'Disabled';
+          }
+        } else {
           sensor['status'] = 'Stopped';
         }
-        if (status.status === 'INACTIVE') {
-          sensor['status'] = 'Disabled';
-        }
-      } else {
-        sensor['status'] = 'Stopped';
-      }
 
-      sensor['latency'] = status && status.status === 'ACTIVE' ? (status.latency + 's') : '-';
-      sensor['throughput'] = status && status.status === 'ACTIVE' ? (Math.round(parseFloat(status.throughput) * 100) / 100) + 'kb/s' : '-';
-    }
+        sensor['latency'] = status && status.status === 'ACTIVE' ? (status.latency + 's') : '-';
+        sensor['throughput'] = status && status.status === 'ACTIVE' ? (Math.round(parseFloat(status.throughput) * 100) / 100) + 'kb/s' : '-';
+      }
   }
 
   getParserType(sensor: SensorParserConfig): string {
