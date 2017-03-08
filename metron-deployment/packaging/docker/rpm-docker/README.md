@@ -4,5 +4,5 @@ It is provisioned with software required to sucessfully run the deployment scrip
 
 ## Building the Container
 1. Install Docker [https://www.docker.com/products/overview]
-2. Navigate to <project-directory>/metron-deployment/packaging/rpm-docker
+2. Navigate to \<project-directory\>/metron-deployment/packaging/rpm-docker
 3. Build the container `docker build -t rpm-docker .`

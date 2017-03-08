@@ -141,7 +141,7 @@ public enum GeoLiteDatabase {
       Postal postal = cityResponse.getPostal();
       Location location = cityResponse.getLocation();
 
-      geoInfo.put("locID", convertNullToEmptyString(country.getGeoNameId()));
+      geoInfo.put("locID", convertNullToEmptyString(city.getGeoNameId()));
       geoInfo.put("country", convertNullToEmptyString(country.getIsoCode()));
       geoInfo.put("city", convertNullToEmptyString(city.getName()));
       geoInfo.put("postalCode", convertNullToEmptyString(postal.getCode()));

@@ -20,7 +20,7 @@ import { Component, OnInit, Input, OnChanges, ViewChild, SimpleChanges, Output, 
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {ParseMessageRequest} from '../../model/parse-message-request';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {TransformationValidationService} from '../../service/transformation-validation.service';
+import {StellarService} from '../../service/stellar.service';
 import {AutocompleteOption} from '../../model/autocomplete-option';
 import {StellarFunctionDescription} from '../../model/stellar-function-description';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
@@ -64,7 +64,8 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
   @Input() sensorParserConfig: SensorParserConfig;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
-  @Input() showFieldSchema; boolean;
+  @Input() showFieldSchema: boolean;
+  @Input() grokStatement: string;
 
   parserResult: any = {};
   fieldSchemaRows: FieldSchemaRow[] = [];
@@ -83,7 +84,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
   sampleThreatIntels: string[] = ['malicious_ip'];
 
   constructor(private sensorParserConfigService: SensorParserConfigService,
-              private transformationValidationService: TransformationValidationService,
+              private transformationValidationService: StellarService,
               private sensorEnrichmentConfigService: SensorEnrichmentConfigService,
               private metronAlerts: MetronAlerts) { }
 
@@ -277,6 +278,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
   onSampleDataChanged(sampleData: string) {
     let parseMessageRequest = new ParseMessageRequest();
     parseMessageRequest.sensorParserConfig = JSON.parse(JSON.stringify(this.sensorParserConfig));
+    parseMessageRequest.grokStatement = this.grokStatement;
     parseMessageRequest.sampleData = sampleData;
     if (parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] == null) {
       parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] = parseMessageRequest.sensorParserConfig.sensorTopic.toUpperCase();

@@ -181,7 +181,6 @@ This package installs the Metron Parser files
 %{metron_home}/bin/flatfile_loader.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
 %{metron_home}/bin/prune_hdfs_files.sh
-%{metron_home}/bin/threatintel_bulk_load.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh
 %{metron_home}/bin/threatintel_taxii_load.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
@@ -261,6 +260,7 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zookeeper/indexing/websphere.json
 %{metron_home}/config/zookeeper/indexing/yaf.json
 %{metron_home}/config/zookeeper/indexing/asa.json
+%{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -316,7 +316,7 @@ This package installs the Metron Profiler %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
-* Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.0
+* Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
 - Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
 - Add ASA parser/enrichment configuration files 

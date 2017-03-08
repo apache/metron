@@ -70,43 +70,40 @@
               <a *ngIf="transformsConfigKeys.length>0"  class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseTransform" aria-expanded="false" aria-controls="collapseTransform" #transformLink (click)="transformLink.text=(transformLink.text==='show more')?'show less':'show more'">show more</a>
             </div>
             <div *ngIf="item.model == 'threatTriageRules'">
-              <div class="col-xs-12 form-sub-sub-title">Risk Levels</div>
               <div class="col-xs-6 form-label">AGGREGATOR</div><div class="col-xs-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
               <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
                 <div>
-                  <div *ngFor="let results of aggregationConfigKeys" >
-                    <div class="form-label">{{ results }}</div>
-                    <div class="form-value">{{ sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[results] }}</div>
+                  <div class="col-xs-6 form-label">NAME</div><div class="col-xs-6 form-label">SCORE</div>
+                  <div *ngFor="let riskLevelRule of rules" >
+                    <div class="col-xs-6 form-label">{{ riskLevelRule.name }}</div>
+                    <div class="col-xs-6 form-value">{{ riskLevelRule.score }}</div>
                   </div>
                 </div>
               </div>
-              <div  class="col-xs-12 form-label threatIntel">{{aggregationConfigKeys}}</div>
-              <a *ngIf="aggregationConfigKeys.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseThreatTriage" aria-expanded="false" aria-controls="collapseThreatTriage"  #threatTriageLink (click)="threatTriageLink.text=(threatTriageLink.text==='show more')?'show less':'show more'">show more</a>
+              <div  class="col-xs-12 form-label threatIntel">{{ getRuleDisplayName() }}</div>
+              <a *ngIf="rules.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseThreatTriage" aria-expanded="false" aria-controls="collapseThreatTriage"  #threatTriageLink (click)="threatTriageLink.text=(threatTriageLink.text==='show more')?'show less':'show more'">show more</a>
             </div>
           </div>
         </div>
       </div>
     </div>
-      <br> <br> <br> <br>
 
-    <div class="metron-button-bar" >
-        <div class="row pl-0 py-1">
-          <button class="btn btn-primary readonly-view-inline-button pl-1" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">Edit</button>
+      <div class="button-seperator"></div>
 
-          <button class="btn btn-primary readonly-view-inline-button" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Stopped')">START</button>
-          <button class="btn form-enable-disable-button readonly-view-inline-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="((topologyStatus.status != 'Running' && topologyStatus.status != 'Disabled'))">STOP</button>
+      <div class="row pl-0 py-1">
+        <button class="btn btn-primary readonly-view-inline-button pl-1" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">Edit</button>
 
-          <button class="btn btn-primary readonly-view-inline-button" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Disabled')" >ENABLE</button>
-          <button class="btn form-enable-disable-button readonly-view-inline-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Running')">DISABLE</button>
+        <button class="btn btn-primary readonly-view-inline-button" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Stopped')">START</button>
+        <button class="btn form-enable-disable-button readonly-view-inline-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="((topologyStatus.status != 'Running' && topologyStatus.status != 'Disabled'))">STOP</button>
 
-          <div class="readonly-view-inline-button"> <a (click)="onDeleteSensor()"> Delete </a> </div>
+        <button class="btn btn-primary readonly-view-inline-button" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Disabled')" >ENABLE</button>
+        <button class="btn form-enable-disable-button readonly-view-inline-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Running')">DISABLE</button>
 
-          <div class="blue col-xs-7 col-xs-push-5"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
-        </div>
+        <div class="readonly-view-inline-button"> <a (click)="onDeleteSensor()"> Delete </a> </div>
+
+        <div class="blue col-xs-7 col-xs-push-5"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
       </div>
+
     </div>
-
-
-
 
 </metron-config-metron-modal>

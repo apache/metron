@@ -79,26 +79,28 @@ table, .table
       border-bottom: 2px solid #404040 !important;
     }
   }
-  tr
-  {
-    font-family: Roboto-Regular;
-    font-size: 12px;
-    letter-spacing: 0.1px;
-    color: $table-cell-text-color;
-    td:first-child
+  tbody {
+    tr
     {
-      color: $text-color-white;
-    }
-    td
-    {
-      border-top: none;
-      border-bottom: 1px solid #404040;
-    }
-    &:hover
-    {
-      background: $edit-background;
-      border-left: 1px solid $edit-background-border;
-      border-right: 1px solid $edit-background-border;
+      font-family: Roboto-Regular;
+      font-size: 12px;
+      letter-spacing: 0.1px;
+      color: $table-cell-text-color;
+      td:first-child
+      {
+        color: $text-color-white;
+      }
+      td
+      {
+        border-top: none;
+        border-bottom: 1px solid #404040;
+      }
+      &:hover
+      {
+        background: $edit-background;
+        border-left: 1px solid $edit-background-border;
+        border-right: 1px solid $edit-background-border;
+      }
     }
   }
   .active
@@ -192,6 +194,16 @@ label
   }
 }
 
+.flexbox-row-reverse
+{
+  min-height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
 @media only screen and (min-width: 500px) {
   .dialog1x {
     width: $dialog-1x-width;
@@ -209,19 +221,20 @@ label
     width: $dialog-4x-width;
   }
 }
+
 .metron-slider-pane-edit
 {
   @extend .metron-slider-pane;
-  background: $edit-child-background;
-  border: 1px solid $edit-background-border;
+  @extend .metron-edit-pane-background;
   padding-left: 0;
   padding-right: 0;
+  min-height: 100%;
 }
 
-.metron-slider-pane-edit-child
+.metron-edit-pane-background
 {
-  @extend .metron-slider-pane-edit;
-  background-color: $edit-child-background;
+  background: $edit-child-background;
+  border: 1px solid $edit-background-border;
 }
 
 form

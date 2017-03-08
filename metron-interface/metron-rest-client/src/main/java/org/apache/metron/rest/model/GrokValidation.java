@@ -22,9 +22,18 @@ import java.util.Map;
 
 public class GrokValidation {
 
+    private String patternLabel;
     private String statement;
     private String sampleData;
     private Map<String, Object> results;
+
+    public String getPatternLabel() {
+        return patternLabel;
+    }
+
+    public void setPatternLabel(String patternLabel) {
+        this.patternLabel = patternLabel;
+    }
 
     public String getStatement() {
         return statement;
@@ -60,6 +69,7 @@ public class GrokValidation {
 
         GrokValidation that = (GrokValidation) o;
 
+        if (patternLabel != null ? !patternLabel.equals(that.patternLabel) : that.patternLabel != null) return false;
         if (statement != null ? !statement.equals(that.statement) : that.statement != null) return false;
         if (sampleData != null ? !sampleData.equals(that.sampleData) : that.sampleData != null) return false;
         return results != null ? results.equals(that.results) : that.results == null;
@@ -67,7 +77,8 @@ public class GrokValidation {
 
     @Override
     public int hashCode() {
-        int result = statement != null ? statement.hashCode() : 0;
+        int result = patternLabel != null ? patternLabel.hashCode() : 0;
+        result = 31 * result + (statement != null ? statement.hashCode() : 0);
         result = 31 * result + (sampleData != null ? sampleData.hashCode() : 0);
         result = 31 * result + (results != null ? results.hashCode() : 0);
         return result;

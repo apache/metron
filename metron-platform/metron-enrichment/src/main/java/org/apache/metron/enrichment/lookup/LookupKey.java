@@ -18,6 +18,8 @@
 package org.apache.metron.enrichment.lookup;
 
 public interface LookupKey {
-    byte[] toBytes();
-    void fromBytes(byte[] in);
+  byte[] toBytes();
+  void fromBytes(byte[] in);
+  String getIndicator();
+  void setIndicator(String indicator);
 }

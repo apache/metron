@@ -22,6 +22,7 @@ import {SharedModule} from '../../shared/shared.module';
 import {SensorEnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {SensorRuleEditorComponent} from './rule-editor/sensor-rule-editor.component';
 import {NumberSpinnerComponent} from '../../shared/number-spinner/number-spinner.component';
+import {RiskLevelRule} from '../../model/risk-level-rule';
 
 describe('Component: SensorThreatTriageComponent', () => {
 
@@ -87,24 +88,30 @@ describe('Component: SensorThreatTriageComponent', () => {
     });
     component.sensorEnrichmentConfig = sensorEnrichmentConfig;
 
-    expect(component.getRuleColor('ruleA')).toEqual('khaki');
-    expect(component.getRuleColor('ruleB')).toEqual('red');
-    expect(component.getRuleColor('ruleC')).toEqual('orange');
+    let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
+    let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
+    let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
+
+    expect(component.getRuleColor(ruleA)).toEqual('khaki');
+    expect(component.getRuleColor(ruleB)).toEqual('red');
+    expect(component.getRuleColor(ruleC)).toEqual('orange');
 
     fixture.destroy();
   });
 
   it('should edit rules', () => {
+    let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
+    let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
+    let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
+    let ruleD = {name: 'ruleD', rule: 'rule D', score: 85, comment: ''};
+    let ruleE = {name: 'ruleE', rule: 'rule E', score: 5, comment: ''};
+    let ruleF = {name: 'ruleF', rule: 'rule F', score: 21, comment: ''};
+    let ruleG = {name: 'ruleG', rule: 'rule G', score: 100, comment: ''};
+
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
     sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
       'triageConfig': {
-        'riskLevelRules': {
-          'ruleA': 15,
-          'ruleB': 95,
-          'ruleC': 50,
-          'ruleD': 85,
-          'ruleE': 5
-        },
+        'riskLevelRules': [ruleA, ruleB, ruleC, ruleD, ruleE],
         'aggregator': 'MAX',
         'aggregationConfig': {}
       }
@@ -116,70 +123,68 @@ describe('Component: SensorThreatTriageComponent', () => {
     component.ngOnChanges(changes);
 
     // sorted by score high to low
-    expect(component.rules).toEqual(['ruleB', 'ruleD', 'ruleC', 'ruleA', 'ruleE']);
+    expect(component.visibleRules).toEqual([ruleB, ruleD, ruleC, ruleA, ruleE]);
     expect(component.lowAlerts).toEqual(2);
     expect(component.mediumAlerts).toEqual(1);
     expect(component.highAlerts).toEqual(2);
 
     // sorted by name high to low
     component.onSortOrderChange(SortOrderOption.Highest_Name);
-    expect(component.rules).toEqual(['ruleE', 'ruleD', 'ruleC', 'ruleB', 'ruleA']);
+    expect(component.visibleRules).toEqual([ruleE, ruleD, ruleC, ruleB, ruleA]);
 
     // sorted by score low to high
     component.onSortOrderChange(SortOrderOption.Lowest_Score);
-    expect(component.rules).toEqual(['ruleE', 'ruleA', 'ruleC', 'ruleD', 'ruleB']);
+    expect(component.visibleRules).toEqual([ruleE, ruleA, ruleC, ruleD, ruleB]);
 
     // sorted by name low to high
     component.onSortOrderChange(SortOrderOption.Lowest_Name);
-    expect(component.rules).toEqual(['ruleA', 'ruleB', 'ruleC', 'ruleD', 'ruleE']);
+    expect(component.visibleRules).toEqual([ruleA, ruleB, ruleC, ruleD, ruleE]);
 
     component.onNewRule();
-    expect(component.textEditorValue).toEqual('');
-    expect(component.textEditorScore).toEqual(0);
+    expect(component.currentRiskLevelRule.name).toEqual('');
+    expect(component.currentRiskLevelRule.rule).toEqual('');
+    expect(component.currentRiskLevelRule.score).toEqual(0);
     expect(component.showTextEditor).toEqual(true);
 
-    component.textEditorValue = 'ruleF';
-    component.textEditorScore = 21;
+    component.currentRiskLevelRule = new RiskLevelRule();
     component.onCancelTextEditor();
     expect(component.showTextEditor).toEqual(false);
-    expect(component.rules).toEqual(['ruleA', 'ruleB', 'ruleC', 'ruleD', 'ruleE']);
+    expect(component.visibleRules).toEqual([ruleA, ruleB, ruleC, ruleD, ruleE]);
 
     component.sortOrder = SortOrderOption.Lowest_Score;
     component.onNewRule();
-    component.textEditorValue = 'ruleF';
-    component.textEditorScore = 21;
+    component.currentRiskLevelRule = ruleF;
     expect(component.showTextEditor).toEqual(true);
-    component.onSubmitTextEditor({'ruleF': 21});
-    expect(component.rules).toEqual(['ruleE', 'ruleA', 'ruleF', 'ruleC', 'ruleD', 'ruleB']);
+    component.onSubmitTextEditor(ruleF);
+    expect(component.visibleRules).toEqual([ruleE, ruleA, ruleF, ruleC, ruleD, ruleB]);
     expect(component.lowAlerts).toEqual(2);
     expect(component.mediumAlerts).toEqual(2);
     expect(component.highAlerts).toEqual(2);
     expect(component.showTextEditor).toEqual(false);
 
-    component.onDeleteRule('ruleE');
-    expect(component.rules).toEqual(['ruleA', 'ruleF', 'ruleC', 'ruleD', 'ruleB']);
+    component.onDeleteRule(ruleE);
+    expect(component.visibleRules).toEqual([ruleA, ruleF, ruleC, ruleD, ruleB]);
     expect(component.lowAlerts).toEqual(1);
     expect(component.mediumAlerts).toEqual(2);
     expect(component.highAlerts).toEqual(2);
 
     component.onFilterChange(ThreatTriageFilter.LOW);
-    expect(component.rules).toEqual(['ruleA']);
+    expect(component.visibleRules).toEqual([ruleA]);
 
     component.onFilterChange(ThreatTriageFilter.MEDIUM);
-    expect(component.rules).toEqual(['ruleF', 'ruleC']);
+    expect(component.visibleRules).toEqual([ruleF, ruleC]);
 
     component.onFilterChange(ThreatTriageFilter.HIGH);
-    expect(component.rules).toEqual(['ruleD', 'ruleB']);
+    expect(component.visibleRules).toEqual([ruleD, ruleB]);
 
     component.onFilterChange(ThreatTriageFilter.HIGH);
-    expect(component.rules).toEqual(['ruleA', 'ruleF', 'ruleC', 'ruleD', 'ruleB']);
+    expect(component.visibleRules).toEqual([ruleA, ruleF, ruleC, ruleD, ruleB]);
 
-    component.onEditRule('ruleC');
-    expect(component.textEditorValue).toEqual('ruleC');
-    expect(component.textEditorScore).toEqual(50);
+    component.onEditRule(ruleC);
+    expect(component.currentRiskLevelRule).toEqual(ruleC);
     expect(component.showTextEditor).toEqual(true);
-    component.onSubmitTextEditor({'ruleG': 100});
-    expect(component.rules).toEqual(['ruleA', 'ruleF', 'ruleD', 'ruleB', 'ruleG']);
+    component.onSubmitTextEditor(ruleG);
+    expect(component.visibleRules).toEqual([ruleA, ruleF, ruleD, ruleB, ruleG]);
     expect(component.lowAlerts).toEqual(1);
     expect(component.mediumAlerts).toEqual(1);
     expect(component.highAlerts).toEqual(3);

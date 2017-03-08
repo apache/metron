@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/apache/incubator-metron.svg?branch=master)](https://travis-ci.org/apache/incubator-metron)
-
+ 
 # Apache Metron (Incubating)
  
 Metron integrates a variety of open source big data technologies in order
@@ -23,7 +23,6 @@ the context and situational awareness, as well as the who and where
 information critical for investigation
 
 3. **Efficient information storage** based on how the information will be used:
-
    - Logs and telemetry are stored such that they can be efficiently mined and
 analyzed for concise security visibility
    - The ability to extract and reconstruct full packets helps an analyst answer 
@@ -68,12 +67,12 @@ Build the full project and run tests:
 $ mvn clean install
 ```
 
-Build without tests:<br>
+Build without tests:
 ```
 $ mvn clean install -DskipTests
 ```
 
-Build with the HDP profile:<br>
+Build with the HDP profile:
 ```
 $ mvn clean install -PHDP-2.5.0.0
 ```

@@ -20,6 +20,7 @@ package org.apache.metron.threatintel.triage;
 
 import com.google.common.base.Function;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.RiskLevelRule;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.*;
@@ -55,9 +56,9 @@ public class ThreatTriageProcessor implements Function<Map, Double> {
     List<Number> scores = new ArrayList<>();
     StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
     VariableResolver resolver = new MapVariableResolver(input, sensorConfig.getConfiguration(), threatIntelConfig.getConfig());
-    for(Map.Entry<String, Number> kv : threatTriageConfig.getRiskLevelRules().entrySet()) {
-      if(predicateProcessor.parse(kv.getKey(), resolver, functionResolver, context)) {
-        scores.add(kv.getValue());
+    for(RiskLevelRule rule : threatTriageConfig.getRiskLevelRules()) {
+      if(predicateProcessor.parse(rule.getRule(), resolver, functionResolver, context)) {
+        scores.add(rule.getScore());
       }
     }
     return threatTriageConfig.getAggregator().aggregate(scores, threatTriageConfig.getAggregationConfig());
