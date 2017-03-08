@@ -34,7 +34,7 @@
 
 .form-table
 {
-  display: block;
+  display: inline-block;
   min-height: 100px;
   background: #033339;
   margin-bottom: 100px;
@@ -49,6 +49,9 @@
   tr:last-child td
   {
     border-bottom: none;
+  }
+  td:last-child {
+    width: 100%;
   }
 
 }

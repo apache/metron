@@ -21,7 +21,6 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {routing} from './sensor-parser-config.routing';
 import {AdvancedConfigFormComponent} from '../../shared/advanced-config-form/advanced-config-form.component';
 import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
-import {AutocompleteComponent} from '../../shared/autocomplete/autocomplete.component';
 import {SensorParserConfigComponent} from './sensor-parser-config.component';
 import {SharedModule} from '../../shared/shared.module';
 import {SensorRawJsonComponent} from '../sensor-raw-json/sensor-raw-json.component';
@@ -36,7 +35,7 @@ import {SensorRuleEditorComponent} from '../sensor-threat-triage/rule-editor/sen
 @NgModule ({
   imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, SharedModule, AceEditorModule ],
   declarations: [ SensorParserConfigComponent, SensorGrokComponent, SensorFieldSchemaComponent, AdvancedConfigFormComponent,
-    SampleDataComponent, AutocompleteComponent, SensorRawJsonComponent, SensorThreatTriageComponent,
+    SampleDataComponent, SensorRawJsonComponent, SensorThreatTriageComponent,
     SensorRuleEditorComponent, MultipleInputComponent, NumberSpinnerComponent ]
 })
 export class SensorParserConfigModule { }

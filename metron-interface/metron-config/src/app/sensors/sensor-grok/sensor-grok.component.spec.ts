@@ -98,7 +98,6 @@ describe('Component: SensorFieldSchema', () => {
 
   it('should create an instance', () => {
     expect(component).toBeDefined();
-    expect(component.autocompleteStatementGenerator).toBeDefined();
     fixture.destroy();
   });
 

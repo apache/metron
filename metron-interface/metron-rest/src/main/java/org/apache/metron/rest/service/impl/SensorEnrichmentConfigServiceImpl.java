@@ -47,7 +47,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
     }
 
     @Override
-    public SensorEnrichmentConfig save(String name, SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
+    public SensorEnrichmentConfig   save(String name, SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
       try {
         ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(name, objectMapper.writeValueAsString(sensorEnrichmentConfig).getBytes(), client);
       } catch (Exception e) {
