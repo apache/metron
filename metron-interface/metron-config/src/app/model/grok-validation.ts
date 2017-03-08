@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 export class GrokValidation {
+  patternLabel: string;
   statement: string;
   sampleData: string;
   results: {};

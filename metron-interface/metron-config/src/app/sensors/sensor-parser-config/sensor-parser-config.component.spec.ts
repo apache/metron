@@ -21,7 +21,7 @@ import {Observable} from 'rxjs/Observable';
 import {Router, ActivatedRoute, Params} from '@angular/router';
 import {Http, RequestOptions, Response, ResponseOptions} from '@angular/http';
 import {SensorParserConfigComponent, Pane, KafkaStatus} from './sensor-parser-config.component';
-import {TransformationValidationService} from '../../service/transformation-validation.service';
+import {StellarService} from '../../service/stellar.service';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {KafkaService} from '../../service/kafka.service';
 import {KafkaTopic} from '../../model/kafka-topic';
@@ -30,7 +30,7 @@ import {MetronAlerts} from '../../shared/metron-alerts';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichments} from '../../model/sensor-enrichments';
 import {ParseMessageRequest} from '../../model/parse-message-request';
-import {TransformationValidation} from '../../model/transformation-validation';
+import {SensorParserContext} from '../../model/sensor-parser-context';
 import {AuthenticationService} from '../../service/authentication.service';
 import {FieldTransformer} from '../../model/field-transformer';
 import {SensorParserConfigModule} from './sensor-parser-config.module';
@@ -42,6 +42,7 @@ import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.
 import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
 import '../../rxjs-operators';
 import 'rxjs/add/observable/of';
+import {HdfsService} from '../../service/hdfs.service';
 
 
 class MockRouter {
@@ -222,6 +223,53 @@ class MockGrokValidationService extends GrokValidationService {
   }
 }
 
+class MockHdfsService extends HdfsService {
+  private fileList: string[];
+  private contents: string;
+
+  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
+    super(http2, config2);
+  }
+
+  public setContents(contents: string) {
+    this.contents = contents;
+  }
+
+  public list(path: string): Observable<string[]> {
+    if (this.fileList === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      observer.next(this.fileList);
+      observer.complete();
+    });
+  }
+
+  public read(path: string): Observable<string> {
+    if (this.contents === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      observer.next(this.contents);
+      observer.complete();
+    });
+  }
+
+  public post(contents: string): Observable<{}> {
+    return Observable.create(observer => {
+      observer.next({});
+      observer.complete();
+    });
+  }
+
+  public deleteFile(path: string): Observable<Response> {
+    return Observable.create(observer => {
+      observer.next({});
+      observer.complete();
+    });
+  }
+}
+
 class MockAuthenticationService extends AuthenticationService {
 
   constructor(private http2: Http, private router2: Router, @Inject(APP_CONFIG) private config2: IAppConfig) {
@@ -236,10 +284,10 @@ class MockAuthenticationService extends AuthenticationService {
   };
 }
 
-class MockTransformationValidationService extends TransformationValidationService {
+class MockTransformationValidationService extends StellarService {
 
   private transformationValidationResult: any;
-  private transformationValidationForValidate: TransformationValidation;
+  private transformationValidationForValidate: SensorParserContext;
 
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
@@ -249,11 +297,11 @@ class MockTransformationValidationService extends TransformationValidationServic
     this.transformationValidationResult = transformationValidationResult;
   }
 
-  public getTransformationValidationForValidate(): TransformationValidation {
+  public getTransformationValidationForValidate(): SensorParserContext {
     return this.transformationValidationForValidate;
   }
 
-  public validate(t: TransformationValidation): Observable<{}> {
+  public validate(t: SensorParserContext): Observable<{}> {
     this.transformationValidationForValidate = t;
     return Observable.create(observer => {
       observer.next(this.transformationValidationResult);
@@ -333,6 +381,7 @@ describe('Component: SensorParserConfig', () => {
   let sensorIndexingConfigService: MockSensorIndexingConfigService;
   let transformationValidationService: MockTransformationValidationService;
   let kafkaService: MockKafkaService;
+  let hdfsService: MockHdfsService;
   let grokValidationService: MockGrokValidationService;
   let activatedRoute: MockActivatedRoute;
   let metronAlerts: MetronAlerts;
@@ -387,8 +436,9 @@ describe('Component: SensorParserConfig', () => {
         {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
         {provide: SensorIndexingConfigService, useClass: MockSensorIndexingConfigService},
         {provide: KafkaService, useClass: MockKafkaService},
+        {provide: HdfsService, useClass: MockHdfsService},
         {provide: GrokValidationService, useClass: MockGrokValidationService},
-        {provide: TransformationValidationService, useClass: MockTransformationValidationService},
+        {provide: StellarService, useClass: MockTransformationValidationService},
         {provide: ActivatedRoute, useClass: MockActivatedRoute},
         {provide: Router, useClass: MockRouter},
         {provide: AuthenticationService, useClass: MockAuthenticationService},
@@ -401,8 +451,9 @@ describe('Component: SensorParserConfig', () => {
         comp = fixture.componentInstance;
         sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
         sensorIndexingConfigService = fixture.debugElement.injector.get(SensorIndexingConfigService);
-        transformationValidationService = fixture.debugElement.injector.get(TransformationValidationService);
+        transformationValidationService = fixture.debugElement.injector.get(StellarService);
         kafkaService = fixture.debugElement.injector.get(KafkaService);
+        hdfsService = fixture.debugElement.injector.get(HdfsService);
         grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
         sensorEnrichmentsService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
         activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
@@ -503,7 +554,7 @@ describe('Component: SensorParserConfig', () => {
           observer.complete();
         });
       } else {
-        return Observable.throw('Error');
+        return Observable.throw({message: 'Error'});
       }
 
     });
@@ -516,7 +567,7 @@ describe('Component: SensorParserConfig', () => {
           observer.complete();
         });
       } else {
-        return Observable.throw('Error');
+        return Observable.throw({message: 'Error'});
       }
     });
 
@@ -688,10 +739,10 @@ describe('Component: SensorParserConfig', () => {
     component.sensorParserConfig = new SensorParserConfig();
 
     component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    expect(component.isGrokParser()).toEqual(true);
+    expect(component.isGrokParser(component.sensorParserConfig)).toEqual(true);
 
     component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParserTest';
-    expect(component.isGrokParser()).toEqual(false);
+    expect(component.isGrokParser(component.sensorParserConfig)).toEqual(false);
 
     fixture.destroy();
   }));

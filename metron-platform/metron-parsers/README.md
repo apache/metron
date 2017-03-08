@@ -295,7 +295,7 @@ usage: start_parser_topology.sh
                                                 (zk1:2181,zk2:2181,...
 ```
 
-# The `--extra_kafka_spout_config` Option
+## The `--extra_kafka_spout_config` Option
 These options are intended to configure the Storm Kafka Spout more completely.  These options can be
 specified in a JSON file containing a map associating the kafka spout configuration parameter to a value.
 The range of values possible to configure are:
@@ -322,7 +322,7 @@ For instance, creating a JSON file which will set the `bufferSizeBytes` to 2MB a
 
 This would be loaded by passing the file as argument to `--extra_kafka_spout_config`
 
-# The `--extra_topology_options` Option
+## The `--extra_topology_options` Option
 
 These options are intended to be Storm configuration options and will live in
 a JSON file which will be loaded into the Storm config.  For instance, if you wanted to set a storm property on

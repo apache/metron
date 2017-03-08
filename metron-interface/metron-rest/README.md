@@ -1,65 +1,82 @@
-# Metron REST and Configuration UI
+# Metron REST
 
-This UI exposes and aids in sensor configuration.
+This module provides a RESTful API for interacting with Metron.
 
 ## Prerequisites
 
 * A running Metron cluster
-* A running instance of MySQL
 * Java 8 installed
 * Storm CLI and Metron topology scripts (start_parser_topology.sh, start_enrichment_topology.sh, start_elasticsearch_topology.sh) installed
 
 ## Installation
-1. Package the Application with Maven:
-    ```
-    mvn clean package
-    ```
+1. Package the application with Maven:
+```
+mvn clean package
+```
 
 1. Untar the archive in the target directory.  The directory structure will look like:
-    ```
-    bin
-      start.sh
-    lib
-      metron-rest-version.jar
-    ```
+```
+bin
+  start_metron_rest.sh
+lib
+  metron-rest-$METRON_VERSION.jar
+```
 
-1. Install Hibernate by downloading version 5.0.11.Final from (http://hibernate.org/orm/downloads/).  Unpack the archive and set the HIBERNATE_HOME environment variable to the absolute path of the top level directory.
-    ```
-    export HIBERNATE_HOME=/path/to/hibernate-release-5.0.11.Final
-    ```
+1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
 
-1. Install the MySQL client by downloading version 5.1.40 from (https://dev.mysql.com/downloads/connector/j/).  Unpack the archive and set the MYSQL_CLIENT_HOME environment variable to the absolute path of the top level directory.
-    ```
-    export MYSQL_CLIENT_HOME=/path/to/mysql-connector-java-5.1.40
-    ```
-
-1. Create a MySQL user for the Config UI (http://dev.mysql.com/doc/refman/5.7/en/adding-users.html).
-
-1. Create a Config UI database in MySQL with this command:
-    ```
-    CREATE DATABASE IF NOT EXISTS metronrest
-    ```
-
-1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.username` and `spring.datasource.password` properties using the MySQL credentials from step 4.
-
-1. Start the UI with this command:
-    ```
-    ./bin/start.sh /path/to/application.yml
-    ```
+1. Start the application with this command:
+```
+./bin/start_metron_rest.sh /path/to/application.yml
+```
 
 ## Usage
 
-The exposed REST endpoints can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.  Users can be added with this SQL statement:
+The exposed REST endpoints can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
+
+## Security
+
+The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication and stores user credentials in a relational database.  The H2 database is configured by default and is intended only for development purposes.  The "dev" profile can be used to automatically load test users:
+```
+./bin/start_metron_rest.sh /path/to/application.yml --spring.profiles.active=dev
+```
+
+For [production use](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/reference/htmlsingle/#boot-features-connect-to-production-database), a relational database should be configured.  For example, configuring MySQL would be done as follows:
+
+1. Create a MySQL user for the Metron REST application (http://dev.mysql.com/doc/refman/5.7/en/adding-users.html).
+
+1. Connect to MySQL and create a Metron REST database:
+```
+CREATE DATABASE IF NOT EXISTS metronrest
+```
+
+1. Add users:
 ```
 use metronrest;
 insert into users (username, password, enabled) values ('your_username','your_password',1);
 insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
 ```
-Users can be added to additional groups with this SQL statement:
+
+1. Replace the H2 connection information in the application.yml file with MySQL connection information:
 ```
-use metronrest;
-insert into authorities (username, authority) values ('your_username', 'your_group');
+spring:
+  datasource:
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://mysql_host:3306/metronrest
+        username: metron_rest_user
+        password: metron_rest_password
+        platform: mysql
 ```
+
+1. Add a dependency for the MySQL JDBC connector in the metron-rest pom.xml:
+```
+<dependency>
+  <groupId>mysql</groupId>
+  <artifactId>mysql-connector-java</artifactId>
+  <version>${mysql.client.version}</version>
+</dependency>
+```
+
+1. Follow the steps in the [Installation](#installation) section
 
 ## API
 
@@ -72,6 +89,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
 | [ `GET /api/v1/grok/list`](#get-apiv1groklist)|
 | [ `POST /api/v1/grok/validate`](#post-apiv1grokvalidate)|
+| [ `POST /api/v1/hdfs`](#post-apiv1hdfs)|
+| [ `GET /api/v1/hdfs`](#get-apiv1hdfs)|
+| [ `DELETE /api/v1/hdfs`](#delete-apiv1hdfs)|
+| [ `GET /api/v1/hdfs/list`](#get-apiv1hdfslist)|
 | [ `GET /api/v1/kafka/topic`](#get-apiv1kafkatopic)|
 | [ `POST /api/v1/kafka/topic`](#post-apiv1kafkatopic)|
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopic{name})|
@@ -93,6 +114,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/sensor/parser/config/reload/available`](#get-apiv1sensorparserconfigreloadavailable)|
 | [ `DELETE /api/v1/sensor/parser/config/{name}`](#delete-apiv1sensorparserconfig{name})|
 | [ `GET /api/v1/sensor/parser/config/{name}`](#get-apiv1sensorparserconfig{name})|
+| [ `POST /api/v1/stellar/apply/transformations`](#post-apiv1stellarapplytransformations)|
+| [ `GET /api/v1/stellar/list`](#get-apiv1stellarlist)|
+| [ `GET /api/v1/stellar/list/functions`](#get-apiv1stellarlistfunctions)|
+| [ `GET /api/v1/stellar/list/simple/functions`](#get-apiv1stellarlistsimplefunctions)|
+| [ `POST /api/v1/stellar/validate/rules`](#post-apiv1stellarvalidaterules)|
 | [ `GET /api/v1/storm`](#get-apiv1storm)|
 | [ `GET /api/v1/storm/client/status`](#get-apiv1stormclientstatus)|
 | [ `GET /api/v1/storm/enrichment`](#get-apiv1stormenrichment)|
@@ -110,11 +136,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstart{name})|
 | [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstop{name})|
 | [ `GET /api/v1/storm/{name}`](#get-apiv1storm{name})|
-| [ `GET /api/v1/transformation/list`](#get-apiv1transformationlist)|
-| [ `GET /api/v1/transformation/list/functions`](#get-apiv1transformationlistfunctions)|
-| [ `GET /api/v1/transformation/list/simple/functions`](#get-apiv1transformationlistsimplefunctions)|
-| [ `POST /api/v1/transformation/validate`](#post-apiv1transformationvalidate)|
-| [ `POST /api/v1/transformation/validate/rules`](#post-apiv1transformationvalidaterules)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `GET /api/v1/global/config`
@@ -145,9 +166,40 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 ### `POST /api/v1/grok/validate`
   * Description: Applies a Grok statement to a sample message
   * Input:
-    * grokValidation - Object containing Grok statment and sample message
+    * grokValidation - Object containing Grok statement and sample message
   * Returns:
     * 200 - JSON results
+
+### `POST /api/v1/hdfs`
+  * Description: Writes contents to an HDFS file.  Warning: this will overwite the contents of a file if it already exists.
+  * Input:
+    * path - Path to HDFS file
+    * contents - File contents
+  * Returns:
+    * 200 - Contents were written
+
+### `GET /api/v1/hdfs`
+  * Description: Reads a file from HDFS and returns the contents
+  * Input:
+    * path - Path to HDFS file
+  * Returns:
+    * 200 - Returns file contents
+
+### `DELETE /api/v1/hdfs`
+  * Description: Deletes a file from HDFS
+  * Input:
+    * path - Path to HDFS file
+    * recursive - Delete files recursively
+  * Returns:
+    * 200 - File was deleted
+    * 404 - File was not found in HDFS
+
+### `GET /api/v1/hdfs/list`
+  * Description: Reads a file from HDFS and returns the contents
+  * Input:
+    * path - Path to HDFS directory
+  * Returns:
+    * 200 - Returns file contents
 
 ### `GET /api/v1/kafka/topic`
   * Description: Retrieves all Kafka topics
@@ -296,6 +348,35 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns SensorParserConfig
     * 404 - SensorParserConfig is missing
 
+### `POST /api/v1/stellar/apply/transformations`
+  * Description: Executes transformations against a sample message
+  * Input:
+    * transformationValidation - Object containing SensorParserConfig and sample message
+  * Returns:
+    * 200 - Returns transformation results
+
+### `GET /api/v1/stellar/list`
+  * Description: Retrieves field transformations
+  * Returns:
+    * 200 - Returns a list field transformations
+
+### `GET /api/v1/stellar/list/functions`
+  * Description: Lists the Stellar functions that can be found on the classpath
+  * Returns:
+    * 200 - Returns a list of Stellar functions
+
+### `GET /api/v1/stellar/list/simple/functions`
+  * Description: Lists the simple Stellar functions (functions with only 1 input) that can be found on the classpath
+  * Returns:
+    * 200 - Returns a list of simple Stellar functions
+
+### `POST /api/v1/stellar/validate/rules`
+  * Description: Tests Stellar statements to ensure they are well-formed
+  * Input:
+    * statements - List of statements to validate
+  * Returns:
+    * 200 - Returns validation results
+
 ### `GET /api/v1/storm`
   * Description: Retrieves the status of all Storm topologies
   * Returns:
@@ -399,40 +480,43 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns topology status information
     * 404 - Topology is missing
 
-### `GET /api/v1/transformation/list`
-  * Description: Retrieves field transformations
-  * Returns:
-    * 200 - Returns a list field transformations
-
-### `GET /api/v1/transformation/list/functions`
-  * Description: Lists the Stellar functions that can be found on the classpath
-  * Returns:
-    * 200 - Returns a list of Stellar functions
-
-### `GET /api/v1/transformation/list/simple/functions`
-  * Description: Lists the simple Stellar functions (functions with only 1 input) that can be found on the classpath
-  * Returns:
-    * 200 - Returns a list of simple Stellar functions
-
-### `POST /api/v1/transformation/validate`
-  * Description: Executes transformations against a sample message
-  * Input:
-    * transformationValidation - Object containing SensorParserConfig and sample message
-  * Returns:
-    * 200 - Returns transformation results
-
-### `POST /api/v1/transformation/validate/rules`
-  * Description: Tests Stellar statements to ensure they are well-formed
-  * Input:
-    * statements - List of statements to validate
-  * Returns:
-    * 200 - Returns validation results
-
 ### `GET /api/v1/user`
   * Description: Retrieves the current user
   * Returns:
     * 200 - Current user
 
+## Testing
+
+Profiles are includes for both the metron-docker and Quick Dev environments.
+
+### metron-docker
+
+Start the [metron-docker](../../metron-docker) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+```
+mvn clean package
+mvn spring-boot:run -Drun.profiles=docker,dev
+```
+The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
+
+### Quick Dev
+
+Start the [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+```
+mvn clean package
+mvn spring-boot:run -Drun.profiles=vagrant,dev
+```
+The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
+
+To run the application locally on the Quick Dev host, package the application and scp the archive to node1:
+```
+mvn clean package
+scp ./target/metron-rest-$METRON_VERSION-archive.tar.gz root@node1:~/
+```
+Login to node1 and unarchive the metron-rest application.  Start the application on a different port to avoid conflicting with Ambari:
+```
+java -jar ./lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082
+```
+The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
 
 ## License
 

@@ -17,11 +17,13 @@
  */
 import { NgModule } from '@angular/core';
 import {SharedModule} from '../../shared/shared.module';
-import {SensorThreatTriageComponent} from "./sensor-threat-triage.component";
+import {SensorThreatTriageComponent} from './sensor-threat-triage.component';
+import {SensorRuleEditorModule} from './rule-editor/sensor-rule-editor.module';
 
 
 @NgModule ({
-  imports: [ SharedModule ],
-  declarations: [ SensorThreatTriageComponent ]
+  imports: [ SharedModule, SensorRuleEditorModule ],
+  declarations: [ SensorThreatTriageComponent ],
+  exports: [ SensorThreatTriageComponent ]
 })
 export class SensorThreatTriageModule {}

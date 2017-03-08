@@ -18,6 +18,7 @@
 /* tslint:disable:triple-equals */
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
+import {RiskLevelRule} from '../../model/risk-level-rule';
 
 export enum SortOrderOption {
   Lowest_Score, Highest_Score, Lowest_Name, Highest_Name
@@ -40,13 +41,10 @@ export class SensorThreatTriageComponent implements OnChanges {
 
   @Output() hideThreatTriage: EventEmitter<boolean> = new EventEmitter<boolean>();
   availableAggregators = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
+  visibleRules: RiskLevelRule[];
 
   showTextEditor = false;
-  currentValue: string;
-  textEditorValue: string;
-  textEditorScore: number;
-
-  rules = [];
+  currentRiskLevelRule: RiskLevelRule;
 
   lowAlerts = 0;
   mediumAlerts = 0;
@@ -66,7 +64,7 @@ export class SensorThreatTriageComponent implements OnChanges {
   }
 
   init(): void {
-    this.rules = Object.keys(this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules);
+    this.visibleRules = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules;
     this.updateBuckets();
     this.onSortOrderChange(null);
   }
@@ -76,10 +74,9 @@ export class SensorThreatTriageComponent implements OnChanges {
   }
 
 
-  onSubmitTextEditor(rule: {}): void {
-    let ruleValue = Object.keys(rule)[0];
-    delete this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[this.textEditorValue];
-    this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[ruleValue] = rule[ruleValue];
+  onSubmitTextEditor(riskLevelRule: RiskLevelRule): void {
+    this.deleteRule(this.currentRiskLevelRule);
+    this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.push(riskLevelRule);
     this.showTextEditor = false;
     this.init();
   }
@@ -88,31 +85,36 @@ export class SensorThreatTriageComponent implements OnChanges {
     this.showTextEditor = false;
   }
 
-  onEditRule(rule: string) {
-    this.textEditorValue = rule;
-    this.textEditorScore = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule];
+  onEditRule(riskLevelRule: RiskLevelRule) {
+    this.currentRiskLevelRule = riskLevelRule;
     this.showTextEditor = true;
   }
 
-  onDeleteRule(rule: string) {
-    delete this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule];
+  onDeleteRule(riskLevelRule: RiskLevelRule) {
+    this.deleteRule(riskLevelRule);
     this.init();
   }
 
   onNewRule(): void {
-    this.textEditorValue = '';
-    this.textEditorScore = 0;
+    this.currentRiskLevelRule = new RiskLevelRule();
     this.showTextEditor = true;
+  }
+
+  deleteRule(riskLevelRule: RiskLevelRule) {
+    let index = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.indexOf(riskLevelRule);
+    if (index != -1) {
+      this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.splice(index, 1);
+    }
   }
 
   updateBuckets() {
     this.lowAlerts = 0;
     this.mediumAlerts = 0;
     this.highAlerts = 0;
-    for (let rule of this.rules) {
-      if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] <= 20) {
+    for (let riskLevelRule of this.visibleRules) {
+      if (riskLevelRule.score <= 20) {
         this.lowAlerts++;
-      } else if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] >= 80) {
+      } else if (riskLevelRule.score >= 80) {
         this.highAlerts++;
       } else {
         this.mediumAlerts++;
@@ -120,11 +122,11 @@ export class SensorThreatTriageComponent implements OnChanges {
     }
   }
 
-  getRuleColor(rule: string): string {
+  getRuleColor(riskLevelRule: RiskLevelRule): string {
     let color: string;
-    if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] <= 20) {
+    if (riskLevelRule.score <= 20) {
       color = 'khaki';
-    } else if (this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule] >= 80) {
+    } else if (riskLevelRule.score >= 80) {
       color = 'red';
     } else {
       color = 'orange';
@@ -139,30 +141,30 @@ export class SensorThreatTriageComponent implements OnChanges {
 
     // all comparisons with enums must be == and not ===
     if (this.sortOrder == this.sortOrderOption.Highest_Score) {
-      this.rules.sort((a, b) => {
-        let scoreA = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[a];
-        let scoreB = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[b];
-        return scoreB - scoreA;
+      this.visibleRules.sort((a, b) => {
+        return b.score - a.score;
       });
     } else if (this.sortOrder == SortOrderOption.Lowest_Score) {
-      this.rules.sort((a, b) => {
-        let scoreA = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[a];
-        let scoreB = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[b];
-        return scoreA - scoreB;
+      this.visibleRules.sort((a, b) => {
+        return a.score - b.score;
       });
     } else if (this.sortOrder == SortOrderOption.Lowest_Name) {
-      this.rules.sort((a, b) => {
-        if (a.toLowerCase() >= b.toLowerCase()) {
+      this.visibleRules.sort((a, b) => {
+        let aName = a.name ? a.name : '';
+        let bName = b.name ? b.name : '';
+        if (aName.toLowerCase() >= bName.toLowerCase()) {
           return 1;
-        } else if (a.toLowerCase() < b.toLowerCase()) {
+        } else if (aName.toLowerCase() < bName.toLowerCase()) {
           return -1;
         }
       });
     } else {
-      this.rules.sort((a, b) => {
-        if (a.toLowerCase() >= b.toLowerCase()) {
+      this.visibleRules.sort((a, b) => {
+        let aName = a.name ? a.name : '';
+        let bName = b.name ? b.name : '';
+        if (aName.toLowerCase() >= bName.toLowerCase()) {
           return -1;
-        } else if (a.toLowerCase() < b.toLowerCase()) {
+        } else if (aName.toLowerCase() < bName.toLowerCase()) {
           return 1;
         }
       });
@@ -175,21 +177,29 @@ export class SensorThreatTriageComponent implements OnChanges {
     } else {
       this.filter = filter;
     }
-    this.rules = Object.keys(this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules).filter(rule => {
+    this.visibleRules = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.filter(riskLevelRule => {
       if (this.filter === ThreatTriageFilter.NONE) {
         return true;
       } else {
-        let score = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules[rule];
         if (this.filter === ThreatTriageFilter.HIGH) {
-          return score >= 80;
+          return riskLevelRule.score >= 80;
         } else if (this.filter === ThreatTriageFilter.LOW) {
-          return score <= 20;
+          return riskLevelRule.score <= 20;
         } else {
-          return score < 80 && score > 20;
+          return riskLevelRule.score < 80 && riskLevelRule.score > 20;
         }
       }
     });
     this.onSortOrderChange(null);
+  }
+
+  getDisplayName(riskLevelRule: RiskLevelRule): string {
+    if (riskLevelRule.name) {
+      return riskLevelRule.name;
+    } else {
+      let rule = riskLevelRule.rule ? riskLevelRule.rule : '';
+      return rule.length < 20 ? rule : rule.substr(0, 19) + '...';
+    }
   }
 
 }

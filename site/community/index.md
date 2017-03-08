@@ -109,13 +109,13 @@ title: Apache Metron (Incubating) Community
         </div>
         <div class="content-960 hover-btn text-center">
             <h4> General & Public Discussion </h4>
-                [<a href="mailto:general-subscribe@incubator.apache.org">Subscribe</a>]
-                [<a href="mailto:general-unsubscribe@incubator.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-general/">Archives</a>]
+                [<a href="mailto:user-subscribe@metron.incubator.apache.org">Subscribe</a>]
+                [<a href="mailto:user-unsubscribe@metron.incubator.apache.org">Unsubscribe</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-metron-user/">Archives</a>]
             <h4> Code & Documentation Change </h4>
-                [<a href="mailto:cvs-subscribe@incubator.apache.org">Subscribe</a>]
-                [<a href="mailto:cvs-unsubscribe@incubator.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-cvs/">Archives</a>]
+                [<a href="mailto:dev-subscribe@metron.incubator.apache.org">Subscribe</a>]
+                [<a href="mailto:dev-unsubscribe@metron.incubator.apache.org">Unsubscribe</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-metron-dev/">Archives</a>]
         </div>
 </section>
 

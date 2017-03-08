@@ -30,7 +30,7 @@
 
 - hosts: sensors
   vars:
-    metron_version: 0.3.0
+    metron_version: 0.3.1
     metron_directory: /usr/metron/{{ metron_version }}
     bro_version: "2.4.1"
     fixbuf_version: "1.7.1"

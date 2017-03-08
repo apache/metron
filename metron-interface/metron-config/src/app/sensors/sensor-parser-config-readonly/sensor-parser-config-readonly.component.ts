@@ -27,6 +27,10 @@ import {SensorParserConfigHistoryService} from '../../service/sensor-parser-conf
 import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
+import {RiskLevelRule} from '../../model/risk-level-rule';
+import {HdfsService} from '../../service/hdfs.service';
+import {RestError} from '../../model/rest-error';
+import {GrokValidationService} from '../../service/grok-validation.service';
 
 @Component({
   selector: 'metron-config-sensor-parser-readonly',
@@ -44,7 +48,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   grokStatement: string = '';
   transformsConfigKeys: string[] = [];
   transformsConfigMap: {} = {};
-  aggregationConfigKeys: string[] = [];
+  rules: RiskLevelRule[] = [];
 
   editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
     {type: 'SEPARATOR', model: '', value: ''},
@@ -88,6 +92,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
               private sensorEnrichmentService: SensorEnrichmentConfigService,
               private stormService: StormService,
               private kafkaService: KafkaService,
+              private hdfsService: HdfsService,
+              private grokValidationService: GrokValidationService,
               private activatedRoute: ActivatedRoute, private router: Router,
               private metronAlerts: MetronAlerts) {
   }
@@ -109,8 +115,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       (results: TopologyStatus) => {
         this.topologyStatus = results;
         this.topologyStatus.latency = (this.topologyStatus.latency ? this.topologyStatus.latency : '0') + 's';
-        this.topologyStatus.throughput = (this.topologyStatus.throughput ? (Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) : '0') + 'kb/s';
-
+        this.topologyStatus.throughput = (this.topologyStatus.throughput ?
+                (Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) : '0') + 'kb/s';
 
         this.topologyStatus['sensorStatus'] = '-';
 
@@ -150,7 +156,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   getEnrichmentData() {
     this.sensorEnrichmentService.get(this.selectedSensorName).subscribe((sensorEnrichmentConfig) => {
       this.sensorEnrichmentConfig = sensorEnrichmentConfig;
-      this.aggregationConfigKeys = Object.keys(sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules);
+      this.rules = sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules;
     });
   }
 
@@ -169,9 +175,19 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   }
 
   setGrokStatement() {
-    if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.parserConfig &&
-        this.sensorParserConfigHistory.config.parserConfig['grokStatement']) {
-      this.grokStatement = this.sensorParserConfigHistory.config.parserConfig['grokStatement'];
+    if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.parserConfig) {
+      let path = this.sensorParserConfigHistory.config.parserConfig['grokPath'];
+      if (path) {
+        this.hdfsService.read(path).subscribe(contents => {
+          this.grokStatement = contents;
+        }, (hdfsError: RestError) => {
+          this.grokValidationService.getStatement(path).subscribe(contents => {
+            this.grokStatement = contents;
+          }, (grokError: RestError) => {
+            this.metronAlerts.showErrorMessage('Could not find grok statement in HDFS or classpath at ' + path);
+          });
+        });
+      }
     }
   }
 
@@ -294,5 +310,9 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   toggleStartStopInProgress() {
     this.startStopInProgress = !this.startStopInProgress;
+  }
+
+  getRuleDisplayName(): string {
+    return this.rules.map(x => x.name).join(', ');
   }
 }

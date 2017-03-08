@@ -94,9 +94,12 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
    ]
    },
    "triageConfig": {
-   "riskLevelRules": {
-   "ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'": 10
-   },
+   "riskLevelRules": [
+   {
+   "rule": "ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'",
+   "score": 10
+   }
+   ],
    "aggregator": "MAX"
    }
    }
@@ -160,7 +163,8 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.threatIntel.fieldMap.hbaseThreatIntel[1]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_src_addr[0]").value("malicious_ip"))
             .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_dst_addr[0]").value("malicious_ip"))
-            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"]").value(10))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[0].rule").value("ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'"))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[0].score").value(10))
             .andExpect(jsonPath("$.threatIntel.triageConfig.aggregator").value("MAX"));
 
     this.mockMvc.perform(post(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
@@ -177,7 +181,8 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.threatIntel.fieldMap.hbaseThreatIntel[1]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_src_addr[0]").value("malicious_ip"))
             .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_dst_addr[0]").value("malicious_ip"))
-            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"]").value(10))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[0].rule").value("ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'"))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[0].score").value(10))
             .andExpect(jsonPath("$.threatIntel.triageConfig.aggregator").value("MAX"));
 
     this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/broTest").with(httpBasic(user,password)))
@@ -194,7 +199,8 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.threatIntel.fieldMap.hbaseThreatIntel[1]").value("ip_dst_addr"))
             .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_src_addr[0]").value("malicious_ip"))
             .andExpect(jsonPath("$.threatIntel.fieldToTypeMap.ip_dst_addr[0]").value("malicious_ip"))
-            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"]").value(10))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[0].rule").value("ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'"))
+            .andExpect(jsonPath("$.threatIntel.triageConfig.riskLevelRules[0].score").value(10))
             .andExpect(jsonPath("$.threatIntel.triageConfig.aggregator").value("MAX"));
 
     this.mockMvc.perform(get(sensorEnrichmentConfigUrl).with(httpBasic(user,password)))
@@ -211,7 +217,8 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
                     "@.broTest.threatIntel.fieldMap.hbaseThreatIntel[1] == 'ip_dst_addr' &&" +
                     "@.broTest.threatIntel.fieldToTypeMap.ip_src_addr[0] == 'malicious_ip' &&" +
                     "@.broTest.threatIntel.fieldToTypeMap.ip_dst_addr[0] == 'malicious_ip' &&" +
-                    "@.broTest.threatIntel.triageConfig.riskLevelRules[\"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\"] == 10 &&" +
+                    "@.broTest.threatIntel.triageConfig.riskLevelRules[0].rule == \"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'\" &&" +
+                    "@.broTest.threatIntel.triageConfig.riskLevelRules[0].score == 10 &&" +
                     "@.broTest.threatIntel.triageConfig.aggregator == 'MAX'" +
                     ")]").exists());
 

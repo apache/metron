@@ -20,7 +20,12 @@
 
 package org.apache.metron.profiler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 
@@ -41,6 +46,7 @@ public class ProfilePeriod {
    */
   private long durationMillis;
 
+
   /**
    * @param epochMillis A timestamp contained somewhere within the profile period.
    * @param duration The duration of each profile period.
@@ -51,7 +57,6 @@ public class ProfilePeriod {
       throw new IllegalArgumentException(format(
               "period duration must be greater than 0; got '%d %s'", duration, units));
     }
-
     this.durationMillis = units.toMillis(duration);
     this.period = epochMillis / durationMillis;
   }
@@ -74,6 +79,7 @@ public class ProfilePeriod {
   public long getPeriod() {
     return period;
   }
+
 
   public long getDurationMillis() {
     return durationMillis;
@@ -102,5 +108,24 @@ public class ProfilePeriod {
             "period=" + period +
             ", durationMillis=" + durationMillis +
             '}';
+  }
+
+  public static <T> List<T> visitPeriods(long startEpochMillis
+                                           , long endEpochMillis
+                                           , long duration
+                                           , TimeUnit units
+                                           , Optional<Predicate<ProfilePeriod>> inclusionPredicate
+                                           , Function<ProfilePeriod,T> transformation
+                                           )
+  {
+    ProfilePeriod period = new ProfilePeriod(startEpochMillis, duration, units);
+    List<T> ret = new ArrayList<>();
+    while(period.getStartTimeMillis() <= endEpochMillis) {
+      if(!inclusionPredicate.isPresent() || inclusionPredicate.get().test(period)) {
+        ret.add(transformation.apply(period));
+      }
+      period = period.next();
+    }
+    return ret;
   }
 }

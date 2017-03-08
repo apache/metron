@@ -13,7 +13,7 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="metron-slider-pane-edit-child fill load-left-to-right dialog2x">
+<div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
     <div class="form-title">Grok Validator</div>
     <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancelGrok()"></i>
@@ -22,11 +22,11 @@
         <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
                                    (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
         <label attr.for="grokStatement">STATEMENT</label>
-        <metron-config-ace-editor [(ngModel)]="grokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'"> </metron-config-ace-editor>
+        <metron-config-ace-editor [(ngModel)]="newGrokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'"> </metron-config-ace-editor>
 
         <div class="buttons-bar">
-            <button type="submit" class="btn form-enable-disable-button" [disabled]="parseMessageRequest.sampleData.length===0 || grokStatement.length===0" (click)="onTestGrokStatement()">TEST</button>
-            <button type="submit" class="btn form-enable-disable-button" [disabled]="grokStatement.length===0" (click)="onSaveGrok()">SAVE</button>
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="parseMessageRequest.sampleData.length===0 || newGrokStatement.length===0" (click)="onTestGrokStatement()">TEST</button>
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="newGrokStatement.length===0" (click)="onSaveGrok()">SAVE</button>
         </div>
 
         <label> PREVIEW </label>

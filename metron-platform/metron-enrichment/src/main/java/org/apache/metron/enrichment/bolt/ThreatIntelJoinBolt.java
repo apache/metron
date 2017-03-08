@@ -136,7 +136,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
         ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, stellarContext);
         Double triageLevel = threatTriageProcessor.apply(ret);
         if(LOG.isDebugEnabled()) {
-          String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules().entrySet());
+          String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules());
           LOG.debug("Marked " + sourceType + " as triage level " + triageLevel + " with rules " + rules);
         }
         if(triageLevel != null && triageLevel > 0) {

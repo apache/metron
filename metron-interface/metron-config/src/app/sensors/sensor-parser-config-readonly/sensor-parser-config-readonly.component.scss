@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 @import "../../_variables.scss";
+@import "../../../styles.scss";
 
 .metron-button-bar
 {
@@ -88,4 +89,10 @@ a
   font-size: 16px;
   font-family: Roboto-Regular;
   color: $form-field-text-color;
+}
+
+.button-seperator
+{
+  @extend .form-seperator;
+  margin: 20px -25px 0px -25px;
 }

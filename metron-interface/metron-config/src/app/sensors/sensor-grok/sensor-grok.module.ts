@@ -17,14 +17,14 @@
  */
 import {NgModule} from '@angular/core';
 import {SharedModule} from '../../shared/shared.module';
-import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
 import {SensorGrokComponent} from './sensor-grok.component';
-import {AutocompleteComponent} from '../../shared/autocomplete/autocomplete.component';
 import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
+import {SampleDataModule} from '../../shared/sample-data/sample-data.module';
 
 @NgModule ({
-    imports: [ SharedModule, AceEditorModule ],
-    declarations: [ AutocompleteComponent, SensorGrokComponent, SampleDataComponent ]
+    imports: [ SharedModule, AceEditorModule, SampleDataModule ],
+    declarations: [ SensorGrokComponent ],
+    exports: [ SensorGrokComponent ]
 })
 
 export class SensorGrokModule { }

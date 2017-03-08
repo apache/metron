@@ -23,7 +23,7 @@ import {AppComponent} from './app.component';
 import {SensorParserConfigService} from './service/sensor-parser-config.service';
 import {KafkaService} from './service/kafka.service';
 import {GrokValidationService} from './service/grok-validation.service';
-import {TransformationValidationService} from './service/transformation-validation.service';
+import {StellarService} from './service/stellar.service';
 import {MetronAlerts} from './shared/metron-alerts';
 import {LoginComponent} from './login/login.component';
 import {NavbarComponent} from './navbar/navbar.component';
@@ -43,6 +43,7 @@ import {APP_CONFIG, METRON_REST_CONFIG} from './app.config';
 import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
+import {HdfsService} from './service/hdfs.service';
 
 
 @NgModule({
@@ -51,7 +52,7 @@ import {SensorIndexingConfigService} from './service/sensor-indexing-config.serv
   declarations: [ AppComponent, LoginComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
-    StormService, KafkaService, GrokValidationService, TransformationValidationService,
+    StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
     GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
   bootstrap:    [ AppComponent ]
 })
