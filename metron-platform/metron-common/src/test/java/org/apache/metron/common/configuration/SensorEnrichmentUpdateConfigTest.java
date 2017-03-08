@@ -47,9 +47,12 @@ public class SensorEnrichmentUpdateConfigTest {
          ,"ip_src_addr" : [ "malicious_ip" ]
                           },
         "triageConfig" : {
-          "riskLevelRules" : {
-            "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))" : 10
-                             },
+          "riskLevelRules" : [
+            {
+              "rule" : "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))",
+              "score" : 10
+            }
+                             ],
           "aggregator" : "MAX"
                         }
       }

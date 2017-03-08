@@ -34,12 +34,26 @@ public class ThreatTriageTest {
    * {
    *  "threatIntel": {
    *    "triageConfig": {
-   *      "riskLevelRules" : {
-   *        "user.type in [ 'admin', 'power' ] and asset.type == 'web'" : 10,
-   *        "asset.type == 'web'" : 5,
-   *        "user.type == 'normal'  and asset.type == 'web'" : 0,
-   *        "user.type in whitelist" : -1
-   *      },
+   *      "riskLevelRules" : [
+   *        {
+   *          "name" : "rule 1",
+   *          "rule" : "user.type in [ 'admin', 'power' ] and asset.type == 'web'",
+   *          "score" : 10
+   *        },
+   *        {
+   *         "comment" : "web type!",
+   *         "rule" : "asset.type == 'web'",
+   *         "score" : 5
+   *        },
+   *        {
+   *          "rule" : "user.type == 'normal'  and asset.type == 'web'",
+   *          "score" : 0
+   *        },
+   *        {
+   *          "rule" : "user.type in whitelist",
+   *          "score" : -1
+   *        }
+   *      ],
    *      "aggregator" : "MAX"
    *    },
    *    "config": {
@@ -115,11 +129,20 @@ public class ThreatTriageTest {
    * {
    *  "threatIntel": {
    *  "triageConfig": {
-   *    "riskLevelRules" : {
-   *      "user.type in [ 'admin', 'power' ] and asset.type == 'web'" : 10,
-   *      "asset.type == 'web'" : 5,
-   *      "user.type == 'normal' and asset.type == 'web'" : 0
-   *     },
+   *    "riskLevelRules" : [
+   *      {
+   *        "rule" : "user.type in [ 'admin', 'power' ] and asset.type == 'web'",
+   *        "score" : 10
+   *      },
+   *      {
+   *        "rule" : "asset.type == 'web'",
+   *        "score" : 5
+   *      },
+   *      {
+   *        "rule" : "user.type == 'normal' and asset.type == 'web'",
+   *        "score" : 0
+   *      }
+   *     ],
    *     "aggregator" : "POSITIVE_MEAN"
    *    }
    *  }
@@ -167,9 +190,12 @@ public class ThreatTriageTest {
    * {
    *    "threatIntel" : {
    *      "triageConfig": {
-   *        "riskLevelRules": {
-   *          "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))" : 10
-   *        },
+   *        "riskLevelRules": [
+   *          {
+   *            "rule" : "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))",
+   *            "score" : 10
+   *          }
+   *        ],
    *        "aggregator" : "MAX"
    *      }
    *    }

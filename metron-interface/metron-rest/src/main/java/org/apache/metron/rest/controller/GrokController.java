@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -52,5 +53,12 @@ public class GrokController {
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     ResponseEntity<Map<String, String>> list() throws RestException {
         return new ResponseEntity<>(grokService.getCommonGrokPatterns(), HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Retrieves a Grok statement from the classpath")
+    @ApiResponse(message = "Grok statement", code = 200)
+    @RequestMapping(value = "/get/statement", method = RequestMethod.GET)
+    ResponseEntity<String> get(@ApiParam(name = "path", value = "Path to classpath resource", required = true) @RequestParam String path) throws RestException {
+      return new ResponseEntity<>(grokService.getStatementFromClasspath(path), HttpStatus.OK);
     }
 }

@@ -89,9 +89,12 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
 
   /**
    * {
-   *  "riskLevelRules" : {
-   *    "enrichedField1 == 'enrichedValue1'" : 10
-   *  },
+   *  "riskLevelRules" : [
+   *   {
+   *    "rule" : "enrichedField1 == 'enrichedValue1'",
+   *    "score" : 10
+   *   }
+   *  ],
    *  "aggregator" : "MAX"
    * }
    */
@@ -105,9 +108,12 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
 
   /**
    * {
-   *  "riskLevelRules" : {
-   *    "enrichedField1 == 'enrichedValue1": 10
-   *  },
+   *  "riskLevelRules" : [
+   *  {
+   *    "rule" : "enrichedField1 == 'enrichedValue1",
+   *    "score" : 10
+   *  }
+   *  ],
    *  "aggregator" : "MAX"
    * }
    */
@@ -126,9 +132,12 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
 
   /**
    * {
-   *   "riskLevelRules": {
-   *      "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))": 10
-   *   },
+   *   "riskLevelRules": [
+   *   {
+   *      "rule" : "not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))",
+   *      "score" : 10
+   *   }
+   *   ],
    *   "aggregator": "MAX"
    * }
    */

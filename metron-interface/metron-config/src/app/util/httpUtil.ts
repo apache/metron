@@ -17,6 +17,7 @@
  */
 import {Response} from '@angular/http';
 import {Observable}     from 'rxjs/Observable';
+import {RestError} from '../model/rest-error';
 export class HttpUtil {
 
   public static extractString(res: Response): string {
@@ -29,20 +30,16 @@ export class HttpUtil {
     return body || {};
   }
 
-  public static handleError(error: any) {
+  public static handleError(res: Response): Observable<RestError> {
     // In a real world app, we might use a remote logging infrastructure
     // We'd also dig deeper into the error to get a better message
-    let errMsg = (error.message) ? error.message :
-      error.status ? `${error.status} - ${error.statusText}` : 'Server error';
-    console.error(errMsg); // log to console instead
-    return Observable.throw(error);
-  }
-
-  public static getErrorMessageFromBody(error: any) {
-    try {
-      return JSON.parse(error._body)['message'];
-    } catch (e) {
-      return error;
+    let restError: RestError;
+    if (res.status !== 404) {
+      restError = res.json();
+    } else {
+      restError = new RestError();
+      restError.responseCode = 404;
     }
+    return Observable.throw(restError);
   }
 }

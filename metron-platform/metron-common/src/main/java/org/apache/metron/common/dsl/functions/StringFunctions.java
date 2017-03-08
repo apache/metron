@@ -322,4 +322,25 @@ public class StringFunctions {
       return ret;
     }
   }
+
+  @Stellar( name="FORMAT"
+          , description = "Returns a formatted string using the specified format string and arguments. Uses Java's string formatting conventions."
+          , params = { "format - string", "arguments... - object(s)" }
+          , returns = "A formatted string."
+  )
+  public static class Format extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+
+      if(args.size() == 0) {
+        throw new IllegalArgumentException("[FORMAT] missing argument: format string");
+      }
+
+      String format = ConversionUtils.convert(args.get(0), String.class);
+      Object[] formatArgs = args.subList(1, args.size()).toArray();
+
+      return String.format(format, formatArgs);
+    }
+  }
 }

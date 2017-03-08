@@ -1,3 +1,4 @@
+import {RiskLevelRule} from './risk-level-rule';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,7 +17,7 @@
  * limitations under the License.
  */
 export class ThreatTriageConfig {
-  riskLevelRules = {};
+  riskLevelRules: RiskLevelRule[];
   aggregator: string = 'MAX';
   aggregationConfig = {};
 }

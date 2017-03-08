@@ -13,24 +13,25 @@
   -->
 <metron-config-metron-modal>
     <metron-config-sensor-grok [hidden]="!showGrokValidator" [showGrok]="showGrokValidator"
-                               [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                               [grokStatement]="grokStatement"
                                [(sensorParserConfig)]="sensorParserConfig"
-                               (hideGrok)="hidePane(pane.GROK)"></metron-config-sensor-grok>
+                               (hideGrok)="hidePane(pane.GROK)" (onSaveGrokStatement)="onSaveGrokStatement($event)"></metron-config-sensor-grok>
 
     <metron-config-sensor-raw-json [hidden]="!showRawJson" [showRawJson]="showRawJson" (hideRawJson)="hidePane(pane.RAWJSON)"
-                                  [(sensorParserConfig)]="sensorParserConfig"
-                                  [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
-                                  [(sensorIndexingConfig)]="sensorIndexingConfig"
-                                  (onRawJsonChanged)="onRawJsonChanged()"></metron-config-sensor-raw-json>
+                                   [(sensorParserConfig)]="sensorParserConfig"
+                                   [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                                   [(sensorIndexingConfig)]="sensorIndexingConfig"
+                                   (onRawJsonChanged)="onRawJsonChanged()"></metron-config-sensor-raw-json>
 
     <metron-config-sensor-field-schema [hidden]="!showFieldSchema" [showFieldSchema]="showFieldSchema"
+                                       [grokStatement]="grokStatement"
                                        [(sensorParserConfig)]="sensorParserConfig"
                                        [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
                                        (hideFieldSchema)="hidePane(pane.FIELDSCHEMA)"></metron-config-sensor-field-schema>
 
     <metron-config-sensor-threat-triage [hidden]="!showThreatTriage" [showThreatTriage]="showThreatTriage"
-                                  [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
-                                  (hideThreatTriage)="hidePane(pane.THREATTRIAGE)"></metron-config-sensor-threat-triage>
+                                        [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
+                                        (hideThreatTriage)="hidePane(pane.THREATTRIAGE)"></metron-config-sensor-threat-triage>
 
 
     <div class="metron-slider-pane-edit fill load-right-to-left dialog1x" style="overflow: auto" >
@@ -53,16 +54,16 @@
                 </select>
             </div>
 
-            <div class="form-group" [ngClass]="{'panel-selected': showGrokValidator }" *ngIf="isGrokParser()" >
+            <div class="form-group" [ngClass]="{'panel-selected': showGrokValidator }" *ngIf="isGrokParser(sensorParserConfig)" >
                 <label attr.for="grokStatement">GROK STATEMENT</label>
                 <div  class="input-group" [attr.disabled]="!sensorNameValid || !parserClassValid">
-                    <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="sensorParserConfig.parserConfig['grokStatement']" (ngModelChange)="onGrokStatementChange()" readonly>
-                    <span class="input-group-btn">
-                        <button class="btn btn-default" type="button" (click)="showPane(pane.GROK)" readonly>
-                        <i class="fa fa-columns" aria-hidden="true"></i>
-                        <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
-                        </button>
-                    </span>
+                    <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="this.grokStatement" (ngModelChange)="onGrokStatementChange()" readonly>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" (click)="showPane(pane.GROK)" readonly>
+                            <i class="fa fa-columns" aria-hidden="true"></i>
+                            <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
+                            </button>
+                        </span>
                 </div>
             </div>
 
@@ -111,7 +112,7 @@
                 <div class="form-group" [ngClass]="{'panel-selected': showRawJson }">
                     <label attr.for="stellar">RAW JSON</label>
                     <div class="input-group">
-                    <div  class="form-control" style="resize: none;" readonly>Select</div>
+                        <div  class="form-control" style="resize: none;" readonly>Select</div>
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="button" (click)="showPane(pane.RAWJSON)" readonly>
                                 <i class="fa fa-columns" aria-hidden="true"></i>
@@ -121,18 +122,18 @@
                     </div>
                 </div>
 
-                    <div class="form-group">
-                        <label attr.for="index">INDEX NAME</label>
-                        <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorIndexingConfig.index" >
-                    </div>
-                    <div  class="form-group">
-                        <label attr.for="batchSize">BATCH SIZE</label>
-                        <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorIndexingConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
-                    </div>
-                    <div class="form-group">
-                        <label attr.for="parserConfig">PARSER CONFIG</label>
-                        <metron-config-advanced-form name="parserConfig" [(config)]="sensorParserConfig.parserConfig"></metron-config-advanced-form>
-                    </div>
+                <div class="form-group">
+                    <label attr.for="index">INDEX NAME</label>
+                    <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorIndexingConfig.index" >
+                </div>
+                <div  class="form-group">
+                    <label attr.for="batchSize">BATCH SIZE</label>
+                    <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorIndexingConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
+                </div>
+                <div class="form-group">
+                    <label attr.for="parserConfig">PARSER CONFIG</label>
+                    <metron-config-advanced-form name="parserConfig" [(config)]="sensorParserConfig.parserConfig"></metron-config-advanced-form>
+                </div>
 
             </div>
 

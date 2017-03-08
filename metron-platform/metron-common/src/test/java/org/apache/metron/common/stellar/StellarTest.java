@@ -21,6 +21,7 @@ package org.apache.metron.common.stellar;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.junit.Assert;
@@ -41,6 +42,7 @@ import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionR
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
+@SuppressWarnings("ALL")
 public class StellarTest {
 
   @Test
@@ -192,7 +194,14 @@ public class StellarTest {
       String query = "if 1 + 1 < 2 then 'one' else 'two'";
       Assert.assertEquals("two", run(query, new HashMap<>()));
     }
-
+    {
+      String query = "if 1 + 1 <= 2 AND 1 + 2 in [3] then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, new HashMap<>()));
+    }
+    {
+      String query = "if 1 + 1 <= 2 AND (1 + 2 in [3]) then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, new HashMap<>()));
+    }
     {
       String query = "if not(1 < 2) then 'one' else 'two'";
       Assert.assertEquals("two", run(query, new HashMap<>()));
@@ -207,6 +216,34 @@ public class StellarTest {
     }
     {
       String query = "if one == very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if one == very_nearly_one OR one == very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if one == very_nearly_one OR one != very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if one != very_nearly_one OR one == very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if 'foo' in ['foo'] OR one == very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if ('foo' in ['foo']) OR one == very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("one", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if not('foo' in ['foo']) OR one == very_nearly_one then 'one' else 'two'";
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
+    }
+    {
+      String query = "if not('foo' in ['foo'] OR one == very_nearly_one) then 'one' else 'two'";
       Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1, "very_nearly_one", 1.0000001)));
     }
     {
@@ -225,6 +262,50 @@ public class StellarTest {
       String query = "1 < 2 ? one*3 : 'two'";
       Assert.assertTrue(Math.abs(3 - (int) run(query, ImmutableMap.of("one", 1))) < 1e-6);
     }
+    {
+      String query = "1 < 2 AND 1 < 2 ? one*3 : 'two'";
+      Assert.assertTrue(Math.abs(3 - (int) run(query, ImmutableMap.of("one", 1))) < 1e-6);
+    }
+    {
+      String query = "1 < 2 AND 1 > 2 ? one*3 : 'two'";
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1)));
+    }
+    {
+      String query = "1 > 2 AND 1 < 2 ? one*3 : 'two'";
+      Assert.assertEquals("two", run(query, ImmutableMap.of("one", 1)));
+    }
+    {
+      String query = "1 < 2 AND 'foo' in ['', 'foo'] ? one*3 : 'two'";
+      Assert.assertEquals(3, run(query, ImmutableMap.of("one", 1)));
+    }
+    {
+      String query = "1 < 2 AND ('foo' in ['', 'foo']) ? one*3 : 'two'";
+      Assert.assertEquals(3, run(query, ImmutableMap.of("one", 1)));
+    }
+    {
+      String query = "'foo' in ['', 'foo'] ? one*3 : 'two'";
+      Assert.assertEquals(3, run(query, ImmutableMap.of("one", 1)));
+    }
+  }
+
+  @Test
+  public void testInNotIN(){
+    HashMap variables = new HashMap<>();
+    boolean thrown = false;
+    try{
+      run("in in ['','in']" ,variables );
+    }catch(ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    try{
+      Assert.assertEquals(true,run("'in' in ['','in']" ,variables ));
+    }catch(ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertFalse(thrown);
   }
 
   @Test
@@ -457,6 +538,26 @@ public class StellarTest {
   }
 
   @Test
+  public void inNestedInStatement() throws Exception {
+    final Map<String, String> variableMap = new HashMap<>();
+
+    Assert.assertTrue(runPredicate("('grok' not in 'foobar') == true", variableMap::get));
+    Assert.assertTrue(runPredicate("'grok' not in ('foobar' == true)", variableMap::get));
+    Assert.assertFalse(runPredicate("'grok' in 'grokbar' == true", variableMap::get));
+    Assert.assertTrue(runPredicate("false in 'grokbar' == true", variableMap::get));
+
+    Assert.assertTrue(runPredicate("('foo' in 'foobar') == true", variableMap::get));
+    Assert.assertFalse(runPredicate("'foo' in ('foobar' == true)", variableMap::get));
+    Assert.assertTrue(runPredicate("'grok' not in 'grokbar' == true", variableMap::get));
+    Assert.assertTrue(runPredicate("false in 'grokbar' == true", variableMap::get));
+    Assert.assertTrue(runPredicate("'foo' in ['foo'] AND 'bar' in ['bar']", variableMap::get));
+    Assert.assertTrue(runPredicate("('foo' in ['foo']) AND 'bar' in ['bar']", variableMap::get));
+    Assert.assertTrue(runPredicate("'foo' in ['foo'] AND ('bar' in ['bar'])", variableMap::get));
+    Assert.assertTrue(runPredicate("('foo' in ['foo']) AND ('bar' in ['bar'])", variableMap::get));
+    Assert.assertTrue(runPredicate("('foo' in ['foo'] AND 'bar' in ['bar'])", variableMap::get));
+  }
+
+  @Test
   public void testExists() throws Exception {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
       put("foo", "casey");
@@ -494,6 +595,8 @@ public class StellarTest {
     }};
     Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
     Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24') in [true]", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("true in IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("IN_SUBNET(other_ip, '192.168.0.0/24')", v -> variableMap.get(v)));
     Assert.assertFalse(runPredicate("IN_SUBNET(blah, '192.168.0.0/24')", v -> variableMap.get(v)));

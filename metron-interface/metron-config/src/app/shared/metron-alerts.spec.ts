@@ -60,16 +60,16 @@ describe('MetronAlerts', () => {
 
   });
 
-  it('should close error message on click of close', () => {
-    new MetronAlerts().showErrorMessage('test message');
-
-    expect($(document).find('.alert.alert-danger span').text()).toEqual('test message');
-
-    $(document).find('.alert.alert-danger .close').click();
-
-    expect($(document).find('.alert .alert-danger').length).toEqual(0);
-
-  });
+  // it('should close error message on click of close', () => {
+  //   new MetronAlerts().showErrorMessage('test message');
+  //
+  //   expect($(document).find('.alert.alert-danger span').text()).toEqual('test message');
+  //
+  //   $(document).find('.alert.alert-danger .close').click();
+  //
+  //   expect($(document).find('.alert .alert-danger').length).toEqual(0);
+  //
+  // });
 
 });
 

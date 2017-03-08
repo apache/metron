@@ -19,9 +19,12 @@ package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.jakewharton.fliptables.FlipTable;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.RiskLevelRule;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.Context;
@@ -32,9 +35,7 @@ import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
 import static org.apache.metron.management.EnrichmentConfigFunctions.getConfig;
@@ -70,17 +71,19 @@ public class ThreatTriageFunctions {
       if(triageConfig == null) {
         return "";
       }
-      Map<String, Number> triageRules = triageConfig.getRiskLevelRules();
+      List<RiskLevelRule> triageRules = triageConfig.getRiskLevelRules();
       if(triageRules == null) {
-        triageRules = new LinkedHashMap<>();
+        triageRules = new ArrayList<>();
       }
-      String[] headers = new String[] {"Triage Rule", "Score"};
-      String[][] data = new String[triageRules.size()][2];
+      String[] headers = new String[] {"Name", "Comment", "Triage Rule", "Score"};
+      String[][] data = new String[triageRules.size()][4];
       int i = 0;
-      for(Map.Entry<String, Number> kv : triageRules.entrySet()) {
-        double d = kv.getValue().doubleValue();
+      for(RiskLevelRule rule : triageRules) {
+        double d = rule.getScore().doubleValue();
         String val = d == (long)d ? String.format("%d", (long)d) : String.format("%s", d);
-        data[i++]  = new String[] {kv.getKey(), val};
+        String name = Optional.ofNullable(rule.getName()).orElse("");
+        String comment = Optional.ofNullable(rule.getComment()).orElse("");
+        data[i++]  = new String[] {name, comment, rule.getRule(), val};
       }
       String ret = FlipTable.of(headers, data);
       if(!triageRules.isEmpty()) {
@@ -107,7 +110,9 @@ public class ThreatTriageFunctions {
           ,name = "ADD"
           ,description = "Add a threat triage rule."
           ,params = {"sensorConfig - Sensor config to add transformation to."
-                    ,"stellarTransforms - A Map associating stellar rules to scores"
+                    ,"triageRules - A Map (or list of Maps) representing a triage rule.  It must contain 'rule' and 'score' keys, " +
+                      "the stellar expression for the rule and triage score respectively.  " +
+                      "It may contain 'name' and 'comment', the name of the rule and comment associated with the rule respectively."
                     }
           ,returns = "The String representation of the threat triage rules"
           )
@@ -133,19 +138,36 @@ public class ThreatTriageFunctions {
         triageConfig = new ThreatTriageConfig();
         tiConfig.setTriageConfig(triageConfig);
       }
-      Map<String, Number> triageRules = triageConfig.getRiskLevelRules();
+      List<RiskLevelRule> triageRules = triageConfig.getRiskLevelRules();
       if(triageRules == null) {
-        triageRules = new LinkedHashMap<>();
-        triageConfig.setRiskLevelRules(triageRules);
+        triageRules = new ArrayList<>();
       }
-      Map<String, Object> newRules = (Map<String, Object>) args.get(1);
-      for(Map.Entry<String, Object> kv : newRules.entrySet()) {
-        if(kv.getKey() == null || kv.getKey().equals("null")) {
-          continue;
+      Object newRuleObj = args.get(1);
+      List<Map<String, Object>> newRules = new ArrayList<>();
+      if(newRuleObj != null && newRuleObj instanceof List) {
+        newRules = (List<Map<String, Object>>) newRuleObj;
+      }
+      else if(newRuleObj != null && newRuleObj instanceof Map) {
+        newRules.add((Map<String, Object>) newRuleObj);
+      }
+      else if(newRuleObj != null) {
+        throw new IllegalStateException("triageRule must be either a Map representing a single rule or a List of rules.");
+      }
+      for(Map<String, Object> newRule : newRules) {
+        if(!(newRule == null || !newRule.containsKey("rule") || !newRule.containsKey("score"))) {
+          RiskLevelRule ruleToAdd = new RiskLevelRule();
+          ruleToAdd.setRule((String) newRule.get("rule"));
+          ruleToAdd.setScore(ConversionUtils.convert(newRule.get("score"), Double.class));
+          if (newRule.containsKey("name")) {
+            ruleToAdd.setName((String) newRule.get("name"));
+          }
+          if (newRule.containsKey("comment")) {
+            ruleToAdd.setComment((String) newRule.get("comment"));
+          }
+          triageRules.add(ruleToAdd);
         }
-        Double ret = ConversionUtils.convert(kv.getValue(), Double.class);
-        triageConfig.getRiskLevelRules().put(kv.getKey(), ret);
       }
+      triageConfig.setRiskLevelRules(triageRules);
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
@@ -171,7 +193,7 @@ public class ThreatTriageFunctions {
           ,name = "REMOVE"
           ,description = "Remove stellar threat triage rule(s)."
           ,params = {"sensorConfig - Sensor config to add transformation to."
-                    ,"stellarTransforms - A list of stellar rules to remove"
+                    ,"rules - A list of stellar rules or rule names to remove"
                     }
           ,returns = "The String representation of the enrichment config"
           )
@@ -197,14 +219,22 @@ public class ThreatTriageFunctions {
         triageConfig = new ThreatTriageConfig();
         tiConfig.setTriageConfig(triageConfig);
       }
-      Map<String, Number> triageRules = triageConfig.getRiskLevelRules();
+      List<RiskLevelRule> triageRules = triageConfig.getRiskLevelRules();
       if(triageRules == null) {
-        triageRules = new LinkedHashMap<>();
+        triageRules = new ArrayList<>();
         triageConfig.setRiskLevelRules(triageRules);
       }
-      List<String> rulesToRemove = (List<String>) args.get(1);
-      for(String rule : rulesToRemove) {
-        triageConfig.getRiskLevelRules().remove(rule);
+
+      Set<String> toRemove = new HashSet<>(Optional.ofNullable((List<String>) args.get(1)).orElse(new ArrayList<>()));
+      for (Iterator<RiskLevelRule> it = triageRules.iterator();it.hasNext();){
+        RiskLevelRule rule = it.next();
+        boolean remove = toRemove.contains(rule.getRule());
+        if(!remove && rule.getName() != null) {
+          remove = toRemove.contains(rule.getName());
+        }
+        if(remove) {
+          it.remove();
+        }
       }
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
@@ -260,9 +290,9 @@ public class ThreatTriageFunctions {
         triageConfig = new ThreatTriageConfig();
         tiConfig.setTriageConfig(triageConfig);
       }
-      Map<String, Number> triageRules = triageConfig.getRiskLevelRules();
+      List<RiskLevelRule> triageRules = triageConfig.getRiskLevelRules();
       if(triageRules == null) {
-        triageRules = new LinkedHashMap<>();
+        triageRules = new ArrayList<>();
         triageConfig.setRiskLevelRules(triageRules);
       }
       String aggregator = (String) args.get(1);

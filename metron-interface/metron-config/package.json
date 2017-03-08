@@ -39,7 +39,7 @@
   "devDependencies": {
     "@types/ace": "0.0.32",
     "@types/bootstrap": "^3.3.32",
-    "@types/jasmine": "^2.2.30",
+    "@types/jasmine": "2.2.30",
     "@types/jquery": "^2.0.32",
     "@types/tether": "^1.1.27",
     "angular-cli": "1.0.0-beta.15",

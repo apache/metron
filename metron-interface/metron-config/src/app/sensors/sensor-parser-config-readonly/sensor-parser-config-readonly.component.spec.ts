@@ -37,6 +37,8 @@ import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {IAppConfig} from '../../app.config.interface';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+import {HdfsService} from '../../service/hdfs.service';
+import {GrokValidationService} from '../../service/grok-validation.service';
 
 class MockRouter {
 
@@ -123,6 +125,27 @@ class MockStormService extends StormService {
   }
 }
 
+class MockGrokValidationService extends GrokValidationService {
+
+  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
+    super(http2, config2);
+  }
+
+  public list(): Observable<string[]> {
+    return Observable.create(observer => {
+      observer.next({
+        'BASE10NUM': '(?<![0-9.+-])(?>[+-]?(?:(?:[0-9]+(?:\\.[0-9]+)?)|(?:\\.[0-9]+)))',
+        'BASE16FLOAT': '\\b(?<![0-9A-Fa-f.])(?:[+-]?(?:0x)?(?:(?:[0-9A-Fa-f]+(?:\\.[0-9A-Fa-f]*)?)|(?:\\.[0-9A-Fa-f]+)))\\b',
+        'BASE16NUM': '(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))',
+        'CISCOMAC': '(?:(?:[A-Fa-f0-9]{4}\\.){2}[A-Fa-f0-9]{4})',
+        'COMMONMAC': '(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})',
+        'DATA': '.*?'
+      });
+      observer.complete();
+    });
+  }
+}
+
 class MockKafkaService extends KafkaService {
 
   private kafkaTopic: KafkaTopic;
@@ -145,6 +168,53 @@ class MockKafkaService extends KafkaService {
   public sample(name: string): Observable<string> {
     return Observable.create(observer => {
       observer.next(JSON.stringify({'data': 'data1', 'data2': 'data3'}));
+      observer.complete();
+    });
+  }
+}
+
+class MockHdfsService extends HdfsService {
+  private fileList: string[];
+  private contents: string;
+
+  constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
+    super(http2, config2);
+  }
+
+  public setContents(contents: string) {
+    this.contents = contents;
+  }
+
+  public list(path: string): Observable<string[]> {
+    if (this.fileList === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      observer.next(this.fileList);
+      observer.complete();
+    });
+  }
+
+  public read(path: string): Observable<string> {
+    if (this.contents === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      observer.next(this.contents);
+      observer.complete();
+    });
+  }
+
+  public post(contents: string): Observable<{}> {
+    return Observable.create(observer => {
+      observer.next({});
+      observer.complete();
+    });
+  }
+
+  public deleteFile(path: string): Observable<Response> {
+    return Observable.create(observer => {
+      observer.next({});
       observer.complete();
     });
   }
@@ -180,6 +250,8 @@ describe('Component: SensorParserConfigReadonly', () => {
   let sensorEnrichmentConfigService: MockSensorEnrichmentConfigService;
   let sensorParserConfigService: SensorParserConfigService;
   let kafkaService: MockKafkaService;
+  let hdfsService: MockHdfsService;
+  let grokValidationService: MockGrokValidationService;
   let stormService: MockStormService;
   let alerts: MetronAlerts;
   let authenticationService: AuthenticationService;
@@ -199,6 +271,8 @@ describe('Component: SensorParserConfigReadonly', () => {
         {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
         {provide: StormService, useClass: MockStormService},
         {provide: KafkaService, useClass: MockKafkaService},
+        {provide: HdfsService, useClass: MockHdfsService},
+        {provide: GrokValidationService, useClass: MockGrokValidationService},
         {provide: Router, useClass: MockRouter},
         {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
         MetronAlerts
@@ -208,12 +282,14 @@ describe('Component: SensorParserConfigReadonly', () => {
         fixture = TestBed.createComponent(SensorParserConfigReadonlyComponent);
         comp = fixture.componentInstance;
         activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
+        hdfsService = fixture.debugElement.injector.get(HdfsService);
         authenticationService = fixture.debugElement.injector.get(AuthenticationService);
         sensorParserConfigHistoryService = fixture.debugElement.injector.get(SensorParserConfigHistoryService);
         sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
         sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
         stormService = fixture.debugElement.injector.get(StormService);
         kafkaService = fixture.debugElement.injector.get(KafkaService);
+        grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
         router = fixture.debugElement.injector.get(Router);
         alerts = fixture.debugElement.injector.get(MetronAlerts);
       });
@@ -316,44 +392,20 @@ describe('Component: SensorParserConfigReadonly', () => {
   }));
 
   it('setGrokStatement should set the variables appropriately ', async(() => {
+    let grokStatement = 'SQUID_DELIMITED squid grok statement';
+    hdfsService.setContents(grokStatement);
     let sensorParserInfo = new SensorParserConfigHistory();
     let sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.parserConfig = {};
 
-    sensorParserConfig.parserConfig['grokStatement'] = 'IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|' +
-      '[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|' +
-      '2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|' +
-      '((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|' +
-      '[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|' +
-      '((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|' +
-      '(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|' +
-      '[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|' +
-      '((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\n' +
-      '      IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|' +
-      '2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])\n    IP (?:%{IPV6:UNWANTED}|' +
-      '%{IPV4:UNWANTED})\n\n    MESSAGE .*\n\n    WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}';
+    sensorParserConfig.parserConfig['grokPath'] = '/squid/grok/path';
     sensorParserInfo.config = sensorParserConfig;
 
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.sensorParserConfigHistory = sensorParserInfo;
     component.setGrokStatement();
 
-    expect(component.grokStatement).toEqual('IPV6 ((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|' +
-        '(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|' +
-        '[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|' +
-        '2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|' +
-        '((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|' +
-        '(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|' +
-        '[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|' +
-        '((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|' +
-        '(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|' +
-        '[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|' +
-        '((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\n' +
-        '      IPV4 (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|' +
-        '2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])\n    IP (?:%{IPV6:UNWANTED}|' +
-        '%{IPV4:UNWANTED})\n\n    MESSAGE .*\n\n    WEBSPHERE %{LOGSTART:UNWANTED} %{LOGMIDDLE:UNWANTED} %{MESSAGE:message}');
+    expect(component.grokStatement).toEqual(grokStatement);
   }));
 
   it('setTransformsConfigKeys/getTransformsOutput should return the keys of the transforms config  ', async(() => {
@@ -419,15 +471,22 @@ describe('Component: SensorParserConfigReadonly', () => {
       },
       'config': {},
       'triageConfig': {
-        'riskLevelRules': {
-          'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')': 3,
-          'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'': 3
-        },
+        'riskLevelRules': [
+          {
+            'rule': 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')',
+            'score': 3
+          },
+          {
+            'rule': 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'',
+            'score': 3
+          },
+        ],
         'aggregator': 'MAX',
         'aggregationConfig': {}
       }
     };
-    let expected = ['IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\''];
+    let expected = [{'rule': 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'score': 3},
+      {'rule': 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'', 'score': 3}];
 
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
     sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), threatIntel);
@@ -438,7 +497,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
 
     expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
-    expect(component.aggregationConfigKeys).toEqual(expected);
+    expect(component.rules).toEqual(expected);
   }));
 
   let setDataForSensorOperation = function () {

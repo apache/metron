@@ -24,24 +24,35 @@ import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.stellar.StellarPredicateProcessor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ThreatTriageConfig {
-  private Map<String, Number> riskLevelRules = new HashMap<>();
+  private List<RiskLevelRule> riskLevelRules = new ArrayList<>();
   private Aggregators aggregator = Aggregators.MAX;
   private Map<String, Object> aggregationConfig = new HashMap<>();
 
-  public Map<String, Number> getRiskLevelRules() {
+  public List<RiskLevelRule> getRiskLevelRules() {
     return riskLevelRules;
   }
 
-  public void setRiskLevelRules(Map<String, Number> riskLevelRules) {
-    this.riskLevelRules = riskLevelRules;
+  public void setRiskLevelRules(List<RiskLevelRule> riskLevelRules) {
+    List<RiskLevelRule> rules = new ArrayList<>();
+    Set<String> ruleIndex = new HashSet<>();
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    for(String rule : riskLevelRules.keySet()) {
-      processor.validate(rule);
+    for(RiskLevelRule rule : riskLevelRules) {
+      if(rule.getRule() == null || rule.getScore() == null) {
+        throw new IllegalStateException("Risk level rules must contain both a rule and a score.");
+      }
+      if(ruleIndex.contains(rule.getRule())) {
+        continue;
+      }
+      else {
+        ruleIndex.add(rule.getRule());
+      }
+      processor.validate(rule.getRule());
+      rules.add(rule);
     }
+    this.riskLevelRules = rules;
   }
 
   public Aggregators getAggregator() {

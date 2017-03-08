@@ -21,11 +21,11 @@ docker:
 
 spring:
   datasource:
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://${docker.host.address}:3306/metronrest
+      driverClassName: org.h2.Driver
+      url: jdbc:h2:file:./metrondb
       username: root
       password: root
-      platform: mysql
+      platform: h2
   jpa:
     hibernate:
       ddl-auto: update

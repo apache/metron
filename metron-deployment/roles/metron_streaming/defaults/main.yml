@@ -67,7 +67,7 @@ pcap_hdfs_path: "/apps/metron/pcap"
 geo_hdfs_path: "/apps/metron/geo/default"
 
 threat_intel_bulk_load: True
-threat_intel_bin: "{{ metron_directory }}/bin/threatintel_bulk_load.sh"
+threat_intel_bin: "{{ metron_directory }}/bin/flatfile_loader.sh"
 threat_intel_work_dir: /tmp/ti_bulk
 threat_intel_csv_filename: "threat_ip.csv"
 threat_intel_csv_filepath: "{{ threat_intel_csv_filename }}"
