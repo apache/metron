@@ -15,17 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ClitestPage } from './page-objects/app.po';
 
-describe('clitest App', function() {
-  let page: ClitestPage;
+import { browser, element, by } from 'protractor/globals';
 
-  // beforeEach(() => {
-  //   page = new ClitestPage();
-  // });
-  //
-  // it('should display message saying app works', () => {
-  //   page.navigateTo();
-  //   expect(page.getParagraphText()).toEqual('app works!');
-  // });
-});
+export class SensorListPage {
+
+    getTableColumnNames() {
+        browser.debugger();
+        // return element.all(by.css('thead>tr')).first().all(by.tagName('td')).map(function (elm) {
+        //     return elm.getText();
+        // });
+
+        return element.all(by.css('table th a')).map(function(elm) {
+            return elm.getText();
+        });
+    }
+    getParserCount() {
+        browser.debugger();
+        browser.waitForAngular();
+        return element.all(by.css('table>tbody>tr')).count();
+    }
+}

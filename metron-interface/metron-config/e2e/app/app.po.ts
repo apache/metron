@@ -17,12 +17,31 @@
  */
 import { browser, element, by } from 'protractor/globals';
 
-export class ClitestPage {
+export class AppPage {
+
+  getNavigationLinks() {
+    return element.all(by.css('.navigation .nav-item')).getText();
+  }
+
+  getNavigationTitle() {
+    return element(by.css('.navigation .nav-link-title')).getText();
+  }
+
+  getUrl() {
+    return browser.getCurrentUrl();
+  }
+
+  isMetronLogoPresent() {
+    return element(by.css('.navbar-brand')).isPresent();
+  }
+
   navigateTo() {
     return browser.get('/');
   }
 
-  getParagraphText() {
-    return element(by.css('app-root h1')).getText();
+  selectNavLink(linkName: string) {
+    return element(by.cssContainingText('.navigation .nav-link', linkName)).click().then((args) => {
+      return true;
+    });
   }
 }

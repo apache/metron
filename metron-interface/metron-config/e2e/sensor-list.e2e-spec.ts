@@ -15,17 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ClitestPage } from './page-objects/app.po';
+import { SensorListPage } from './page-objects/sensor-list.po';
+import {LoginPage} from './page-objects/login.po';
 
-describe('clitest App', function() {
-  let page: ClitestPage;
+describe('Sensor List', function() {
+    let page: SensorListPage = new SensorListPage();
+    let loginPage = new LoginPage();
 
-  // beforeEach(() => {
-  //   page = new ClitestPage();
-  // });
-  //
-  // it('should display message saying app works', () => {
-  //   page.navigateTo();
-  //   expect(page.getParagraphText()).toEqual('app works!');
-  // });
+    beforeAll(() => {
+        loginPage.login();
+    });
+
+    afterAll(() => {
+        loginPage.logout();
+    });
+
+    it('should have all the default parsers', () => {
+      expect(page.getParserCount()).toEqual(7);
+    });
+
+    it('should have all the table headers', () => {
+        expect(page.getTableColumnNames()).toEqual([ 'Name', 'Parser', 'Status', 'Latency', 'Throughput', 'Last Updated', 'Last Editor' ]);
+    });
 });

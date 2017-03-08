@@ -24,14 +24,21 @@ var SpecReporter = require('jasmine-spec-reporter');
 
 exports.config = {
   allScriptsTimeout: 11000,
+  suites: {
+    sanity: [
+      './e2e/login/login.e2e-spec.ts',
+      './e2e/app/app.e2e-spec.ts'
+    ]
+  },
   specs: [
-    './e2e/**/*.e2e-spec.ts'
+    './e2e/login/login.e2e-spec.ts',
+    './e2e/app/app.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome'
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/',
+  baseUrl: 'http://localhost:4200/login',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
@@ -39,6 +46,7 @@ exports.config = {
     print: function() {}
   },
   useAllAngular2AppRoots: true,
+  rootElement: 'metron-config-root',
   beforeLaunch: function() {
     require('ts-node').register({
       project: 'e2e'
