@@ -368,8 +368,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>${global_surefire_version}</version>
                 <configuration>
-                    <argLine>-Xmx2048m</argLine>
+                    <argLine>@{argLine} -Xmx2048m</argLine>
                     <skip>true</skip>
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>

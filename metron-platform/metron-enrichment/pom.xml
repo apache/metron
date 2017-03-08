@@ -265,10 +265,10 @@
     </dependencies>
     <reporting>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>${global_surefire_version}</version>
                 <configuration>
                     <systemProperties>
                         <property>

@@ -219,10 +219,10 @@
                 <!-- Separates the unit tests from the integration tests. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12.4</version>
+                <version>${global_surefire_version}</version>
                 <configuration>
                     <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                    <argLine>-Xmx2048m</argLine>
+                    <argLine>@{argLine} -Xmx2048m</argLine>
                     <skip>true</skip>
                     <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                     <trimStackTrace>false</trimStackTrace>
