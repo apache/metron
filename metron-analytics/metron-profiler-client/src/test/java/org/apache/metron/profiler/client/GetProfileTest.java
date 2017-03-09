@@ -282,7 +282,7 @@ public class GetProfileTest {
   /**
    * Initialization should fail if the required context values are missing.
    */
-  @Test(expected = ParseException.class)
+  @Test(expected = IllegalStateException.class)
   public void testMissingContext() {
     Context empty = Context.EMPTY_CONTEXT();
 

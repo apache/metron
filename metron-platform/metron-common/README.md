@@ -5,6 +5,7 @@
 * [Stellar Language](#stellar-language)
     * [Stellar Language Keywords](#stellar-language-keywords)
     * [Stellar Core Functions](#stellar-core-functions)
+    * [Stellar Benchmarks](#stellar-benchmarks)
     * [Stellar Shell](#stellar-shell)
 * [Global Configuration](#global-configuration)
 * [Management Utility](#management-utility)
@@ -626,6 +627,62 @@ This will convert the timestamp field to an epoch timestamp based on the
 * The value in `dc2tz` associated with the value associated with field
   `dc`, defaulting to `UTC`
 
+## Stellar Benchmarks
+
+A microbenchmarking utility is included to assist in executing microbenchmarks for Stellar functions.
+The utility can be executed via maven using the `exec` plugin, like so, from the `metron-common` directory:
+
+```
+mvn -DskipTests clean package && \
+mvn exec:java -Dexec.mainClass="org.apache.metron.common.stellar.benchmark.StellarMicrobenchmark" -Dexec.args="..."
+ ```
+where `exec.args` can be one of the following:
+```
+    -e,--expressions <FILE>   Stellar expressions
+    -h,--help                 Generate Help screen
+    -n,--num_times <NUM>      Number of times to run per expression (after
+                              warmup). Default: 1000
+    -o,--output <FILE>        File to write output.
+    -p,--percentiles <NUM>    Percentiles to calculate per run. Default:
+                              50.0,75.0,95.0,99.0
+    -v,--variables <FILE>     File containing a JSON Map of variables to use
+    -w,--warmup <NUM>         Number of times for warmup per expression.
+                              Default: 100
+```
+
+For instance, to run with a set of Stellar expression in file `/tmp/expressions.txt`:
+```
+ # simple functions
+ TO_UPPER('casey')
+ TO_LOWER(name)
+ # math functions
+ 1 + 2*(3 + int_num) / 10.0
+ 1.5 + 2*(3 + double_num) / 10.0
+ # conditionals
+ if ('foo' in ['foo']) OR one == very_nearly_one then 'one' else 'two'
+ 1 + 2*(3 + int_num) / 10.0
+ #Network funcs
+ DOMAIN_TO_TLD(domain)
+ DOMAIN_REMOVE_SUBDOMAINS(domain)
+```
+And variables in file `/tmp/variables.json`:
+```
+{
+  "name" : "casey",
+  "int_num" : 1,
+  "double_num" : 17.5,
+  "one" : 1,
+  "very_nearly_one" : 1.000001,
+  "domain" : "www.google.com"
+}
+```
+
+Written to file `/tmp/output.txt` would be the following command:
+```
+mvn -DskipTests clean package && \
+mvn exec:java -Dexec.mainClass="org.apache.metron.common.stellar.benchmark.StellarMicrobenchmark" \
+-Dexec.args="-e /tmp/expressions.txt -v /tmp/variables.json -o ./output.json"
+ ```
 ## Stellar Shell
 
 A REPL (Read Eval Print Loop) for the Stellar language that helps in debugging, troubleshooting and learning Stellar.  The Stellar DSL (domain specific language) is used to act upon streaming data within Apache Storm.  It is difficult to troubleshoot Stellar when it can only be executed within a Storm topology.  This REPL is intended to help mitigate that problem by allowing a user to replicate data encountered in production, isolate initialization errors, or understand function resolution problems.

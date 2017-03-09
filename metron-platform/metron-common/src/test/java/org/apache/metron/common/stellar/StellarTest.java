@@ -69,14 +69,17 @@ public class StellarTest {
     {
       String query = "bar:variable";
       Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
+      Assert.assertEquals("grok", run(query, ImmutableMap.of("bar:variable", "grok")));
     }
     {
       String query = "JOIN(['foo', bar:variable], '')";
       Assert.assertEquals("foobar", run(query, ImmutableMap.of("bar:variable", "bar")));
+      Assert.assertEquals("foogrok", run(query, ImmutableMap.of("bar:variable", "grok")));
     }
     {
       String query = "MAP_GET('bar', { 'foo' : 1, 'bar' : bar:variable})";
       Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
+      Assert.assertEquals("grok", run(query, ImmutableMap.of("bar:variable", "grok")));
     }
   }
 
