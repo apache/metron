@@ -85,26 +85,22 @@
         </div>
       </div>
     </div>
-      <br> <br> <br> <br>
 
-    <div class="metron-button-bar" >
-        <div class="row pl-0 py-1">
-          <button class="btn btn-primary" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">EDIT</button>
+      <div class="metron-button-bar" >
+          <div class="row pl-0 py-1">
+            <button class="btn btn-primary" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">EDIT</button>
 
-          <button class="btn btn-primary" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Stopped')">START</button>
-          <button class="btn form-enable-disable-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="((topologyStatus.status != 'Running' && topologyStatus.status != 'Disabled'))">STOP</button>
+            <button class="btn btn-primary" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Stopped')">START</button>
+            <button class="btn form-enable-disable-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="((topologyStatus.status != 'Running' && topologyStatus.status != 'Disabled'))">STOP</button>
 
-          <button class="btn btn-primary" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Disabled')" >ENABLE</button>
-          <button class="btn form-enable-disable-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Running')">DISABLE</button>
+            <button class="btn btn-primary" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Disabled')" >ENABLE</button>
+            <button class="btn form-enable-disable-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Running')">DISABLE</button>
 
-          <button class="btn btn-link delete" type="button" (click)="onDeleteSensor()"> Delete </button>
+            <button class="btn btn-link delete" type="button" (click)="onDeleteSensor()"> Delete </button>
 
-          <div class="start-stop-progress"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
-        </div>
+            <div class="start-stop-progress"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
+          </div>
       </div>
     </div>
-
-
-
 
 </metron-config-metron-modal>

@@ -5,7 +5,6 @@ import {SensorParserConfigService} from '../../service/sensor-parser-config.serv
 import {AutocompleteOption} from '../../model/autocomplete-option';
 import {GrokValidationService} from '../../service/grok-validation.service';
 import {SampleDataComponent} from '../../shared/sample-data/sample-data.component';
-import {AutocompleteGrokStatement} from '../../shared/autocomplete/autocomplete-grok-statement';
 import {MetronAlerts} from '../../shared/metron-alerts';
 
 @Component({
@@ -28,7 +27,6 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   parsedMessage: any = {};
   parsedMessageKeys: string[] = [];
   grokFunctionList: AutocompleteOption[] = [];
-  autocompleteStatementGenerator = new AutocompleteGrokStatement();
   parseMessageRequest: ParseMessageRequest = new ParseMessageRequest();
 
   constructor(private sensorParserConfigService: SensorParserConfigService, private grokValidationService: GrokValidationService,

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 @import "../../_variables.scss";
+@import "../../../styles.scss";
 
 .metron-button-bar
 {
@@ -98,10 +99,8 @@ a
   right: 140px;
 }
 
-.threat-triage-rules
-{
-  .form-label
-  {
+.threat-triage-rules {
+  .form-label {
     word-wrap: initial;
   }
 }

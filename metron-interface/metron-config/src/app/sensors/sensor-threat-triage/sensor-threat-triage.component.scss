@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 @import "../../_variables.scss";
+@import "../../../styles.scss";
 
 textarea
 {
@@ -129,4 +130,8 @@ textarea
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+metron-config-sensor-rule-editor
+{
+  @extend .flexbox-row-reverse;
 }
