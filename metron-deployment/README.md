@@ -130,6 +130,23 @@ The output RPM files will land in `target/RPMS/noarch`.  They can be installed w
 rpm -i <package>
 ```
 
+## Kibana Dashboards
+
+The dashboards installed by the Kibana custom action are managed by the dashboard.p file.  This file is created by exporting existing dashboards from a running Kibana instance.
+
+To create a new version of the file, make any necessary changes to Kibana (e.g. on quick-dev), and export with the appropriate script.
+
+```
+python packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboardindex.py \
+$ES_HOST 9200 \
+packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p -s
+```
+
+Build the Ambari Mpack to get the dashboard updated appropriately.
+
+Once the MPack is installed, run the Kibana service's action "Load Template" to install dashboards.  This will completely overwrite the .kibana in Elasticsearch, so use with caution.
+
+
 ## TODO
 - Support Ubuntu deployments
 

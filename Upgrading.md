@@ -2,26 +2,6 @@
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
-## 0.2.0BETA to 0.3.0
-### [METRON-447: Monit fails to reload when upgrading from 0.2.0BETA to master](https://issues.apache.org/jira/browse/METRON-447)
-
-#### Description
-
-`/etc/monit.d/enrichment-elasticsearch.monit` was renamed to
-`/etc/monit.d/indexing-elasticsearch.monit`, however the old file isn't
-removed via ansible, which causes the below error during an upgrade:
-`Starting monit: /etc/monit.d/enrichment-elasticsearch.monit:18: Service
-name conflict, enrichment already defined
-'/usr/local/monit/status_enrichment_topology.sh'`
-
-### [METRON-448:Upgrading via Ansible deployment does not add topology.classpath ](https://issues.apache.org/jira/browse/METRON-448)
-
-#### Description
-When using Ansible to deploy the latest Metron bits to an existing installation, storm-site is not being updated with the new 0.2.1BETA parameter `topology.classpath`. Topologies are unable to find the client configs as a result.
-
-#### Workaround
-Set the `topology.classpath` property for storm in Ambari to `/etc/hbase/conf:/etc/hadoop/conf`
-
 ## 0.3.0 to 0.3.1
 
 ### [METRON-664: Make the index configuration per-writer with enabled/disabled](https://issues.apache.org/jira/browse/METRON-664)
@@ -151,6 +131,26 @@ into a separate function.  The consequence is that existing calls to
 #### Migration
 
 Existing calls to `PROFILE_GET` will need to change from `PROFILE_GET('profile', 'entity', duration, 'durationUnits')` to `PROFILE_GET('profile', 'entity', PROFILE_FIXED(duration, 'durationUnits'))`
+
+## 0.2.0BETA to 0.3.0
+### [METRON-447: Monit fails to reload when upgrading from 0.2.0BETA to master](https://issues.apache.org/jira/browse/METRON-447)
+
+#### Description
+
+`/etc/monit.d/enrichment-elasticsearch.monit` was renamed to
+`/etc/monit.d/indexing-elasticsearch.monit`, however the old file isn't
+removed via ansible, which causes the below error during an upgrade:
+`Starting monit: /etc/monit.d/enrichment-elasticsearch.monit:18: Service
+name conflict, enrichment already defined
+'/usr/local/monit/status_enrichment_topology.sh'`
+
+### [METRON-448:Upgrading via Ansible deployment does not add topology.classpath ](https://issues.apache.org/jira/browse/METRON-448)
+
+#### Description
+When using Ansible to deploy the latest Metron bits to an existing installation, storm-site is not being updated with the new 0.2.1BETA parameter `topology.classpath`. Topologies are unable to find the client configs as a result.
+
+#### Workaround
+Set the `topology.classpath` property for storm in Ambari to `/etc/hbase/conf:/etc/hadoop/conf`
 
 ## 0.3.1 to PLACEHOLDER
 

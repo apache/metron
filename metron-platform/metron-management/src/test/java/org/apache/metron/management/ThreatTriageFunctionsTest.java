@@ -121,7 +121,7 @@ public class ThreatTriageFunctionsTest {
     Assert.assertEquals(20.0, greater.getScore().doubleValue(), 1e-6 );
   }
 
-  @Test(expected=ParseException.class)
+  @Test(expected=IllegalStateException.class)
   public void testAddMalformed() {
     Object o = run(
             "THREAT_TRIAGE_ADD(config, { 'rule': SHELL_GET_EXPRESSION('foo'), 'score' : 10 } )"

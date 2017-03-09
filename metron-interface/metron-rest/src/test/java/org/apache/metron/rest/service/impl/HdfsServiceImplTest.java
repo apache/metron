@@ -29,6 +29,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -65,6 +66,7 @@ public class HdfsServiceImplTest {
         FileUtils.writeStringToFile(new File(testDir, "file2.txt"), "value2");
 
         List<String> paths = hdfsService.list(new Path(testDir));
+        Collections.sort(paths);
         assertEquals(2, paths.size());
         assertEquals("file1.txt", paths.get(0));
         assertEquals("file2.txt", paths.get(1));

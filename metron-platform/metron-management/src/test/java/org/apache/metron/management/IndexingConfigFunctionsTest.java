@@ -65,7 +65,7 @@ public class IndexingConfigFunctionsTest {
     Assert.assertEquals(IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")), 10);
   }
 
-  @Test(expected=ParseException.class)
+  @Test(expected=IllegalStateException.class)
   public void testSetBatchBad() {
     run("INDEXING_SET_BATCH(config, 'hdfs', 10)"
                              , new HashMap<>()
@@ -81,7 +81,7 @@ public class IndexingConfigFunctionsTest {
     Assert.assertTrue(IndexingConfigurations.isEnabled((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=ParseException.class)
+  @Test(expected=IllegalStateException.class)
   public void testSetEnabledBad() {
     run("INDEXING_SET_ENABLED(config, 'hdfs', 10)"
                              , new HashMap<>()
@@ -97,7 +97,7 @@ public class IndexingConfigFunctionsTest {
     Assert.assertEquals("foo", IndexingConfigurations.getIndex((Map<String, Object>)config.get("hdfs"), null));
   }
 
-  @Test(expected= ParseException.class)
+  @Test(expected= IllegalStateException.class)
   public void testSetIndexBad() {
     run("INDEXING_SET_INDEX(config, 'hdfs', NULL)"
             , new HashMap<>()

@@ -59,7 +59,7 @@ import inspect
 import re
 
 # These are the characters excluded by Markdown from use in auto-generated anchor text for Headings.
-EXCLUDED_CHARS_REGEX = r'[()[\]`"' + r"'" + r']'   # May add chars in future as needed
+EXCLUDED_CHARS_REGEX = r'[^\w\-]'   # all non-alphanumerics except "-" and "_".  Whitespace are previously converted.
 
 def report_error(s) :
     print >>sys.stderr, "ERROR: " + s 
@@ -238,14 +238,16 @@ def rewrite_relative_links() :
         sharp = href.find("#")
         if (sharp >= 0) :
             named_anchor = href[sharp+1 : ]
-            scratch = labeltext.lower()
-            scratch = re.sub(r' ', "-", scratch)
-            scratch = re.sub(EXCLUDED_CHARS_REGEX, "", scratch)
+            trace('named_anchor = "' + named_anchor + '"')
+            trace('labeltext = "' + labeltext + '"')
+            scratch = labeltext.lower()                  # Github-MD forces all anchors to lowercase
+            scratch = re.sub(r'[\s]', "-", scratch)      # convert whitespace to "-"
+            scratch = re.sub(EXCLUDED_CHARS_REGEX, "", scratch)  # strip non-alphanumerics
             if (scratch == named_anchor) :
                 trace("Found a rewritable case")
-                scratch = labeltext
-                scratch = re.sub(r' ', "_", scratch)
-                scratch = re.sub(EXCLUDED_CHARS_REGEX, "", scratch)
+                scratch = labeltext                      # Doxia-markdown doesn't change case
+                scratch = re.sub(r'[\s]', "_", scratch)  # convert whitespace to "_"
+                scratch = re.sub(EXCLUDED_CHARS_REGEX, "", scratch)  # strip non-alphanumerics
                 href = re.sub("#" + named_anchor, "#" + scratch, href)
 
         trace("After anchor rewrite, href is: " + href)

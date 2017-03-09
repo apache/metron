@@ -18,6 +18,8 @@
 
 package org.apache.metron.common.stellar;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * The Stellar Processor is intended to allow for general transformations using the Stellar
  * domain specific language.  In contrast to the StellarPredicateProcessor where
@@ -29,5 +31,9 @@ public class StellarProcessor extends BaseStellarProcessor<Object> {
 
   public StellarProcessor() {
     super(Object.class);
+  }
+
+  public StellarProcessor(int cacheSize, int expiryTime, TimeUnit expiryUnit) {
+    super(Object.class, cacheSize, expiryTime, expiryUnit);
   }
 }
