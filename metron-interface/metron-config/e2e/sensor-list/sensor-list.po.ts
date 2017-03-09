@@ -194,6 +194,7 @@ export class SensorListPage {
     openEditPaneAndClose(name: string) {
         return this.getIconButton(name, '.fa-pencil').click().then(() =>{
             let url = browser.getCurrentUrl();
+            browser.sleep(500);
             return this.closePane('.main.close-button').then(() => {
                 return url;
             });

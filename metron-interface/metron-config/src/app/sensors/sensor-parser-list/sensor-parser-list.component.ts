@@ -154,7 +154,8 @@ export class SensorParserListComponent implements OnInit {
         }
 
         sensor['latency'] = status && status.status === 'ACTIVE' ? (status.latency + 's') : '-';
-        sensor['throughput'] = status && status.status === 'ACTIVE' ? (Math.round(parseFloat(status.throughput) * 100) / 100) + 'kb/s' : '-';
+        sensor['throughput'] = status && status.status === 'ACTIVE' ?
+                                (Math.round(parseFloat(status.throughput) * 100) / 100) + 'kb/s' : '-';
       }
   }
 

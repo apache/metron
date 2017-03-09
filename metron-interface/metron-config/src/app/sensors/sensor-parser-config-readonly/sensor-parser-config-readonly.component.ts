@@ -113,7 +113,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       (results: TopologyStatus) => {
         this.topologyStatus = results;
         this.topologyStatus.latency = (this.topologyStatus.latency ? (this.topologyStatus.latency + 's') : '-');
-        this.topologyStatus.throughput = (this.topologyStatus.throughput ? ((Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) + 'kb/s')  : '-') ;
+        this.topologyStatus.throughput = (this.topologyStatus.throughput ?
+                                          ((Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) + 'kb/s')  : '-') ;
 
         this.topologyStatus['sensorStatus'] = '-';
 
