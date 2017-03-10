@@ -17,7 +17,6 @@
 #
 ---
 - include: monit.yml
-- include: scripts.yml
 - include: monit-definitions.yml
 
 - include: monit-sensor-definitions.yml

@@ -54,6 +54,13 @@
     - ambari-agent
     - hdp-install
 
+- hosts: metron
+  become: true
+  roles:
+    - role: metron-rpms
+  tags:
+    - metron-deploy
+
 - hosts: ambari_master
   become: true
   roles:
@@ -61,3 +68,10 @@
   tags:
     - hdp-install
     - hdp-deploy
+
+- hosts: ambari_master
+  become: true
+  roles:
+    - role: load_web_templates
+  tags:
+    - load_templates

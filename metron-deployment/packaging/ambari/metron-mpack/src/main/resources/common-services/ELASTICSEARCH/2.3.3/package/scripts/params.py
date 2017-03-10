@@ -23,6 +23,7 @@ from resource_management.libraries.script import Script
 # server configurations
 config = Script.get_config()
 
+masters_also_are_datanodes = config['configurations']['elastic-site']['masters_also_are_datanodes']
 elastic_home = config['configurations']['elastic-sysconfig']['elastic_home']
 data_dir = config['configurations']['elastic-sysconfig']['data_dir']
 work_dir = config['configurations']['elastic-sysconfig']['work_dir']
@@ -32,7 +33,7 @@ max_open_files = config['configurations']['elastic-sysconfig']['max_open_files']
 max_map_count = config['configurations']['elastic-sysconfig']['max_map_count']
 
 elastic_user = config['configurations']['elastic-env']['elastic_user']
-user_group = config['configurations']['elastic-env']['user_group']
+elastic_group = config['configurations']['elastic-env']['elastic_group']
 log_dir = config['configurations']['elastic-env']['elastic_log_dir']
 pid_dir = '/var/run/elasticsearch'
 pid_file = '/var/run/elasticsearch/elasticsearch.pid'

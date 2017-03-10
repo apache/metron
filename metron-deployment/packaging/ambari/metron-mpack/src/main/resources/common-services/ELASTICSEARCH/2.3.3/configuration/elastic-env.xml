@@ -23,12 +23,21 @@
     <name>elastic_user</name>
     <value>elasticsearch</value>
     <property-type>USER</property-type>
-    <description>The user for Elasticsearch</description>
+    <description>Service user for Elasticsearch</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
-    <name>user_group</name>
+    <name>elastic_group</name>
     <value>elasticsearch</value>
-    <description>The group for Elasticsearch</description>
+    <property-type>GROUP</property-type>
+    <description>Service group for Elasticsearch</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>elastic_log_dir</name>

@@ -193,6 +193,35 @@
     zookeeper_url: "{% for host in zookeeper_hosts %}{% if loop.index != 1 %},{% endif %}{{ host }}:{{ zookeeper_port }}{% endfor %}"
   when: zookeeper_url is undefined
 
+- name: "Ask Ambari: metron_hosts"
+  uri:
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/METRON/components/METRON_INDEXING"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: metron_hosts_response
+  when: metron_hosts is undefined
+
+- set_fact:
+    metron_hosts: "{{ (metron_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
+  when: metron_hosts is undefined
+
+- name: "Ask Ambari: kibana_hosts"
+  uri:
+    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KIBANA/components/KIBANA_MASTER"
+    user: "{{ ambari_user }}"
+    password: "{{ ambari_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: kibana_hosts_response
+  when: kibana_hosts is undefined
+
+- set_fact:
+    kibana_hosts: "{{ (kibana_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
+  when: kibana_hosts is undefined
+
+
 #
 # debug output
 #
@@ -203,4 +232,5 @@
           zookeeper_url = {{ zookeeper_url }},
           kafka_broker_port = {{ kafka_broker_port }},
           kafka_broker_hosts = {{ kafka_broker_hosts }},
-          kafka_broker_url = {{ kafka_broker_url }}"
+          kafka_broker_url = {{ kafka_broker_url }},
+          metron_hosts = {{ metron_hosts }}"

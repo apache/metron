@@ -37,7 +37,7 @@
             </modules>
         </profile>
         <profile>
-            <id>default</id>
+            <id>mpack</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>

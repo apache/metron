@@ -46,15 +46,23 @@
         <name>metron_user</name>
         <value>metron</value>
         <property-type>USER</property-type>
-        <description>The user for Metron</description>
-        <display-name>Metron User</display-name>
+        <description>Service User for Metron</description>
+        <display-name>Metron User Name</display-name>
+        <value-attributes>
+            <type>user</type>
+            <overridable>false</overridable>
+        </value-attributes>
     </property>
     <property>
         <name>metron_group</name>
         <value>metron</value>
         <property-type>GROUP</property-type>
-        <description>The group for Metron</description>
+        <description>Service Group for Metron</description>
         <display-name>Metron Group Name</display-name>
+        <value-attributes>
+            <type>user</type>
+            <overridable>false</overridable>
+        </value-attributes>
     </property>
     <property>
         <name>metron_topic_retention</name>

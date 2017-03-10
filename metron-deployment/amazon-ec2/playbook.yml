@@ -26,12 +26,12 @@
     - include: tasks/create-vpc.yml
     - include: tasks/create-open-inbound-security-group.yml
     - include: tasks/create-open-outbound-security-group.yml
-    - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=sensors,ambari_master,ec2,monit
     - include: tasks/create-hosts.yml host_count=4 host_type=ambari_slave,ec2
-    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,metron_kafka_topics,metron_hbase_tables,metron,ec2,pcap_server
-    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2
-    - include: tasks/create-hosts.yml host_count=2 host_type=search,metron,ec2
-    - include: tasks/create-hosts.yml host_count=1 host_type=web,metron,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=pcap_server,monit,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,enrichment,metron,ec2,zeppelin
+    - include: tasks/create-hosts.yml host_count=2 host_type=ambari_slave,search,ec2
+    - include: tasks/create-hosts.yml host_count=1 host_type=ambari_slave,web,ec2
   tags:
     - ec2
 

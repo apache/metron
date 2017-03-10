@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 ---
+- include: metron_build.yml
+  tags:
+    - build
+
 - include: ambari_install.yml
   tags:
     - ambari
