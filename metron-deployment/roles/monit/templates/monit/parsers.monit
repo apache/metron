@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-check program pcap-parser with path "{{ monit_home }}/status_pcap_topology.sh"
+check program pcap-parser with path "{{ monit_home }}/status_pcap_topology.sh" with timeout {{ topology_status_timeout }} seconds
   start program "{{ metron_directory }}/bin/start_pcap_topology.sh" with timeout {{ topology_start_timeout }} seconds
   stop program "{{ monit_home }}/stop_pcap_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
@@ -24,7 +24,7 @@ check program pcap-parser with path "{{ monit_home }}/status_pcap_topology.sh"
   group parsers
   group metron
 
-check program yaf-parser with path "{{ monit_home }}/status_yaf_topology.sh"
+check program yaf-parser with path "{{ monit_home }}/status_yaf_topology.sh" with timeout {{ topology_status_timeout }} seconds
   start program "{{ monit_home }}/start_yaf_topology.sh" with timeout {{ topology_start_timeout }} seconds
   stop program "{{ monit_home }}/stop_yaf_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
@@ -32,7 +32,7 @@ check program yaf-parser with path "{{ monit_home }}/status_yaf_topology.sh"
   group parsers
   group metron
 
-check program bro-parser with path "{{ monit_home }}/status_bro_topology.sh"
+check program bro-parser with path "{{ monit_home }}/status_bro_topology.sh" with timeout {{ topology_status_timeout }} seconds
   start program "{{ monit_home }}/start_bro_topology.sh" with timeout {{ topology_start_timeout }} seconds
   stop program "{{ monit_home }}/stop_bro_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
@@ -40,7 +40,7 @@ check program bro-parser with path "{{ monit_home }}/status_bro_topology.sh"
   group parsers
   group metron
 
-check program snort-parser with path "{{ monit_home }}/status_snort_topology.sh"
+check program snort-parser with path "{{ monit_home }}/status_snort_topology.sh" with timeout {{ topology_status_timeout }} seconds
   start program "{{ monit_home }}/start_snort_topology.sh" with timeout {{ topology_start_timeout }} seconds
   stop program "{{ monit_home }}/stop_snort_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart

@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-check program indexing with path "{{ monit_home }}/status_indexing_topology.sh"
+check program indexing with path "{{ monit_home }}/status_indexing_topology.sh" with timeout {{ topology_status_timeout }} seconds
   start program "{{ metron_directory }}/bin/start_solr_topology.sh" with timeout {{ topology_start_timeout }} seconds
   stop program "{{ monit_home }}/stop_indexing_topology.sh" with timeout {{ topology_stop_timeout }} seconds
   if status != 0 then restart
