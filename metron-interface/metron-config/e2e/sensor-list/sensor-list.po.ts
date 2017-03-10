@@ -17,6 +17,7 @@
  */
 
 import { browser, element, by, protractor } from 'protractor/globals';
+import { waitForElementPresence, waitForStalenessOf } from '../utils/e2e_util';
 var Promise = require('bluebird');
 
 export class SensorListPage {
@@ -71,6 +72,20 @@ export class SensorListPage {
 
     disableParsersFromDropdown(names: string[]) {
         return this.clickOnDropdownAndWait(names, 'Disable', 'i.fa-check-circle-o');
+    }
+
+    deleteParser(name: string) {
+        return this.getIconButton(name, '.fa-trash-o').click().then(() => {
+            browser.sleep(1000);
+            return element(by.css('.metron-dialog .btn-primary')).click().then(() => {
+                browser.sleep(1000);
+                return element(by.css('.alert .close')).click().then(() => {
+                    return waitForStalenessOf(element(by.cssContainingText('td', name))).then(() =>{
+                        return true;
+                    });
+                })
+            });
+        });
     }
 
     enableParsers(names: string[]) {
@@ -168,8 +183,18 @@ export class SensorListPage {
     }
 
     openEditPane(name: string) {
+        let row = element(by.cssContainingText('td', name));
+        return waitForElementPresence(row).then(() => {
+            return this.getIconButton(name, '.fa-pencil').click().then(() =>{
+                return browser.getCurrentUrl();
+            });
+        })
+    }
+
+    openEditPaneAndClose(name: string) {
         return this.getIconButton(name, '.fa-pencil').click().then(() =>{
             let url = browser.getCurrentUrl();
+            browser.sleep(500);
             return this.closePane('.main.close-button').then(() => {
                 return url;
             });

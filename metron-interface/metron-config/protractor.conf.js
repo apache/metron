@@ -25,23 +25,26 @@ var SpecReporter = require('jasmine-spec-reporter');
 exports.config = {
   allScriptsTimeout: 11000,
   suites: {
-    sanity: [
+    all: [
       './e2e/login/login.e2e-spec.ts',
       './e2e/app/app.e2e-spec.ts',
-      './e2e/sensor-list/sensor-list.e2e-spec.ts'
+      './e2e/sensor-list/sensor-list.e2e-spec.ts',
+      './e2e/sensor-list/sensor-list-parser-actions.e2e-spec.ts',
+      './e2e/use-cases/sensor-config-single-parser.e2e-spec.ts',
+      './e2e/sensor-config-readonly/sensor-config-readonly.e2e-spec.ts',
     ]
   },
   specs: [
     './e2e/login/login.e2e-spec.ts',
     './e2e/app/app.e2e-spec.ts',
     './e2e/sensor-list/sensor-list.e2e-spec.ts',
-    './e2e/sensor-list/sensor-list-parser-actions.e2e-spec.ts'
+    './e2e/use-cases/sensor-config-single-parser.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome'
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/login',
+  baseUrl: 'http://localhost:4200',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,

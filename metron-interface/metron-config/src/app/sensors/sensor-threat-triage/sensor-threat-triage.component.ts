@@ -41,7 +41,7 @@ export class SensorThreatTriageComponent implements OnChanges {
 
   @Output() hideThreatTriage: EventEmitter<boolean> = new EventEmitter<boolean>();
   availableAggregators = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
-  visibleRules: RiskLevelRule[];
+  visibleRules: RiskLevelRule[] = [];
 
   showTextEditor = false;
   currentRiskLevelRule: RiskLevelRule;
@@ -197,8 +197,7 @@ export class SensorThreatTriageComponent implements OnChanges {
     if (riskLevelRule.name) {
       return riskLevelRule.name;
     } else {
-      let rule = riskLevelRule.rule ? riskLevelRule.rule : '';
-      return rule.length < 20 ? rule : rule.substr(0, 19) + '...';
+      return riskLevelRule.rule ? riskLevelRule.rule : '';
     }
   }
 

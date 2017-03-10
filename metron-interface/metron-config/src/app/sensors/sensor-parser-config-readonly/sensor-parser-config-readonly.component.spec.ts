@@ -303,7 +303,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('should have metadata defined ', async(() => {
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
-    expect(component.editViewMetaData.length).toEqual(26);
+    expect(component.editViewMetaData.length).toEqual(24);
   }));
 
   it('should have sensorsService with parserName and grokPattern defined and kafkaService defined', async(() => {

@@ -154,7 +154,7 @@ describe('Sensor List', function() {
 
     it('should open the edit pane', () => {
         ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
-            expect(page.openEditPane(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-config/' + pName +')');
+            expect(page.openEditPaneAndClose(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-config/' + pName +')');
         });
     })
 

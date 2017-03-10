@@ -23,10 +23,6 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-xs-12 form-title-subscript">{{sensorParserConfigHistory.ip}}</div>
-      </div>
-
       <div *ngFor="let item of editViewMetaData">
         <div [ngSwitch]="item.type">
 
@@ -34,7 +30,7 @@
           </div>
 
             <div  *ngSwitchCase="'SPACER'" class="row">
-                <div class="col-xs-12 form-title">&nbsp;</div>
+                <div class="col-xs-12">&nbsp;</div>
             </div>
 
           <div  *ngSwitchCase="'TITLE'" class="row">
@@ -46,10 +42,12 @@
             <div *ngIf="item.model == 'sensorParserConfigHistory'" class="col-xs-6  px-0 pull-left form-value">{{ sensorParserConfigHistory[item.value] ? sensorParserConfigHistory[item.value] : "-" }}</div>
             <div *ngIf="item.model == 'kafkaTopic'" class="col-xs-6  px-0 pull-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
             <div *ngIf="item.model == 'topologyStatus'" class="col-xs-6  px-0  pull-left form-value">{{ topologyStatus[item.value] ? topologyStatus[item.value] : "-" }}</div>
-            <div *ngIf="item.model == 'grokStatement'">
+            <div *ngIf="item.model == 'grokStatement' && sensorParserConfigHistory['parserName'] === 'Grok'" style="border: none">
+              <div class="col-xs-12 form-sub-title">Grok Statement</div>
               <div id="collapseGrok" class="col-xs-12  pull-left form-value panel-collapse collapse"></div>
               <div class="col-xs-12  pull-left form-value grok" [innerHtml]="grokStatement"></div>
               <a *ngIf="grokStatement.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
+              <div class="px-1"> <div class="col-xs-12 form-seperator"></div> </div>
             </div>
             <div *ngIf="item.model == 'transforms'">
 
@@ -69,13 +67,13 @@
               </div>
               <a *ngIf="transformsConfigKeys.length>0"  class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseTransform" aria-expanded="false" aria-controls="collapseTransform" #transformLink (click)="transformLink.text=(transformLink.text==='show more')?'show less':'show more'">show more</a>
             </div>
-            <div *ngIf="item.model == 'threatTriageRules'">
+            <div *ngIf="item.model == 'threatTriageRules'" class="threat-triage-rules">
               <div class="col-xs-6 form-label">AGGREGATOR</div><div class="col-xs-6 form-value">{{sensorEnrichmentConfig.threatIntel.triageConfig.aggregator}}</div>
               <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
                 <div>
-                  <div class="col-xs-6 form-label">NAME</div><div class="col-xs-6 form-label">SCORE</div>
+                  <div class="col-xs-6 form-sub-sub-title">NAME</div><div class="col-xs-6 form-sub-sub-title">SCORE</div>
                   <div *ngFor="let riskLevelRule of rules" >
-                    <div class="col-xs-6 form-label">{{ riskLevelRule.name }}</div>
+                    <div class="col-xs-6 form-label">{{ getDisplayName(riskLevelRule) }}</div>
                     <div class="col-xs-6 form-value">{{ riskLevelRule.score }}</div>
                   </div>
                 </div>
@@ -88,22 +86,21 @@
       </div>
     </div>
 
-      <div class="button-seperator"></div>
+      <div class="metron-button-bar" >
+          <div class="row pl-0 py-1">
+            <button class="btn btn-primary" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">EDIT</button>
 
-      <div class="row pl-0 py-1">
-        <button class="btn btn-primary readonly-view-inline-button pl-1" type="button" (click)="onEditSensor()"  [disabled]="startStopInProgress">Edit</button>
+            <button class="btn btn-primary" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Stopped')">START</button>
+            <button class="btn form-enable-disable-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="((topologyStatus.status != 'Running' && topologyStatus.status != 'Disabled'))">STOP</button>
 
-        <button class="btn btn-primary readonly-view-inline-button" type="button" (click)="onStartSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Stopped')">START</button>
-        <button class="btn form-enable-disable-button readonly-view-inline-button" type="button" (click)="onStopSensor()" [disabled]="startStopInProgress" [hidden]="((topologyStatus.status != 'Running' && topologyStatus.status != 'Disabled'))">STOP</button>
+            <button class="btn btn-primary" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Disabled')" >ENABLE</button>
+            <button class="btn form-enable-disable-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Running')">DISABLE</button>
 
-        <button class="btn btn-primary readonly-view-inline-button" type="button" (click)="onEnableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Disabled')" >ENABLE</button>
-        <button class="btn form-enable-disable-button readonly-view-inline-button" type="button" (click)="onDisableSensor()" [disabled]="startStopInProgress" [hidden]="(topologyStatus.status != 'Running')">DISABLE</button>
+            <button class="btn btn-link delete" type="button" (click)="onDeleteSensor()"> Delete </button>
 
-        <div class="readonly-view-inline-button"> <a (click)="onDeleteSensor()"> Delete </a> </div>
-
-        <div class="blue col-xs-7 col-xs-push-5"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
+            <div class="start-stop-progress"> <i class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!startStopInProgress"></i> </div>
+          </div>
       </div>
-
     </div>
 
 </metron-config-metron-modal>

@@ -66,15 +66,16 @@ a
   font-family: Roboto-Regular;
 }
 
-.metron-button-bar
+.form-enable-disable-button
 {
-  a
-  {
-    color:#E45D55;
-    text-decoration: none;
-    font-weight: bold;
-    cursor: pointer;
-  }
+  min-width: 50px;
+}
+
+.delete
+{
+  color:#E45D55;
+  font-weight: bold;
+  padding: 0.1rem;
 }
 
 .form-sub-sub-title
@@ -91,8 +92,15 @@ a
   color: $form-field-text-color;
 }
 
-.button-seperator
+.start-stop-progress
 {
-  @extend .form-seperator;
-  margin: 20px -25px 0px -25px;
+  position: absolute;
+  top: 20px;
+  right: 140px;
+}
+
+.threat-triage-rules {
+  .form-label {
+    word-wrap: initial;
+  }
 }
