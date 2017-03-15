@@ -172,6 +172,9 @@ metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
 # kafka_security
 kafka_security_protocol = config['configurations']['kafka-broker'].get('security.inter.broker.protocol', 'PLAINTEXT')
 
+kafka_user = config['configurations']['kafka-env']['kafka_user']
+storm_user = config['configurations']['storm-env']['storm_user']
+
 # Security
 security_enabled = status_params.security_enabled
 
@@ -186,12 +189,10 @@ if security_enabled:
     hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']
     hbase_keytab_path = config['configurations']['hbase-env']['hbase_user_keytab']
 
-    kafka_user = config['configurations']['kafka-env']['kafka_user']
     kafka_principal_raw = config['configurations']['kafka-env']['kafka_principal_name']
     kafka_principal_name = kafka_principal_raw.replace('_HOST', hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
-    storm_user = config['configurations']['storm-env']['storm_user']
     storm_principal_name = status_params.storm_principal_name
     storm_principal = storm_principal_name.split('@', 1)[0]
     storm_keytab_path = status_params.storm_keytab_path
