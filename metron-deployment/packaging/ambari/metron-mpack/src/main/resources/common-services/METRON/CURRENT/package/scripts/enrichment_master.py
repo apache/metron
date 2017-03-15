@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from resource_management.core.exceptions import ComponentIsNotRunning
-from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format

@@ -1,0 +1,114 @@
+{
+  "services": [
+    {
+      "name": "METRON",
+      "identities": [
+        {
+          "name": "metron",
+          "principal": {
+            "value": "${metron-env/metron_user}-${cluster_name|toLower()}@${realm}",
+            "type" : "user",
+            "configuration": "metron-env/metron_principal_name",
+            "local_username": "${metron-env/metron_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/metron.headless.keytab",
+            "owner": {
+              "name": "${metron-env/metron_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "metron-env/metron_keytab"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "METRON_PARSERS",
+          "identities": [
+            {
+              "name": "metron_service",
+              "principal": {
+                "value": "${metron-env/metron_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "metron-env/metron_principal_name",
+                "local_username": "${metron-env/metron_user}"
+
+              },
+              "keytab": {
+                "file": "${keytab_dir}/metron.service.keytab",
+                "owner": {
+                  "name": "${metron-env/metron_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "metron-env/metron_service_keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "METRON_ENRICHMENT_MASTER",
+          "identities": [
+            {
+              "name": "metron_service",
+              "principal": {
+                "value": "${metron-env/metron_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "metron-env/metron_principal_name",
+                "local_username": "${metron-env/metron_user}"
+
+              },
+              "keytab": {
+                "file": "${keytab_dir}/metron.service.keytab",
+                "owner": {
+                  "name": "${metron-env/metron_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "metron-env/metron_service_keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "METRON_INDEXING",
+          "identities": [
+            {
+              "name": "metron_service",
+              "principal": {
+                "value": "${metron-env/metron_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "metron-env/metron_principal_name",
+                "local_username": "${metron-env/metron_user}"
+
+              },
+              "keytab": {
+                "file": "${keytab_dir}/metron.service.keytab",
+                "owner": {
+                  "name": "${metron-env/metron_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "metron-env/metron_service_keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

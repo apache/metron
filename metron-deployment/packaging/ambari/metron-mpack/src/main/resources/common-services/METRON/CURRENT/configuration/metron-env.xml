@@ -125,6 +125,26 @@
         <value></value>
     </property>
     <property>
+        <name>metron_principal_name</name>
+        <display-name>Metron Principal Name</display-name>
+        <description>Metron principal name</description>
+    </property>
+    <property>
+        <name>metron_keytab</name>
+        <display-name>Metron Keytab</display-name>
+        <description>Metron keytab path</description>
+    </property>
+    <property>
+        <name>metron_service_principal_name</name>
+        <display-name>Metron Service Principal Name</display-name>
+        <description>Metron service principal name</description>
+    </property>
+    <property>
+        <name>metron_service_keytab</name>
+        <display-name>Metron Service User Keytab</display-name>
+        <description>Metron Service user keytab path</description>
+    </property>
+    <property>
         <name>global-json</name>
         <display-name>global.json template</display-name>
         <description>This is the jinja template for global.json file</description>

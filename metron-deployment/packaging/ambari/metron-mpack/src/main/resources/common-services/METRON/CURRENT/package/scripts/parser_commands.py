@@ -25,6 +25,8 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions.format import format as ambari_format
+from metron_security import kinit
 
 import metron_service
 
@@ -59,6 +61,12 @@ class ParserCommands:
         Logger.info(
             "Copying grok patterns from local directory '{0}' to HDFS '{1}'".format(self.__params.local_grok_patterns_dir,
                                                                                     self.__params.hdfs_grok_patterns_dir))
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.metron_keytab_path,
+                  self.__params.metron_jaas_principal,
+                  self.__params.metron_user)
+
         self.__params.HdfsResource(self.__params.hdfs_grok_patterns_dir,
                                    type="directory",
                                    action="create_on_execute",
@@ -73,6 +81,12 @@ class ParserCommands:
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.kafka_keytab_path,
+                  self.__params.kafka_principal_name,
+                  self.__params.kafka_user)
+
         command_template = """{0}/kafka-topics.sh \
                                 --zookeeper {1} \
                                 --create \
@@ -80,6 +94,14 @@ class ParserCommands:
                                 --partitions {3} \
                                 --replication-factor {4} \
                                 --config retention.bytes={5}"""
+
+        acl_template = """{0}/kafka-acls.sh \
+                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
+                              --authorizer-properties zookeeper.connect={1} \
+                              --add \
+                              --allow-principal User:{2} \
+                              --topic {3}"""
+
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = int(self.__params.metron_topic_retention)
@@ -92,7 +114,13 @@ class ParserCommands:
                                             parser_name,
                                             num_partitions,
                                             replication_factor,
-                                            retention_bytes))
+                                            retention_bytes),
+                    user=self.__params.kafka_user)
+            Execute(acl_template.format(self.__params.kafka_bin_dir,
+                                        self.__params.zookeeper_quorum,
+                                        self.__params.storm_principal_name,
+                                        parser_name),
+                    user=self.__params.kafka_user)
         Logger.info("Done creating Kafka topics")
 
     def start_parser_topologies(self):
@@ -144,7 +172,7 @@ class ParserCommands:
     def topologies_running(self, env):
         env.set_params(self.__params)
         all_running = True
-        topologies = metron_service.get_running_topologies()
+        topologies = metron_service.get_running_topologies(self.__params)
         for parser in self.get_parser_list():
             parser_found = False
             is_running = False

@@ -22,6 +22,7 @@ from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
+from metron_security import kinit
 
 def init_config():
     Logger.info('Loading config into ZooKeeper')
@@ -31,16 +32,31 @@ def init_config():
     )
 
 
-def get_running_topologies():
+def get_running_topologies(params):
     Logger.info('Getting Running Storm Topologies from Storm REST Server')
 
-    cmd = ambari_format('curl --max-time 3 {storm_rest_addr}/api/v1/topology/summary')
+    Logger.info('Security enabled? ' + str(params.security_enabled))
+
+    if params.security_enabled:
+        cmd = ambari_format('curl --max-time 3 --negotiate -u : {storm_rest_addr}/api/v1/topology/summary')
+    else:
+        cmd = ambari_format('curl --max-time 3 {storm_rest_addr}/api/v1/topology/summary')
+
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.storm_keytab_path,
+              params.storm_principal_name)
+
+    Logger.info('Running cmd: ' + cmd)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (stdout, stderr) = proc.communicate()
 
     try:
         stormjson = json.loads(stdout)
-    except ValueError:
+    except ValueError, e:
+        Logger.info('Stdout: ' + str(stdout))
+        Logger.info('Stderr: ' + str(stderr))
+        Logger.exception(e)
         return {}
 
     topologiesDict = {}
