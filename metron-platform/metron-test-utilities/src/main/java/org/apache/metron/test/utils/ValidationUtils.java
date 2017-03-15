@@ -36,7 +36,7 @@ public class ValidationUtils {
       if(v2 == null) {
         Assert.fail("Unable to find key: " + k + " in output");
       }
-      if(k.equals("timestamp")) {
+      if(k.equals("timestamp") || k.equals("guid")) {
         //TODO: Take the ?!?@ timestamps out of the reference file.
         Assert.assertEquals(v1.toString().length(), v2.toString().length());
       }
