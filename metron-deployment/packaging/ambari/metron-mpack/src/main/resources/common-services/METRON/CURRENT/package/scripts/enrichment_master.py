@@ -15,13 +15,14 @@ limitations under the License.
 """
 
 from resource_management.core.exceptions import ComponentIsNotRunning
-from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
+from resource_management.core.logger import Logger
 
 from enrichment_commands import EnrichmentCommands
+from metron_security import storm_security_setup
 import metron_service
 
 
@@ -36,22 +37,31 @@ class Enrichment(Script):
         from params import params
         env.set_params(params)
 
+        Logger.info("Running enrichment configure")
         File(format("{metron_config_path}/enrichment.properties"),
              content=Template("enrichment.properties.j2"),
              owner=params.metron_user,
              group=params.metron_group
              )
 
+        Logger.info("Calling security setup")
+        storm_security_setup(params)
+
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = EnrichmentCommands(params)
         metron_service.load_global_config(params)
 
         if not commands.is_kafka_configured():
             commands.init_kafka_topics()
+        if params.security_enabled and not commands.is_kafka_acl_configured():
+            commands.init_kafka_acls()
         if not commands.is_hbase_configured():
             commands.create_hbase_tables()
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
         if not commands.is_geo_configured():
             commands.init_geo()
 
