@@ -31,6 +31,7 @@ metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
 parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
+parsers_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_acl_configured'
 
 # Enrichment
 metron_enrichment_topology = 'enrichment'
@@ -44,10 +45,13 @@ threatintel_cf = 't'
 # Indexing
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
+indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
 
 # Enrichment
 enrichment_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_configured'
+enrichment_kafka_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_acl_configured'
 enrichment_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_configured'
+enrichment_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_acl_configured'
 enrichment_geo_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_geo_configured'
 
 # Storm

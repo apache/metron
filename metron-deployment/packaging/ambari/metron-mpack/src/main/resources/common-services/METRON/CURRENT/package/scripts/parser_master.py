@@ -45,6 +45,9 @@ class ParserMaster(Script):
             commands.init_parsers()
             commands.init_kafka_topics()
             commands.set_configured()
+        if params.security_enabled and not commands.is_acl_configured():
+            commands.init_kafka_acls()
+            commands.set_acl_configured()
 
     def start(self, env, upgrade_type=None):
         from params import params

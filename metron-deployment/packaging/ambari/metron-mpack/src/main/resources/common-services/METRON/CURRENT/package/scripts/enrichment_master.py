@@ -49,8 +49,12 @@ class Enrichment(Script):
 
         if not commands.is_kafka_configured():
             commands.init_kafka_topics()
+        if params.security_enabled and not commands.is_kafka_acl_configured():
+            commands.init_kafka_acls()
         if not commands.is_hbase_configured():
             commands.create_hbase_tables()
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
         if not commands.is_geo_configured():
             commands.init_geo()
 

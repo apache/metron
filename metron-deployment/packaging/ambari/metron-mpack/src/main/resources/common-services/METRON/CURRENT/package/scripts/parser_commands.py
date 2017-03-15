@@ -36,6 +36,7 @@ class ParserCommands:
     __params = None
     __parser_list = None
     __configured = False
+    __acl_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -43,6 +44,7 @@ class ParserCommands:
         self.__params = params
         self.__parser_list = self.__get_parsers(params)
         self.__configured = os.path.isfile(self.__params.parsers_configured_flag_file)
+        self.__acl_configured = os.path.isfile(self.__params.parsers_acl_configured_flag_file)
 
     # get list of parsers
     def __get_parsers(self, params):
@@ -51,8 +53,17 @@ class ParserCommands:
     def is_configured(self):
         return self.__configured
 
+    def is_acl_configured(self):
+        return self.__acl_configured
+
     def set_configured(self):
         File(self.__params.parsers_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def set_acl_configured(self):
+        File(self.__params.parsers_acl_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -95,13 +106,6 @@ class ParserCommands:
                                 --replication-factor {4} \
                                 --config retention.bytes={5}"""
 
-        acl_template = """{0}/kafka-acls.sh \
-                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                              --authorizer-properties zookeeper.connect={1} \
-                              --add \
-                              --allow-principal User:{2} \
-                              --topic {3}"""
-
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = int(self.__params.metron_topic_retention)
@@ -116,12 +120,31 @@ class ParserCommands:
                                             replication_factor,
                                             retention_bytes),
                     user=self.__params.kafka_user)
+        Logger.info("Done creating Kafka topics")
+
+    def init_kafka_acls(self):
+        Logger.info('Creating Kafka ACLs')
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.kafka_keytab_path,
+                  self.__params.kafka_principal_name,
+                  self.__params.kafka_user)
+
+        acl_template = """{0}/kafka-acls.sh \
+                                  --authorizer kafka.security.auth.SimpleAclAuthorizer \
+                                  --authorizer-properties zookeeper.connect={1} \
+                                  --add \
+                                  --allow-principal User:{2} \
+                                  --topic {3}"""
+
+        for parser_name in self.get_parser_list():
+            Logger.info("Creating ACL for topic'{0}'".format(parser_name))
             Execute(acl_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
                                         self.__params.storm_principal_name,
                                         parser_name),
                     user=self.__params.kafka_user)
-        Logger.info("Done creating Kafka topics")
+        Logger.info("Done creating Kafka ACLs")
 
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))

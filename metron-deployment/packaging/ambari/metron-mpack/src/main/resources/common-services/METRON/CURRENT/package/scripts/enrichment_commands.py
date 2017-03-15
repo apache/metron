@@ -32,7 +32,9 @@ class EnrichmentCommands:
     __enrichment_error_topic = None
     __threat_intel_error_topic = None
     __kafka_configured = False
+    __kafka_acl_configured = False
     __hbase_configured = False
+    __hbase_acl_configured = False
     __geo_configured = False
 
     def __init__(self, params):
@@ -42,11 +44,16 @@ class EnrichmentCommands:
         self.__enrichment_topology = params.metron_enrichment_topology
         self.__enrichment_topic = params.metron_enrichment_topic
         self.__kafka_configured = os.path.isfile(self.__params.enrichment_kafka_configured_flag_file)
+        self.__kafka_acl_configured = os.path.isfile(self.__params.enrichment_kafka_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
+        self.__hbase_acl_configured = os.path.isfile(self.__params.enrichment_hbase_acl_configured_flag_file)
         self.__geo_configured = os.path.isfile(self.__params.enrichment_geo_configured_flag_file)
 
     def is_kafka_configured(self):
         return self.__kafka_configured
+
+    def is_kafka_acl_configured(self):
+        return self.__kafka_acl_configured
 
     def set_kafka_configured(self):
         Logger.info("Setting Kafka Configured to True")
@@ -55,12 +62,29 @@ class EnrichmentCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
+    def set_kafka_acl_configured(self):
+        Logger.info("Setting Kafka ACL Configured to True")
+        File(self.__params.enrichment_kafka_acl_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
     def is_hbase_configured(self):
         return self.__hbase_configured
+
+    def is_hbase_acl_configured(self):
+        return self.__hbase_acl_configured
 
     def set_hbase_configured(self):
         Logger.info("Setting HBase Configured to True")
         File(self.__params.enrichment_hbase_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def set_hbase_acl_configured(self):
+        Logger.info("Setting HBase ACL Configured to True")
+        File(self.__params.enrichment_hbase_acl_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -78,9 +102,9 @@ class EnrichmentCommands:
     def init_geo(self):
         if self.__params.security_enabled:
             kinit(self.__params.kinit_path_local,
-                                 self.__params.metron_keytab_path,
-                                 self.__params.metron_jaas_principal,
-                                 self.__params.metron_user)
+                  self.__params.metron_keytab_path,
+                  self.__params.metron_jaas_principal,
+                  self.__params.metron_user)
 
         Logger.info("Creating HDFS location for GeoIP database")
         self.__params.HdfsResource(self.__params.geoip_hdfs_dir,
@@ -122,13 +146,6 @@ class EnrichmentCommands:
                                 --replication-factor {4} \
                                 --config retention.bytes={5}"""
 
-        acl_template = """{0}/kafka-acls.sh \
-                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                              --authorizer-properties zookeeper.connect={1} \
-                              --add \
-                              --allow-principal User:{2} \
-                              --topic {3}"""
-
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = int(self.__params.metron_topic_retention)
@@ -145,6 +162,28 @@ class EnrichmentCommands:
                                           replication_factor,
                                           retention_bytes),
                     user=self.__params.kafka_user)
+
+        Logger.info("Done creating Kafka topics")
+        self.set_kafka_configured()
+
+    def init_kafka_acls(self):
+        Logger.info('Creating Kafka topics')
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.kafka_keytab_path,
+                  self.__params.kafka_principal_name,
+                  self.__params.kafka_user)
+
+        acl_template = """{0}/kafka-acls.sh \
+                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
+                              --authorizer-properties zookeeper.connect={1} \
+                              --add \
+                              --allow-principal User:{2} \
+                              --topic {3}"""
+
+        topics = [self.__enrichment_topic]
+        for topic in topics:
+            Logger.info("Setting ACL for topic'{0}'".format(topic))
             Execute(acl_template.format(self.__params.kafka_bin_dir,
                                         self.__params.zookeeper_quorum,
                                         self.__params.storm_principal_name,
@@ -152,7 +191,7 @@ class EnrichmentCommands:
                     user=self.__params.kafka_user)
 
         Logger.info("Done creating Kafka topics")
-        self.set_kafka_configured()
+        self.set_kafka_acl_configured()
 
     def start_enrichment_topology(self):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
@@ -217,15 +256,6 @@ class EnrichmentCommands:
                 user=self.__params.metron_user
                 )
 
-        add_enrichment_acl_cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n".format(self.__params.storm_principal, self.__params.enrichment_table)
-        Execute(add_enrichment_acl_cmd,
-                tries=3,
-                try_sleep=5,
-                logoutput=False,
-                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                user=self.__params.metron_user
-                )
-
         add_threatintel_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.threatintel_table, self.__params.threatintel_cf)
         Execute(add_threatintel_cmd,
                 tries=3,
@@ -235,7 +265,18 @@ class EnrichmentCommands:
                 user=self.__params.metron_user
                 )
 
-        add_enrichment_acl_cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n".format(self.__params.storm_principal, self.__params.threatintel_table)
+        Logger.info("Done creating HBase Tables")
+        self.set_hbase_configured()
+
+    def set_hbase_acls(self):
+        Logger.info("Setting HBase ACLs")
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  self.__params.metron_user)
+
+        add_enrichment_acl_cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n".format(self.__params.storm_principal, self.__params.enrichment_table)
         Execute(add_enrichment_acl_cmd,
                 tries=3,
                 try_sleep=5,
@@ -244,5 +285,16 @@ class EnrichmentCommands:
                 user=self.__params.metron_user
                 )
 
-        Logger.info("Done creating HBase Tables")
-        self.set_hbase_configured()
+        add_threatintel_acl_cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n".format(self.__params.storm_principal, self.__params.threatintel_table)
+        Execute(add_threatintel_acl_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                user=self.__params.metron_user
+                )
+
+        Logger.info("Done setting HBase ACLs")
+        self.set_hbase_acl_configured()
+
+

@@ -50,10 +50,14 @@ metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
+parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
+enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
+enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_configured_flag_file
 enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
+indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 

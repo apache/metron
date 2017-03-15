@@ -30,6 +30,7 @@ class IndexingCommands:
     __params = None
     __indexing = None
     __configured = False
+    __acl_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -37,12 +38,22 @@ class IndexingCommands:
         self.__params = params
         self.__indexing = params.metron_indexing_topology
         self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
+        self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
 
     def is_configured(self):
         return self.__configured
 
+    def is_acl_configured(self):
+        return self.__acl_configured
+
     def set_configured(self):
         File(self.__params.indexing_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def set_acl_configured(self):
+        File(self.__params.indexing_acl_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -64,13 +75,6 @@ class IndexingCommands:
                                 --replication-factor {4} \
                                 --config retention.bytes={5}"""
 
-        acl_template = """{0}/kafka-acls.sh \
-                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                              --authorizer-properties zookeeper.connect={1} \
-                              --add \
-                              --allow-principal User:{2} \
-                              --topic {3}"""
-
         num_partitions = 1
         replication_factor = 1
         retention_gigabytes = int(self.__params.metron_topic_retention)
@@ -85,12 +89,30 @@ class IndexingCommands:
                                         replication_factor,
                                         retention_bytes),
                 user=self.__params.kafka_user)
+        Logger.info("Done creating Kafka topics")
+
+    def init_kafka_acls(self):
+        Logger.info('Creating Kafka ACLs')
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.kafka_keytab_path,
+                  self.__params.kafka_principal_name,
+                  self.__params.kafka_user)
+
+        acl_template = """{0}/kafka-acls.sh \
+                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
+                              --authorizer-properties zookeeper.connect={1} \
+                              --add \
+                              --allow-principal User:{2} \
+                              --topic {3}"""
+
+        Logger.info("Creating ACL for topic'{0}'".format(self.__indexing))
         Execute(acl_template.format(self.__params.kafka_bin_dir,
                                     self.__params.zookeeper_quorum,
                                     self.__params.storm_principal_name,
                                     self.__indexing),
                 user=self.__params.kafka_user)
-        Logger.info("Done creating Kafka topics")
+        Logger.info("Done creating Kafka ACLs")
 
     def init_hdfs_dir(self):
         Logger.info('Creating HDFS indexing directory')
