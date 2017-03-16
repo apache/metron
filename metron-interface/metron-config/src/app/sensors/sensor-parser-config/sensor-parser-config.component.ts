@@ -212,7 +212,8 @@ export class SensorParserConfigComponent implements OnInit {
     if (this.parserClassValid) {
       if (this.isGrokParser(this.sensorParserConfig)) {
         if (!this.sensorParserConfig.parserConfig['patternLabel']) {
-          this.sensorParserConfig.parserConfig['patternLabel'] = this.sensorParserConfig.sensorTopic.toUpperCase();
+            let topicName = this.sensorParserConfig.sensorTopic ? this.sensorParserConfig.sensorTopic.toUpperCase() : '';
+            this.sensorParserConfig.parserConfig['patternLabel'] = topicName;
         }
       } else {
         this.hidePane(Pane.GROK);
@@ -267,6 +268,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   goBack() {
     this.router.navigateByUrl('/sensors');
+    return false;
   }
 
   onSaveGrokStatement(grokStatement: string) {

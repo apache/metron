@@ -41,8 +41,8 @@ export class StormService {
       return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
           .map(HttpUtil.extractData)
           .catch(HttpUtil.handleError)
-          .onErrorResumeNext()
-    })
+          .onErrorResumeNext();
+    });
   }
 
   public getAll(): Observable<TopologyStatus[]> {

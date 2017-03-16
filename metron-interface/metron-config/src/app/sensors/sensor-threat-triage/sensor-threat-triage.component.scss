@@ -122,6 +122,15 @@ textarea
   }
 }
 
+.threat-triage-rule-str
+{
+  width: 64%;
+  padding-right: 10px;
+  font-size: small;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 metron-config-sensor-rule-editor
 {
   @extend .flexbox-row-reverse;

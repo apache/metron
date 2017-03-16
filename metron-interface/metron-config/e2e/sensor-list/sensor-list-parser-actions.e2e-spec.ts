@@ -50,7 +50,7 @@ describe('Sensor List Long Running Cases', function() {
         { classNames: 'fa-pencil', displayed: true},
         { classNames: 'fa-trash-o', displayed: true}
     ];
-
+    
     beforeAll(() => {
         loginPage.login();
     });
@@ -60,6 +60,7 @@ describe('Sensor List Long Running Cases', function() {
     });
 
     it('should start parsers from actions', (done) => {
+        expect(page.getAddButton()).toEqual(true);
         page.startParsers(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
             expect(args).toEqual([true, true, true, true, true, true, true])
             done();
@@ -102,37 +103,29 @@ describe('Sensor List Long Running Cases', function() {
     }, 300000)
 
     it('should start parsers from dropdown', (done) => {
-        // page.toggleSelectAll(true);
         page.startParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
             expect(args).toEqual([true, true, true, true, true, true, true]);
-            // page.toggleSelectAll(false);
             done();
         })
     }, 300000)
 
     it('should disable parsers from dropdown', (done) => {
-        // page.toggleSelectAll(true);
         page.disableParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
             expect(args).toEqual([true, true, true, true, true, true, true]);
-            // page.toggleSelectAll();
             done();
         })
     }, 300000)
 
     it('should enable parsers from dropdown', (done) => {
-        // page.toggleSelectAll(true);
         page.enableParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
             expect(args).toEqual([true, true, true, true, true, true, true]);
-            // page.toggleSelectAll(false);
             done();
         })
     }, 300000)
 
     it('should stop parsers from dropdown', (done) => {
-        // page.toggleSelectAll(true);
         page.stopParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
             expect(args).toEqual([true, true, true, true, true, true, true]);
-            // page.toggleSelectAll(false);
             done();
         })
     }, 300000)
