@@ -263,7 +263,6 @@
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
-                        <exclude>**/files/opensoc-ui</exclude>
                         <!-- pickle file - binary format -->
                         <exclude>**/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p</exclude>
                         <!-- Files from Chef/bento -->
