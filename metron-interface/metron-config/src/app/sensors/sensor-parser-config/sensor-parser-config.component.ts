@@ -302,7 +302,10 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   isGrokParser(sensorParserConfig: SensorParserConfig): boolean {
-    return sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
+    if (sensorParserConfig && sensorParserConfig.parserClassName) {
+      return sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
+    }
+    return false;
   }
 
   getTransformationCount(): number {

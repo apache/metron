@@ -16,4 +16,12 @@
 #  limitations under the License.
 #
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-$SCRIPTS_ROOT/../node_modules/angular-cli/bin/ng serve -prod --proxy-config proxy.conf.json
+export METRON_REST_URL=${METRON_REST_URL:-http://localhost:8080}
+export MANAGEMENT_UI_PORT=${MANAGEMENT_UI_PORT:-4200}
+npm version > /dev/null
+if [ $? -eq 0 ]; then
+    npm install http-server
+    ./node_modules/http-server/bin/http-server ./dist/ --proxy $METRON_REST_URL -p $MANAGEMENT_UI_PORT
+else
+    echo 'Error:  npm required to start http-server'
+fi
