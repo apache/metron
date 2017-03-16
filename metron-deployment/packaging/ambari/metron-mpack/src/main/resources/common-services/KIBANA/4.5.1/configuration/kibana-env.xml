@@ -23,13 +23,21 @@
     <name>kibana_user</name>
     <value>kibana</value>
     <property-type>USER</property-type>
-    <description></description>
+    <description>Service User for Kibana</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
-    <name>user_group</name>
+    <name>kabana_group</name>
     <value>kibana</value>
     <property-type>GROUP</property-type>
-    <description></description>
+    <description>Service Group for Kibana</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property require-input="true">
     <name>kibana_log_dir</name>
@@ -50,5 +58,10 @@
     <name>kibana_server_port</name>
     <value>5000</value>
     <description>Kibana back end server port to use.</description>
+  </property>
+  <property require-input="true">
+    <name>kibana_default_application</name>
+    <value>default</value>
+    <description>The default application to load.</description>
   </property>
 </configuration>

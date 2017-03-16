@@ -10,24 +10,24 @@ This module provides a RESTful API for interacting with Metron.
 
 ## Installation
 1. Package the application with Maven:
-```
-mvn clean package
-```
+  ```
+  mvn clean package
+  ```
 
 1. Untar the archive in the target directory.  The directory structure will look like:
-```
-bin
-  start_metron_rest.sh
-lib
-  metron-rest-$METRON_VERSION.jar
-```
+  ```
+  bin
+    start_metron_rest.sh
+  lib
+    metron-rest-$METRON_VERSION.jar
+  ```
 
-1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
+1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc.) in properties containing `${docker.host.address}` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
 
 1. Start the application with this command:
-```
-./bin/start_metron_rest.sh /path/to/application.yml
-```
+  ```
+  ./bin/start_metron_rest.sh /path/to/application.yml
+  ```
 
 ## Usage
 
@@ -45,36 +45,36 @@ For [production use](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/refere
 1. Create a MySQL user for the Metron REST application (http://dev.mysql.com/doc/refman/5.7/en/adding-users.html).
 
 1. Connect to MySQL and create a Metron REST database:
-```
-CREATE DATABASE IF NOT EXISTS metronrest
-```
+  ```
+  CREATE DATABASE IF NOT EXISTS metronrest
+  ```
 
 1. Add users:
-```
-use metronrest;
-insert into users (username, password, enabled) values ('your_username','your_password',1);
-insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
-```
+  ```
+  use metronrest;
+  insert into users (username, password, enabled) values ('your_username','your_password',1);
+  insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
+  ```
 
 1. Replace the H2 connection information in the application.yml file with MySQL connection information:
-```
-spring:
-  datasource:
-        driverClassName: com.mysql.jdbc.Driver
-        url: jdbc:mysql://mysql_host:3306/metronrest
-        username: metron_rest_user
-        password: metron_rest_password
-        platform: mysql
-```
+  ```
+  spring:
+    datasource:
+          driverClassName: com.mysql.jdbc.Driver
+          url: jdbc:mysql://mysql_host:3306/metronrest
+          username: metron_rest_user
+          password: metron_rest_password
+          platform: mysql
+  ```
 
 1. Add a dependency for the MySQL JDBC connector in the metron-rest pom.xml:
-```
-<dependency>
-  <groupId>mysql</groupId>
-  <artifactId>mysql-connector-java</artifactId>
-  <version>${mysql.client.version}</version>
-</dependency>
-```
+  ```
+  <dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>${mysql.client.version}</version>
+  </dependency>
+  ```
 
 1. Follow the steps in the [Installation](#installation) section
 
@@ -95,25 +95,25 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/hdfs/list`](#get-apiv1hdfslist)|
 | [ `GET /api/v1/kafka/topic`](#get-apiv1kafkatopic)|
 | [ `POST /api/v1/kafka/topic`](#post-apiv1kafkatopic)|
-| [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopic{name})|
-| [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopic{name})|
-| [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopic{name}sample)|
+| [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
+| [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
+| [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available`](#get-apiv1sensorenrichmentconfiglistavailable)|
-| [ `DELETE /api/v1/sensor/enrichment/config/{name}`](#delete-apiv1sensorenrichmentconfig{name})|
-| [ `POST /api/v1/sensor/enrichment/config/{name}`](#post-apiv1sensorenrichmentconfig{name})|
-| [ `GET /api/v1/sensor/enrichment/config/{name}`](#get-apiv1sensorenrichmentconfig{name})|
+| [ `DELETE /api/v1/sensor/enrichment/config/{name}`](#delete-apiv1sensorenrichmentconfigname)|
+| [ `POST /api/v1/sensor/enrichment/config/{name}`](#post-apiv1sensorenrichmentconfigname)|
+| [ `GET /api/v1/sensor/enrichment/config/{name}`](#get-apiv1sensorenrichmentconfigname)|
 | [ `GET /api/v1/sensor/indexing/config`](#get-apiv1sensorindexingconfig)|
-| [ `DELETE /api/v1/sensor/indexing/config/{name}`](#delete-apiv1sensorindexingconfig{name})|
-| [ `POST /api/v1/sensor/indexing/config/{name}`](#post-apiv1sensorindexingconfig{name})|
-| [ `GET /api/v1/sensor/indexing/config/{name}`](#get-apiv1sensorindexingconfig{name})|
+| [ `DELETE /api/v1/sensor/indexing/config/{name}`](#delete-apiv1sensorindexingconfigname)|
+| [ `POST /api/v1/sensor/indexing/config/{name}`](#post-apiv1sensorindexingconfigname)|
+| [ `GET /api/v1/sensor/indexing/config/{name}`](#get-apiv1sensorindexingconfigname)|
 | [ `POST /api/v1/sensor/parser/config`](#post-apiv1sensorparserconfig)|
 | [ `GET /api/v1/sensor/parser/config`](#get-apiv1sensorparserconfig)|
 | [ `GET /api/v1/sensor/parser/config/list/available`](#get-apiv1sensorparserconfiglistavailable)|
 | [ `POST /api/v1/sensor/parser/config/parseMessage`](#post-apiv1sensorparserconfigparsemessage)|
 | [ `GET /api/v1/sensor/parser/config/reload/available`](#get-apiv1sensorparserconfigreloadavailable)|
-| [ `DELETE /api/v1/sensor/parser/config/{name}`](#delete-apiv1sensorparserconfig{name})|
-| [ `GET /api/v1/sensor/parser/config/{name}`](#get-apiv1sensorparserconfig{name})|
+| [ `DELETE /api/v1/sensor/parser/config/{name}`](#delete-apiv1sensorparserconfigname)|
+| [ `GET /api/v1/sensor/parser/config/{name}`](#get-apiv1sensorparserconfigname)|
 | [ `POST /api/v1/stellar/apply/transformations`](#post-apiv1stellarapplytransformations)|
 | [ `GET /api/v1/stellar/list`](#get-apiv1stellarlist)|
 | [ `GET /api/v1/stellar/list/functions`](#get-apiv1stellarlistfunctions)|
@@ -131,11 +131,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/indexing/deactivate`](#get-apiv1stormindexingdeactivate)|
 | [ `GET /api/v1/storm/indexing/start`](#get-apiv1stormindexingstart)|
 | [ `GET /api/v1/storm/indexing/stop`](#get-apiv1stormindexingstop)|
-| [ `GET /api/v1/storm/parser/activate/{name}`](#get-apiv1stormparseractivate{name})|
-| [ `GET /api/v1/storm/parser/deactivate/{name}`](#get-apiv1stormparserdeactivate{name})|
-| [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstart{name})|
-| [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstop{name})|
-| [ `GET /api/v1/storm/{name}`](#get-apiv1storm{name})|
+| [ `GET /api/v1/storm/parser/activate/{name}`](#get-apiv1stormparseractivatename)|
+| [ `GET /api/v1/storm/parser/deactivate/{name}`](#get-apiv1stormparserdeactivatename)|
+| [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstartname)|
+| [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstopname)|
+| [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `GET /api/v1/global/config`
@@ -171,7 +171,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - JSON results
 
 ### `POST /api/v1/hdfs`
-  * Description: Writes contents to an HDFS file.  Warning: this will overwite the contents of a file if it already exists.
+  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.
   * Input:
     * path - Path to HDFS file
     * contents - File contents
@@ -222,7 +222,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - Kafka topic is missing
 
 ### `DELETE /api/v1/kafka/topic/{name}`
-  * Description: Delets a Kafka topic
+  * Description: Deletes a Kafka topic
   * Input:
     * name - Kafka topic name
   * Returns:

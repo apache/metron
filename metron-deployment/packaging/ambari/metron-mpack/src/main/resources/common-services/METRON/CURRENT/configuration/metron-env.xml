@@ -46,15 +46,23 @@
         <name>metron_user</name>
         <value>metron</value>
         <property-type>USER</property-type>
-        <description>The user for Metron</description>
-        <display-name>Metron User</display-name>
+        <description>Service User for Metron</description>
+        <display-name>Metron User Name</display-name>
+        <value-attributes>
+            <type>user</type>
+            <overridable>false</overridable>
+        </value-attributes>
     </property>
     <property>
         <name>metron_group</name>
         <value>metron</value>
         <property-type>GROUP</property-type>
-        <description>The group for Metron</description>
+        <description>Service Group for Metron</description>
         <display-name>Metron Group Name</display-name>
+        <value-attributes>
+            <type>user</type>
+            <overridable>false</overridable>
+        </value-attributes>
     </property>
     <property>
         <name>metron_topic_retention</name>
@@ -150,7 +158,8 @@
 {
 "es.clustername": "{{ es_cluster_name }}",
 "es.ip": "{{ es_url }}",
-"es.date.format": "yyyy.MM.dd.HH"
+"es.date.format": "yyyy.MM.dd.HH",
+"parser.error.topic": "indexing"
 }
         </value>
         <value-attributes>
@@ -171,7 +180,7 @@ kafka.broker={{ kafka_brokers }}
 kafka.start=WHERE_I_LEFT_OFF
 ##### Indexing #####
 index.input.topic=indexing
-index.error.topic=indexing_error
+index.error.topic=indexing
 writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
 ##### Metrics #####
 #reporters

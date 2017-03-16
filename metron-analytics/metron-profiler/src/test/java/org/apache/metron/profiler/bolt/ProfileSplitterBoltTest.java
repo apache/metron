@@ -63,7 +63,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    *        "onlyif": "protocol == 'HTTP'",
    *        "init": {},
    *        "update": {},
-   *        "result": 2
+   *        "result": "2"
    *      }
    *   ]
    * }
@@ -80,7 +80,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    *        "onlyif": "false",
    *        "init": {},
    *        "update": {},
-   *        "result": 2
+   *        "result": "2"
    *      }
    *   ]
    * }
@@ -96,7 +96,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    *        "foreach": "ip_src_addr",
    *        "init": {},
    *        "update": {},
-   *        "result": 2
+   *        "result": "2"
    *      }
    *   ]
    * }
@@ -113,7 +113,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    *        "onlyif": "NOT-VALID",
    *        "init": {},
    *        "update": {},
-   *        "result": 2
+   *        "result": "2"
    *      }
    *   ]
    * }

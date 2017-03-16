@@ -28,6 +28,7 @@ import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.Constants;
+import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
@@ -45,7 +46,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -121,9 +124,13 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
     bolt.withPeriodDuration(10, TimeUnit.MINUTES);
-    bolt.withTimeToLive(30, TimeUnit.MINUTES);
-    bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+    bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
 
+    // define the valid destinations for the profiler
+    bolt.withDestinationHandler(new HBaseDestinationHandler());
+    bolt.withDestinationHandler(new KafkaDestinationHandler());
+
+    bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     return bolt;
   }
 
@@ -242,11 +249,11 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   }
 
   /**
-   * A ProfileMeasurement should be emitted for each profile/entity currently being tracked
-   * by the bolt.
+   * A ProfileMeasurement is build for each profile/entity pair.  A measurement for each profile/entity
+   * pair should be emitted.
    */
   @Test
-  public void testEmitMeasurementsOnFlush() throws Exception {
+  public void testEmitMeasurements() throws Exception {
 
     // setup
     ProfileBuilderBolt bolt = createBolt();
@@ -267,33 +274,64 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     // capture the ProfileMeasurement that should be emitted
     ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
-    verify(outputCollector, times(2)).emit(arg.capture());
 
-    // validate
-    for(Values value : arg.getAllValues()) {
+    // validate emitted measurements for hbase
+    verify(outputCollector, atLeastOnce()).emit(eq("hbase"), arg.capture());
+    for (Values value : arg.getAllValues()) {
 
       ProfileMeasurement measurement = (ProfileMeasurement) value.get(0);
-      ProfileConfig definition = (ProfileConfig) value.get(1);
+      ProfileConfig definition = measurement.getDefinition();
 
-      if(StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
+      if (StringUtils.equals(definitionTwo.getProfile(), definition.getProfile())) {
 
         // validate measurement emitted for profile two
         assertEquals(definitionTwo, definition);
         assertEquals(entity, measurement.getEntity());
         assertEquals(definitionTwo.getProfile(), measurement.getProfileName());
-        assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
+        assertEquals(1, (int) convert(measurement.getProfileValue(), Integer.class));
 
-      } else if(StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
+      } else if (StringUtils.equals(definitionOne.getProfile(), definition.getProfile())) {
 
         // validate measurement emitted for profile one
         assertEquals(definitionOne, definition);
         assertEquals(entity, measurement.getEntity());
         assertEquals(definitionOne.getProfile(), measurement.getProfileName());
-        assertEquals(1, (int) convert(measurement.getValue(), Integer.class));
+        assertEquals(1, (int) convert(measurement.getProfileValue(), Integer.class));
 
       } else {
         fail();
       }
     }
+  }
+
+  /**
+   * A ProfileMeasurement is build for each profile/entity pair.  The measurement should be emitted to each
+   * destination defined by the profile. By default, a profile uses both Kafka and HBase as destinations.
+   */
+  @Test
+  public void testDestinationHandlers() throws Exception {
+
+    // setup
+    ProfileBuilderBolt bolt = createBolt();
+    ProfileConfig definitionOne = createDefinition(profileOne);
+
+    // apply the message to the first profile
+    final String entity = (String) messageOne.get("ip_src_addr");
+    Tuple tupleOne = createTuple(entity, messageOne, definitionOne);
+    bolt.execute(tupleOne);
+
+    // trigger a flush of the profile
+    bolt.execute(mockTickTuple());
+
+    // capture the values that should be emitted
+    ArgumentCaptor<Values> arg = ArgumentCaptor.forClass(Values.class);
+
+    // validate measurements emitted to HBase
+    verify(outputCollector, times(1)).emit(eq("hbase"), arg.capture());
+    assertTrue(arg.getValue().get(0) instanceof ProfileMeasurement);
+
+    // validate measurements emitted to Kafka
+    verify(outputCollector, times(1)).emit(eq("kafka"), arg.capture());
+    assertTrue(arg.getValue().get(0) instanceof JSONObject);
   }
 }

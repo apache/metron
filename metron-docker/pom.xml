@@ -89,6 +89,24 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>copy-templates-to-elasticsearch</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose/elasticsearch/es_templates</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../metron-deployment/roles/metron_elasticsearch_templates/files/es_templates/</directory>
+                                    <includes>
+                                        <include>*.template</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>copy-data-management-to-hbase</id>
                         <phase>prepare-package</phase>
                         <goals>
@@ -233,7 +251,42 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-wait-for-it-to-elasticsearch</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose/elasticsearch</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>./scripts</directory>
+                                    <includes>
+                                        <include>wait-for-it.sh</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>compose</directory>
+                            <includes>
+                                <include>**/*.tar.gz</include>
+                                <include>**/wait-for-it.sh</include>
+                                <include>.env</include>
+                                <include>**/*.template</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
         </plugins>
     </build>

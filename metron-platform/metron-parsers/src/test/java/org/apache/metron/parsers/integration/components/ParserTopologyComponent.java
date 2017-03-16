@@ -34,6 +34,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
+  private SpoutConfig.Offset offset = SpoutConfig.Offset.BEGINNING;
   private LocalCluster stormCluster;
 
   public static class Builder {
@@ -64,15 +65,17 @@ public class ParserTopologyComponent implements InMemoryComponent {
     this.sensorType = sensorType;
   }
 
+  public void setOffset(SpoutConfig.Offset offset) {
+    this.offset = offset;
+  }
+
   @Override
   public void start() throws UnableToStartException {
     try {
       TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
                                                                    , brokerUrl
                                                                    , sensorType
-                                                                   , SpoutConfig.Offset.BEGINNING
-                                                                   , 1
-                                                                   , 1
+                                                                   , offset
                                                                    , 1
                                                                    , 1
                                                                    , 1

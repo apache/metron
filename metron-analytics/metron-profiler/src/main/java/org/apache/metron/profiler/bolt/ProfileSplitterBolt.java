@@ -86,6 +86,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
             .build();
     StellarFunctions.initialize(context);
     executor.setContext(context);
@@ -134,8 +135,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     Map<String, Object> state = (Map<String, Object>)message;
 
     // is this message needed by this profile?
-    String onlyIf = profile.getOnlyif();
-    if (StringUtils.isBlank(onlyIf) || executor.execute(onlyIf, state, Boolean.class)) {
+    if (executor.execute(profile.getOnlyif(), state, Boolean.class)) {
 
       // what is the name of the entity in this message?
       String entity = executor.execute(profile.getForeach(), state, String.class);

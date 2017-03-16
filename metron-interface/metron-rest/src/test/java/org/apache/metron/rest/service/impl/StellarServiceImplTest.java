@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.model.SensorParserContext;
@@ -27,19 +28,23 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class StellarServiceImplTest {
 
   private StellarService stellarService;
+  CuratorFramework curatorFramework;
 
   @Before
   public void setUp() throws Exception {
-    stellarService = new StellarServiceImpl();
+    curatorFramework = mock(CuratorFramework.class);
+    stellarService = new StellarServiceImpl(curatorFramework);
   }
 
   @Test
@@ -57,7 +62,7 @@ public class StellarServiceImplTest {
     FieldTransformer fieldTransformater = new FieldTransformer();
     fieldTransformater.setOutput("url_host");
     fieldTransformater.setTransformation("STELLAR");
-    fieldTransformater.setConfig(new HashMap<String, Object>() {{
+    fieldTransformater.setConfig(new LinkedHashMap<String, Object>() {{
       put("url_host", "TO_LOWER(URL_TO_HOST(url))");
     }});
     sensorParserConfig.setFieldTransformations(ImmutableList.of(fieldTransformater));

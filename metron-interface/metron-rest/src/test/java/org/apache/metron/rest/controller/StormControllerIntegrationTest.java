@@ -189,6 +189,7 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.id", containsString("broTest")))
             .andExpect(jsonPath("$.status").value("ACTIVE"))
             .andExpect(jsonPath("$.latency").exists())
+            .andExpect(jsonPath("$.throughput").exists());
             .andExpect(jsonPath("$.throughput").exists())
             .andExpect(jsonPath("$.emitted").exists())
             .andExpect(jsonPath("$.acked").exists());
@@ -322,5 +323,8 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.parserScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_parser_topology.sh"))
             .andExpect(jsonPath("$.enrichmentScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_enrichment_topology.sh"))
             .andExpect(jsonPath("$.indexingScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_elasticsearch_topology.sh"));
+
+    globalConfigService.delete();
+    sensorParserConfigService.delete("broTest");
   }
 }

@@ -18,6 +18,7 @@
 
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.metron.common.error.MetronError;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -41,7 +42,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -163,6 +166,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     stellarContext = new Context.Builder()
                          .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                          .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+                         .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
                          .build();
     StellarFunctions.initialize(stellarContext);
   }
@@ -224,6 +228,12 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
             catch(Exception e) {
               LOG.error(e.getMessage(), e);
               error = true;
+              MetronError metronError = new MetronError()
+                      .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
+                      .withThrowable(e)
+                      .withErrorFields(new HashSet() {{ add(field); }})
+                      .addRawMessage(rawMessage);
+              ErrorUtils.handleError(collector, metronError);
               continue;
             }
           }
@@ -256,11 +266,14 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   // errors, so this is made available in order to ensure ERROR_STREAM is output properly.
   protected void handleError(String key, JSONObject rawMessage, String subGroup, JSONObject enrichedMessage, Exception e) {
     LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
-    JSONObject error = ErrorUtils.generateErrorMessage("Enrichment problem: " + rawMessage, e);
     if (key != null) {
       collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
     }
-    collector.emit(ERROR_STREAM, new Values(error));
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
+            .withThrowable(e)
+            .addRawMessage(rawMessage);
+    ErrorUtils.handleError(collector, error);
   }
 
   @Override

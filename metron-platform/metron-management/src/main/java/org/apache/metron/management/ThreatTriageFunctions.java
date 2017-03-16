@@ -75,15 +75,16 @@ public class ThreatTriageFunctions {
       if(triageRules == null) {
         triageRules = new ArrayList<>();
       }
-      String[] headers = new String[] {"Name", "Comment", "Triage Rule", "Score"};
-      String[][] data = new String[triageRules.size()][4];
+      String[] headers = new String[] {"Name", "Comment", "Triage Rule", "Score", "Reason"};
+      String[][] data = new String[triageRules.size()][5];
       int i = 0;
       for(RiskLevelRule rule : triageRules) {
         double d = rule.getScore().doubleValue();
-        String val = d == (long)d ? String.format("%d", (long)d) : String.format("%s", d);
+        String score = d == (long)d ? String.format("%d", (long)d) : String.format("%s", d);
         String name = Optional.ofNullable(rule.getName()).orElse("");
         String comment = Optional.ofNullable(rule.getComment()).orElse("");
-        data[i++]  = new String[] {name, comment, rule.getRule(), val};
+        String reason = Optional.ofNullable(rule.getReason()).orElse("");
+        data[i++]  = new String[] {name, comment, rule.getRule(), score, reason};
       }
       String ret = FlipTable.of(headers, data);
       if(!triageRules.isEmpty()) {
@@ -163,6 +164,9 @@ public class ThreatTriageFunctions {
           }
           if (newRule.containsKey("comment")) {
             ruleToAdd.setComment((String) newRule.get("comment"));
+          }
+          if (newRule.containsKey("reason")) {
+            ruleToAdd.setReason((String) newRule.get("reason"));
           }
           triageRules.add(ruleToAdd);
         }

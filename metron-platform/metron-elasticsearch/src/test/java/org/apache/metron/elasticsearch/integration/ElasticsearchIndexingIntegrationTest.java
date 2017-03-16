@@ -17,8 +17,8 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.elasticsearch.writer.ElasticsearchFieldNameConverter;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
@@ -26,7 +26,6 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 
 import java.io.File;
@@ -76,7 +75,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
           if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
-            errors = kafkaComponent.readMessages(Constants.INDEXING_ERROR_TOPIC);
+            errors = kafkaComponent.readMessages(ERROR_TOPIC);
             if(errors.size() > 0){
               return ReadinessState.READY;
             }

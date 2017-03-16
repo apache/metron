@@ -48,14 +48,14 @@ class Enrichment(Script):
         from params import params
         env.set_params(params)
         commands = EnrichmentCommands(params)
-
         metron_service.load_global_config(params)
 
-        if not commands.is_configured():
+        if not commands.is_kafka_configured():
             commands.init_kafka_topics()
+        if not commands.is_hbase_configured():
             commands.create_hbase_tables()
+        if not commands.is_geo_configured():
             commands.init_geo()
-            commands.set_configured()
 
         commands.start_enrichment_topology()
 
@@ -78,12 +78,6 @@ class Enrichment(Script):
         env.set_params(params)
         commands = EnrichmentCommands(params)
         commands.restart_enrichment_topology(env)
-
-    def kafkabuild(self, env, upgrade_type=None):
-        from params import params
-        env.set_params(params)
-        commands = EnrichmentCommands(params)
-        commands.init_kafka_topics()
 
 
 if __name__ == "__main__":

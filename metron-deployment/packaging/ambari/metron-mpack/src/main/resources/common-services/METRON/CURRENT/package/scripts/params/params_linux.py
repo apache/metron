@@ -39,7 +39,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
-user_group = config['configurations']['cluster-env']['user_group']
+metron_group = config['configurations']['cluster-env']['metron_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
@@ -51,7 +51,9 @@ metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
-enrichment_configured_flag_file = status_params.enrichment_configured_flag_file
+enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
+enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
+enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
@@ -158,13 +160,12 @@ threatintel_cf = status_params.threatintel_cf
 
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
-metron_enrichment_error_topic = status_params.metron_enrichment_error_topic
-metron_threat_intel_error_topic = status_params.metron_threat_intel_error_topic
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"
 snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
+error_index_path = tmp_dir + "/error_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")

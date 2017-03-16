@@ -197,6 +197,7 @@ public class PcapJob {
     if (LOG.isDebugEnabled()) {
       LOG.debug(outputPath);
     }
+    Collections.sort(files, (o1,o2) -> o1.getName().compareTo(o2.getName()));
     return new SequenceFileIterable(files, config);
   }
 

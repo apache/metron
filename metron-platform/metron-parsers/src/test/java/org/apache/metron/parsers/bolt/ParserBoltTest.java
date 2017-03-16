@@ -17,9 +17,11 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.*;
 
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -139,8 +141,6 @@ public class ParserBoltTest extends BaseBoltTest {
 
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -154,6 +154,64 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parser, times(0)).validate(any());
     verify(writer, times(0)).write(eq(sensorType), any(ParserWriterConfiguration.class), eq(tuple), any());
     verify(outputCollector, times(1)).ack(tuple);
+
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_ERROR)
+            .withThrowable(new NullPointerException())
+            .withSensorType(sensorType)
+            .addRawMessage(sampleBinary);
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
+  }
+
+  @Test
+  public void testInvalid() throws Exception {
+    String sensorType = "yaf";
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
+      @Override
+      protected ParserConfigurations defaultConfigurations() {
+        return new ParserConfigurations() {
+          @Override
+          public SensorParserConfig getSensorParserConfig(String sensorType) {
+            return new SensorParserConfig() {
+              @Override
+              public Map<String, Object> getParserConfig() {
+                return new HashMap<String, Object>() {{
+                }};
+              }
+
+
+            };
+          }
+        };
+      }
+
+    };
+
+    buildGlobalConfig(parserBolt);
+
+    parserBolt.setCuratorFramework(client);
+    parserBolt.setTreeCache(cache);
+    parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    byte[] sampleBinary = "some binary message".getBytes();
+
+    when(tuple.getBinary(0)).thenReturn(sampleBinary);
+    JSONObject parsedMessage = new JSONObject();
+    parsedMessage.put("field", "invalidValue");
+    List<JSONObject> messageList = new ArrayList<>();
+    messageList.add(parsedMessage);
+    when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messageList));
+    when(parser.validate(parsedMessage)).thenReturn(true);
+    parserBolt.execute(tuple);
+
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_INVALID)
+            .withSensorType(sensorType)
+            .withErrorFields(new HashSet<String>() {{ add("field"); }})
+            .addRawMessage(new JSONObject(){{
+              put("field", "invalidValue");
+              put("source.type", "yaf");
+            }});
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
 
   @Test
@@ -178,8 +236,6 @@ public class ParserBoltTest extends BaseBoltTest {
       }
 
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -238,8 +294,6 @@ public void testImplicitBatchOfOne() throws Exception {
     }
   };
 
-  buildGlobalConfig(parserBolt);
-
   parserBolt.setCuratorFramework(client);
   parserBolt.setTreeCache(cache);
   parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -286,8 +340,6 @@ public void testImplicitBatchOfOne() throws Exception {
       }
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -324,8 +376,6 @@ public void testImplicitBatchOfOne() throws Exception {
         }
       }
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -396,8 +446,6 @@ public void testImplicitBatchOfOne() throws Exception {
       }
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -431,8 +479,6 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -472,8 +518,6 @@ public void testImplicitBatchOfOne() throws Exception {
         };
       }
     };
-
-    buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -524,8 +568,6 @@ public void testImplicitBatchOfOne() throws Exception {
       }
     };
 
-    buildGlobalConfig(parserBolt);
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -552,9 +594,11 @@ public void testImplicitBatchOfOne() throws Exception {
 
   protected void buildGlobalConfig(ParserBolt parserBolt) {
     HashMap<String, Object> globalConfig = new HashMap<>();
-    String baseDir = UnitTestHelper.findDir("GeoLite");
-    File geoHdfsFile = new File(new File(baseDir), "GeoIP2-City-Test.mmdb.gz");
-    globalConfig.put(GeoLiteDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
+    Map<String, Object> fieldValidation = new HashMap<>();
+    fieldValidation.put("input", Arrays.asList("field"));
+    fieldValidation.put("validation", "STELLAR");
+    fieldValidation.put("config", new HashMap<String, String>(){{ put("condition", "field != 'invalidValue'"); }});
+    globalConfig.put("fieldValidations", Arrays.asList(fieldValidation));
     parserBolt.getConfigurations().updateGlobalConfig(globalConfig);
   }
 

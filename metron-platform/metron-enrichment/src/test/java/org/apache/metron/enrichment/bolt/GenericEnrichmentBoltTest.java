@@ -17,18 +17,22 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.log4j.Level;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.apache.storm.tuple.Values;
+import com.google.common.cache.CacheLoader;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.log4j.Level;
 import org.apache.metron.TestConstants;
-import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
-import org.apache.metron.enrichment.configuration.Enrichment;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.metron.test.error.MetronErrorJSONMatcher;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.apache.storm.tuple.Values;
 import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -43,12 +47,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
@@ -194,7 +202,10 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.FATAL);
     genericEnrichmentBolt.execute(tuple);
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.ERROR);
-    verify(outputCollector, times(1)).emit(eq("error"), any(Values.class));
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
+            .withThrowable(new Exception("Could not parse binary stream to JSON"));
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
     when(tuple.getStringByField("key")).thenReturn(key);
     when(tuple.getValueByField("message")).thenReturn(originalMessage);
     when(enrichmentAdapter.enrich(any())).thenReturn(new JSONObject());
@@ -217,6 +228,19 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     verify(enrichmentAdapter, times(1)).logAccess(cacheKey2);
     verify(outputCollector, times(1)).emit(eq(enrichmentType), argThat(new EnrichedMessageMatcher(key, enrichedMessage)));
 
-
+    reset(outputCollector);
+    genericEnrichmentBolt.cache.invalidateAll();
+    when(enrichmentAdapter.enrich(cacheKey1)).thenReturn(null);
+    genericEnrichmentBolt.execute(tuple);
+    error = new MetronError()
+            .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
+            .withErrorFields(new HashSet<String>() {{ add("field1"); }})
+            .addRawMessage(new JSONObject() {{
+              put("field1", "value1");
+              put("field2", "value2");
+              put("source.type", "test");
+            }})
+            .withThrowable(new CacheLoader.InvalidCacheLoadException("CacheLoader returned null for key CacheKey{field='field1', value='value1'}."));
+    verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
 }

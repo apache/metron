@@ -28,12 +28,12 @@ discovery:
   zen:
     ping:
       multicast:
-        enabled: {{discovery_zen_ping_multicast_enabled}}
+        enabled: {{ discovery_zen_ping_multicast_enabled }}
       unicast:
         hosts: "{{zen_discovery_ping_unicast_hosts}}"
 
 node:
-  data: false
+  data: {{ masters_also_are_datanodes }}
   master: true
   name: {{hostname}}
 path:

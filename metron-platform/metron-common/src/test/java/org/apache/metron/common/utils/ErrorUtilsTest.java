@@ -17,6 +17,10 @@
  */
 package org.apache.metron.common.utils;
 
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.error.MetronError;
+import org.apache.metron.test.error.MetronErrorJSONMatcher;
+import org.apache.storm.task.OutputCollector;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -25,6 +29,12 @@ import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ErrorUtilsTest {
 
@@ -61,5 +71,16 @@ public class ErrorUtilsTest {
     exception.expectMessage("illegal state happened");
     exception.expectCause(instanceOf(IOException.class));
     ErrorUtils.RuntimeErrors.ILLEGAL_STATE.throwRuntime("illegal state happened", new IOException("bad io"));
+  }
+
+  @Test
+  public void handleErrorShouldEmitAndReportError() throws Exception {
+    Throwable e = new Exception("error");
+    MetronError error = new MetronError().withMessage("error message").withThrowable(e);
+    OutputCollector collector = mock(OutputCollector.class);
+
+    ErrorUtils.handleError(collector, error);
+    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
+    verify(collector, times(1)).reportError(any());
   }
 }

@@ -135,6 +135,8 @@ public class SensorIndexingConfigControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist());
+
+    sensorIndexingConfigService.delete("broTest");
   }
 }
 

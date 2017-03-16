@@ -16,26 +16,6 @@
 #  limitations under the License.
 #
 ---
-- name: Create monit definition for elasticsearch
-  template: src=monit/elasticsearch.monit dest={{ monit_config_home }}/elasticsearch.monit
-  when: ("search" in group_names) and (install_elasticsearch | default(True))
-
-- name: Create monit definition for indexing with elasticsearch
-  template: src=monit/indexing-elasticsearch.monit dest={{ monit_config_home }}/indexing-elasticsearch.monit
-  when: ("enrichment" in group_names) and (install_elasticsearch | default(True))
-
-- name: Create monit definition for enrichment
-  template: src=monit/enrichment.monit dest={{ monit_config_home }}/enrichment.monit
-  when: ("enrichment" in group_names)
-
-- name: Create monit definition for kibana
-  template: src=monit/kibana.monit dest={{ monit_config_home }}/kibana.monit
-  when: ("web" in group_names) and (install_elasticsearch | default(True))
-
-- name: Create monit definition for parsers
-  template: src=monit/parsers.monit dest={{ monit_config_home }}/parsers.monit
-  when: ("enrichment" in group_names)
-
 - name: Create monit definition for pcap-replay
   template: src=monit/pcap-replay.monit dest={{ monit_config_home }}/pcap-replay.monit
   when: ("sensors" in group_names) and (install_pcap_replay | default(False))

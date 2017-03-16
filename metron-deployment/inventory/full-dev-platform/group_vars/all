@@ -17,17 +17,11 @@
 
 # which services should be started?
 services_to_start:
-  - elasticsearch
   - pcap-service
-  - kibana
   - snort
   - snort-logs
   - bro
   - pcap-replay
-  - bro-parser
-  - snort-parser
-  - enrichment
-  - indexing
 
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"

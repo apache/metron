@@ -257,10 +257,22 @@ public class StellarExecutor {
 
       contextBuilder
               .with(GLOBAL_CONFIG, () -> global)
-              .with(ZOOKEEPER_CLIENT, () -> client.get());
+              .with(ZOOKEEPER_CLIENT, () -> client.get())
+              .with(STELLAR_CONFIG, () -> getStellarConfig(global, properties));
     }
 
     return contextBuilder.build();
+  }
+
+  private Map<String, Object> getStellarConfig(Map<String, Object> globalConfig, Properties props) {
+    Map<String, Object> ret = new HashMap<>();
+    ret.putAll(globalConfig);
+    if(props != null) {
+      for (Map.Entry<Object, Object> kv : props.entrySet()) {
+        ret.put(kv.getKey().toString(), kv.getValue());
+      }
+    }
+    return ret;
   }
 
   /**

@@ -18,23 +18,25 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.impl.VFSClassLoader;
 import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.reflections.Reflections;
+import org.apache.metron.common.utils.VFSClassloaderUtil;
+import org.apache.metron.common.utils.ConversionUtils;
+import org.atteo.classindex.ClassIndex;
 import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -65,24 +67,53 @@ import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
  *
  */
 public class ClasspathFunctionResolver extends BaseFunctionResolver {
+  public enum Config {
+    /**
+     * The set of paths.  These paths are comma separated URLs with optional regex patterns at the end.
+     * e.g. hdfs://node1:8020/apps/metron/stellar/.*.jar,hdfs://node1:8020/apps/metron/my_org/.*.jar
+     * would signify all the jars under /apps/metron/stellar and /apps/metron/my_org in HDFS.
+     */
+    STELLAR_VFS_PATHS("stellar.function.paths", ""),
+    /**
+     * The key for a global property that defines one or more regular expressions
+     * that specify what should be included when searching for Stellar functions.
+     */
+    STELLAR_SEARCH_INCLUDES_KEY("stellar.function.resolver.includes", ""),
+    /**
+     * The key for a global property that defines one or more regular expressions
+     * that specify what should be excluded when searching for Stellar functions.
+     */
+    STELLAR_SEARCH_EXCLUDES_KEY("stellar.function.resolver.excludes", ""),
 
-  /**
-   * The key for a global property that defines one or more regular expressions
-   * that specify what should be included when searching for Stellar functions.
-   */
-  public static final String STELLAR_SEARCH_INCLUDES_KEY = "stellar.function.resolver.includes";
 
-  /**
-   * The key for a global property that defines one or more regular expressions
-   * that specify what should be excluded when searching for Stellar functions.
-   */
-  public static final String STELLAR_SEARCH_EXCLUDES_KEY = "stellar.function.resolver.excludes";
+    ;
+    String param;
+    Object defaultValue;
+    Config(String param, String defaultValue) {
+      this.param = param;
+      this.defaultValue = defaultValue;
+    }
+
+    public String param() {
+      return param;
+    }
+
+    public Object get(Map<String, Object> config) {
+      return config.getOrDefault(param, defaultValue);
+    }
+
+    public <T> T get(Map<String, Object> config, Class<T> clazz) {
+      return ConversionUtils.convert(get(config), clazz);
+    }
+  }
+
 
   /**
    * The includes and excludes can include a list of multiple includes or excludes that
    * are delimited by these values.
    */
-  protected static final String STELLAR_SEARCH_DELIMS = "[,:]";
+  private static final String STELLAR_SEARCH_DELIMS = "[,:]";
+
 
   /**
    * Regular expressions defining packages that should be included in the Stellar function resolution
@@ -96,9 +127,24 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    */
   private List<String> excludes;
 
+  /**
+   * Classloaders to try to load from
+   */
+  private List<ClassLoader> classLoaders;
+
   public ClasspathFunctionResolver() {
     this.includes = new ArrayList<>();
     this.excludes = new ArrayList<>();
+    this.classLoaders = new ArrayList<>();
+  }
+
+  /**
+   * Use one or more classloaders
+   * @param classloaders
+   */
+  public void classLoaders(ClassLoader... classloaders) {
+    classLoaders.clear();
+    Arrays.stream(classloaders).forEach(c -> classLoaders.add(c));
   }
 
   /**
@@ -131,19 +177,41 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
       Optional<Object> optional = context.getCapability(STELLAR_CONFIG, false);
       if (optional.isPresent()) {
         Map<String, Object> stellarConfig = (Map<String, Object>) optional.get();
-
-        // handle any includes
-        String includes = (String) stellarConfig.getOrDefault(STELLAR_SEARCH_INCLUDES_KEY, "");
-        if(StringUtils.isNotBlank(includes)) {
-          include(includes.split(STELLAR_SEARCH_DELIMS));
+        if(LOG.isDebugEnabled()) {
+          LOG.debug("Setting up classloader using the following config: " + stellarConfig);
         }
 
-        // handle any excludes
-        String excludes = (String) stellarConfig.getOrDefault(STELLAR_SEARCH_EXCLUDES_KEY, "");
-        if(StringUtils.isNotBlank(excludes)) {
-          exclude(excludes.split(STELLAR_SEARCH_DELIMS));
+        include(STELLAR_SEARCH_INCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
+        exclude(STELLAR_SEARCH_EXCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
+        Optional<ClassLoader> vfsLoader = null;
+        try {
+          vfsLoader = VFSClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
+          if(vfsLoader.isPresent()) {
+            LOG.debug("CLASSLOADER LOADED WITH: " + STELLAR_VFS_PATHS.get(stellarConfig, String.class));
+            if(LOG.isDebugEnabled()) {
+              for (FileObject fo : ((VFSClassLoader) vfsLoader.get()).getFileObjects()) {
+                LOG.error(fo.getURL() + " - " + fo.exists());
+              }
+            }
+            classLoaders(vfsLoader.get());
+          }
+        } catch (FileSystemException e) {
+          LOG.error("Unable to process filesystem: " + e.getMessage(), e);
         }
       }
+      else {
+        LOG.info("No stellar config set; I'm reverting to the context classpath with no restrictions.");
+        if(LOG.isDebugEnabled()) {
+          try {
+            throw new IllegalStateException("No config set, stacktrace follows.");
+          } catch (IllegalStateException ise) {
+            LOG.error(ise.getMessage(), ise);
+          }
+        }
+      }
+    }
+    else {
+      throw new IllegalStateException("CONTEXT IS NULL!");
     }
   }
 
@@ -152,29 +220,37 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
    * (aka discovery) of Stellar functions.
    */
   @Override
-  protected Set<Class<? extends StellarFunction>> resolvables() {
+  public Set<Class<? extends StellarFunction>> resolvables() {
 
-    ClassLoader classLoader = getClass().getClassLoader();
-    Collection<URL> searchPath = effectiveClassPathUrls(classLoader);
+    ClassLoader[] cls = null;
+    if(this.classLoaders.size() == 0) {
+      LOG.warn("Using System classloader");
+      cls = new ClassLoader[] { getClass().getClassLoader() };
+    }
+    else {
+      cls = new ClassLoader[this.classLoaders.size()];
+      for (int i = 0; i < this.classLoaders.size(); ++i) {
+        cls[i] = this.classLoaders.get(i);
+      }
+    }
 
     FilterBuilder filterBuilder = new FilterBuilder();
     excludes.forEach(excl -> filterBuilder.exclude(excl));
     includes.forEach(incl -> filterBuilder.include(incl));
-
-    Reflections reflections = new Reflections(
-            new ConfigurationBuilder()
-                    .setUrls(searchPath)
-                    .filterInputsBy(filterBuilder));
-    return reflections.getSubTypesOf(StellarFunction.class);
+    Set<String> classes = new HashSet<>();
+    Set<Class<? extends StellarFunction>> ret = new HashSet<>();
+    for(ClassLoader cl : cls) {
+      for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
+        if(StellarFunction.class.isAssignableFrom(c) && filterBuilder.apply(c.getCanonicalName())) {
+          String className = c.getName();
+          if(!classes.contains(className)) {
+            ret.add((Class<? extends StellarFunction>) c);
+            classes.add(className);
+          }
+        }
+      }
+    }
+    return ret;
   }
 
-  /**
-   * To handle the situation where classpath is specified in the manifest of the
-   * jar, we have to augment the URLs.  This happens as part of the surefire plugin
-   * as well as elsewhere in the wild.
-   * @param classLoaders
-   */
-  public static Collection<URL> effectiveClassPathUrls(ClassLoader... classLoaders) {
-    return ClasspathHelper.forManifest(ClasspathHelper.forClassLoader(classLoaders));
-  }
 }

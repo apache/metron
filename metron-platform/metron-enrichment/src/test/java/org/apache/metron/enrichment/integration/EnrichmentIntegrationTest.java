@@ -18,8 +18,14 @@
 package org.apache.metron.enrichment.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.*;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.TestConstants;
@@ -27,6 +33,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
+import org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -35,11 +42,14 @@ import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.integration.*;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.mock.MockHTable;
@@ -53,9 +63,20 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.*;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
+  private static final String ERROR_TOPIC = "enrichment_error";
   private static final String SRC_IP = "ip_src_addr";
   private static final String DST_IP = "ip_dst_addr";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
@@ -119,13 +140,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
-      setProperty("enrichment.error.topic", Constants.ENRICHMENT_ERROR_TOPIC);
+      setProperty("enrichment.error.topic", ERROR_TOPIC);
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaComponent.Topic(Constants.INDEXING_TOPIC, 1));
-      add(new KafkaComponent.Topic(Constants.ENRICHMENT_ERROR_TOPIC, 1));
+      add(new KafkaComponent.Topic(ERROR_TOPIC, 1));
     }});
     String globalConfigStr = null;
     {
@@ -181,15 +202,14 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);
-      ProcessorResult<List<Map<String, Object>>> result = runner.process(getProcessor());
-      // We expect failures, so we don't care if result returned failure or not
-      List<Map<String, Object>> docs = result.getResult();
+      ProcessorResult<Map<String, List<Map<String, Object>>>> result = runner.process(getProcessor());
+      Map<String,List<Map<String, Object>>> outputMessages = result.getResult();
+      List<Map<String, Object>> docs = outputMessages.get(Constants.INDEXING_TOPIC);
       Assert.assertEquals(inputMessages.size(), docs.size());
       validateAll(docs);
-
-      List<byte[]> errors = result.getProcessErrors();
+      List<Map<String, Object>> errors = outputMessages.get(ERROR_TOPIC);
       Assert.assertEquals(inputMessages.size(), errors.size());
-      validateErrors(result.getProcessErrors());
+      validateErrors(errors);
     } finally {
       runner.stop();
     }
@@ -214,23 +234,29 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  protected void validateErrors(List<byte[]> errors) {
-    for(byte[] error : errors) {
-      // Don't reconstruct the entire message, just ensure it contains the known error message inside.
-      Assert.assertTrue(new String(error).contains(ErrorEnrichmentBolt.TEST_ERROR_MESSAGE));
+  protected void validateErrors(List<Map<String, Object>> errors) {
+    for(Map<String, Object> error : errors) {
+      Assert.assertEquals("Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.MESSAGE.getName()));
+      Assert.assertEquals("java.lang.IllegalStateException: Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.EXCEPTION.getName()));
+      Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
+      Assert.assertEquals("{\"rawMessage\":\"Error Test Raw Message String\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
   }
 
   public static void baseValidation(Map<String, Object> jsonDoc) {
     assertEnrichmentsExists("threatintels.", setOf("hbaseThreatIntel"), jsonDoc.keySet());
     assertEnrichmentsExists("enrichments.", setOf("geo", "host", "hbaseEnrichment" ), jsonDoc.keySet());
+
+    //ensure no values are empty
     for(Map.Entry<String, Object> kv : jsonDoc.entrySet()) {
-      //ensure no values are empty.
-      Assert.assertTrue(kv.getValue().toString().length() > 0);
+      String actual = Objects.toString(kv.getValue(), "");
+      Assert.assertTrue(String.format("Value of '%s' is empty: '%s'", kv.getKey(), actual), StringUtils.isNotEmpty(actual));
     }
+
     //ensure we always have a source ip and destination ip
     Assert.assertNotNull(jsonDoc.get(SRC_IP));
     Assert.assertNotNull(jsonDoc.get(DST_IP));
+
     Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("foo"));
     Assert.assertEquals("TEST", jsonDoc.get("ALL_CAPS"));
@@ -349,20 +375,34 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
   private static void threatIntelValidation(Map<String, Object> indexedDoc) {
-    if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")
-    || indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")
-            ) {
+    if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3") ||
+            indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")) {
+
       //if we have any threat intel messages, we want to tag is_alert to true
       Assert.assertTrue(keyPatternExists("threatintels.", indexedDoc));
-      Assert.assertTrue(indexedDoc.containsKey("threat.triage.level"));
       Assert.assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
-      Assert.assertEquals((double)indexedDoc.get("threat.triage.level"), 10d, 1e-7);
+
+      // validate threat triage score
+      Assert.assertTrue(indexedDoc.containsKey(THREAT_TRIAGE_SCORE_KEY));
+      Double score = (Double) indexedDoc.get(THREAT_TRIAGE_SCORE_KEY);
+      Assert.assertEquals(score, 10d, 1e-7);
+
+      // validate threat triage rules
+      Joiner joiner = Joiner.on(".");
+      Stream.of(
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_NAME),
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_COMMENT),
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_REASON),
+              joiner.join(THREAT_TRIAGE_RULES_KEY, 0, THREAT_TRIAGE_RULE_SCORE))
+              .forEach(key ->
+                      Assert.assertTrue(String.format("Missing expected key: '%s'", key), indexedDoc.containsKey(key)));
     }
     else {
       //For YAF this is the case, but if we do snort later on, this will be invalid.
       Assert.assertNull(indexedDoc.get("is_alert"));
       Assert.assertFalse(keyPatternExists("threatintels.", indexedDoc));
     }
+
     //ip threat intels
     if(keyPatternExists("threatintels.hbaseThreatIntel.", indexedDoc)) {
       if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")) {
@@ -466,39 +506,47 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     return ret;
   }
 
+  private static List<Map<String, Object>> loadMessages(List<byte[]> outputMessages) {
+    List<Map<String, Object>> tmp = new ArrayList<>();
+    Iterables.addAll(tmp
+            , Iterables.transform(outputMessages
+                    , message -> {
+                      try {
+                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
+                                , new TypeReference<Map<String, Object>>() {}
+                        )
+                        );
+                      } catch (Exception ex) {
+                        throw new IllegalStateException(ex);
+                      }
+                    }
+            )
+    );
+    return tmp;
+  }
   @SuppressWarnings("unchecked")
-  private Processor<List<Map<String, Object>>> getProcessor() {
+  private KafkaProcessor<Map<String,List<Map<String, Object>>>> getProcessor(){
 
-    KafkaProcessor<List<Map<String, Object>>> kafkaProcessor = new KafkaProcessor<>().withKafkaComponentName("kafka")
+    return new KafkaProcessor<>()
+            .withKafkaComponentName("kafka")
             .withReadTopic(Constants.INDEXING_TOPIC)
-            .withErrorTopic(Constants.ENRICHMENT_ERROR_TOPIC)
-            .withInvalidTopic(Constants.INVALID_STREAM)
+            .withErrorTopic(ERROR_TOPIC)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
               @Override
               public Boolean apply(@Nullable KafkaMessageSet messageSet) {
-                // this test is written to return 10 errors and 10 messages
-                // we can just check when the messages match here
-                // if they do then we are good
-                return messageSet.getMessages().size() == inputMessages.size();
+                return (messageSet.getMessages().size() == inputMessages.size()) && (messageSet.getErrors().size() == inputMessages.size());
               }
             })
-            .withProvideResult(new Function<KafkaMessageSet , List<Map<String, Object>>>() {
+            .withProvideResult(new Function<KafkaMessageSet,Map<String,List<Map<String, Object>>>>(){
               @Nullable
               @Override
-              public List<Map<String, Object>> apply(@Nullable KafkaMessageSet messageSet) {
-                List<Map<String,Object>> docs = new ArrayList<>();
-                for (byte[] message : messageSet.getMessages()) {
-                  try {
-                    docs.add(JSONUtils.INSTANCE.load(new String(message), new TypeReference<Map<String, Object>>() {
-                    }));
-                  } catch (IOException e) {
-                    throw new IllegalStateException(e.getMessage(), e);
-                  }
-                }
-                return docs;
+              public Map<String,List<Map<String, Object>>> apply(@Nullable KafkaMessageSet messageSet) {
+                return new HashMap<String, List<Map<String, Object>>>() {{
+                  put(Constants.INDEXING_TOPIC, loadMessages(messageSet.getMessages()));
+                  put(ERROR_TOPIC, loadMessages(messageSet.getErrors()));
+                }};
               }
             });
-    return kafkaProcessor;
   }
 }

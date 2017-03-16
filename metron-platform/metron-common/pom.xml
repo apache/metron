@@ -27,7 +27,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
-        <antlr.version>4.5</antlr.version>
     </properties>
     <repositories>
         <repository>
@@ -48,6 +47,18 @@
             <version>3.6.1</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-integration-test</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+            <version>${global_hadoop_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
             <version>1.5.1</version>
@@ -65,7 +76,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>${antlr.version}</version>
+            <version>${global_antlr_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
@@ -145,6 +156,26 @@
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
             <version>${global_curator_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.atteo.classindex</groupId>
+            <artifactId>classindex</artifactId>
+            <version>${global_classindex_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-start</artifactId>
+            <version>${global_accumulo_version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -331,6 +362,12 @@
             <artifactId>stream</artifactId>
             <version>2.9.5</version>
         </dependency>
+        <dependency>
+          <groupId>org.apache.metron</groupId>
+          <artifactId>metron-test-utilities</artifactId>
+          <version>${project.parent.version}</version>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <reporting>
@@ -376,7 +413,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>${antlr.version}</version>
+                <version>${global_antlr_version}</version>
                 <configuration>
                   <outputDirectory>${basedir}/src/main/java</outputDirectory>
                 </configuration>

@@ -57,8 +57,6 @@ public class ParserTopologyBuilder {
    * @param spoutNumTasks            Number of tasks for the spout
    * @param parserParallelism        Parallelism hint for the parser bolt
    * @param parserNumTasks           Number of tasks for the parser bolt
-   * @param invalidWriterParallelism Parallelism hint for the bolt that handles invalid data
-   * @param invalidWriterNumTasks    Number of tasks for the bolt that handles invalid data
    * @param errorWriterParallelism   Parallelism hint for the bolt that handles errors
    * @param errorWriterNumTasks      Number of tasks for the bolt that handles errors
    * @param kafkaSpoutConfig         Configuration options for the kafka spout
@@ -73,8 +71,6 @@ public class ParserTopologyBuilder {
                                       int spoutNumTasks,
                                       int parserParallelism,
                                       int parserNumTasks,
-                                      int invalidWriterParallelism,
-                                      int invalidWriterNumTasks,
                                       int errorWriterParallelism,
                                       int errorWriterNumTasks,
                                       EnumMap<SpoutConfigOptions, Object> kafkaSpoutConfig
@@ -102,14 +98,6 @@ public class ParserTopologyBuilder {
       builder.setBolt("errorMessageWriter", errorBolt, errorWriterParallelism)
               .setNumTasks(errorWriterNumTasks)
               .shuffleGrouping("parserBolt", Constants.ERROR_STREAM);
-    }
-
-    // create the invalid bolt, if needed
-    if (invalidWriterNumTasks > 0) {
-      WriterBolt invalidBolt = createInvalidBolt(brokerUrl, sensorType, configs, parserConfig);
-      builder.setBolt("invalidMessageWriter", invalidBolt, invalidWriterParallelism)
-              .setNumTasks(invalidWriterNumTasks)
-              .shuffleGrouping("parserBolt", Constants.INVALID_STREAM);
     }
 
     return builder;
@@ -162,29 +150,6 @@ public class ParserTopologyBuilder {
   }
 
   /**
-   * Create a bolt that handles invalid messages.
-   *
-   * @param brokerUrl    The Kafka Broker URL
-   * @param sensorType   Type of sensor that is being consumed.
-   * @param configs
-   * @param parserConfig
-   * @return A Storm bolt that handles invalid messages.
-   */
-  private static WriterBolt createInvalidBolt(String brokerUrl, String sensorType, ParserConfigurations configs, SensorParserConfig parserConfig) {
-
-    // create writer - if not configured uses a sensible default
-    AbstractWriter writer = parserConfig.getErrorWriterClassName() == null
-            ? new KafkaWriter(brokerUrl).withTopic(Constants.DEFAULT_PARSER_INVALID_TOPIC).withConfigPrefix("invalid")
-            : ReflectionUtils.createInstance(parserConfig.getWriterClassName());
-    writer.configure(sensorType, new ParserWriterConfiguration(configs));
-
-    // create a writer handler
-    WriterHandler writerHandler = createWriterHandler(writer);
-
-    return new WriterBolt(writerHandler, configs, sensorType);
-  }
-
-  /**
    * Create a bolt that handles error messages.
    *
    * @param brokerUrl    Kafka Broker URL
@@ -197,14 +162,14 @@ public class ParserTopologyBuilder {
 
     // create writer - if not configured uses a sensible default
     AbstractWriter writer = parserConfig.getErrorWriterClassName() == null
-            ? new KafkaWriter(brokerUrl).withTopic(Constants.DEFAULT_PARSER_ERROR_TOPIC).withConfigPrefix("error")
+            ? new KafkaWriter(brokerUrl).withTopic((String) configs.getGlobalConfig().get("parser.error.topic")).withConfigPrefix("error")
             : ReflectionUtils.createInstance(parserConfig.getWriterClassName());
     writer.configure(sensorType, new ParserWriterConfiguration(configs));
 
     // create a writer handler
     WriterHandler writerHandler = createWriterHandler(writer);
 
-    return new WriterBolt(writerHandler, configs, sensorType);
+    return new WriterBolt(writerHandler, configs, sensorType).withErrorType(Constants.ErrorType.PARSER_ERROR);
   }
 
   /**

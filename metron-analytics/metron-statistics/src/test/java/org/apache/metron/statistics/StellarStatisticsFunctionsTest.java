@@ -172,7 +172,7 @@ public class StellarStatisticsFunctionsTest {
     values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
   }
 
-  @Test(expected=ParseException.class)
+  @Test(expected=IllegalStateException.class)
   public void testOverflow() throws Exception {
    run(format("STATS_ADD(STATS_INIT(), %f)", (Double.MAX_VALUE + 1)), new HashMap<>());
   }
@@ -330,7 +330,7 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(summaryStats.getSumOfLogs(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
+  @Test(expected = UnsupportedOperationException.class)
   public void testSumLogsWithWindow() throws Exception {
     statsInit(100);
     run("STATS_SUM_LOGS(stats)", variables);

@@ -23,6 +23,8 @@ import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.VariableResolver;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -38,6 +40,9 @@ public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
     super(Boolean.class);
   }
 
+  public StellarPredicateProcessor(int cacheSize, int expiryTime, TimeUnit expiryUnit) {
+    super(Boolean.class, cacheSize, expiryTime, expiryUnit);
+  }
   @Override
   public Boolean parse( String rule
                       , VariableResolver variableResolver

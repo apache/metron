@@ -18,14 +18,17 @@
 package org.apache.metron.solr.integration;
 
 import com.google.common.base.Function;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.metron.indexing.integration.IndexingIntegrationTest;
-import org.apache.metron.integration.*;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
@@ -89,7 +92,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
           if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
-            errors = kafkaComponent.readMessages(Constants.INDEXING_ERROR_TOPIC);
+            errors = kafkaComponent.readMessages(ERROR_TOPIC);
             if(errors.size() > 0){
               return ReadinessState.READY;
             }

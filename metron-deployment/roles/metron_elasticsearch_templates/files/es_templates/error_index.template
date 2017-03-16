@@ -1,0 +1,57 @@
+{
+  "template": "error_index*",
+  "mappings": {
+    "error_doc": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "properties": {
+        "exception": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "hostname": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "stack": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "message": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "raw_message": {
+          "type": "string",
+          "index": "not_analyzed",
+          "ignore_above": 8191
+        },
+        "raw_message_bytes": {
+          "type": "binary",
+          "index": "no"
+        },
+        "error_fields": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "error_hash": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "failed_sensor_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "error_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}

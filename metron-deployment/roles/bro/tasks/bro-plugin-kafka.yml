@@ -39,3 +39,6 @@
     - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
     - "redef Kafka::tag_json = T;"
     - "redef Kafka::kafka_conf = table([\"metadata.broker.list\"] = \"{{ kafka_broker_url }}\");"
+
+- name: Deploy bro configuration changes
+  shell: "{{ bro_home }}/bin/broctl deploy"

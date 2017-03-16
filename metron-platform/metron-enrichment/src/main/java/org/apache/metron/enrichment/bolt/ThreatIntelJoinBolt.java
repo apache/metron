@@ -17,19 +17,21 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
+import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
+import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +42,46 @@ import java.util.Map;
 public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   protected static final Logger LOG = LoggerFactory.getLogger(ThreatIntelJoinBolt.class);
+
+  /**
+   * The message key under which the overall threat triage score is stored.
+   */
+  public static final String THREAT_TRIAGE_SCORE_KEY = "threat.triage.score";
+
+  /**
+   * The prefix of the message keys that record the threat triage rules that fired.
+   */
+  public static final String THREAT_TRIAGE_RULES_KEY = "threat.triage.rules";
+
+  /**
+   * The portion of the message key used to record the 'name' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_NAME = "name";
+
+  /**
+   * The portion of the message key used to record the 'comment' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_COMMENT = "comment";
+
+  /**
+   * The portion of the message key used to record the 'score' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_SCORE = "score";
+
+  /**
+   * The portion of the message key used to record the 'reason' field of a rule.
+   */
+  public static final String THREAT_TRIAGE_RULE_REASON = "reason";
+
+  /**
+   * The Stellar function resolver.
+   */
   private FunctionResolver functionResolver;
-  private org.apache.metron.common.dsl.Context stellarContext;
+
+  /**
+   * The execution context for Stellar.
+   */
+  private Context stellarContext;
 
   public ThreatIntelJoinBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -73,6 +113,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     this.stellarContext = new Context.Builder()
                                 .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
                                 .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
+                                .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
                                 .build();
     StellarFunctions.initialize(stellarContext);
     this.functionResolver = StellarFunctions.FUNCTION_RESOLVER();
@@ -133,20 +174,23 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
           LOG.debug(sourceType + ": Empty rules!");
         }
 
+        // triage the threat
         ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, stellarContext);
-        Double triageLevel = threatTriageProcessor.apply(ret);
+        ThreatScore score = threatTriageProcessor.apply(ret);
+
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules());
-          LOG.debug("Marked " + sourceType + " as triage level " + triageLevel + " with rules " + rules);
+          LOG.debug("Marked " + sourceType + " as triage level " + score.getScore() + " with rules " + rules);
         }
-        if(triageLevel != null && triageLevel > 0) {
-          ret.put("threat.triage.level", triageLevel);
+
+        // attach the triage threat score to the message
+        if(score.getRuleScores().size() > 0) {
+          appendThreatScore(score, ret);
         }
       }
       else {
         LOG.debug(sourceType + ": Unable to find threat triage config!");
       }
-
     }
 
     return ret;
@@ -157,6 +201,27 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     super.reloadCallback(name, type);
     if(type == ConfigurationType.GLOBAL) {
       GeoLiteDatabase.INSTANCE.updateIfNecessary(getConfigurations().getGlobalConfig());
+    }
+  }
+
+  /**
+   * Appends the threat score to the telemetry message.
+   * @param threatScore The threat triage score
+   * @param message The telemetry message being triaged.
+   */
+  private void appendThreatScore(ThreatScore threatScore, JSONObject message) {
+
+    // append the overall threat score
+    message.put(THREAT_TRIAGE_SCORE_KEY, threatScore.getScore());
+
+    // append each of the rules - each rule is 'flat'
+    Joiner joiner = Joiner.on(".");
+    int i = 0;
+    for(RuleScore score: threatScore.getRuleScores()) {
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_NAME), score.getRule().getName());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_COMMENT), score.getRule().getComment());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_SCORE), score.getRule().getScore());
+      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i++, THREAT_TRIAGE_RULE_REASON), score.getReason());
     }
   }
 }

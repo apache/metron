@@ -172,6 +172,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
       builder.with(Context.Capabilities.ZOOKEEPER_CLIENT, zkClient::get);
     }
     builder.with(Context.Capabilities.GLOBAL_CONFIG, () -> globalConfig);
+    builder.with(Context.Capabilities.STELLAR_CONFIG, () -> globalConfig);
     return builder.build();
   }
 

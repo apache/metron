@@ -17,7 +17,8 @@
 ---
 
 hadoop_master: [NAMENODE, SECONDARY_NAMENODE, RESOURCEMANAGER, HISTORYSERVER]
-hadoop_slave: [APP_TIMELINE_SERVER, DATANODE, NODEMANAGER]
+app_timeline_server: [APP_TIMELINE_SERVER]
+hadoop_slave: [DATANODE, NODEMANAGER]
 spark_master: [SPARK_JOBHISTORYSERVER]
 storm_master: [NIMBUS, STORM_UI_SERVER, DRPC_SERVER]
 storm_slave: [SUPERVISOR]
@@ -26,13 +27,27 @@ zookeeper_master: [ZOOKEEPER_SERVER]
 hbase_master: [HBASE_MASTER]
 hbase_slave: [HBASE_REGIONSERVER]
 hadoop_clients: [HDFS_CLIENT, YARN_CLIENT, MAPREDUCE2_CLIENT, SPARK_CLIENT, ZOOKEEPER_CLIENT, HBASE_CLIENT]
+es_master: [ES_MASTER]
+es_slave: [ES_SLAVE]
+kibana_master: [KIBANA_MASTER]
+metron_indexing: [METRON_INDEXING]
+metron_enrichment_master : [METRON_ENRICHMENT_MASTER]
+metron_parsers : [METRON_PARSERS]
 
-master_1_components: "{{ hadoop_master | union(hadoop_clients) }}"
+master_1_components: "{{ hadoop_master | union(hadoop_clients) | union(es_slave) }}"
 master_1_host:
   - "{{groups.ambari_slave[0]}}"
-master_2_components: "{{ zookeeper_master | union(storm_master) | union(spark_master) | union(hbase_master) | union(hadoop_clients) }}"
+master_2_components: "{{ zookeeper_master | union(storm_master) | union(spark_master) | union(hbase_master) | union(hadoop_clients) | union(app_timeline_server) | union(es_slave) }}"
 master_2_host:
   - "{{groups.ambari_slave[1]}}"
+metron_components: >
+    {{ metron_indexing | union(metron_enrichment_master) | union(metron_parsers) | union(hadoop_slave) | union(storm_slave) |
+    union(kafka_broker) | union(hbase_slave) | union(hadoop_clients) }}
+metron_host:
+  - "{{ groups.metron[0] }}"
+web_components: "{{ kibana_master | union(es_master) }}"
+web_host:
+  - "{{ groups.web[0] }}"
 slave_components: "{{ hadoop_slave | union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(hadoop_clients) }}"
 
 cluster_name: "metron"
@@ -68,10 +83,31 @@ configurations:
       topology.classpath: '{{ topology_classpath }}'
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
+  - metron-env:
+      parsers: "bro,snort,yaf"
+  - elastic-site:
+      index_number_of_shards: 2
+      index_number_of_replicas: 1
+      zen_discovery_ping_unicast_hosts: "{{ groups.web[0] }},{{ groups.search | join(',') }}"
+      gateway_recover_after_data_nodes: 1
+      network_host: _lo_,_{{ elasticsearch_network_interface }}_
+
+required_configurations:
+  - metron-env:
+      storm_rest_addr: "{{ groups.ambari_slave[1] }}:8744"
+      es_hosts: "{{ groups.web[0] }},{{ groups.search | join(',') }}"
+      zeppelin_server_url: "{{ groups.zeppelin[0] }}"
+  - kibana-env:
+      kibana_pid_dir: /var/run/kibana
+      kibana_es_url: http://{{ groups.web[0] }}:9200
+      kibana_log_dir: /var/log/kibana
+      kibana_server_port: 5000
+      kibana_default_application: "dashboard/Metron-Dashboard"
 
 blueprint:
   stack_name: HDP
   stack_version: "{{ hdp_stack }}"
+  required_configurations: "{{ required_configurations }}"
   groups:
     - name : master_1
       cardinality: 1
@@ -83,8 +119,18 @@ blueprint:
       configuration: []  # configuration not yet implemented
       components: "{{ master_2_components }}"
       hosts: "{{ master_2_host }}"
+    - name : metron
+      cardinality: 1
+      configuration: []  # configuration not yet implemented
+      components: "{{ metron_components }}"
+      hosts: "{{ metron_host }}"
+    - name : web
+      cardinality: 1
+      configuration: []  # configuration not yet implemented
+      components: "{{ web_components }}"
+      hosts: "{{ web_host }}"
     - name: slaves
       cardinality: 1+
       configuration: []  # configuration not yet implemented
       components: "{{ slave_components }}"
-      hosts: "{{ groups.ambari_slave | difference(groups.ambari_slave[0]) | difference(groups.ambari_slave[1]) }}"
+      hosts: "{{ groups.ambari_slave | difference(groups.ambari_slave[0]) | difference(groups.ambari_slave[1]) | difference(groups.metron[0]) | difference(groups.web[0]) }}"

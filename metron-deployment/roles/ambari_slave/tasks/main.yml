@@ -45,7 +45,10 @@
     - { regexp: "^hostname_script=.*$", line: "hostname_script=/var/lib/ambari-agent/hostname.sh", insertafter: '\[agent\]'}
 
 - name: Ensure ambari-agent is running
-  service: name=ambari-agent state=restarted
+  service:
+    name: ambari-agent
+    state: restarted
+    enabled: yes
 
 - name : Wait for agent to register
   command : sleep 10

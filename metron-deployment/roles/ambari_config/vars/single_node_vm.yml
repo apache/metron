@@ -28,8 +28,16 @@ zookeeper_master: [ZOOKEEPER_SERVER]
 zookeeper_slave: [ZOOKEEPER_CLIENT]
 hbase_master: [HBASE_MASTER, HBASE_CLIENT]
 hbase_slave: [HBASE_REGIONSERVER]
+es_master: [ES_MASTER]
+kibana_master: [KIBANA_MASTER]
+metron_indexing: [METRON_INDEXING]
+metron_enrichment_master : [METRON_ENRICHMENT_MASTER]
+metron_parsers : [METRON_PARSERS]
 
-metron_components: "{{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) | union(storm_slave) | union(kafka_broker) | union(hbase_slave) }}"
+metron_components: >
+  {{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) |
+  union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) |
+  union(metron_enrichment_master) | union(metron_parsers) | union(es_master) }}
 
 cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
@@ -80,10 +88,32 @@ configurations:
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs }}'
       delete.topic.enable: "true"
+  - metron-env:
+      parsers: "bro,snort"
+  - elastic-site:
+      index_number_of_shards: 1
+      index_number_of_replicas: 0
+      zen_discovery_ping_unicast_hosts: "{{ groups.search | join(',') }}"
+      gateway_recover_after_data_nodes: 1
+      network_host: "_lo_,_eth0_,_eth1_"
+      masters_also_are_datanodes: "1"
+
+required_configurations:
+  - metron-env:
+      storm_rest_addr: "{{ groups.ambari_slave[0] }}:8744"
+      es_hosts: "{{ groups.search | join(',') }}"
+      zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
+  - kibana-env:
+      kibana_pid_dir: /var/run/kibana
+      kibana_es_url: http://{{ groups.search[0] }}:9200
+      kibana_log_dir: /var/log/kibana
+      kibana_server_port: 5000
+      kibana_default_application: "dashboard/Metron-Dashboard"
 
 blueprint:
   stack_name: HDP
   stack_version: "{{ hdp_stack }}"
+  required_configurations: "{{ required_configurations }}"
   groups:
     - name : host_group_1
       cardinality: 1

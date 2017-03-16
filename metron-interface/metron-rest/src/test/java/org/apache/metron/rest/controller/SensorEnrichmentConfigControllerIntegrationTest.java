@@ -242,6 +242,8 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$[0]").value("geo"))
             .andExpect(jsonPath("$[1]").value("host"))
             .andExpect(jsonPath("$[2]").value("whois"));
+
+    sensorEnrichmentConfigService.delete("broTest");
   }
 }
 

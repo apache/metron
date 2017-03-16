@@ -21,6 +21,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.GrokService;
+import org.apache.metron.rest.service.SensorParserConfigService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -156,7 +157,7 @@ public class SensorParserConfigControllerIntegrationTest {
   private Environment environment;
 
   @Autowired
-  private GrokService grokService;
+  private SensorParserConfigService sensorParserConfigService;
 
   @Autowired
   private WebApplicationContext wac;
@@ -190,6 +191,8 @@ public class SensorParserConfigControllerIntegrationTest {
   @Test
   public void test() throws Exception {
     cleanFileSystem();
+    this.sensorParserConfigService.delete("broTest");
+    this.sensorParserConfigService.delete("squidTest");
 
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(squidJson))
             .andExpect(status().isCreated())
@@ -333,6 +336,8 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.responseCode").value(500))
             .andExpect(jsonPath("$.message").value("java.lang.ClassNotFoundException: badClass"));
 
+    this.sensorParserConfigService.delete("broTest");
+    this.sensorParserConfigService.delete("squidTest");
   }
 
   private void cleanFileSystem() throws IOException {

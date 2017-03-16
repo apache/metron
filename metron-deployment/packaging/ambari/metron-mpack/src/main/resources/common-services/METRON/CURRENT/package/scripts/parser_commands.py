@@ -118,18 +118,6 @@ class ParserCommands:
                                             num_partitions,
                                             replication_factor,
                                             retention_bytes))
-        Logger.info("Creating topics for error handling")
-        Execute(command_template.format(self.__params.kafka_bin_dir,
-                                        self.__params.zookeeper_quorum,
-                                        "parser_invalid",
-                                        num_partitions,
-                                        replication_factor,
-                                        retention_bytes))
-        Execute(command_template.format(self.__params.kafka_bin_dir,
-                                        self.__params.zookeeper_quorum,
-                                        "parser_error",
-                                        num_partitions, replication_factor,
-                                        retention_bytes))
         Logger.info("Done creating Kafka topics")
 
     def start_parser_topologies(self):

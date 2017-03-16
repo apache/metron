@@ -30,7 +30,9 @@ class EnrichmentCommands:
     __enrichment_topic = None
     __enrichment_error_topic = None
     __threat_intel_error_topic = None
-    __configured = False
+    __kafka_configured = False
+    __hbase_configured = False
+    __geo_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -38,15 +40,36 @@ class EnrichmentCommands:
         self.__params = params
         self.__enrichment_topology = params.metron_enrichment_topology
         self.__enrichment_topic = params.metron_enrichment_topic
-        self.__enrichment_error_topic = params.metron_enrichment_error_topic
-        self.__threat_intel_error_topic = params.metron_threat_intel_error_topic
-        self.__configured = os.path.isfile(self.__params.enrichment_configured_flag_file)
+        self.__kafka_configured = os.path.isfile(self.__params.enrichment_kafka_configured_flag_file)
+        self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
+        self.__geo_configured = os.path.isfile(self.__params.enrichment_geo_configured_flag_file)
 
-    def is_configured(self):
-        return self.__configured
+    def is_kafka_configured(self):
+        return self.__kafka_configured
 
-    def set_configured(self):
-        File(self.__params.enrichment_configured_flag_file,
+    def set_kafka_configured(self):
+        Logger.info("Setting Kafka Configured to True")
+        File(self.__params.enrichment_kafka_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def is_hbase_configured(self):
+        return self.__hbase_configured
+
+    def set_hbase_configured(self):
+        Logger.info("Setting HBase Configured to True")
+        File(self.__params.enrichment_hbase_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0775)
+
+    def is_geo_configured(self):
+        return self.__geo_configured
+
+    def set_geo_configured(self):
+        Logger.info("Setting GEO Configured to True")
+        File(self.__params.enrichment_geo_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
              mode=0775)
@@ -88,7 +111,7 @@ class EnrichmentCommands:
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.user_group,
+                                   group=self.__params.metron_group,
                                    mode=0775,
                                    )
 
@@ -105,6 +128,7 @@ class EnrichmentCommands:
         Logger.info("Executing command " + command)
         Execute(command, user=self.__params.metron_user, tries=1, logoutput=True)
         Logger.info("Done intializing GeoIP data")
+        self.set_geo_configured()
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
@@ -121,7 +145,7 @@ class EnrichmentCommands:
         retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
 
         Logger.info("Creating topics for enrichment")
-        topics = [self.__enrichment_topic, self.__enrichment_error_topic, self.__threat_intel_error_topic]
+        topics = [self.__enrichment_topic]
         for topic in topics:
             Logger.info("Creating topic'{0}'".format(topic))
             Execute(command_template.format(self.__params.kafka_bin_dir,
@@ -132,6 +156,7 @@ class EnrichmentCommands:
                                             retention_bytes))
 
         Logger.info("Done creating Kafka topics")
+        self.set_kafka_configured()
 
     def start_enrichment_topology(self):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
@@ -180,6 +205,7 @@ class EnrichmentCommands:
         return active
 
     def create_hbase_tables(self):
+        Logger.info("Creating HBase Tables")
         add_enrichment_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.enrichment_table, self.__params.enrichment_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
@@ -195,3 +221,5 @@ class EnrichmentCommands:
                 logoutput=False,
                 path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
                 )
+        Logger.info("Done creating HBase Tables")
+        self.set_hbase_configured()

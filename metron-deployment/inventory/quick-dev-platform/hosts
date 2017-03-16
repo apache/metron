@@ -21,19 +21,10 @@ node1
 [ambari_slave]
 node1
 
-[metron_hbase_tables]
-node1
-
-[metron_kafka_topics]
-node1
-
-[enrichment]
+[metron]
 node1
 
 [search]
-node1
-
-[web]
 node1
 
 [sensors]
@@ -42,11 +33,15 @@ node1
 [pcap_server]
 node1
 
-[metron:children]
-enrichment
-search
-web
+[web]
+node1
+
+[zeppelin]
+node1
+
+[monit:children]
 sensors
-metron_kafka_topics
-metron_hbase_tables
 pcap_server
+
+[local]
+127.0.0.1

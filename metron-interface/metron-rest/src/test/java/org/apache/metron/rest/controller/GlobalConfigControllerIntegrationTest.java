@@ -18,6 +18,7 @@
 package org.apache.metron.rest.controller;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.rest.service.GlobalConfigService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,9 @@ public class GlobalConfigControllerIntegrationTest {
     public static String globalJson;
 
     @Autowired
+    private GlobalConfigService globalConfigService;
+
+    @Autowired
     private WebApplicationContext wac;
 
     private MockMvc mockMvc;
@@ -84,6 +88,8 @@ public class GlobalConfigControllerIntegrationTest {
 
     @Test
     public void test() throws Exception {
+        this.globalConfigService.delete();
+
         this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
                 .andExpect(status().isNotFound());
 
@@ -103,5 +109,7 @@ public class GlobalConfigControllerIntegrationTest {
 
         this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isNotFound());
+
+        this.globalConfigService.delete();
     }
 }

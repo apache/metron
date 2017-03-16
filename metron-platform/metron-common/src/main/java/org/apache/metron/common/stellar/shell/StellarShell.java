@@ -57,6 +57,8 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+
 /**
  * A REPL environment for Stellar.
  *
@@ -222,11 +224,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       }
     }
 
-    // if still no properties, use the default set
-    if(properties.size() == 0) {
-      addDefaultStellarProperties(properties);
-    }
-
     return properties;
   }
 
@@ -242,15 +239,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
             .ifPresent(conf -> writeLine(conf.toString()));
 
     console.start();
-  }
-
-  /**
-   * Adds default Stellar properties.  Only used if no properties file can be found.
-   */
-  private void addDefaultStellarProperties(Properties props) {
-
-    // only functions defined by metron are resolved, by default
-    props.put(ClasspathFunctionResolver.STELLAR_SEARCH_INCLUDES_KEY, "org.apache.metron.*");
   }
 
   /**

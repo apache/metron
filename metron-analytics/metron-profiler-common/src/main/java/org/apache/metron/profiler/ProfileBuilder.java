@@ -26,6 +26,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.configuration.profiler.ProfileResult;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
@@ -40,9 +41,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -115,6 +118,7 @@ public class ProfileBuilder implements Serializable {
     Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> global)
             .build();
     StellarFunctions.initialize(context);
     this.executor.setContext(context);
@@ -140,26 +144,36 @@ public class ProfileBuilder implements Serializable {
    *
    * Completes and emits the ProfileMeasurement.  Clears all state in preparation for
    * the next window period.
+   *
    * @return Returns the completed profile measurement.
    */
   public ProfileMeasurement flush() {
     LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
 
-    // execute the 'result' expression
+    // execute the 'profile' expression(s)
     @SuppressWarnings("unchecked")
-    Object value = execute(definition.getResult(), new JSONObject(), "result");
+    Object profileValue = execute(definition.getResult().getProfileExpressions().getExpression(), "result/profile");
+
+    // execute the 'triage' expression(s)
+    Map<String, Object> triageValues = definition.getResult().getTriageExpressions().getExpressions()
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> execute(e.getValue(), "result/triage")));
 
     // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
-    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", value), "groupBy");
+    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", profileValue), "groupBy");
 
     isInitialized = false;
-
     return new ProfileMeasurement()
             .withProfileName(profileName)
             .withEntity(entity)
             .withGroups(groups)
             .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
-            .withValue(value);
+            .withProfileValue(profileValue)
+            .withTriageValues(triageValues)
+            .withDefinition(definition);
   }
 
   /**
@@ -179,6 +193,17 @@ public class ProfileBuilder implements Serializable {
 
     return result;
   }
+
+  /**
+   * Executes an expression contained within the profile definition.
+   * @param expression The expression to execute.
+   * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
+   * @return The result of executing the expression.
+   */
+  private Object execute(String expression, String expressionType) {
+    return execute(expression, Collections.emptyMap(), expressionType);
+  }
+
 
   /**
    * Executes a set of expressions whose results need to be assigned to a variable.

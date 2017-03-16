@@ -58,15 +58,10 @@ echo "=============================================================" >> $LOGFILE
 echo "Launching Metron[$ENV] @ $NOW"... >> $LOGFILE
 $DEPLOYDIR/../scripts/platform-info.sh >> $LOGFILE
 
-# build metron
-cd ../..
-mvn package -DskipTests -PHDP-2.5.0.0
-RC=$?; if [[ $RC != 0 ]]; then exit $RC; fi
-
 # deploy metron
 cd $DEPLOYDIR
 export EC2_INI_PATH=conf/ec2.ini
 ansible-playbook -i ec2.py playbook.yml \
-  --skip-tags="solr, sensor-stubs" \
+  --skip-tags="quick_dev,sensor-stubs" \
   --extra-vars="env=$ENV" \
   $EXTRA_ARGS
