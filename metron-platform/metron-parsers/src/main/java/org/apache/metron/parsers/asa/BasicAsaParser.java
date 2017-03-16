@@ -140,8 +140,14 @@ public class BasicAsaParser extends BasicParser {
                 metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
                 metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
                 metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
-                metronJson.put("syslog_host", syslogJson.get("syslog_host"));
-                metronJson.put("syslog_prog", syslogJson.get("syslog_prog"));
+                
+                
+                if (syslogJson.get("syslog_host")!=null) { 
+                	metronJson.put("syslog_host", syslogJson.get("syslog_host")); 
+            	}
+                if (syslogJson.get("syslog_prog")!=null) { 
+                    metronJson.put("syslog_prog", syslogJson.get("syslog_prog"));
+                }
                 
             }
             else
