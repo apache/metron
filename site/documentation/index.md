@@ -91,9 +91,6 @@ title: Apache Metron (Incubating) Documentation
                  [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.1/apache-metron-0.3.1-incubating.tar.gz.md5" target="new">
                     MD5
                   </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.1/apache-metron-0.3.1-incubating.tar.gz.md5" target="new">
-                    MD5
-                  </a>]
                  [ <a href="/current-book/index.html" target="new"> Book </a>]
                 </li>
             </ul>
