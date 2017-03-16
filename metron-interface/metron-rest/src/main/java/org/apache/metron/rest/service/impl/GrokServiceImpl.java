@@ -114,8 +114,8 @@ public class GrokServiceImpl implements GrokService {
     public String getStatementFromClasspath(String path) throws RestException {
       try {
         return IOUtils.toString(getClass().getResourceAsStream(path));
-      } catch (IOException e) {
-        throw new RestException(e);
+      } catch (Exception e) {
+        throw new RestException("Could not find a statement at path " + path);
       }
     }
 

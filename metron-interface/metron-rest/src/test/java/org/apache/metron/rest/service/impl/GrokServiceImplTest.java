@@ -232,4 +232,18 @@ public class GrokServiceImplTest {
 
     grokService.saveTemporary(null, "squid");
   }
+
+  @Test
+  public void getStatementFromClasspathShouldReturnStatement() throws Exception {
+    String expected = FileUtils.readFileToString(new File("../../metron-platform/metron-parsers/src/main/resources/patterns/squid"));
+    assertEquals(expected, grokService.getStatementFromClasspath("/patterns/squid"));
+  }
+
+  @Test
+  public void getStatementFromClasspathShouldThrowRestException() throws Exception {
+    exception.expect(RestException.class);
+    exception.expectMessage("Could not find a statement at path /bad/path");
+
+    grokService.getStatementFromClasspath("/bad/path");
+  }
 }
