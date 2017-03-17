@@ -9,7 +9,7 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
 script:
   - |
-     mvn apache-rat:check 2>/dev/null && cat /home/travis/build/merrimanr/incubator-metron/metron-interface/metron-config/target/rat.txt
+     time mvn -q -T 2C -DskipTests install 2>/dev/null && cat /home/travis/build/merrimanr/incubator-metron/metron-interface/metron-config/target/rat.txt
 cache:
   directories:
   - $HOME/.m2
