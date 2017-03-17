@@ -282,7 +282,7 @@
                         <exclude>**/metron-config/src/assets/ace/**</exclude>
                         <exclude>**/metron-config/e2e/*.js.map</exclude>
                         <exclude>**/node_modules/**</exclude>
-                        <exclude>**/metron-config/node/**</exclude>
+                        <exclude>**/node/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
