@@ -205,6 +205,85 @@
                                         <include>*.tar.gz</include>
                                     </includes>
                                 </resource>
+                                <!-- extensions -->
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-asa-extension/metron-parser-asa-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-bro-extension/metron-parser-bro-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-cef-extension/metron-parser-cef-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-fireeye-extension/metron-parser-fireeye-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-ise-extension/metron-parser-ise-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-lancope-extension/metron-parser-lancope-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-logstash-extension/metron-parser-logstash-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-paloalto-extension/metron-parser-paloalto-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-snort-extension/metron-parser-snort-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-sourcefire-extension/metron-parser-sourcefire-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-squid-extension/metron-parser-squid-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-websphere-extension/metron-parser-websphere-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-extensions/metron-parser-extensions/metron-parser-yaf-extension/metron-parser-yaf-assembly/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
                             </resources>
                         </configuration>
                     </execution>

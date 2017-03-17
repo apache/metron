@@ -17,7 +17,7 @@
  */
 package org.apache.metron.rest;
 
-import org.apache.metron.parsers.GrokParser;
+import org.apache.metron.parsers.grok.GrokParser;
 
 public class MetronRestConstants {
 

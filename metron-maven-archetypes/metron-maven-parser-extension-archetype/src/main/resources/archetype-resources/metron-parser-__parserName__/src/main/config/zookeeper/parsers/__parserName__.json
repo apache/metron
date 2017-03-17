@@ -1,0 +1,7 @@
+{
+  "parserClassName": "${package}.${parserName}.${parserClassName}Parser",
+  "sensorTopic": "${parserName}",
+  "parserConfig": {
+    "deviceTimeZone": "UTC"
+  }
+}

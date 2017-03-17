@@ -979,7 +979,7 @@ Functions loaded, you may refer to functions now...
 [Stellar]&gt;&gt;&gt; #Just to make sure it looks right, we can view the JSON
 [Stellar]&gt;&gt;&gt; squid_parser_config
 {
-  &quot;parserClassName&quot;: &quot;org.apache.metron.parsers.GrokParser&quot;,
+  &quot;parserClassName&quot;: &quot;org.apache.metron.parsers.grok.GrokParser&quot;,
   &quot;sensorTopic&quot;: &quot;squid&quot;,
   &quot;parserConfig&quot;: {
     &quot;grokPath&quot;: &quot;/patterns/squid&quot;,
@@ -1009,7 +1009,7 @@ Functions loaded, you may refer to functions now...
 &#x2560;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x256a;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x256a;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2550;&#x2563;
 &#x2551; squid_parser_config       &#x2502; {                                         &#x2502; CONFIG_GET('PARSER', 'squid')       &#x2551;
 &#x2551;                           &#x2502;   &quot;parserClassName&quot;:                      &#x2502;                                     &#x2551;
-&#x2551;                           &#x2502; &quot;org.apache.metron.parsers.GrokParser&quot;,   &#x2502;                                     &#x2551;
+&#x2551;                           &#x2502; &quot;org.apache.metron.parsers.grok.GrokParser&quot;,   &#x2502;                                     &#x2551;
 &#x2551;                           &#x2502;                                           &#x2502;                                     &#x2551;
 &#x2551;                           &#x2502; &quot;sensorTopic&quot;: &quot;squid&quot;,                   &#x2502;                                     &#x2551;
 &#x2551;                           &#x2502;                                           &#x2502;                                     &#x2551;
@@ -1118,7 +1118,7 @@ Returns: The String representation of the config in zookeeper
 [Stellar]&gt;&gt;&gt; #It should be just as we started the exercise
 [Stellar]&gt;&gt;&gt; CONFIG_GET('PARSER', 'squid')
 {
-  &quot;parserClassName&quot; : &quot;org.apache.metron.parsers.GrokParser&quot;,
+  &quot;parserClassName&quot; : &quot;org.apache.metron.parsers.grok.GrokParser&quot;,
   &quot;sensorTopic&quot; : &quot;squid&quot;,
   &quot;parserConfig&quot; : {
     &quot;grokPath&quot; : &quot;/patterns/squid&quot;,

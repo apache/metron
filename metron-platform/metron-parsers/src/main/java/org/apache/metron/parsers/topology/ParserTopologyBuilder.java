@@ -17,6 +17,15 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.metron.bundles.*;
+import org.apache.metron.bundles.bundle.Bundle;
+import org.apache.metron.bundles.bundle.BundleCoordinate;
+import org.apache.metron.bundles.util.BundleProperties;
+import org.apache.metron.bundles.util.HDFSFileUtilities;
+import org.apache.metron.bundles.util.VFSClassloaderUtil;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.metron.storm.kafka.flux.StormKafkaSpout;
@@ -40,6 +49,7 @@ import org.apache.metron.writer.AbstractWriter;
 import org.apache.metron.writer.kafka.KafkaWriter;
 import org.json.simple.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.util.*;
 
 /**
@@ -75,6 +85,8 @@ public class ParserTopologyBuilder {
                                       Map<String, Object> kafkaSpoutConfig,
                                       Optional<String> securityProtocol
   ) throws Exception {
+
+
 
     // fetch configuration from zookeeper
     ParserConfigurations configs = new ParserConfigurations();
@@ -171,11 +183,6 @@ public class ParserTopologyBuilder {
                                             , SensorParserConfig parserConfig
                                             )
   {
-
-    // create message parser
-    MessageParser<JSONObject> parser = ReflectionUtils.createInstance(parserConfig.getParserClassName());
-    parser.configure(parserConfig.getParserConfig());
-
     // create writer - if not configured uses a sensible default
     AbstractWriter writer = parserConfig.getWriterClassName() == null ?
             createKafkaWriter( brokerUrl
@@ -188,7 +195,7 @@ public class ParserTopologyBuilder {
     // create a writer handler
     WriterHandler writerHandler = createWriterHandler(writer);
 
-    return new ParserBolt(zookeeperUrl, sensorType, parser, writerHandler);
+    return new ParserBolt(zookeeperUrl, sensorType, writerHandler);
   }
 
   /**

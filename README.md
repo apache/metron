@@ -66,6 +66,12 @@ Option 3 is more likely to have the latest code.
 
 # Building Metron
 
+Build the maven plugin required for Metron ( this should only have to be one once )
+
+```
+$cd bundles-maven-plugin && mvn -q install && cd ..
+```
+
 Build the full project and run tests:
 ```
 $ mvn clean install
@@ -90,9 +96,12 @@ component and Apache Kafka as the unified data bus.
 
 Some high level links to the relevant subparts of the architecture, for
 more information:
-* [Parsers](metron-platform/metron-parsers) : Parsing data from kafka into the Metron data model and passing it downstream to Enrichment.  
+* [Parsers](metron-platform/metron-parsers) : Base classes for parsing data from kafka into the Metron data model and passing it downstream to Enrichment.  
 * [Enrichment](metron-platform/metron-enrichment) : Enriching data post-parsing and providing the ability to tag a message as an alert and assign a risk triage level via a custom rule language.
 * [Indexing](metron-platform/metron-indexing) : Indexing the data post-enrichment into HDFS, Elasticsearch or Solr.
+
+Metron Extensions
+* [Metron Parser Extensions](metron-extensions/metron-parser-extensions) : Parser Extensions parsing data from supported sources
 
 Some useful utilities that cross all of these parts of the architecture:
 * [Stellar](metron-platform/metron-common) : A custom data transformation language that is used throughout metron from simple field transformation to expressing triage rules.

@@ -22,6 +22,11 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.TestConstants;
+import org.apache.metron.bundles.BundleClassLoaders;
+import org.apache.metron.bundles.ExtensionClassInitializer;
+import org.apache.metron.bundles.util.BundleProperties;
+import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.dsl.Context;
@@ -39,10 +44,13 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -50,6 +58,12 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   private static final String ERROR_TOPIC = "parser_error";
 
   public static class MockValidator implements FieldValidation{
+    @AfterClass
+    public static void after(){
+      ExtensionClassInitializer.reset();
+      BundleClassLoaders.reset();
+      FileUtils.reset();
+    }
 
     @Override
     public boolean isValid(Map<String, Object> input, Map<String, Object> validationConfig, Map<String, Object> globalConfig, Context context) {
@@ -110,10 +124,17 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
 
+    // we need to patch the properties file
+    BundleProperties properties = BundleProperties.createBasicBundleProperties(TestConstants.SAMPLE_CONFIG_PATH + "/bundle.properties",new HashMap<>());
+    ByteArrayOutputStream fso = new ByteArrayOutputStream();
+    properties.storeProperties(fso,"WriteBoltIntegrationTest");
+    fso.flush();
+
     ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties)
             .withGlobalConfig(globalConfig)
-            .withParserSensorConfig(sensorType, JSONUtils.INSTANCE.load(parserConfig, SensorParserConfig.class));
+            .withParserSensorConfig(sensorType, JSONUtils.INSTANCE.load(parserConfig, SensorParserConfig.class))
+            .withBundleProperties(fso.toByteArray());
 
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
             .withSensorType(sensorType)

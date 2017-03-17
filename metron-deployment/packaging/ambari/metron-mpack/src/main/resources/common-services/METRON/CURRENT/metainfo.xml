@@ -203,6 +203,45 @@
               <name>metron-indexing</name>
             </package>
             <package>
+              <name>metron-parser-extension-asa</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-bro</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-cef</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-fireeye</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-ise</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-lancope</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-logstash</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-paloalto</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-snort</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-sourcefire</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-squid</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-websphere</name>
+            </package>
+            <package>
+              <name>metron-parser-extension-yaf</name>
+            </package>
+            <package>
               <name>metron-elasticsearch</name>
             </package>
             <package>

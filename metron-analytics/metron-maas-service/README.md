@@ -138,7 +138,7 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
 * Edit the squid parser configuration at `$METRON_HOME/config/zookeeper/parsers/squid.json` in your favorite text editor and add a new FieldTransformation to indicate a threat alert based on the model (note the addition of `is_malicious` and `is_alert`):
 ```
 {
-  "parserClassName": "org.apache.metron.parsers.GrokParser",
+  "parserClassName": "org.apache.metron.parsers.grok.GrokParser",
   "sensorTopic": "squid",
   "parserConfig": {
     "grokPath": "/patterns/squid",

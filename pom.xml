@@ -25,8 +25,11 @@
     <description>Metron Top Level Project</description>
     <url>https://metron.incubator.apache.org/</url>
     <modules>
+            <module>bundles-lib</module>
             <module>metron-analytics</module>
             <module>metron-platform</module>
+            <module>metron-extensions</module>
+            <module>metron-maven-archetypes</module>
             <module>metron-deployment</module>
             <module>metron-docker</module>
             <module>metron-interface</module>
