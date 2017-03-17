@@ -25,6 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <node.version>v6.2.0</node.version>
+        <npm.version>3.8.9</npm.version>
     </properties>
     <dependencies>
     </dependencies>
@@ -36,6 +37,8 @@
             <artifactId>frontend-maven-plugin</artifactId>
             <configuration>
               <workingDirectory>./</workingDirectory>
+              <nodeVersion>${node.version}</nodeVersion>
+              <npmVersion>${npm.version}</npmVersion>
             </configuration>
             <executions>
               <execution>
@@ -44,9 +47,6 @@
                 <goals>
                   <goal>install-node-and-npm</goal>
                 </goals>
-                <configuration>
-                  <nodeVersion>${node.version}</nodeVersion>
-                </configuration>
               </execution>
               <execution>
                 <phase>generate-resources</phase>
