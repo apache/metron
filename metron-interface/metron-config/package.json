@@ -7,7 +7,7 @@
   },
   "angular-cli": {},
   "scripts": {
-    "build": "ng build -prod",
+    "build": "./node_modules/angular-cli/bin/ng build -prod",
     "start": "ng serve",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test",

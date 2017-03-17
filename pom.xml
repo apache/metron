@@ -278,10 +278,11 @@
                         <exclude>metron-docker/kibana/styles/commons.style.css</exclude>
                         <exclude>**/metron-config/coverage/**</exclude>
                         <exclude>**/metron-config/dist/**</exclude>
-                        <exclude>**/metron-config/dist/**</exclude>
+                        <exclude>**/dist/**</exclude>
                         <exclude>**/metron-config/src/assets/ace/**</exclude>
                         <exclude>**/metron-config/e2e/*.js.map</exclude>
-                        <exclude>**/metron-config/node_modules/**</exclude>
+                        <exclude>**/node_modules/**</exclude>
+                        <exclude>**/metron-config/node/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
