@@ -73,10 +73,8 @@
 	      <configuration>
                     <generateProjectInfo>false</generateProjectInfo>
                     <generateReports>false</generateReports>
-                    <skip>false</skip>
              </configuration>
             </plugin>
 	  </plugins>
 	</build>
-
 </project>
