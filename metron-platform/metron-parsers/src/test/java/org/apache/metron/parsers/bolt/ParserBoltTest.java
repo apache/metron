@@ -184,11 +184,6 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
-
-      @Override
-      protected String getKey(Tuple tuple) {
-        return "this-is-unique-identifier-for-tuple";
-      }
     };
 
     buildGlobalConfig(parserBolt);
@@ -201,6 +196,7 @@ public class ParserBoltTest extends BaseBoltTest {
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     JSONObject parsedMessage = new JSONObject();
     parsedMessage.put("field", "invalidValue");
+    parsedMessage.put("guid", "this-is-unique-identifier-for-tuple");
     List<JSONObject> messageList = new ArrayList<>();
     messageList.add(parsedMessage);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messageList));
@@ -239,11 +235,6 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
-
-      @Override
-      protected String getKey(Tuple tuple) {
-        return "this-is-unique-identifier-for-tuple";
-      }
     };
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
@@ -252,8 +243,8 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(writer, times(1)).init();
     byte[] sampleBinary = "some binary message".getBytes();
     JSONParser jsonParser = new JSONParser();
-    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\" }");
-    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\" }");
+    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     List<JSONObject> messages = new ArrayList<JSONObject>() {{
       add(sampleMessage1);
       add(sampleMessage2);

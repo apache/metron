@@ -133,7 +133,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
           message.put(Constants.SENSOR_TYPE, getSensorType());
-          message.put(Constants.GUID, this.getKey(tuple));
+          if(!message.containsKey(Constants.GUID)) {
+            message.put(Constants.GUID, UUID.randomUUID().toString());
+          }
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
               handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
@@ -186,22 +188,6 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       }
     }
     return failedValidators;
-  }
-
-  protected String getKey(Tuple tuple) {
-    String key = null;
-    try {
-      key = tuple.getStringByField("key");
-    }
-    catch(Throwable t) {
-      //swallowing this just in case.
-    }
-    if(key != null) {
-      return key;
-    }
-    else {
-      return UUID.randomUUID().toString();
-    }
   }
 
   @Override
