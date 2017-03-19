@@ -29,6 +29,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * On any test case where we explicitly include or exclude days of the week, in 24hr periods,
+ * we need to understand that on Daylight Savings Time (DST) transition weekends,
+ * Sunday is either 23 or 25 hours long.  This leads to surprising correct results,
+ * that may fail the assert criteria, if one starts the hour before or after midnight.
+ * Thus in such test cases, we force now.setHours(6).
+ */
 public class WindowProcessorTest {
 
   @Test
@@ -129,6 +136,7 @@ public class WindowProcessorTest {
     Gotta be 2 tuesdays in 14 days.
      */
       Date now = new Date();
+      now.setHours(6); //avoid DST impacts if near Midnight
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(2, intervals.size());
     }
@@ -140,6 +148,7 @@ public class WindowProcessorTest {
     Gotta be 2 days with the same dow in 14 days.
      */
       Date now = new Date();
+      now.setHours(6); //avoid DST impacts if near Midnight
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(2, intervals.size());
     }
@@ -162,6 +171,7 @@ public class WindowProcessorTest {
     Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago including saturdays excluding weekends");
 
     Date now = new Date();
+    now.setHours(6); //avoid DST impacts if near Midnight
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
     Assert.assertEquals(0, intervals.size());
   }
@@ -171,6 +181,7 @@ public class WindowProcessorTest {
     Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago excluding weekends");
 
     Date now = new Date();
+    now.setHours(6); //avoid DST impacts if near Midnight
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
     Assert.assertEquals(5, intervals.size());
   }
@@ -198,6 +209,7 @@ public class WindowProcessorTest {
       Window w = WindowProcessor.process("1 hour window every 24 hours starting from 56 days ago including this day of the week");
 
       Date now = new Date();
+      now.setHours(6); //avoid DST impacts if near Midnight
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
       Assert.assertEquals(8, intervals.size());
     }
@@ -208,6 +220,7 @@ public class WindowProcessorTest {
     Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago excluding weekdays");
 
     Date now = new Date();
+    now.setHours(6); //avoid DST impacts if near Midnight
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
     Assert.assertEquals(2, intervals.size());
   }
