@@ -5,8 +5,7 @@ This module provides a user interface for management functions in Metron.
 ## Prerequisites
 
 * A network accessible Metron REST application
-* npm 3.8.9+
-** Npm can be installed on quick dev with `yum install npm && npm install npm@3.8.9 -g`
+* npm 3.8.9+ (npm can be installed on quick dev with `yum install npm && npm install npm@3.8.9 -g`)
 
 ## Installation
 1. Build Metron:
