@@ -25,7 +25,7 @@ This module provides a user interface for management functions in Metron.
 
 1. For production use, the contents of the `dist` directory should be deployed to a web server with paths `/api/v1` and `/logout` mapped to the REST application url.  
 
-1. As an example, a convenience script is included that will install a simple [http-server](https://github.com/indexzero/http-server), set the root context path to `./dist`, and exposes proxy settings as environment variables.  Set the `METRON_REST_URL` environment variable (`http://localhost:8080` by default) to the url of REST application.  Set the `METRON_MANAGEMENT_UI_PORT` environment variable (`4200` by default) to the desired port
+1. As an example, a convenience script is included that will install a simple [http-server](https://github.com/indexzero/http-server), set the root context path to `./dist`, and exposes proxy settings as environment variables.  Set the `METRON_REST_URL` environment variable (`http://localhost:8080` by default) to the url of REST application.  Set the `METRON_MANAGEMENT_UI_PORT` environment variable (`4200` by default) to the desired port.
 
 1. Then start the application with the script:
     ```
