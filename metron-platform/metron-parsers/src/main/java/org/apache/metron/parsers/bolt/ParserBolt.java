@@ -133,13 +133,13 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
           message.put(Constants.SENSOR_TYPE, getSensorType());
-          if(!message.containsKey(Constants.GUID)) {
-            message.put(Constants.GUID, UUID.randomUUID().toString());
-          }
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
               handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
             }
+          }
+          if(!message.containsKey(Constants.GUID)) {
+            message.put(Constants.GUID, UUID.randomUUID().toString());
           }
           if (parser.validate(message) && (filter == null || filter.emitTuple(message, stellarContext))) {
             numWritten++;
