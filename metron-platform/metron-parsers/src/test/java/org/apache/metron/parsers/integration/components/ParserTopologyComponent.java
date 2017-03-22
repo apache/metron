@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
+
 public class ParserTopologyComponent implements InMemoryComponent {
 
   private Properties topologyProperties;
@@ -99,19 +101,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
   public void stop() {
     if(stormCluster != null) {
       stormCluster.shutdown();
-      if(new File("logs/workers-artifacts").exists()) {
-        Path rootPath = Paths.get("logs");
-        Path destPath = Paths.get("target/logs");
-        try {
-          Files.move(rootPath, destPath);
-          Files.walk(destPath)
-               .sorted(Comparator.reverseOrder())
-               .map(Path::toFile)
-               .forEach(File::delete);
-        } catch (IOException e) {
-          throw new IllegalStateException(e.getMessage(), e);
-        }
-      }
+      cleanupWorkerDir();
     }
   }
 }

@@ -135,24 +135,28 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
   }
 
+  public static void cleanupWorkerDir() {
+    if(new File("logs/workers-artifacts").exists()) {
+      Path rootPath = Paths.get("logs");
+      Path destPath = Paths.get("target/logs");
+      try {
+        Files.move(rootPath, destPath);
+        Files.walk(destPath)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+      } catch (IOException e) {
+        throw new IllegalStateException(e.getMessage(), e);
+      }
+    }
+  }
+
   @Override
   public void stop() {
     if (stormCluster != null) {
       try {
         stormCluster.shutdown();
-        if(new File("logs/workers-artifacts").exists()) {
-          Path rootPath = Paths.get("logs");
-          Path destPath = Paths.get("target/logs");
-          try {
-            Files.move(rootPath, destPath);
-            Files.walk(destPath)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-          } catch (IOException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-          }
-        }
+        cleanupWorkerDir();
       }
       catch(Throwable t) {
         LOG.error(t.getMessage(), t);
