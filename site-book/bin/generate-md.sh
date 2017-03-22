@@ -49,6 +49,7 @@ EXCLUSION_LIST=(
     '/site/'
     '/site-book/'
     '/build_utils/'
+    '/node_modules/'
 )
 
 ## This is a list of resources (eg .png files) needed to render the markdown files.
