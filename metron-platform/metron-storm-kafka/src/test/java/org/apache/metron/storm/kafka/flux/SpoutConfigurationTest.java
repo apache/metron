@@ -17,10 +17,13 @@
  */
 package org.apache.metron.storm.kafka.flux;
 
+import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,4 +59,5 @@ public class SpoutConfigurationTest {
     KafkaSpoutConfig c = builder.build();
     Assert.assertEquals(1000, c.getMaxTupleRetries() );
   }
+
 }
