@@ -291,10 +291,7 @@ public class ParserTopologyCLI {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
-      /*SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
-      if(cmd.hasOption("koff")) {
-        offset = SpoutConfig.Offset.valueOf(cmd.getOptionValue("koff"));
-      }*/
+
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
               sensorType,
@@ -334,12 +331,11 @@ public class ParserTopologyCLI {
     else {
       throw new IllegalArgumentException("Unable to load JSON file at " + inputFile.getAbsolutePath());
     }
-    return null;
-    /*try {
-      return SpoutConfigOptions.coerceMap(JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
-      }));
+    try {
+      return JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
+      });
     } catch (IOException e) {
       throw new IllegalStateException("Unable to process JSON.", e);
-    }*/
+    }
   }
 }
