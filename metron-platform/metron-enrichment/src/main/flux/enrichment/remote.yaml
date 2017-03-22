@@ -204,7 +204,6 @@ components:
     -   id: "kafkaConfig"
         className: "org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder"
         constructorArgs:
-          # zookeeper hosts
           - ref: "kafkaProps"
           # topic name
           - "enrichments"
@@ -213,6 +212,7 @@ components:
         configMethods:
             -   name: "setFirstPollOffsetStrategy"
                 args:
+                    # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
                     - "UNCOMMITTED_EARLIEST"
 
 

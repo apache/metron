@@ -36,9 +36,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * This is a convenience layer on top of the KafkaSpoutConfig.Builder available in storm-kafka-client.
+ * The justification for this class is two-fold.  First, there are a lot of moving parts and a simplified
+ * approach to constructing spouts is useful.  Secondly, and perhaps more importantly, the Builder pattern
+ * is decidedly unfriendly to use inside of Flux.  Finally, we can make things a bit more friendly by only requiring
+ * zookeeper and automatically figuring out the brokers for the bootstrap server.
+ *
+ * @param <K> The kafka key type
+ * @param <V> The kafka value type
+ */
 public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V> {
   final static String STREAM = "default";
 
+  /**
+   * The fields exposed by the kafka consumer.  These will show up in the Storm tuple.
+   */
   public enum FieldsConfiguration {
     KEY("key", record -> record.key()),
     VALUE("value", record -> record.value()),
@@ -53,6 +66,11 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
       this.fieldName = fieldName;
     }
 
+    /**
+     * Return a list of the enums
+     * @param configs
+     * @return
+     */
     public static List<FieldsConfiguration> toList(String... configs) {
       List<FieldsConfiguration> ret = new ArrayList<>();
       for(String config : configs) {
@@ -61,6 +79,11 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
       return ret;
     }
 
+    /**
+     * Return a list of the enums from their string representation.
+     * @param configs
+     * @return
+     */
     public static List<FieldsConfiguration> toList(List<String> configs) {
       List<FieldsConfiguration> ret = new ArrayList<>();
       for(String config : configs) {
@@ -69,6 +92,12 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
       return ret;
     }
 
+    /**
+     * Construct a Fields object from an iterable of enums.  These fields are the fields
+     * exposed in the Storm tuple emitted from the spout.
+     * @param configs
+     * @return
+     */
     public static Fields getFields(Iterable<FieldsConfiguration> configs) {
       List<String> fields = new ArrayList<>();
       for(FieldsConfiguration config : configs) {
@@ -78,6 +107,12 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     }
   }
 
+  /**
+   * Build a tuple given the fields and the topic.  We want to use our FieldsConfiguration enum
+   * to define what this tuple looks like.
+   * @param <K> The key type in kafka
+   * @param <V> The value type in kafka
+   */
   public static class TupleBuilder<K, V> extends KafkaSpoutTupleBuilder<K,V> {
     private List<FieldsConfiguration> configurations;
     private TupleBuilder(String topic, List<FieldsConfiguration> configurations) {
@@ -104,9 +139,10 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
   private String topic;
 
   /**
-   *
-   * @param kafkaProps
-   * @param topic
+   * Create an object with the specified properties.  This will expose fields "key" and "value."
+   * @param kafkaProps The special kafka properties
+   * @param topic The kafka topic. TODO: In the future, support multiple topics and regex patterns.
+   * @param zkQuorum The zookeeper quorum.  We will use this to pull the brokers from this.
    */
   public SimpleStormKafkaBuilder( Map<String, Object> kafkaProps
                                 , String topic
@@ -117,9 +153,11 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
   }
 
   /**
-   *
-   * @param kafkaProps
-   * @param topic
+   * Create an object with the specified properties and exposing the specified fields.
+   * @param kafkaProps The special kafka properties
+   * @param topic The kafka topic. TODO: In the future, support multiple topics and regex patterns.
+   * @param zkQuorum The zookeeper quorum.  We will use this to pull the brokers from this.
+   * @param fieldsConfiguration The fields to expose in the storm tuple emitted.
    */
   public SimpleStormKafkaBuilder( Map<String, Object> kafkaProps
                                 , String topic
@@ -134,10 +172,23 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     this.topic = topic;
   }
 
+  /**
+   * Get the kafka topic.  TODO: In the future, support multiple topics and regex patterns.
+   * @return
+   */
   public String getTopic() {
     return topic;
   }
 
+  /**
+   * Create a StormKafkaSpout from a given topic, zookeeper quorum and fields.  Also, configure the spout
+   * using a Map that configures both kafka as well as the spout (see the properties in SpoutConfiguration).
+   * @param topic
+   * @param zkQuorum
+   * @param fieldsConfiguration
+   * @param kafkaProps  The aforementioned map.
+   * @return
+   */
   public static StormKafkaSpout create( String topic
                                       , String zkQuorum
                                       , List<String> fieldsConfiguration

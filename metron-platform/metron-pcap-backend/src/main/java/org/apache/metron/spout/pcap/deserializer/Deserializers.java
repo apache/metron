@@ -23,8 +23,17 @@ import org.apache.metron.common.utils.timestamp.TimestampConverter;
 
 import java.util.function.Function;
 
+/**
+ * Deserializers take the raw bytes from kafka key and value and construct the timestamp and raw bytes for PCAP.
+ */
 public enum Deserializers {
+  /**
+   * Extract the timestamp from the key and the raw packet (global-headerless) from the value
+   */
    FROM_KEY( converter -> new FromKeyDeserializer(converter))
+  /**
+   * Ignore the key and pull the timestamp directly from the packet itself.  Also, assume that the packet isn't global-headerless.
+   */
   ,FROM_PACKET(converter -> new FromPacketDeserializer());
   ;
   Function<TimestampConverter, KeyValueDeserializer> creator;

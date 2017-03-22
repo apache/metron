@@ -33,6 +33,9 @@ import org.apache.metron.pcap.PcapHelper;
 import java.io.*;
 import java.util.EnumSet;
 
+/**
+ * This class is intended to handle the writing of an individual file.
+ */
 public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   static final long serialVersionUID = 0xDEADBEEFL;
   private static final Logger LOG = Logger.getLogger(PartitionHDFSWriter.class);
@@ -42,6 +45,10 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     void sync(FSDataOutputStream outputStream) throws IOException;
   }
 
+  /*
+  The sync handlers are FileSystem specific implementations of sync'ing.  The more often you sync, the more atomic the
+  writing is.  There is a natural tradeoff between sync'ing often and performance.
+   */
   public static enum SyncHandlers implements SyncHandler{
     DEFAULT(new SyncHandler() {
 

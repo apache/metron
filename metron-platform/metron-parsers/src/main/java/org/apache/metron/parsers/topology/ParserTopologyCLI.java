@@ -155,7 +155,7 @@ public class ParserTopologyCLI {
     ,EXTRA_OPTIONS("e", code -> {
       Option o = new Option(code, "extra_topology_options", true
                            , "Extra options in the form of a JSON file with a map for content." +
-                             "  Available options are those in the Kafka Consumer Configs at http://kafka.apache.org/090/documentation.html#newconsumerconfigs" +
+                             "  Available options are those in the Kafka Consumer Configs at http://kafka.apache.org/0100/documentation.html#newconsumerconfigs" +
                              " and " + Joiner.on(",").join(SpoutConfiguration.allOptions())
                            );
       o.setArgName("JSON_FILE");

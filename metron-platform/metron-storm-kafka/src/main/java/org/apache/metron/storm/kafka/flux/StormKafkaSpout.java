@@ -23,6 +23,12 @@ import org.apache.log4j.Logger;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
+/**
+ * A thin wrapper atop the KafkaSpout to allow us to pass in the Builder rather than the SpoutConfig.
+ * This enables creating a simplified interface suitable for use in flux for this spout.
+ * @param <K>
+ * @param <V>
+ */
 public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   private static final Logger LOG = Logger.getLogger(StormKafkaSpout.class);
   protected KafkaSpoutConfig<K,V> _spoutConfig;

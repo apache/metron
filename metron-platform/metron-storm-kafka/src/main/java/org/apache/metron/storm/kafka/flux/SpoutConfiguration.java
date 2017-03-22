@@ -26,19 +26,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * To enable the configuration of spouts with a single map containing both kafka properties as well as spout properties,
+ * this enum exists to expose spout-specific configurations and expose utility functions to split the kafka bits from the
+ * spout-specific bits of configuration.
+ */
 public enum SpoutConfiguration {
+  /**
+   * The poll timeout for the kafka consumer in milliseconds
+   */
   POLL_TIMEOUT_MS("spout.pollTimeoutMs"
                  , container -> container.builder.setPollTimeoutMs(ConversionUtils.convert(container.value, Long.class))
                  )
+  /**
+   * The offset strategy to use.  This can be one of
+   *  * EARLIEST,
+   *  * LATEST,
+   *  * UNCOMMITTED_EARLIEST,
+   *  * UNCOMMITTED_LATEST
+   */
   ,FIRST_POLL_OFFSET_STRATEGY("spout.firstPollOffsetStrategy"
                  , container -> container.builder.setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.valueOf(container.value.toString()))
                  )
+  /**
+   * The maximum number of retries
+   */
   ,MAX_RETRIES("spout.maxRetries"
                  , container -> container.builder.setMaxRetries(ConversionUtils.convert(container.value, Integer.class))
                  )
+  /**
+   * The maximum amount of uncommitted offsets
+   */
   ,MAX_UNCOMMITTED_OFFSETS("spout.maxUncommittedOffsets"
                  , container -> container.builder.setMaxUncommittedOffsets(ConversionUtils.convert(container.value, Integer.class))
                  )
+  /**
+   * The offset commit period in milliseconds
+   */
   ,OFFSET_COMMIT_PERIOD_MS("spout.offsetCommitPeriodMs"
                  , container -> container.builder.setOffsetCommitPeriodMs(ConversionUtils.convert(container.value, Long.class))
                  )
@@ -60,6 +84,11 @@ public enum SpoutConfiguration {
     this.key = key;
   }
 
+  /**
+   * Split the spout-specific configuration from this Map.  NOTE: This mutates the parameter and removes the spout-specific config.
+   * @param config
+   * @return The spout-specific configuration
+   */
   public static Map<String, Object> separate(Map<String, Object> config) {
     Map<String, Object> ret = new HashMap<>();
     for(SpoutConfiguration spoutConfig : SpoutConfiguration.values()) {
@@ -72,6 +101,14 @@ public enum SpoutConfiguration {
     return ret;
   }
 
+  /**
+   * Configure a builder from a configuration.
+   * @param builder
+   * @param config
+   * @param <K>
+   * @param <V>
+   * @return
+   */
   public static <K, V> KafkaSpoutConfig.Builder configure( KafkaSpoutConfig.Builder<K, V> builder
                                                          , Map<String, Object> config
                                                          )
@@ -85,6 +122,10 @@ public enum SpoutConfiguration {
     return builder;
   }
 
+  /**
+   * List all of the spout-specific and kafka configuration options.
+   * @return
+   */
   public static List<String> allOptions() {
     List<String> ret = new ArrayList<>();
     for(SpoutConfiguration spoutConfig : SpoutConfiguration.values()) {

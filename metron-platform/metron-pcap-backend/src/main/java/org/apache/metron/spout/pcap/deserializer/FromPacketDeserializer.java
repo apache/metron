@@ -22,7 +22,9 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
 import org.apache.metron.pcap.PcapHelper;
-
+/**
+ * Extract the timestamp and raw data from the packet.
+ */
 public class FromPacketDeserializer extends KeyValueDeserializer {
   private static final Logger LOG = Logger.getLogger(FromPacketDeserializer.class);
 

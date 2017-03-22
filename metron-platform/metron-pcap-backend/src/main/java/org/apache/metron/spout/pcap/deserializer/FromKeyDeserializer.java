@@ -26,6 +26,9 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.spout.pcap.Endianness;
 
 
+/**
+ * Extract the timestamp from the key and raw data from the packet.
+ */
 public class FromKeyDeserializer extends KeyValueDeserializer {
   private static final Logger LOG = Logger.getLogger(FromKeyDeserializer.class);
   private static Endianness endianness = Endianness.getNativeEndianness();
@@ -45,13 +48,20 @@ public class FromKeyDeserializer extends KeyValueDeserializer {
     return true;
   }
 
+  /**
+   * Convert the byte array representation for a long into a proper long.
+   * @param data
+   * @return a long
+   */
   private static long fromBytes(byte[] data) {
     long value = 0L;
     int len = data.length;
 
     for(int i = 0; i < len; ++i) {
       byte b = data[i];
+      //make room in the long
       value <<= 8;
+      //drop the byte in
       value |= (long)(b & 255);
     }
 

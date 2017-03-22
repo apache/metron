@@ -27,6 +27,11 @@ import org.apache.storm.task.TopologyContext;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+/**
+ * A kafka spout with a callback that is executed on message commit.
+ * @param <K> The Kafka key type
+ * @param <V> The Kafka value type
+ */
 public class CallbackKafkaSpout<K, V> extends StormKafkaSpout<K, V> {
   static final long serialVersionUID = 0xDEADBEEFL;
   Class<? extends Callback> callbackClazz;
@@ -69,6 +74,12 @@ public class CallbackKafkaSpout<K, V> extends StormKafkaSpout<K, V> {
     }
   }
 
+  /**
+   * This overrides and wraps the SpoutOutputCollector so that the callback can operate upon emit.
+   * @param conf
+   * @param context
+   * @param collector
+   */
   @Override
   public void open(Map conf, final TopologyContext context, final SpoutOutputCollector collector) {
     if(_callback == null) {
