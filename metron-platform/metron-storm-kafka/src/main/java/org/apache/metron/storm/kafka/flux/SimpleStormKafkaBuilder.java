@@ -204,8 +204,10 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
 
   private static Map<String, Object> modifyKafkaProps(Map<String, Object> props, String zkQuorum) {
     try {
-      List<String> brokers = KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum);
-      props.put(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS, Joiner.on(",").join(brokers));
+      if(!props.containsKey(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS)) {
+        List<String> brokers = KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum);
+        props.put(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS, Joiner.on(",").join(brokers));
+      }
       if(!props.containsKey(KafkaSpoutConfig.Consumer.KEY_DESERIALIZER)) {
         props.put(KafkaSpoutConfig.Consumer.KEY_DESERIALIZER, ByteArrayDeserializer.class.getName());
       }
