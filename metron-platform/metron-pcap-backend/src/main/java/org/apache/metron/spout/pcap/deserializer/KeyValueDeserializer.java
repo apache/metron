@@ -16,9 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.metron.common.spout.kafka;
+package org.apache.metron.spout.pcap.deserializer;
 
-public interface SpoutConfigFunction {
-  void configure(org.apache.storm.kafka.SpoutConfig config, Object val);
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.metron.common.utils.timestamp.TimestampConverter;
+import org.apache.metron.common.utils.timestamp.TimestampConverters;
+
+import java.io.Serializable;
+
+public abstract class KeyValueDeserializer implements Serializable {
+  protected TimestampConverter converter;
+
+  public KeyValueDeserializer() {
+    this(TimestampConverters.MICROSECONDS);
+  }
+
+  public KeyValueDeserializer(TimestampConverter converter) {
+    this.converter = converter;
+  }
+
+  public abstract boolean deserializeKeyValue(byte[] key, byte[] value, LongWritable outKey, BytesWritable outValue);
 
 }

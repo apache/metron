@@ -20,6 +20,8 @@ package org.apache.metron.spout.pcap;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.spout.pcap.deserializer.Deserializers;
+import org.apache.metron.spout.pcap.deserializer.KeyValueDeserializer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,6 +33,12 @@ public class HDFSWriterConfig implements Serializable {
   private long maxTimeNS;
   private String outputPath;
   private String zookeeperQuorum;
+  private KeyValueDeserializer deserializer;
+
+  public HDFSWriterConfig withDeserializer(String deserializer, String timestampConverter) {
+    this.deserializer = Deserializers.create(deserializer, timestampConverter);
+    return this;
+  }
 
   public HDFSWriterConfig withOutputPath(String path) {
     outputPath = path;
@@ -73,6 +81,10 @@ public class HDFSWriterConfig implements Serializable {
       return Integer.parseInt(portStr);
     }
     return  null;
+  }
+
+  public KeyValueDeserializer getDeserializer() {
+    return deserializer;
   }
 
   public String getOutputPath() {

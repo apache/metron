@@ -44,11 +44,6 @@
             <version>${global_flux_version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-kafka</artifactId>
-            <version>${global_storm_version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common</artifactId>
             <version>${project.parent.version}</version>

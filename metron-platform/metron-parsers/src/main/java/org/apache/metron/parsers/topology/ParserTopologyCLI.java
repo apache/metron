@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
@@ -26,19 +27,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
-import org.apache.metron.common.spout.kafka.SpoutConfigOptions;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.topology.config.Arg;
 import org.apache.metron.parsers.topology.config.ConfigHandlers;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.Function;
 
 public class ParserTopologyCLI {
@@ -156,7 +153,11 @@ public class ParserTopologyCLI {
     }, new ConfigHandlers.SetMessageTimeoutHandler()
     )
     ,EXTRA_OPTIONS("e", code -> {
-      Option o = new Option(code, "extra_topology_options", true, "Extra options in the form of a JSON file with a map for content.");
+      Option o = new Option(code, "extra_topology_options", true
+                           , "Extra options in the form of a JSON file with a map for content." +
+                             "  Available options are those in the Kafka Consumer Configs at http://kafka.apache.org/090/documentation.html#newconsumerconfigs" +
+                             " and " + Joiner.on(",").join(SpoutConfiguration.allOptions())
+                           );
       o.setArgName("JSON_FILE");
       o.setRequired(false);
       o.setType(String.class);
@@ -167,8 +168,8 @@ public class ParserTopologyCLI {
       Option o = new Option(code
                            , "extra_kafka_spout_config"
                            , true
-                           , "Extra spout config options in the form of a JSON file with a map for content.  " +
-                             "Possible keys are: " + Joiner.on(",").join(SpoutConfigOptions.values()));
+                           , "Extra spout config options in the form of a JSON file with a map for content."
+                           );
       o.setArgName("JSON_FILE");
       o.setRequired(false);
       o.setType(String.class);
@@ -286,18 +287,17 @@ public class ParserTopologyCLI {
       int errorNumTasks= Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
       int invalidParallelism = Integer.parseInt(ParserOptions.INVALID_WRITER_PARALLELISM.get(cmd, "1"));
       int invalidNumTasks= Integer.parseInt(ParserOptions.INVALID_WRITER_NUM_TASKS.get(cmd, "1"));
-      EnumMap<SpoutConfigOptions, Object> spoutConfig = new EnumMap<SpoutConfigOptions, Object>(SpoutConfigOptions.class);
+      Map<String, Object> spoutConfig = new HashMap<>();
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
-      SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
+      /*SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
       if(cmd.hasOption("koff")) {
         offset = SpoutConfig.Offset.valueOf(cmd.getOptionValue("koff"));
-      }
+      }*/
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
               sensorType,
-              offset,
               spoutParallelism,
               spoutNumTasks,
               parserParallelism,
@@ -322,7 +322,7 @@ public class ParserTopologyCLI {
       System.exit(-1);
     }
   }
-  private static EnumMap<SpoutConfigOptions, Object> readSpoutConfig(File inputFile) {
+  private static Map<String, Object> readSpoutConfig(File inputFile) {
     String json = null;
     if (inputFile.exists()) {
       try {
@@ -334,11 +334,12 @@ public class ParserTopologyCLI {
     else {
       throw new IllegalArgumentException("Unable to load JSON file at " + inputFile.getAbsolutePath());
     }
-    try {
+    return null;
+    /*try {
       return SpoutConfigOptions.coerceMap(JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
       }));
     } catch (IOException e) {
       throw new IllegalStateException("Unable to process JSON.", e);
-    }
+    }*/
   }
 }

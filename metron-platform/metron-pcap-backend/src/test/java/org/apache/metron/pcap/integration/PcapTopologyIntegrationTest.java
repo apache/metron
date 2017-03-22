@@ -49,7 +49,7 @@ import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
 import org.apache.metron.spout.pcap.Endianness;
-import org.apache.metron.spout.pcap.scheme.TimestampScheme;
+import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -136,7 +136,7 @@ public class PcapTopologyIntegrationTest {
       @Nullable
       @Override
       public Void apply(@Nullable Properties input) {
-        input.setProperty("kafka.pcap.ts_scheme", TimestampScheme.FROM_PACKET.toString());
+        input.setProperty("kafka.pcap.ts_scheme", Deserializers.FROM_PACKET.toString());
         return null;
       }
     }, (kafkaComponent, pcapEntries) -> kafkaComponent.writeMessages( KAFKA_TOPIC
@@ -153,7 +153,7 @@ public class PcapTopologyIntegrationTest {
       @Nullable
       @Override
       public Void apply(@Nullable Properties input) {
-        input.setProperty("kafka.pcap.ts_scheme", TimestampScheme.FROM_KEY.toString());
+        input.setProperty("kafka.pcap.ts_scheme", Deserializers.FROM_KEY.toString());
         return null;
       }
     }, new SendEntries() {

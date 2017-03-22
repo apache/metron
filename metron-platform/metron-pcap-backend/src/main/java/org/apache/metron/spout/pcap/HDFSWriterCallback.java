@@ -32,7 +32,6 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.log4j.Logger;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.EmitContext;
-import org.apache.storm.kafka.PartitionManager;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -45,7 +44,6 @@ import java.util.Map;
 public class HDFSWriterCallback implements Callback {
     static final long serialVersionUID = 0xDEADBEEFL;
     private static final Logger LOG = Logger.getLogger(HDFSWriterCallback.class);
-
     static class Partition {
         String topic;
         int partition;
@@ -83,6 +81,20 @@ public class HDFSWriterCallback implements Callback {
         }
     }
 
+    private static class KeyValue {
+        static ThreadLocal<LongWritable> key = new ThreadLocal<LongWritable> () {
+            @Override
+            protected LongWritable initialValue() {
+                return new LongWritable();
+            }
+        };
+        static ThreadLocal<BytesWritable> value = new ThreadLocal<BytesWritable> () {
+            @Override
+            protected BytesWritable initialValue() {
+                return new BytesWritable();
+            }
+        };
+    }
     private HDFSWriterConfig config;
     private EmitContext context;
     private Map<Partition, PartitionHDFSWriter> writers = new HashMap<>();
@@ -96,16 +108,18 @@ public class HDFSWriterCallback implements Callback {
         this.config = config;
         return this;
     }
+
     @Override
     public List<Object> apply(List<Object> tuple, EmitContext context) {
-
-        List<Object> keyValue = (List<Object>) tuple.get(0);
-        LongWritable ts = (LongWritable) keyValue.get(0);
-        BytesWritable rawPacket = (BytesWritable)keyValue.get(1);
+        byte[] key = (byte[]) tuple.get(0);
+        byte[] value = (byte[]) tuple.get(1);
+        if(!config.getDeserializer().deserializeKeyValue(key, value, KeyValue.key.get(), KeyValue.value.get())) {
+            LOG.debug("Dropping malformed packet...");
+        }
         try {
             getWriter(new Partition( topic
                                    , context.get(EmitContext.Type.PARTITION))
-                     ).handle(ts, rawPacket);
+                     ).handle(KeyValue.key.get(), KeyValue.value.get());
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             //drop?  not sure..
@@ -133,7 +147,13 @@ public class HDFSWriterCallback implements Callback {
     @Override
     public void initialize(EmitContext context) {
         this.context = context;
-        this.topic = context.get(EmitContext.Type.TOPIC);
+        Object topics = context.get(EmitContext.Type.TOPIC);
+        if(topics instanceof List) {
+            this.topic = Joiner.on(",").join((List<String>)topics);
+        }
+        else {
+            this.topic = "" + topics;
+        }
     }
 
     /**

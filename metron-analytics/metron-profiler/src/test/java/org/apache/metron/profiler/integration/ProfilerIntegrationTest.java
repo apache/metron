@@ -28,7 +28,6 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -39,7 +38,6 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
-import org.apache.metron.statistics.StatisticsProvider;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.Assert;
@@ -290,7 +288,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // storm topology properties
     final Properties topologyProperties = new Properties() {{
-      setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
+      setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
       setProperty("profiler.input.topic", inputTopic);

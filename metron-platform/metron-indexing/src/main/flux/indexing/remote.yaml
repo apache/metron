@@ -63,29 +63,49 @@ components:
         className: "${writer.class.name}"
 
 #kafka/zookeeper
-    -   id: "zkHosts"
-        className: "org.apache.storm.kafka.ZkHosts"
-        constructorArgs:
-            - "${kafka.zk}"
+# Any kafka props for the producer go here.
+    -   id: "kafkaProps"
+        className: "java.util.HashMap"
+        configMethods:
+            -   name: "put"
+                args:
+                    - "value.deserializer"
+                    - "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+            -   name: "put"
+                args:
+                    - "key.deserializer"
+                    - "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+            -   name: "put"
+                args:
+                    - "group.id"
+                    - "indexing"
+
+# The fields to pull out of the kafka messages
+    -   id: "fields"
+        className: "java.util.ArrayList"
+        configMethods:
+            -   name: "add"
+                args:
+                    - "value"
+
     -   id: "kafkaConfig"
-        className: "org.apache.metron.common.spout.kafka.SpoutConfig"
+        className: "org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder"
         constructorArgs:
             # zookeeper hosts
-            - ref: "zkHosts"
+            - ref: "kafkaProps"
             # topic name
             - "${index.input.topic}"
-            # zk root
-            - ""
-            # id
-            - "indexing"
+            - "${kafka.zk}"
+            - ref: "fields"
         configMethods:
-            -   name: "from"
+            -   name: "setFirstPollOffsetStrategy"
                 args:
                     - "${kafka.start}"
 
+
 spouts:
     -   id: "kafkaSpout"
-        className: "org.apache.storm.kafka.KafkaSpout"
+        className: "org.apache.metron.storm.kafka.flux.StormKafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
 bolts:

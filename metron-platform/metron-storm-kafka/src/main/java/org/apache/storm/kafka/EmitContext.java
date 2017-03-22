@@ -17,10 +17,12 @@
  */
 package org.apache.storm.kafka;
 
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.task.TopologyContext;
 
 import java.io.Serializable;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public class EmitContext implements Cloneable,Serializable {
@@ -32,7 +34,7 @@ public class EmitContext implements Cloneable,Serializable {
         ,PARTITION(Integer.class)
         ,TASK_ID(Integer.class)
         ,UUID(String.class)
-        ,SPOUT_CONFIG(SpoutConfig.class)
+        ,SPOUT_CONFIG(KafkaSpoutConfig.class)
         ,OPEN_CONFIG(Map.class)
         ,TOPOLOGY_CONTEXT(TopologyContext.class)
         ;

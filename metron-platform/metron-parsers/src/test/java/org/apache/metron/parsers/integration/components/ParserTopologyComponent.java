@@ -17,14 +17,21 @@
  */
 package org.apache.metron.parsers.integration.components;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.parsers.topology.ParserTopologyBuilder;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -34,7 +41,6 @@ public class ParserTopologyComponent implements InMemoryComponent {
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
-  private SpoutConfig.Offset offset = SpoutConfig.Offset.BEGINNING;
   private LocalCluster stormCluster;
 
   public static class Builder {
@@ -65,9 +71,6 @@ public class ParserTopologyComponent implements InMemoryComponent {
     this.sensorType = sensorType;
   }
 
-  public void setOffset(SpoutConfig.Offset offset) {
-    this.offset = offset;
-  }
 
   @Override
   public void start() throws UnableToStartException {
@@ -75,7 +78,6 @@ public class ParserTopologyComponent implements InMemoryComponent {
       TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
                                                                    , brokerUrl
                                                                    , sensorType
-                                                                   , offset
                                                                    , 1
                                                                    , 1
                                                                    , 1
@@ -97,6 +99,19 @@ public class ParserTopologyComponent implements InMemoryComponent {
   public void stop() {
     if(stormCluster != null) {
       stormCluster.shutdown();
+      if(new File("logs/workers-artifacts").exists()) {
+        Path rootPath = Paths.get("logs");
+        Path destPath = Paths.get("target/logs");
+        try {
+          Files.move(rootPath, destPath);
+          Files.walk(destPath)
+               .sorted(Comparator.reverseOrder())
+               .map(Path::toFile)
+               .forEach(File::delete);
+        } catch (IOException e) {
+          throw new IllegalStateException(e.getMessage(), e);
+        }
+      }
     }
   }
 }

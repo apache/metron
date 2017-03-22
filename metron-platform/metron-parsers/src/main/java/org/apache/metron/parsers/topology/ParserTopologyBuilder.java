@@ -17,6 +17,11 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
+import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
+import org.apache.metron.storm.kafka.flux.StormKafkaSpout;
+import org.apache.storm.kafka.spout.KafkaSpout;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
@@ -26,8 +31,6 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
-import org.apache.metron.common.spout.kafka.SpoutConfigOptions;
 import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
@@ -36,10 +39,8 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.writer.AbstractWriter;
 import org.apache.metron.writer.kafka.KafkaWriter;
 import org.json.simple.JSONObject;
-import org.apache.storm.kafka.KafkaSpout;
-import org.apache.storm.kafka.ZkHosts;
 
-import java.util.EnumMap;
+import java.util.*;
 
 /**
  * Builds a Storm topology that parses telemetry data received from a sensor.
@@ -52,7 +53,6 @@ public class ParserTopologyBuilder {
    * @param zookeeperUrl             Zookeeper URL
    * @param brokerUrl                Kafka Broker URL
    * @param sensorType               Type of sensor
-   * @param offset                   Kafka topic offset where the topology will start; BEGINNING, END, WHERE_I_LEFT_OFF
    * @param spoutParallelism         Parallelism hint for the spout
    * @param spoutNumTasks            Number of tasks for the spout
    * @param parserParallelism        Parallelism hint for the parser bolt
@@ -66,14 +66,13 @@ public class ParserTopologyBuilder {
   public static TopologyBuilder build(String zookeeperUrl,
                                       String brokerUrl,
                                       String sensorType,
-                                      SpoutConfig.Offset offset,
                                       int spoutParallelism,
                                       int spoutNumTasks,
                                       int parserParallelism,
                                       int parserNumTasks,
                                       int errorWriterParallelism,
                                       int errorWriterNumTasks,
-                                      EnumMap<SpoutConfigOptions, Object> kafkaSpoutConfig
+                                      Map<String, Object> kafkaSpoutConfig
   ) throws Exception {
 
     // fetch configuration from zookeeper
@@ -82,7 +81,7 @@ public class ParserTopologyBuilder {
 
     // create the spout
     TopologyBuilder builder = new TopologyBuilder();
-    KafkaSpout kafkaSpout = createKafkaSpout(zookeeperUrl, sensorType, offset, kafkaSpoutConfig, parserConfig);
+    KafkaSpout kafkaSpout = createKafkaSpout(zookeeperUrl, sensorType, Optional.ofNullable(kafkaSpoutConfig) , parserConfig);
     builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
             .setNumTasks(spoutNumTasks);
 
@@ -106,19 +105,26 @@ public class ParserTopologyBuilder {
   /**
    * Create a spout that consumes tuples from a Kafka topic.
    *
-   * @param zookeeperUrl            Zookeeper URL
+   * @param zkQuorum Zookeeper URL
    * @param sensorType              Type of sensor
-   * @param offset                  Kafka topic offset where the topology will start; BEGINNING, END, WHERE_I_LEFT_OFF
-   * @param kafkaSpoutConfigOptions Configuration options for the kafka spout
+   * @param kafkaConfigOptional     Configuration options for the kafka spout
    * @param parserConfig            Configuration for the parser
    * @return
    */
-  private static KafkaSpout createKafkaSpout(String zookeeperUrl, String sensorType, SpoutConfig.Offset offset, EnumMap<SpoutConfigOptions, Object> kafkaSpoutConfigOptions, SensorParserConfig parserConfig) {
-
+  private static StormKafkaSpout createKafkaSpout(String zkQuorum, String sensorType, Optional<Map<String, Object>> kafkaConfigOptional, SensorParserConfig parserConfig) {
+    Map<String, Object> kafkaSpoutConfigOptions = kafkaConfigOptional.orElse(new HashMap<>());
     String inputTopic = parserConfig.getSensorTopic() != null ? parserConfig.getSensorTopic() : sensorType;
-    SpoutConfig spoutConfig = new SpoutConfig(new ZkHosts(zookeeperUrl), inputTopic, "", inputTopic).from(offset);
-    SpoutConfigOptions.configure(spoutConfig, kafkaSpoutConfigOptions);
-    return new KafkaSpout(spoutConfig);
+    if(!kafkaSpoutConfigOptions.containsKey(SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key)) {
+      kafkaSpoutConfigOptions.put( SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key
+                                 , KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST.toString()
+                                 );
+    }
+    if(!kafkaSpoutConfigOptions.containsKey(KafkaSpoutConfig.Consumer.GROUP_ID)) {
+      kafkaSpoutConfigOptions.put( KafkaSpoutConfig.Consumer.GROUP_ID
+                                 , inputTopic + "_parser"
+                                 );
+    }
+    return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions);
   }
 
   /**

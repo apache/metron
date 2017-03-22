@@ -16,31 +16,35 @@
  * limitations under the License.
  */
 
-package org.apache.metron.spout.pcap.scheme;
+package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.storm.spout.MultiScheme;
+import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
-import org.apache.storm.kafka.KeyValueSchemeAsMultiScheme;
 
-public enum TimestampScheme {
-   FROM_KEY( converter -> new KeyValueSchemeAsMultiScheme(new FromKeyScheme().withTimestampConverter(converter)))
-  ,FROM_PACKET(converter -> new FromPacketScheme().withTimestampConverter(converter));
+import java.util.function.Function;
+
+public enum Deserializers {
+   FROM_KEY( converter -> new FromKeyDeserializer(converter))
+  ,FROM_PACKET(converter -> new FromPacketDeserializer());
   ;
-  public static final String KV_FIELD = "kv";
-  TimestampSchemeCreator creator;
-  TimestampScheme(TimestampSchemeCreator creator)
+  Function<TimestampConverter, KeyValueDeserializer> creator;
+  Deserializers(Function<TimestampConverter, KeyValueDeserializer> creator)
   {
     this.creator = creator;
   }
 
-  public static MultiScheme getScheme(String scheme, TimestampConverter converter) {
+  public static KeyValueDeserializer create(String scheme, TimestampConverter converter) {
     try {
-      TimestampScheme ts = TimestampScheme.valueOf(scheme.toUpperCase());
-      return ts.creator.create(converter);
+      Deserializers ts = Deserializers.valueOf(scheme.toUpperCase());
+      return ts.creator.apply(converter);
     }
     catch(IllegalArgumentException iae) {
-      return TimestampScheme.FROM_KEY.creator.create(converter);
+      return Deserializers.FROM_KEY.creator.apply(converter);
     }
+  }
+
+  public static KeyValueDeserializer create(String scheme, String converter) {
+    return create(scheme, TimestampConverters.valueOf(converter.toUpperCase()));
   }
 
 }

@@ -19,29 +19,35 @@ config:
     topology.workers: 1
 
 components:
-  - id: "zkHosts"
-    className: "org.apache.storm.kafka.ZkHosts"
-    constructorArgs:
-      - "${kafka.zk}"
+
+  # Any kafka props for the producer go here.
+  - id: "kafkaProps"
+    className: "java.util.HashMap"
+    configMethods:
+      -   name: "put"
+          args:
+            - "value.deserializer"
+            - "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+      -   name: "put"
+          args:
+            - "key.deserializer"
+            - "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+      -   name: "put"
+          args:
+            - "group.id"
+            - "pcap"
   - id: "kafkaConfig"
-    className: "org.apache.metron.spout.pcap.SpoutConfig"
+    className: "org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder"
     constructorArgs:
       # zookeeper hosts
-      - ref: "zkHosts"
+      - ref: "kafkaProps"
       # topic name
       - "${spout.kafka.topic.pcap}"
-      # zk root
-      - ""
-      # id
-      - "${spout.kafka.topic.pcap}"
+      - "${kafka.zk}"
     configMethods:
-      -   name: "from"
+      -   name: "setFirstPollOffsetStrategy"
           args:
-            - "${kafka.pcap.start}"
-      -   name: "withTimestampScheme"
-          args:
-            - "${kafka.pcap.ts_scheme}"
-            - "${kafka.pcap.ts_granularity}"
+            - "UNCOMMITTED_EARLIEST"
 
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"
@@ -58,6 +64,10 @@ components:
       -   name: "withZookeeperQuorum"
           args:
             - "${kafka.zk}"
+      -   name: "withDeserializer"
+          args:
+            - "${kafka.pcap.ts_scheme}"
+            - "${kafka.pcap.ts_granularity}"
 spouts:
   - id: "kafkaSpout"
     className: "org.apache.metron.spout.pcap.KafkaToHDFSSpout"
