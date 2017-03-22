@@ -16,6 +16,11 @@
 #
 ---
 
+- name: Clean out localrepo
+  file:
+    state: absent
+    path: /localrepo
+
 - name: Create localrepo directory
   file:
     path: /localrepo
