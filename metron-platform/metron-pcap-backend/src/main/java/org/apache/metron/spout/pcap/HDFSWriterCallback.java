@@ -25,8 +25,10 @@ import org.apache.log4j.Logger;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.EmitContext;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +117,25 @@ public class HDFSWriterCallback implements Callback {
         byte[] key = (byte[]) tuple.get(0);
         byte[] value = (byte[]) tuple.get(1);
         if(!config.getDeserializer().deserializeKeyValue(key, value, KeyValue.key.get(), KeyValue.value.get())) {
-            LOG.debug("Dropping malformed packet...");
+            if(LOG.isDebugEnabled()) {
+                List<String> debugStatements = new ArrayList<>();
+                if(key != null) {
+                    debugStatements.add("Key length: " + key.length);
+                    debugStatements.add("Key: " + DatatypeConverter.printHexBinary(key));
+                }
+                else {
+                    debugStatements.add("Key is null!");
+                }
+
+                if(value != null) {
+                    debugStatements.add("Value length: " + value.length);
+                    debugStatements.add("Value: " + DatatypeConverter.printHexBinary(value));
+                }
+                else {
+                    debugStatements.add("Value is null!");
+                }
+                LOG.debug("Dropping malformed packet: " + Joiner.on(" / ").join(debugStatements));
+            }
         }
         try {
             getWriter(new Partition( topic

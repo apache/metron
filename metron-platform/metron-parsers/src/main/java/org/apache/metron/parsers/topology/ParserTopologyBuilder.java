@@ -114,16 +114,12 @@ public class ParserTopologyBuilder {
   private static StormKafkaSpout createKafkaSpout(String zkQuorum, String sensorType, Optional<Map<String, Object>> kafkaConfigOptional, SensorParserConfig parserConfig) {
     Map<String, Object> kafkaSpoutConfigOptions = kafkaConfigOptional.orElse(new HashMap<>());
     String inputTopic = parserConfig.getSensorTopic() != null ? parserConfig.getSensorTopic() : sensorType;
-    if(!kafkaSpoutConfigOptions.containsKey(SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key)) {
-      kafkaSpoutConfigOptions.put( SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key
-                                 , KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST.toString()
-                                 );
-    }
-    if(!kafkaSpoutConfigOptions.containsKey(KafkaSpoutConfig.Consumer.GROUP_ID)) {
-      kafkaSpoutConfigOptions.put( KafkaSpoutConfig.Consumer.GROUP_ID
-                                 , inputTopic + "_parser"
-                                 );
-    }
+    kafkaSpoutConfigOptions.putIfAbsent( SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key
+            , KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST.toString()
+    );
+    kafkaSpoutConfigOptions.putIfAbsent( KafkaSpoutConfig.Consumer.GROUP_ID
+            , inputTopic + "_parser"
+    );
     return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions);
   }
 

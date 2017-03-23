@@ -53,7 +53,7 @@ public enum Deserializers {
   }
 
   public static KeyValueDeserializer create(String scheme, String converter) {
-    return create(scheme, TimestampConverters.valueOf(converter.toUpperCase()));
+    return create(scheme, TimestampConverters.getConverter(converter));
   }
 
 }

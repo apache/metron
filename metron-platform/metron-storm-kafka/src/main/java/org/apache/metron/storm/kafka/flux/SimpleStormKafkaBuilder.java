@@ -189,31 +189,31 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
    * @param kafkaProps  The aforementioned map.
    * @return
    */
-  public static StormKafkaSpout create( String topic
-                                      , String zkQuorum
-                                      , List<String> fieldsConfiguration
-                                      , Map<String, Object> kafkaProps
-                                      )
+  public static <K, V> StormKafkaSpout<K, V> create( String topic
+                                                   , String zkQuorum
+                                                   , List<String> fieldsConfiguration
+                                                   , Map<String, Object> kafkaProps
+                                                   , Class<K> keyClazz
+                                                   , Class<K> valueClazz
+  )
   {
     Map<String, Object> spoutConfig = SpoutConfiguration.separate(kafkaProps);
 
-    SimpleStormKafkaBuilder builder = new SimpleStormKafkaBuilder(kafkaProps, topic, zkQuorum, fieldsConfiguration);
+    SimpleStormKafkaBuilder<K, V> builder = new SimpleStormKafkaBuilder<>(kafkaProps, topic, zkQuorum, fieldsConfiguration);
     SpoutConfiguration.configure(builder, spoutConfig);
-    return new StormKafkaSpout(builder);
+    return new StormKafkaSpout<>(builder);
   }
 
   private static Map<String, Object> modifyKafkaProps(Map<String, Object> props, String zkQuorum) {
     try {
       if(!props.containsKey(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS)) {
+        //this isn't a putIfAbsent because I only want to pull the brokers from zk if it's absent.
         List<String> brokers = KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum);
         props.put(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS, Joiner.on(",").join(brokers));
       }
-      if(!props.containsKey(KafkaSpoutConfig.Consumer.KEY_DESERIALIZER)) {
-        props.put(KafkaSpoutConfig.Consumer.KEY_DESERIALIZER, ByteArrayDeserializer.class.getName());
-      }
-      if(!props.containsKey(KafkaSpoutConfig.Consumer.VALUE_DESERIALIZER)) {
-        props.put(KafkaSpoutConfig.Consumer.VALUE_DESERIALIZER, ByteArrayDeserializer.class.getName());
-      }
+      props.putIfAbsent(KafkaSpoutConfig.Consumer.KEY_DESERIALIZER, ByteArrayDeserializer.class.getName());
+      props.putIfAbsent(KafkaSpoutConfig.Consumer.VALUE_DESERIALIZER, ByteArrayDeserializer.class.getName());
+
     } catch (Exception e) {
       throw new IllegalStateException("Unable to retrieve brokers from zookeeper: " + e.getMessage(), e);
     }
