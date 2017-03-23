@@ -94,11 +94,27 @@ describe('Sensor List', function() {
 
         page.toggleSort('Status');
         expect(page.getSortOrder('Status')).toEqual(ASCENDING_CSS);
-        expect(page.getColumnValues(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+        expect(page.getColumnValues(2)).toEqual(['Running', 'Running', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
 
         page.toggleSort('Status');
         expect(page.getSortOrder('Status')).toEqual(DESCENDING_CSS);
-        expect(page.getColumnValues(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+        expect(page.getColumnValues(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped', 'Running', 'Running']);
+
+        page.toggleSort('Latency');
+        expect(page.getSortOrder('Latency')).toEqual(ASCENDING_CSS);
+        let latencyValues = page.getColumnValues(3);
+        latencyValues.then(values => {
+            expect(values.slice(0, 5)).toEqual(['-', '-', '-', '-', '-']);
+            expect(values.slice(5)).not.toEqual(['-', '-']);
+        });
+
+        page.toggleSort('Latency');
+        expect(page.getSortOrder('Latency')).toEqual(DESCENDING_CSS);
+        latencyValues = page.getColumnValues(3);
+        latencyValues.then(values => {
+            expect(values.slice(0, 2)).not.toEqual(['-', '-']);
+            expect(values.slice(2)).toEqual(['-', '-', '-', '-', '-']);
+        });
     });
 
     it('should select deselect all rows', () => {
@@ -140,8 +156,12 @@ describe('Sensor List', function() {
     })
 
     it('should have all the actions with default value', () => {
-        ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
+        ['websphere', 'jsonMap', 'squid', 'asa', 'yaf'].map(pName => {
             expect(page.getActions(pName)).toEqual(defaultActionState);
+        });
+
+        ['snort', 'bro'].map(pName => {
+            expect(page.getActions(pName)).toEqual(runningActionstate);
         });
     })
 

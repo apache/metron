@@ -43,7 +43,7 @@ export class SensorListPage {
     }
 
     clickOnDropdownAndWait(parserNames: string[], dropDownLinkName: string, waitOnClassName: string) {
-        return protractor.promise.all([this.toggleSelectAll(), this.toggleDropdown()]).then(() => {
+        return protractor.promise.all([this.toggleRowsSelect(parserNames), this.toggleDropdown()]).then(() => {
 
             return element(by.css('span[data-action=\"'+ dropDownLinkName +'\"]')).click().then(() => {
                 let promiseArray = [];
@@ -52,9 +52,8 @@ export class SensorListPage {
                 });
 
                 return protractor.promise.all(promiseArray).then(args => {
-                    return this.toggleSelectAll().then(() => {
-                        return args;
-                    })
+                    this.toggleRowsSelect(parserNames);
+                    return args;
                 });
             });
         });
@@ -67,7 +66,9 @@ export class SensorListPage {
     }
 
     disableParsers(names: string[]) {
-        return this.clickOnActionsAndWait(names, 'i.fa-ban', 'i.fa-check-circle-o');
+        return this.waitForElement(this.getIconButton(names[0], 'i.fa-ban')).then(()=> {
+            return this.clickOnActionsAndWait(names, 'i.fa-ban', 'i.fa-check-circle-o');
+        });
     }
 
     disableParsersFromDropdown(names: string[]) {
@@ -223,6 +224,12 @@ export class SensorListPage {
 
     toggleRowSelect(name: string) {
         element.all(by.css('label[for=\"'+name+'\"]')).click();
+    }
+
+    toggleRowsSelect(parserNames: string[]) {
+        parserNames.forEach((name) => {
+            element.all(by.css('label[for=\"'+name+'\"]')).click();
+        });
     }
 
     toggleSelectAll() {

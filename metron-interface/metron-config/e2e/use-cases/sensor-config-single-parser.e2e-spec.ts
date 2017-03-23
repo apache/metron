@@ -25,6 +25,7 @@ describe('Sensor Config for parser e2e1', function() {
   let sensorListPage = new SensorListPage();
   let sensorDetailsPage = new SensorDetailsPage();
   let loginPage = new LoginPage();
+  let grokPathFore2e1 = '/apps/metron/patterns/e2e1';
 
   beforeAll(() => {
     loginPage.login();
@@ -59,8 +60,7 @@ describe('Sensor Config for parser e2e1', function() {
     expect(page.getGrokResponse()).toEqual(expectedGrokResponse);
     page.saveGrokStatement();
     expect(page.getGrokStatementFromMainPane()).toEqual([grokStatement]);
-    page.setAdvancedConfig('grokPath', 'target/patterns/e2e1');
-
+    page.setAdvancedConfig('grokPath', grokPathFore2e1);
 
     page.clickSchema();
     page.setSampleMessage('sensor-field-schema', '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html');
@@ -86,7 +86,7 @@ describe('Sensor Config for parser e2e1', function() {
     
     done();
 
-  });
+  }, 50000);
 
   it('should have all the config for e2e parser', (done) => {
     let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
@@ -99,7 +99,7 @@ describe('Sensor Config for parser e2e1', function() {
       threatTriageSummary: [ 'RULES 1' ],
       indexName: 'e2e1',
       batchSize: '1',
-      advancedConfig: [ 'patternLabel', 'E2E1', 'grokPath', 'target/patterns/e2e1', 'enter field', 'enter value' ]
+      advancedConfig: [ 'patternLabel', 'E2E1', 'grokPath', grokPathFore2e1, 'enter field', 'enter value' ]
     };
     expect(sensorListPage.openEditPane('e2e1')).toEqual('http://localhost:4200/sensors(dialog:sensors-config/e2e1)');
     expect(page.getFormData()).toEqual(expectedFormData);

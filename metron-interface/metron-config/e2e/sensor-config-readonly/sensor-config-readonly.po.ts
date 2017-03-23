@@ -33,6 +33,9 @@ export class SensorDetailsPage {
     }
 
     clickToggleShowMoreLess(text: string, index: number) {
+        let ele = element.all(by.linkText(text)).get(index);
+        browser.driver.executeScript('arguments[0].scrollIntoView()', ele.getWebElement());
+
         return element.all(by.linkText(text)).get(index).click().then(() => {
             browser.sleep(1000);
             return true;
