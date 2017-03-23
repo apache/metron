@@ -183,13 +183,6 @@ public class ParserTopologyCLI {
       o.setRequired(false);
       return o;
     })
-    ,KAFKA_OFFSET("koff", code ->
-    {
-      Option o = new Option("koff", "kafka_offset", true, "Kafka offset");
-      o.setArgName("BEGINNING|WHERE_I_LEFT_OFF");
-      o.setRequired(false);
-      return o;
-    })
     ;
     Option option;
     String shortCode;
