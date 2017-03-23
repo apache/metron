@@ -27,6 +27,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,14 +68,12 @@ public enum KafkaUtils {
     return ret;
   }
 
-  public static List<String> fromEndpoint(String url) {
+  public List<String> fromEndpoint(String url) throws URISyntaxException {
     List<String> ret = new ArrayList<>();
     if(url != null) {
-      Iterable<String> splits = Splitter.on("//").split(url);
-      if(Iterables.size(splits) == 2) {
-        String hostPort = Iterables.getLast(splits);
-        ret.add(hostPort);
-      }
+      URI uri = new URI(url);
+      int port = uri.getPort();
+      ret.add(uri.getHost() + ((port > 0)?(":" + port):""));
     }
     return ret;
   }
