@@ -120,7 +120,7 @@ public class ParserTopologyBuilder {
     kafkaSpoutConfigOptions.putIfAbsent( KafkaSpoutConfig.Consumer.GROUP_ID
             , inputTopic + "_parser"
     );
-    return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions);
+    return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions, Object.class, Object.class);
   }
 
   /**
