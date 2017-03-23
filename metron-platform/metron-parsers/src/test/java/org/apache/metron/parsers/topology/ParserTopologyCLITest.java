@@ -85,12 +85,10 @@ public class ParserTopologyCLITest {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
                                       .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
-                                      .with(ParserTopologyCLI.ParserOptions.KAFKA_OFFSET, "BEGINNING")
                                       .build(longOpt);
     Assert.assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
     Assert.assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
     Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPE.get(cli));
-    Assert.assertEquals("BEGINNING", ParserTopologyCLI.ParserOptions.KAFKA_OFFSET.get(cli));
   }
   @Test
   public void testCLI_happyPath() throws ParseException {
