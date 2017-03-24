@@ -16,6 +16,6 @@
 #
 ---
 - name: Build Deployment Artifacts
-  local_action: shell cd {{ metron_build_dir }} && mvn clean package -DskipTests -P HDP-2.5.0.0,mpack,build-rpms
+  local_action: shell cd {{ metron_build_dir }} && mvn clean package -DskipTests -T 2C -P HDP-2.5.0.0,mpack,build-rpms
   become: false
   run_once: true

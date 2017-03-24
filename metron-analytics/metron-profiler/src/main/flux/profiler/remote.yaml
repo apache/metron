@@ -17,7 +17,7 @@
 name: "profiler"
 
 config:
-
+    topology.auto-credentials: ${storm.auto.credentials}
     topology.workers: ${profiler.workers}
     topology.acker.executors: ${profiler.executors}
 
@@ -60,6 +60,10 @@ components:
                 args:
                     - "group.id"
                     - "profiler"
+            -   name: "put"
+                args:
+                    - "security.protocol"
+                    - "${kafka.security.protocol}"
 
   # The fields to pull out of the kafka messages
     -   id: "fields"
@@ -83,6 +87,13 @@ components:
                 args:
                     - "${kafka.start}"
 
+    -   id: "kafkaWriterProps"
+        className: "java.util.HashMap"
+        configMethods:
+            -   name: "put"
+                args:
+                    - "security.protocol"
+                    - "${kafka.security.protocol}"
 
     -   id: "kafkaWriter"
         className: "org.apache.metron.writer.kafka.KafkaWriter"
@@ -91,6 +102,8 @@ components:
                 args: ["${profiler.output.topic}"]
             -   name: "withZkQuorum"
                 args: ["${kafka.zk}"]
+            -   name: "withProducerConfigs"
+                args: [ref: "kafkaWriterProps"]
 
     -   id: "kafkaDestinationHandler"
         className: "org.apache.metron.profiler.bolt.KafkaDestinationHandler"

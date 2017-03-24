@@ -15,9 +15,11 @@
 # limitations under the License.
 
 name: "indexing"
+
 config:
     topology.workers: ${indexing.workers}
     topology.acker.executors: ${indexing.executors}
+    topology.auto-credentials: ${storm.auto.credentials}
 
 components:
 
@@ -49,6 +51,15 @@ components:
             -   name: "withRotationPolicy"
                 args:
                     - ref: "hdfsRotationPolicy"
+
+    -   id: "kafkaWriterProps"
+        className: "java.util.HashMap"
+        configMethods:
+            -   name: "put"
+                args:
+                    - "security.protocol"
+                    - "${kafka.security.protocol}"
+
     -   id: "kafkaWriter"
         className: "org.apache.metron.writer.kafka.KafkaWriter"
         configMethods:
@@ -58,6 +69,8 @@ components:
             -   name: "withZkQuorum"
                 args:
                     - "${kafka.zk}"
+            -   name: "withProducerConfigs"
+                args: [ref: "kafkaWriterProps"]
 
     -   id: "indexWriter"
         className: "${writer.class.name}"
@@ -79,6 +92,10 @@ components:
                 args:
                     - "group.id"
                     - "indexing"
+            -   name: "put"
+                args:
+                    - "security.protocol"
+                    - "${kafka.security.protocol}"
 
 # The fields to pull out of the kafka messages
     -   id: "fields"

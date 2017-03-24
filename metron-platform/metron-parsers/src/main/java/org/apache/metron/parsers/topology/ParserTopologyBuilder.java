@@ -64,7 +64,7 @@ public class ParserTopologyBuilder {
    * @throws Exception
    */
   public static TopologyBuilder build(String zookeeperUrl,
-                                      String brokerUrl,
+                                      Optional<String> brokerUrl,
                                       String sensorType,
                                       int spoutParallelism,
                                       int spoutNumTasks,
@@ -72,7 +72,8 @@ public class ParserTopologyBuilder {
                                       int parserNumTasks,
                                       int errorWriterParallelism,
                                       int errorWriterNumTasks,
-                                      Map<String, Object> kafkaSpoutConfig
+                                      Map<String, Object> kafkaSpoutConfig,
+                                      Optional<String> securityProtocol
   ) throws Exception {
 
     // fetch configuration from zookeeper
@@ -81,19 +82,19 @@ public class ParserTopologyBuilder {
 
     // create the spout
     TopologyBuilder builder = new TopologyBuilder();
-    KafkaSpout kafkaSpout = createKafkaSpout(zookeeperUrl, sensorType, Optional.ofNullable(kafkaSpoutConfig) , parserConfig);
+    KafkaSpout kafkaSpout = createKafkaSpout(zookeeperUrl, sensorType, securityProtocol, Optional.ofNullable(kafkaSpoutConfig) , parserConfig);
     builder.setSpout("kafkaSpout", kafkaSpout, spoutParallelism)
             .setNumTasks(spoutNumTasks);
 
     // create the parser bolt
-    ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, configs, parserConfig);
+    ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig);
     builder.setBolt("parserBolt", parserBolt, parserParallelism)
             .setNumTasks(parserNumTasks)
             .shuffleGrouping("kafkaSpout");
 
     // create the error bolt, if needed
     if (errorWriterNumTasks > 0) {
-      WriterBolt errorBolt = createErrorBolt(brokerUrl, sensorType, configs, parserConfig);
+      WriterBolt errorBolt = createErrorBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig);
       builder.setBolt("errorMessageWriter", errorBolt, errorWriterParallelism)
               .setNumTasks(errorWriterNumTasks)
               .shuffleGrouping("parserBolt", Constants.ERROR_STREAM);
@@ -111,7 +112,13 @@ public class ParserTopologyBuilder {
    * @param parserConfig            Configuration for the parser
    * @return
    */
-  private static StormKafkaSpout createKafkaSpout(String zkQuorum, String sensorType, Optional<Map<String, Object>> kafkaConfigOptional, SensorParserConfig parserConfig) {
+  private static StormKafkaSpout createKafkaSpout( String zkQuorum
+                                                 , String sensorType
+                                                 , Optional<String> securityProtocol
+                                                 , Optional<Map<String, Object>> kafkaConfigOptional
+                                                 , SensorParserConfig parserConfig
+                                                 )
+  {
     Map<String, Object> kafkaSpoutConfigOptions = kafkaConfigOptional.orElse(new HashMap<>());
     String inputTopic = parserConfig.getSensorTopic() != null ? parserConfig.getSensorTopic() : sensorType;
     kafkaSpoutConfigOptions.putIfAbsent( SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key
@@ -120,7 +127,30 @@ public class ParserTopologyBuilder {
     kafkaSpoutConfigOptions.putIfAbsent( KafkaSpoutConfig.Consumer.GROUP_ID
             , inputTopic + "_parser"
     );
+    if(securityProtocol.isPresent()) {
+      kafkaSpoutConfigOptions.putIfAbsent("security.protocol", securityProtocol.get());
+    }
     return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions, Object.class, Object.class);
+  }
+
+  private static KafkaWriter createKafkaWriter( Optional<String> broker
+                                              , String zkQuorum
+                                              , Optional<String> securityProtocol
+                                              )
+  {
+    KafkaWriter ret = null;
+    if(broker.isPresent()) {
+      ret = new KafkaWriter(broker.get());
+    }
+    else {
+      ret = new KafkaWriter().withZkQuorum(zkQuorum);
+    }
+    if(securityProtocol.isPresent()) {
+      HashMap<String, Object> config = new HashMap<>();
+      config.put("security.protocol", securityProtocol);
+      ret.withProducerConfigs(config);
+    }
+    return ret;
   }
 
   /**
@@ -133,7 +163,14 @@ public class ParserTopologyBuilder {
    * @param parserConfig
    * @return A Storm bolt that parses input from a sensor
    */
-  private static ParserBolt createParserBolt(String zookeeperUrl, String brokerUrl, String sensorType, ParserConfigurations configs, SensorParserConfig parserConfig) {
+  private static ParserBolt createParserBolt( String zookeeperUrl
+                                            , Optional<String> brokerUrl
+                                            , String sensorType
+                                            , Optional<String> securityProtocol
+                                            , ParserConfigurations configs
+                                            , SensorParserConfig parserConfig
+                                            )
+  {
 
     // create message parser
     MessageParser<JSONObject> parser = ReflectionUtils.createInstance(parserConfig.getParserClassName());
@@ -141,7 +178,10 @@ public class ParserTopologyBuilder {
 
     // create writer - if not configured uses a sensible default
     AbstractWriter writer = parserConfig.getWriterClassName() == null ?
-            new KafkaWriter(brokerUrl).withTopic(Constants.ENRICHMENT_TOPIC) :
+            createKafkaWriter( brokerUrl
+                             , zookeeperUrl
+                             , securityProtocol
+                             ).withTopic(Constants.ENRICHMENT_TOPIC) :
             ReflectionUtils.createInstance(parserConfig.getWriterClassName());
     writer.configure(sensorType, new ParserWriterConfiguration(configs));
 
@@ -154,17 +194,30 @@ public class ParserTopologyBuilder {
   /**
    * Create a bolt that handles error messages.
    *
+   * @param zookeeperUrl    Kafka zookeeper URL
    * @param brokerUrl    Kafka Broker URL
    * @param sensorType   Type of sensor that is being consumed.
+   * @param securityProtocol   Security protocol used (if any)
    * @param configs
    * @param parserConfig
    * @return A Storm bolt that handles error messages.
    */
-  private static WriterBolt createErrorBolt(String brokerUrl, String sensorType, ParserConfigurations configs, SensorParserConfig parserConfig) {
+  private static WriterBolt createErrorBolt( String zookeeperUrl
+                                           , Optional<String> brokerUrl
+                                           , String sensorType
+                                           , Optional<String> securityProtocol
+                                           , ParserConfigurations configs
+                                           , SensorParserConfig parserConfig
+                                           )
+  {
 
     // create writer - if not configured uses a sensible default
-    AbstractWriter writer = parserConfig.getErrorWriterClassName() == null
-            ? new KafkaWriter(brokerUrl).withTopic((String) configs.getGlobalConfig().get("parser.error.topic")).withConfigPrefix("error")
+    AbstractWriter writer = parserConfig.getErrorWriterClassName() == null ?
+              createKafkaWriter( brokerUrl
+                               , zookeeperUrl
+                               , securityProtocol
+                               ).withTopic((String) configs.getGlobalConfig().get("parser.error.topic"))
+                                .withConfigPrefix("error")
             : ReflectionUtils.createInstance(parserConfig.getWriterClassName());
     writer.configure(sensorType, new ParserWriterConfiguration(configs));
 
