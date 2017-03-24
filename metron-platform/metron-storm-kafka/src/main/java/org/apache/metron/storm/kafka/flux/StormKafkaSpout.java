@@ -40,12 +40,24 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   }
 
   @Override
+  public void deactivate() {
+    try {
+      super.deactivate();
+    }
+    catch(WakeupException we) {
+      //see https://issues.apache.org/jira/browse/STORM-2184
+      LOG.error("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
+    }
+  }
+
+  @Override
   public void close() {
     try {
       super.close();
     }
     catch(WakeupException we) {
-      LOG.error(we.getMessage(), we);
+      //see https://issues.apache.org/jira/browse/STORM-2184
+      LOG.error("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
     }
   }
 }
