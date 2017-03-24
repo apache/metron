@@ -193,8 +193,6 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
                                                    , String zkQuorum
                                                    , List<String> fieldsConfiguration
                                                    , Map<String, Object> kafkaProps
-                                                   , Class<K> keyClazz
-                                                   , Class<K> valueClazz
   )
   {
     Map<String, Object> spoutConfig = SpoutConfiguration.separate(kafkaProps);
