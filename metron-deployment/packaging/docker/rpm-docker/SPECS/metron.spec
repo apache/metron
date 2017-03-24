@@ -50,6 +50,7 @@ Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
+Source10:       metron-config-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -80,6 +81,7 @@ tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -313,6 +315,25 @@ This package installs the Metron Profiler %{metron_home}
 %{metron_home}/flux/profiler/remote.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-profiler-%{full_version}-uber.jar
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        config
+Summary:        Metron Config
+Group:          Applications/Internet
+Provides:       config = %{version}
+
+%description    config
+This package installs the Metron Config %{metron_home}
+
+%files          config
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/web
+%dir %{metron_home}/web/management-ui
+%{metron_home}/bin/start_management_ui.sh
+%attr(0644,root,root) %{metron_home}/web/management-ui/*
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -21,7 +21,7 @@ export MANAGEMENT_UI_PORT=${MANAGEMENT_UI_PORT:-4200}
 npm version > /dev/null
 if [ $? -eq 0 ]; then
     npm install http-server
-    ./node_modules/http-server/bin/http-server ./dist/ --proxy $METRON_REST_URL -p $MANAGEMENT_UI_PORT
+    ./node_modules/http-server/bin/http-server ./web/management-ui --proxy $METRON_REST_URL -p $MANAGEMENT_UI_PORT
 else
     echo 'Error:  npm required to start http-server'
 fi

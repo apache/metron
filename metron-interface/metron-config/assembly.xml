@@ -20,7 +20,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/dist</directory>
-      <outputDirectory>/dist</outputDirectory>
+      <outputDirectory>/web/management-ui</outputDirectory>
       <excludes>
       </excludes>
       <fileMode>0644</fileMode>
@@ -30,7 +30,7 @@
       <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
-        <exclude>start-dev.sh</exclude>
+        <exclude>start_dev.sh</exclude>
       </excludes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
