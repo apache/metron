@@ -46,7 +46,7 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
-      LOG.error("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
+      LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
     }
   }
 
@@ -57,7 +57,7 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
-      LOG.error("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
+      LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
     }
   }
 }
