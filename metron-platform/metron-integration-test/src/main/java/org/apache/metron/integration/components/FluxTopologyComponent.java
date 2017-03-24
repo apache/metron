@@ -24,6 +24,7 @@ import org.apache.curator.framework.imps.CuratorFrameworkImpl;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.daemon.supervisor.Slot;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.generated.TopologyInfo;
 import org.apache.metron.integration.InMemoryComponent;
@@ -155,23 +156,38 @@ public class FluxTopologyComponent implements InMemoryComponent {
   public void stop() {
     if (stormCluster != null) {
       try {
-        boolean retry = true;
-        while(retry) {
           try {
             stormCluster.shutdown();
-            retry = false;
           } catch (IllegalStateException ise) {
             if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
               throw ise;
             }
-          }
+            else {
+              assassinateSlots();
+              LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
+                      "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
+                      "If tests fail, we'll have to find a better way of killing them.", ise);
+            }
         }
-        cleanupWorkerDir();
       }
       catch(Throwable t) {
         LOG.error(t.getMessage(), t);
       }
+      finally {
+        cleanupWorkerDir();
+      }
     }
+  }
+
+  public static void assassinateSlots() {
+    Thread.getAllStackTraces().keySet().stream().filter(t -> t instanceof Slot).forEach(t -> {
+      Slot slot = (Slot) t;
+      try {
+        slot.close();
+      } catch (Exception e) {
+        LOG.error("Tried to kill " + slot.getName() + " but.." + e.getMessage(), e);
+      }
+    });
   }
 
   public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
