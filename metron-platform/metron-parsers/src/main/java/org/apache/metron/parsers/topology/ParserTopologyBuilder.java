@@ -112,7 +112,7 @@ public class ParserTopologyBuilder {
    * @param parserConfig            Configuration for the parser
    * @return
    */
-  private static StormKafkaSpout createKafkaSpout( String zkQuorum
+  private static StormKafkaSpout<Object, Object> createKafkaSpout( String zkQuorum
                                                  , String sensorType
                                                  , Optional<String> securityProtocol
                                                  , Optional<Map<String, Object>> kafkaConfigOptional
@@ -130,7 +130,7 @@ public class ParserTopologyBuilder {
     if(securityProtocol.isPresent()) {
       kafkaSpoutConfigOptions.putIfAbsent("security.protocol", securityProtocol.get());
     }
-    return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions, Object.class, Object.class);
+    return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions);
   }
 
   private static KafkaWriter createKafkaWriter( Optional<String> broker
