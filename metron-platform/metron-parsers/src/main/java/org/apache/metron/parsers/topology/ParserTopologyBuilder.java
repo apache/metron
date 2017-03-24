@@ -147,7 +147,7 @@ public class ParserTopologyBuilder {
     }
     if(securityProtocol.isPresent()) {
       HashMap<String, Object> config = new HashMap<>();
-      config.put("security.protocol", securityProtocol);
+      config.put("security.protocol", securityProtocol.get());
       ret.withProducerConfigs(config);
     }
     return ret;
