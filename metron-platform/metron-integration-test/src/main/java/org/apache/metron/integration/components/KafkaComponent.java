@@ -39,6 +39,8 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.wrapper.AdminUtilsWrapper;
 import org.apache.metron.integration.wrapper.TestUtilsWrapper;
 import org.apache.metron.test.utils.UnitTestHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -46,6 +48,8 @@ import java.util.logging.Level;
 
 
 public class KafkaComponent implements InMemoryComponent {
+
+  protected static final Logger LOG = LoggerFactory.getLogger(KafkaComponent.class);
 
   public static class Topic {
     public int numPartitions;
@@ -56,6 +60,8 @@ public class KafkaComponent implements InMemoryComponent {
       this.name = name;
     }
   }
+
+  private List<KafkaProducer> producersCreated = new ArrayList<>();
   private transient KafkaServer kafkaServer;
   private transient ZkClient zkClient;
   private transient ConsumerConnector consumer;
@@ -128,7 +134,9 @@ public class KafkaComponent implements InMemoryComponent {
     producerConfig.put("message.max.bytes", "" + 1024*1024*10);
     producerConfig.put("message.send.max.retries", "10");
     producerConfig.putAll(properties);
-    return new KafkaProducer<>(producerConfig);
+    KafkaProducer<K, V> ret = new KafkaProducer<>(producerConfig);
+    producersCreated.add(ret);
+    return ret;
   }
 
   @Override
@@ -170,6 +178,7 @@ public class KafkaComponent implements InMemoryComponent {
   @Override
   public void stop() {
     shutdownConsumer();
+    shutdownProducers();
     if(kafkaServer != null) {
       kafkaServer.shutdown();
       kafkaServer.awaitShutdown();
@@ -216,6 +225,17 @@ public class KafkaComponent implements InMemoryComponent {
   public void shutdownConsumer() {
     if(consumer != null) {
       consumer.shutdown();
+    }
+  }
+
+  public void shutdownProducers() {
+    for(KafkaProducer kp : producersCreated) {
+      try {
+        kp.close();
+      }
+      catch(Exception ex) {
+        LOG.error(ex.getMessage(), ex);
+      }
     }
   }
 

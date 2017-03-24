@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.integration;
 
+import com.google.common.base.Joiner;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -174,13 +175,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - 10.0.0.3 -> 1/6
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 1.0/6.0, epsilon)
+    Assert.assertTrue( "Could not find a value near 1/6. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val, 1.0/6.0, epsilon)
     ));
 
     // verify - 10.0.0.2 -> 6/1
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 6.0/1.0, epsilon)
+    Assert.assertTrue("Could not find a value near 6. Actual values read are are: " + Joiner.on(",").join(actuals)
+            ,actuals.stream().anyMatch(val -> MathUtils.equals(val, 6.0/1.0, epsilon)
     ));
   }
 
@@ -204,8 +205,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 20.0, epsilon)
+    Assert.assertTrue("Could not find a value near 20. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val, 20.0, epsilon)
     ));
   }
 
@@ -230,8 +231,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<OnlineStatisticsProvider> actuals = read(profilerTable.getPutLog(), columnFamily, column, OnlineStatisticsProvider.class);
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val.getMean(), 20.0, epsilon)
+    Assert.assertTrue("Could not find a value near 20. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val.getMean(), 20.0, epsilon)
     ));
   }
 
@@ -251,8 +252,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - the 70th percentile of 5 x 20s = 20.0
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 20.0, epsilon)));
+    Assert.assertTrue("Could not find a value near 20. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val, 20.0, epsilon)));
   }
 
   /**
