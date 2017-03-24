@@ -75,6 +75,8 @@ else:
 
 # hadoop params
 stack_root = Script.get_stack_root()
+# This is the cluster group named 'hadoop'. Its membership is the stack process user ids not individual users.
+# The config name 'user_group' out of our control and a bit misleading, so it is renamed to 'hadoop_group'.
 hadoop_group = config['configurations']['cluster-env']['user_group']
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
