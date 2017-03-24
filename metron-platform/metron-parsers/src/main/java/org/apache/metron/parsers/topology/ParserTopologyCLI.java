@@ -177,7 +177,7 @@ public class ParserTopologyCLI {
       return o;
     }
     )
-    ,SECURITY_PROTOCOL("sp", code -> {
+    ,SECURITY_PROTOCOL("ksp", code -> {
       Option o = new Option(code
                            , "kafka_security_protocol"
                            , true
