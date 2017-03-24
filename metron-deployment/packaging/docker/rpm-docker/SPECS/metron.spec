@@ -320,7 +320,7 @@ This package installs the Metron Profiler %{metron_home}
 %package        rest
 Summary:        Metron Rest
 Group:          Applications/Internet
-Provides:       profiler = %{version}
+Provides:       rest = %{version}
 
 %description    rest
 This package installs the Metron Rest %{metron_home}
