@@ -155,7 +155,17 @@ public class FluxTopologyComponent implements InMemoryComponent {
   public void stop() {
     if (stormCluster != null) {
       try {
-        stormCluster.shutdown();
+        boolean retry = true;
+        while(retry) {
+          try {
+            stormCluster.shutdown();
+            retry = false;
+          } catch (IllegalStateException ise) {
+            if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
+              throw ise;
+            }
+          }
+        }
         cleanupWorkerDir();
       }
       catch(Throwable t) {
