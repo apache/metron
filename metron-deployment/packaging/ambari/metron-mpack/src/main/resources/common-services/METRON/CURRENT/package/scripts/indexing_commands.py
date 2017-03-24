@@ -101,7 +101,7 @@ class IndexingCommands:
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.metron_group,
+                                   group=self.__params.hadoop_group,
                                    mode=0775,
                                    )
         Logger.info('Done creating HDFS indexing directory')
