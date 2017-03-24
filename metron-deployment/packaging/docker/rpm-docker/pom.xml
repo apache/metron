@@ -199,6 +199,12 @@
                                         <include>*.tar.gz</include>
                                     </includes>
                                 </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-interface/metron-rest/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
                             </resources>
                         </configuration>
                     </execution>
