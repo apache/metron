@@ -24,7 +24,6 @@ import org.apache.curator.framework.imps.CuratorFrameworkImpl;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
-import org.apache.storm.daemon.supervisor.Slot;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.generated.TopologyInfo;
 import org.apache.metron.integration.InMemoryComponent;
