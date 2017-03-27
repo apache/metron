@@ -81,15 +81,24 @@ public class IndexingConfigurations extends Configurations {
     return getBatchTimeout(getSensorIndexingConfig(sensorName, writerName));
   }
 
+  /**
+   * Returns all configured values of batchTimeout, for all configured sensors,
+   * but only for the specific writer identified by {@param writerName}.  So, if it is
+   * an hdfs writer, it will return the batchTimeouts for hdfs writers for all the sensors.
+   * The goal is to return to a {@link org.apache.metron.common.bolt.ConfiguredBolt}
+   * the set of all and only batchTimeouts relevant to that ConfiguredBolt.
+   *
+   * @param writerName
+   * @return list of integer batchTimeouts, one per configured sensor
+   */
   public List<Integer> getAllConfiguredTimeouts(String writerName) {
-    //The configuration infrastructure was not designed to enumerate sensors, so we synthesize.
-    //The use of SENSOR_MARKER_STRING assumes the config key for a sensor name consists of a
-    //prefix string (dependent on the ConfigurationType) followed by the sensor name.
-    //This then allows us to determine the keyPrefixString, and thence which of all the
-    //configurations.keySet are actually sensor keys.  Then we look under those for timeouts.
-    String markerKeyString = getKey(SENSOR_MARKER_STRING);
-    int prefixStringLength = markerKeyString.indexOf(SENSOR_MARKER_STRING);
-    String keyPrefixString = markerKeyString.substring(0, prefixStringLength);
+    // The configuration infrastructure was not designed to enumerate sensors, so we synthesize.
+    // Since getKey is in this same class, we know we can pass it a null string to get the key prefix
+    // for all sensor types within this capability.  We then enumerate all keys in configurations.keySet
+    // and select those that match the key prefix, as being sensor keys.  The suffix substring of
+    // each such key is used as a sensor name to query the batchTimeout settings, if any.
+    String keyPrefixString = getKey("");
+    int prefixStringLength = keyPrefixString.length();
     List<Integer> configuredBatchTimeouts = new ArrayList<>();
     for (String sensorKeyString : configurations.keySet()) {
       if (sensorKeyString.startsWith(keyPrefixString)) {

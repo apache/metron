@@ -203,9 +203,8 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    try
-    {
-      if (isTick(tuple)) {
+    if (isTick(tuple)) {
+      try {
         if (!(bulkMessageWriter instanceof WriterToBulkWriter)) {
           //WriterToBulkWriter doesn't allow batching, so no need to flush on Tick.
           LOG.debug("Flushing message queues older than their batchTimeouts");
@@ -213,10 +212,18 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
                   new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
                   , messageGetStrategy);
         }
-        collector.ack(tuple);
-        return;
       }
+      catch(Exception e) {
+        throw new RuntimeException("This should have been caught in the writerComponent.  If you see this, file a JIRA", e);
+      }
+      finally {
+        collector.ack(tuple);
+      }
+      return;
+    }
 
+    try
+    {
       JSONObject message = (JSONObject) messageGetStrategy.get(tuple);
       String sensorType = MessageUtils.getSensorType(message);
       LOG.trace("Writing enrichment message: {}", message);

@@ -18,7 +18,6 @@
 
 package org.apache.metron.common.writer;
 
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.junit.Assert;
@@ -31,6 +30,20 @@ public class IndexingWriterConfigurationTest {
            new IndexingConfigurations()
     );
     Assert.assertEquals(1, config.getBatchSize("foo"));
+  }
+  @Test
+  public void testDefaultBatchTimeout() {
+    IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
+           new IndexingConfigurations()
+    );
+    Assert.assertEquals(0, config.getBatchTimeout("foo"));
+  }
+  @Test
+  public void testGetAllConfiguredTimeouts() {
+    IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
+           new IndexingConfigurations()
+    );
+    Assert.assertEquals(0, config.getAllConfiguredTimeouts().size());
   }
   @Test
   public void testDefaultIndex() {

@@ -42,7 +42,7 @@ public class IndexingConfigFunctions {
           ,description = "Set batch size and timeout"
           ,params = {"sensorConfig - Sensor config to add transformation to."
                     ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
-                    ,"size - batch size (integer), defaults to 5"
+                    ,"size - batch size (integer), defaults to 1, meaning batching disabled"
                     ,"timeout - (optional) batch timeout in seconds (integer), defaults to 0, meaning system default"
                     }
           ,returns = "The String representation of the config in zookeeper"
@@ -70,9 +70,12 @@ public class IndexingConfigFunctions {
       if(writer == null) {
         throw new IllegalStateException("Invalid writer name: " + config);
       }
-      int batchSize = 5;
+      int batchSize = 1;
       if(args.size() > 2) {
         batchSize = ConversionUtils.convert(args.get(i++), Integer.class);
+        if (batchSize < 1) {
+          throw new IllegalArgumentException("Invalid batch size must be >= 1 : " + Integer.toString(batchSize));
+        }
       }
       configObj.put(writer, IndexingConfigurations.setBatchSize((Map<String, Object>) configObj.get(writer), batchSize));
       int batchTimeout = 0;
