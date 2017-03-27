@@ -24,6 +24,8 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.parsers.topology.ParserTopologyBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,10 +38,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
 import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
 
 public class ParserTopologyComponent implements InMemoryComponent {
 
+  protected static final Logger LOG = LoggerFactory.getLogger(ParserTopologyComponent.class);
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
@@ -99,9 +103,29 @@ public class ParserTopologyComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    if(stormCluster != null) {
-      stormCluster.shutdown();
-      cleanupWorkerDir();
+    if (stormCluster != null) {
+      try {
+        try {
+          stormCluster.shutdown();
+        } catch (IllegalStateException ise) {
+          if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
+            throw ise;
+          }
+          else {
+            assassinateSlots();
+            LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
+                    "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
+                    "If tests fail, we'll have to find a better way of killing them.", ise);
+          }
+        }
+      }
+      catch(Throwable t) {
+        LOG.error(t.getMessage(), t);
+      }
+      finally {
+        cleanupWorkerDir();
+      }
+
     }
   }
 }
