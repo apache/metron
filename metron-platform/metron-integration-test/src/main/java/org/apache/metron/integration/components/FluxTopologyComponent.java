@@ -180,12 +180,16 @@ public class FluxTopologyComponent implements InMemoryComponent {
   }
 
   public static void assassinateSlots() {
-    Thread.getAllStackTraces().keySet().stream().filter(t -> t instanceof Slot).forEach(t -> {
-      Slot slot = (Slot) t;
+    /*
+    You might be wondering why I'm not just casting to slot here, but that's because the Slot class moved locations
+    and we're supporting multiple versions of storm.
+     */
+    Thread.getAllStackTraces().keySet().stream().filter(t -> t instanceof AutoCloseable && t.getName().toLowerCase().contains("slot")).forEach(t -> {
+      AutoCloseable slot = (AutoCloseable) t;
       try {
         slot.close();
       } catch (Exception e) {
-        LOG.error("Tried to kill " + slot.getName() + " but.." + e.getMessage(), e);
+        LOG.error("Tried to kill " + t.getName() + " but.." + e.getMessage(), e);
       }
     });
   }
