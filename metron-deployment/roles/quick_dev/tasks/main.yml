@@ -42,6 +42,11 @@
     - metron-indexing
     - metron-elasticsearch
 
+- name: Create local repo with new packages
+  shell: "createrepo /localrepo"
+  args:
+      creates: /localrepo/repodata
+
 - name: Re-install the Metron Packages via Ambari
   ambari_service_state:
     host: "{{ groups.ambari_master[0] }}"
