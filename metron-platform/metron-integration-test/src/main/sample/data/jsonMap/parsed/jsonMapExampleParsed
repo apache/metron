@@ -1,2 +1,2 @@
-{ "string" : "bar", "number" : 2, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"bar\", \"number\" : 2, \"ignored\" : [ \"blah\" ] }","timestamp":1000000000000, "source.type":"jsonMap" }
-{ "number" : 7 , "original_string" : "{ \"number\" : 7 }", "source.type":"jsonMap","timestamp":1000000000000}
+{ "string" : "bar", "number" : 2, "ignored" : [ "blah" ], "original_string":"{ \"string\" : \"bar\", \"number\" : 2, \"ignored\" : [ \"blah\" ] }","timestamp":1000000000000, "source.type":"jsonMap","guid":"this-is-random-uuid-will-be-36-chars" }
+{ "number" : 7 , "original_string" : "{ \"number\" : 7 }", "source.type":"jsonMap","timestamp":1000000000000,"guid":"this-is-random-uuid-will-be-36-chars"}

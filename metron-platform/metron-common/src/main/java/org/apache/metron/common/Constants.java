@@ -31,6 +31,7 @@ public class Constants {
   public static final String ERROR_STREAM = "error";
   public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
+  public static final String GUID = "guid";
 
   public static enum Fields {
      SRC_ADDR("ip_src_addr")

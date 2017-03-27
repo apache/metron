@@ -61,15 +61,19 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
   }
   @Override
   public String getKey(Tuple tuple, JSONObject message) {
-    String key = null;
+    String key = null, guid = null;
     try {
       key = tuple.getStringByField("key");
+      guid = (String)message.get(Constants.GUID);
     }
     catch(Throwable t) {
       //swallowing this just in case.
     }
     if(key != null) {
       return key;
+    }
+    else if(guid != null) {
+      return guid;
     }
     else {
       return UUID.randomUUID().toString();
