@@ -173,7 +173,7 @@ The functions are split roughly into a few sections:
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * writer - The writer to update (e.g. elasticsearch, solr or hdfs)
-    * size - batch size (integer)
+    * size - batch size (integer), defaults to 1, meaning batching disabled
   * Returns: The String representation of the config in zookeeper
 * `INDEXING_SET_ENABLED`
   * Description: Enable or disable an indexing writer for a sensor.
