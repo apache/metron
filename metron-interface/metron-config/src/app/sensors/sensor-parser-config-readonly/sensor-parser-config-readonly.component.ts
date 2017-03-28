@@ -52,7 +52,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
     {type: 'SEPARATOR', model: '', value: ''},
-    {label: 'PARSERS', model: 'sensorParserConfigHistory', value: 'parserName'},
+    {label: 'PARSER', model: 'sensorParserConfigHistory', value: 'parserClassName'},
     {label: 'LAST UPDATED', model: 'sensorParserConfigHistory', value: 'modifiedByDate'},
     {label: 'LAST EDITOR', model: 'sensorParserConfigHistory', value: 'modifiedBy'},
     {label: 'STATE', model: 'topologyStatus', value: 'sensorStatus'},
@@ -101,8 +101,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       (results: SensorParserConfigHistory) => {
         this.sensorParserConfigHistory = results;
 
-        this.sensorParserConfigHistory['parserName'] =
-            (this.sensorParserConfigHistory.config.parserClassName === 'org.apache.metron.parsers.GrokParser') ? 'Grok' : 'Java';
+        this.sensorParserConfigHistory['parserClassName'] =
+            this.sensorParserConfigHistory.config.parserClassName.replace('org.apache.metron.parsers.', '');
         this.setGrokStatement();
         this.setTransformsConfigKeys();
       });

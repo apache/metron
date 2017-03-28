@@ -28,21 +28,22 @@ import {KafkaTopic} from '../../model/kafka-topic';
 import {GrokValidationService} from '../../service/grok-validation.service';
 import {MetronAlerts} from '../../shared/metron-alerts';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorEnrichments} from '../../model/sensor-enrichments';
 import {ParseMessageRequest} from '../../model/parse-message-request';
 import {SensorParserContext} from '../../model/sensor-parser-context';
 import {AuthenticationService} from '../../service/authentication.service';
 import {FieldTransformer} from '../../model/field-transformer';
 import {SensorParserConfigModule} from './sensor-parser-config.module';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
+import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
 import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
 import {IAppConfig} from '../../app.config.interface';
 import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
-import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
+import {IndexingConfigurations} from '../../model/sensor-indexing-config';
 import '../../rxjs-operators';
 import 'rxjs/add/observable/of';
 import {HdfsService} from '../../service/hdfs.service';
+import {RestError} from '../../model/rest-error';
+import {RiskLevelRule} from '../../model/risk-level-rule';
 
 
 class MockRouter {
@@ -63,18 +64,24 @@ class MockActivatedRoute {
 }
 
 class MockSensorParserConfigService extends SensorParserConfigService {
-  private sensorParserConfigPost: SensorParserConfig;
   private sensorParserConfig: SensorParserConfig;
   private parsedMessage: any;
+  private postedSensorParserConfig: SensorParserConfig;
+  private throwError: boolean;
 
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
   }
 
   public post(sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
-    this.sensorParserConfigPost = sensorParserConfig;
+    if (this.throwError) {
+      let error = new RestError();
+      error.message = 'SensorParserConfig post error';
+      return Observable.throw(error);
+    }
+    this.postedSensorParserConfig = sensorParserConfig;
     return Observable.create(observer => {
-      observer.next({});
+      observer.next(sensorParserConfig);
       observer.complete();
     });
   }
@@ -107,50 +114,72 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     this.sensorParserConfig = result;
   }
 
-
-  public getSensorParserConfigPost(): SensorParserConfig {
-    return this.sensorParserConfigPost;
-  }
-
   public setParsedMessage(parsedMessage: any) {
     this.parsedMessage = parsedMessage;
+  }
+
+  public setThrowError(throwError: boolean) {
+    this.throwError = throwError;
+  }
+
+  public getPostedSensorParserConfig() {
+    return this.postedSensorParserConfig;
   }
 }
 
 class MockSensorIndexingConfigService extends SensorIndexingConfigService {
-  private sensorIndexingConfigPost: SensorIndexingConfig;
-  private sensorIndexingConfig: SensorIndexingConfig;
+  private name: string;
+  private postedIndexingConfigurations: IndexingConfigurations;
+  private sensorIndexingConfig: IndexingConfigurations;
+  private throwError: boolean;
 
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
   }
 
-  public post(name: string, sensorIndexingConfig: SensorIndexingConfig): Observable<SensorIndexingConfig> {
-    this.sensorIndexingConfigPost = sensorIndexingConfig;
+  public post(name: string, sensorIndexingConfig: IndexingConfigurations): Observable<IndexingConfigurations> {
+    if (this.throwError) {
+      let error = new RestError();
+      error.message = 'IndexingConfigurations post error';
+      return Observable.throw(error);
+    }
+    this.postedIndexingConfigurations = sensorIndexingConfig;
     return Observable.create(observer => {
-      observer.next({});
+      observer.next(sensorIndexingConfig);
       observer.complete();
     });
   }
 
-  public get(name: string): Observable<SensorIndexingConfig> {
+  public get(name: string): Observable<IndexingConfigurations> {
+    if (this.sensorIndexingConfig === null) {
+      let error = new RestError();
+      error.message = 'IndexingConfigurations get error';
+      return Observable.throw(error);
+    }
     return Observable.create(observer => {
-      observer.next(this.sensorIndexingConfig);
+      if (name === this.name) {
+        observer.next(this.sensorIndexingConfig);
+      }
       observer.complete();
     });
   }
 
-  public setSensorIndexingConfig(result: any) {
+  public setSensorIndexingConfig(name: string, result: IndexingConfigurations) {
+    this.name = name;
     this.sensorIndexingConfig = result;
   }
 
+  public setThrowError(throwError: boolean) {
+    this.throwError = throwError;
+  }
 
-  public getSensorIndexingConfigPost(): SensorIndexingConfig {
-    return this.sensorIndexingConfigPost;
+  public getPostedIndexingConfigurations(): IndexingConfigurations {
+    return this.postedIndexingConfigurations;
   }
 }
 
 class MockKafkaService extends KafkaService {
+  private name: string;
   private kafkaTopic: KafkaTopic;
   private kafkaTopicForPost: KafkaTopic;
   private sampleData = {'key1': 'value1', 'key2': 'value2'};
@@ -159,30 +188,36 @@ class MockKafkaService extends KafkaService {
     super(http2, config2);
   }
 
-  public setForTest(kafkaTopic: KafkaTopic) {
+  public setKafkaTopic(name: string, kafkaTopic: KafkaTopic) {
+    this.name = name;
     this.kafkaTopic = kafkaTopic;
   }
 
-  public setForSample(sampleData?: any) {
+  public setSampleData(name: string, sampleData?: any) {
+    this.name = name;
     this.sampleData = sampleData;
   }
 
   public sample(name: string): Observable<string> {
     if (this.sampleData === null) {
-      return Observable.throw('Error');
+      return Observable.throw(new RestError());
     }
     return Observable.create(observer => {
-      observer.next(JSON.stringify(this.sampleData));
+      if (name === this.name) {
+        observer.next(JSON.stringify(this.sampleData));
+      }
       observer.complete();
     });
   }
 
   public get(name: string): Observable<KafkaTopic> {
     if (this.kafkaTopic === null) {
-      return Observable.throw('Error');
+      return Observable.throw(new RestError());
     }
     return Observable.create(observer => {
-      observer.next(this.kafkaTopic);
+      if (name === this.name) {
+        observer.next(this.kafkaTopic);
+      }
       observer.complete();
     });
   }
@@ -204,8 +239,16 @@ class MockKafkaService extends KafkaService {
 
 class MockGrokValidationService extends GrokValidationService {
 
+  private path: string;
+  private contents: string;
+
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
+  }
+
+  public setContents(path: string, contents: string) {
+    this.path = path;
+    this.contents = contents;
   }
 
   public list(): Observable<string[]> {
@@ -221,17 +264,38 @@ class MockGrokValidationService extends GrokValidationService {
       observer.complete();
     });
   }
+
+
+  public getStatement(path: string): Observable<string> {
+    if (this.contents === null) {
+      return Observable.throw('Error');
+    }
+    return Observable.create(observer => {
+      if (path === this.path) {
+        observer.next(this.contents);
+      }
+      observer.complete();
+    });
+  }
 }
 
 class MockHdfsService extends HdfsService {
   private fileList: string[];
+  private path: string;
   private contents: string;
+  private postedContents: string;
 
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
   }
 
-  public setContents(contents: string) {
+  public setFileList(path: string, fileList: string[]) {
+    this.path = path;
+    this.fileList = fileList;
+  }
+
+  public setContents(path: string, contents: string) {
+    this.path = path;
     this.contents = contents;
   }
 
@@ -240,7 +304,9 @@ class MockHdfsService extends HdfsService {
       return Observable.throw('Error');
     }
     return Observable.create(observer => {
-      observer.next(this.fileList);
+      if (path === this.path) {
+        observer.next(this.fileList);
+      }
       observer.complete();
     });
   }
@@ -250,14 +316,22 @@ class MockHdfsService extends HdfsService {
       return Observable.throw('Error');
     }
     return Observable.create(observer => {
-      observer.next(this.contents);
+      if (path === this.path) {
+        observer.next(this.contents);
+      }
       observer.complete();
     });
   }
 
-  public post(contents: string): Observable<{}> {
+  public post(path: string, contents: string): Observable<{}> {
+    if (this.contents === null) {
+      let error = new RestError();
+      error.message = 'HDFS post Error';
+      return Observable.throw(error);
+    }
+    this.postedContents = contents;
     return Observable.create(observer => {
-      observer.next({});
+      observer.next(contents);
       observer.complete();
     });
   }
@@ -267,6 +341,10 @@ class MockHdfsService extends HdfsService {
       observer.next({});
       observer.complete();
     });
+  }
+
+  public getPostedContents() {
+    return this.postedContents;
   }
 }
 
@@ -311,73 +389,58 @@ class MockTransformationValidationService extends StellarService {
 }
 
 export class MockSensorEnrichmentConfigService {
+  private name: string;
+  private sensorEnrichmentConfig: SensorEnrichmentConfig;
+  private postedSensorEnrichmentConfig: SensorEnrichmentConfig;
+  private throwError: boolean;
 
-  private broEnrichments = new SensorEnrichmentConfig();
-  private squidEnrichments = new SensorEnrichmentConfig();
-
-  constructor() {
-    let broEnrichment = {'fieldMap': {
-                          'geo': ['ip_dst_addr'],
-                          'host': ['ip_dst_addr'],
-                          'whois': [],
-                          'stellar': { 'config': { 'group1': {} }}
-                          },
-                        'fieldToTypeMap': {}, 'config': {}
-                        };
-    let broThreatIntel = {'threatIntel': {
-                            'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
-                            'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
-                            }
-                          };
-    let squidEnrichments = {'fieldMap': {
-                              'geo': ['ip_dst_addr'],
-                              'host': ['ip_dst_addr'],
-                              'whois': [],
-                              'stellar': { 'config': { 'group1': {} }}
-                              },
-                              'fieldToTypeMap': {}, 'config': {}
-                            };
-    let squidThreatIntel = {'threatIntel': {
-                              'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
-                              'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
-                              }
-                            };
-
-    this.broEnrichments = new SensorEnrichmentConfig();
-    this.broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
-    this.broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
-    this.squidEnrichments = new SensorEnrichmentConfig();
-    this.squidEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  squidEnrichments);
-    this.squidEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), squidThreatIntel);
+  public setSensorEnrichmentConfig(name: string, sensorEnrichmentConfig: SensorEnrichmentConfig) {
+    this.name = name;
+    this.sensorEnrichmentConfig = sensorEnrichmentConfig;
   }
 
-  public get(name: string): Observable<SensorEnrichments> {
-    if (name === 'bro') {
-      return Observable.create(observer => {
-        observer.next(this.broEnrichments);
-        observer.complete();
-      });
-    } else {
-      return Observable.create(observer => {
-        observer.next(this.squidEnrichments);
-        observer.complete();
-      });
+  public get(name: string): Observable<SensorEnrichmentConfig> {
+    if (this.sensorEnrichmentConfig === null) {
+      let error = new RestError();
+      error.message = 'SensorEnrichmentConfig get error';
+      return Observable.throw(error);
     }
-  }
-
-  public post(sensorEnrichments: SensorEnrichments): Observable<SensorEnrichments> {
-    return  Observable.create(observer => {
-      observer.next(sensorEnrichments);
+    return Observable.create(observer => {
+      if (name === this.name) {
+        observer.next(this.sensorEnrichmentConfig);
+      }
       observer.complete();
     });
+  }
+
+  public post(name: string, sensorEnrichmentConfig: SensorEnrichmentConfig): Observable<SensorEnrichmentConfig> {
+    if (this.throwError) {
+      let error = new RestError();
+      error.message = 'SensorEnrichmentConfig post error';
+      return Observable.throw(error);
+    }
+    this.postedSensorEnrichmentConfig = sensorEnrichmentConfig;
+    return  Observable.create(observer => {
+      observer.next(sensorEnrichmentConfig);
+      observer.complete();
+    });
+  }
+
+  public setThrowError(throwError: boolean) {
+    this.throwError = throwError;
+  }
+
+  public getPostedSensorEnrichmentConfig() {
+    return this.postedSensorEnrichmentConfig;
   }
 }
 
 describe('Component: SensorParserConfig', () => {
 
-  let comp: SensorParserConfigComponent;
+  let component: SensorParserConfigComponent;
   let fixture: ComponentFixture<SensorParserConfigComponent>;
   let sensorParserConfigService: MockSensorParserConfigService;
+  let sensorEnrichmentConfigService: MockSensorEnrichmentConfigService;
   let sensorIndexingConfigService: MockSensorIndexingConfigService;
   let transformationValidationService: MockTransformationValidationService;
   let kafkaService: MockKafkaService;
@@ -386,13 +449,12 @@ describe('Component: SensorParserConfig', () => {
   let activatedRoute: MockActivatedRoute;
   let metronAlerts: MetronAlerts;
   let router: MockRouter;
-  let sensorEnrichmentsService: MockSensorEnrichmentConfigService;
 
-  let squidSensorData: any = {
+  let squidSensorParserConfig: any = {
     'parserClassName': 'org.apache.metron.parsers.GrokParser',
     'sensorTopic': 'squid',
     'parserConfig': {
-      'grokPath': '/patterns/squid',
+      'grokPath': '/apps/metron/patterns/squid',
       'patternLabel': 'SQUID_DELIMITED',
       'timestampField': 'timestamp'
     },
@@ -409,21 +471,40 @@ describe('Component: SensorParserConfig', () => {
     ],
   };
 
-  let squidIndexingConfig = {
-    'index': 'squid',
-    'batchSize': 5
+  let squidSensorEnrichmentConfig = {
+    'enrichment': {
+      'fieldMap': {
+        'geo': ['ip_dst_addr'],
+        'host': ['ip_dst_addr'],
+        'whois': [],
+        'stellar': { 'config': { 'group1': {} }}
+      },
+      'fieldToTypeMap': {}, 'config': {}
+    },
+    'threatIntel': {
+      'threatIntel': {
+        'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
+        'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
+      }
+    }
   };
 
-  let squidKafkaData: any = {
-    'name': 'squid',
-    'numPartitions': 1,
-    'replicationFactor': 1
-  };
-
-  let broKafkaData: any = {
-    'name': 'squid',
-    'numPartitions': 4,
-    'replicationFactor': 4
+  let squidIndexingConfigurations = {
+    'hdfs': {
+      'index': 'squid',
+      'batchSize': 5,
+      'enabled': true
+    },
+    'elasticsearch': {
+      'index': 'squid',
+      'batchSize': 10,
+      'enabled': true
+    },
+    'solr': {
+      'index': 'squid',
+      'batchSize': 1,
+      'enabled': false
+    },
   };
 
   beforeEach(async(() => {
@@ -448,14 +529,14 @@ describe('Component: SensorParserConfig', () => {
     }).compileComponents()
       .then(() => {
         fixture = TestBed.createComponent(SensorParserConfigComponent);
-        comp = fixture.componentInstance;
+        component = fixture.componentInstance;
         sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
         sensorIndexingConfigService = fixture.debugElement.injector.get(SensorIndexingConfigService);
         transformationValidationService = fixture.debugElement.injector.get(StellarService);
         kafkaService = fixture.debugElement.injector.get(KafkaService);
         hdfsService = fixture.debugElement.injector.get(HdfsService);
         grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
-        sensorEnrichmentsService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
+        sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
         activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
         metronAlerts = fixture.debugElement.injector.get(MetronAlerts);
         router = fixture.debugElement.injector.get(Router);
@@ -464,25 +545,45 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should create an instance of SensorParserConfigComponent', async(() => {
-
-    let component: SensorParserConfigComponent = fixture.componentInstance;
     expect(component).toBeDefined();
 
     fixture.destroy();
   }));
 
-  it('should create edit forms for SensorParserConfigComponent', async(() => {
-    activatedRoute.setNameForTest('squid');
-    sensorParserConfigService.setSensorParserConfig(Object.assign(new SensorParserConfig(), squidSensorData));
-    sensorIndexingConfigService.setSensorIndexingConfig(Object.assign(new SensorIndexingConfig(), squidIndexingConfig));
-    let kafkaTopic = Object.assign(new KafkaTopic(), squidKafkaData);
-    kafkaService.setForTest(kafkaTopic);
+  it('should handle ngOnInit', async(() => {
+    spyOn(component, 'init');
+    spyOn(component, 'createForms');
+    spyOn(component, 'getAvailableParsers');
 
-    let component: SensorParserConfigComponent = fixture.componentInstance;
+    activatedRoute.setNameForTest('squid');
+
     component.ngOnInit();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(8);
+    expect(component.init).toHaveBeenCalledWith('squid');
+    expect(component.createForms).toHaveBeenCalled();
+    expect(component.getAvailableParsers).toHaveBeenCalled();
+
+    fixture.destroy();
+  }));
+
+  it('should createForms', async(() => {
+    component.sensorParserConfig = Object.assign(new SensorParserConfig(), squidSensorParserConfig);
+    component.createForms();
+
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(15);
     expect(Object.keys(component.transformsValidationForm.controls).length).toEqual(2);
+    expect(component.showAdvancedParserConfiguration).toEqual(true);
+
+    component.sensorParserConfig.parserConfig = {};
+    component.showAdvancedParserConfiguration = false;
+    component.createForms();
+    expect(component.showAdvancedParserConfiguration).toEqual(false);
+
+    fixture.destroy();
+  }));
+
+  it('should getAvailableParsers', async(() => {
+    component.getAvailableParsers();
     expect(component.availableParsers).toEqual({
       'Bro': 'org.apache.metron.parsers.bro.BasicBroParser',
       'Grok': 'org.apache.metron.parsers.GrokParser'
@@ -492,43 +593,216 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
-  it('should create new forms for SensorParserConfigComponent', async(() => {
-    activatedRoute.setNameForTest('new');
-    let testTopic: KafkaTopic = Object.assign(new KafkaTopic(), squidKafkaData);
-    kafkaService.setForTest(testTopic);
+  it('should init', async(() => {
+    component.init('new');
 
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-    component.ngOnInit();
+    let expectedSensorParserConfig = new SensorParserConfig();
+    expectedSensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    expect(component.sensorParserConfig).toEqual(expectedSensorParserConfig);
+    expect(component.sensorEnrichmentConfig).toEqual(new SensorEnrichmentConfig());
+    expect(component.indexingConfigurations).toEqual(new IndexingConfigurations());
+    expect(component.editMode).toEqual(false);
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(8);
-    expect(Object.keys(component.transformsValidationForm.controls).length).toEqual(2);
-    component.sensorParserConfig.sensorTopic = 'squid';
-    component.onSetSensorName();
+    spyOn(component, 'getKafkaStatus');
+    let sensorParserConfig = Object.assign(new SensorParserConfig(), squidSensorParserConfig);
+    sensorParserConfigService.setSensorParserConfig(sensorParserConfig);
+    sensorEnrichmentConfigService.setSensorEnrichmentConfig('squid',
+        Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
+    sensorIndexingConfigService.setSensorIndexingConfig('squid',
+        Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
+    hdfsService.setContents('/apps/metron/patterns/squid', 'SQUID_DELIMITED grok statement');
+
+    component.init('squid');
+    expect(component.sensorParserConfig).toEqual(Object.assign(new SensorParserConfig(), squidSensorParserConfig));
+    expect(component.sensorNameValid).toEqual(true);
+    expect(component.getKafkaStatus).toHaveBeenCalled();
+    expect(component.showAdvancedParserConfiguration).toEqual(true);
+    expect(component.grokStatement).toEqual('SQUID_DELIMITED grok statement');
+    expect(component.patternLabel).toEqual('SQUID_DELIMITED');
+    expect(component.sensorEnrichmentConfig).toEqual(Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
+    expect(component.indexingConfigurations).toEqual(Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
+
+    component.sensorParserConfig.parserConfig['grokPath'] = '/patterns/squid';
+    hdfsService.setContents('/patterns/squid', null);
+    grokValidationService.setContents('/patterns/squid', 'SQUID grok statement from classpath');
+
+    component.init('squid');
+    expect(component.grokStatement).toEqual('SQUID grok statement from classpath');
+
+    spyOn(metronAlerts, 'showErrorMessage');
+
+    sensorEnrichmentConfigService.setSensorEnrichmentConfig('squid', null);
+    component.init('squid');
+    expect(metronAlerts.showErrorMessage).toHaveBeenCalledWith('SensorEnrichmentConfig get error');
+
+    sensorIndexingConfigService.setSensorIndexingConfig('squid', null);
+    component.init('squid');
+    expect(metronAlerts.showErrorMessage).toHaveBeenCalledWith('IndexingConfigurations get error');
+
+    grokValidationService.setContents('/patterns/squid', null);
+
+    component.init('squid');
+    expect(metronAlerts.showErrorMessage).toHaveBeenCalledWith('Could not find grok statement in HDFS or classpath at /patterns/squid');
+
+    sensorParserConfig = new SensorParserConfig();
+    sensorParserConfig.sensorTopic = 'bro';
+    sensorParserConfigService.setSensorParserConfig(sensorParserConfig);
+    component.showAdvancedParserConfiguration = false;
+
+    component.init('bro');
+    expect(component.showAdvancedParserConfiguration).toEqual(false);
 
     fixture.destroy();
   }));
 
-  it('should return Transforms information with formatting ', async(() => {
-    activatedRoute.setNameForTest('squid');
-    kafkaService.setForTest(Object.assign(new KafkaTopic(), broKafkaData));
-    sensorParserConfigService.setSensorParserConfig(Object.assign(new SensorParserConfig(), squidSensorData));
-    sensorIndexingConfigService.setSensorIndexingConfig(Object.assign(new SensorIndexingConfig(), squidIndexingConfig));
+  it('should getMessagePrefix', async(() => {
+    component.getAvailableParsers();
+    expect(component.getMessagePrefix()).toEqual('Created');
+    component.editMode = true;
+    expect(component.getMessagePrefix()).toEqual('Modified');
 
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-    component.ngOnInit();
+    fixture.destroy();
+  }));
+
+  it('should handle onSetSensorName', async(() => {
+    spyOn(component, 'getKafkaStatus');
+    spyOn(component, 'isConfigValid');
+
+    component.onSetSensorName();
+    expect(component.getKafkaStatus).not.toHaveBeenCalled();
+    expect(component.isConfigValid).toHaveBeenCalled();
+
+    component.sensorParserConfig.sensorTopic = 'bro';
+    component.onSetSensorName();
+    expect(component.sensorNameValid).toEqual(true);
+    expect(component.getKafkaStatus).toHaveBeenCalled();
+
+    fixture.destroy();
+  }));
+
+  it('should handle onParserTypeChange', async(() => {
+    spyOn(component, 'hidePane');
+    spyOn(component, 'isConfigValid');
+
+    component.onParserTypeChange();
+    expect(component.hidePane).not.toHaveBeenCalled();
+    expect(component.isConfigValid).toHaveBeenCalled();
+
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    component.onParserTypeChange();
+    expect(component.parserClassValid).toEqual(true);
+    expect(component.hidePane).not.toHaveBeenCalled();
+
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
+    component.onParserTypeChange();
+    expect(component.hidePane).toHaveBeenCalledWith(Pane.GROK);
+
+    fixture.destroy();
+  }));
+
+  it('should handle onGrokStatementChange', async(() => {
+    spyOn(component, 'isConfigValid');
+
+    component.onGrokStatementChange();
+    expect(component.grokStatementValid).toEqual(false);
+    expect(component.isConfigValid).toHaveBeenCalled();
+
+    component.grokStatement = 'grok statement';
+    component.onGrokStatementChange();
+    expect(component.grokStatementValid).toEqual(true);
+
+    fixture.destroy();
+  }));
+
+  it('should handle isConfigValid', async(() => {
+    component.isConfigValid();
+    expect(component.configValid).toEqual(false);
+
+    component.sensorNameValid = true;
+    component.parserClassValid = true;
+
+    component.isConfigValid();
+    expect(component.configValid).toEqual(true);
+
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    component.isConfigValid();
+    expect(component.configValid).toEqual(false);
+
+    component.grokStatementValid = true;
+    component.isConfigValid();
+    expect(component.configValid).toEqual(true);
+
+    fixture.destroy();
+  }));
+
+  it('should getKafkaStatus', async(() => {
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(null);
+
+    component.sensorParserConfig.sensorTopic = 'squid';
+    kafkaService.setKafkaTopic('squid', null);
+
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NO_TOPIC);
+
+    kafkaService.setKafkaTopic('squid', new KafkaTopic());
+    kafkaService.setSampleData('squid', null);
+
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NOT_EMITTING);
+
+    kafkaService.setSampleData('squid', 'message');
+    component.getKafkaStatus();
+    expect(component.currentKafkaStatus).toEqual(KafkaStatus.EMITTING);
+
+    fixture.destroy();
+  }));
+
+  it('should getTransforms', async(() => {
+    expect(component.getTransforms()).toEqual('0 Transformations Applied');
+
+    component.sensorParserConfig.fieldTransformations.push(Object.assign(new FieldTransformer(), {'output': ['field1', 'field2']}));
+    component.sensorParserConfig.fieldTransformations.push(Object.assign(new FieldTransformer(), {'output': ['field3']}));
+
     expect(component.getTransforms()).toEqual('3 Transformations Applied');
 
     fixture.destroy();
   }));
 
-  it('should call window history back', async(() => {
+  it('should handle onSaveGrokStatement', async(() => {
+    component.sensorParserConfig.sensorTopic = 'squid';
+
+    component.onSaveGrokStatement('grok statement');
+    expect(component.grokStatement).toEqual('grok statement');
+    expect(component.sensorParserConfig.parserConfig['grokPath']).toEqual('/apps/metron/patterns/squid');
+
+    component.sensorParserConfig.parserConfig['grokPath'] = '/patterns/squid';
+    component.onSaveGrokStatement('grok statement');
+    expect(component.sensorParserConfig.parserConfig['grokPath']).toEqual('/apps/metron/patterns/squid');
+
+    component.sensorParserConfig.parserConfig['grokPath'] = '/custom/grok/path';
+    component.onSaveGrokStatement('grok statement');
+    expect(component.sensorParserConfig.parserConfig['grokPath']).toEqual('/custom/grok/path');
+
+    fixture.destroy();
+  }));
+
+  it('should onSavePatternLabel', async(() => {
+    component.onSavePatternLabel('PATTERN_LABEL');
+    expect(component.patternLabel).toEqual('PATTERN_LABEL');
+    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('PATTERN_LABEL');
+
+    fixture.destroy();
+  }));
+
+  it('should goBack', async(() => {
     activatedRoute.setNameForTest('new');
-    let component: SensorParserConfigComponent = fixture.componentInstance;
 
     router.navigateByUrl = jasmine.createSpy('navigateByUrl');
     component.goBack();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors');
 
+    fixture.destroy();
   }));
 
   it('should save sensor configuration', async(() => {
@@ -541,62 +815,53 @@ describe('Component: SensorParserConfig', () => {
     let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
     sensorParserConfigSave.sensorTopic = 'squid';
     sensorParserConfigSave.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    sensorParserConfigSave.parserConfig = {};
-    sensorParserConfigSave.parserConfig['grokStatement'] = '%{NUMBER:timestamp}';
+    sensorParserConfigSave.parserConfig['grokPath'] = '/apps/metron/patterns/squid';
     sensorParserConfigSave.fieldTransformations = [fieldTransformer];
     activatedRoute.setNameForTest('new');
-
-    let sensorParserConfigServiceStatus = true;
-    spyOn(sensorParserConfigService, 'post').and.callFake(() => {
-      if (sensorParserConfigServiceStatus) {
-        return Observable.create(observer => {
-          observer.next(sensorParserConfigSave);
-          observer.complete();
-        });
-      } else {
-        return Observable.throw({message: 'Error'});
-      }
-
-    });
-
-    let sensorEnrichmentsServiceStatus = true;
-    spyOn(sensorEnrichmentsService, 'post').and.callFake((sensorEnrichments: SensorEnrichments) => {
-      if (sensorEnrichmentsServiceStatus) {
-        return  Observable.create(observer => {
-          observer.next(sensorEnrichments);
-          observer.complete();
-        });
-      } else {
-        return Observable.throw({message: 'Error'});
-      }
-    });
+    sensorParserConfigService.setThrowError(true);
 
     spyOn(metronAlerts, 'showSuccessMessage');
     spyOn(metronAlerts, 'showErrorMessage');
 
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-
     component.sensorParserConfig.sensorTopic = 'squid';
     component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    component.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/squid';
     component.sensorParserConfig.fieldTransformations = [fieldTransformer];
-    component.sensorParserConfig.parserConfig['grokStatement'] = '%{NUMBER:timestamp}';
-
-    expect(component.sensorParserConfig.parserConfig['grokStatement']).toEqual('%{NUMBER:timestamp}');
 
     component.onSave();
-    expect(sensorParserConfigService.post).toHaveBeenCalledWith(sensorParserConfigSave);
-    expect(metronAlerts.showSuccessMessage).toHaveBeenCalledWith('Created Sensor squid');
-    expect(sensorEnrichmentsService.post).toHaveBeenCalled();
+    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0])
+        .toEqual('Unable to save sensor config: SensorParserConfig post error');
 
-    sensorParserConfigServiceStatus = false;
-    component.onSave();
-    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0]).toEqual('Unable to save sensor config: Error');
+    component.sensorEnrichmentConfig = Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig);
+    component.indexingConfigurations = Object.assign(new IndexingConfigurations(), squidIndexingConfigurations);
+    sensorParserConfigService.setThrowError(false);
+    hdfsService.setContents('/apps/metron/patterns/squid', 'SQUID grok statement');
+    component.grokStatement = 'SQUID grok statement';
 
-    sensorParserConfigServiceStatus = true;
-    sensorEnrichmentsServiceStatus = false;
     component.onSave();
-    let expected = 'Created Sensor parser config but unable to save enrichment configuration: Error';
-    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0]).toEqual(expected);
+    expect(sensorParserConfigService.getPostedSensorParserConfig()).toEqual(sensorParserConfigSave);
+    expect(sensorEnrichmentConfigService.getPostedSensorEnrichmentConfig())
+        .toEqual(Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
+    expect(sensorIndexingConfigService.getPostedIndexingConfigurations())
+        .toEqual(Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
+    expect(hdfsService.getPostedContents()).toEqual('SQUID grok statement');
+
+    hdfsService.setContents('/apps/metron/patterns/squid', null);
+
+    component.onSave();
+    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0]).toEqual('HDFS post Error');
+
+    sensorEnrichmentConfigService.setThrowError(true);
+
+    component.onSave();
+    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0])
+        .toEqual('Created Sensor parser config but unable to save enrichment configuration: SensorEnrichmentConfig post error');
+
+    sensorIndexingConfigService.setThrowError(true);
+
+    component.onSave();
+    expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0])
+        .toEqual('Created Sensor parser config but unable to save indexing configuration: IndexingConfigurations post error');
 
     fixture.destroy();
   }));
@@ -630,7 +895,7 @@ describe('Component: SensorParserConfig', () => {
       })
     ];
 
-    let component: SensorParserConfigComponent = fixture.componentInstance;
+
 
     expect(component.getTransformationCount()).toEqual(0);
 
@@ -643,7 +908,6 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should getEnrichmentCount', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
 
     component.sensorEnrichmentConfig.enrichment.fieldMap['geo'] = ['ip_src_addr', 'ip_dst_addr'];
     component.sensorEnrichmentConfig.enrichment.fieldToTypeMap['hbaseenrichment'] = ['ip_src_addr', 'ip_dst_addr'];
@@ -654,7 +918,6 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should getThreatIntelCount', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
 
     component.sensorEnrichmentConfig.threatIntel.fieldToTypeMap['hbaseenrichment'] = ['ip_src_addr', 'ip_dst_addr'];
 
@@ -663,8 +926,18 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
+  it('should getRuleCount', async(() => {
+    let rule1 = Object.assign(new RiskLevelRule(), {'name': 'rule1', 'rule': 'some rule', 'score': 50});
+    let rule2 = Object.assign(new RiskLevelRule(), {'name': 'rule2', 'rule': 'some other rule', 'score': 80});
+    component.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.push(rule1);
+    component.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.push(rule2);
+
+    expect(component.getRuleCount()).toEqual(2);
+
+    fixture.destroy();
+  }));
+
   it('should showPane', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
 
     component.showPane(Pane.GROK);
     expect(component.showGrokValidator).toEqual(true);
@@ -685,7 +958,6 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should hidePane', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
 
     component.hidePane(Pane.GROK);
     expect(component.showGrokValidator).toEqual(false);
@@ -705,8 +977,23 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
-  it('should hidePane', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
+  it('should handle onShowGrokPane', async(() => {
+    spyOn(component, 'showPane');
+    component.sensorParserConfig.sensorTopic = 'squid';
+
+    component.onShowGrokPane();
+    expect(component.patternLabel).toEqual('SQUID');
+    expect(component.showPane).toHaveBeenCalledWith(component.pane.GROK);
+
+    component.patternLabel = 'PATTERN_LABEL';
+
+    component.onShowGrokPane();
+    expect(component.patternLabel).toEqual('PATTERN_LABEL');
+
+    fixture.destroy();
+  }));
+
+  it('should handle onRawJsonChanged', async(() => {
     spyOn(component.sensorFieldSchema, 'createFieldSchemaRows');
 
     component.onRawJsonChanged();
@@ -716,71 +1003,10 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
-  it('should set patternLabel', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-    component.sensorParserConfig = new SensorParserConfig();
-    component.sensorParserConfig.sensorTopic = 'Topic1';
-    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    component.onParserTypeChange();
-    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
+  it('should handle onAdvancedConfigFormClose', async(() => {
+    component.onAdvancedConfigFormClose();
 
-    component.sensorParserConfig.parserConfig['patternLabel'] = null;
-    component.onParserTypeChange();
-    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
-
-    component.onParserTypeChange();
-    expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual('TOPIC1');
-
-    fixture.destroy();
-  }));
-
-  it('should check isGrokParser', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-    component.sensorParserConfig = new SensorParserConfig();
-
-    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    expect(component.isGrokParser(component.sensorParserConfig)).toEqual(true);
-
-    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParserTest';
-    expect(component.isGrokParser(component.sensorParserConfig)).toEqual(false);
-
-    fixture.destroy();
-  }));
-
-  it('should return  getKafkaStatus', async(() => {
-    let component: SensorParserConfigComponent = fixture.componentInstance;
-    component.sensorParserConfig = new SensorParserConfig();
-
-    component.getKafkaStatus();
-    expect(component.currentKafkaStatus).toEqual(null);
-
-    component.sensorParserConfig.sensorTopic = '';
-    component.getKafkaStatus();
-    expect(component.currentKafkaStatus).toEqual(null);
-
-    let kafkaTopic = Object.assign(new KafkaTopic(), squidKafkaData);
-    kafkaService.setForTest(kafkaTopic);
-    component.sensorParserConfig.sensorTopic = 'SQUID';
-    component.getKafkaStatus();
-    expect(component.currentKafkaStatus).toEqual(KafkaStatus.EMITTING);
-
-    kafkaService.setForSample();
-    kafkaService.setForTest(kafkaTopic);
-    component.sensorParserConfig.sensorTopic = 'SQUID';
-    component.getKafkaStatus();
-    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NOT_EMITTING);
-
-    kafkaService.setForTest(null);
-    component.sensorParserConfig.sensorTopic = 'SQUID';
-    component.getKafkaStatus();
-    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NO_TOPIC);
-
-    kafkaService.setForSample(null);
-    kafkaService.setForTest(kafkaTopic);
-    component.sensorParserConfig.sensorTopic = 'SQUID';
-    component.getKafkaStatus();
-    expect(component.currentKafkaStatus).toEqual(KafkaStatus.NOT_EMITTING);
-
+    expect(component.showAdvancedParserConfiguration).toEqual(false);
 
     fixture.destroy();
   }));

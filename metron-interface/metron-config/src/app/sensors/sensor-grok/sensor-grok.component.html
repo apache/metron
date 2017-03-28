@@ -21,8 +21,12 @@
     <form role="form" class="grok-form">
         <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
                                    (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
+        <label attr.for="patternLabel">PATTERN LABEL</label>
+        <select class="form-control pattern-label-dropdown" [ngModelOptions]="{standalone: true}" [(ngModel)]="newPatternLabel">
+          <option *ngFor="let patternLabel of availablePatternLabels" [value]="patternLabel"> {{ patternLabel }} </option>
+        </select>
         <label attr.for="grokStatement">STATEMENT</label>
-        <metron-config-ace-editor [(ngModel)]="newGrokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'"> </metron-config-ace-editor>
+        <metron-config-ace-editor [(ngModel)]="newGrokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'" (ngModelChange)="getAvailablePatternLabels()"> </metron-config-ace-editor>
 
         <div class="buttons-bar">
             <button type="submit" class="btn form-enable-disable-button" [disabled]="parseMessageRequest.sampleData.length===0 || newGrokStatement.length===0" (click)="onTestGrokStatement()">TEST</button>

@@ -22,7 +22,7 @@ import '../rxjs-operators';
 import {METRON_REST_CONFIG, APP_CONFIG} from '../app.config';
 import {IAppConfig} from '../app.config.interface';
 import {SensorIndexingConfigService} from './sensor-indexing-config.service';
-import {SensorIndexingConfig} from '../model/sensor-indexing-config';
+import {IndexingConfigurations} from '../model/sensor-indexing-config';
 
 describe('SensorIndexingConfigService', () => {
 
@@ -58,12 +58,12 @@ describe('SensorIndexingConfigService', () => {
   describe('when service functions', () => {
     let sensorIndexingConfigService: SensorIndexingConfigService;
     let mockBackend: MockBackend;
-    let sensorIndexingConfig1 = new SensorIndexingConfig();
-    sensorIndexingConfig1.index = 'squid';
-    sensorIndexingConfig1.batchSize = 1;
-    let sensorIndexingConfig2 = new SensorIndexingConfig();
-    sensorIndexingConfig2.index = 'yaf';
-    sensorIndexingConfig2.batchSize = 2;
+    let sensorIndexingConfig1 = new IndexingConfigurations();
+    sensorIndexingConfig1.hdfs.index = 'squid';
+    sensorIndexingConfig1.hdfs.batchSize = 1;
+    let sensorIndexingConfig2 = new IndexingConfigurations();
+    sensorIndexingConfig2.hdfs.index = 'yaf';
+    sensorIndexingConfig2.hdfs.batchSize = 2;
     let sensorIndexingConfigResponse: Response;
     let sensorIndexingConfigsResponse: Response;
     let deleteResponse: Response;

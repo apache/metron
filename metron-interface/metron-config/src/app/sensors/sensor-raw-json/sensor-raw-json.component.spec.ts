@@ -23,7 +23,7 @@ import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
 import {SensorRawJsonModule} from './sensor-raw-json.module';
-import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
+import {IndexingConfigurations} from '../../model/sensor-indexing-config';
 import '../../rxjs-operators';
 
 describe('Component: SensorRawJsonComponent', () => {
@@ -74,15 +74,34 @@ describe('Component: SensorRawJsonComponent', () => {
     let sensorEnrichmentConfigWithConfig = Object.assign(new SensorEnrichmentConfig(), sensorEnrichmentConfig);
     sensorEnrichmentConfigWithConfig.configuration = 'some-configuration';
 
-    let sensorIndexingConfigString = '{"index": "bro","batchSize": 5}';
-    let sensorIndexingConfig = new SensorIndexingConfig();
-    sensorIndexingConfig.index = 'bro';
-    sensorIndexingConfig.batchSize = 5;
+    let sensorIndexingConfigString = `{"hdfs": {"index": "bro","batchSize": 5,"enabled":true},
+    "elasticsearch": {"index": "bro","batchSize": 5,"enabled":true},
+    "solr": {"index": "bro","batchSize": 5,"enabled":true}}`;
+    let sensorIndexingConfig = new IndexingConfigurations();
+    sensorIndexingConfig.hdfs.index = 'bro';
+    sensorIndexingConfig.hdfs.batchSize = 5;
+    sensorIndexingConfig.hdfs.enabled = true;
+    sensorIndexingConfig.elasticsearch.index = 'bro';
+    sensorIndexingConfig.elasticsearch.batchSize = 5;
+    sensorIndexingConfig.elasticsearch.enabled = true;
+    sensorIndexingConfig.solr.index = 'bro';
+    sensorIndexingConfig.solr.batchSize = 5;
+    sensorIndexingConfig.solr.enabled = true;
 
-    let sensorIndexingConfigChangedString = '{"index": "squid","batchSize": 1}';
-    let sensorIndexingConfigChanged = Object.assign(new SensorIndexingConfig(), sensorIndexingConfig);
-    sensorIndexingConfigChanged.index = 'squid';
-    sensorIndexingConfigChanged.batchSize = 1;
+    let sensorIndexingConfigChangedString = `{"hdfs": {"index": "squid","batchSize": 1,"enabled":true},
+    "elasticsearch": {"index": "squid","batchSize": 1,"enabled":true},
+    "solr": {"index": "squid","batchSize": 1,"enabled":true}}`;
+    let sensorIndexingConfigChanged = new IndexingConfigurations();
+    sensorIndexingConfigChanged.hdfs.index = 'squid';
+    sensorIndexingConfigChanged.hdfs.batchSize = 1;
+    sensorIndexingConfigChanged.hdfs.enabled = true;
+    sensorIndexingConfigChanged.elasticsearch.index = 'squid';
+    sensorIndexingConfigChanged.elasticsearch.batchSize = 1;
+    sensorIndexingConfigChanged.elasticsearch.enabled = true;
+    sensorIndexingConfigChanged.solr.index = 'squid';
+    sensorIndexingConfigChanged.solr.batchSize = 1;
+    sensorIndexingConfigChanged.solr.enabled = true;
+
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
@@ -116,15 +135,15 @@ describe('Component: SensorRawJsonComponent', () => {
         component.init();
         expect(component.newSensorParserConfig).toEqual(undefined);
         expect(component.newSensorEnrichmentConfig).toEqual(undefined);
-        expect(component.newSensorIndexingConfig).toEqual(undefined);
+        expect(component.newIndexingConfigurations).toEqual(undefined);
 
         component.sensorParserConfig = sensorParserConfig;
         component.sensorEnrichmentConfig = sensorEnrichmentConfig;
-        component.sensorIndexingConfig = sensorIndexingConfig;
+        component.indexingConfigurations = sensorIndexingConfig;
         component.init();
         expect(component.newSensorParserConfig).toEqual(JSON.stringify(sensorParserConfig, null, '\t'));
         expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(sensorEnrichmentConfig, null, '\t'));
-        expect(component.newSensorIndexingConfig).toEqual(JSON.stringify(sensorIndexingConfig, null, '\t'));
+        expect(component.newIndexingConfigurations).toEqual(JSON.stringify(sensorIndexingConfig, null, '\t'));
 
         fixture.destroy();
     });
@@ -132,29 +151,28 @@ describe('Component: SensorRawJsonComponent', () => {
     it('should save the fields', () => {
         spyOn(component.hideRawJson, 'emit');
         spyOn(component.onRawJsonChanged, 'emit');
-
         component.sensorParserConfig = new SensorParserConfig();
         component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
-        component.sensorIndexingConfig = new SensorIndexingConfig();
+        component.indexingConfigurations = new IndexingConfigurations();
 
         component.newSensorParserConfig = sensorParserConfigString;
         component.newSensorEnrichmentConfig = sensorEnrichmentConfigString;
-        component.newSensorIndexingConfig = sensorIndexingConfigString;
+        component.newIndexingConfigurations = sensorIndexingConfigString;
         component.onSave();
         expect(component.sensorParserConfig).toEqual(sensorParserConfig);
         expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
-        expect(component.sensorIndexingConfig).toEqual(sensorIndexingConfig);
+        expect(component.indexingConfigurations).toEqual(sensorIndexingConfig);
         expect(component.hideRawJson.emit).toHaveBeenCalled();
         expect(component.onRawJsonChanged.emit).toHaveBeenCalled();
 
 
         component.newSensorParserConfig = sensorParserConfigWithClassNameString;
         component.newSensorEnrichmentConfig = sensorEnrichmentConfigWithConfigString;
-        component.newSensorIndexingConfig = sensorIndexingConfigChangedString;
+        component.newIndexingConfigurations = sensorIndexingConfigChangedString;
         component.onSave();
         expect(component.sensorParserConfig).toEqual(sensorParserConfigWithClassName);
         expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfigWithConfig);
-        expect(component.sensorIndexingConfig).toEqual(sensorIndexingConfigChanged);
+        expect(component.indexingConfigurations).toEqual(sensorIndexingConfigChanged);
         expect(component.hideRawJson.emit['calls'].count()).toEqual(2);
         expect(component.onRawJsonChanged.emit['calls'].count()).toEqual(2);
 

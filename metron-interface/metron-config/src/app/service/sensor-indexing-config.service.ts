@@ -18,7 +18,7 @@
 import {Injectable, Inject} from '@angular/core';
 import {Http, Headers, RequestOptions, Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import {SensorIndexingConfig} from '../model/sensor-indexing-config';
+import {IndexingConfigurations} from '../model/sensor-indexing-config';
 import {HttpUtil} from '../util/httpUtil';
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
@@ -31,20 +31,20 @@ export class SensorIndexingConfigService {
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
   }
 
-  public post(name: string, sensorIndexingConfig: SensorIndexingConfig): Observable<SensorIndexingConfig> {
+  public post(name: string, sensorIndexingConfig: IndexingConfigurations): Observable<IndexingConfigurations> {
     return this.http.post(this.url + '/' + name, JSON.stringify(sensorIndexingConfig),
                           new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
-  public get(name: string): Observable<SensorIndexingConfig> {
+  public get(name: string): Observable<IndexingConfigurations> {
     return this.http.get(this.url + '/' + name, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
 
-  public getAll(): Observable<SensorIndexingConfig[]> {
+  public getAll(): Observable<IndexingConfigurations[]> {
     return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);

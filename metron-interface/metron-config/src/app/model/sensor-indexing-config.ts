@@ -18,4 +18,11 @@
 export class SensorIndexingConfig {
   index: string;
   batchSize: number = 1;
+  enabled: boolean = true;
+}
+
+export class IndexingConfigurations {
+  hdfs: SensorIndexingConfig = new SensorIndexingConfig();
+  elasticsearch: SensorIndexingConfig = new SensorIndexingConfig();
+  solr: SensorIndexingConfig = new SensorIndexingConfig();
 }

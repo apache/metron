@@ -17,7 +17,7 @@
  */
 
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
-import {SimpleChange, SimpleChanges} from '@angular/core';
+import {SimpleChange} from '@angular/core';
 import {Http} from '@angular/http';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {MetronAlerts} from '../../shared/metron-alerts';
@@ -70,7 +70,7 @@ class MockKafkaService {
 
 }
 
-describe('Component: SensorFieldSchema', () => {
+describe('Component: SensorGrok', () => {
   let component: SensorGrokComponent;
   let grokValidationService: GrokValidationService;
   let fixture: ComponentFixture<SensorGrokComponent>;
@@ -101,7 +101,7 @@ describe('Component: SensorFieldSchema', () => {
     fixture.destroy();
   });
 
-  it('should create edit forms for SensorParserConfigComponent', async(() => {
+  it('should handle ngOnInit', async(() => {
     component.ngOnInit();
 
     expect(Object.keys(component.grokFunctionList).length).toEqual(6);
@@ -109,8 +109,39 @@ describe('Component: SensorFieldSchema', () => {
     fixture.destroy();
   }));
 
-  it('should test grok statement validation', async(() => {
+  it('should handle ngOnChanges', async(() => {
     spyOn(component.sampleData, 'getNextSample');
+
+    let changes = {
+      'showGrok': new SimpleChange(true, false)
+    };
+    component.ngOnChanges(changes);
+    expect(component.sampleData.getNextSample['calls'].count()).toEqual(0);
+
+    changes = {
+      'showGrok': new SimpleChange(false, true)
+    };
+
+    component.grokStatement = 'STATEMENT_1 grok statement 1\nSTATEMENT_2 grok statement 2\n';
+    component.patternLabel = 'STATEMENT_2';
+    component.ngOnChanges(changes);
+    expect(component.newGrokStatement).toEqual('STATEMENT_1 grok statement 1\nSTATEMENT_2 grok statement 2\n');
+    expect(component.newPatternLabel).toEqual('STATEMENT_2');
+    expect(component.availablePatternLabels).toEqual(['STATEMENT_1', 'STATEMENT_2']);
+
+    component.grokStatement = '';
+    component.patternLabel = 'PATTERN_LABEL';
+    component.ngOnChanges(changes);
+    expect(component.newGrokStatement).toEqual('PATTERN_LABEL ');
+    expect(component.newPatternLabel).toEqual('PATTERN_LABEL');
+    expect(component.availablePatternLabels).toEqual(['PATTERN_LABEL']);
+
+    expect(component.sampleData.getNextSample['calls'].count()).toEqual(2);
+
+    fixture.destroy();
+  }));
+
+  it('should test grok statement validation', async(() => {
 
     let parsedMessage = {
       'action': 'TCP_MISS',
@@ -132,121 +163,53 @@ describe('Component: SensorFieldSchema', () => {
 
     component.sensorParserConfig = new SensorParserConfig();
     component.sensorParserConfig.sensorTopic = 'squid';
-    component.parseMessageRequest.sampleData = sampleData;
-    component.grokStatement = grokStatement;
-    let changes: SimpleChanges = {
-      'showGrok': new SimpleChange(false, true),
-      'sensorParserConfig': new SimpleChange(null, null)
-    };
-    component.ngOnChanges(changes);
+    component.newGrokStatement = grokStatement;
 
-    component.onTestGrokStatement();
+    component.onSampleDataChanged('');
+    expect(component.parsedMessage).toEqual({});
+    expect(component.parsedMessageKeys).toEqual([]);
 
+    component.onSampleDataChanged(sampleData);
     expect(component.parsedMessage).toEqual(parsedMessage);
+    expect(component.parsedMessageKeys).toEqual(['action', 'bytes', 'code', 'elapsed', 'ip_dst_addr',
+      'ip_src_addr', 'method', 'timestamp', 'url']);
 
     sensorParserConfigService.setParsedMessage('ERROR');
     component.onTestGrokStatement();
 
     expect(component.parsedMessage).toEqual({});
 
-    component.grokStatement = '';
-    component.ngOnChanges(changes);
+    component.newGrokStatement = '';
     component.onTestGrokStatement();
     expect(component.parsedMessage).toEqual({});
 
     fixture.destroy();
   }));
 
-  it('should call getSampleData if showGrok', () => {
-    spyOn(component.sampleData, 'getNextSample');
-    let changes: SimpleChanges = {
-      'showGrok': new SimpleChange(false, true),
-      'sensorParserConfig': new SimpleChange(null, null)
-    };
-    component.ngOnChanges(changes);
-    expect(component.sampleData.getNextSample['calls'].count()).toEqual(1);
-
-    changes = {
-      'showGrok': new SimpleChange(true, false),
-      'sensorParserConfig': new SimpleChange(null, new SensorParserConfig())
-    };
-    component.ngOnChanges(changes);
-    expect(component.sampleData.getNextSample['calls'].count()).toEqual(1);
-
-    fixture.destroy();
-  });
-
-  it('should call onTestGrokStatement on calling onSampleDataChanged  ', () => {
-    spyOn(component, 'onTestGrokStatement');
-
-    component.onSampleDataChanged('Some sample data');
-
-    expect(component.parseMessageRequest.sampleData).toEqual('Some sample data');
-    expect(component.onTestGrokStatement).toHaveBeenCalled();
-
-    fixture.destroy();
-  });
-
-  it('should return keys of parsed message  ', () => {
-    spyOn(component.sampleData, 'getNextSample');
-
-    component.grokStatement = 'sample statement';
-    let changes: SimpleChanges = {
-      'showGrok': new SimpleChange(false, true)
-    };
-    component.ngOnChanges(changes);
-
-    component.sensorParserConfig = new SensorParserConfig();
-    component.sensorParserConfig.sensorTopic = 'abc';
-    sensorParserConfigService.setParsedMessage({'def': 'test-agin', 'abc': 'test'});
-
-    component.onTestGrokStatement();
-    expect(component.parsedMessageKeys).toEqual(['abc', 'def']);
-    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('ABC');
-
-    sensorParserConfigService.setParsedMessage({});
-    component.onTestGrokStatement();
-    expect(component.parsedMessageKeys).toEqual([]);
-    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('ABC');
-
-    sensorParserConfigService.setParsedMessage(null);
-    component.onTestGrokStatement();
-    expect(component.parsedMessageKeys).toEqual([]);
-    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('ABC');
-
-    component.sensorParserConfig.parserConfig['patternLabel'] = 'def';
-    sensorParserConfigService.setParsedMessage('ERROR');
-    component.onTestGrokStatement();
-    expect(component.parsedMessageKeys).toEqual([]);
-    expect(component.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel']).toEqual('def');
-
-    fixture.destroy();
-  });
-
   it('should call appropriate functions on save ', () => {
-    spyOn(component.sampleData, 'getNextSample');
     spyOn(component.hideGrok, 'emit');
     spyOn(component.onSaveGrokStatement, 'emit');
-    component.showGrok = true;
-    component.grokStatement = 'test sample';
-    component.sensorParserConfig = new SensorParserConfig();
-    component.sensorParserConfig.sensorTopic = 'abc';
-    let changes: SimpleChanges = {
-      'showGrok': new SimpleChange(false, true)
-    };
-    component.ngOnChanges(changes);
+    spyOn(component.onSavePatternLabel, 'emit');
+    component.newGrokStatement = 'grok statement';
+    component.newPatternLabel = 'PATTERN_LABEL';
 
     component.onSaveGrok();
 
-    expect(component.onSaveGrokStatement.emit).toHaveBeenCalledWith('test sample');
+    expect(component.onSaveGrokStatement.emit).toHaveBeenCalledWith('grok statement');
+    expect(component.onSavePatternLabel.emit).toHaveBeenCalledWith('PATTERN_LABEL');
     expect(component.hideGrok.emit).toHaveBeenCalled();
     fixture.destroy();
   });
 
-  it('should call apprprate functions on cancel ', () => {
+  it('should call appropriate functions on cancel ', () => {
     spyOn(component.hideGrok, 'emit');
+    spyOn(component.onSaveGrokStatement, 'emit');
+    spyOn(component.onSavePatternLabel, 'emit');
+
     component.onCancelGrok();
 
+    expect(component.onSaveGrokStatement.emit).not.toHaveBeenCalled();
+    expect(component.onSavePatternLabel.emit).not.toHaveBeenCalled();
     expect(component.hideGrok.emit).toHaveBeenCalled();
     fixture.destroy();
   });

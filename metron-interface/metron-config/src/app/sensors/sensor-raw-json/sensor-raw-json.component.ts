@@ -18,7 +18,7 @@
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
 import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {SensorIndexingConfig} from '../../model/sensor-indexing-config';
+import {IndexingConfigurations, SensorIndexingConfig} from '../../model/sensor-indexing-config';
 
 declare var ace: any;
 
@@ -33,14 +33,14 @@ export class SensorRawJsonComponent implements OnChanges {
   @Input() showRawJson: boolean;
   @Input() sensorParserConfig: SensorParserConfig;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
-  @Input() sensorIndexingConfig: SensorIndexingConfig;
+  @Input() indexingConfigurations: IndexingConfigurations;
 
   @Output() hideRawJson: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onRawJsonChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   newSensorParserConfig: string;
   newSensorEnrichmentConfig: string;
-  newSensorIndexingConfig: string;
+  newIndexingConfigurations: string;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showRawJson'] && changes['showRawJson'].currentValue) {
@@ -57,8 +57,8 @@ export class SensorRawJsonComponent implements OnChanges {
       this.newSensorEnrichmentConfig = JSON.stringify(this.sensorEnrichmentConfig, null, '\t');
     }
 
-    if (this.sensorIndexingConfig) {
-      this.newSensorIndexingConfig = JSON.stringify(this.sensorIndexingConfig, null, '\t');
+    if (this.indexingConfigurations) {
+      this.newIndexingConfigurations = JSON.stringify(this.indexingConfigurations, null, '\t');
     }
   }
 
@@ -89,10 +89,10 @@ export class SensorRawJsonComponent implements OnChanges {
       this.sensorEnrichmentConfig.configuration = newParsedSensorEnrichmentConfig.configuration;
     }
 
-    let newParsedSensorIndexingConfig = JSON.parse(this.newSensorIndexingConfig);
-    this.sensorIndexingConfig.batchSize = newParsedSensorIndexingConfig.batchSize;
-    this.sensorIndexingConfig.index = newParsedSensorIndexingConfig.index;
-
+    let newParsedIndexingConfigurations = JSON.parse(this.newIndexingConfigurations);
+    this.indexingConfigurations.hdfs = Object.assign(new SensorIndexingConfig(), newParsedIndexingConfigurations.hdfs);
+    this.indexingConfigurations.elasticsearch = Object.assign(new SensorIndexingConfig(), newParsedIndexingConfigurations.elasticsearch);
+    this.indexingConfigurations.solr = Object.assign(new SensorIndexingConfig(), newParsedIndexingConfigurations.solr);
     this.hideRawJson.emit(true);
     this.onRawJsonChanged.emit(true);
   }

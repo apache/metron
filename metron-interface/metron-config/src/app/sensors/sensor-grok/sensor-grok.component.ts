@@ -17,13 +17,17 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   @Input() showGrok; boolean;
   @Input() sensorParserConfig: SensorParserConfig;
   @Input() grokStatement: string;
+  @Input() patternLabel: string;
 
   @Output() hideGrok = new EventEmitter<void>();
   @Output() onSaveGrokStatement = new EventEmitter<string>();
+  @Output() onSavePatternLabel = new EventEmitter<string>();
 
   @ViewChild(SampleDataComponent) sampleData: SampleDataComponent;
 
   newGrokStatement = '';
+  newPatternLabel = '';
+  availablePatternLabels = ['label 1', 'label 2'];
   parsedMessage: any = {};
   parsedMessageKeys: string[] = [];
   grokFunctionList: AutocompleteOption[] = [];
@@ -40,14 +44,22 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showGrok'] && changes['showGrok'].currentValue) {
-      this.newGrokStatement = this.grokStatement;
+      this.newPatternLabel = this.patternLabel;
+      if (this.grokStatement) {
+        this.newGrokStatement = this.grokStatement;
+      } else {
+        this.newGrokStatement = this.newPatternLabel + ' ';
+      }
+      this.getAvailablePatternLabels();
       this.sampleData.getNextSample();
     }
   }
 
   onSampleDataChanged(sampleData: string) {
-    this.parseMessageRequest.sampleData = sampleData;
-    this.onTestGrokStatement();
+    if (sampleData) {
+      this.parseMessageRequest.sampleData = sampleData;
+      this.onTestGrokStatement();
+    }
   }
 
   onTestGrokStatement() {
@@ -57,13 +69,9 @@ export class SensorGrokComponent implements OnInit, OnChanges {
       return;
     }
 
-    let topicUpperCase = this.sensorParserConfig.sensorTopic.toUpperCase();
-
     this.parseMessageRequest.sensorParserConfig = JSON.parse(JSON.stringify(this.sensorParserConfig));
-    this.parseMessageRequest.grokStatement = topicUpperCase + ' ' + this.newGrokStatement;
-    if (this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] == null) {
-        this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] = topicUpperCase;
-    }
+    this.parseMessageRequest.grokStatement = this.newGrokStatement;
+    this.parseMessageRequest.sensorParserConfig.parserConfig['patternLabel'] = this.newPatternLabel;
     this.parseMessageRequest.sensorParserConfig.parserConfig['grokPath'] = './' + this.parseMessageRequest.sensorParserConfig.sensorTopic;
 
     this.sensorParserConfigService.parseMessage(this.parseMessageRequest).subscribe(
@@ -96,11 +104,23 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   onSaveGrok(): void {
     this.onSaveGrokStatement.emit(this.newGrokStatement);
+    this.onSavePatternLabel.emit(this.newPatternLabel);
     this.hideGrok.emit();
   }
 
   onCancelGrok(): void {
     this.hideGrok.emit();
+  }
+
+  private getAvailablePatternLabels() {
+    this.availablePatternLabels = [];
+    let statements = this.newGrokStatement.split('\n');
+    for (let statement of statements) {
+      if (statement) {
+        let patternLabel = statement.split(' ')[0];
+        this.availablePatternLabels.push(patternLabel);
+      }
+    }
   }
 
 

@@ -14,13 +14,14 @@
 <metron-config-metron-modal>
     <metron-config-sensor-grok [hidden]="!showGrokValidator" [showGrok]="showGrokValidator"
                                [grokStatement]="grokStatement"
+                               [(patternLabel)]="patternLabel"
                                [(sensorParserConfig)]="sensorParserConfig"
-                               (hideGrok)="hidePane(pane.GROK)" (onSaveGrokStatement)="onSaveGrokStatement($event)"></metron-config-sensor-grok>
+                               (hideGrok)="hidePane(pane.GROK)" (onSaveGrokStatement)="onSaveGrokStatement($event)" (onSavePatternLabel)="onSavePatternLabel($event)"></metron-config-sensor-grok>
 
     <metron-config-sensor-raw-json [hidden]="!showRawJson" [showRawJson]="showRawJson" (hideRawJson)="hidePane(pane.RAWJSON)"
                                    [(sensorParserConfig)]="sensorParserConfig"
                                    [(sensorEnrichmentConfig)]="sensorEnrichmentConfig"
-                                   [(sensorIndexingConfig)]="sensorIndexingConfig"
+                                   [(indexingConfigurations)]="indexingConfigurations"
                                    (onRawJsonChanged)="onRawJsonChanged()"></metron-config-sensor-raw-json>
 
     <metron-config-sensor-field-schema [hidden]="!showFieldSchema" [showFieldSchema]="showFieldSchema"
@@ -60,7 +61,7 @@
                     <div  class="input-group" [attr.disabled]="!sensorNameValid || !parserClassValid">
                         <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="this.grokStatement" (ngModelChange)="onGrokStatementChange()" readonly>
                         <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" (click)="showPane(pane.GROK)" readonly>
+                            <button class="btn btn-default" type="button" (click)="sensorNameValid && parserClassValid && onShowGrokPane()" readonly>
                             <i class="fa fa-columns" aria-hidden="true"></i>
                             <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
                             </button>
@@ -79,7 +80,7 @@
                             </table>
                         </div>
                         <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" (click)="showPane(pane.FIELDSCHEMA)" style="height: 80px;" readonly>
+                            <button class="btn btn-default" type="button" (click)="configValid && showPane(pane.FIELDSCHEMA)" style="height: 80px;" readonly>
                                 <i class="fa fa-columns" aria-hidden="true"></i>
                                 <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
                           </button>
@@ -96,7 +97,7 @@
                             </table>
                         </div>
                         <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" (click)="showPane(pane.THREATTRIAGE)" readonly>
+                            <button class="btn btn-default" type="button" (click)="configValid && showPane(pane.THREATTRIAGE)" readonly>
                                 <i class="fa fa-columns" aria-hidden="true"></i>
                                 <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
                             </button>
@@ -124,12 +125,40 @@
                     </div>
 
                     <div class="form-group">
-                        <label attr.for="index">INDEX NAME</label>
-                        <input type="text" class="form-control" name="index" formControlName="index"  [(ngModel)]="sensorIndexingConfig.index" >
+                        <label attr.for="index">HDFS INDEX NAME</label>
+                        <input type="text" class="form-control" name="hdfsIndex" formControlName="hdfsIndex"  [(ngModel)]="indexingConfigurations.hdfs.index" >
                     </div>
                     <div  class="form-group">
-                        <label attr.for="batchSize">BATCH SIZE</label>
-                        <metron-config-number-spinner name="batchSize" [(ngModel)]="sensorIndexingConfig.batchSize" formControlName="batchSize"> </metron-config-number-spinner>
+                        <label attr.for="batchSize">HDFS BATCH SIZE</label>
+                        <metron-config-number-spinner name="hdfsBatchSize" [(ngModel)]="indexingConfigurations.hdfs.batchSize" formControlName="hdfsBatchSize"> </metron-config-number-spinner>
+                    </div>
+                    <div class="form-group">
+                        <label attr.for="index">HDFS ENABLED</label>
+                        <input type="checkbox" class="form-control" name="hdfsEnabled" formControlName="hdfsEnabled"  [(ngModel)]="indexingConfigurations.hdfs.enabled" >
+                    </div>
+                    <div class="form-group">
+                        <label attr.for="index">ELASTICSEARCH INDEX NAME</label>
+                        <input type="text" class="form-control" name="elasticsearchIndex" formControlName="elasticsearchIndex"  [(ngModel)]="indexingConfigurations.elasticsearch.index" >
+                    </div>
+                    <div  class="form-group">
+                        <label attr.for="batchSize">ELASTICSEARCH BATCH SIZE</label>
+                        <metron-config-number-spinner name="elasticsearchBatchSize" [(ngModel)]="indexingConfigurations.elasticsearch.batchSize" formControlName="elasticsearchBatchSize"> </metron-config-number-spinner>
+                    </div>
+                    <div class="form-group">
+                        <label attr.for="index">ELASTICSEARCH ENABLED</label>
+                        <input type="checkbox" class="form-control" name="elasticsearchEnabled" formControlName="elasticsearchEnabled"  [(ngModel)]="indexingConfigurations.elasticsearch.enabled" >
+                    </div>
+                    <div class="form-group">
+                        <label attr.for="index">SOLR INDEX NAME</label>
+                        <input type="text" class="form-control" name="solrIndex" formControlName="solrIndex"  [(ngModel)]="indexingConfigurations.solr.index" >
+                    </div>
+                    <div  class="form-group">
+                        <label attr.for="batchSize">SOLR BATCH SIZE</label>
+                        <metron-config-number-spinner name="solrBatchSize" [(ngModel)]="indexingConfigurations.solr.batchSize" formControlName="solrBatchSize"> </metron-config-number-spinner>
+                    </div>
+                    <div class="form-group">
+                        <label attr.for="index">SOLR ENABLED</label>
+                        <input type="checkbox" class="form-control" name="solrEnabled" formControlName="solrEnabled"  [(ngModel)]="indexingConfigurations.solr.enabled" >
                     </div>
                     <div class="form-group">
                         <label attr.for="parserConfig">PARSER CONFIG</label>
