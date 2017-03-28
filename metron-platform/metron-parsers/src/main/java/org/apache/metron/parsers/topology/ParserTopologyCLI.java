@@ -312,19 +312,13 @@ public class ParserTopologyCLI {
               securityProtocol
       );
       Config stormConf = ParserOptions.getConfig(cmd);
-      if(securityProtocol.isPresent()) {
+      if(securityProtocol.isPresent() && !stormConf.containsKey(Config.TOPOLOGY_AUTO_CREDENTIALS)) {
+        //if I'm specifying it already, then I won't impose autohdfs and autohbase
         List<String> autoCredentials = new ArrayList<>();
-        if(stormConf.containsKey(Config.TOPOLOGY_AUTO_CREDENTIALS)) {
-          autoCredentials.addAll((Collection<? extends String>) stormConf.get(Config.TOPOLOGY_AUTO_CREDENTIALS));
+        for (String credential : ImmutableList.of(AutoHDFS.class.getName(), AutoHBase.class.getName())) {
+          autoCredentials.add(credential);
         }
-        for(String credential : ImmutableList.of(AutoHDFS.class.getName(), AutoHBase.class.getName())) {
-          if(!autoCredentials.contains(credential)) {
-            autoCredentials.add(credential);
-          }
-        }
-        stormConf.put( Config.TOPOLOGY_AUTO_CREDENTIALS
-                     , autoCredentials
-                     );
+        stormConf.put( Config.TOPOLOGY_AUTO_CREDENTIALS , autoCredentials );
       }
       if (ParserOptions.TEST.has(cmd)) {
         stormConf.put(Config.TOPOLOGY_DEBUG, true);
