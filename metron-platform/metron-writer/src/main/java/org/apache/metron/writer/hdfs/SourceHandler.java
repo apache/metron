@@ -92,9 +92,7 @@ public class SourceHandler {
   }
 
   private void initialize(Map config) throws IOException {
-    Configuration hdfsConfig = new Configuration();
     this.fs = FileSystem.get(new Configuration());
-    HdfsSecurityUtil.login(config, hdfsConfig);
     this.currentFile = createOutputFile();
     if(this.rotationPolicy instanceof TimedRotationPolicy){
       long interval = ((TimedRotationPolicy)this.rotationPolicy).getInterval();

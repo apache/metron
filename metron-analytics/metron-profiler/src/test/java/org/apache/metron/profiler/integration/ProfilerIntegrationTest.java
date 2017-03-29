@@ -305,6 +305,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.flush.interval.seconds", "1");
       setProperty("profiler.profile.ttl", "20");
       setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
+      setProperty("storm.auto.credentials", "[]");
+      setProperty("kafka.security.protocol", "PLAINTEXT");
     }};
 
     // create the mock table

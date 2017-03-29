@@ -17,6 +17,7 @@
 name: "pcap"
 config:
     topology.workers: 1
+    topology.auto-credentials: ${storm.auto.credentials}
 
 components:
 
@@ -36,6 +37,11 @@ components:
           args:
             - "group.id"
             - "pcap"
+      -   name: "put"
+          args:
+            - "security.protocol"
+            - "${kafka.security.protocol}"
+
   - id: "kafkaConfig"
     className: "org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder"
     constructorArgs:
