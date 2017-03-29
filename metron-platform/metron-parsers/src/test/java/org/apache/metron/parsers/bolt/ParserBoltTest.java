@@ -184,7 +184,6 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
-
     };
 
     buildGlobalConfig(parserBolt);
@@ -197,6 +196,7 @@ public class ParserBoltTest extends BaseBoltTest {
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     JSONObject parsedMessage = new JSONObject();
     parsedMessage.put("field", "invalidValue");
+    parsedMessage.put("guid", "this-is-unique-identifier-for-tuple");
     List<JSONObject> messageList = new ArrayList<>();
     messageList.add(parsedMessage);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messageList));
@@ -210,6 +210,7 @@ public class ParserBoltTest extends BaseBoltTest {
             .addRawMessage(new JSONObject(){{
               put("field", "invalidValue");
               put("source.type", "yaf");
+              put("guid", "this-is-unique-identifier-for-tuple");
             }});
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
@@ -234,9 +235,7 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
-
     };
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -244,14 +243,14 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(writer, times(1)).init();
     byte[] sampleBinary = "some binary message".getBytes();
     JSONParser jsonParser = new JSONParser();
-    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\" }");
-    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\" }");
+    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     List<JSONObject> messages = new ArrayList<JSONObject>() {{
       add(sampleMessage1);
       add(sampleMessage2);
     }};
-    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\" }");
-    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\" }");
+    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messages));
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
@@ -136,6 +137,9 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             if (handler != null) {
               handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
             }
+          }
+          if(!message.containsKey(Constants.GUID)) {
+            message.put(Constants.GUID, UUID.randomUUID().toString());
           }
           if (parser.validate(message) && (filter == null || filter.emitTuple(message, stellarContext))) {
             numWritten++;

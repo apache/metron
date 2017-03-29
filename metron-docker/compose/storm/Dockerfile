@@ -20,7 +20,6 @@ ARG METRON_VERSION
 
 ENV METRON_VERSION $METRON_VERSION
 ENV METRON_HOME /usr/metron/$METRON_VERSION/
-ENV GEO_DIR /apps/metron/geo/default/
 
 ADD ./bin $METRON_HOME/bin
 ADD ./parser /parser
@@ -28,7 +27,6 @@ ADD ./enrichment /enrichment
 ADD ./indexing /indexing
 ADD ./elasticsearch /elasticsearch
 RUN mkdir -p $METRON_HOME
-RUN mkdir -p $GEO_DIR
 RUN tar -xzf /parser/metron-parsers-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
 
 RUN tar -xzf /enrichment/metron-enrichment-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
@@ -49,10 +47,10 @@ RUN tar -xzf /elasticsearch/metron-elasticsearch-$METRON_VERSION-archive.tar.gz 
 RUN sed -i -e "s/kafka.zk=.*:/kafka.zk=kafkazk:/g" /usr/metron/$METRON_VERSION/config/elasticsearch.properties
 RUN sed -i -e "s/kafka.broker=.*/kafka.broker=kafkazk:9092/g" /usr/metron/$METRON_VERSION/config/elasticsearch.properties
 RUN sed -i -e "s/es.ip=.*/es.ip=metron-elasticsearch/g" /usr/metron/$METRON_VERSION/config/elasticsearch.properties
-RUN sed -i -e "s/bolt.hdfs.file.system.url=.*:8020/bolt.hdfs.file.system.url=file\:\/\/\//g" /usr/metron/$METRON_VERSION/config/elasticsearch.properties
+RUN sed -i -e "s/bolt.hdfs.file.system.url=.*/bolt.hdfs.file.system.url=hdfs:\/\/hadoop:9000/g" /usr/metron/$METRON_VERSION/config/elasticsearch.properties
+RUN sed -i -e "s/index.hdfs.output=.*/index.hdfs.output=\/apps\/metron\/indexing\/indexed/g" /usr/metron/$METRON_VERSION/config/elasticsearch.properties
 
 EXPOSE 8080 8000
 EXPOSE 8081 8081
 
 WORKDIR $METRON_HOME
-RUN cd $GEO_DIR && wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz

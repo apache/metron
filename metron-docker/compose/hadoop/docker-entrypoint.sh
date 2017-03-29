@@ -15,9 +15,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-echo "create /metron metron" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology topology" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology/parsers parsers" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology/enrichments enrichments" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology/indexing indexing" | ./bin/zookeeper-shell.sh localhost:2181
-$METRON_HOME/bin/zk_load_configs.sh -z localhost:2181 -m PUSH -i $METRON_HOME/config/zookeeper
+
+# exit immediately on error
+set -e
+
+# start namenode
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_PREFIX/etc/hadoop --script hdfs start namenode
+
+# start datanode
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_PREFIX/etc/hadoop --script hdfs start datanode
+
+# create metron base directory
+$HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /apps/metron
+
+# create directory for geo database
+$HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /apps/metron/geo/default
+
+# download geo database to hdfs
+curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz | $HADOOP_PREFIX/bin/hdfs dfs -put - /apps/metron/geo/default/GeoLite2-City.mmdb.gz
+
+# pass through CMD as PID 1
+exec "$@"

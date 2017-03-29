@@ -79,6 +79,8 @@ title: Apache Metron (Incubating) Community
       <td style="text-align: left">Otto Fowler</td> <td style="text-align: left">otto</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
       <td style="text-align: left">Kyle Richardson</td> <td style="text-align: left">kylerichardson</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Matt Foley</td> <td style="text-align: left">mattf</td> <td style="text-align: left">Committer</td> </tr>
     </tbody>
 </table>
 </section>
