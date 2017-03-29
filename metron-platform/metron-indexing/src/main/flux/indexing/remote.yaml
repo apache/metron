@@ -19,7 +19,7 @@ name: "indexing"
 config:
     topology.workers: ${indexing.workers}
     topology.acker.executors: ${indexing.executors}
-    topology.auto-credentials: ${storm.auto.credentials}
+    topology.worker.childopts: ${topology.worker.childopts}
 
 components:
 
