@@ -18,7 +18,7 @@ name: "enrichment"
 config:
     topology.workers: 1
     topology.acker.executors: 0
-    topology.auto-credentials: ${storm.auto.credentials}
+    topology.worker.childopts: ${topology.worker.childopts}
 
 components:
 
