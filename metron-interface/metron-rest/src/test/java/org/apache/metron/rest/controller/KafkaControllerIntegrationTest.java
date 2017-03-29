@@ -78,9 +78,7 @@ public class KafkaControllerIntegrationTest {
         while(!stop) {
           broSampleDataGenerator.generateSampleData(path);
         }
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (ParseException e) {
+      } catch (ParseException|IOException e) {
         e.printStackTrace();
       }
     }
