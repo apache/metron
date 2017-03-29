@@ -17,6 +17,7 @@
  */
 package org.apache.storm.kafka;
 
+import org.apache.storm.kafka.spout.KafkaSpoutMessageId;
 import org.apache.storm.spout.SpoutOutputCollector;
 
 import java.io.Serializable;
@@ -36,8 +37,8 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
 
 
     public static int getPartition(Object messageIdObj) {
-        PartitionManager.KafkaMessageId messageId = (PartitionManager.KafkaMessageId) messageIdObj;
-        return messageId.partition.partition;
+        KafkaSpoutMessageId messageId = (KafkaSpoutMessageId)messageIdObj;
+        return messageId.getTopicPartition().partition();
     }
 
     /**

@@ -16,31 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.metron.spout.pcap.scheme;
+package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.storm.spout.MultiScheme;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
-import org.apache.storm.kafka.KeyValueSchemeAsMultiScheme;
+import org.apache.metron.common.utils.timestamp.TimestampConverters;
 
-public enum TimestampScheme {
-   FROM_KEY( converter -> new KeyValueSchemeAsMultiScheme(new FromKeyScheme().withTimestampConverter(converter)))
-  ,FROM_PACKET(converter -> new FromPacketScheme().withTimestampConverter(converter));
-  ;
-  public static final String KV_FIELD = "kv";
-  TimestampSchemeCreator creator;
-  TimestampScheme(TimestampSchemeCreator creator)
-  {
-    this.creator = creator;
+import java.io.Serializable;
+
+public abstract class KeyValueDeserializer implements Serializable {
+  protected TimestampConverter converter;
+
+  public KeyValueDeserializer() {
+    this(TimestampConverters.MICROSECONDS);
   }
 
-  public static MultiScheme getScheme(String scheme, TimestampConverter converter) {
-    try {
-      TimestampScheme ts = TimestampScheme.valueOf(scheme.toUpperCase());
-      return ts.creator.create(converter);
-    }
-    catch(IllegalArgumentException iae) {
-      return TimestampScheme.FROM_KEY.creator.create(converter);
-    }
+  public KeyValueDeserializer(TimestampConverter converter) {
+    this.converter = converter;
   }
+
+  public abstract boolean deserializeKeyValue(byte[] key, byte[] value, LongWritable outKey, BytesWritable outValue);
 
 }
