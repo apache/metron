@@ -166,6 +166,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   }
 
   getData() {
+    this.startStopInProgress = false;
+
     this.getSensorInfo();
     this.getSensorStatusService();
     this.getKafkaData();
@@ -237,14 +239,15 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   onStartSensor() {
     this.toggleStartStopInProgress();
+    let name = this.selectedSensorName;
 
-    this.stormService.startParser(this.selectedSensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Started sensor ' + this.selectedSensorName);
+    this.stormService.startParser(name).subscribe(result => {
+        this.metronAlerts.showSuccessMessage('Started sensor ' + name);
         this.toggleStartStopInProgress();
         this.getData();
       },
       error => {
-        this.metronAlerts.showErrorMessage('Unable to start sensor ' + this.selectedSensorName);
+        this.metronAlerts.showErrorMessage('Unable to start sensor ' + name);
         this.toggleStartStopInProgress();
       });
   }
@@ -252,13 +255,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   onStopSensor() {
     this.toggleStartStopInProgress();
 
-    this.stormService.stopParser(this.selectedSensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Stopped sensor ' + this.selectedSensorName);
+    let name = this.selectedSensorName;
+    this.stormService.stopParser(name).subscribe(result => {
+        this.metronAlerts.showSuccessMessage('Stopped sensor ' + name);
         this.toggleStartStopInProgress();
         this.getData();
       },
       error => {
-        this.metronAlerts.showErrorMessage('Unable to stop sensor ' + this.selectedSensorName);
+        this.metronAlerts.showErrorMessage('Unable to stop sensor ' + name);
         this.toggleStartStopInProgress();
       });
   }
@@ -266,13 +270,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   onEnableSensor() {
     this.toggleStartStopInProgress();
 
-    this.stormService.activateParser(this.selectedSensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Enabled sensor ' + this.selectedSensorName);
+    let name = this.selectedSensorName;
+    this.stormService.activateParser(name).subscribe(result => {
+        this.metronAlerts.showSuccessMessage('Enabled sensor ' + name);
         this.toggleStartStopInProgress();
         this.getData();
       },
       error => {
-        this.metronAlerts.showErrorMessage('Unable to enabled sensor ' + this.selectedSensorName);
+        this.metronAlerts.showErrorMessage('Unable to enabled sensor ' + name);
         this.toggleStartStopInProgress();
       });
   }
@@ -280,13 +285,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   onDisableSensor() {
     this.toggleStartStopInProgress();
 
-    this.stormService.deactivateParser(this.selectedSensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Disabled sensor ' + this.selectedSensorName);
+    let name = this.selectedSensorName;
+    this.stormService.deactivateParser(name).subscribe(result => {
+        this.metronAlerts.showSuccessMessage('Disabled sensor ' + name);
         this.toggleStartStopInProgress();
         this.getData();
       },
       error => {
-        this.metronAlerts.showErrorMessage('Unable to disable sensor ' + this.selectedSensorName);
+        this.metronAlerts.showErrorMessage('Unable to disable sensor ' + name);
         this.toggleStartStopInProgress();
       });
   }
@@ -294,14 +300,15 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   onDeleteSensor() {
     this.toggleStartStopInProgress();
 
-    this.sensorParserConfigService.deleteSensorParserConfig(this.selectedSensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Deleted sensor ' + this.selectedSensorName);
+    let name = this.selectedSensorName;
+    this.sensorParserConfigService.deleteSensorParserConfig(name).subscribe(result => {
+        this.metronAlerts.showSuccessMessage('Deleted sensor ' + name);
         this.toggleStartStopInProgress();
         this.sensorParserConfigService.dataChangedSource.next([this.sensorParserConfigHistory.config]);
         this.goBack();
       },
       error => {
-        this.metronAlerts.showErrorMessage('Unable to delete sensor ' + this.selectedSensorName);
+        this.metronAlerts.showErrorMessage('Unable to delete sensor ' + name);
         this.toggleStartStopInProgress();
       });
   }

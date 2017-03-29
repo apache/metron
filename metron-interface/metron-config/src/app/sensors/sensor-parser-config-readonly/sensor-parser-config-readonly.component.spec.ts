@@ -353,6 +353,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
 
     component.ngOnInit();
+    expect(component.startStopInProgress).toEqual(false);
     expect(component.sensorParserConfigHistory).toEqual(Object.assign(new SensorParserConfigHistory(), sensorParserInfo));
     expect(component.kafkaTopic).toEqual(kafkaTopic);
     expect(component.sensorEnrichmentConfig).toEqual(broEnrichments);

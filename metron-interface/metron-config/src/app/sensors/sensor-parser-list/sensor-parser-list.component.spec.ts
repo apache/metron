@@ -250,12 +250,13 @@ describe('Component: SensorParserList', () => {
 
     let sensorParserConfig1 = new SensorParserConfig();
     sensorParserConfig1.sensorTopic = 'squid';
+    sensorParserConfig1.parserClassName = 'org.apache.metron.parsers.GrokParser';
     let sensorParserConfig2 = new SensorParserConfig();
     sensorParserConfig2.sensorTopic = 'bro';
-    sensorParserConfig2.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    sensorParserConfig2.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
 
-    expect(component.getParserType(sensorParserConfig1)).toEqual('Java');
-    expect(component.getParserType(sensorParserConfig2)).toEqual('Grok');
+    expect(component.getParserType(sensorParserConfig1)).toEqual('Grok');
+    expect(component.getParserType(sensorParserConfig2)).toEqual('Bro');
 
     fixture.destroy();
 
@@ -668,14 +669,14 @@ describe('Component: SensorParserList', () => {
     expect(component.sensors[2].config.sensorTopic).toEqual('abc');
 
     component.onSort({sortBy: 'parserClassName', sortOrder: Sort.ASC});
-    expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
-    expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
-    expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
-
-    component.onSort({sortBy: 'parserClassName', sortOrder: Sort.DSC});
     expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
     expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
     expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
+
+    component.onSort({sortBy: 'parserClassName', sortOrder: Sort.DSC});
+    expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
+    expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
+    expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
 
     component.onSort({sortBy: 'modifiedBy', sortOrder: Sort.ASC});
     expect(component.sensors[0].modifiedBy).toEqual('abc');

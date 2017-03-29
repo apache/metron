@@ -98,6 +98,9 @@ export class SensorParserListComponent implements OnInit {
       case 'latency':
       case 'throughput':
         this.sensors.sort((obj1: SensorParserConfigHistory, obj2: SensorParserConfigHistory) => {
+          if (!obj1[$event.sortBy] || !obj1[$event.sortBy]) {
+            return 0;
+          }
           if ($event.sortOrder === Sort.ASC) {
             return obj1[$event.sortBy].localeCompare(obj2[$event.sortBy]);
           }
@@ -160,7 +163,8 @@ export class SensorParserListComponent implements OnInit {
   }
 
   getParserType(sensor: SensorParserConfig): string {
-    return (sensor.parserClassName === 'org.apache.metron.parsers.GrokParser') ? 'Grok' : 'Java';
+    let items = sensor.parserClassName.split('.');
+    return items[items.length - 1].replace('Basic', '').replace('Parser', '');
   }
 
   ngOnInit() {
