@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -15,9 +14,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-echo "create /metron metron" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology topology" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology/parsers parsers" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology/enrichments enrichments" | ./bin/zookeeper-shell.sh localhost:2181
-echo "create /metron/topology/indexing indexing" | ./bin/zookeeper-shell.sh localhost:2181
-$METRON_HOME/bin/zk_load_configs.sh -z localhost:2181 -m PUSH -i $METRON_HOME/config/zookeeper
+FROM openjdk:7
+
+ENV HADOOP_PREFIX=/opt/hadoop-2.7.3
+ENV HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop
+ENV HADOOP_IDENT_STRING=root
+
+RUN curl -sL http://archive.apache.org/dist/hadoop/core/hadoop-2.7.3/hadoop-2.7.3.tar.gz | tar -xzC /opt
+
+COPY ./conf/* $HADOOP_CONF_DIR/
+RUN mkdir -p /hadoop/dfs/name \
+    && mkdir -p /hadoop/dfs/data \
+    && $HADOOP_PREFIX/bin/hdfs namenode -format
+
+WORKDIR $HADOOP_PREFIX
+EXPOSE 9000 50010 50020 50070 50075
+
+COPY ./docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]

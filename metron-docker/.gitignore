@@ -1,8 +1,6 @@
 /compose/.env
 /compose/elasticsearch/es_templates
-/compose/kafkazk/common
-/compose/kafkazk/parser
-/compose/kafkazk/enrichment
+/compose/kafkazk/packages/
 /compose/hbase/data-management
 /compose/storm/elasticsearch
 /compose/storm/enrichment

@@ -41,7 +41,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/compose/kafkazk/common</outputDirectory>
+                            <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>../metron-platform/metron-common/target/</directory>
@@ -59,7 +59,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/compose/kafkazk/parser</outputDirectory>
+                            <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>../metron-platform/metron-parsers/target/</directory>
@@ -77,10 +77,28 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/compose/kafkazk/enrichment</outputDirectory>
+                            <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>../metron-platform/metron-enrichment/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-indexing-to-kafkazk</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../metron-platform/metron-indexing/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
