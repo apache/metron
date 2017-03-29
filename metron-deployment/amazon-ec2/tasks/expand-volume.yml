@@ -15,9 +15,9 @@
 #  limitations under the License.
 #
 ---
-- name: "Expand {{ vol_src }} volume"
+- name: "Expand {{ vol_src_1 }} volume"
 #          sectors  delete 1  new      primary  first    past mbr to end  bootable     write and exit
-  shell: "(echo u s; echo d 1; echo n; echo p; echo 1; echo 2048 ; echo ;echo a; echo 1; echo w) | fdisk {{ vol_src }} || true"
+  shell: "(echo u s; echo d 1; echo n; echo p; echo 1; echo 2048 ; echo ;echo a; echo 1; echo w) | fdisk {{ vol_src_1 }} || true"
   args:
     executable: /bin/bash
 

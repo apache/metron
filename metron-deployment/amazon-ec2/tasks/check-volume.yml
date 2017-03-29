@@ -22,5 +22,5 @@
 - name: "Status of {{ vol_src }} volume"
   debug: msg="volume={{ vol_src }} current={{ current_size.stdout|int }} expected={{ vol_size|int }}"
 
-- include: expand-volume.yml vol_src={{ vol_src }}
+- include: expand-volume.yml vol_src_1={{ vol_src }}
   when: current_size.stdout|int < vol_size|int
