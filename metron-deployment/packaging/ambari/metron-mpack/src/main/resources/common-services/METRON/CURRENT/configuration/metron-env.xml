@@ -178,6 +178,8 @@ indexing.executors=0
 kafka.zk={{ zookeeper_quorum }}
 kafka.broker={{ kafka_brokers }}
 kafka.start=UNCOMMITTED_EARLIEST
+kafka.security.protocol=PLAINTEXT
+storm.auto.credentials=[]
 ##### Indexing #####
 index.input.topic=indexing
 index.error.topic=indexing

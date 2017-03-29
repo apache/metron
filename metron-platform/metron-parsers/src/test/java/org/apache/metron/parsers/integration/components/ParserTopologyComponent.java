@@ -33,10 +33,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
 import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
@@ -82,7 +79,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
   public void start() throws UnableToStartException {
     try {
       TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
-                                                                   , brokerUrl
+                                                                   , Optional.ofNullable(brokerUrl)
                                                                    , sensorType
                                                                    , 1
                                                                    , 1
@@ -91,6 +88,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
                                                                    , 1
                                                                    , 1
                                                                    , null
+                                                                   , Optional.empty()
                                                                    );
       Map<String, Object> stormConf = new HashMap<>();
       stormConf.put(Config.TOPOLOGY_DEBUG, true);

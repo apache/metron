@@ -105,7 +105,12 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
   }
 
   public KafkaWriter withProducerConfigs(Map<String, Object> extraConfigs) {
-    this.producerConfigs = extraConfigs;
+    if(producerConfigs == null) {
+      this.producerConfigs = extraConfigs;
+    }
+    else if(extraConfigs != null){
+      producerConfigs.putAll(extraConfigs);
+    }
     return this;
   }
 

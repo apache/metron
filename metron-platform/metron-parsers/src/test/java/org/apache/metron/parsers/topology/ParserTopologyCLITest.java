@@ -34,9 +34,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 public class ParserTopologyCLITest {
 
@@ -75,6 +73,20 @@ public class ParserTopologyCLITest {
     }
   }
 
+  @Test
+  public void testNoOverlappingArgs() throws Exception {
+    Set<String> optionStrs = new HashSet<>();
+    for(ParserTopologyCLI.ParserOptions option : ParserTopologyCLI.ParserOptions.values()) {
+      if(optionStrs.contains(option.option.getLongOpt())) {
+        throw new IllegalStateException("Reused long option: " + option.option.getLongOpt());
+      }
+      if(optionStrs.contains(option.shortCode)) {
+        throw new IllegalStateException("Reused short option: " + option.shortCode);
+      }
+      optionStrs.add(option.option.getLongOpt());
+      optionStrs.add(option.shortCode);
+    }
+  }
 
   @Test
   public void testKafkaOffset_happyPath() throws ParseException {
