@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# metron rest application service
+# description: rest application
+# processname: metron-rest
+#
+if [ -f /etc/rc.d/init.d/functions ]; then
+    . /etc/rc.d/init.d/functions
+fi
+
+NAME=metron-rest
+DESC="Metron REST Application"
+SCRIPTNAME=/etc/init.d/$NAME
+LOGFILE="/var/log/metron-rest.log"
+METRON_VERSION=0.3.1
+METRON_HOME=/usr/metron/$METRON_VERSION
+METRON_REST_PORT=${METRON_REST_PORT:-8082}
+DAEMON="java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$METRON_HOME/config/application.yml --spring.profiles.active=dev --server.port=$METRON_REST_PORT"
+LOCKFILE=/var/lock/subsys/$NAME
+
+#
+# start the rest application
+#
+start() {  
+
+  # if pidfile exists, do not start another
+  PIDFILE="/var/run/$NAME.pid"
+  if [ -f $PIDFILE ]; then
+      PID=`cat $PIDFILE`
+      printf "OK [$PID]\n"
+      return
+  fi
+
+  # kick-off the daemon
+  PID=`$DAEMON >> $LOGFILE 2>&1 & echo $!`
+
+  if [ -z $PID ]; then
+      printf "Fail\n"
+  else
+      echo $PID > $PIDFILE && touch $LOCKFILE
+      printf "Ok [$PID]\n"
+  fi
+}
+
+#
+# stop the rest application
+#
+stop() {
+  PIDFILE="/var/run/$NAME.pid"
+  if [ -f $PIDFILE ]; then
+      killproc -p $PIDFILE metron-rest
+      RETVAL=$?
+      echo
+      [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
+      printf "Stopped [$PID]\n"
+  else
+      printf "Not running\n"
+  fi
+}
+
+#
+# status check of the rest application
+#
+rest_status() {
+  PIDFILE="/var/run/$NAME.pid"
+  status -p $PIDFILE metron-rest
+}
+
+case "$1" in
+
+  ##############################################################################
+  # start
+  #
+  start)
+    printf "%-50s \n" "Starting $NAME..."
+    start
+  ;;
+
+  ##############################################################################
+  # status
+  #
+  status)
+    printf "%-50s \n" "Checking $NAME..."
+    rest_status
+  ;;
+
+  ##############################################################################
+  # stop
+  #
+  stop)
+    printf "%-50s \n" "Stopping $NAME..."
+    stop
+  ;;
+
+  ##############################################################################
+  # restart
+  #
+  restart)
+    $0 stop
+    $0 start
+  ;;
+
+  ##############################################################################
+  # reload
+  #
+  reload)
+  ;;
+
+  *)
+    echo "Usage: $0 {status|start|stop|restart}"
+    exit 1
+esac

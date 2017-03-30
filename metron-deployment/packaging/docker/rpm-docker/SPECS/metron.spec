@@ -70,6 +70,7 @@ rm -rf %{_builddir}/*
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
+mkdir -p %{buildroot}/etc/init.d
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
@@ -82,6 +83,8 @@ tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
+
+install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -331,12 +334,16 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
-%{metron_home}/bin/start_metron_rest.sh
+%{metron_home}/bin/metron-rest
+/etc/init.d/metron-rest
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 %changelog
+* Wed Mar 29 2017 Ryan Merriman <merrimanr@gmail.com> - 0.3.1
+- Added metron-rest
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
 - Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
