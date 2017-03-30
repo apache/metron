@@ -36,7 +36,7 @@
 - name: Setup ambari server
   shell: ambari-server setup -s && touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
   register: ambari_server_setup
-  failed_when: "ambari_server_setup.stderr or 'FATAL' in ambari_server_setup.stdout"
+  failed_when: "(ambari_server_setup.stderr is defined and ambari_server_setup.stderr != '') or 'FATAL' in ambari_server_setup.stdout"
 
 - name: Copy MPack to Ambari Host
   copy:

@@ -137,7 +137,7 @@ def main():
         service_name=dict(type='str', required=False),
         component_name=dict(type='str', default=None, required=False),
         component_host=dict(type='str', default=None, required=False),
-        wait_for_complete=dict(default=False, required=False, choices=BOOLEANS),
+        wait_for_complete=dict(default=False, required=False, type='bool'),
     )
 
     required_together = ['component_name', 'component_host']
