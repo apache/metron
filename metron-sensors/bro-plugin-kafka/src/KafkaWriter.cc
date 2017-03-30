@@ -30,21 +30,6 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend): WriterBackend(frontend), for
 KafkaWriter::~KafkaWriter()
 {}
 
-bool SetConf(RdKafka::Conf* conf, const std::string& key, const char* value, int len, std::string& err)
-{
-  // if the value is empty, then we don't want to set it.
-  if(len == 0) {
-    return true;
-  }
-  std::string val;
-  val.assign(value, len);
-  bool ret(RdKafka::Conf::CONF_OK != conf->set(key, val, err));
-  if( !ret ) {
-    reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
-  }
-  return ret;
-}
-
 bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
 {
     // initialize the formatter
@@ -56,69 +41,19 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
 
     // kafka global configuration
     string err;
+    string debug;
+    debug.assign((const char*)BifConst::Kafka::debug->Bytes(), BifConst::Kafka::debug->Len());
+    bool is_debug(!debug.empty());
+    if(is_debug) {
+      reporter->Info( "Debug is turned on and set to: %s.  Available debug context: %s."
+                     , debug.c_str()
+                     , RdKafka::get_debug_contexts().c_str()
+                     );
+    }
+    else {
+      reporter->Info( "Debug is turned off.");
+    }
     conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
-
-    // security related configuration
-    
-    // Security protocol.  If you're using kerberos, then this really should be SASL_PLAINTEXT
-    if(BifConst::Kafka::security_protocol) {
-       string key("security.protocol");
-       if( !SetConf(conf
-                  , key
-                  , (const char*)BifConst::Kafka::security_protocol->Bytes()
-                  , BifConst::Kafka::security_protocol->Len()
-                  , err
-                  )
-         ) 
-         {
-           return false;
-         }
-     }
-
-    //broker service name
-    if(BifConst::Kafka::kerberos_service_name) {
-      string key("sasl.kerberos.service.name");
-      if( !SetConf(conf
-                  , key
-                  , (const char*)BifConst::Kafka::kerberos_service_name->Bytes()
-                  , BifConst::Kafka::kerberos_service_name->Len()
-                  , err
-                  )
-        ) 
-        {
-          return false;
-        }
-    }
-    
-    //kerberos keytab path
-    if(BifConst::Kafka::kerberos_keytab) {
-      string key("sasl.kerberos.keytab");
-      if( !SetConf(conf
-                  , key
-                  , (const char*)BifConst::Kafka::kerberos_keytab->Bytes()
-                  , BifConst::Kafka::kerberos_keytab->Len()
-                  , err
-                  )
-        ) 
-        {
-          return false;
-        }
-    }
-
-    //kerberos principal
-    if(BifConst::Kafka::kerberos_principal) {
-      string key("sasl.kerberos.principal");
-      if( !SetConf(conf
-                  , key
-                  , (const char*)BifConst::Kafka::kerberos_principal->Bytes()
-                  , BifConst::Kafka::kerberos_principal->Len()
-                  , err
-                  )
-        ) 
-        {
-          return false;
-        }
-    }
 
     // apply the user-defined settings to kafka
     Val* val = BifConst::Kafka::kafka_conf->AsTableVal();
@@ -132,6 +67,9 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
         string key = index->Index(0)->AsString()->CheckString();
         string val = v->Value()->AsString()->CheckString();
 
+        if(is_debug) {
+            reporter->Info("Setting '%s'='%s'", key.c_str(), val.c_str()); 
+        }
         // apply setting to kafka
         if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
             reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
@@ -141,6 +79,15 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
         // cleanup
         Unref(index);
         delete k;
+    }
+
+    if(is_debug) {
+        string key("debug");
+        string val(debug);
+	if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
+            reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
+            return false;
+	}
     }
 
     // create kafka producer
@@ -157,7 +104,9 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
         reporter->Error("Failed to create topic handle: %s", err.c_str());
         return false;
     }
-
+    if(is_debug) {
+        reporter->Info("Successfully created producer.");
+    }
     return true;
 }
 
