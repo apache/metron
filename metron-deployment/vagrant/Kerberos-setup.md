@@ -18,7 +18,6 @@ export HDP_HOME="/usr/hdp/current"
 export METRON_VERSION="0.3.1"
 export METRON_HOME="/usr/metron/${METRON_VERSION}"
   ```
-
 3. Stop all topologies - we will  restart them again once Kerberos has been enabled.
   ```
 for topology in bro snort enrichment indexing; do storm kill $topology; done
@@ -54,19 +53,17 @@ sudo -u hdfs hdfs dfs -chmod 770 /user/metron
 7. In Ambari, setup Storm to run with Kerberos and run worker jobs as the submitting user:
 
   a. Add the following properties to custom storm-site:
-    ```
+      ```
 topology.auto-credentials=['org.apache.storm.security.auth.kerberos.AutoTGT']
 nimbus.credential.renewers.classes=['org.apache.storm.security.auth.kerberos.AutoTGT']
 supervisor.run.worker.as.user=true
-    ```
+      ```
 
   b. In the Storm config section in Ambari, choose “Add Property” under custom storm-site:
-
-    ![custom storm-site](readme-images/ambari-storm-site.png)
+      ![custom storm-site](readme-images/ambari-storm-site.png)
 
   c. In the dialog window, choose the “bulk property add mode” toggle button and add the below values:
-
-    ![custom storm-site properties](readme-images/ambari-storm-site-properties.png)
+      ![custom storm-site properties](readme-images/ambari-storm-site-properties.png)
 
 8. Kerberize the cluster via Ambari. More detailed documentation can be found [here](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.3/bk_security/content/_enabling_kerberos_security_in_ambari.html).
 
@@ -124,7 +121,7 @@ ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.Simp
   ```
 kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase-metron_cluster@EXAMPLE.COM
 echo "grant 'metron', 'RW', 'threatintel'" | hbase shell
-echo "grant 'metron', 'RW', enrichment" | hbase shell
+echo "grant 'metron', 'RW', 'enrichment'" | hbase shell
   ```
 
 16. Create a “.storm” directory in the metron user’s home directory and switch to that directory.
@@ -188,23 +185,28 @@ kafka.security.protocol=PLAINTEXTSASL
 topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
     ```
 
-21. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
+21. Kinit with the metron user again
   ```
-for parser in bro snort; do ${METRON_HOME}/bin/start_parser_topology.sh -z node1:2181 -s ${parser} -ksp PLAINTEXTSASL -e storm-config.json; done
+kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
   ```
 
-22. Now restart the enrichment and indexing topologies.
+22. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
+  ```
+for parser in bro snort; do ${METRON_HOME}/bin/start_parser_topology.sh -z node1:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json; done
+  ```
+
+23. Now restart the enrichment and indexing topologies.
   ```
 ${METRON_HOME}/bin/start_enrichment_topology.sh
 ${METRON_HOME}/bin/start_elasticsearch_topology.sh
   ```
 
-23. Push some sample data to one of the parser topics. E.g for yaf we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput)
+24. Push some sample data to one of the parser topics. E.g for yaf we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput)
   ```
-cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --security-protocol PLAINTEXTSASL --topic yaf
+cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --security-protocol SASL_PLAINTEXT --topic yaf
   ```
 
-24. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace yaf with whichever parser type you’ve chosen.
+25. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace yaf with whichever parser type you’ve chosen.
   ```
 curl -XGET "node1:9200/yaf*/_search"
 curl -XGET "node1:9200/yaf*/_count"
