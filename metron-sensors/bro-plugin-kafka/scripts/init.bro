@@ -24,4 +24,8 @@ export {
   const kafka_conf: table[string] of string = table(
     ["metadata.broker.list"] = "localhost:9092"
   ) &redef;
+  const security_protocol: string = "" &redef;
+  const kerberos_service_name: string = "" &redef;
+  const kerberos_keytab : string = "" &redef;
+  const kerberos_principal : string = "" &redef;
 }

@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-#include <Type.h>
-#include <threading/Formatter.h>
-#include <threading/formatters/JSON.h>
-#include "kafka.bif.h"
-#include "TaggedJSON.h"
 #include "KafkaWriter.h"
 
 using namespace logging;
@@ -35,6 +30,21 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend): WriterBackend(frontend), for
 KafkaWriter::~KafkaWriter()
 {}
 
+bool SetConf(RdKafka::Conf* conf, const std::string& key, const char* value, int len, std::string& err)
+{
+  // if the value is empty, then we don't want to set it.
+  if(len == 0) {
+    return true;
+  }
+  std::string val;
+  val.assign(value, len);
+  bool ret(RdKafka::Conf::CONF_OK != conf->set(key, val, err));
+  if( !ret ) {
+    reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
+  }
+  return ret;
+}
+
 bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
 {
     // initialize the formatter
@@ -47,6 +57,68 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
     // kafka global configuration
     string err;
     conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
+
+    // security related configuration
+    
+    // Security protocol.  If you're using kerberos, then this really should be SASL_PLAINTEXT
+    if(BifConst::Kafka::security_protocol) {
+       string key("security.protocol");
+       if( !SetConf(conf
+                  , key
+                  , (const char*)BifConst::Kafka::security_protocol->Bytes()
+                  , BifConst::Kafka::security_protocol->Len()
+                  , err
+                  )
+         ) 
+         {
+           return false;
+         }
+     }
+
+    //broker service name
+    if(BifConst::Kafka::kerberos_service_name) {
+      string key("sasl.kerberos.service.name");
+      if( !SetConf(conf
+                  , key
+                  , (const char*)BifConst::Kafka::kerberos_service_name->Bytes()
+                  , BifConst::Kafka::kerberos_service_name->Len()
+                  , err
+                  )
+        ) 
+        {
+          return false;
+        }
+    }
+    
+    //kerberos keytab path
+    if(BifConst::Kafka::kerberos_keytab) {
+      string key("sasl.kerberos.keytab");
+      if( !SetConf(conf
+                  , key
+                  , (const char*)BifConst::Kafka::kerberos_keytab->Bytes()
+                  , BifConst::Kafka::kerberos_keytab->Len()
+                  , err
+                  )
+        ) 
+        {
+          return false;
+        }
+    }
+
+    //kerberos principal
+    if(BifConst::Kafka::kerberos_principal) {
+      string key("sasl.kerberos.principal");
+      if( !SetConf(conf
+                  , key
+                  , (const char*)BifConst::Kafka::kerberos_principal->Bytes()
+                  , BifConst::Kafka::kerberos_principal->Len()
+                  , err
+                  )
+        ) 
+        {
+          return false;
+        }
+    }
 
     // apply the user-defined settings to kafka
     Val* val = BifConst::Kafka::kafka_conf->AsTableVal();
