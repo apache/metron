@@ -8,7 +8,7 @@ vagrant up
 vagrant ssh
   ```
 
-2. Export env vars
+2. Export env vars. Replace *node1* with the appropriate hosts if running anywhere other than full-dev Vagrant.
   ```
 # execute as root
 sudo su -
@@ -26,6 +26,7 @@ for topology in bro snort enrichment indexing; do storm kill $topology; done
 4. Setup Kerberos
   ```
 # Note: if you copy/paste this full set of commands, the kdb5_util command will not run as expected, so run the commands individually to ensure they all execute
+# set 'node1' to the correct host for your kdc
 yum -y install krb5-server krb5-libs krb5-workstation
 sed -i 's/kerberos.example.com/node1/g' /etc/krb5.conf
 cp /etc/krb5.conf /var/lib/ambari-server/resources/scripts
@@ -92,29 +93,29 @@ kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
 
 11. First create any additional Kafka topics you will need. We need to create the topics before adding the required ACLs. The current full dev installation will deploy bro, snort, enrichments, and indexing only. e.g.
   ```
-${HDP_HOME}/kafka-broker/bin/kafka-topics.sh --zookeeper $ZOOKEEPER:2181 --create --topic yaf --partitions 1 --replication-factor 1
+${HDP_HOME}/kafka-broker/bin/kafka-topics.sh --zookeeper ${ZOOKEEPER}:2181 --create --topic yaf --partitions 1 --replication-factor 1
   ```
 
 12. Setup Kafka ACLs for the topics
   ```
 export KERB_USER=metron;
 for topic in bro enrichments indexing snort; do
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --topic ${topic};
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --topic ${topic};
 done;
   ```
 
 13. Setup Kafka ACLs for the consumer groups
   ```
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --group bro_parser;
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --group snort_parser;
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --group yaf_parser;
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --group enrichments;
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --group indexing;
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group bro_parser;
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group snort_parser;
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group yaf_parser;
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group enrichments;
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group indexing;
   ```
 
 14. Add metron user to the Kafka cluster ACL
   ```
-/usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:${KERB_USER} --cluster kafka-cluster
+/usr/hdp/current/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --cluster kafka-cluster
   ```
 
 15. We also need to grant permissions to the HBase tables. Kinit as the hbase user and add ACLs for metron.
@@ -126,7 +127,7 @@ echo "grant 'metron', 'RW', 'enrichment'" | hbase shell
 
 16. Create a “.storm” directory in the metron user’s home directory and switch to that directory.
   ```
-su - metron
+su metron && cd ~/
 mkdir .storm
 cd .storm
   ```
@@ -142,19 +143,25 @@ StormClient {
 };
 Client {
    com.sun.security.auth.module.Krb5LoginModule required
-   useTicketCache=true
-   renewTicket=true
-   serviceName="zookeeper";
+   useKeyTab=true
+   keyTab="/etc/security/keytabs/metron.headless.keytab"
+   storeKey=true
+   useTicketCache=false
+   serviceName="zookeeper"
+   principal="metron@EXAMPLE.COM";
 };
 KafkaClient {
    com.sun.security.auth.module.Krb5LoginModule required
-   useTicketCache=true
-   renewTicket=true
-   serviceName="kafka";
+   useKeyTab=true
+   keyTab="/etc/security/keytabs/metron.headless.keytab"
+   storeKey=true
+   useTicketCache=false
+   serviceName="kafka"
+   principal="metron@EXAMPLE.COM";
 };
   ```
 
-18. Create a storm.yaml with jaas file info.
+18. Create a storm.yaml with jaas file info. Set the array of nimbus hosts accordingly.
   ```
 [metron@node1 .storm]$ cat storm.yaml
 nimbus.seeds : ['node1']
@@ -173,17 +180,17 @@ cd /home/metron
 
 20. Setup enrichment and indexing.
 
-  a. Modify enrichment.properties - `${METRON_HOME}/config/enrichment.properties`
-    ```
-kafka.security.protocol=PLAINTEXTSASL
-topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
-    ```
+    a. Modify enrichment.properties - `${METRON_HOME}/config/enrichment.properties`
+        ```
+        kafka.security.protocol=PLAINTEXTSASL
+        topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
+        ```
 
-  b. Modify elasticsearch.properties - `${METRON_HOME}/config/elasticsearch.properties`
-    ```
-kafka.security.protocol=PLAINTEXTSASL
-topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
-    ```
+    b. Modify elasticsearch.properties - `${METRON_HOME}/config/elasticsearch.properties`
+        ```
+        kafka.security.protocol=PLAINTEXTSASL
+        topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
+        ```
 
 21. Kinit with the metron user again
   ```
@@ -192,7 +199,7 @@ kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
 
 22. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
   ```
-for parser in bro snort; do ${METRON_HOME}/bin/start_parser_topology.sh -z node1:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json; done
+for parser in bro snort; do ${METRON_HOME}/bin/start_parser_topology.sh -z ${ZOOKEEPER}:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json; done
   ```
 
 23. Now restart the enrichment and indexing topologies.
@@ -203,13 +210,13 @@ ${METRON_HOME}/bin/start_elasticsearch_topology.sh
 
 24. Push some sample data to one of the parser topics. E.g for yaf we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput)
   ```
-cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --security-protocol SASL_PLAINTEXT --topic yaf
+cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic yaf
   ```
 
 25. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace yaf with whichever parser type you’ve chosen.
   ```
-curl -XGET "node1:9200/yaf*/_search"
-curl -XGET "node1:9200/yaf*/_count"
+curl -XGET "${ZOOKEEPER}:9200/yaf*/_search"
+curl -XGET "${ZOOKEEPER}:9200/yaf*/_count"
   ```
 
 25. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
@@ -238,12 +245,12 @@ KVNO Timestamp         Principal
 
 ##### Write data to a topic with SASL
 ```
-cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --security-protocol PLAINTEXTSASL --topic yaf
+cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol PLAINTEXTSASL --topic yaf
 ```
 
 ##### View topic data from latest offset with SASL
 ```
-${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper node1:2181 --security-protocol PLAINTEXTSASL --topic yaf
+${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper ${ZOOKEEPER}:2181 --security-protocol PLAINTEXTSASL --topic yaf
 ```
 
 #### References
