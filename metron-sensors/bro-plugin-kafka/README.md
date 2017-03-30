@@ -136,7 +136,7 @@ For an environment where the following is true:
 * The broker is `node1:6667`
 * This kafka is using `SASL_PLAINTEXT` as the security protocol
 * The keytab used is the `metron` keytab
-* The service principal for `metron` is `metron@EXAMPLE`
+* The service principal for `metron` is `metron@EXAMPLE.COM`
 
 The kafka topic `bro` has been given permission for the `metron` user to
 write:
