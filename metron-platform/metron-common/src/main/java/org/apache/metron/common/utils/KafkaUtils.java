@@ -19,11 +19,15 @@
 package org.apache.metron.common.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +51,29 @@ public enum KafkaUtils {
       String brokerInfoStr = new String(data);
       Map<String, Object> brokerInfo = JSONUtils.INSTANCE.load(brokerInfoStr, new TypeReference<Map<String, Object>>() {
       });
-      ret.add(brokerInfo.get("host") + ":" + brokerInfo.get("port"));
+      String host = (String) brokerInfo.get("host");
+      if(host != null) {
+        ret.add(host + ":" + brokerInfo.get("port"));
+      }
+      else {
+        Object endpoints = brokerInfo.get("endpoints");
+        if(endpoints != null && endpoints instanceof List) {
+          List<String> eps = (List<String>)endpoints;
+          for(String url : eps) {
+            ret.addAll(fromEndpoint(url));
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
+  public List<String> fromEndpoint(String url) throws URISyntaxException {
+    List<String> ret = new ArrayList<>();
+    if(url != null) {
+      URI uri = new URI(url);
+      int port = uri.getPort();
+      ret.add(uri.getHost() + ((port > 0)?(":" + port):""));
     }
     return ret;
   }

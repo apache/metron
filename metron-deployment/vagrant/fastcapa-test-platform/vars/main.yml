@@ -36,3 +36,5 @@ kafka_broker_port: dummy
 zookeeper_hosts: dummy
 zookeeper_tag: dummy
 zookeeper_port: dummy
+metron_hosts: dummy
+kibana_hosts: dummy

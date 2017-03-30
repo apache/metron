@@ -235,8 +235,16 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     }
 
     FilterBuilder filterBuilder = new FilterBuilder();
-    excludes.forEach(excl -> filterBuilder.exclude(excl));
-    includes.forEach(incl -> filterBuilder.include(incl));
+    excludes.forEach(excl -> {
+      if(excl != null) {
+        filterBuilder.exclude(excl);
+      }
+    });
+    includes.forEach(incl -> {
+      if(incl != null) {
+        filterBuilder.include(incl);
+      }
+    });
     Set<String> classes = new HashSet<>();
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {

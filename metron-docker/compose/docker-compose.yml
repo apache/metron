@@ -37,6 +37,14 @@ services:
       - "/opt/hbase-1.1.6/conf"
     depends_on:
       - kafkazk
+  hadoop:
+    build:
+      context: ./hadoop
+    ports:
+      - "50070:50070"
+    volumes:
+      - "/opt/hadoop-2.7.3/etc/hadoop"
+    command: tail -f /dev/null
   storm:
     build:
       context: ./storm
@@ -48,13 +56,15 @@ services:
       - "8081:8081"
     environment:
       ZOOKEEPER_ADDR: kafkazk
-      CONFIG_TOPOLOGY_CLASSPATH: /opt/hbase-1.1.6/conf
+      CONFIG_TOPOLOGY_CLASSPATH: "/opt/hbase-1.1.6/conf:/opt/hadoop-2.7.3/etc/hadoop"
     volumes_from:
       - hbase
+      - hadoop
     depends_on:
       - kafkazk
       - hbase
       - elasticsearch
+      - hadoop
     command: --daemon nimbus supervisor ui logviewer
   elasticsearch:
     build:

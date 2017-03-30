@@ -296,24 +296,21 @@ usage: start_parser_topology.sh
 These options are intended to configure the Storm Kafka Spout more completely.  These options can be
 specified in a JSON file containing a map associating the kafka spout configuration parameter to a value.
 The range of values possible to configure are:
-* retryDelayMaxMs
-* retryDelayMultiplier
-* retryInitialDelayMs
-* stateUpdateIntervalMs
-* bufferSizeBytes
-* fetchMaxWait
-* fetchSizeBytes
-* maxOffsetBehind
-* metricsTimeBucketSizeInSecs
-* socketTimeoutMs
+* `spout.pollTimeoutMs` -  Specifies the time, in milliseconds, spent waiting in poll if data is not available. Default is 2s
+* `spout.firstPollOffsetStrategy` - Sets the offset used by the Kafka spout in the first poll to Kafka broker upon process start.  One of
+  * `EARLIEST`
+  * `LATEST`
+  * `UNCOMMITTED_EARLIEST` - Last uncommitted and if offsets aren't found, defaults to earliest. NOTE: This is the default.
+  * `UNCOMMITTED_LATEST` - Last uncommitted and if offsets aren't found, defaults to latest.
+* `spout.offsetCommitPeriodMs` - Specifies the period, in milliseconds, the offset commit task is periodically called. Default is 15s.
+* `spout.maxUncommittedOffsets` - Defines the max number of polled offsets (records) that can be pending commit, before another poll can take place. Once this limit is reached, no more offsets (records) can be polled until the next successful commit(s) sets the number of pending offsets bellow the threshold. The default is 10,000,000. 
+* `spout.maxRetries` -  Defines the max number of retrials in case of tuple failure. The default is to retry forever, which means that no new records are committed until the previous polled records have been acked. This guarantees at once delivery of all the previously polled records.  By specifying a finite value for maxRetries, the user decides to sacrifice guarantee of delivery for the previous polled records in favor of processing more records.
+* Any of the configs in the Consumer API for [Kafka 0.10.x](http://kafka.apache.org/0100/documentation.html#newconsumerconfigs)
 
-These are described in some detail [here](https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/bk_storm-user-guide/content/storm-kafka-api-ref.html).
-
-For instance, creating a JSON file which will set the `bufferSizeBytes` to 2MB and `retryDelayMaxMs` to 2000 would look like
+For instance, creating a JSON file which will set the offsets to `UNCOMMITTED_EARLIEST`
 ```
 {
-  "bufferSizeBytes" : 2000000,
-  "retryDelayMaxMs" : 2000
+  "spout.firstPollOffsetStrategy" : "UNCOMMITTED_EARLIEST"
 }
 ```
 

@@ -177,7 +177,7 @@ indexing.executors=0
 ##### Kafka #####
 kafka.zk={{ zookeeper_quorum }}
 kafka.broker={{ kafka_brokers }}
-kafka.start=WHERE_I_LEFT_OFF
+kafka.start=UNCOMMITTED_EARLIEST
 ##### Indexing #####
 index.input.topic=indexing
 index.error.topic=indexing

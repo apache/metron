@@ -98,7 +98,7 @@ public class BasicAsaParser extends BasicParser {
     @Override
     public void init() {
         asaGrok = new Grok();
-        InputStream patternStream = this.getClass().getClassLoader().getResourceAsStream("patterns/asa");
+        InputStream patternStream = this.getClass().getResourceAsStream("/patterns/asa");
         try {
             asaGrok.addPatternFromReader(new InputStreamReader(patternStream));
         } catch (GrokException e) {
