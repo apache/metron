@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
+import org.apache.commons.io.IOUtils;
 import org.apache.directory.api.util.Strings;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
@@ -108,6 +109,14 @@ public class GrokServiceImpl implements GrokService {
       String grokTempPath = environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY);
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       return new Path(grokTempPath, authentication.getName()).toString();
+    }
+
+    public String getStatementFromClasspath(String path) throws RestException {
+      try {
+        return IOUtils.toString(getClass().getResourceAsStream(path));
+      } catch (Exception e) {
+        throw new RestException("Could not find a statement at path " + path);
+      }
     }
 
 }

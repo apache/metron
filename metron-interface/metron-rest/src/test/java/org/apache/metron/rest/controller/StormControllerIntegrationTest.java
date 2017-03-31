@@ -189,7 +189,9 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.id", containsString("broTest")))
             .andExpect(jsonPath("$.status").value("ACTIVE"))
             .andExpect(jsonPath("$.latency").exists())
-            .andExpect(jsonPath("$.throughput").exists());
+            .andExpect(jsonPath("$.throughput").exists())
+            .andExpect(jsonPath("$.emitted").exists())
+            .andExpect(jsonPath("$.acked").exists());
 
     this.mockMvc.perform(get(stormUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -246,7 +248,9 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.id", containsString("enrichment")))
             .andExpect(jsonPath("$.status").value("ACTIVE"))
             .andExpect(jsonPath("$.latency").exists())
-            .andExpect(jsonPath("$.throughput").exists());
+            .andExpect(jsonPath("$.throughput").exists())
+            .andExpect(jsonPath("$.emitted").exists())
+            .andExpect(jsonPath("$.acked").exists());
 
     this.mockMvc.perform(get(stormUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -298,7 +302,9 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.id", containsString("indexing")))
             .andExpect(jsonPath("$.status").value("ACTIVE"))
             .andExpect(jsonPath("$.latency").exists())
-            .andExpect(jsonPath("$.throughput").exists());
+            .andExpect(jsonPath("$.throughput").exists())
+            .andExpect(jsonPath("$.emitted").exists())
+            .andExpect(jsonPath("$.acked").exists());
 
     this.mockMvc.perform(get(stormUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
