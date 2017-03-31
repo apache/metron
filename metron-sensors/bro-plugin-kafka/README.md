@@ -15,7 +15,7 @@ with a kerberized kafka, you will need libsasl2 installed
 
     # curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz
     # cd librdkafka-0.9.4/
-    # ./configure --enable-sasl=true
+    # ./configure --enable-sasl
     # make
     # sudo make install
 
