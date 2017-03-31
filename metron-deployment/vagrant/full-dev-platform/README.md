@@ -29,7 +29,6 @@ Any platform that supports these tools is suitable, but the following instructio
   ```  
   brew cask install vagrant virtualbox java
   brew install maven git
-  brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
   ```
 
 3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
