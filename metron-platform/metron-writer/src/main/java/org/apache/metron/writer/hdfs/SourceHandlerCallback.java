@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,33 +18,18 @@
 
 package org.apache.metron.writer.hdfs;
 
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-
 import java.util.Map;
 
-public class SourceFileNameFormat implements FileNameFormat {
-  FileNameFormat delegate;
-  String sourceType;
-  String pathExtension;
-  public SourceFileNameFormat(String sourceType, String pathExtension, FileNameFormat delegate) {
-    this.delegate = delegate;
-    this.sourceType = sourceType;
-    this.pathExtension = pathExtension;
+public class SourceHandlerCallback {
+  Map<SourceHandlerKey, SourceHandler> sourceHandlerMap;
+  SourceHandlerKey key;
+  SourceHandlerCallback(Map<SourceHandlerKey, SourceHandler> sourceHandlerMap, SourceHandlerKey key) {
+    this.sourceHandlerMap = sourceHandlerMap;
+    this.key = key;
   }
 
-  @Override
-  public void prepare(Map map, TopologyContext topologyContext) {
-    this.delegate.prepare(map, topologyContext);
-  }
-
-  @Override
-  public String getName(long l, long l1) {
-    return delegate.getName(l, l1);
-  }
-
-  @Override
-  public String getPath() {
-    return delegate.getPath() + "/" + pathExtension + "/" + sourceType;
+  public void removeKey() {
+    sourceHandlerMap.remove(key);
   }
 }
+

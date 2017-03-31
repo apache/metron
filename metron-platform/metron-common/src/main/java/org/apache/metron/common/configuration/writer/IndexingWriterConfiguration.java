@@ -18,9 +18,7 @@
 
 package org.apache.metron.common.configuration.writer;
 
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.utils.ConversionUtils;
 
 import java.util.Map;
 import java.util.Optional;
