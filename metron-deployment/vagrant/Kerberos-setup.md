@@ -18,6 +18,7 @@ export HDP_HOME="/usr/hdp/current"
 export METRON_VERSION="0.3.1"
 export METRON_HOME="/usr/metron/${METRON_VERSION}"
   ```
+
 3. Stop all topologies - we will  restart them again once Kerberos has been enabled.
   ```
 for topology in bro snort enrichment indexing; do storm kill $topology; done
@@ -54,29 +55,36 @@ sudo -u hdfs hdfs dfs -chmod 770 /user/metron
 7. In Ambari, setup Storm to run with Kerberos and run worker jobs as the submitting user:
 
     a. Add the following properties to custom storm-site:
-        ```
-        topology.auto-credentials=['org.apache.storm.security.auth.kerberos.AutoTGT']
-        nimbus.credential.renewers.classes=['org.apache.storm.security.auth.kerberos.AutoTGT']
-        supervisor.run.worker.as.user=true
-        ```
+
+    ```
+    topology.auto-credentials=['org.apache.storm.security.auth.kerberos.AutoTGT']
+    nimbus.credential.renewers.classes=['org.apache.storm.security.auth.kerberos.AutoTGT']
+    supervisor.run.worker.as.user=true
+    ```
 
     b. In the Storm config section in Ambari, choose “Add Property” under custom storm-site:
-        ![custom storm-site](readme-images/ambari-storm-site.png)
+
+    ![custom storm-site](readme-images/ambari-storm-site.png)
 
     c. In the dialog window, choose the “bulk property add mode” toggle button and add the below values:
-        ![custom storm-site properties](readme-images/ambari-storm-site-properties.png)
+
+    ![custom storm-site properties](readme-images/ambari-storm-site-properties.png)
 
 8. Kerberize the cluster via Ambari. More detailed documentation can be found [here](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.3/bk_security/content/_enabling_kerberos_security_in_ambari.html).
 
     a. For this exercise, choose existing MIT KDC (this is what we setup and installed in the previous steps.)
-        ![enable keberos](readme-images/enable-kerberos.png)
-        ![enable keberos get started](readme-images/enable-kerberos-started.png)
+
+    ![enable keberos](readme-images/enable-kerberos.png)
+
+    ![enable keberos get started](readme-images/enable-kerberos-started.png)
 
     b. Setup Kerberos configuration. Realm is EXAMPLE.COM. The admin principal will end up as admin/admin@EXAMPLE.COM when testing the KDC. Use the password you entered during the step for adding the admin principal.
-        ![enable keberos configure](readme-images/enable-kerberos-configure-kerberos.png)
+
+    ![enable keberos configure](readme-images/enable-kerberos-configure-kerberos.png)
 
     c. Click through to “Start and Test Services.” Let the cluster spin up, but don't worry about starting up Metron via Ambari - we're going to run the parsers manually against the rest of the Hadoop cluster Kerberized. The wizard will fail at starting Metron, but this is OK. Click “continue.” When you’re finished, the custom storm-site should look similar to the following:
-        ![enable keberos configure](readme-images/custom-storm-site-final.png)
+
+    ![enable keberos configure](readme-images/custom-storm-site-final.png)
 
 9. Setup Metron keytab
   ```
@@ -181,16 +189,18 @@ cd /home/metron
 20. Setup enrichment and indexing.
 
     a. Modify enrichment.properties - `${METRON_HOME}/config/enrichment.properties`
-        ```
-        kafka.security.protocol=PLAINTEXTSASL
-        topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
-        ```
+
+    ```
+    kafka.security.protocol=PLAINTEXTSASL
+    topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
+    ```
 
     b. Modify elasticsearch.properties - `${METRON_HOME}/config/elasticsearch.properties`
-        ```
-        kafka.security.protocol=PLAINTEXTSASL
-        topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
-        ```
+
+    ```
+    kafka.security.protocol=PLAINTEXTSASL
+    topology.worker.childopts=-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf
+    ```
 
 21. Kinit with the metron user again
   ```
@@ -219,7 +229,7 @@ curl -XGET "${ZOOKEEPER}:9200/yaf*/_search"
 curl -XGET "${ZOOKEEPER}:9200/yaf*/_count"
   ```
 
-25. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
+26. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
 
 ### Other useful commands:
 #### Kerberos
