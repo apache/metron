@@ -143,7 +143,7 @@ write:
 ```
 # login using the metron user 
 kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:metron --topic bro
+${KAFKA_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=node1:2181 --add --allow-principal User:metron --topic bro
 ```
 
 The following is how the `${BRO_HOME}/share/bro/site/local.bro` looks:
