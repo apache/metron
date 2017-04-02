@@ -37,4 +37,10 @@
       <filtered>true</filtered>
     </fileSet>
   </fileSets>
+  <files>
+    <file>
+      <source>src/favicon.ico</source>
+      <outputDirectory>/web/management-ui</outputDirectory>
+    </file>
+  </files>
 </assembly>
