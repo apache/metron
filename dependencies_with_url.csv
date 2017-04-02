@@ -65,6 +65,7 @@ com.sun.jersey:jersey-json:jar:1.9:compile,CDDL 1.1,https://jersey.java.net/
 com.sun.jersey:jersey-server:jar:1.9:compile,CDDL 1.1,https://jersey.java.net/
 com.thoughtworks.paranamer:paranamer:jar:2.3:compile,BSD,https://github.com/paul-hammant/paranamer
 javax.servlet.jsp:jsp-api:jar:2.1:runtime,CDDL,http://oracle.com
+javax.servlet.jsp:jsp-api:jar:2.1:compile,CDDL,http://oracle.com
 javax.servlet:servlet-api:jar:2.5:compile,CDDL,http://oracle.com
 net.jcip:jcip-annotations:jar:1.0:compile,Public,http://jcip.net/
 org.codehaus.jettison:jettison:jar:1.1:compile,ASLv2,https://github.com/codehaus/jettison
@@ -157,6 +158,7 @@ commons-digester:commons-digester:jar:1.8:compile,The Apache Software License, V
 commons-digester:commons-digester:jar:2.1:compile,ASLv2,http://commons.apache.org/digester/
 commons-el:commons-el:jar:1.0:provided,The Apache Software License, Version 2.0,http://jakarta.apache.org/commons/el/
 commons-el:commons-el:jar:1.0:runtime,The Apache Software License, Version 2.0,http://jakarta.apache.org/commons/el/
+commons-el:commons-el:jar:1.0:compile,The Apache Software License, Version 2.0,http://jakarta.apache.org/commons/el/
 commons-httpclient:commons-httpclient:jar:3.1:compile,Apache License,http://jakarta.apache.org/httpcomponents/httpclient-3.x/
 commons-io:commons-io:jar:2.4:compile,ASLv2,http://commons.apache.org/io/
 commons-io:commons-io:jar:2.5:compile,ASLv2,http://commons.apache.org/io/
@@ -288,3 +290,6 @@ com.h2database:h2:jar:1.4.192:compile,EPL 1.0,http://www.h2database.com/html/lic
 de.jollyday:jollyday:jar:0.5.2:compile,ASLv2,http://jollyday.sourceforge.net/license.html
 org.threeten:threeten-extra:jar:1.0:compile,BSD,http://www.threeten.org/threeten-extra/license.html
 org.atteo.classindex:classindex:jar:3.3:compile,ASLv2,https://github.com/atteo/classindex
+com.squareup.okhttp:okhttp:jar:2.4.0:compile,ASLv2,https://github.com/square/okhttp
+com.squareup.okio:okio:jar:1.4.0:compile,ASLv2,https://github.com/square/okhttp
+org.htrace:htrace-core:jar:3.0.4:compile,ASLv2,http://htrace.incubator.apache.org/

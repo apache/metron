@@ -141,6 +141,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment.simple.hbase.cf", cf);
       setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
       setProperty("enrichment.error.topic", ERROR_TOPIC);
+      setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("storm.auto.credentials", "[]");
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{

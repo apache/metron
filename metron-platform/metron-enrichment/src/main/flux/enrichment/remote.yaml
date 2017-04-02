@@ -18,8 +18,10 @@ name: "enrichment"
 config:
     topology.workers: 1
     topology.acker.executors: 0
+    topology.worker.childopts: ${topology.worker.childopts}
 
 components:
+
 # Enrichment
     -   id: "stellarEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.stellar.StellarAdapter"
@@ -27,6 +29,15 @@ components:
             -   name: "ofType"
                 args:
                     - "ENRICHMENT"
+
+    # Any kafka props for the producer go here.
+    -   id: "kafkaWriterProps"
+        className: "java.util.HashMap"
+        configMethods:
+          -   name: "put"
+              args:
+                  - "security.protocol"
+                  - "${kafka.security.protocol}"
 
     -   id: "stellarEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
@@ -100,6 +111,9 @@ components:
             -   name: "withZkQuorum"
                 args:
                     - "${kafka.zk}"
+            -   name: "withProducerConfigs"
+                args: 
+                    - ref: "kafkaWriterProps"
 
 # Threat Intel
     -   id: "stellarThreatIntelAdapter"
@@ -163,7 +177,9 @@ components:
             -   name: "withZkQuorum"
                 args:
                     - "${kafka.zk}"
-
+            -   name: "withProducerConfigs"
+                args: 
+                    - ref: "kafkaWriterProps"
 #indexing
     -   id: "kafkaWriter"
         className: "org.apache.metron.writer.kafka.KafkaWriter"
@@ -174,9 +190,12 @@ components:
             -   name: "withZkQuorum"
                 args:
                     - "${kafka.zk}"
+            -   name: "withProducerConfigs"
+                args: 
+                    - ref: "kafkaWriterProps"
 
 #kafka/zookeeper
-    # Any kafka props for the producer go here.
+    # Any kafka props for the consumer go here.
     -   id: "kafkaProps"
         className: "java.util.HashMap"
         configMethods:
@@ -192,6 +211,11 @@ components:
               args:
                   - "group.id"
                   - "enrichments"
+          -   name: "put"
+              args:
+                  - "security.protocol"
+                  - "${kafka.security.protocol}"
+
 
   # The fields to pull out of the kafka messages
     -   id: "fields"
@@ -298,6 +322,7 @@ bolts:
             -   name: "withMessageWriter"
                 args:
                     - ref: "enrichmentErrorKafkaWriter"
+
 
 # Threat Intel Bolts
     -   id: "threatIntelSplitBolt"

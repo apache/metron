@@ -83,6 +83,8 @@ title: Apache Metron (Incubating) Community
       <td style="text-align: left">Matt Foley</td> <td style="text-align: left">mattf</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
       <td style="text-align: left">Jon Zeolla</td> <td style="text-align: left">jonzeolla</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">JJ Meyer</td> <td style="text-align: left">jmeyer</td> <td style="text-align: left">Committer</td> </tr>
     </tbody>
 </table>
 </section>
