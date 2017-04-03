@@ -27,7 +27,7 @@ export class SensorGrokComponent implements OnInit, OnChanges {
 
   newGrokStatement = '';
   newPatternLabel = '';
-  availablePatternLabels = ['label 1', 'label 2'];
+  availablePatternLabels = [];
   parsedMessage: any = {};
   parsedMessageKeys: string[] = [];
   grokFunctionList: AutocompleteOption[] = [];
@@ -121,6 +121,14 @@ export class SensorGrokComponent implements OnInit, OnChanges {
         this.availablePatternLabels.push(patternLabel);
       }
     }
+  }
+
+  isTestDisabled() {
+    return this.parseMessageRequest.sampleData.length === 0 || this.newGrokStatement.length === 0;
+  }
+
+  isSaveDisabled() {
+    return this.newGrokStatement.length === 0 || this.availablePatternLabels.indexOf(this.newPatternLabel) === -1;
   }
 
 

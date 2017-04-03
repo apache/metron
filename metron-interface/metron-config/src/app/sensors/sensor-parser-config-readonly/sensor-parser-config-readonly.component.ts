@@ -49,6 +49,8 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   transformsConfigKeys: string[] = [];
   transformsConfigMap: {} = {};
   rules: RiskLevelRule[] = [];
+  transformLinkText = 'show more';
+  threatTriageLinkText = 'show more';
 
   editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
     {type: 'SEPARATOR', model: '', value: ''},
@@ -327,5 +329,29 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     } else {
       return riskLevelRule.rule ? riskLevelRule.rule : '';
     }
+  }
+
+  toggleTransformLink() {
+    return this.transformLinkText = (this.transformLinkText === 'show more') ? 'show less' : 'show more';
+  }
+
+  toggleThreatTriageLink() {
+    return this.threatTriageLinkText = (this.threatTriageLinkText === 'show more') ? 'show less' : 'show more';
+  }
+
+  isStartHidden() {
+    return (this.topologyStatus.status !== 'Stopped');
+  }
+
+  isStopHidden() {
+    return ((this.topologyStatus.status !== 'Running' && this.topologyStatus.status !== 'Disabled'));
+  }
+
+  isEnableHidden() {
+    return (this.topologyStatus.status !== 'Disabled');
+  }
+
+  isDisableHidden() {
+    return (this.topologyStatus.status !== 'Running');
   }
 }
