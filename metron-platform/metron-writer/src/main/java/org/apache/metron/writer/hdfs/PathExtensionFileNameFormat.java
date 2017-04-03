@@ -23,10 +23,10 @@ import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 
 import java.util.Map;
 
-public class SourceFileNameFormat implements FileNameFormat {
+public class PathExtensionFileNameFormat implements FileNameFormat {
   FileNameFormat delegate;
   String pathExtension;
-  public SourceFileNameFormat(String pathExtension, FileNameFormat delegate) {
+  public PathExtensionFileNameFormat(String pathExtension, FileNameFormat delegate) {
     this.delegate = delegate;
     this.pathExtension = pathExtension;
   }

@@ -152,7 +152,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       ret = new SourceHandler(rotationActions,
                               rotationPolicy,
                               syncPolicy,
-                              new SourceFileNameFormat(key.getStellarResult(), fileNameFormat),
+                              new PathExtensionFileNameFormat(key.getStellarResult(), fileNameFormat),
                               new SourceHandlerCallback(sourceHandlerMap, key));
       sourceHandlerMap.put(key, ret);
     }

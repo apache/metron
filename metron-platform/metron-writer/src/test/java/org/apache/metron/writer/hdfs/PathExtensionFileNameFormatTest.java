@@ -23,7 +23,7 @@ import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class SourceFileNameFormatTest {
+public class PathExtensionFileNameFormatTest {
 
   private static final String PATH = "/apps/metron";
   private static final String EXTENSION = ".json";
@@ -32,7 +32,7 @@ public class SourceFileNameFormatTest {
   @Test
   public void testGetPath() {
     FileNameFormat delegate = new DefaultFileNameFormat().withExtension(EXTENSION).withPath(PATH);
-    FileNameFormat sourceFormat = new SourceFileNameFormat(PATH_EXTENSION, delegate);
+    FileNameFormat sourceFormat = new PathExtensionFileNameFormat(PATH_EXTENSION, delegate);
     String actual = sourceFormat.getPath();
     String expected = PATH + "/" + PATH_EXTENSION;
     Assert.assertEquals(expected, actual);
@@ -41,7 +41,7 @@ public class SourceFileNameFormatTest {
   @Test
   public void testGetPathEmptyPathExtension() {
     FileNameFormat delegate = new DefaultFileNameFormat().withExtension(EXTENSION).withPath(PATH);
-    FileNameFormat sourceFormat = new SourceFileNameFormat("", delegate);
+    FileNameFormat sourceFormat = new PathExtensionFileNameFormat("", delegate);
     String actual = sourceFormat.getPath();
     Assert.assertEquals(PATH + "/", actual);
   }
