@@ -55,6 +55,17 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * @see StellarPredicateProcessor
  */
 public class BaseStellarProcessor<T> {
+  public static final int DEFAULT_CACHE_SIZE = 500;
+  public static final int DEFAULT_EXPIRY_TIME = 10;
+  public static final TimeUnit DEFAULT_EXPIRY_TIME_UNITS = TimeUnit.MINUTES;
+
+  /**
+   * The default expression cache.  This is used when the expression cache is not otherwise specified.
+   */
+  private static Cache<String, StellarCompiler.Expression> defaultExpressionCache;
+  static {
+    defaultExpressionCache = createCache(DEFAULT_CACHE_SIZE, DEFAULT_EXPIRY_TIME, DEFAULT_EXPIRY_TIME_UNITS);
+  }
   /**
    * The class containing the type that the Stellar expression being processed will evaluate to.
    */
@@ -65,12 +76,11 @@ public class BaseStellarProcessor<T> {
    */
   Cache<String, StellarCompiler.Expression> expressionCache;
 
-  public static final int DEFAULT_CACHE_SIZE = 500;
-  public static final int DEFAULT_EXPIRY_TIME = 10;
-  public static final TimeUnit DEFAULT_EXPIRY_TIME_UNITS = TimeUnit.MINUTES;
-
+  /**
+   * Create a default stellar processor.  This processor uses the static expression cache.
+   */
   BaseStellarProcessor(final Class<T> clazz) {
-    this(clazz, DEFAULT_CACHE_SIZE, DEFAULT_EXPIRY_TIME, DEFAULT_EXPIRY_TIME_UNITS);
+    this(clazz, defaultExpressionCache);
   }
 
   BaseStellarProcessor(final Class<T> clazz, int cacheSize, int expiryTime, TimeUnit expiryUnit) {

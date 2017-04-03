@@ -30,16 +30,12 @@ import java.util.concurrent.TimeUnit;
  * rather than a java.util.function.Predicate
  */
 public class StellarProcessor extends BaseStellarProcessor<Object> {
-  private static Cache<String, StellarCompiler.Expression> expressionCache;
-  static {
-    expressionCache = createCache(DEFAULT_CACHE_SIZE, DEFAULT_EXPIRY_TIME, DEFAULT_EXPIRY_TIME_UNITS);
-  }
 
   /**
    * Create a default stellar processor.  This processor uses the static expression cache.
    */
   public StellarProcessor() {
-    super(Object.class, expressionCache);
+    super(Object.class);
   }
 
   /**
