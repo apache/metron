@@ -39,8 +39,8 @@ public class SourceFileNameFormat implements FileNameFormat {
   }
 
   @Override
-  public String getName(long l, long l1) {
-    return delegate.getName(l, l1);
+  public String getName(long rotation, long timestamp) {
+    return delegate.getName(rotation, timestamp);
   }
 
   @Override
