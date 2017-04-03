@@ -46,7 +46,6 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   SyncPolicy syncPolicy = new CountSyncPolicy(1); //sync every time, duh.
   FileNameFormat fileNameFormat;
   Map<SourceHandlerKey, SourceHandler> sourceHandlerMap = new HashMap<>();
-  HashMap<String, StellarCompiler.Expression> sourceTypeExpressionMap = new HashMap<>();
   int maxOpenFiles = 500;
   transient StellarProcessor stellarProcessor;
   transient Map stormConfig;
@@ -118,14 +117,13 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       return sourceType;
     }
 
-    StellarCompiler.Expression expression = sourceTypeExpressionMap.computeIfAbsent(stellarFunction, s -> stellarProcessor.compile(stellarFunction));
+    //processor is a StellarProcessor();
     VariableResolver resolver = new MapVariableResolver(message);
-    Object objResult = expression.apply(new StellarCompiler.ExpressionState(Context.EMPTY_CONTEXT(),StellarFunctions.FUNCTION_RESOLVER(), resolver));
-    if (!(objResult instanceof String)) {
+    Object objResult = stellarProcessor.parse(stellarFunction, resolver, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    if(objResult != null && !(objResult instanceof String)) {
       throw new IllegalArgumentException("Stellar Function <" + stellarFunction + "> did not return a String value. Returned: " + objResult);
     }
-    String stellarResult = (String)expression.apply(new StellarCompiler.ExpressionState(Context.EMPTY_CONTEXT(),StellarFunctions.FUNCTION_RESOLVER(), resolver));
-    return stellarResult == null ? "" : stellarResult;
+    return objResult == null ? "" : (String)objResult;
   }
 
   @Override
