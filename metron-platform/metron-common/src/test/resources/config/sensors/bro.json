@@ -1,7 +1,6 @@
 {
   "index": "bro",
   "batchSize": 5,
-  "outputPathFunction": "FORMAT('uid-%s', uid)",
   "enrichment": {
     "fieldMap": {
       "geo": [
