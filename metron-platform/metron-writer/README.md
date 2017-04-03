@@ -60,6 +60,8 @@ For example, if the data contains uid's 1, 3, and 5, there will be 3 output fold
 
 The Stellar function must return a String, but is not limited to FORMAT functions. Other functions, such as `TO_LOWER`, `TO_UPPER`, etc. are all available for use. Typically, it's preferable to do nontrivial transformations as part of enrichment and simply reference the output here.
 
+If no Stellar function is provided, it will default to putting the sensor in a folder, as above.
+
 A caveat is that the writer will only allow a certain number of files to be created at once.  HdfsWriter has a function `withMaxOpenFiles` allowing this to be set.  The default is 500.  This can be set in Flux:
 ```
     -   id: "hdfsWriter"
