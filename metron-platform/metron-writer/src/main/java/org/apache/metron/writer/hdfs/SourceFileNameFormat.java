@@ -25,11 +25,9 @@ import java.util.Map;
 
 public class SourceFileNameFormat implements FileNameFormat {
   FileNameFormat delegate;
-  String sourceType;
   String pathExtension;
-  public SourceFileNameFormat(String sourceType, String pathExtension, FileNameFormat delegate) {
+  public SourceFileNameFormat(String pathExtension, FileNameFormat delegate) {
     this.delegate = delegate;
-    this.sourceType = sourceType;
     this.pathExtension = pathExtension;
   }
 
@@ -39,12 +37,12 @@ public class SourceFileNameFormat implements FileNameFormat {
   }
 
   @Override
-  public String getName(long rotation, long timestamp) {
-    return delegate.getName(rotation, timestamp);
+  public String getName(long rotation, long l1) {
+    return delegate.getName(rotation, l1);
   }
 
   @Override
   public String getPath() {
-    return delegate.getPath() + "/" + pathExtension + "/" + sourceType;
+    return delegate.getPath() + "/" + pathExtension;
   }
 }

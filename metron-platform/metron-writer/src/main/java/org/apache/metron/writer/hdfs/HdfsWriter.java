@@ -97,6 +97,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       for(JSONObject message : messages) {
         Map<String, Object> val = configurations.getSensorConfig(sourceType);
         String path = getHdfsPathExtension(
+                sourceType,
                 (String)configurations.getSensorConfig(sourceType).getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
                 message
         );
@@ -111,9 +112,10 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     return response;
   }
 
-  public String getHdfsPathExtension(String stellarFunction, JSONObject message) {
+  public String getHdfsPathExtension(String sourceType, String stellarFunction, JSONObject message) {
+    // If no function is provided, just use the sourceType directly
     if(stellarFunction == null || stellarFunction.trim().isEmpty()) {
-      return "";
+      return sourceType;
     }
 
     StellarCompiler.Expression expression = sourceTypeExpressionMap.computeIfAbsent(stellarFunction, s -> stellarProcessor.compile(stellarFunction));
@@ -150,7 +152,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       ret = new SourceHandler(rotationActions,
                               rotationPolicy,
                               syncPolicy,
-                              new SourceFileNameFormat(key.getSourceType(), key.getStellarResult(), fileNameFormat),
+                              new SourceFileNameFormat(key.getStellarResult(), fileNameFormat),
                               new SourceHandlerCallback(sourceHandlerMap, key));
       sourceHandlerMap.put(key, ret);
     }

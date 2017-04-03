@@ -49,13 +49,13 @@ E.g.
   "outputPathFunction": "FORMAT('uid-%s', uid)"
 }
 ```
-will land data in `/apps/metron/uid-<uid>/bro`.
+will land data in `/apps/metron/uid-<uid>/`.
 
 For example, if the data contains uid's 1, 3, and 5, there will be 3 output folders in HDFS:
 ```
-/apps/metron/uid-1/bro
-/apps/metron/uid-3/bro
-/apps/metron/uid-5/bro
+/apps/metron/uid-1/
+/apps/metron/uid-3/
+/apps/metron/uid-5/
 ```
 
 The Stellar function must return a String, but is not limited to FORMAT functions. Other functions, such as `TO_LOWER`, `TO_UPPER`, etc. are all available for use. Typically, it's preferable to do nontrivial transformations as part of enrichment and simply reference the output here.

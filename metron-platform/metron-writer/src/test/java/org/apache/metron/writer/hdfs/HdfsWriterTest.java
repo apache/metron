@@ -66,9 +66,9 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
 
     JSONObject message = new JSONObject();
-    Object result = writer.getHdfsPathExtension(null, message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME,null, message);
     writer.close();
-    Assert.assertEquals("", result);
+    Assert.assertEquals(SENSOR_NAME, result);
   }
 
   @Test
@@ -79,9 +79,9 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
 
     JSONObject message = new JSONObject();
-    Object result = writer.getHdfsPathExtension("", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME, "", message);
     writer.close();
-    Assert.assertEquals("", result);
+    Assert.assertEquals(SENSOR_NAME, result);
   }
 
   @Test
@@ -92,7 +92,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
 
     JSONObject message = new JSONObject();
-    Object result = writer.getHdfsPathExtension("'new'", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME, "'new'", message);
     writer.close();
     Assert.assertEquals("new", result);
   }
@@ -106,7 +106,7 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
-    Object result = writer.getHdfsPathExtension("test.key", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME, "test.key", message);
     writer.close();
     Assert.assertEquals("test.value", result);
   }
@@ -119,7 +119,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
 
     JSONObject message = new JSONObject();
-    Object result = writer.getHdfsPathExtension("FORMAT('/test/folder/')", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('/test/folder/')", message);
     writer.close();
     Assert.assertEquals("/test/folder/", result);
   }
@@ -136,7 +136,7 @@ public class HdfsWriterTest {
     message.put("test.key", "test.value");
     message.put("test.key.2", "test.value.2");
     message.put("test.key.3", "test.value.3");
-    Object result = writer.getHdfsPathExtension("FORMAT('%s/%s/%s', test.key, test.key.2, test.key.3)", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME,"FORMAT('%s/%s/%s', test.key, test.key.2, test.key.3)", message);
     writer.close();
     Assert.assertEquals("test.value/test.value.2/test.value.3", result);
   }
@@ -152,13 +152,13 @@ public class HdfsWriterTest {
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
     message.put("test.key.2", "test.value.2");
-    Object result = writer.getHdfsPathExtension("FORMAT('%s', test.key)", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('%s', test.key)", message);
     Assert.assertEquals("test.value", result);
 
-    result = writer.getHdfsPathExtension("FORMAT('%s/%s', test.key, test.key.2)", message);
+    result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('%s/%s', test.key, test.key.2)", message);
     Assert.assertEquals("test.value/test.value.2", result);
 
-    result = writer.getHdfsPathExtension("FORMAT('%s', test.key)", message);
+    result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('%s', test.key)", message);
     writer.close();
     Assert.assertEquals("test.value", result);
   }
@@ -173,7 +173,7 @@ public class HdfsWriterTest {
 
     JSONObject message = new JSONObject();
     message.put("test.key", "test.value");
-    Object result = writer.getHdfsPathExtension("TO_UPPER(FORMAT(MAP_GET('key', {'key': 'AbC%s'}), test.key))", message);
+    Object result = writer.getHdfsPathExtension(SENSOR_NAME, "TO_UPPER(FORMAT(MAP_GET('key', {'key': 'AbC%s'}), test.key))", message);
     writer.close();
     Assert.assertEquals("ABCTEST.VALUE", result);
   }
@@ -185,7 +185,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
 
     JSONObject message = new JSONObject();
-    writer.getHdfsPathExtension("{'key':'value'}", message);
+    writer.getHdfsPathExtension(SENSOR_NAME, "{'key':'value'}", message);
   }
 
   @Test
@@ -293,7 +293,7 @@ public class HdfsWriterTest {
     expected.add(message2.toJSONString());
     Collections.sort(expected);
 
-    File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/sensor");
+    File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
     Assert.assertTrue(outputFolder.exists() && outputFolder.isDirectory());
     Assert.assertEquals(1, outputFolder.listFiles().length);
 
@@ -336,7 +336,7 @@ public class HdfsWriterTest {
     expected1.add(message.toJSONString());
     Collections.sort(expected1);
 
-    File outputFolder1 = new File(folder.getAbsolutePath() + "/test-test.value/test.value/sensor");
+    File outputFolder1 = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
     Assert.assertTrue(outputFolder1.exists() && outputFolder1.isDirectory());
     Assert.assertEquals(1, outputFolder1.listFiles().length);
 
@@ -350,7 +350,7 @@ public class HdfsWriterTest {
     expected2.add(message2.toJSONString());
     Collections.sort(expected2);
 
-    File outputFolder2 = new File(folder.getAbsolutePath() + "/test-test.value2/test.value2/sensor");
+    File outputFolder2 = new File(folder.getAbsolutePath() + "/test-test.value2/test.value2/");
     Assert.assertTrue(outputFolder2.exists() && outputFolder2.isDirectory());
     Assert.assertEquals(1, outputFolder2.listFiles().length);
 
@@ -388,7 +388,7 @@ public class HdfsWriterTest {
     expected.add(message.toJSONString());
     Collections.sort(expected);
 
-    File outputFolder = new File(folder.getAbsolutePath() + "/test-null/null/sensor");
+    File outputFolder = new File(folder.getAbsolutePath() + "/test-null/null/");
     Assert.assertTrue(outputFolder.exists() && outputFolder.isDirectory());
     Assert.assertEquals(1, outputFolder.listFiles().length);
 
