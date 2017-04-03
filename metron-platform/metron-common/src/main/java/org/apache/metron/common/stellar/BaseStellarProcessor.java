@@ -74,17 +74,28 @@ public class BaseStellarProcessor<T> {
   }
 
   BaseStellarProcessor(final Class<T> clazz, int cacheSize, int expiryTime, TimeUnit expiryUnit) {
+    this(clazz, createCache(cacheSize, expiryTime, expiryUnit));
+  }
+
+  BaseStellarProcessor(final Class<T> clazz, Cache<String, StellarCompiler.Expression> expressionCache) {
     this.clazz = clazz;
+    this.expressionCache = expressionCache;
+  }
+
+  static Cache<String, StellarCompiler.Expression> createCache( int cacheSize
+                                                       , int expiryTime
+                                                       , TimeUnit expiryUnit
+                                                       ) {
     CacheLoader<String, StellarCompiler.Expression> loader = new CacheLoader<String, StellarCompiler.Expression>() {
       @Override
       public StellarCompiler.Expression load(String key) throws Exception {
         return compile(key);
       }
     };
-    expressionCache = CacheBuilder.newBuilder()
-                              .maximumSize(cacheSize)
-                              .expireAfterAccess(expiryTime, expiryUnit)
-                              .build(loader);
+    return CacheBuilder.newBuilder()
+                       .maximumSize(cacheSize)
+                       .expireAfterAccess(expiryTime, expiryUnit)
+                       .build(loader);
   }
 
   /**
@@ -132,7 +143,7 @@ public class BaseStellarProcessor<T> {
    * @param rule The Stellar expression to parse and evaluate.
    * @return The Expression, which can be reevaluated without reparsing in different Contexts and Resolvers.
    */
-  public StellarCompiler.Expression compile(final String rule) {
+  public static StellarCompiler.Expression compile(final String rule) {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
