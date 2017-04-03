@@ -114,7 +114,7 @@ describe('GeneralSettingsComponent', () => {
     expect(component.globalConfig).toEqual(globalConfigService._config);
   }));
 
-  it('should load save config', async(() => {
+  it('should save global config', async(() => {
     globalConfigService._config = config;
     component.ngOnInit();
     fixture.detectChanges();
@@ -131,7 +131,7 @@ describe('GeneralSettingsComponent', () => {
 
   }));
 
-  it('should load save config', async(() => {
+  it('should handle onCancel', async(() => {
     let dialogReturnTrue = true;
     let confirmationMsg = 'Cancelling will revert all the changes made to the form. Do you wish to continue ?';
 

@@ -20,9 +20,11 @@ import {CommonModule} from '@angular/common';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {routing} from './general-settings.routing';
 import {GeneralSettingsComponent} from './general-settings.component';
+import {AceEditorModule} from '../shared/ace-editor/ace-editor.module';
+
 
 @NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule ],
+  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, AceEditorModule ],
   declarations: [ GeneralSettingsComponent ]
 })
 export class GeneralSettingsModule { }
