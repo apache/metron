@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.rest.RestException;
 
@@ -36,5 +37,7 @@ public interface SensorEnrichmentConfigService {
     boolean delete(String name) throws RestException;
 
     List<String> getAvailableEnrichments();
+
+    List<String> getAvailableThreatTriageAggregators();
 
 }

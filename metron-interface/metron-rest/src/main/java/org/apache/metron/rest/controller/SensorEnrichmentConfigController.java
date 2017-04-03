@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
@@ -90,8 +91,15 @@ public class SensorEnrichmentConfigController {
 
   @ApiOperation(value = "Lists the available enrichments")
   @ApiResponse(message = "Returns a list of available enrichments", code = 200)
-  @RequestMapping(value = "/list/available", method = RequestMethod.GET)
-  ResponseEntity<List<String>> getAvailable() throws RestException {
+  @RequestMapping(value = "/list/available/enrichments", method = RequestMethod.GET)
+  ResponseEntity<List<String>> getAvailableEnrichments() throws RestException {
     return new ResponseEntity<>(sensorEnrichmentConfigService.getAvailableEnrichments(), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Lists the available threat triage aggregators")
+  @ApiResponse(message = "Returns a list of available threat triage aggregators", code = 200)
+  @RequestMapping(value = "/list/available/threat/triage/aggregators", method = RequestMethod.GET)
+  ResponseEntity<List<String>> getAvailableThreatTriageAggregators() throws RestException {
+    return new ResponseEntity<>(sensorEnrichmentConfigService.getAvailableThreatTriageAggregators(), HttpStatus.OK);
   }
 }

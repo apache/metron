@@ -67,9 +67,11 @@ describe('SensorEnrichmentConfigService', () => {
     enrichmentConfig1.fieldMap = {'whois': ['ip_dst_addr'], 'host': ['ip_src_addr']};
     sensorEnrichmentConfig2.enrichment = enrichmentConfig2;
     let availableEnrichments: string[] = ['geo', 'host', 'whois'];
+    let availableThreatTriageAggregators: string[] = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
     let sensorEnrichmentConfigResponse: Response;
     let sensorEnrichmentConfigsResponse: Response;
     let availableEnrichmentsResponse: Response;
+    let availableThreatTriageAggregatorsResponse: Response;
     let deleteResponse: Response;
 
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
@@ -79,6 +81,7 @@ describe('SensorEnrichmentConfigService', () => {
       sensorEnrichmentConfigsResponse = new Response(new ResponseOptions({status: 200, body: [sensorEnrichmentConfig1,
         sensorEnrichmentConfig2]}));
       availableEnrichmentsResponse = new Response(new ResponseOptions({status: 200, body: availableEnrichments}));
+      availableThreatTriageAggregatorsResponse = new Response(new ResponseOptions({status: 200, body: availableThreatTriageAggregators}));
       deleteResponse = new Response(new ResponseOptions({status: 200}));
     }));
 
@@ -109,12 +112,21 @@ describe('SensorEnrichmentConfigService', () => {
           }, error => console.log(error));
     })));
 
-    it('getAvailable', async(inject([], () => {
+    it('getAvailableEnrichments', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableEnrichmentsResponse));
 
-      sensorEnrichmentConfigService.getAvailable().subscribe(
+      sensorEnrichmentConfigService.getAvailableEnrichments().subscribe(
           results => {
             expect(results).toEqual(availableEnrichments);
+          }, error => console.log(error));
+    })));
+
+    it('getAvailableThreatTriageAggregators', async(inject([], () => {
+      mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableThreatTriageAggregatorsResponse));
+
+      sensorEnrichmentConfigService.getAvailableThreatTriageAggregators().subscribe(
+          results => {
+            expect(results).toEqual(availableThreatTriageAggregators);
           }, error => console.log(error));
     })));
 

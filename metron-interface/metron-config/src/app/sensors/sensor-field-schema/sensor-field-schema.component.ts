@@ -114,7 +114,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
   getEnrichmentFunctions() {
     this.enrichmentOptions = [];
 
-    this.sensorEnrichmentConfigService.getAvailable().subscribe((result: string[]) => {
+    this.sensorEnrichmentConfigService.getAvailableEnrichments().subscribe((result: string[]) => {
       for (let fun of result) {
         this.enrichmentOptions.push(new AutocompleteOption(fun));
       }
