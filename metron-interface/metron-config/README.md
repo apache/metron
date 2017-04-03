@@ -18,6 +18,8 @@ This module provides a user interface for management functions in Metron.
 1. Untar the archive in the target directory.  The directory structure will look like:
     ```
     bin
+      package.json
+      server.js
       start_management_ui.sh
     web
       management-ui
@@ -26,11 +28,14 @@ This module provides a user interface for management functions in Metron.
 
 1. For production use, the contents of the `./web/management-ui` directory should be deployed to a web server with paths `/api/v1` and `/logout` mapped to the REST application url.  
 
-1. As an example, a convenience script is included that will install a simple [http-server](https://github.com/indexzero/http-server), set the root context path to `./web/management-ui`, and exposes proxy settings as environment variables.  Set the `METRON_REST_URL` environment variable (`http://localhost:8080` by default) to the url of REST application.  Set the `METRON_MANAGEMENT_UI_PORT` environment variable (`4200` by default) to the desired port.
+1. As an example, a convenience script is included that will install a simple [expressjs](https://github.com/expressjs/express) webserver.
 
 1. Then start the application with the script:
     ```
-    ./bin/start_management_ui.sh
+    ./bin/start_management_ui.sh -p [port] -r [restUrl]
+
+    [port]: Port to run metron management ui (usually 4200)
+    [restUrl]: Url where metron rest application is available (Ex: http://localhost:8080)
     ```
 
 ## Usage
