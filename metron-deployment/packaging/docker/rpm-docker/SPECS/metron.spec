@@ -318,12 +318,12 @@ This package installs the Metron Profiler %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %package        config
-Summary:        Metron Config
+Summary:        Metron Management UI
 Group:          Applications/Internet
 Provides:       config = %{version}
 
 %description    config
-This package installs the Metron Config %{metron_home}
+This package installs the Metron Management UI %{metron_home}
 
 %files          config
 %defattr(-,root,root,755)
