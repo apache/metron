@@ -214,4 +214,21 @@ describe('Component: SensorGrok', () => {
     fixture.destroy();
   });
 
+  it('should disable test', () => {
+    expect(component.isTestDisabled()).toEqual(true);
+    component.newGrokStatement = 'new grok statement';
+    expect(component.isTestDisabled()).toEqual(true);
+    component.parseMessageRequest.sampleData = 'sample data';
+    expect(component.isTestDisabled()).toEqual(false);
+  });
+
+  it('should disable save', () => {
+    component.availablePatternLabels = ['LABEL_1', 'LABEL_2'];
+    expect(component.isSaveDisabled()).toEqual(true);
+    component.newGrokStatement = 'new grok statement';
+    expect(component.isSaveDisabled()).toEqual(true);
+    component.newPatternLabel = 'LABEL_2';
+    expect(component.isSaveDisabled()).toEqual(false);
+  });
+
 });

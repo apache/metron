@@ -16,38 +16,52 @@
  * limitations under the License.
  */
 import {SimpleChange, SimpleChanges} from '@angular/core';
+import {Http} from '@angular/http';
 import {async, TestBed, ComponentFixture} from '@angular/core/testing';
 import {SensorThreatTriageComponent, SortOrderOption, ThreatTriageFilter} from './sensor-threat-triage.component';
-import {SharedModule} from '../../shared/shared.module';
 import {SensorEnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {SensorRuleEditorComponent} from './rule-editor/sensor-rule-editor.component';
-import {NumberSpinnerComponent} from '../../shared/number-spinner/number-spinner.component';
 import {RiskLevelRule} from '../../model/risk-level-rule';
+import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
+import {Observable} from 'rxjs/Observable';
+import '../../rxjs-operators';
+import {SensorThreatTriageModule} from './sensor-threat-triage.module';
+
+class MockSensorEnrichmentConfigService {
+  public getAvailableThreatTriageAggregators(): Observable<string[]> {
+    return Observable.create(observer => {
+      observer.next(['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN']);
+      observer.complete();
+    });
+  }
+}
 
 describe('Component: SensorThreatTriageComponent', () => {
 
-  let fixture: ComponentFixture<SensorThreatTriageComponent>;
   let component: SensorThreatTriageComponent;
+  let fixture: ComponentFixture<SensorThreatTriageComponent>;
+  let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [SharedModule
-      ],
-      declarations: [SensorThreatTriageComponent, SensorRuleEditorComponent, NumberSpinnerComponent],
+      imports: [SensorThreatTriageModule],
       providers: [
-        SensorThreatTriageComponent
+        {provide: Http},
+        {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
       ]
-    });
-
-    fixture = TestBed.createComponent(SensorThreatTriageComponent);
-    component = fixture.componentInstance;
+    }).compileComponents()
+        .then(() => {
+          fixture = TestBed.createComponent(SensorThreatTriageComponent);
+          component = fixture.componentInstance;
+          sensorEnrichmentConfigService = fixture.debugElement.injector.get(SensorEnrichmentConfigService);
+        });
   }));
 
   it('should create an instance', () => {
     expect(component).toBeDefined();
+    fixture.destroy();
   });
 
-  it('should create an instance', () => {
+  it('should create an instance', async(() => {
     spyOn(component, 'init');
     let changes: SimpleChanges = {'showThreatTriage': new SimpleChange(false, true)};
 
@@ -59,9 +73,9 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(component.init['calls'].count()).toEqual(1);
 
     fixture.destroy();
-  });
+  }));
 
-  it('should close panel', () => {
+  it('should close panel', async(() => {
     let numClosed = 0;
     component.hideThreatTriage.subscribe((closed: boolean) => {
       numClosed++;
@@ -71,9 +85,9 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(numClosed).toEqual(1);
 
     fixture.destroy();
-  });
+  }));
 
-  it('should get color', () => {
+  it('should get color', async(() => {
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
     sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
       'triageConfig': {
@@ -97,9 +111,9 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(component.getRuleColor(ruleC)).toEqual('orange');
 
     fixture.destroy();
-  });
+  }));
 
-  it('should edit rules', () => {
+  it('should edit rules', async(() => {
     let ruleA = {name: 'ruleA', rule: 'rule A', score: 15, comment: ''};
     let ruleB = {name: 'ruleB', rule: 'rule B', score: 95, comment: ''};
     let ruleC = {name: 'ruleC', rule: 'rule C', score: 50, comment: ''};
@@ -191,7 +205,7 @@ describe('Component: SensorThreatTriageComponent', () => {
     expect(component.showTextEditor).toEqual(false);
 
     fixture.destroy();
-  });
+  }));
 
 
 });

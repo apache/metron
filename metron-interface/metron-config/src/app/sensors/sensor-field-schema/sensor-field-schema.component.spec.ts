@@ -73,7 +73,7 @@ class MockTransformationValidationService {
 }
 
 class MockSensorEnrichmentConfigService {
-    public getAvailable(): Observable<string[]> {
+    public getAvailableEnrichments(): Observable<string[]> {
         return Observable.create((observer) => {
             observer.next(['geo', 'host', 'whois']);
             observer.complete();

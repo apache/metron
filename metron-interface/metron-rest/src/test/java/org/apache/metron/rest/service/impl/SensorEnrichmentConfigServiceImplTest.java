@@ -242,6 +242,17 @@ public class SensorEnrichmentConfigServiceImplTest {
     }}, sensorEnrichmentConfigService.getAvailableEnrichments());
   }
 
+  @Test
+  public void getAvailableThreatTriageAggregatorsShouldReturnAggregators() throws Exception {
+    assertEquals(new ArrayList<String>() {{
+      add("MAX");
+      add("MIN");
+      add("SUM");
+      add("MEAN");
+      add("POSITIVE_MEAN");
+    }}, sensorEnrichmentConfigService.getAvailableThreatTriageAggregators());
+  }
+
   private SensorEnrichmentConfig getTestSensorEnrichmentConfig() {
     SensorEnrichmentConfig sensorEnrichmentConfig = new SensorEnrichmentConfig();
     EnrichmentConfig enrichmentConfig = new EnrichmentConfig();

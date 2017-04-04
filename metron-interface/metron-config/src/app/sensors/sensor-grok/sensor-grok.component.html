@@ -29,8 +29,8 @@
         <metron-config-ace-editor [(ngModel)]="newGrokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'" (ngModelChange)="getAvailablePatternLabels()"> </metron-config-ace-editor>
 
         <div class="buttons-bar">
-            <button type="submit" class="btn form-enable-disable-button" [disabled]="parseMessageRequest.sampleData.length===0 || newGrokStatement.length===0" (click)="onTestGrokStatement()">TEST</button>
-            <button type="submit" class="btn form-enable-disable-button" [disabled]="newGrokStatement.length===0" (click)="onSaveGrok()">SAVE</button>
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="isTestDisabled()" (click)="onTestGrokStatement()">TEST</button>
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="isSaveDisabled()" (click)="onSaveGrok()">SAVE</button>
         </div>
 
         <label> PREVIEW </label>

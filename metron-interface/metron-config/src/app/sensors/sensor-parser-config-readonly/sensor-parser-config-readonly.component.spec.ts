@@ -244,7 +244,7 @@ class MockSensorEnrichmentConfigService {
 
 describe('Component: SensorParserConfigReadonly', () => {
 
-  let comp: SensorParserConfigReadonlyComponent;
+  let component: SensorParserConfigReadonlyComponent;
   let fixture: ComponentFixture<SensorParserConfigReadonlyComponent>;
   let sensorParserConfigHistoryService: MockSensorParserConfigHistoryService;
   let sensorEnrichmentConfigService: MockSensorEnrichmentConfigService;
@@ -280,7 +280,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     }).compileComponents()
       .then(() => {
         fixture = TestBed.createComponent(SensorParserConfigReadonlyComponent);
-        comp = fixture.componentInstance;
+        component = fixture.componentInstance;
         activatedRoute = fixture.debugElement.injector.get(ActivatedRoute);
         hdfsService = fixture.debugElement.injector.get(HdfsService);
         authenticationService = fixture.debugElement.injector.get(AuthenticationService);
@@ -297,12 +297,10 @@ describe('Component: SensorParserConfigReadonly', () => {
   }));
 
   it('should create an instance', async(() => {
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     expect(component).toBeDefined();
   }));
 
   it('should have metadata defined ', async(() => {
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     expect(component.editViewMetaData.length).toEqual(24);
   }));
 
@@ -350,8 +348,6 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     activatedRoute.setNameForTest('bro');
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
-
     component.ngOnInit();
     expect(component.startStopInProgress).toEqual(false);
     expect(component.sensorParserConfigHistory).toEqual(Object.assign(new SensorParserConfigHistory(), sensorParserInfo));
@@ -367,7 +363,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     sensorParserStatus.throughput = '15.2';
 
     stormService.setForTest(sensorParserStatus);
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
 
     component.getSensorStatusService();
     expect(component.topologyStatus.status).toEqual('Stopped');
@@ -402,7 +397,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     sensorParserConfig.parserConfig['grokPath'] = '/squid/grok/path';
     sensorParserInfo.config = sensorParserConfig;
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.sensorParserConfigHistory = sensorParserInfo;
     component.setGrokStatement();
 
@@ -421,8 +415,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     fieldTransformer2.output = ['a', 'b', 'c'];
     sensorParserConfig.fieldTransformations = [fieldTransformer1, fieldTransformer2];
     sensorParserInfo.config = sensorParserConfig;
-
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
 
     component.setTransformsConfigKeys();
     let transformsOutput = component.getTransformsOutput();
@@ -445,8 +437,6 @@ describe('Component: SensorParserConfigReadonly', () => {
   it('goBack should navigate to sensors page', async(() => {
     router.navigateByUrl = jasmine.createSpy('navigateByUrl');
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
-
     component.goBack();
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/sensors');
@@ -455,7 +445,6 @@ describe('Component: SensorParserConfigReadonly', () => {
   it('onEditSensor should navigate to sensor edit', async(() => {
     router.navigateByUrl = jasmine.createSpy('navigateByUrl');
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.selectedSensorName = 'abc';
 
     component.onEditSensor();
@@ -493,7 +482,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), threatIntel);
     sensorEnrichmentConfigService.setForTest(sensorEnrichmentConfig);
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.getEnrichmentData();
 
 
@@ -553,7 +541,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.selectedSensorName = 'abc';
 
     component.onStartSensor();
@@ -571,7 +558,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.selectedSensorName = 'abc';
 
     component.onStopSensor();
@@ -589,7 +575,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.selectedSensorName = 'abc';
 
     component.onEnableSensor();
@@ -607,7 +592,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     alerts.showSuccessMessage = jasmine.createSpy('showSuccessMessage');
     setDataForSensorOperation();
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.selectedSensorName = 'abc';
 
     component.onDisableSensor();
@@ -626,7 +610,6 @@ describe('Component: SensorParserConfigReadonly', () => {
     router.navigateByUrl = jasmine.createSpy('navigateByUrl');
     setDataForSensorOperation();
 
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     component.selectedSensorName = 'abc';
 
     component.onDeleteSensor();
@@ -637,7 +620,6 @@ describe('Component: SensorParserConfigReadonly', () => {
   }));
 
   it('toggleStartStopInProgress should toggle the variable for showing progressbar', async(() => {
-    let component: SensorParserConfigReadonlyComponent = fixture.componentInstance;
     expect(component.startStopInProgress).toEqual(false);
 
     component.startStopInProgress = true;
@@ -645,6 +627,61 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     component.startStopInProgress = false;
     expect(component.startStopInProgress).toEqual(false);
+  }));
+
+  it('should toggleTransformLink', async(() => {
+    expect(component.transformLinkText).toEqual('show more');
+
+    component.toggleTransformLink();
+    expect(component.transformLinkText).toEqual('show less');
+
+    component.toggleTransformLink();
+    expect(component.transformLinkText).toEqual('show more');
+  }));
+
+  it('should toggleThreatTriageLink', async(() => {
+    expect(component.threatTriageLinkText).toEqual('show more');
+
+    component.toggleThreatTriageLink();
+    expect(component.threatTriageLinkText).toEqual('show less');
+
+    component.toggleThreatTriageLink();
+    expect(component.threatTriageLinkText).toEqual('show more');
+  }));
+
+  it('should hide start', async(() => {
+    component.topologyStatus.status = 'Running';
+    expect(component.isStartHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'Stopped';
+    expect(component.isStartHidden()).toEqual(false);
+  }));
+
+  it('should hide stop', async(() => {
+    component.topologyStatus.status = 'Stopped';
+    expect(component.isStopHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'Running';
+    expect(component.isStopHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'Disabled';
+    expect(component.isStopHidden()).toEqual(false);
+  }));
+
+  it('should hide enable', async(() => {
+    component.topologyStatus.status = 'Stopped';
+    expect(component.isEnableHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'Disabled';
+    expect(component.isEnableHidden()).toEqual(false);
+  }));
+
+  it('should hide disable', async(() => {
+    component.topologyStatus.status = 'Stopped';
+    expect(component.isDisableHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'Running';
+    expect(component.isDisableHidden()).toEqual(false);
   }));
 
 });

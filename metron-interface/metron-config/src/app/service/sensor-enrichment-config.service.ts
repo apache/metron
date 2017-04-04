@@ -55,8 +55,15 @@ export class SensorEnrichmentConfigService {
       .catch(HttpUtil.handleError);
   }
 
-  public getAvailable(): Observable<string[]> {
-    return this.http.get(this.url + '/list/available', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+  public getAvailableEnrichments(): Observable<string[]> {
+    return this.http.get(this.url + '/list/available/enrichments', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+        .map(HttpUtil.extractData)
+        .catch(HttpUtil.handleError);
+  }
+
+  public getAvailableThreatTriageAggregators(): Observable<string[]> {
+    return this.http.get(this.url + '/list/available/threat/triage/aggregators',
+        new RequestOptions({headers: new Headers(this.defaultHeaders)}))
         .map(HttpUtil.extractData)
         .catch(HttpUtil.handleError);
   }

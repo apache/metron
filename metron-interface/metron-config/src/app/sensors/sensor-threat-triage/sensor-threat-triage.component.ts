@@ -19,6 +19,7 @@
 import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
 import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
 import {RiskLevelRule} from '../../model/risk-level-rule';
+import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
 
 export enum SortOrderOption {
   Lowest_Score, Highest_Score, Lowest_Name, Highest_Name
@@ -40,7 +41,7 @@ export class SensorThreatTriageComponent implements OnChanges {
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
 
   @Output() hideThreatTriage: EventEmitter<boolean> = new EventEmitter<boolean>();
-  availableAggregators = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
+  availableAggregators = [];
   visibleRules: RiskLevelRule[] = [];
 
   showTextEditor = false;
@@ -55,7 +56,7 @@ export class SensorThreatTriageComponent implements OnChanges {
   threatTriageFilter = ThreatTriageFilter;
   filter: ThreatTriageFilter = ThreatTriageFilter.NONE;
 
-  constructor() { }
+  constructor(private sensorEnrichmentConfigService: SensorEnrichmentConfigService) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showThreatTriage'] && changes['showThreatTriage'].currentValue) {
@@ -65,6 +66,9 @@ export class SensorThreatTriageComponent implements OnChanges {
 
   init(): void {
     this.visibleRules = this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules;
+    this.sensorEnrichmentConfigService.getAvailableThreatTriageAggregators().subscribe(results => {
+      this.availableAggregators = results;
+    });
     this.updateBuckets();
     this.onSortOrderChange(null);
   }

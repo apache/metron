@@ -20,7 +20,7 @@
     </div>
 
     <div class="row mx-0">
-      <form #globalSettingsForm="ngForm">
+      <form>
         <div class="col-md-4 pl-0">
           <div class="section px-1 py-1">
             <label class="h6"> <strong> Elasticsearch </strong> </label>
@@ -36,7 +36,7 @@
 
             <div class="form-group">
               <label>FIELD</label>
-              <textarea rows="15" class="form-control" name="fieldValidations" (blur)="onBlur()" [(ngModel)]="fieldValidations"></textarea>
+              <metron-config-ace-editor [(ngModel)]="fieldValidations" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Field Validations'"> </metron-config-ace-editor>
             </div>
 
           </div>

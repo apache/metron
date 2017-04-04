@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {GlobalConfigService} from '../service/global-config.service';
 import {MetronAlerts} from '../shared/metron-alerts';
 import {MetronDialogBox} from '../shared/metron-dialog-box';
@@ -26,8 +26,6 @@ import {MetronDialogBox} from '../shared/metron-dialog-box';
   styleUrls: ['./general-settings.component.scss']
 })
 export class GeneralSettingsComponent implements OnInit {
-
-  @ViewChild('globalSettingsForm') globalSettingsForm: any;
 
   globalConfig: {} = {
     'es.date.format': '-'
@@ -69,14 +67,6 @@ export class GeneralSettingsComponent implements OnInit {
         this.ngOnInit();
       }
     });
-  }
-
-  onBlur() {
-    try {
-      this.fieldValidations = JSON.stringify(JSON.parse(this.fieldValidations), null, '\t');
-    } catch (e) {
-
-    }
   }
 
 }
