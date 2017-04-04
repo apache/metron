@@ -1,6 +1,6 @@
 {
-  "name": "clitest",
-  "version": "0.0.0",
+  "name": "metron-management-ui",
+  "version": "0.3.1",
   "license": "MIT",
   "config": {
     "node_ace": "node_modules/ace-builds/src-min-noconflict/"

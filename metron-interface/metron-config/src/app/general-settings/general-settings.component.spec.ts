@@ -114,7 +114,7 @@ describe('GeneralSettingsComponent', () => {
     expect(component.globalConfig).toEqual(globalConfigService._config);
   }));
 
-  it('should load save config', async(() => {
+  it('should report save config', async(() => {
     globalConfigService._config = config;
     component.ngOnInit();
     fixture.detectChanges();

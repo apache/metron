@@ -76,7 +76,7 @@ table, .table
       font-size: 11px;
       color: $text-color-white;
       border-top: hidden !important;
-      border-bottom: 2px solid #404040 !important;
+      border-bottom: 2px solid $tundora !important;
     }
   }
   tbody {
@@ -93,7 +93,7 @@ table, .table
       td
       {
         border-top: none;
-        border-bottom: 1px solid #404040;
+        border-bottom: 1px solid $tundora;
       }
       &:hover
       {
@@ -629,7 +629,7 @@ a.blue-label
 }
 
 .popover-content {
-  background-color: #404040;
+  background-color: $tundora;
   padding: 9px 14px;
   color: #bdbdbd;
   border-bottom-left-radius: 4px;
