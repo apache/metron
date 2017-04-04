@@ -72,26 +72,26 @@
 
                 <!-- Output Field Name-->
                 <div class="form-group  px-1 col-md-10" *ngIf="fieldSchemaRow.isNew  || !fieldSchemaRow.isParserGenerated">
-                  <label [attr.for]="fieldSchemaRow.fieldName">NAME</label>
+                  <label>NAME</label>
                   <input type="text" class="form-control" [name]="fieldSchemaRow.outputFieldName" [(ngModel)]="fieldSchemaRow.outputFieldName" [ngModelOptions]="{standalone: true}">
                 </div>
 
                 <!-- Transforms -->
                 <div class="form-group  px-1 col-md-12">
-                  <label attr.for="fieldName">TRANSFORMATIONS</label>
+                  <label>TRANSFORMATIONS</label>
                   <metron-config-multiple-input [type]="'select'" [availableItems]="transformOptions" [(configuredItems)]="fieldSchemaRow.transformConfigured" (onConfigChange)="onTransformsChange(fieldSchemaRow)"> </metron-config-multiple-input>
                   <div class="edit-pane-readonly rounded col-md-10"> {{ fieldSchemaRow.preview }} </div>
                 </div>
 
                 <!-- Enrichmnets -->
                 <div class="form-group  px-1 col-md-12">
-                  <label attr.for="fieldName">ENRICHMENTS</label>
+                  <label>ENRICHMENTS</label>
                   <metron-config-multiple-input [availableItems]="enrichmentOptions" [(configuredItems)]="fieldSchemaRow.enrichmentConfigured" [allowDuplicates]="false"> </metron-config-multiple-input>
                 </div>
 
                 <!-- Threat Intel -->
                 <div class="form-group  px-1 col-md-12">
-                  <label attr.for="fieldName">THREAT INTEL </label>
+                  <label>THREAT INTEL </label>
                   <metron-config-multiple-input [availableItems]="threatIntelOptions" [(configuredItems)]="fieldSchemaRow.threatIntelConfigured" [allowDuplicates]="false"> </metron-config-multiple-input>
                 </div>
 
