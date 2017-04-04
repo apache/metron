@@ -20,15 +20,15 @@ import {changeURL, waitForElementVisibility, waitForElementInVisibility, waitFor
 
 export class SensorConfigPage {
 
-  _getEnrichmentsMultipleInput() {
+  private getEnrichmentsMultipleInput() {
     return element.all(by.css('.config.container')).all(by.css('metron-config-multiple-input')).get(1).all(by.css('select')).last();
   }
 
-  _getThreatIntelMultipleInput() {
+  private getThreatIntelMultipleInput() {
     return element.all(by.css('.config.container')).all(by.css('metron-config-multiple-input')).last().all(by.css('select')).last();
   }
 
-  _getTransformationMultipleInput() {
+  private getTransformationMultipleInput() {
     return element.all(by.css('.config.container')).all(by.css('metron-config-multiple-input')).first().all(by.css('select')).last();
   }
 
@@ -206,21 +206,21 @@ export class SensorConfigPage {
     this.getFieldSchemaEditButton(fieldName).click();
     
     transformValues.forEach(transform => {
-      let transformSelect = this._getTransformationMultipleInput();
+      let transformSelect = this.getTransformationMultipleInput();
       transformSelect.click().then(() => {
         transformSelect.all(by.cssContainingText('option', transform)).last().click();
       });
     });
     
     enrichmentValues.forEach(enrichment => {
-      let enrichmentSelect = this._getEnrichmentsMultipleInput();
+      let enrichmentSelect = this.getEnrichmentsMultipleInput();
       enrichmentSelect.click().then(() => {
         enrichmentSelect.all(by.cssContainingText('option', enrichment)).last().click();
       });
     })
 
     threatIntelValues.forEach(threatIntel => {
-      let threatIntelSelect = this._getThreatIntelMultipleInput();
+      let threatIntelSelect = this.getThreatIntelMultipleInput();
       threatIntelSelect.click().then(() => {
         threatIntelSelect.all(by.cssContainingText('option', threatIntel)).last().click();
       });

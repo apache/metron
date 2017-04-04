@@ -73,7 +73,7 @@
 
 .small-close-button {
   font-size:20px;
-  color:#bdbdbd;
+  color:$silver-color;
   cursor: pointer;
 }
 
@@ -107,7 +107,7 @@
 
 .edit-pane-readonly
 {
-  background: #083B44;
+  background: $edit-child-background;
   font-size: 12px;
   margin-bottom: 0.5em;
   font-style: italic;

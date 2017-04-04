@@ -18,8 +18,6 @@
 import {Component} from '@angular/core';
 import './rxjs-operators';
 import {AuthenticationService} from './service/authentication.service';
-import 'jquery';
-declare var $: any;
 
 
 @Component({
