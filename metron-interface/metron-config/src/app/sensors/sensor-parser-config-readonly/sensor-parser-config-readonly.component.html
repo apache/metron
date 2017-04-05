@@ -47,7 +47,7 @@
               <div class="col-xs-12 form-sub-title">Grok Statement</div>
               <div id="collapseGrok" class="col-xs-12  pull-left form-value panel-collapse collapse"></div>
               <div class="col-xs-12  pull-left form-value grok" [innerHtml]="grokStatement"></div>
-              <a class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
+              <a *ngIf="grokStatement.length>0" class="collapsed blue-label font-weight-bold col-xs-8 col-xs-push-4" data-toggle="collapse" href="#collapseGrok" aria-expanded="false" aria-controls="collapseGrok"  #grokLink (click)="grokLink.text=(grokLink.text==='show more')?'show less':'show more'">show more</a>
               <div class="px-1"> <div class="col-xs-12 form-seperator"></div> </div>
             </div>
 
