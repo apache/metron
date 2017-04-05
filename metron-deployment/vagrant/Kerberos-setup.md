@@ -194,16 +194,16 @@ EOF
     a. Modify enrichment.properties - `${METRON_HOME}/config/enrichment.properties`
 
     ```
-    if [ `whoami` == "metron" ]; then exit; fi
-    sed -i -e 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
-    sed -i -e 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
+    [[ $EUID -eq 0 ]] || exit
+    sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
+    sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
     ```
 
     b. Modify elasticsearch.properties - `${METRON_HOME}/config/elasticsearch.properties`
 
     ```
-    sed -i -e 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/elasticsearch.properties
-    sed -i -e 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/elasticsearch.properties
+    sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/elasticsearch.properties
+    sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/elasticsearch.properties
     su metron
     cd
     ```
@@ -271,8 +271,9 @@ ${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper ${ZOOKEEPER}:
 
 ##### Modify the sensor-stubs to send logs via SASL
 ```
-if [ `whoami` == "metron" ]; then exit; fi
-sed -i -e 's/--broker-list node1:6667 --topic/--broker-list node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
+[[ $EUID -eq 0 ]] && sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
+# Restart the appropriate sensor-stubs
+for sensorstub in bro snort; do service sensor-stubs stop $sensorstub; service sensor-stubs start $sensorstub; done
 ```
 
 #### References
