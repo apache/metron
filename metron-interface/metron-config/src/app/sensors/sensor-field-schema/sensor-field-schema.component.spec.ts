@@ -111,18 +111,17 @@ describe('Component: SensorFieldSchema', () => {
                 }
             },
             {
-                'input': ['method'],
-                'output': null,
-                'transformation': 'REMOVE',
-                'config': {
-                    'method': 'TRIM(TO_LOWER(method))'
-                }
-            },
-            {
                 'input': ['code'],
                 'output': null,
                 'transformation': 'REMOVE',
-                'config': {}
+                'config': {
+                    'condition': 'exists(field2)'
+                }
+            },
+            {
+                'input': ['ip_src_addr'],
+                'output': null,
+                'transformation': 'REMOVE'
             }
         ]
     };
@@ -256,7 +255,7 @@ describe('Component: SensorFieldSchema', () => {
         let codeSchemaRow: FieldSchemaRow = component.fieldSchemaRows.filter(row => row.inputFieldName === 'code')[0];
         expect(codeSchemaRow).toBeDefined();
         expect(codeSchemaRow.isRemoved).toEqual(true);
-        expect(codeSchemaRow.conditionalRemove).toEqual(false);
+        expect(codeSchemaRow.conditionalRemove).toEqual(true);
         expect(codeSchemaRow.transformConfigured.length).toEqual(0);
         expect(codeSchemaRow.enrichmentConfigured.length).toEqual(0);
         expect(codeSchemaRow.threatIntelConfigured.length).toEqual(0);
@@ -415,24 +414,24 @@ describe('Component: SensorFieldSchema', () => {
         fixture.destroy();
     });
 
-    it('isSimpleRemoveTransform ', () => {
+    it('isConditionalRemoveTransform ', () => {
         let fieldTransformationJson = {
-            'output': ['method', 'elapsed'],
-            'transformation': 'STELLAR',
+            'input': ['method'],
+            'transformation': 'REMOVE',
             'config':
             {
-                'method': 'TRIM(TO_LOWER(method))',
-                'elapsed': 'IS_DOMAIN(elapsed)'
+                'condition': 'IS_DOMAIN(elapsed)'
             }
         };
+        let simpleFieldTransformationJson = {
+          'input': ['method'],
+          'transformation': 'REMOVE'
+        };
         let fieldTransformation: FieldTransformer = Object.assign(new FieldTransformer(), fieldTransformationJson);
-        expect(component.isSimpleRemoveTransform(fieldTransformation)).toEqual(true);
+        expect(component.isConditionalRemoveTransform(fieldTransformation)).toEqual(true);
 
-        fieldTransformation.transformation = 'REMOVE';
-        expect(component.isSimpleRemoveTransform(fieldTransformation)).toEqual(false);
-
-        fieldTransformation.config = {};
-        expect(component.isSimpleRemoveTransform(fieldTransformation)).toEqual(true);
+        let simpleFieldTransformation: FieldTransformer = Object.assign(new FieldTransformer(), simpleFieldTransformationJson);
+        expect(component.isConditionalRemoveTransform(simpleFieldTransformation)).toEqual(false);
 
         fixture.destroy();
     });
@@ -461,14 +460,21 @@ describe('Component: SensorFieldSchema', () => {
         ipDstAddrFieldSchemaRow.threatIntelConfigured = [new AutocompleteOption('malicious_ip')];
         ipDstAddrFieldSchemaRow.enrichmentConfigured = [new AutocompleteOption('host')];
 
-
         let codeFieldSchemaRow = new FieldSchemaRow('code');
+        codeFieldSchemaRow.outputFieldName = 'code';
+        codeFieldSchemaRow.isRemoved = true;
+        codeFieldSchemaRow.conditionalRemove = true;
 
         component.savedFieldSchemaRows = [methodFieldSchemaRow, elapsedFieldSchemaRow, ipDstAddrFieldSchemaRow, codeFieldSchemaRow];
 
         component.sensorParserConfig = new SensorParserConfig();
         component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
         component.sensorParserConfig.sensorTopic = 'squid';
+
+      component.sensorParserConfig.fieldTransformations = [new FieldTransformer()];
+      component.sensorParserConfig.fieldTransformations[0].transformation = 'REMOVE';
+      component.sensorParserConfig.fieldTransformations[0].input = ['code'];
+      component.sensorParserConfig.fieldTransformations[0].config = {'condition': 'exists(method)'};
 
         component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
         component.sensorEnrichmentConfig.enrichment = new  EnrichmentConfig();
@@ -492,14 +498,25 @@ describe('Component: SensorFieldSchema', () => {
             'transformation': 'REMOVE',
         };
 
+        let conditionalFieldTransformationRemoveJson = {
+          'input': ['code'],
+          'transformation': 'REMOVE',
+          'config':{
+            'condition': 'exists(method)'
+          }
+        };
+
         let fieldTransformation = Object.assign(new FieldTransformer(), fieldTransformationJson);
         let fieldTransformationRemove = Object.assign(new FieldTransformer(), fieldTransformationRemoveJson);
+      let conditionalFieldTransformationRemove = Object.assign(new FieldTransformer(), conditionalFieldTransformationRemoveJson);
 
-        expect(component.sensorParserConfig.fieldTransformations.length).toEqual(2);
+        expect(component.sensorParserConfig.fieldTransformations.length).toEqual(3);
         let expectedStellar = component.sensorParserConfig.fieldTransformations.filter(transform => transform.transformation === 'STELLAR')[0];
-        let expectedRemove = component.sensorParserConfig.fieldTransformations.filter(transform => transform.transformation === 'REMOVE')[0];
+        let expectedRemove = component.sensorParserConfig.fieldTransformations.filter(transform => transform.transformation === 'REMOVE' && !transform.config)[0];
+        let expectedConditionalRemove = component.sensorParserConfig.fieldTransformations.filter(transform => transform.transformation === 'REMOVE' && transform.config)[0];
         expect(expectedStellar).toEqual(fieldTransformation);
         expect(expectedRemove).toEqual(fieldTransformationRemove);
+      expect(expectedConditionalRemove).toEqual(conditionalFieldTransformationRemove);
 
         fixture.destroy();
     });
