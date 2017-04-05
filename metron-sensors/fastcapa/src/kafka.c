@@ -69,7 +69,7 @@ static int kaf_stats_cb(rd_kafka_t *rk, char *json, size_t UNUSED(json_len), voi
     // update queue depth of this kafka connection
     kaf_conn_stats[conn_id].depth = rd_kafka_outq_len(rk);
 
-    // TODO this should be handled by a logging lib that can handle faults and rolling the output file
+    // write json to the stats file
     if(NULL != stats_fd) {
         rc = fprintf(stats_fd, "{ \"conn_id\": \"%u\", \"conn_name\": \"%s\", \"stats\": %s }\n", conn_id, rd_kafka_name(rk), json);
         if(rc < 0) {
