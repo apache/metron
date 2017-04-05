@@ -21,10 +21,6 @@
     <schemaVersion>2.0</schemaVersion>
     <services>
         <service>
-            <name>ELASTICSEARCH</name>
-            <extends>common-services/ELASTICSEARCH/2.3.3</extends>
-        </service>
-        <service>
             <name>KIBANA</name>
             <extends>common-services/KIBANA/4.5.1</extends>
         </service>

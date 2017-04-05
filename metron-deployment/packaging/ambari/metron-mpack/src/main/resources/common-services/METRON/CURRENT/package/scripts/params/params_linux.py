@@ -66,13 +66,6 @@ es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
 es_http_url = es_host_list[0] + ":" + es_http_port
 
-# install repo
-yum_repo_type = config['configurations']['metron-env']['repo_type']
-if yum_repo_type == 'local':
-    repo_url = 'file:///localrepo'
-else:
-    repo_url = config['configurations']['metron-env']['repo_url']
-
 # hadoop params
 stack_root = Script.get_stack_root()
 # This is the cluster group named 'hadoop'. Its membership is the stack process user ids not individual users.
