@@ -15,13 +15,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export METRON_REST_URL=${METRON_REST_URL:-http://localhost:8080}
-export MANAGEMENT_UI_PORT=${MANAGEMENT_UI_PORT:-4200}
-npm version > /dev/null
-if [ $? -eq 0 ]; then
-    npm install http-server
-    ./node_modules/http-server/bin/http-server ./web/management-ui --proxy $METRON_REST_URL -p $MANAGEMENT_UI_PORT
-else
-    echo 'Error:  npm required to start http-server'
-fi
+
+METRON_VERSION=${project.version}
+METRON_HOME=/usr/metron/$METRON_VERSION
+
+cd $METRON_HOME/web/expressjs
+npm install
+node $METRON_HOME/web/expressjs/server.js $*
