@@ -65,7 +65,7 @@ export class SensorGrokComponent implements OnInit, OnChanges {
   onTestGrokStatement() {
     this.parsedMessage = {};
 
-    if (this.newGrokStatement.length === 0) {
+    if(this.newGrokStatement.indexOf('%{') == -1) {
       return;
     }
 
