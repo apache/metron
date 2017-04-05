@@ -13,22 +13,28 @@ library for Kafka.  This plugin has been tested against the latest release of
 librdkafka, which at the time of this writing is v0.9.4.  In order to support interacting
 with a kerberized kafka, you will need libsasl2 installed
 
-    # curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz
-    # cd librdkafka-0.9.4/
-    # ./configure --enable-sasl
-    # make
-    # sudo make install
+```
+# curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz
+# cd librdkafka-0.9.4/
+# ./configure --enable-sasl
+# make
+# sudo make install
+```
 
 Then compile this Bro plugin using the following commands.
 
-    # ./configure --bro-dist=$BRO_SRC
-    # make
-    # sudo make install
+```
+# ./configure --bro-dist=$BRO_SRC
+# make
+# sudo make install
+```
 
 Run the following command to ensure that the plugin was installed successfully.
 
-    # bro -N Bro::Kafka
-    Bro::Kafka - Writes logs to Kafka (dynamic, version 0.1)
+```
+# bro -N Bro::Kafka
+Bro::Kafka - Writes logs to Kafka (dynamic, version 0.1)
+```
 
 Activation
 ----------
