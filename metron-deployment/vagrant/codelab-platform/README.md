@@ -10,7 +10,7 @@ Getting Started
 
 As with the Singlenode Full Image, the computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) 2.0.0.2
+ - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
  - [Vagrant](https://www.vagrantup.com) 1.8.1
  - [Virtualbox](https://virtualbox.org) 5.0.16
  - Python 2.7.11

@@ -13,28 +13,34 @@ library for Kafka.  This plugin has been tested against the latest release of
 librdkafka, which at the time of this writing is v0.9.4.  In order to support interacting
 with a kerberized kafka, you will need libsasl2 installed
 
-    # curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz
-    # cd librdkafka-0.9.4/
-    # ./configure --enable-sasl
-    # make
-    # sudo make install
+```
+# curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz
+# cd librdkafka-0.9.4/
+# ./configure --enable-sasl
+# make
+# sudo make install
+```
 
 Then compile this Bro plugin using the following commands.
 
-    # ./configure --bro-dist=$BRO_SRC
-    # make
-    # sudo make install
+```
+# ./configure --bro-dist=$BRO_SRC
+# make
+# sudo make install
+```
 
 Run the following command to ensure that the plugin was installed successfully.
 
-    # bro -N Bro::Kafka
-    Bro::Kafka - Writes logs to Kafka (dynamic, version 0.1)
+```
+# bro -N Bro::Kafka
+Bro::Kafka - Writes logs to Kafka (dynamic, version 0.1)
+```
 
 Activation
 ----------
 
 The easiest way to enable Kafka output is to load the plugin's
-``logs-to-kafka.bro`` script.  If you are using BroControl, the following lines
+`logs-to-kafka.bro` script.  If you are using BroControl, the following lines
 added to local.bro will activate it.
 
 ```
@@ -47,13 +53,13 @@ redef Kafka::kafka_conf = table(
 ```
 
 This example will send all HTTP, DNS, and Conn logs to a Kafka broker running on
-the localhost to a topic called ``bro``. Any configuration value accepted by
-librdkafka can be added to the ``kafka_conf`` configuration table.
+the localhost to a topic called `bro`. Any configuration value accepted by
+librdkafka can be added to the `kafka_conf` configuration table.
 
 Settings
 --------
 
-### ``kafka_conf``
+### `kafka_conf`
 
 The global configuration settings for Kafka.  These values are passed through
 directly to librdkafka.  Any valid librdkafka settings can be defined in this
@@ -67,7 +73,7 @@ redef Kafka::kafka_conf = table(
 );
 ```
 
-### ``topic_name``
+### `topic_name`
 
 The name of the topic in Kafka where all Bro logs will be sent to.
 
@@ -75,7 +81,7 @@ The name of the topic in Kafka where all Bro logs will be sent to.
 redef Kafka::topic_name = "bro";
 ```
 
-### ``max_wait_on_shutdown``
+### `max_wait_on_shutdown`
 
 The maximum number of milliseconds that the plugin will wait for any backlog of
 queued messages to be sent to Kafka before forced shutdown.
@@ -84,16 +90,16 @@ queued messages to be sent to Kafka before forced shutdown.
 redef Kafka::max_wait_on_shutdown = 3000;
 ```
 
-### ``tag_json``
+### `tag_json`
 
 If true, a log stream identifier is appended to each JSON-formatted message. For
-example, a Conn::LOG message will look like ``{ 'conn' : { ... }}``.
+example, a Conn::LOG message will look like `{ 'conn' : { ... }}`.
 
 ```
 redef Kafka::tag_json = T;
 ```
 
-### ``debug``
+### `debug`
 
 A comma separated list of debug contexts in librdkafka which you want to
 enable.  The available contexts are:

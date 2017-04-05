@@ -142,7 +142,7 @@ def main():
         blueprint_var=dict(type='dict', required=False),
         blueprint_name=dict(type='str', default=None, required=False),
         configurations=dict(type='list', default=None, required=False),
-        wait_for_complete=dict(default=False, required=False, choices=BOOLEANS),
+        wait_for_complete=dict(default=False, required=False, type='bool'),
     )
 
     required_together = ['blueprint_var', 'blueprint_name']

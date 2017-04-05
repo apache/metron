@@ -118,20 +118,18 @@
   when: kafka_broker_tag is undefined
 
 #
-# kafka_broker_url, kafka_broker_port
+# kafka_broker_port
 #
-- name: "Ask Ambari: kafka_broker_port, kafka_broker_url"
-  uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    force_basic_auth: yes
-    return_content: yes
-  register: kafka_broker_properties_response
+- name: "Ask Ambari: kafka_broker_port"
+  shell: >
+    curl -s -u {{ ambari_user }}:{{ ambari_password }} -X GET -H "X-Requested-By: ambari" "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}" | python -c 'import sys, json; print json.load(sys.stdin)["items"][0]["properties"]["listeners"]'
+  args:
+    warn: false
+  register: kafka_broker_port_response
   when: (kafka_broker_url is undefined) or (kafka_broker_port is undefined)
 
 - set_fact:
-    kafka_broker_port: "{{ (kafka_broker_properties_response.content | from_json)['items'][0].properties['listeners'] | replace('PLAINTEXT://localhost:', '')}}"
+    kafka_broker_port: "{{ kafka_broker_port_response.stdout_lines[0] | replace('PLAINTEXT://localhost:', '')}}"
   when: kafka_broker_port is undefined
 
 - set_fact:

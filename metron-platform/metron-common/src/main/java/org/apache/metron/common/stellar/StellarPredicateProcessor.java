@@ -36,6 +36,9 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class StellarPredicateProcessor extends BaseStellarProcessor<Boolean> {
 
+  /**
+   * Create a default stellar processor.  This processor uses the static expression cache.
+   */
   public StellarPredicateProcessor() {
     super(Boolean.class);
   }
