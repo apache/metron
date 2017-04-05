@@ -64,7 +64,7 @@ The size of THPs that are supported will vary based on your CPU.  These typicall
 
 2. Add the following boot parameters to the Linux kernel.  Edit `/etc/default/grub` and add the additional kernel parameters to the line starting with `GRUB_CMDLINE_LINUX`.
     ```
-    GRUB_CMDLINE_LINUX=... default_hugepagesz=1G hugepagesz=1G hugepages=16 iommu=pt intel_iommu=on
+    GRUB_CMDLINE_LINUX=... default_hugepagesz=1G hugepagesz=1G hugepages=16
     ```
 
 3. Rebuild the grub configuration then reboot.  The location of the Grub configuration file will differ across Linux distributions.
@@ -125,21 +125,15 @@ The size of THPs that are supported will vary based on your CPU.  These typicall
     09:00.0 Ethernet controller: Cisco Systems Inc VIC Ethernet NIC (rev a2)
     0a:00.0 Ethernet controller: Cisco Systems Inc VIC Ethernet NIC (rev a2)
     ```
-
-5. Set the required environment variables.  These are always required when interacting with a device using DPDK. 
-    ```
-    export RTE_SDK=$DPDK_HOME/share/dpdk/
-    export RTE_TARGET=x86_64-native-linuxapp-gcc
-    ```
-
-6. Bind the device.  Replace the device name and PCI address with what is appropriate for your environment.
+    
+5. Bind the device.  Replace the device name and PCI address with what is appropriate for your environment.
     ```
     ifdown enp9s0f0
     modprobe uio_pci_generic
     $DPDK_HOME/sbin/dpdk-devbind --bind=uio_pci_generic "09:00.0"
     ```
 
-7. Ensure that the device was bound by ensuring that is shown as a "network device using DPDK-compatible driver."
+6. Ensure that the device was bound. It should be shown as a "network device using DPDK-compatible driver."
     ```
     [root@y138 dpdk-stable-16.11.1]# dpdk-devbind --status
     
@@ -330,7 +324,7 @@ How It Works
 
 The probe leverages a poll-mode, burst-oriented mechanism to capture packets from a network interface and transmit them efficiently to a Kafka topic.  Each packet is wrapped within a single Kafka message and the current timestamp, as epoch microseconds in network byte order, is attached as the message's key.
 
-The probe leverages Receive Side Scaling (RSS), a feature provided by many ethernet devices that allows processing of received data to occur across multiple processes and logical cores.  The total number and size of these receive queues are limited by the ethernet device in use.  More capable ethernet devices will offer a greater number and greater sized receive queues.  
+The probe leverages Receive Side Scaling (RSS), a feature provided by some ethernet devices that allows processing of received data to occur across multiple processes and logical cores.  It does this by running a hash function on each packet, whose value assigns the packet to one, of possibly many, receive queues.  The total number and size of these receive queues are limited by the ethernet device in use.  More capable ethernet devices will offer a greater number and greater sized receive queues.  
 
  * Increasing the number of receive queues allows for greater parallelization of receive side processing.  
  * Increasing the size of each receive queue can allow the probe to handle larger, temporary spikes of network packets that can often occur.
@@ -340,7 +334,7 @@ A set of receive workers, each assigned to a unique logical core, are responsibl
 The receive workers then enqueue the received packets into a fixed size ring buffer known as a transmit ring.  There is always one transmit ring for each receive queue.  A set of transmit workers then dequeue packets from the transmit rings.  There can be one or more transmit workers assigned to any single transmit ring.  Each transmit worker has its own unique connection to Kafka.
 
 * Increasing the number of transmit workers allows for greater parallelization when writing data to Kafka.
-* Increasing the size of the transmit rings allows the probe to better handle temporary interruptions or delays when writing data to Kafka.
+* Increasing the size of the transmit rings allows the probe to better handle temporary interruptions and latency when writing to Kafka.
 
 After receiving the network packets from the transmit worker, the Kafka client library internally maintains its own send queue of messages.  Multiple threads are then responsible for managing this queue and creating batches of messages that are sent in bulk to a Kafka broker.  No control is exercised over this additional send queue and its worker threads, which can be an impediment to performance.  This is an opportunity for improvement that can be addressed as follow-on work.
 
@@ -350,7 +344,7 @@ Beyond tuning the parameters previously described, the following should be caref
 
 ### Kafka Partitions
 
-Parallelizing access to a topic in Kafka is achieved through partitions.  The greater the number of partitions assigned to a topic, the more parallelizable access to that topic becomes.  To achieve high throughput it is important to ensure that the Kafka topic in use has a large number of partitions, evenly distributed across each of the nodes in your Kafka cluster.
+Parallelizing access to a topic in Kafka is achieved by defining multiple partitions.  The greater the number of partitions, the more parallelizable access to that topic becomes.  To achieve high throughput it is important to ensure that the Kafka topic in use has a large number of partitions, evenly distributed across each of the nodes in your Kafka cluster.
 
 The specific number of partitions needed will differ for each environment, but at least 128 partitions has been shown to significantly increase performance in some environments.
 
@@ -383,9 +377,9 @@ isolcpus=0,1,2,3,4,5,6,7
 
 ### Device Limitations
 
-Check the output of running the probe to ensure that there are no device limitation that you are not aware of.  While you may have specified 16 receive queues on the command line, your device may not be able to support that number.  This is especially true for the number of receive queues and the number of receive descriptors.
+Check the output of running the probe to ensure that there are no device limitations that you are not aware of.  While you may have specified 16 receive queues on the command line, your device may not support that number.  This is especially true for the number of receive queues and descriptors.
 
-The following example shows the output when the number of receive descriptors requested is greater than what can be supported by the device.  In many cases the probe will not terminate, but will choose the maximum allowable value and continue.  This behavior s specific to the underlying device driver in use.
+The following example shows the output when the number of receive descriptors requested is greater than what can be supported by the device.  In many cases the probe will not terminate, but will choose the maximum allowable value and continue.  This behavior is specific to the underlying device driver in use.
 ```
 PMD: rte_enic_pmd: Rq 0 Scatter rx mode enabled
 PMD: rte_enic_pmd: Rq 0 Scatter rx mode not being used
