@@ -109,7 +109,7 @@ int parse_args(int argc, char** argv)
                 printf("[ -b BURST_SIZE ] defined as %d \n", app.burst_size);
 
                 if(app.burst_size < 1 || app.burst_size > MAX_BURST_SIZE) {
-                    printf("Invalid burst size; burst=%u must be in [1, %u]. \n", app.burst_size, MAX_BURST_SIZE);
+                    fprintf(stderr, "Invalid burst size; burst=%u must be in [1, %u]. \n", app.burst_size, MAX_BURST_SIZE);
                     print_usage();
                     return -1;
                 }
@@ -121,7 +121,7 @@ int parse_args(int argc, char** argv)
                 printf("[ -r NB_RX_DESC ] defined as %d \n", app.nb_rx_desc);
 
                 if (app.nb_rx_desc < 1) {
-                    printf("Invalid num of receive descriptors: '%s' \n", optarg);
+                    fprintf(stderr, "Invalid num of receive descriptors: '%s' \n", optarg);
                     print_usage();
                     return -1;
                 }
@@ -134,7 +134,7 @@ int parse_args(int argc, char** argv)
 
                 // must be a power of 2 and not 0
                 if (app.tx_ring_size == 0 || (app.tx_ring_size & (app.tx_ring_size - 1)) != 0) {
-                    printf("Invalid tx ring size (must be power of 2): '%s' \n", optarg);
+                    fprintf(stderr, "Invalid tx ring size (must be power of 2): '%s' \n", optarg);
                     print_usage();
                     return -1;
                 }
@@ -146,7 +146,7 @@ int parse_args(int argc, char** argv)
                 printf("[ -q NB_RX_QUEUE ] defined as %d \n", app.nb_rx_queue);
 
                 if (app.nb_rx_queue < 1) {
-                    printf("Invalid num of receive queues: '%s' \n", optarg);
+                    fprintf(stderr, "Invalid num of receive queues: '%s' \n", optarg);
                     print_usage();
                     return -1;
                 }
@@ -158,7 +158,7 @@ int parse_args(int argc, char** argv)
               printf("[ -p PORT_MASK ] defined as %d \n", app.enabled_port_mask);
 
               if (app.enabled_port_mask == 0) {
-                  printf("Invalid portmask: '%s'\n", optarg);
+                  fprintf(stderr, "Invalid portmask: '%s'\n", optarg);
                   print_usage();
                   return -1;
               }
@@ -182,7 +182,7 @@ int parse_args(int argc, char** argv)
               printf("[ -c KAFKA_CONFIG ] defined as %s \n", app.kafka_config_path);
 
               if (!valid(app.kafka_config_path) || !file_exists(app.kafka_config_path)) {
-                  printf("Invalid kafka config: '%s'\n", optarg);
+                  fprintf(stderr, "Invalid kafka config: '%s'\n", optarg);
                   print_usage();
                   return -1;
               }
