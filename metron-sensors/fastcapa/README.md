@@ -322,7 +322,7 @@ When running the probe some basic counters are output to stdout.  Of course duri
 
 ### Kerberos
 
-The probe can be used in a Kerberized environment.  The following additional steps make the following assumptions about the Kerberized environment.  These assumptions may need altered to fit your environment.
+The probe can be used in a Kerberized environment.  Follow these additional steps to use Fastcapa with Kerberos.  The following assumptions have been made.  These may need altered to fit your environment.
 
 * The Kafka broker is at "kafka1:6667"
 * Zookeeper is at "zookeeper1:2181"
