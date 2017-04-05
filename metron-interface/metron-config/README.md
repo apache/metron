@@ -18,10 +18,11 @@ This module provides a user interface for management functions in Metron.
 1. Untar the archive in the target directory.  The directory structure will look like:
     ```
     bin
-      package.json
-      server.js
       start_management_ui.sh
     web
+      expressjs
+        package.json
+        server.js
       management-ui
         web assets (html, css, js, ...)
     ```
@@ -38,6 +39,7 @@ This module provides a user interface for management functions in Metron.
     [restUrl]: Url where metron rest application is available (Ex: http://localhost:8080)
     ```
 
+NOTE: The start_management_ui.sh script downloads the expressjs webserver. The host machine running the script should have an active internet connetion and nodejs installed
 ## Usage
 
 The application will be available at http://host:4200 with credentials `user/password`, assuming the default port is configured and the `dev` profile is included when starting the REST application.  See the [REST application](../metron-rest#security) documentation for more information about security configuration for production.

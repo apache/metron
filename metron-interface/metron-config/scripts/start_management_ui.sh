@@ -16,9 +16,9 @@
 #  limitations under the License.
 #
 
-METRON_VERSION=0.3.1
+METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
 
-cd $METRON_HOME/bin
+cd $METRON_HOME/web/expressjs
 npm install
-node $METRON_HOME/bin/server.js $*
+node $METRON_HOME/web/expressjs/server.js $*

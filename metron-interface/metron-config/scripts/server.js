@@ -66,15 +66,15 @@ app.use(compression());
 app.use('/api/v1', proxy(conf.rest));
 app.use('/logout', proxy(conf.rest));
 
-app.use(favicon(path.join(__dirname, '../web/management-ui/favicon.ico')));
+app.use(favicon(path.join(__dirname, '../management-ui/favicon.ico')));
 
-app.use(serveStatic(path.join(__dirname, '../web/management-ui'), {
+app.use(serveStatic(path.join(__dirname, '../management-ui'), {
   maxAge: '1d',
   setHeaders: setCustomCacheControl
 }));
 
 app.get('*', function(req, res){
-  res.sendFile(path.resolve('../web/management-ui/index.html'));
+  res.sendFile(path.resolve('../management-ui/index.html'));
 });
 
 app.listen(port, function(){

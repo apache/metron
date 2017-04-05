@@ -27,11 +27,20 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/scripts</directory>
+      <outputDirectory>/web/expressjs</outputDirectory>
+      <includes>
+        <include>package.json</include>
+        <include>server.js</include>
+      </includes>
+      <fileMode>0644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/scripts</directory>
       <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
-      <excludes>
-        <exclude>start_dev.sh</exclude>
-      </excludes>
+      <includes>
+        <include>start_management_ui.sh</include>
+      </includes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
       <filtered>true</filtered>
