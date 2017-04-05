@@ -144,28 +144,28 @@ cd ~/.storm
   ```
 cat << EOF > client_jaas.conf
 StormClient {
- com.sun.security.auth.module.Krb5LoginModule required
- useTicketCache=true
- renewTicket=true
- serviceName="nimbus";
+   com.sun.security.auth.module.Krb5LoginModule required
+   useTicketCache=true
+   renewTicket=true
+   serviceName="nimbus";
 };
 Client {
- com.sun.security.auth.module.Krb5LoginModule required
- useKeyTab=true
- keyTab="/etc/security/keytabs/metron.headless.keytab"
- storeKey=true
- useTicketCache=false
- serviceName="zookeeper"
- principal="metron@EXAMPLE.COM";
+   com.sun.security.auth.module.Krb5LoginModule required
+   useKeyTab=true
+   keyTab="/etc/security/keytabs/metron.headless.keytab"
+   storeKey=true
+   useTicketCache=false
+   serviceName="zookeeper"
+   principal="metron@EXAMPLE.COM";
 };
 KafkaClient {
- com.sun.security.auth.module.Krb5LoginModule required
- useKeyTab=true
- keyTab="/etc/security/keytabs/metron.headless.keytab"
- storeKey=true
- useTicketCache=false
- serviceName="kafka"
- principal="metron@EXAMPLE.COM";
+   com.sun.security.auth.module.Krb5LoginModule required
+   useKeyTab=true
+   keyTab="/etc/security/keytabs/metron.headless.keytab"
+   storeKey=true
+   useTicketCache=false
+   serviceName="kafka"
+   principal="metron@EXAMPLE.COM";
 };
 EOF
   ```
@@ -194,9 +194,12 @@ EOF
     a. Modify enrichment.properties - `${METRON_HOME}/config/enrichment.properties`
 
     ```
-    [[ $EUID -eq 0 ]] || exit
-    sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
-    sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
+    if [[ $EUID -ne 0 ]]; then
+        echo "You must be root to run these commands"
+    else
+        sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
+        sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
+    fi
     ```
 
     b. Modify elasticsearch.properties - `${METRON_HOME}/config/elasticsearch.properties`
@@ -271,7 +274,7 @@ ${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper ${ZOOKEEPER}:
 
 ##### Modify the sensor-stubs to send logs via SASL
 ```
-[[ $EUID -eq 0 ]] && sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
+sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
 # Restart the appropriate sensor-stubs
 for sensorstub in bro snort; do service sensor-stubs stop $sensorstub; service sensor-stubs start $sensorstub; done
 ```
