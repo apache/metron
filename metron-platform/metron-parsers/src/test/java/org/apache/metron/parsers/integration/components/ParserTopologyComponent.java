@@ -17,24 +17,33 @@
  */
 package org.apache.metron.parsers.integration.components;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.parsers.topology.ParserTopologyBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
+import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
 
 public class ParserTopologyComponent implements InMemoryComponent {
 
+  protected static final Logger LOG = LoggerFactory.getLogger(ParserTopologyComponent.class);
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
-  private SpoutConfig.Offset offset = SpoutConfig.Offset.BEGINNING;
   private LocalCluster stormCluster;
 
   public static class Builder {
@@ -65,17 +74,13 @@ public class ParserTopologyComponent implements InMemoryComponent {
     this.sensorType = sensorType;
   }
 
-  public void setOffset(SpoutConfig.Offset offset) {
-    this.offset = offset;
-  }
 
   @Override
   public void start() throws UnableToStartException {
     try {
       TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
-                                                                   , brokerUrl
+                                                                   , Optional.ofNullable(brokerUrl)
                                                                    , sensorType
-                                                                   , offset
                                                                    , 1
                                                                    , 1
                                                                    , 1
@@ -83,6 +88,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
                                                                    , 1
                                                                    , 1
                                                                    , null
+                                                                   , Optional.empty()
                                                                    );
       Map<String, Object> stormConf = new HashMap<>();
       stormConf.put(Config.TOPOLOGY_DEBUG, true);
@@ -95,8 +101,29 @@ public class ParserTopologyComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    if(stormCluster != null) {
-      stormCluster.shutdown();
+    if (stormCluster != null) {
+      try {
+        try {
+          stormCluster.shutdown();
+        } catch (IllegalStateException ise) {
+          if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
+            throw ise;
+          }
+          else {
+            assassinateSlots();
+            LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
+                    "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
+                    "If tests fail, we'll have to find a better way of killing them.", ise);
+          }
+        }
+      }
+      catch(Throwable t) {
+        LOG.error(t.getMessage(), t);
+      }
+      finally {
+        cleanupWorkerDir();
+      }
+
     }
   }
 }

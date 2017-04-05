@@ -42,6 +42,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -72,6 +76,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
 
     public Builder withTopologyProperties(Properties properties) {
       this.topologyProperties = properties;
+      this.topologyProperties.put("storm.home", "target");
       return this;
     }
 
@@ -130,11 +135,62 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
   }
 
+  public static void cleanupWorkerDir() {
+    if(new File("logs/workers-artifacts").exists()) {
+      Path rootPath = Paths.get("logs");
+      Path destPath = Paths.get("target/logs");
+      try {
+        Files.move(rootPath, destPath);
+        Files.walk(destPath)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+      } catch (IOException e) {
+        throw new IllegalStateException(e.getMessage(), e);
+      }
+    }
+  }
+
   @Override
   public void stop() {
     if (stormCluster != null) {
-      stormCluster.shutdown();
+      try {
+          try {
+            stormCluster.shutdown();
+          } catch (IllegalStateException ise) {
+            if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
+              throw ise;
+            }
+            else {
+              assassinateSlots();
+              LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
+                      "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
+                      "If tests fail, we'll have to find a better way of killing them.", ise);
+            }
+        }
+      }
+      catch(Throwable t) {
+        LOG.error(t.getMessage(), t);
+      }
+      finally {
+        cleanupWorkerDir();
+      }
     }
+  }
+
+  public static void assassinateSlots() {
+    /*
+    You might be wondering why I'm not just casting to slot here, but that's because the Slot class moved locations
+    and we're supporting multiple versions of storm.
+     */
+    Thread.getAllStackTraces().keySet().stream().filter(t -> t instanceof AutoCloseable && t.getName().toLowerCase().contains("slot")).forEach(t -> {
+      AutoCloseable slot = (AutoCloseable) t;
+      try {
+        slot.close();
+      } catch (Exception e) {
+        LOG.error("Tried to kill " + t.getName() + " but.." + e.getMessage(), e);
+      }
+    });
   }
 
   public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {

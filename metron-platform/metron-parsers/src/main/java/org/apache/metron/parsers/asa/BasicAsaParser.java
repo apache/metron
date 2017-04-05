@@ -98,7 +98,7 @@ public class BasicAsaParser extends BasicParser {
     @Override
     public void init() {
         asaGrok = new Grok();
-        InputStream patternStream = this.getClass().getClassLoader().getResourceAsStream("patterns/asa");
+        InputStream patternStream = this.getClass().getResourceAsStream("/patterns/asa");
         try {
             asaGrok.addPatternFromReader(new InputStreamReader(patternStream));
         } catch (GrokException e) {
@@ -140,6 +140,15 @@ public class BasicAsaParser extends BasicParser {
                 metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
                 metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
                 metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
+                
+                
+                if (syslogJson.get("syslog_host")!=null) { 
+                	metronJson.put("syslog_host", syslogJson.get("syslog_host")); 
+            	}
+                if (syslogJson.get("syslog_prog")!=null) { 
+                    metronJson.put("syslog_prog", syslogJson.get("syslog_prog"));
+                }
+                
             }
             else
                 throw new RuntimeException(String.format("[Metron] Message '%s' does not match pattern '%s'", logLine, syslogPattern));

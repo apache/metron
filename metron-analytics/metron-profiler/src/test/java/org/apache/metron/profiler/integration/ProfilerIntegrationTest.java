@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.integration;
 
+import com.google.common.base.Joiner;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -28,7 +29,6 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -39,7 +39,6 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
-import org.apache.metron.statistics.StatisticsProvider;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.Assert;
@@ -176,13 +175,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - 10.0.0.3 -> 1/6
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 1.0/6.0, epsilon)
+    Assert.assertTrue( "Could not find a value near 1/6. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val, 1.0/6.0, epsilon)
     ));
 
     // verify - 10.0.0.2 -> 6/1
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 6.0/1.0, epsilon)
+    Assert.assertTrue("Could not find a value near 6. Actual values read are are: " + Joiner.on(",").join(actuals)
+            ,actuals.stream().anyMatch(val -> MathUtils.equals(val, 6.0/1.0, epsilon)
     ));
   }
 
@@ -206,8 +205,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 20.0, epsilon)
+    Assert.assertTrue("Could not find a value near 20. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val, 20.0, epsilon)
     ));
   }
 
@@ -232,8 +231,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<OnlineStatisticsProvider> actuals = read(profilerTable.getPutLog(), columnFamily, column, OnlineStatisticsProvider.class);
 
     // verify - there are 5 'HTTP' messages each with a length of 20, thus the average should be 20
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val.getMean(), 20.0, epsilon)
+    Assert.assertTrue("Could not find a value near 20. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val.getMean(), 20.0, epsilon)
     ));
   }
 
@@ -253,8 +252,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
 
     // verify - the 70th percentile of 5 x 20s = 20.0
-    Assert.assertTrue(actuals.stream().anyMatch(val ->
-            MathUtils.equals(val, 20.0, epsilon)));
+    Assert.assertTrue("Could not find a value near 20. Actual values read are are: " + Joiner.on(",").join(actuals)
+                     , actuals.stream().anyMatch(val -> MathUtils.equals(val, 20.0, epsilon)));
   }
 
   /**
@@ -290,7 +289,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // storm topology properties
     final Properties topologyProperties = new Properties() {{
-      setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
+      setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
       setProperty("profiler.workers", "1");
       setProperty("profiler.executors", "0");
       setProperty("profiler.input.topic", inputTopic);
@@ -306,6 +305,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.flush.interval.seconds", "1");
       setProperty("profiler.profile.ttl", "20");
       setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
+      setProperty("storm.auto.credentials", "[]");
+      setProperty("kafka.security.protocol", "PLAINTEXT");
     }};
 
     // create the mock table

@@ -31,6 +31,9 @@
     - swig
     - zlib-devel
     - perl
+    - cyrus-sasl
+    - cyrus-sasl-devel
+    - cyrus-sasl-gssapi
   register: result
   until: result.rc == 0
   retries: 5

@@ -18,13 +18,14 @@
 #ifndef BRO_PLUGIN_BRO_KAFKA_KAFKAWRITER_H
 #define BRO_PLUGIN_BRO_KAFKA_KAFKAWRITER_H
 
-#include <string>
 #include <librdkafka/rdkafkacpp.h>
+#include <string>
+#include <Type.h>
 #include <logging/WriterBackend.h>
 #include <threading/formatters/JSON.h>
-#include <Type.h>
-#include "kafka.bif.h"
+#include <threading/Formatter.h>
 
+#include "kafka.bif.h"
 #include "TaggedJSON.h"
 
 namespace logging { namespace writer {

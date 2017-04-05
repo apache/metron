@@ -175,32 +175,52 @@ components:
                     - "${kafka.zk}"
 
 #kafka/zookeeper
-    -   id: "zkHosts"
-        className: "org.apache.storm.kafka.ZkHosts"
-        constructorArgs:
-            - "${kafka.zk}"
+# Any kafka props for the producer go here.
+    -   id: "kafkaProps"
+        className: "java.util.HashMap"
+        configMethods:
+            -   name: "put"
+                args:
+                    - "value.deserializer"
+                    - "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+            -   name: "put"
+                args:
+                    - "key.deserializer"
+                    - "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+            -   name: "put"
+                args:
+                    - "group.id"
+                    - "enrichments"
+
+  # The fields to pull out of the kafka messages
+    -   id: "fields"
+        className: "java.util.ArrayList"
+        configMethods:
+            -   name: "add"
+                args:
+                    - "value"
+
     -   id: "kafkaConfig"
-        className: "org.apache.storm.kafka.SpoutConfig"
+        className: "org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder"
         constructorArgs:
             # zookeeper hosts
-            - ref: "zkHosts"
+            - ref: "kafkaProps"
             # topic name
             - "enrichments"
-            # zk root
-            - ""
-            # id
-            - "enrichments"
-        properties:
-            -   name: "ignoreZkOffsets"
-                value: true
-            -   name: "startOffsetTime"
-                value: -2
+            - "${kafka.zk}"
+            - ref: "fields"
+        configMethods:
+            -   name: "setFirstPollOffsetStrategy"
+                args:
+                    - "UNCOMMITTED_EARLIEST"
+
 
 spouts:
     -   id: "kafkaSpout"
-        className: "org.apache.storm.kafka.KafkaSpout"
+        className: "org.apache.metron.storm.kafka.flux.StormKafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
+
 bolts:
 # Enrichment Bolts
     -   id: "enrichmentSplitBolt"

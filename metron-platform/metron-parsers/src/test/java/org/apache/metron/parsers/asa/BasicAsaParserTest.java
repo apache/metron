@@ -151,6 +151,28 @@ public class BasicAsaParserTest {
         assertEquals(1452005555000L, asaJson.get("timestamp"));
     }
 
+    @Test 
+    public void testSyslogIpHost() {
+    	String rawMessage = "<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
+    	JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
+        assertEquals("10.22.8.212", asaJson.get("syslog_host"));
+    }
+    
+    @Test 
+    public void testSyslogHost() {
+    	String rawMessage = "<174>Jan  5 14:52:35 hostname-2 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
+    	JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
+        assertEquals("hostname-2", asaJson.get("syslog_host"));
+    }
+    
+    @Test 
+    public void testSyslogHostAndProg() {
+    	String rawMessage = "<174>Jan  5 14:52:35 hostname-2 progName-2 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
+    	JSONObject asaJson = asaParser.parse(rawMessage.getBytes()).get(0);
+    	assertEquals("hostname-2", asaJson.get("syslog_host"));
+    	assertEquals("progName-2", asaJson.get("syslog_prog"));
+    }
+    
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 

@@ -57,6 +57,7 @@
 		<module>metron-hbase</module>
 		<module>elasticsearch-shaded</module>
 		<module>metron-elasticsearch</module>
+		<module>metron-storm-kafka</module>
 	</modules>
 	<dependencies>
 		<dependency>
