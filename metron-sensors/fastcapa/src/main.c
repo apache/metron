@@ -116,11 +116,11 @@ static void print_stats(struct rx_worker_params *rx_params, unsigned nb_rx_worke
 {
     struct rte_eth_stats eth_stats;
     unsigned i;
-    uint64_t in, out, depth;
+    uint64_t in, out, depth, drops;
     struct app_stats stats;
 
     // header
-    printf("\n\n     %15s %15s %15s %15s \n", "------ in ------", "--- queued ---", "----- out -----", "---- drops ----");
+    printf("\n\n     %15s %15s %15s %15s \n", " ----- in -----", " --- queued ---", "----- out -----", "---- drops ----");
 
     // summarize stats from each port
     in = 0;
@@ -131,13 +131,14 @@ static void print_stats(struct rx_worker_params *rx_params, unsigned nb_rx_worke
     printf("[nic] %15" PRIu64 " %15s %15s %15s \n", in, "-", "-", "-");
 
     // summarize receive; from network to receive queues
-    in = out = depth = 0;
+    in = out = depth = drops = 0;
     for (i = 0; i < nb_rx_workers; i++) {
         in += rx_params[i].stats.in;
         out += rx_params[i].stats.out;
         depth += rx_params[i].stats.depth;
+        drops += rx_params[i].stats.drops;
     }
-    printf("[rx]  %15" PRIu64 " %15" PRIu64 "  %15" PRIu64 "  %15" PRIu64 "\n", in, depth, out, in - out);
+    printf("[rx]  %15" PRIu64 " %15s %15" PRIu64 " %15" PRIu64 "\n", in, "-", out, drops);
 
     // summarize transmit; from receive queues to transmit rings
     in = out = depth = 0;
@@ -146,11 +147,11 @@ static void print_stats(struct rx_worker_params *rx_params, unsigned nb_rx_worke
         out += tx_params[i].stats.out;
         depth += tx_params[i].stats.depth;
     }
-    printf("[tx]  %15" PRIu64 " %15" PRIu64 "  %15" PRIu64 "  %15" PRIu64 "\n", in, depth, out, in - out);
+    printf("[tx]  %15" PRIu64 " %15s %15" PRIu64 " %15" PRIu64 "\n", in, "-", out, in - out);
 
     // summarize push to kafka; from transmit rings to librdkafka
     kaf_stats(&stats);
-    printf("[kaf] %15" PRIu64 " %15" PRIu64 "  %15" PRIu64 "  %15" PRIu64 "\n", stats.in, stats.depth, stats.out, stats.drops);
+    printf("[kaf] %15" PRIu64 " %15" PRIu64 " %15" PRIu64 " %15" PRIu64 "\n", stats.in, stats.depth, stats.out, stats.drops);
 
     // summarize any errors on the ports
     for (i = 0; i < rte_eth_dev_count(); i++) {
@@ -201,8 +202,10 @@ static int receive_worker(struct rx_worker_params* params)
     struct rte_ring *ring = params->output_ring;
     int i, dev_socket_id;
     uint8_t port;
+    struct rte_mbuf* pkts[MAX_BURST_SIZE];
+    const int attempts = MAX_BURST_SIZE / burst_size;
 
-    LOG_INFO(USER1, "Receive worker started; core=%u, socket=%u, queue=%u \n", rte_lcore_id(), socket_id, queue_id);
+    LOG_INFO(USER1, "Receive worker started; core=%u, socket=%u, queue=%u attempts=%d \n", rte_lcore_id(), socket_id, queue_id, attempts);
 
     // validate each port
     for (port = 0; port < nb_ports; port++) {
@@ -230,16 +233,22 @@ static int receive_worker(struct rx_worker_params* params)
             continue;
         }
 
-        // receive a 'burst' of packets
-        struct rte_mbuf* pkts[MAX_BURST_SIZE];
-        const uint16_t nb_in = rte_eth_rx_burst(port, queue_id, pkts, burst_size);
+        // receive a 'burst' of packets. if get back the max number requested, then there 
+        // are likely more packets waiting. immediately go back and grab some.
+        i = 0;
+        uint16_t nb_in = 0, nb_in_last = 0;
+        do {
+            nb_in_last = rte_eth_rx_burst(port, queue_id, &pkts[nb_in], burst_size);
+            nb_in += nb_in_last;
+
+        } while (++i < attempts && nb_in_last == burst_size);
         params->stats.in += nb_in;
 
         // add each packet to the ring buffer
         if(likely(nb_in) > 0) {
           const uint16_t nb_out = rte_ring_enqueue_burst(ring, (void *) pkts, nb_in);
           params->stats.out += nb_out;
-          //params->stats.depth = rte_ring_count(ring);
+          params->stats.drops += (nb_in - nb_out);
         }
        
         // clean-up the packet buffer 
@@ -305,7 +314,7 @@ int main(int argc, char* argv[])
     struct rte_mempool* mbuf_pool;
     unsigned n, i;
     unsigned nb_rx_workers, nb_tx_workers;
-    unsigned rx_worker_id, tx_worker_id = 0;
+    unsigned rx_worker_id = 0, tx_worker_id = 0;
     char buf[32];
 
     // catch interrupt
