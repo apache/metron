@@ -712,7 +712,7 @@ button
   border-top: solid 2px $edit-background-border;
   border-right: solid 1px $edit-background-border;
   border-left: solid 1px $edit-background-border;
-  max-height: 70px;
+  max-height: $button-bar-height;
 }
 
 .tooltip

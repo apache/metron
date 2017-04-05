@@ -18,6 +18,10 @@
 @import "../../_variables.scss";
 @import "../../../styles.scss";
 
+.metron-readonly-pane {
+  margin-bottom: $button-bar-height + 10px;
+}
+
 .metron-button-bar
 {
   background: $gray-light;

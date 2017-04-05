@@ -22,4 +22,8 @@ export class SensorParserConfigHistory {
   createdDate: string;
   modifiedByDate: string;
   config: SensorParserConfig;
+
+  constructor() {
+    this.config = new SensorParserConfig();
+  }
 }

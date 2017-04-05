@@ -102,11 +102,12 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.sensorParserConfigHistoryService.get(this.selectedSensorName).subscribe(
       (results: SensorParserConfigHistory) => {
         this.sensorParserConfigHistory = results;
-
-        this.sensorParserConfigHistory['parserClassName'] =
-            this.sensorParserConfigHistory.config.parserClassName.replace('org.apache.metron.parsers.', '');
         this.setGrokStatement();
         this.setTransformsConfigKeys();
+
+        let items = this.sensorParserConfigHistory.config.parserClassName.split('.');
+        this.sensorParserConfigHistory['parserClassName'] = items[items.length - 1].replace('Basic', '').replace('Parser', '');
+
       });
   }
 
