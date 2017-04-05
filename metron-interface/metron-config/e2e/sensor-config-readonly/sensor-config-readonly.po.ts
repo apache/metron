@@ -33,13 +33,17 @@ export class SensorDetailsPage {
     }
 
     clickToggleShowMoreLess(text: string, index: number) {
+        let ele = element.all(by.linkText(text)).get(index);
+        browser.driver.executeScript('arguments[0].scrollIntoView()', ele.getWebElement());
+
         return element.all(by.linkText(text)).get(index).click().then(() => {
             browser.sleep(1000);
             return true;
-        })
+        });
     }
 
     closePane(name: string) {
+        element.all(by.css('.alert .close')).click();
         return element(by.css('metron-config-sensor-parser-readonly .fa-times')).click().then(() => {
             return true;
         });
@@ -95,7 +99,7 @@ export class SensorDetailsPage {
 
     getParserConfig() {
         return element.all(by.css('metron-config-sensor-parser-readonly .row')).getText().then(data => {
-            return data.slice(1, 19);
+            return data.slice(1, 19).map(val => val.replace('\n', ':'));
         });
     }
 

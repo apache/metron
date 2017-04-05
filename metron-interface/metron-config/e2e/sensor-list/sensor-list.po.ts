@@ -31,11 +31,7 @@ export class SensorListPage {
         });
 
         return queueForClick.then(() => {
-            let promiseArray = [];
-            parserNames.map(name => {
-                promiseArray.push(this.waitForElement(this.getIconButton(name, waitOnClassName)));
-            });
-
+            let promiseArray = parserNames.map(name => this.waitForElement(this.getIconButton(name, waitOnClassName)));
             return protractor.promise.all(promiseArray).then(args => {
                 return args;
             });
@@ -46,11 +42,7 @@ export class SensorListPage {
         return protractor.promise.all([this.toggleSelectAll(), this.toggleDropdown()]).then(() => {
 
             return element(by.css('span[data-action=\"'+ dropDownLinkName +'\"]')).click().then(() => {
-                let promiseArray = [];
-                parserNames.map(name => {
-                    promiseArray.push(this.waitForElement(this.getIconButton(name, waitOnClassName)));
-                });
-
+                let promiseArray = parserNames.map(name => this.waitForElement(this.getIconButton(name, waitOnClassName)));
                 return protractor.promise.all(promiseArray).then(args => {
                     return this.toggleSelectAll().then(() => {
                         return args;

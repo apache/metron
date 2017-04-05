@@ -54,13 +54,12 @@ describe('Sensor Config for parser e2e1', function() {
 
     page.clickGrokStatement();
     page.setSampleMessage('sensor-grok', sampleMessage);
-    page.setGrokStatement(grokStatement);
+    page.clearGrokStatement(5);
+    page.setGrokStatement('E2E1 ' + grokStatement);
     page.testGrokStatement();
     expect(page.getGrokResponse()).toEqual(expectedGrokResponse);
     page.saveGrokStatement();
-    expect(page.getGrokStatementFromMainPane()).toEqual([grokStatement]);
-    page.setAdvancedConfig('grokPath', 'target/patterns/e2e1');
-
+    expect(page.getGrokStatementFromMainPane()).toEqual(['E2E1 ' +grokStatement]);
 
     page.clickSchema();
     page.setSampleMessage('sensor-field-schema', '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html');
@@ -89,7 +88,7 @@ describe('Sensor Config for parser e2e1', function() {
   });
 
   it('should have all the config for e2e parser', (done) => {
-    let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
+    let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
     let expectedFormData = {
       title: 'e2e1',
       parserName: 'e2e1',
@@ -97,9 +96,13 @@ describe('Sensor Config for parser e2e1', function() {
       grokStatement: grokStatement,
       fieldSchemaSummary: [ 'TRANSFORMATIONS 1', 'ENRICHMENTS 3', 'THREAT INTEL 2' ],
       threatTriageSummary: [ 'RULES 1' ],
-      indexName: 'e2e1',
-      batchSize: '1',
-      advancedConfig: [ 'patternLabel', 'E2E1', 'grokPath', 'target/patterns/e2e1', 'enter field', 'enter value' ]
+      hdfsIndex: 'e2e1',
+      hdfsBatchSize: '1',
+      hdfsEnabled: 'on',
+      solrIndex: 'e2e1',
+      solrBatchSize: '1',
+      solrEnabled: 'on',
+      advanced: [ 'grokPath', '/apps/metron/patterns/e2e1', 'patternLabel', 'E2E1', 'enter field', 'enter value' ]
     };
     expect(sensorListPage.openEditPane('e2e1')).toEqual('http://localhost:4200/sensors(dialog:sensors-config/e2e1)');
     expect(page.getFormData()).toEqual(expectedFormData);
@@ -107,28 +110,30 @@ describe('Sensor Config for parser e2e1', function() {
     page.closeMainPane().then(() => {
       done();
     });
-  })
+  });
 
   it('should have all the config details for  e2e parser', () => {
-    let parserNotRunnigExpected = ['',
-      'PARSERS\nGrok',
-      'LAST UPDATED\n-',
-      'LAST EDITOR\n-',
-      'STATE\n-',
-      'ORIGINATOR\n-',
-      'CREATION DATE\n-',
+    let parserNotRunnigExpected = [ '',
+      'PARSER:Grok',
+      'LAST UPDATED:-',
+      'LAST EDITOR:-',
+      'STATE:-',
+      'ORIGINATOR:-',
+      'CREATION DATE:-',
       ' ',
-      'STORM\nStopped',
-      'LATENCY\n-',
-      'THROUGHPUT\n-',
-      'EMITTED(10 MIN)\n-',
-      'ACKED(10 MIN)\n-',
+      'STORM:Stopped',
+      'LATENCY:-',
+      'THROUGHPUT:-',
+      'EMITTED(10 MIN):-',
+      'ACKED(10 MIN):-',
       ' ',
-      'KAFKA\nNo Kafka Topic',
-      'PARTITONS\n-',
-      'REPLICATION FACTOR\n-',
-      ''];
-    let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
+      'KAFKA:No Kafka Topic',
+      'PARTITONS:-',
+      'REPLICATION FACTOR:-',
+      ''
+    ];
+
+    let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
 
     expect(sensorDetailsPage.navigateTo('e2e1')).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/e2e1)');
     expect(sensorDetailsPage.getTitle()).toEqual("e2e1");
@@ -146,7 +151,7 @@ describe('Sensor Config for parser e2e1', function() {
 
     sensorDetailsPage.closePane('e2e1');
     
-  })
+  });
 
 
   it('should delete the e2e parser', (done) => {

@@ -32,6 +32,13 @@ export class SensorConfigPage {
     return element.all(by.css('.config.container')).all(by.css('metron-config-multiple-input')).first().all(by.css('select')).last();
   }
 
+  clearGrokStatement(length) {
+    let grokTextArea = element(by.css('metron-config-sensor-grok .ace_text-input'));
+    waitForElementInVisibility(grokTextArea).then(() => {
+      grokTextArea.clear();
+    });
+  }
+
   clickAddButton() {
     changeURL(browser.baseUrl + '/sensors');
     let addButton = element(by.css('.metron-add-button.hexa-button'));
@@ -43,26 +50,27 @@ export class SensorConfigPage {
   clickAddThreatTriageRule() {
     let addThreatTriageButton = element(by.css('metron-config-sensor-threat-triage .add-button'));
     return waitForElementVisibility(addThreatTriageButton).then(() => {
+      browser.sleep(1000);
       return addThreatTriageButton.click();
     });
   }
 
   clickGrokStatement() {
-    let grokInput = element(by.css('input[formcontrolname="grokStatement"] + span'));
+    let grokInput = element(by.css('span[name="grokstatementButton"] button'));
     return waitForElementVisibility(grokInput).then(() => {
       return grokInput.click();
     });
   }
 
   clickSchema() {
-    let schemaInput = element(by.css('div[name="fieldSchema"] button'));
+    let schemaInput = element(by.css('span[name="fieldSchemaButton"] button'));
     return waitForElementVisibility(schemaInput).then(() => {
       return schemaInput.click();
     });
   }
 
   clickThreatTriage() {
-    let threatTriageInput = element(by.css('div[name="threatTriage"] button'));
+    let threatTriageInput = element(by.css('span[name="threatTriageButton"] button'));
     return waitForElementVisibility(threatTriageInput).then(() => {
       return threatTriageInput.click();
     });
@@ -86,7 +94,7 @@ export class SensorConfigPage {
   }
 
   getFieldSchemaSummary() {
-    return element.all(by.css('[name="fieldSchema"] table tr')).getText();
+    return element(by.cssContainingText('label', 'SCHEMA')).all(by.xpath('..//table//tr')).getText();
   }
 
   getFieldSchemaValues() {
@@ -114,11 +122,15 @@ export class SensorConfigPage {
       mainPanel.element(by.css('input[name="sensorTopic"]')).getAttribute('value'),
       mainPanel.element(by.css('select[formcontrolname="parserClassName"]')).getAttribute('value'),
       mainPanel.element(by.css('input[formcontrolname="grokStatement"]')).getAttribute('value'),
-      mainPanel.all(by.css('div[name="fieldSchema"] table tr')).getText(),
-      mainPanel.all(by.css('div[name="threatTriage"] table tr')).getText(),
-      mainPanel.element(by.css('input[formcontrolname="index"]')).getAttribute('value'),
-      mainPanel.element(by.css('metron-config-number-spinner[name="batchSize"] input')).getAttribute('value'),
-      mainPanel.all(by.css('metron-config-advanced-form input')).getAttribute('value')
+      mainPanel.element(by.cssContainingText('label', 'SCHEMA')).all(by.xpath('..//table//tr')).getText(),
+      mainPanel.element(by.cssContainingText('label', 'THREAT TRIAGE')).all(by.xpath('..//table//tr')).getText(),
+      mainPanel.element(by.css('input[name="hdfsIndex"]')).getAttribute('value'),
+      mainPanel.element(by.css('metron-config-number-spinner[name="hdfsBatchSize"] input')).getAttribute('value'),
+      mainPanel.element(by.css('input[name="hdfsEnabled"]')).getAttribute('value'),
+      mainPanel.element(by.css('input[name="solrIndex"]')).getAttribute('value'),
+      mainPanel.element(by.css('metron-config-number-spinner[name="solrBatchSize"] input')).getAttribute('value'),
+      mainPanel.element(by.css('input[name="solrEnabled"]')).getAttribute('value'),
+      mainPanel.all(by.css('metron-config-advanced-form[name="parserConfig"] input')).getAttribute('value')
     ]).then(args => {
       return  {
         title: args[0],
@@ -127,9 +139,13 @@ export class SensorConfigPage {
         grokStatement: args[3],
         fieldSchemaSummary: args[4],
         threatTriageSummary: args[5],
-        indexName: args[6],
-        batchSize: args[7],
-        advancedConfig: args[8]
+        hdfsIndex: args[6],
+        hdfsBatchSize: args[7],
+        hdfsEnabled: args[8],
+        solrIndex: args[9],
+        solrBatchSize: args[10],
+        solrEnabled: args[11],
+        advanced: args[12]
       }
     });
   }
@@ -143,7 +159,7 @@ export class SensorConfigPage {
   }
 
   getThreatTriageSummary() {
-    return element.all(by.css('div[name="threatTriage"] table tr')).getText();
+    return element(by.cssContainingText('label', 'THREAT TRIAGE')).all(by.xpath('..//table//tr')).getText();
   }
 
   getTransformText() {

@@ -86,11 +86,11 @@ describe('Sensor List', function() {
 
         page.toggleSort('Parser');
         expect(page.getSortOrder('Parser')).toEqual(ASCENDING_CSS);
-        expect(page.getColumnValues(1)).toEqual(['Grok', 'Grok', 'Java', 'Java', 'Java', 'Java', 'Java']);
+        expect(page.getColumnValues(1)).toEqual(['Asa', 'Bro', 'Grok', 'Grok', 'GrokWebSphere', 'JSONMap', 'Snort']);
 
         page.toggleSort('Parser');
         expect(page.getSortOrder('Parser')).toEqual(DESCENDING_CSS);
-        expect(page.getColumnValues(1)).toEqual(['Java', 'Java', 'Java', 'Java', 'Java', 'Grok', 'Grok']);
+        expect(page.getColumnValues(1)).toEqual(['Snort', 'JSONMap', 'GrokWebSphere', 'Grok', 'Grok', 'Bro', 'Asa']);
 
         page.toggleSort('Status');
         expect(page.getSortOrder('Status')).toEqual(ASCENDING_CSS);
