@@ -133,18 +133,15 @@ The size of THPs that are supported will vary based on your CPU.  These typicall
     $DPDK_HOME/sbin/dpdk-devbind --bind=uio_pci_generic "09:00.0"
     ```
 
-6. Ensure that the device was bound. It should be shown as a "network device using DPDK-compatible driver."
-    ```
-    [root@y138 dpdk-stable-16.11.1]# dpdk-devbind --status
-    
+6. Ensure that the device was bound. It should be shown as a 'network device using DPDK-compatible driver.'
+    ``` 
+    $ dpdk-devbind --status
     Network devices using DPDK-compatible driver
     ============================================
     0000:09:00.0 'VIC Ethernet NIC' drv=uio_pci_generic unused=enic
-    
     Network devices using kernel driver
     ===================================
     0000:01:00.0 'I350 Gigabit Network Connection' if=eno1 drv=igb unused=uio_pci_generic
-    ...
     ```
 
 #### Install Librdkafka
