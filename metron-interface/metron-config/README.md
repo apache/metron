@@ -5,7 +5,7 @@ This module provides a user interface for management functions in Metron.
 ## Prerequisites
 
 * A network accessible Metron REST application
-* npm 3.8.9+ (npm can be installed on quick dev with `yum install npm && npm install npm@3.8.9 -g`)
+* nodejs v6.9+ (nodejs can be installed on quick dev with `curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum install -y nodejs`)
 
 ## Installation
 1. Build Metron:
@@ -33,13 +33,13 @@ This module provides a user interface for management functions in Metron.
 
 1. Then start the application with the script:
     ```
-    ./bin/start_management_ui.sh -p [port] -r [restUrl]
-
-    [port]: Port to run metron management ui (usually 4200)
-    [restUrl]: Url where metron rest application is available (Ex: http://localhost:8080)
+    ./bin/start_management_ui.sh
+    Usage: server.js -p [port] -r [restUrl]
+    Options:
+      -p             Port to run metron management ui                [required]
+      -r, --resturl  Url where metron rest application is available  [required]
     ```
 
-NOTE: The start_management_ui.sh script downloads the expressjs webserver. The host machine running the script should have an active internet connetion and nodejs installed
 ## Usage
 
 The application will be available at http://host:4200 with credentials `user/password`, assuming the default port is configured and the `dev` profile is included when starting the REST application.  See the [REST application](../metron-rest#security) documentation for more information about security configuration for production.
