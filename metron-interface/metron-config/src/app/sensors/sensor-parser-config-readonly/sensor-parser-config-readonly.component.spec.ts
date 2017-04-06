@@ -205,7 +205,7 @@ class MockHdfsService extends HdfsService {
     });
   }
 
-  public post(path: string, contents: string): Observable<{}> {
+  public post(path: string, contents: string): Observable<Response> {
     return Observable.create(observer => {
       observer.next({});
       observer.complete();
@@ -650,38 +650,59 @@ describe('Component: SensorParserConfigReadonly', () => {
   }));
 
   it('should hide start', async(() => {
-    component.topologyStatus.status = 'Running';
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isStartHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'INACTIVE';
     expect(component.isStartHidden()).toEqual(true);
 
     component.topologyStatus.status = 'Stopped';
     expect(component.isStartHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isStartHidden()).toEqual(false);
   }));
 
   it('should hide stop', async(() => {
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isStopHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'INACTIVE';
+    expect(component.isStopHidden()).toEqual(false);
+
     component.topologyStatus.status = 'Stopped';
     expect(component.isStopHidden()).toEqual(true);
 
-    component.topologyStatus.status = 'Running';
-    expect(component.isStopHidden()).toEqual(false);
-
-    component.topologyStatus.status = 'Disabled';
-    expect(component.isStopHidden()).toEqual(false);
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isStopHidden()).toEqual(true);
   }));
 
   it('should hide enable', async(() => {
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isEnableHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'INACTIVE';
+    expect(component.isEnableHidden()).toEqual(false);
+
     component.topologyStatus.status = 'Stopped';
     expect(component.isEnableHidden()).toEqual(true);
 
-    component.topologyStatus.status = 'Disabled';
-    expect(component.isEnableHidden()).toEqual(false);
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isEnableHidden()).toEqual(true);
   }));
 
   it('should hide disable', async(() => {
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isDisableHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'INACTIVE';
+    expect(component.isDisableHidden()).toEqual(true);
+
     component.topologyStatus.status = 'Stopped';
     expect(component.isDisableHidden()).toEqual(true);
 
-    component.topologyStatus.status = 'Running';
-    expect(component.isDisableHidden()).toEqual(false);
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isDisableHidden()).toEqual(true);
   }));
 
 });

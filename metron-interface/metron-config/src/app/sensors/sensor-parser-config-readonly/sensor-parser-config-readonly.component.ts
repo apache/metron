@@ -357,10 +357,12 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   }
 
   isEnableHidden() {
-    return (this.topologyStatus.status === 'ACTIVE' || this.topologyStatus.status === 'KILLED' || this.topologyStatus.status === 'Stopped');
+    return (this.topologyStatus.status === 'ACTIVE' || this.topologyStatus.status === 'KILLED'
+            || this.topologyStatus.status === 'Stopped');
   }
 
   isDisableHidden() {
-    return (this.topologyStatus.status === 'INACTIVE' || this.topologyStatus.status === 'KILLED' || this.topologyStatus.status === 'Stopped');
+    return (this.topologyStatus.status === 'INACTIVE' || this.topologyStatus.status === 'KILLED'
+            || this.topologyStatus.status === 'Stopped');
   }
 }
