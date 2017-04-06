@@ -501,7 +501,7 @@ describe('Component: SensorFieldSchema', () => {
         let conditionalFieldTransformationRemoveJson = {
           'input': ['code'],
           'transformation': 'REMOVE',
-          'config':{
+          'config': {
             'condition': 'exists(method)'
           }
         };
