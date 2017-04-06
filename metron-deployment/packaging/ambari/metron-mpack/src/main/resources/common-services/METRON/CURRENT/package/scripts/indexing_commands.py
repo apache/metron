@@ -21,7 +21,6 @@ import time
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
-from metron_security import kinit
 import metron_service
 
 
@@ -50,84 +49,31 @@ class IndexingCommands:
         File(self.__params.indexing_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
-             mode=0775)
+             mode=0755)
 
     def set_acl_configured(self):
         File(self.__params.indexing_acl_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
-             mode=0775)
+             mode=0755)
 
     def init_kafka_topics(self):
-        Logger.info('Creating Kafka topics')
-        # prevent concurrent kinit
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.kafka_keytab_path,
-                  self.__params.kafka_principal_name,
-                  self.__params.kafka_user)
-
-        command_template = """{0}/kafka-topics.sh \
-                                --zookeeper {1} \
-                                --create \
-                                --topic {2} \
-                                --partitions {3} \
-                                --replication-factor {4} \
-                                --config retention.bytes={5}"""
-
-        num_partitions = 1
-        replication_factor = 1
-        retention_gigabytes = int(self.__params.metron_topic_retention)
-        retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
-        Logger.info("Creating topics for indexing")
-
-        Logger.info("Creating topic'{0}'".format(self.__indexing))
-        Execute(command_template.format(self.__params.kafka_bin_dir,
-                                        self.__params.zookeeper_quorum,
-                                        self.__indexing,
-                                        num_partitions,
-                                        replication_factor,
-                                        retention_bytes),
-                user=self.__params.kafka_user)
-        Logger.info("Done creating Kafka topics")
+        Logger.info('Creating Kafka topics for indexing')
+        metron_service.init_kafka_topics(self.__params, [self.__indexing])
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs')
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.kafka_keytab_path,
-                  self.__params.kafka_principal_name,
-                  self.__params.kafka_user)
-
-        acl_template = """{0}/kafka-acls.sh \
-                              --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                              --authorizer-properties zookeeper.connect={1} \
-                              --add \
-                              --allow-principal User:{2} \
-                              --topic {3}"""
-
-        Logger.info("Creating ACL for topic'{0}'".format(self.__indexing))
-        Execute(acl_template.format(self.__params.kafka_bin_dir,
-                                    self.__params.zookeeper_quorum,
-                                    self.__params.storm_principal_name,
-                                    self.__indexing),
-                user=self.__params.kafka_user)
-        Logger.info("Done creating Kafka ACLs")
+        metron_service.init_kafka_topics(self.__params, [self.__indexing])
 
     def init_hdfs_dir(self):
         Logger.info('Creating HDFS indexing directory')
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.metron_keytab_path,
-                  self.__params.metron_jaas_principal,
-                  self.__params.metron_user)
 
         self.__params.HdfsResource(self.__params.metron_apps_indexed_hdfs_dir,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
                                    group=self.__params.metron_group,
-                                   mode=0775,
+                                   mode=0755,
                                    )
         Logger.info('Done creating HDFS indexing directory')
 
@@ -137,14 +83,16 @@ class IndexingCommands:
                                     -s {1} \
                                     -z {2}"""
         Logger.info('Starting ' + self.__indexing)
-        Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum))
+        Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum),
+                user=self.__params.metron_user)
 
         Logger.info('Finished starting indexing topology')
 
     def stop_indexing_topology(self):
         Logger.info('Stopping ' + self.__indexing)
         stop_cmd = 'storm kill ' + self.__indexing
-        Execute(stop_cmd)
+        Execute(stop_cmd,
+                user=self.__params.metron_user)
         Logger.info('Done stopping indexing topologies')
 
     def restart_indexing_topology(self, env):

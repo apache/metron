@@ -21,14 +21,12 @@ limitations under the License.
 import functools
 import os
 
-from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script import Script
 
@@ -44,7 +42,7 @@ parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
 metron_indexing_topology = status_params.metron_indexing_topology
-metron_user = config['configurations']['metron-env']['metron_user']
+metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
@@ -175,15 +173,19 @@ kafka_security_protocol = config['configurations']['kafka-broker'].get('security
 kafka_user = config['configurations']['kafka-env']['kafka_user']
 storm_user = config['configurations']['storm-env']['storm_user']
 
+# HBase user table creation and ACLs
+hbase_user = config['configurations']['hbase-env']['hbase_user']
+
 # Security
 security_enabled = status_params.security_enabled
+client_jaas_path = metron_home + '/client_jaas.conf'
+client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
+topology_worker_childopts = client_jaas_arg if security_enabled else ''
 
 if security_enabled:
     hostname_lowercase = config['hostname'].lower()
-    metron_principal_name = config['configurations']['metron-env']['metron_principal_name']
-    metron_jaas_principal = metron_principal_name.replace('_HOST', hostname_lowercase)
-    ambari_principal_name = default('/configurations/cluster-env/ambari_principal_name', None)
-    metron_keytab_path = config['configurations']['metron-env']['metron_service_keytab']
+    metron_principal_name = status_params.metron_principal_name
+    metron_keytab_path = status_params.metron_keytab_path
     kinit_path_local = status_params.kinit_path_local
 
     hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']
@@ -193,6 +195,4 @@ if security_enabled:
     kafka_principal_name = kafka_principal_raw.replace('_HOST', hostname_lowercase)
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
-    storm_principal_name = status_params.storm_principal_name
-    storm_principal = storm_principal_name.split('@', 1)[0]
-    storm_keytab_path = status_params.storm_keytab_path
+    nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']

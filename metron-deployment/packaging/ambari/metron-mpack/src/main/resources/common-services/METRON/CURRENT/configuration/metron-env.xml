@@ -168,12 +168,12 @@
 ##### Storm #####
 indexing.workers=1
 indexing.executors=0
-topology.worker.childopts=
+topology.worker.childopts={{topology_worker_childopts}}
 ##### Kafka #####
 kafka.zk={{ zookeeper_quorum }}
 kafka.broker={{ kafka_brokers }}
 kafka.start=UNCOMMITTED_EARLIEST
-kafka.security.protocol=PLAINTEXT
+kafka.security.protocol={{kafka_security_protocol}}
 storm.auto.credentials=[]
 ##### Indexing #####
 index.input.topic=indexing

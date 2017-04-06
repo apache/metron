@@ -25,8 +25,6 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.functions.format import format as ambari_format
-from metron_security import kinit
 
 import metron_service
 
@@ -60,29 +58,24 @@ class ParserCommands:
         File(self.__params.parsers_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
-             mode=0775)
+             mode=0755)
 
     def set_acl_configured(self):
         File(self.__params.parsers_acl_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
-             mode=0775)
+             mode=0755)
 
     def init_parsers(self):
         Logger.info(
             "Copying grok patterns from local directory '{0}' to HDFS '{1}'".format(self.__params.local_grok_patterns_dir,
                                                                                     self.__params.hdfs_grok_patterns_dir))
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.metron_keytab_path,
-                  self.__params.metron_jaas_principal,
-                  self.__params.metron_user)
 
         self.__params.HdfsResource(self.__params.hdfs_grok_patterns_dir,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   mode=0775,
+                                   mode=0755,
                                    source=self.__params.local_grok_patterns_dir)
 
         Logger.info("Done initializing parser configuration")
@@ -91,71 +84,31 @@ class ParserCommands:
         return self.__parser_list
 
     def init_kafka_topics(self):
-        Logger.info('Creating Kafka topics')
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.kafka_keytab_path,
-                  self.__params.kafka_principal_name,
-                  self.__params.kafka_user)
-
-        command_template = """{0}/kafka-topics.sh \
-                                --zookeeper {1} \
-                                --create \
-                                --topic {2} \
-                                --partitions {3} \
-                                --replication-factor {4} \
-                                --config retention.bytes={5}"""
-
-        num_partitions = 1
-        replication_factor = 1
-        retention_gigabytes = int(self.__params.metron_topic_retention)
-        retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
-        Logger.info("Creating main topics for parsers")
-        for parser_name in self.get_parser_list():
-            Logger.info("Creating topic'{0}'".format(parser_name))
-            Execute(command_template.format(self.__params.kafka_bin_dir,
-                                            self.__params.zookeeper_quorum,
-                                            parser_name,
-                                            num_partitions,
-                                            replication_factor,
-                                            retention_bytes),
-                    user=self.__params.kafka_user)
-        Logger.info("Done creating Kafka topics")
+        Logger.info('Creating Kafka topics for parsers')
+        metron_service.init_kafka_topics(self.__params, self.get_parser_list())
 
     def init_kafka_acls(self):
-        Logger.info('Creating Kafka ACLs')
-        if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
-                  self.__params.kafka_keytab_path,
-                  self.__params.kafka_principal_name,
-                  self.__params.kafka_user)
-
-        acl_template = """{0}/kafka-acls.sh \
-                                  --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                                  --authorizer-properties zookeeper.connect={1} \
-                                  --add \
-                                  --allow-principal User:{2} \
-                                  --topic {3}"""
-
-        for parser_name in self.get_parser_list():
-            Logger.info("Creating ACL for topic'{0}'".format(parser_name))
-            Execute(acl_template.format(self.__params.kafka_bin_dir,
-                                        self.__params.zookeeper_quorum,
-                                        self.__params.storm_principal_name,
-                                        parser_name),
-                    user=self.__params.kafka_user)
-        Logger.info("Done creating Kafka ACLs")
+        Logger.info('Creating Kafka ACLs for parsers')
+        metron_service.init_kafka_acls(self.__params, self.get_parser_list(), '_parser')
 
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))
         start_cmd_template = """{0}/bin/start_parser_topology.sh \
                                     -k {1} \
                                     -z {2} \
-                                    -s {3}"""
+                                    -s {3} \
+                                    -ksp {4}"""
+        if self.__params.security_enabled:
+            # Append the extra configs needed for secured cluster.
+            start_cmd_template = start_cmd_template + ' -e ~' + self.__params.metron_user + '/.storm/storm.config'
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
-            Execute(start_cmd_template.format(self.__params.metron_home, self.__params.kafka_brokers,
-                                              self.__params.zookeeper_quorum, parser))
+            Execute(start_cmd_template.format(self.__params.metron_home,
+                                              self.__params.kafka_brokers,
+                                              self.__params.zookeeper_quorum,
+                                              parser,
+                                              self.__params.kafka_security_protocol),
+                    user=self.__params.metron_user)
 
         Logger.info('Finished starting parser topologies')
 
@@ -164,7 +117,7 @@ class ParserCommands:
         for parser in self.get_parser_list():
             Logger.info('Stopping ' + parser)
             stop_cmd = 'storm kill ' + parser
-            Execute(stop_cmd)
+            Execute(stop_cmd, user=self.__params.metron_user)
         Logger.info('Done stopping parser topologies')
 
     def restart_parser_topologies(self, env):

@@ -19,8 +19,10 @@ from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
+from resource_management.core.logger import Logger
 
 from enrichment_commands import EnrichmentCommands
+from metron_security import storm_security_setup
 import metron_service
 
 
@@ -35,15 +37,20 @@ class Enrichment(Script):
         from params import params
         env.set_params(params)
 
+        Logger.info("Running enrichment configure")
         File(format("{metron_config_path}/enrichment.properties"),
              content=Template("enrichment.properties.j2"),
              owner=params.metron_user,
              group=params.metron_group
              )
 
+        Logger.info("Calling security setup")
+        storm_security_setup(params)
+
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = EnrichmentCommands(params)
         metron_service.load_global_config(params)
 

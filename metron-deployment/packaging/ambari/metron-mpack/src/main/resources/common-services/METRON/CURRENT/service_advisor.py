@@ -97,6 +97,12 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         return items
 
     def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
+        # Determine if the cluster is secured
+        if "cluster-env" in services["configurations"] and "security_enabled" in services["configurations"]["cluster-env"]["properties"]:
+            is_secured = services["configurations"]["cluster-env"]["properties"]["security_enabled"]
+        else:
+            is_secured = "false"
+
         #Suggest Storm Rest URL
         if "storm-site" in services["configurations"]:
             stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]
@@ -108,7 +114,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             storm_site = services["configurations"]["storm-site"]["properties"]
             putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
 
-            for property, desired_value in self.getSTORMSiteDesiredValues().iteritems():
+            for property, desired_value in self.getSTORMSiteDesiredValues(is_secured).iteritems():
                 if property not in storm_site:
                     putStormSiteProperty(property, desired_value)
                 elif  property == "topology.classpath" and storm_site[property] != desired_value:
@@ -135,6 +141,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         for property, desired_value in self.getSTORMSiteDesiredValues().iteritems():
             if property not in storm_site :
                 message = "Metron requires this property to be set to the recommended value of " + desired_value
+                # TODO determine if this needs to be error or warn for the security properties?
                 item = self.getErrorItem(message) if property == "topology.classpath" else self.getWarnItem(message)
                 validationItems.append({"config-name": property, "item": item})
             elif  storm_site[property] != desired_value:
@@ -147,11 +154,17 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
 
         return self.toConfigurationValidationProblems(validationItems, "storm-site")
 
-    def getSTORMSiteDesiredValues(self):
+    def getSTORMSiteDesiredValues(self, is_secured):
 
         storm_site_desired_values = {
             "topology.classpath" : "/etc/hbase/conf:/etc/hadoop/conf"
         }
+        if is_secured:
+            storm_site_desired_values.update({
+                "topology.auto-credentials" : "['org.apache.storm.security.auth.kerberos.AutoTGT']",
+                "nimbus.credential.renewers.classes":"['org.apache.storm.security.auth.kerberos.AutoTGT']",
+                "supervisor.run.worker.as.user":"true"
+            })
 
         return storm_site_desired_values
 

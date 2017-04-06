@@ -25,6 +25,8 @@ from resource_management.libraries.functions.version import format_stack_version
 
 config = Script.get_config()
 
+metron_user = config['configurations']['metron-env']['metron_user']
+
 # Parsers
 parsers = config['configurations']['metron-env']['parsers']
 metron_home = config['configurations']['metron-env']['metron_home']
@@ -68,6 +70,10 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()
 
+metron_user = config['configurations']['metron-env']['metron_user']
+
 if security_enabled:
-    storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
-    storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
+    metron_principal_name = config['configurations']['metron-env']['metron_principal_name']
+    metron_keytab_path = config['configurations']['metron-env']['metron_keytab']
+    #storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
+    #storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
