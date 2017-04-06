@@ -17,8 +17,8 @@
 ---
 # dpdk
 dpdk_home: "/usr/local/dpdk"
-dpdk_version: "16.11"
-dpdk_sdk: "/root/dpdk-{{ dpdk_version }}"
+dpdk_version: "16.11.1"
+dpdk_sdk: "/root/dpdk-stable-{{ dpdk_version }}"
 dpdk_src_url: "http://fast.dpdk.org/rel/dpdk-{{ dpdk_version }}.tar.xz"
 dpdk_target: "x86_64-native-linuxapp-gcc"
 num_huge_pages: 512
@@ -26,8 +26,16 @@ extra_cflags: -g
 
 # fastcapa
 fastcapa_work_dir: /root/fastcapa
+fastcapa_build_dir: "{{ fastcapa_work_dir }}/build/app/"
 fastcapa_prefix: /usr/local/bin
 fastcapa_ld_library_path: /usr/local/lib
+fastcapa_bin: fastcapa
+
+# fastcapa settings
 fastcapa_portmask: 0x01
 fastcapa_kafka_config: /etc/fastcapa.conf
-fastcapa_bin: fastcapa
+fastcapa_topic: pcap
+fastcapa_burst_size: 32
+fastcapa_nb_rx_desc: 1024
+fastcapa_nb_rx_queue: 1
+fastcapa_tx_ring_size: 2048

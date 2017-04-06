@@ -61,33 +61,24 @@
 #include <rte_string_fns.h>
 #include <rte_distributor.h>
 #include <rte_malloc.h>
+#include <rte_errno.h>
 
 #include "args.h"
 #include "kafka.h"
+#include "types.h"
 
-#define RX_RING_SIZE 256
-#define TX_RING_SIZE 512
+/*
+ * the number of receive queue descriptors is a multiple of the packet burst size
+ */
+#define RX_QUEUE_MULT 4 
+#define TX_QUEUE_SIZE 32
 #define NUM_MBUFS ((64 * 1024) - 1)
 #define MBUF_CACHE_SIZE 250
-#define BURST_SIZE 32
-#define RTE_RING_SZ 1024
 
 // uncomment below line to enable debug logs
-//#define DEBUG
+//#define DEBUG 
 
 volatile uint8_t quit_signal;
-volatile uint8_t quit_signal_rx;
-
-/**
- * Tracks packet processing stats.
- */
-volatile struct app_stats {
-    struct {
-        uint64_t received_pkts;
-        uint64_t enqueued_pkts;
-        uint64_t sent_pkts;
-    } rx __rte_cache_aligned;
-} app_stats;
 
 /**
  * Default port configuration settings.
@@ -96,6 +87,8 @@ const struct rte_eth_conf port_conf_default = {
     .rxmode = {
         .mq_mode = ETH_MQ_RX_RSS,
         .max_rx_pkt_len = ETHER_MAX_LEN,
+        .enable_scatter = 1,
+        .enable_lro = 1
     },
     .txmode = {
         .mq_mode = ETH_MQ_TX_NONE,
@@ -107,16 +100,7 @@ const struct rte_eth_conf port_conf_default = {
     },
 };
 
-/**
- * Configuration parameters provided to each worker.
- */
-struct lcore_params {
-    unsigned worker_id;
-    unsigned num_workers;
-    struct rte_distributor* d;
-    struct rte_mempool* mem_pool;
-} __rte_cache_aligned;
-
 int main(int argc, char* argv[]);
 
 #endif
+
