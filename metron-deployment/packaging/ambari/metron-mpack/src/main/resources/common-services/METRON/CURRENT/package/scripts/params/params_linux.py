@@ -156,8 +156,12 @@ enrichment_cf = status_params.enrichment_cf
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
 
+# Kafka Topics
+metron_parser_error_topic = status_params.metron_parser_error_topic
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
+metron_enrichment_error_topic = status_params.metron_enrichment_error_topic
+metron_threatintel_error_topic = status_params.metron_threatintel_error_topic
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"

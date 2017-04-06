@@ -28,8 +28,6 @@ class EnrichmentCommands:
     __params = None
     __enrichment_topology = None
     __enrichment_topic = None
-    __enrichment_error_topic = None
-    __threat_intel_error_topic = None
     __kafka_configured = False
     __kafka_acl_configured = False
     __hbase_configured = False
@@ -130,7 +128,8 @@ class EnrichmentCommands:
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka topics')
-        metron_service.init_kafka_acls(self.__params, [self.__enrichment_topic])
+        # Enrichment topic names matches group
+        metron_service.init_kafka_acls(self.__params, [self.__enrichment_topic], [self.__enrichment_topic])
 
         self.set_kafka_acl_configured()
 

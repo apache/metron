@@ -73,7 +73,8 @@ class IndexingCommands:
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs')
-        metron_service.init_kafka_acls(self.__params, [self.__indexing])
+        # Indexed topic names matches the group
+        metron_service.init_kafka_acls(self.__params, [self.__indexing], [self.__indexing])
 
     def init_hdfs_dir(self):
         Logger.info('Setting up HDFS indexing directory')

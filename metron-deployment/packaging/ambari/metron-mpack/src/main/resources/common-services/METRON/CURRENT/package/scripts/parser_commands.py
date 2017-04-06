@@ -89,7 +89,10 @@ class ParserCommands:
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs for parsers')
-        metron_service.init_kafka_acls(self.__params, self.get_parser_list(), '_parser')
+        # Parser group is the parser name + '_parser'
+        metron_service.init_kafka_acls(self.__params,
+                                       self.get_parser_list(),
+                                       [parser + '_parser' for parser in self.get_parser_list()])
 
     def start_parser_topologies(self):
         Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))

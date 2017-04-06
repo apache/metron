@@ -29,6 +29,7 @@ metron_user = config['configurations']['metron-env']['metron_user']
 
 # Parsers
 parsers = config['configurations']['metron-env']['parsers']
+metron_error_topic = 'indexing'
 metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
