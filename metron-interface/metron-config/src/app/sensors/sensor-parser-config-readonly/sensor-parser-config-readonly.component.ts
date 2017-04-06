@@ -145,9 +145,13 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   getTopologyStatus(key: string): string {
     if (key === 'latency') {
-      return this.topologyStatus.latency ? (this.topologyStatus.latency + 's') : '-';
+      return this.topologyStatus.latency >= 0? (this.topologyStatus.latency + 's') : '-';
     } else if (key === 'throughput') {
-      return this.topologyStatus.throughput ? ((Math.round(this.topologyStatus.throughput * 100) / 100) + 'kb/s')  : '-' ;
+      return this.topologyStatus.throughput >= 0 ? ((Math.round(this.topologyStatus.throughput * 100) / 100) + 'kb/s') : '-';
+    } else if (key === 'emitted') {
+      return this.topologyStatus.emitted >= 0 ? (this.topologyStatus.emitted + '') : '-';
+    } else if (key === 'acked') {
+      return this.topologyStatus.acked >= 0 ? (this.topologyStatus.acked + '') : '-';
     } else if (key === 'sensorStatus') {
       if (this.topologyStatus.status === 'ACTIVE') {
         return 'Enabled';
