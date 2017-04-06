@@ -115,27 +115,9 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.stormService.getStatus(this.selectedSensorName).subscribe(
       (results: TopologyStatus) => {
         this.topologyStatus = results;
-        this.topologyStatus.latency = (this.topologyStatus.latency ? (this.topologyStatus.latency + 's') : '-');
-        this.topologyStatus.throughput = (this.topologyStatus.throughput ?
-                                          ((Math.round(parseFloat(this.topologyStatus.throughput) * 100) / 100) + 'kb/s')  : '-') ;
-
-        this.topologyStatus['sensorStatus'] = '-';
-
-        if (this.topologyStatus.status === 'ACTIVE') {
-          this.topologyStatus.status = 'Running';
-          this.topologyStatus['sensorStatus'] = 'Enabled';
-        } else if (this.topologyStatus.status === 'KILLED') {
-          this.topologyStatus.status = 'Stopped';
-        } else if (this.topologyStatus.status === 'INACTIVE') {
-          this.topologyStatus.status = 'Disabled';
-          this.topologyStatus['sensorStatus'] = 'Disabled';
-        } else {
-          this.topologyStatus.status = 'Stopped';
-          }
       },
       error => {
         this.topologyStatus.status = 'Stopped';
-        this.topologyStatus['sensorStatus'] = '-';
       });
   }
 
@@ -159,6 +141,32 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       this.sensorEnrichmentConfig = sensorEnrichmentConfig;
       this.rules = sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules;
     });
+  }
+
+  getTopologyStatus(key: string): string {
+    if (key === 'latency') {
+      return this.topologyStatus.latency ? (this.topologyStatus.latency + 's') : '-';
+    } else if (key === 'throughput') {
+      return this.topologyStatus.throughput ? ((Math.round(this.topologyStatus.throughput * 100) / 100) + 'kb/s')  : '-' ;
+    } else if (key === 'sensorStatus') {
+      if (this.topologyStatus.status === 'ACTIVE') {
+        return 'Enabled';
+      } else if (this.topologyStatus.status === 'INACTIVE') {
+        return 'Disabled';
+      } else {
+        return '-';
+      }
+    } else if (key === 'status') {
+      if (this.topologyStatus.status === 'ACTIVE') {
+       return 'Running';
+      } else if (this.topologyStatus.status === 'INACTIVE') {
+        return 'Disabled';
+      } else {
+        return 'Stopped';
+      }
+    }
+
+    return this.topologyStatus[key] ? this.topologyStatus[key] : '-';
   }
 
   ngOnInit() {
@@ -341,18 +349,20 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   }
 
   isStartHidden() {
-    return (this.topologyStatus.status !== 'Stopped');
+    return (this.topologyStatus.status === 'ACTIVE' || this.topologyStatus.status === 'INACTIVE');
   }
 
   isStopHidden() {
-    return ((this.topologyStatus.status !== 'Running' && this.topologyStatus.status !== 'Disabled'));
+    return ((this.topologyStatus.status === 'KILLED' || this.topologyStatus.status === 'Stopped'));
   }
 
   isEnableHidden() {
-    return (this.topologyStatus.status !== 'Disabled');
+    return (this.topologyStatus.status === 'ACTIVE' || this.topologyStatus.status === 'KILLED'
+            || this.topologyStatus.status === 'Stopped');
   }
 
   isDisableHidden() {
-    return (this.topologyStatus.status !== 'Running');
+    return (this.topologyStatus.status === 'INACTIVE' || this.topologyStatus.status === 'KILLED'
+            || this.topologyStatus.status === 'Stopped');
   }
 }
