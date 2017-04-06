@@ -26,8 +26,8 @@ from resource_management.libraries.functions import format as ambari_format
 # Convenience function for ensuring home dirs are setup consistently.
 def storm_security_setup(params):
     if params.security_enabled:
-        # I don't think there's a way to get the local home dir of a user, so have Python perform tilde expansion before
-        # passing it to Ambari's Directory (because Directory doesn't do it).
+        # I don't think there's an Ambari way to get a user's local home dir , so have Python perform tilde expansion.
+        # Ambari's Directory doesn't do tilde expansion.
         metron_storm_dir_tilde = '~' + params.metron_user + '/.storm'
         metron_storm_dir = os.path.expanduser(metron_storm_dir_tilde)
         Directory(metron_storm_dir,

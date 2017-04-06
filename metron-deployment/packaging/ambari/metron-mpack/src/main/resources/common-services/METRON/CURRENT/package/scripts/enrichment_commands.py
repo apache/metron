@@ -182,17 +182,17 @@ class EnrichmentCommands:
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
-        add_enrichment_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.enrichment_table, self.__params.enrichment_cf)
+        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
+        add_enrichment_cmd = cmd.format(self.__params.enrichment_table, self.__params.enrichment_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
                 try_sleep=5,
                 logoutput=False,
                 path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                # user=self.__params.metron_user
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_cmd = "echo \"create '{0}','{1}'\" | hbase shell -n".format(self.__params.threatintel_table, self.__params.threatintel_cf)
+        add_threatintel_cmd = cmd.format(self.__params.threatintel_table, self.__params.threatintel_cf)
         Execute(add_threatintel_cmd,
                 tries=3,
                 try_sleep=5,
@@ -206,17 +206,17 @@ class EnrichmentCommands:
 
     def set_hbase_acls(self):
         Logger.info("Setting HBase ACLs")
-        add_enrichment_acl_cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n".format(self.__params.metron_user, self.__params.enrichment_table)
+        cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
+        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_table)
         Execute(add_enrichment_acl_cmd,
                 tries=3,
                 try_sleep=5,
                 logoutput=False,
                 path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                # user=self.__params.metron_user
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_acl_cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n".format(self.__params.metron_user, self.__params.threatintel_table)
+        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_table)
         Execute(add_threatintel_acl_cmd,
                 tries=3,
                 try_sleep=5,

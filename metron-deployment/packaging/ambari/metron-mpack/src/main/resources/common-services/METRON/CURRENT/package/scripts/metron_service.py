@@ -92,6 +92,7 @@ def load_global_config(params):
 
     init_config()
 
+
 def init_kafka_topics(params, topics):
     Logger.info('Creating Kafka topics')
 
@@ -107,7 +108,6 @@ def init_kafka_topics(params, topics):
     replication_factor = 1
     retention_gigabytes = int(params.metron_topic_retention)
     retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
-    # for parser_name in self.get_parser_list():
     for topic in topics:
         Logger.info("Creating topic'{0}'".format(topic))
         Execute(command_template.format(params.kafka_bin_dir,
