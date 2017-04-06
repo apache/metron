@@ -47,6 +47,11 @@ class Indexing(Script):
             commands.init_kafka_topics()
             commands.init_hdfs_dir()
             commands.set_configured()
+        if params.security_enabled and not commands.is_hdfs_perm_configured():
+            # If we Kerberize the cluster, we need to call this again, to remove write perms from hadoop group
+            # If we start off Kerberized, it just does the same thing twice.
+            commands.init_hdfs_dir()
+            commands.set_hdfs_perm_configured()
         if params.security_enabled and not commands.is_acl_configured():
             commands.init_kafka_acls()
             commands.set_acl_configured()

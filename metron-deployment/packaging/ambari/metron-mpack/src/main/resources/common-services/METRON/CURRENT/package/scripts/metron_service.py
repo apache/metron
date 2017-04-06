@@ -39,7 +39,7 @@ def get_running_topologies(params):
 
     # Want to sudo to the metron user and kinit as them so we aren't polluting root with Metron's Kerberos tickets.
     # This is becuase we need to run a command with a return as the metron user. Sigh
-    negotiate = '--negotiate -u :' if params.security_enabled else ''
+    negotiate = '--negotiate -u : ' if params.security_enabled else ''
     sudo = ambari_format('sudo -u {metron_user} ') if params.security_enabled else ''
     cmd = ambari_format(sudo + 'curl --max-time 3 ' + negotiate + '{storm_rest_addr}/api/v1/topology/summary')
 

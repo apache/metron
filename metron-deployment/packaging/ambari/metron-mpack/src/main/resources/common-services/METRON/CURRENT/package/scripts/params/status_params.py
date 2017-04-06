@@ -48,6 +48,7 @@ threatintel_cf = 't'
 metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
+indexing_hdfs_perm_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hdfs_perm_configured'
 
 # Enrichment
 enrichment_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_configured'
@@ -75,5 +76,3 @@ metron_user = config['configurations']['metron-env']['metron_user']
 if security_enabled:
     metron_principal_name = config['configurations']['metron-env']['metron_principal_name']
     metron_keytab_path = config['configurations']['metron-env']['metron_keytab']
-    #storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
-    #storm_keytab_path = config['configurations']['storm-env']['storm_keytab']

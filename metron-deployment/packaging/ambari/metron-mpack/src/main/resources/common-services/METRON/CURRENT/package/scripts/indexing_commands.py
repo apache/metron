@@ -30,6 +30,7 @@ class IndexingCommands:
     __indexing = None
     __configured = False
     __acl_configured = False
+    __hdfs_perm_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -45,6 +46,9 @@ class IndexingCommands:
     def is_acl_configured(self):
         return self.__acl_configured
 
+    def is_hdfs_perm_configured(self):
+        return self.__hdfs_perm_configured
+
     def set_configured(self):
         File(self.__params.indexing_configured_flag_file,
              content="",
@@ -57,23 +61,33 @@ class IndexingCommands:
              owner=self.__params.metron_user,
              mode=0755)
 
+    def set_hdfs_perm_configured(self):
+        File(self.__params.indexing_hdfs_perm_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for indexing')
         metron_service.init_kafka_topics(self.__params, [self.__indexing])
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs')
-        metron_service.init_kafka_topics(self.__params, [self.__indexing])
+        metron_service.init_kafka_acls(self.__params, [self.__indexing])
 
     def init_hdfs_dir(self):
-        Logger.info('Creating HDFS indexing directory')
+        Logger.info('Setting up HDFS indexing directory')
 
+        # Non Kerberized Metron runs under 'storm', requiring write under the 'hadoop' group.
+        # Kerberized Metron runs under it's own user.
+        ownership = 0755 if self.__params.security_enabled else 0775
+        Logger.info('HDFS indexing directory ownership is: ' + str(ownership))
         self.__params.HdfsResource(self.__params.metron_apps_indexed_hdfs_dir,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.metron_group,
-                                   mode=0755,
+                                   group=self.__params.hadoop_group,
+                                   mode=ownership,
                                    )
         Logger.info('Done creating HDFS indexing directory')
 
