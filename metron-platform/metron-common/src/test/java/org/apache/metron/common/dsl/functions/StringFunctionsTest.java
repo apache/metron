@@ -207,4 +207,78 @@ public class StringFunctionsTest {
   public void testFormatWithMissingArguments() throws Exception {
     run("FORMAT('missing arg: %d')", Collections.emptyMap());
   }
+
+
+  /**
+  * CHOP StringFunction
+  * @throws Exception
+  */
+  @Test
+  public void testChop() throws Exception {
+    Assert.assertEquals("ab",   run("CHOP('abc')", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOP(null)", new HashedMap()));
+    Assert.assertEquals("abc",  run("CHOP(msg)", ImmutableMap.of("msg", "abc\r\n")));
+    Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "\n")));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testChopWithMissingArguments() throws Exception {
+    run("CHOP()", Collections.emptyMap());
+  }
+
+  /**
+   * PREPENDIFMISSING StringFunction
+   * @throws Exception
+   */
+  @Test
+  public void testPrependIfMissing() throws Exception {
+    Assert.assertEquals("xyzabc",     run("PREPENDIFMISSING('abc', 'xyz')", new HashedMap()));
+    Assert.assertEquals("xyzXYZabc",  run("PREPENDIFMISSING('XYZabc', 'xyz', 'mno')", new HashedMap()));
+    Assert.assertEquals(null,         run("PREPENDIFMISSING(null, null, null)", new HashedMap()));
+    Assert.assertEquals("xyz",        run("PREPENDIFMISSING('', 'xyz', null)", new HashedMap()));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testPrependIfMissingWithIncorrectArgs() throws Exception {
+    run("PREPENDIFMISSING()", Collections.emptyMap());
+    run("PREPENDIFMISSING('abc')", Collections.emptyMap());
+    run("PREPENDIFMISSING('abc', 'def', 'ghi', 'jkl')", Collections.emptyMap());
+  }
+
+  /**
+   * APPENDIFMISSING StringFunction
+   * @throws Exception
+   */
+  @Test
+  public void testAppendIfMissing() throws Exception {
+    Assert.assertEquals("apachemetron", run("APPENDIFMISSING('apache', 'metron')", new HashedMap()));
+    Assert.assertEquals("abcXYZxyz",    run("APPENDIFMISSING('abcXYZ', 'xyz', 'mno')", new HashedMap()));
+    Assert.assertEquals(null,           run("APPENDIFMISSING(null, null, null)", new HashedMap()));
+    Assert.assertEquals("xyz",          run("APPENDIFMISSING('', 'xyz', null)", new HashedMap()));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testAppendIfMissingWithIncorrectArgs() throws Exception {
+    run("APPENDIFMISSING()", Collections.emptyMap());
+    run("APPENDIFMISSING('abc')", Collections.emptyMap());
+    run("APPENDIFMISSING('abc', 'def', 'ghi', 'jkl')", Collections.emptyMap());
+  }
+
+  /**
+   * COUNTMATCHES StringFunction
+   * @throws Exception
+   */
+  @Test
+  public void testCountMatches() throws Exception {
+    Assert.assertEquals(0, (int)run("COUNTMATCHES(null, '*')", new HashedMap()));
+    Assert.assertEquals(2, (int)run("COUNTMATCHES('apachemetron', 'e')", new HashedMap()));
+    Assert.assertEquals(2, (int)run("COUNTMATCHES('blahblah', 'bla')", new HashedMap()));
+    Assert.assertEquals(0, (int)run("COUNTMATCHES('abcd', null)", new HashedMap()));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testCountMatchesWithIncorrectArgs() throws Exception {
+    run("COUNTMATCHES()", Collections.emptyMap());
+    run("COUNTMATCHES('abc', 'def', 'ghi')", Collections.emptyMap());
+  }
 }
